@@ -63,7 +63,29 @@ export type HierarchyEdge = {
     };
 };
 
+export type HierarchyTreeNodeType = 'organization' | 'organization_unit';
+
+export type HierarchyTreeNodeMeta = {
+    organization_type?: string | null;
+    organization_type_am?: string | null;
+    organization_unit_type?: string | null;
+    organization_unit_type_am?: string | null;
+    organization_unit_count?: number;
+    position_count?: number;
+    employee_count?: number;
+    functional_reports_to?: string[];
+};
+
 export type HierarchyTreeNodeData = {
+    // Unified fields (new)
+    id: string;
+    type: HierarchyTreeNodeType;
+    label: string;
+    node_type_label: string | null;
+    node_type_label_am: string | null;
+    status_label: string | null;
+    meta: HierarchyTreeNodeMeta | null;
+    // Legacy fields (kept for backwards compat)
     organization_id: string;
     edge_id: string | null;
     parent_organization_id: string | null;
@@ -71,7 +93,7 @@ export type HierarchyTreeNodeData = {
     name_en: string;
     name_am: string | null;
     organization_type: {
-        code: string;
+        code: string | null;
         name_en: string;
         name_am: string | null;
     } | null;

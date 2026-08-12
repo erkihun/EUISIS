@@ -18,6 +18,7 @@ use App\Http\Resources\HierarchyVersionResource;
 use App\Http\Resources\OrganizationEdgeResource;
 use App\Models\HierarchyVersion;
 use App\Models\OrganizationEdge;
+use App\Services\Hierarchy\HierarchyTreeService;
 use App\Services\Organizations\OrganizationTreeService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\JsonResponse;
@@ -44,9 +45,9 @@ class HierarchyVersionController extends Controller
             ->when($filters['search'], function ($query, string $search): void {
                 $query->where(function ($innerQuery) use ($search): void {
                     $innerQuery
-                        ->where('version_name', 'like', "%{$search}%")
-                        ->orWhere('source_document', 'like', "%{$search}%")
-                        ->orWhere('notes', 'like', "%{$search}%");
+                        ->where('version_name', ci_like_operator(), "%{$search}%")
+                        ->orWhere('source_document', ci_like_operator(), "%{$search}%")
+                        ->orWhere('notes', ci_like_operator(), "%{$search}%");
                 });
             })
             ->when($filters['status'], fn ($query, string $status) => $query->where('status', $status))
@@ -85,12 +86,12 @@ class HierarchyVersionController extends Controller
             ->with('flash', ['message' => __('hierarchy-versions.created_successfully'), 'type' => 'success']);
     }
 
-    public function show(HierarchyVersion $hierarchyVersion, Request $request, OrganizationScopeService $organizationScopeService): Response
+    public function show(HierarchyVersion $hierarchyVersion, Request $request, OrganizationScopeService $organizationScopeService, HierarchyTreeService $hierarchyTreeService): Response
     {
         $this->authorize('view', $hierarchyVersion);
 
         $hierarchyVersion->load('approver:id,name')->loadCount('edges');
-        $tree = $organizationScopeService->buildVersionTree($hierarchyVersion, $request->user());
+        $tree = $hierarchyTreeService->buildFullTree($hierarchyVersion, $request->user());
 
         return Inertia::render('HierarchyVersions/Show', [
             'version' => HierarchyVersionResource::make($hierarchyVersion)->resolve($request),
@@ -171,9 +172,16 @@ class HierarchyVersionController extends Controller
         HierarchyVersion $hierarchyVersion,
         Request $request,
         OrganizationScopeService $organizationScopeService,
+        HierarchyTreeService $hierarchyTreeService,
     ): Response {
         $this->authorize('view', $hierarchyVersion);
-        $tree = $organizationScopeService->buildVersionTree($hierarchyVersion, $request->user());
+
+        $filters = [
+            'include_units' => filter_var($request->query('include_units', 'true'), FILTER_VALIDATE_BOOLEAN),
+            'include_inactive' => filter_var($request->query('include_inactive', 'false'), FILTER_VALIDATE_BOOLEAN),
+        ];
+
+        $tree = $hierarchyTreeService->buildFullTree($hierarchyVersion, $request->user(), $filters);
 
         return Inertia::render('HierarchyVersions/Tree', [
             'version' => HierarchyVersionResource::make($hierarchyVersion->load('approver:id,name')->loadCount('edges'))->resolve($request),
@@ -192,6 +200,7 @@ class HierarchyVersionController extends Controller
                     ->get()
             )->resolve($request),
             'summary' => $organizationScopeService->summarizeVersionTree($tree),
+            'filters' => $filters,
             'can' => [
                 'manageTree' => $this->canManageTree($request, $hierarchyVersion),
                 'createEdge' => $this->canCreateEdge($request, $hierarchyVersion),
@@ -204,9 +213,10 @@ class HierarchyVersionController extends Controller
         Request $request,
         OrganizationScopeService $organizationScopeService,
         OrganizationTreeService $organizationTreeService,
+        HierarchyTreeService $hierarchyTreeService,
     ): Response {
         $this->authorize('view', $hierarchyVersion);
-        $tree = $organizationScopeService->buildVersionTree($hierarchyVersion, $request->user());
+        $tree = $hierarchyTreeService->buildFullTree($hierarchyVersion, $request->user());
 
         return Inertia::render('HierarchyVersions/EditTree', [
             'version' => HierarchyVersionResource::make($hierarchyVersion->load('approver:id,name')->loadCount('edges'))->resolve($request),

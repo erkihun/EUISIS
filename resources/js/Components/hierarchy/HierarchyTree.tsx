@@ -16,7 +16,7 @@ function filterTree(nodes: HierarchyTreeNodeData[], query: string): HierarchyTre
             const children = filterTree(Array.isArray(node.children) ? node.children : [], query);
             const matches = [
                 node.code,
-                node.name_en,
+                node.label ?? node.name_en,
                 node.name_am ?? '',
                 node.organization_type?.name_en ?? '',
                 node.organization_type?.name_am ?? '',
@@ -68,20 +68,23 @@ export default function HierarchyTree({
             className="select-none overflow-x-auto"
         >
             <div className="min-w-0">
-                {filteredNodes.map((node, index) => (
-                    <HierarchyTreeNode
-                        key={`${node.organization_id}-${node.edge_id ?? 'root'}`}
-                        node={node}
-                        expandedIds={expandedIds}
-                        forceExpanded={forceExpanded}
-                        onToggle={onToggle}
-                        onEditRelation={onEditRelation}
-                        onRemoveRelation={onRemoveRelation}
-                        onAddChild={onAddChild}
-                        position={String(index + 1)}
-                        isLast={index === filteredNodes.length - 1}
-                    />
-                ))}
+                {filteredNodes.map((node, index) => {
+                    const nodeKey = node.id ?? node.organization_id;
+                    return (
+                        <HierarchyTreeNode
+                            key={`${nodeKey}-${node.edge_id ?? 'root'}`}
+                            node={node}
+                            expandedIds={expandedIds}
+                            forceExpanded={forceExpanded}
+                            onToggle={onToggle}
+                            onEditRelation={onEditRelation}
+                            onRemoveRelation={onRemoveRelation}
+                            onAddChild={onAddChild}
+                            position={String(index + 1)}
+                            isLast={index === filteredNodes.length - 1}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
