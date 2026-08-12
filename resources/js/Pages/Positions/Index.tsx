@@ -8,6 +8,7 @@ import OrganizationTreePreview from '@/Components/organization-units/Organizatio
 import { Building2, ChevronDown, ChevronRight, Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
+import { localizedName } from '@/utils/localizedName';
 import type { OrganizationTreeNode, OrganizationSummary } from '@/types/organizationUnit';
 
 type EstablishmentSummary = {
@@ -20,6 +21,8 @@ type EstablishmentSummary = {
 type PositionRow = {
     id: string;
     job_position_code: string;
+    old_code: string | null;
+    bpr_name: string | null;
     title_en: string;
     title_am: string | null;
     organization_id: string | null;
@@ -57,15 +60,24 @@ interface Props {
 }
 
 function UnitNodeItem({
-    unit, selectedId, onSelect,
+    unit, hierarchyNumber, selectedId, onSelect,
 }: {
     unit: UnitTreeNode;
+    hierarchyNumber: string;
     selectedId: string | null;
     onSelect: (id: string) => void;
 }) {
+    const { locale, t } = useLocale();
     const [expanded, setExpanded] = useState(true);
     const hasChildren = unit.children.length > 0;
     const isSelected = selectedId === unit.id;
+    const levelColor = [
+        'bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:ring-blue-800',
+        'bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:ring-violet-800',
+        'bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:ring-emerald-800',
+        'bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:ring-amber-800',
+        'bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:ring-rose-800',
+    ][unit.depth % 5];
 
     return (
         <div>
@@ -88,13 +100,25 @@ function UnitNodeItem({
                         ? (expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />)
                         : <span className="h-3 w-3" />}
                 </button>
-                <span className="font-mono text-[10px] text-gray-400 dark:text-slate-500 flex-shrink-0">{unit.code}</span>
+                <span
+                    className={`inline-flex h-6 min-w-6 flex-shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums ring-1 ${levelColor}`}
+                    aria-label={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
+                    title={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
+                >
+                    {hierarchyNumber}
+                </span>
                 <span className={`truncate text-xs ${isSelected ? 'font-semibold text-violet-700 dark:text-violet-300' : 'text-gray-800 dark:text-slate-200'}`}>
-                    {unit.name_en}
+                    {localizedName(unit.name_en, unit.name_am, locale)}
                 </span>
             </div>
-            {hasChildren && expanded && unit.children.map((child) => (
-                <UnitNodeItem key={child.id} unit={child} selectedId={selectedId} onSelect={onSelect} />
+            {hasChildren && expanded && unit.children.map((child, index) => (
+                <UnitNodeItem
+                    key={child.id}
+                    unit={child}
+                    hierarchyNumber={`${hierarchyNumber}.${index + 1}`}
+                    selectedId={selectedId}
+                    onSelect={onSelect}
+                />
             ))}
         </div>
     );
@@ -110,8 +134,15 @@ export default function PositionsIndex({
     filters,
     can,
 }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
+
+    /** Localized status label, falling back to StatusBadge's own default when a key is missing. */
+    function statusLabel(status: string): string | undefined {
+        const key = `common.${status}`;
+        const translated = t(key);
+        return translated === key ? undefined : translated;
+    }
 
     const [localSelected, setLocalSelected] = useState<OrganizationSummary | null>(selectedOrganization ?? null);
     useEffect(() => { setLocalSelected(selectedOrganization ?? null); }, [selectedOrganization]);
@@ -153,7 +184,7 @@ export default function PositionsIndex({
     async function handleApproveEstablishment(position: PositionRow) {
         const { confirmed } = await confirm({
             title: t('positionEstablishments.approve'),
-            description: `${position.title_en}  ·  ${position.job_position_code}`,
+            description: `${localizedName(position.title_en, position.title_am, locale)}  ·  ${position.job_position_code}`,
             confirmLabel: t('positionEstablishments.approve'),
             cancelLabel: t('common.cancel'),
             variant: 'default',
@@ -189,17 +220,17 @@ export default function PositionsIndex({
                                         <img src={displayOrg.logo_url} alt="" className="h-10 w-10 flex-shrink-0 rounded-xl object-cover" />
                                     ) : (
                                         <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                                            {displayOrg.name_en.charAt(0).toUpperCase()}
+                                            {localizedName(displayOrg.name_en, displayOrg.name_am, locale).charAt(0).toUpperCase()}
                                         </span>
                                     )}
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-1.5">
-                                            <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{displayOrg.name_en}</h2>
-                                            <StatusBadge status={displayOrg.status} />
+                                            <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{localizedName(displayOrg.name_en, displayOrg.name_am, locale)}</h2>
+                                            <StatusBadge status={displayOrg.status} label={statusLabel(displayOrg.status)} />
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
                                             <span className="font-mono">{displayOrg.code}</span>
-                                            {displayOrg.type && <span>{displayOrg.type.name_en}</span>}
+                                            {displayOrg.type && <span>{localizedName(displayOrg.type.name_en, displayOrg.type.name_am, locale)}</span>}
                                         </div>
                                     </div>
                                 </div>
@@ -221,8 +252,14 @@ export default function PositionsIndex({
                                         )}
                                     </div>
                                     <div className="flex-1 overflow-y-auto p-2">
-                                        {organizationUnits.map((unit) => (
-                                            <UnitNodeItem key={unit.id} unit={unit} selectedId={selectedUnit?.id ?? null} onSelect={selectUnit} />
+                                        {organizationUnits.map((unit, index) => (
+                                            <UnitNodeItem
+                                                key={unit.id}
+                                                unit={unit}
+                                                hierarchyNumber={`${index + 1}`}
+                                                selectedId={selectedUnit?.id ?? null}
+                                                onSelect={selectUnit}
+                                            />
                                         ))}
                                     </div>
                                 </div>
@@ -245,10 +282,7 @@ export default function PositionsIndex({
                                 <div>
                                     <p className="text-xs text-gray-500 dark:text-slate-400">{t('positions.organizationUnit')}</p>
                                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                        {selectedUnit.name_en}
-                                        {selectedUnit.name_am && (
-                                            <span className="ml-2 text-xs font-normal text-gray-500 dark:text-slate-400">{selectedUnit.name_am}</span>
-                                        )}
+                                        {localizedName(selectedUnit.name_en, selectedUnit.name_am, locale)}
                                     </p>
                                 </div>
                                 {can.create && (
@@ -289,7 +323,9 @@ export default function PositionsIndex({
                                                 <tr>
                                                     {[
                                                         t('positions.jobPositionCode'),
-                                                        t('positions.englishTitle'),
+                                                        t('positions.oldCode'),
+                                                        t('positions.standardName'),
+                                                        t('positions.bprName'),
                                                         t('positions.gradeLevel'),
                                                         t('common.status'),
                                                         t('positionEstablishments.establishment'),
@@ -309,10 +345,17 @@ export default function PositionsIndex({
                                                                 {position.job_position_code}
                                                             </Link>
                                                         </td>
-                                                        <td className="px-4 py-3">{position.title_en}</td>
+                                                        <td className="px-4 py-3 font-mono text-xs">{position.old_code ?? '—'}</td>
+                                                        <td className="px-4 py-3">
+                                                            {localizedName(position.title_en, position.title_am, locale)}
+                                                        </td>
+                                                        <td className="px-4 py-3">{position.bpr_name ?? '—'}</td>
                                                         <td className="px-4 py-3">{position.grade_level ?? '—'}</td>
                                                         <td className="px-4 py-3">
-                                                            <StatusBadge status={position.is_active ? 'active' : 'inactive'} />
+                                                            <StatusBadge
+                                                                status={position.is_active ? 'active' : 'inactive'}
+                                                                label={statusLabel(position.is_active ? 'active' : 'inactive')}
+                                                            />
                                                         </td>
 
                                                         {/* Establishment status + Approve button */}

@@ -5,13 +5,24 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
-import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import { localizedName } from '@/utils/localizedName';
 
 type OccupationOption = { id: string; isco_code: string; name_en: string | null; name_am: string | null };
-type UnitOption = { id: string; name_en: string; code: string; organization_unit_type_id: string | null };
+type OrgRef = { id: string; code: string; name_en: string; name_am: string | null };
+type UnitOption = {
+    id: string;
+    name_en: string;
+    name_am: string | null;
+    code: string;
+    organization_unit_type_id: string | null;
+    /** Present only when the unit belongs functionally to another organization. */
+    owner_organization?: OrgRef | null;
+    /** Present only when the unit operates inside a host organization. */
+    host_organization?: OrgRef | null;
+};
 
 interface Props {
-    organizations: Array<{ id: string; name_en: string }>;
+    organizations: Array<{ id: string; name_en: string; name_am: string | null }>;
     organizationUnits: UnitOption[];
     occupations: OccupationOption[];
     gradeLevels: string[];
@@ -20,21 +31,18 @@ interface Props {
 }
 
 export default function PositionsCreate({ organizations, organizationUnits, occupations, gradeLevels, selectedOrganizationId, selectedOrganizationUnitId }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const form = useForm({
         job_position_code: '',
+        old_code: '',
         title_en: '',
         title_am: '',
+        bpr_name: '',
         organization_id: selectedOrganizationId ?? '',
         organization_unit_id: selectedOrganizationUnitId ?? '',
         occupation_id: '',
-        description_en: '',
-        description_am: '',
         grade_level: '',
-        job_family: '',
         is_active: true,
-        effective_from: new Date().toISOString().slice(0, 10),
-        effective_to: '',
     });
 
     const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
@@ -103,6 +111,12 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                         />
                     </div>
 
+                    <div className="space-y-1.5">
+                        <InputLabel htmlFor="old_code" value={t('positions.oldCode')} />
+                        <input id="old_code" className={inputCls} value={form.data.old_code} onChange={(e) => form.setData('old_code', e.target.value)} />
+                        {form.errors.old_code && <p className={errorCls}>{form.errors.old_code}</p>}
+                    </div>
+
                     {/* Organization — read-only when pre-selected from tree */}
                     <div className="space-y-1.5">
                         <InputLabel htmlFor="organization_id" value={t('positions.organization')} />
@@ -110,7 +124,9 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                             <>
                                 <input type="hidden" name="organization_id" value={form.data.organization_id} />
                                 <div className={`${inputCls} cursor-not-allowed bg-gray-50 text-gray-600 dark:bg-slate-900 dark:text-slate-400`}>
-                                    {selectedOrg?.name_en ?? '—'}
+                                    {selectedOrg
+                                        ? localizedName(selectedOrg.name_en, selectedOrg.name_am, locale)
+                                        : '—'}
                                 </div>
                             </>
                         ) : (
@@ -122,7 +138,9 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                             >
                                 <option value="">{t('positions.organization')}</option>
                                 {organizations.map((org) => (
-                                    <option key={org.id} value={org.id}>{org.name_en}</option>
+                                    <option key={org.id} value={org.id}>
+                                        {localizedName(org.name_en, org.name_am, locale)}
+                                    </option>
                                 ))}
                             </select>
                         )}
@@ -138,7 +156,9 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                                 <div className={`${inputCls} cursor-not-allowed bg-gray-50 text-gray-600 dark:bg-slate-900 dark:text-slate-400`}>
                                     {(() => {
                                         const u = organizationUnits.find((u) => u.id === form.data.organization_unit_id);
-                                        return u ? `${u.code} — ${u.name_en}` : '—';
+                                        return u
+                                            ? `${u.code} — ${localizedName(u.name_en, u.name_am, locale)}`
+                                            : '—';
                                     })()}
                                 </div>
                             </>
@@ -153,13 +173,39 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                                 <option value="">{t('positions.selectOrganizationUnit')}</option>
                                 {organizationUnits.map((unit) => (
                                     <option key={unit.id} value={unit.id}>
-                                        {unit.code} — {unit.name_en}
+                                        {unit.code} — {localizedName(unit.name_en, unit.name_am, locale)}
                                     </option>
                                 ))}
                             </select>
                         )}
                         {form.errors.organization_unit_id && <p className={errorCls}>{form.errors.organization_unit_id}</p>}
                     </div>
+
+                    {/* Owner / Host — read-only, shown only when the selected unit is hosted */}
+                    {selectedUnit?.host_organization && (
+                        <div className="md:col-span-2 space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                            <div className="grid gap-3 md:grid-cols-2">
+                                <div className="space-y-1">
+                                    <InputLabel value={t('positions.ownerOrganization')} />
+                                    <div className={`${inputCls} cursor-not-allowed bg-white/60 dark:bg-slate-900/60`}>
+                                        <span className="font-mono text-xs text-gray-500 dark:text-slate-400">{selectedUnit.owner_organization?.code}</span>
+                                        {' — '}
+                                        {selectedUnit.owner_organization
+                                            ? localizedName(selectedUnit.owner_organization.name_en, selectedUnit.owner_organization.name_am, locale)
+                                            : '—'}
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <InputLabel value={t('positions.hostOrganization')} />
+                                    <div className={`${inputCls} cursor-not-allowed bg-white/60 dark:bg-slate-900/60`}>
+                                        <span className="font-mono text-xs text-gray-500 dark:text-slate-400">{selectedUnit.host_organization.code}</span>
+                                        {' — '}
+                                        {localizedName(selectedUnit.host_organization.name_en, selectedUnit.host_organization.name_am, locale)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Occupation (required) */}
                     <div className="space-y-1.5">
@@ -174,7 +220,10 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                             <option value="">{t('positions.selectOccupation')}</option>
                             {occupations.map((occ) => (
                                 <option key={occ.id} value={occ.id}>
-                                    {occ.isco_code}{occ.name_en ? ` — ${occ.name_en}` : ''}
+                                    {occ.isco_code}
+                                    {localizedName(occ.name_en, occ.name_am, locale)
+                                        ? ` — ${localizedName(occ.name_en, occ.name_am, locale)}`
+                                        : ''}
                                 </option>
                             ))}
                         </select>
@@ -206,6 +255,12 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                         />
                     </div>
 
+                    <div className="space-y-1.5">
+                        <InputLabel htmlFor="bpr_name" value={t('positions.bprName')} />
+                        <input id="bpr_name" className={inputCls} value={form.data.bpr_name} onChange={(e) => form.setData('bpr_name', e.target.value)} />
+                        {form.errors.bpr_name && <p className={errorCls}>{form.errors.bpr_name}</p>}
+                    </div>
+
                     {/* Grade Level */}
                     <div className="space-y-1.5">
                         <InputLabel htmlFor="grade_level" value={t('positions.gradeLevel')} />
@@ -222,52 +277,6 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                         </select>
                         {form.errors.grade_level && <p className={errorCls}>{form.errors.grade_level}</p>}
                     </div>
-
-                    {/* Job Family */}
-                    <div className="space-y-1.5">
-                        <InputLabel htmlFor="job_family" value={t('positions.jobFamily')} />
-                        <input
-                            id="job_family"
-                            className={inputCls}
-                            value={form.data.job_family}
-                            placeholder={t('positions.jobFamily')}
-                            onChange={(e) => form.setData('job_family', e.target.value)}
-                        />
-                    </div>
-
-                    {/* Effective From */}
-                    <div className="space-y-1.5">
-                        <InputLabel htmlFor="effective_from" value={t('common.effectiveFrom')} />
-                        <LocalizedDatePicker
-                            id="effective_from"
-                            className={inputCls}
-                            value={form.data.effective_from}
-                            onChange={(iso) => form.setData('effective_from', iso)}
-                        />
-                    </div>
-
-                    {/* Effective To */}
-                    <div className="space-y-1.5">
-                        <InputLabel htmlFor="effective_to" value={t('common.effectiveTo')} />
-                        <LocalizedDatePicker
-                            id="effective_to"
-                            className={inputCls}
-                            value={form.data.effective_to}
-                            onChange={(iso) => form.setData('effective_to', iso)}
-                        />
-                    </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-1.5">
-                    <InputLabel htmlFor="description_en" value={t('positions.positionDescription')} />
-                    <textarea
-                        id="description_en"
-                        className={`${inputCls} min-h-28`}
-                        value={form.data.description_en}
-                        placeholder={t('positions.positionDescription')}
-                        onChange={(e) => form.setData('description_en', e.target.value)}
-                    />
                 </div>
 
                 {/* Active */}

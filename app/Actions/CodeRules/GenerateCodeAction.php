@@ -8,6 +8,7 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Exceptions\MissingSequenceScopeContextException;
+use App\Models\CodeRule;
 use App\Models\User;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
@@ -28,8 +29,9 @@ class GenerateCodeAction
         ?string $manualCode = null,
         string $field = 'code',
         ?string $entityId = null,
+        ?CodeRule $resolvedRule = null,
     ): string {
-        $codeRule = $this->codeRuleResolver->resolve($entityType, $context);
+        $codeRule = $resolvedRule ?? $this->codeRuleResolver->resolve($entityType, $context);
 
         if ($manualCode !== null && trim($manualCode) !== '') {
             if ($codeRule !== null) {

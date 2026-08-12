@@ -26,6 +26,7 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
+use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,11 +48,13 @@ class PositionController extends Controller
             ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
                 $query->where(function ($nested) use ($search): void {
-                    $nested->where('job_position_code', 'like', "%{$search}%")
-                        ->orWhere('title_en', 'like', "%{$search}%")
-                        ->orWhere('title_am', 'like', "%{$search}%")
-                        ->orWhere('grade_level', 'like', "%{$search}%")
-                        ->orWhere('job_family', 'like', "%{$search}%");
+                    $nested->where('job_position_code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('old_code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('title_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('title_am', ci_like_operator(), "%{$search}%")
+                        ->orWhere('bpr_name', ci_like_operator(), "%{$search}%")
+                        ->orWhere('grade_level', ci_like_operator(), "%{$search}%")
+                        ->orWhere('job_family', ci_like_operator(), "%{$search}%");
                 });
             })
             ->when($request->string('organization_id')->toString() !== '', fn ($query) => $query->where('organization_id', $request->string('organization_id')->toString()))
@@ -351,16 +354,18 @@ class PositionController extends Controller
                 }
 
                 $positions = Position::query()
-                    ->with('organization:id,name_en')
+                    ->with('organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'occupation:id,isco_code,name_en,name_am')
                     ->withCount('assignments')
                     ->where('organization_id', $orgId)
                     ->when($unitId, fn ($q) => $q->where('organization_unit_id', $unitId))
                     ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
                         $search = $request->string('search')->toString();
                         $query->where(function ($nested) use ($search): void {
-                            $nested->where('job_position_code', 'like', "%{$search}%")
-                                ->orWhere('title_en', 'like', "%{$search}%")
-                                ->orWhere('title_am', 'like', "%{$search}%");
+                            $nested->where('job_position_code', ci_like_operator(), "%{$search}%")
+                                ->orWhere('old_code', ci_like_operator(), "%{$search}%")
+                                ->orWhere('title_en', ci_like_operator(), "%{$search}%")
+                                ->orWhere('title_am', ci_like_operator(), "%{$search}%")
+                                ->orWhere('bpr_name', ci_like_operator(), "%{$search}%");
                         });
                     })
                     ->when($request->string('job_family')->toString() !== '', fn ($q) => $q->where('job_family', $request->string('job_family')->toString()))
@@ -412,8 +417,11 @@ class PositionController extends Controller
         ]);
     }
 
-    public function create(Request $request, OrganizationScopeService $organizationScopeService): Response
-    {
+    public function create(
+        Request $request,
+        OrganizationScopeService $organizationScopeService,
+        PositionCodeContextResolver $positionCodeContextResolver,
+    ): Response {
         $this->authorize('create', Position::class);
 
         $organizationId = $request->string('organization_id')->toString() ?: null;
@@ -424,8 +432,35 @@ class PositionController extends Controller
                 ->where('organization_id', $organizationId)
                 ->whereNull('deleted_at')
                 ->orderBy('name_en')
-                ->get(['id', 'name_en', 'code', 'organization_unit_type_id'])
-                ->toArray()
+                ->get(['id', 'name_en', 'name_am', 'code', 'organization_unit_type_id'])
+                ->map(function (OrganizationUnit $unit) use ($organizationId, $positionCodeContextResolver): array {
+                    $resolved = $positionCodeContextResolver->resolve($organizationId, $unit->id);
+
+                    $ownerOrganization = null;
+                    $hostOrganization = null;
+
+                    // Only hosted units carry the owner/host pair to the form.
+                    if ($resolved['host_organization_id'] !== null) {
+                        $pair = Organization::query()
+                            ->whereIn('id', array_filter([$resolved['owner_organization_id'], $resolved['host_organization_id']]))
+                            ->get(['id', 'code', 'name_en', 'name_am'])
+                            ->keyBy('id');
+
+                        $ownerOrganization = $pair->get($resolved['owner_organization_id'])?->only(['id', 'code', 'name_en', 'name_am']);
+                        $hostOrganization = $pair->get($resolved['host_organization_id'])?->only(['id', 'code', 'name_en', 'name_am']);
+                    }
+
+                    return [
+                        'id' => $unit->id,
+                        'name_en' => $unit->name_en,
+                        'name_am' => $unit->name_am,
+                        'code' => $unit->code,
+                        'organization_unit_type_id' => $unit->organization_unit_type_id,
+                        'owner_organization' => $ownerOrganization,
+                        'host_organization' => $hostOrganization,
+                    ];
+                })
+                ->all()
             : [];
 
         $occupations = Occupation::query()
@@ -444,7 +479,7 @@ class PositionController extends Controller
             'organizations' => Organization::query()
                 ->whereIn('id', $organizationScopeService->accessibleOrganizationIds(request()->user()))
                 ->orderBy('name_en')
-                ->get(['id', 'name_en']),
+                ->get(['id', 'name_en', 'name_am']),
             'organizationUnits' => $organizationUnits,
             'occupations' => $occupations,
             'gradeLevels' => $gradeLevels,
@@ -458,14 +493,14 @@ class PositionController extends Controller
         $position = $action->execute($request->validated(), $request->user());
 
         return to_route('positions.show', $position)
-            ->with('flash', ['message' => __('Position created successfully.'), 'type' => 'success']);
+            ->with('flash', ['message' => __('positions.created_successfully'), 'type' => 'success']);
     }
 
     public function show(Position $position): Response
     {
         $this->authorize('view', $position);
 
-        $position->load('organization:id,name_en');
+        $position->load('organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am,code', 'occupation:id,isco_code,name_en,name_am');
         $position->loadCount('assignments');
 
         return Inertia::render('Positions/Show', [
@@ -477,14 +512,14 @@ class PositionController extends Controller
     {
         $this->authorize('update', $position);
 
-        $position->load('organization:id,name_en', 'organizationUnit:id,name_en,code', 'occupation:id,isco_code,name_en,name_am');
+        $position->load('organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am,code', 'occupation:id,isco_code,name_en,name_am');
 
         $organizationUnits = $position->organization_id
             ? OrganizationUnit::query()
                 ->where('organization_id', $position->organization_id)
                 ->whereNull('deleted_at')
                 ->orderBy('name_en')
-                ->get(['id', 'name_en', 'code', 'organization_unit_type_id'])
+                ->get(['id', 'name_en', 'name_am', 'code', 'organization_unit_type_id'])
                 ->toArray()
             : [];
 
@@ -505,7 +540,7 @@ class PositionController extends Controller
             'organizations' => Organization::query()
                 ->whereIn('id', $organizationScopeService->accessibleOrganizationIds(request()->user()))
                 ->orderBy('name_en')
-                ->get(['id', 'name_en']),
+                ->get(['id', 'name_en', 'name_am']),
             'organizationUnits' => $organizationUnits,
             'occupations' => $occupations,
             'gradeLevels' => $gradeLevels,
@@ -517,7 +552,7 @@ class PositionController extends Controller
         $action->execute($position, $request->validated(), $request->user());
 
         return to_route('positions.show', $position)
-            ->with('flash', ['message' => __('Position updated successfully.'), 'type' => 'success']);
+            ->with('flash', ['message' => __('positions.updated_successfully'), 'type' => 'success']);
     }
 
     public function archive(Request $request, Position $position, ArchivePositionAction $action): RedirectResponse

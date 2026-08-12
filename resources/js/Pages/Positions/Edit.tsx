@@ -7,24 +7,27 @@ import { useLocale } from '@/hooks/useLocale';
 import { toDateInput } from '@/lib/dateUtils';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import { localizedName } from '@/utils/localizedName';
 
 type OccupationOption = { id: string; isco_code: string; name_en: string | null; name_am: string | null };
-type UnitOption = { id: string; name_en: string; code: string; organization_unit_type_id: string | null };
+type UnitOption = { id: string; name_en: string; name_am: string | null; code: string; organization_unit_type_id: string | null };
 
 interface Props {
     position: any;
-    organizations: Array<{ id: string; name_en: string }>;
+    organizations: Array<{ id: string; name_en: string; name_am: string | null }>;
     organizationUnits: UnitOption[];
     occupations: OccupationOption[];
     gradeLevels: string[];
 }
 
 export default function PositionsEdit({ position, organizations, organizationUnits, occupations, gradeLevels }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const form = useForm({
         job_position_code: position.job_position_code ?? '',
+        old_code: position.old_code ?? '',
         title_en: position.title_en ?? '',
         title_am: position.title_am ?? '',
+        bpr_name: position.bpr_name ?? '',
         organization_id: position.organization_id ?? '',
         organization_unit_id: position.organization_unit_id ?? '',
         occupation_id: position.occupation_id ?? '',
@@ -74,6 +77,12 @@ export default function PositionsEdit({ position, organizations, organizationUni
                         />
                     </div>
 
+                    <div className="space-y-1.5">
+                        <InputLabel htmlFor="old_code" value={t('positions.oldCode')} />
+                        <input id="old_code" className={inputCls} value={form.data.old_code} onChange={(e) => form.setData('old_code', e.target.value)} />
+                        {form.errors.old_code && <p className={errorCls}>{form.errors.old_code}</p>}
+                    </div>
+
                     {/* Organization */}
                     <div className="space-y-1.5">
                         <InputLabel htmlFor="organization_id" value={t('positions.organization')} />
@@ -85,7 +94,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
                         >
                             <option value="">{t('positions.organization')}</option>
                             {organizations.map((org) => (
-                                <option key={org.id} value={org.id}>{org.name_en}</option>
+                                <option key={org.id} value={org.id}>{localizedName(org.name_en, org.name_am, locale)}</option>
                             ))}
                         </select>
                         {form.errors.organization_id && <p className={errorCls}>{form.errors.organization_id}</p>}
@@ -103,7 +112,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
                             <option value="">{t('positions.selectOrganizationUnit')}</option>
                             {organizationUnits.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
-                                    {unit.code} — {unit.name_en}
+                                    {unit.code} — {localizedName(unit.name_en, unit.name_am, locale)}
                                 </option>
                             ))}
                         </select>
@@ -122,7 +131,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
                             <option value="">{t('positions.selectOccupation')}</option>
                             {occupations.map((occ) => (
                                 <option key={occ.id} value={occ.id}>
-                                    {occ.isco_code}{occ.name_en ? ` — ${occ.name_en}` : ''}
+                                    {occ.isco_code}{localizedName(occ.name_en, occ.name_am, locale) ? ` — ${localizedName(occ.name_en, occ.name_am, locale)}` : ''}
                                 </option>
                             ))}
                         </select>
@@ -152,6 +161,13 @@ export default function PositionsEdit({ position, organizations, organizationUni
                             placeholder={t('positions.amharicTitle')}
                             onChange={(e) => form.setData('title_am', e.target.value)}
                         />
+                    </div>
+
+                    {/* Grade Level */}
+                    <div className="space-y-1.5">
+                        <InputLabel htmlFor="bpr_name" value={t('positions.bprName')} />
+                        <input id="bpr_name" className={inputCls} value={form.data.bpr_name} onChange={(e) => form.setData('bpr_name', e.target.value)} />
+                        {form.errors.bpr_name && <p className={errorCls}>{form.errors.bpr_name}</p>}
                     </div>
 
                     {/* Grade Level */}

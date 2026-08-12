@@ -49,10 +49,10 @@ class CodeRuleController extends Controller
             ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
                 $query->where(function ($nested) use ($search): void {
-                    $nested->where('name_en', 'like', "%{$search}%")
-                        ->orWhere('name_am', 'like', "%{$search}%")
-                        ->orWhere('prefix', 'like', "%{$search}%")
-                        ->orWhere('format', 'like', "%{$search}%");
+                    $nested->where('name_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_am', ci_like_operator(), "%{$search}%")
+                        ->orWhere('prefix', ci_like_operator(), "%{$search}%")
+                        ->orWhere('format', ci_like_operator(), "%{$search}%");
                 });
             })
             ->when($request->string('entity_type')->toString() !== '', fn ($query) => $query->where('entity_type', $request->string('entity_type')->toString()))

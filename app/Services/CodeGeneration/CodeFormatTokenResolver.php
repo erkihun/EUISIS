@@ -18,6 +18,10 @@ use Illuminate\Support\Carbon;
 
 class CodeFormatTokenResolver
 {
+    public function __construct(
+        private readonly PositionCodeContextResolver $positionCodeContextResolver,
+    ) {}
+
     /**
      * Resolve all tokens found in the rule format string.
      *
@@ -81,6 +85,8 @@ class CodeFormatTokenResolver
             'ORG_TYPE_NAME' => $this->resolveOrgTypeName($context),
             'PARENT_ORG_CODE' => $this->resolveParentOrgCode($context),
             'PARENT_ORG_PREFIX' => $this->resolveParentOrgPrefix($context),
+            'OWNER_ORG_CODE' => $this->resolveOwnerOrgCode($context),
+            'HOST_ORG_CODE' => $this->resolveHostOrgCode($context),
             'UNIT_CODE' => $this->resolveUnitCode($context),
             'UNIT_TYPE_CODE' => $this->resolveUnitTypeCode($context),
             'UNIT_PREFIX' => $this->resolveUnitPrefix($context),
@@ -331,6 +337,77 @@ class CodeFormatTokenResolver
         }
 
         return $this->sanitize(substr(preg_replace('/[^A-Z0-9]/', '', strtoupper($parent->code ?? '')), 0, 3));
+    }
+
+    /**
+     * Code of the organization that owns the unit's function/mandate.
+     * Falls back to the plain organization code when the unit is not hosted.
+     *
+     * @param  array<string, mixed>  $context
+     */
+    private function resolveOwnerOrgCode(array $context): string
+    {
+        // An explicit code short-circuits the id → DB lookup. This is what lets
+        // a code be generated for an organization that does not exist yet (the
+        // structure importer previewing a brand-new organization); everywhere
+        // else the id path below is used exactly as before.
+        if (! empty($context['owner_organization_code'])) {
+            return $this->sanitize((string) $context['owner_organization_code']);
+        }
+
+        $ownerId = $context['owner_organization_id'] ?? null;
+
+        if (empty($ownerId)) {
+            $resolved = $this->positionCodeContextResolver->resolve(
+                isset($context['organization_id']) ? (string) $context['organization_id'] : null,
+                isset($context['organization_unit_id']) ? (string) $context['organization_unit_id'] : null,
+            );
+            $ownerId = $resolved['owner_organization_id'];
+        }
+
+        if (empty($ownerId)) {
+            throw new MissingTokenContextException(
+                'The token {OWNER_ORG_CODE} requires missing context: organization_id or organization_unit_id'
+            );
+        }
+
+        $code = Organization::query()->whereKey($ownerId)->value('code');
+
+        return $this->sanitize((string) ($code ?? ''));
+    }
+
+    /**
+     * Code of the organization the unit operates inside, or empty when the
+     * unit is not hosted by another organization. Never throws — the host
+     * segment is optional by design.
+     *
+     * @param  array<string, mixed>  $context
+     */
+    private function resolveHostOrgCode(array $context): string
+    {
+        // See resolveOwnerOrgCode(): an explicit code lets the importer project
+        // a position code before the organization row exists.
+        if (! empty($context['host_organization_code'])) {
+            return $this->sanitize((string) $context['host_organization_code']);
+        }
+
+        $hostId = $context['host_organization_id'] ?? null;
+
+        if (empty($hostId)) {
+            $resolved = $this->positionCodeContextResolver->resolve(
+                isset($context['organization_id']) ? (string) $context['organization_id'] : null,
+                isset($context['organization_unit_id']) ? (string) $context['organization_unit_id'] : null,
+            );
+            $hostId = $resolved['host_organization_id'];
+        }
+
+        if (empty($hostId)) {
+            return '';
+        }
+
+        $code = Organization::query()->whereKey($hostId)->value('code');
+
+        return $this->sanitize((string) ($code ?? ''));
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -731,6 +808,7 @@ class CodeFormatTokenResolver
             'YEAR', 'YEAR_SHORT', 'MONTH', 'MONTH_NAME', 'DAY', 'DATE', 'TIME', 'TIMESTAMP', 'FISCAL_YEAR',
             'ORG_CODE', 'ORG_PREFIX', 'ORG_NAME', 'ORG_TYPE_CODE', 'ORG_TYPE_PREFIX', 'ORG_TYPE_NAME',
             'PARENT_ORG_CODE', 'PARENT_ORG_PREFIX',
+            'OWNER_ORG_CODE', 'HOST_ORG_CODE',
             'UNIT_CODE', 'UNIT_TYPE_CODE', 'UNIT_PREFIX', 'UNIT_TYPE_PREFIX',
             'EMPLOYEE_NUMBER', 'EMPLOYEE_INITIALS', 'EMPLOYEE_STATUS',
             'POSITION_CODE', 'JOB_POSITION_CODE', 'POSITION_PREFIX', 'POSITION_TITLE',
