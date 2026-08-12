@@ -20,7 +20,7 @@ use Spatie\Permission\Models\Role;
 function auditMakeOrg(): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'audit-test-type'],
+        ['code' => 'AUDIT-TEST-TYPE'],
         ['name_en' => 'Audit Test Type', 'is_demo' => false],
     );
 
