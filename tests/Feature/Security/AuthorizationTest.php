@@ -63,7 +63,7 @@ test('employee detail resource hides national_id without viewPii permission', fu
     $viewRole->syncPermissions(['employees.view', 'employees.viewAny']);
 
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'auth-test-type'],
+        ['code' => 'AUTH-TEST-TYPE'],
         ['name_en' => 'Auth Test Type']
     );
     $org = Organization::query()->firstOrCreate(
@@ -108,7 +108,7 @@ test('employee detail resource exposes national_id with viewPii permission', fun
     $piiRole->syncPermissions(['employees.view', 'employees.viewAny', 'employees.viewPii']);
 
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'pii-test-type'],
+        ['code' => 'PII-TEST-TYPE'],
         ['name_en' => 'PII Test Type']
     );
     $org = Organization::query()->firstOrCreate(

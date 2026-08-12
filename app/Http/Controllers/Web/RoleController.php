@@ -60,16 +60,35 @@ class RoleController extends Controller
     {
         $this->authorize('create', Role::class);
 
+        /** @var User $actor */
+        $actor = Auth::user();
+
         return Inertia::render('Roles/Create', [
             'permissions' => $this->groupedPermissions(),
+            'can' => [
+                'assignPermissions' => $actor->can('roles.assignPermissions'),
+            ],
         ]);
     }
 
     public function store(RoleStoreRequest $request): RedirectResponse
     {
-        DB::transaction(function () use ($request): void {
+        $permissions = $request->validated('permissions', []);
+
+        // Creating a role always seeds its initial permission set, so this is
+        // an assignment action in substance even though "create" is the
+        // triggering route — require the dedicated roles.assignPermissions
+        // permission, not just roles.create, before anything is persisted.
+        // No Role instance exists yet, so this checks the raw permission
+        // rather than going through RolePolicy::assignPermissions() (which is
+        // keyed to an existing role, e.g. to protect "Super Admin" by name).
+        if ($permissions !== [] && ! $request->user()?->can('roles.assignPermissions')) {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($request, $permissions): void {
             $role = Role::create(['name' => $request->validated('name'), 'guard_name' => 'web']);
-            $role->syncPermissions($request->validated('permissions', []));
+            $role->syncPermissions($permissions);
 
             $this->writeAuditLogAction->execute(
                 AuditEventType::RoleCreated,
@@ -88,6 +107,9 @@ class RoleController extends Controller
     {
         $this->authorize('update', $role);
 
+        /** @var User $actor */
+        $actor = Auth::user();
+
         return Inertia::render('Roles/Edit', [
             'role' => [
                 'id' => $role->id,
@@ -95,15 +117,28 @@ class RoleController extends Controller
                 'permissions' => $role->permissions->pluck('name')->toArray(),
             ],
             'permissions' => $this->groupedPermissions(),
+            'can' => [
+                'assignPermissions' => $actor->can('assignPermissions', $role),
+            ],
         ]);
     }
 
     public function update(RoleUpdateRequest $request, Role $role): RedirectResponse
     {
-        DB::transaction(function () use ($request, $role): void {
+        $newPermissions = $request->validated('permissions', []);
+        $oldPermissionNames = $role->permissions->pluck('name')->sort()->values()->all();
+        $permissionsChanging = $oldPermissionNames !== collect($newPermissions)->sort()->values()->all();
+
+        // roles.update lets an actor rename a role; changing WHAT it grants is
+        // a distinct, more sensitive action and requires roles.assignPermissions.
+        if ($permissionsChanging && ! $request->user()?->can('assignPermissions', $role)) {
+            abort(403);
+        }
+
+        DB::transaction(function () use ($request, $role, $newPermissions): void {
             $oldPermissions = $role->permissions->pluck('name')->toArray();
             $role->update(['name' => $request->validated('name')]);
-            $role->syncPermissions($request->validated('permissions', []));
+            $role->syncPermissions($newPermissions);
 
             $this->writeAuditLogAction->execute(
                 AuditEventType::RoleUpdated,
@@ -111,7 +146,7 @@ class RoleController extends Controller
                 null,
                 null,
                 oldValues: ['name' => $role->getOriginal('name'), 'permissions' => $oldPermissions],
-                newValues: ['name' => $role->name, 'permissions' => $request->validated('permissions', [])],
+                newValues: ['name' => $role->name, 'permissions' => $newPermissions],
             );
         });
 

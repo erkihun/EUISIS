@@ -332,12 +332,34 @@ test('last active super admin cannot be deactivated', function (): void {
     expect($target->fresh()->status)->toBe('active');
 });
 
+test('a non-super-admin cannot edit a super admin account at all', function (): void {
+    Role::findOrCreate('Super Admin', 'web');
+    $target = makeTargetUser();
+    $target->assignRole('Super Admin');
+
+    // UserPolicy::update blocks this before any role validation runs — editing
+    // a Super Admin's email/password would be an account takeover.
+    $this->actingAs(userMgmtAdmin())
+        ->patch(route('users.update', $target), [
+            'name' => $target->name,
+            'email' => $target->email,
+            'status' => 'active',
+            'roles' => [],
+        ])
+        ->assertForbidden();
+
+    expect($target->fresh()->hasRole('Super Admin'))->toBeTrue();
+});
+
 test('last super admin role cannot be removed', function (): void {
     Role::findOrCreate('Super Admin', 'web');
     $target = makeTargetUser();
     $target->assignRole('Super Admin');
 
-    $this->actingAs(userMgmtAdmin())
+    // UserPolicy::update lets a Super Admin edit their own account, and any
+    // second Super Admin would mean $target is no longer the last one — so the
+    // guard is only reachable when the sole Super Admin edits themselves.
+    $this->actingAs($target)
         ->patch(route('users.update', $target), [
             'name' => $target->name,
             'email' => $target->email,

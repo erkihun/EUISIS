@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Users;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\Users\Concerns\GuardsSuperAdminAssignment;
 use App\Enums\AuditEventType;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -13,6 +14,8 @@ use Illuminate\Validation\ValidationException;
 
 readonly class UpdateUserAction
 {
+    use GuardsSuperAdminAssignment;
+
     public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
 
     public function execute(array $attributes, User $user, User $actor): User
@@ -33,6 +36,10 @@ readonly class UpdateUserAction
                 throw ValidationException::withMessages([
                     'status' => __('users.cannot_deactivate_last_super_admin'),
                 ]);
+            }
+
+            if (is_array($roles)) {
+                $this->guardSuperAdminAssignment($actor, $oldRoles, $roles);
             }
 
             if (is_array($roles) && in_array('Super Admin', $oldRoles, true) && ! in_array('Super Admin', $roles, true) && $this->isLastActiveSuperAdmin($user)) {
