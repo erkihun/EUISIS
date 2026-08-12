@@ -5,6 +5,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import PageHeader from '@/Components/PageHeader';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
 type AuditLog = {
@@ -252,7 +253,7 @@ export default function AuditLogsIndex({
                                                 )}
                                             </td>
                                             <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
-                                                {log.created_at}
+                                                <LocalizedDateDisplay value={log.created_at} withTime />
                                             </td>
                                             <td className="px-4 py-3">
                                                 <ValuesDetail

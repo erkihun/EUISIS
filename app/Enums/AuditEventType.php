@@ -19,6 +19,9 @@ enum AuditEventType: string
     case TransferCompleted = 'transfer_completed';
     case OrganizationCreated = 'organization_created';
     case OrganizationUpdated = 'organization_updated';
+    case OrganizationDeleted = 'organization_deleted';
+    case OrganizationArchived = 'organization_archived';
+    case OrganizationDeactivated = 'organization_deactivated';
     case OrganizationLogoUploaded = 'organization_logo_uploaded';
     case OrganizationBrandingUpdated = 'organization_branding_updated';
     case HierarchyPublished = 'hierarchy_published';
@@ -47,6 +50,7 @@ enum AuditEventType: string
     case EntitlementRevoked = 'entitlement_revoked';
     case EntitlementOverridden = 'entitlement_overridden';
     case ServiceTransactionRecorded = 'service_transaction_recorded';
+    case ServiceAccessBlocked = 'service_access_blocked';
     case ServiceTransactionReversed = 'service_transaction_reversed';
     case ProviderApiDenied = 'provider_api_denied';
     case ExportPerformed = 'export_performed';
@@ -109,6 +113,7 @@ enum AuditEventType: string
     case OrganizationUnitUpdated = 'organization_unit_updated';
     case OrganizationUnitArchived = 'organization_unit_archived';
     case OrganizationUnitRestored = 'organization_unit_restored';
+    case OrganizationUnitStructureCopied = 'organization_unit_structure_copied';
 
     case OrganizationUnitTypeCreated = 'organization_unit_type_created';
     case OrganizationUnitTypeUpdated = 'organization_unit_type_updated';
@@ -182,6 +187,11 @@ enum AuditEventType: string
     case EmployeeCafeteriaExclusionEnded = 'employee_cafeteria_exclusion_ended';
     case EmployeeCafeteriaExclusionArchived = 'employee_cafeteria_exclusion_archived';
     case EmployeeCafeteriaExclusionRestored = 'employee_cafeteria_exclusion_restored';
+
+    // ── Organization Structure Import ──────────────────────────────────────
+    case OrganizationStructureImportPreviewed = 'organization_structure_import_previewed';
+    case OrganizationStructureImported = 'organization_structure_imported';
+    case OrganizationStructureImportFailed = 'organization_structure_import_failed';
 
     // ── Position Establishments ────────────────────────────────────────────
     case PositionEstablishmentCreated = 'position_establishment_created';
@@ -262,4 +272,16 @@ enum AuditEventType: string
     case MfaChallengeFailed = 'mfa.challenge_failed';
     case MfaDisabled = 'mfa.disabled';
     case MfaRecoveryCodeUsed = 'mfa.recovery_code_used';
+
+    // Grievance Module
+    case GrievanceSubmitted = 'grievance.submitted';
+    case GrievanceAssigned = 'grievance.assigned';
+    case GrievanceRequirementChecked = 'grievance.requirement_checked';
+    case GrievanceResponseCompiled = 'grievance.response_compiled';
+    case GrievanceResponseApproved = 'grievance.response_approved';
+    case GrievanceResponseRejected = 'grievance.response_rejected';
+    case GrievanceEscalated = 'grievance.escalated';
+    case GrievanceTribunalReferred = 'grievance.tribunal_referred';
+    case GrievanceDecisionLetterGenerated = 'grievance.decision_letter_generated';
+    case GrievanceDecisionLetterDownloaded = 'grievance.decision_letter_downloaded';
 }

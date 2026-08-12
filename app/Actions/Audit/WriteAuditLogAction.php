@@ -70,13 +70,15 @@ class WriteAuditLogAction
             return null;
         }
 
-        return array_map(
-            fn ($value, $key) => in_array(strtolower((string) $key), self::REDACTED_KEYS, true)
+        $redacted = [];
+
+        foreach ($values as $key => $value) {
+            $redacted[$key] = in_array(strtolower((string) $key), self::REDACTED_KEYS, true)
                 ? '[REDACTED]'
-                : $value,
-            $values,
-            array_keys($values),
-        );
+                : $value;
+        }
+
+        return $redacted;
     }
 
     private function validOrganizationId(?string $organizationId): ?string
