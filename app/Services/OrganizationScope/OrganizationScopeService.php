@@ -6,11 +6,13 @@ namespace App\Services\OrganizationScope;
 
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationScopeType;
+use App\Enums\OrganizationStatus;
 use App\Models\Employee;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationClosurePath;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
@@ -41,6 +43,115 @@ class OrganizationScopeService
     public function canAccessEmployee(User $user, Employee $employee): bool
     {
         return $this->canAccessOrganization($user, $employee->currentAssignment?->organization_id);
+    }
+
+    // ── Public scope API ─────────────────────────────────────────────────────
+    // Thin, explicitly-named wrappers over the resolver above. These are the
+    // methods controllers/policies should prefer; they normalise the
+    // int|string|Organization argument and express the "manage vs. read"
+    // distinction an Organizational Admin needs.
+
+    /**
+     * All organization ids the user may reach, as a plain array.
+     * Super Admin / City Admin (and unscoped staff) receive every id.
+     *
+     * @return array<int, string>
+     */
+    public function allowedOrganizationIds(User $user): array
+    {
+        return $this->accessibleOrganizationIds($user)->all();
+    }
+
+    /**
+     * True when the record's organization is inside the user's scope.
+     * Accepts an id (string/int) or an Organization instance.
+     */
+    public function canAccess(User $user, int|string|Organization|null $organization): bool
+    {
+        return $this->canAccessOrganization($user, $this->normalizeOrganizationId($organization));
+    }
+
+    /**
+     * Constrain a query to the user's accessible organizations.
+     *
+     * Unrestricted actors (Super Admin / City Admin, or staff with no explicit
+     * scope record) are returned untouched — matching the app-wide convention
+     * that an empty scope means "all organizations". Scoped actors get a
+     * `whereIn` on the given column (an impossible predicate when the resolved
+     * set is empty, so a scoped-but-empty user sees nothing rather than
+     * everything).
+     *
+     * @template TModel of \Illuminate\Database\Eloquent\Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
+     */
+    public function applyOrganizationScope($query, User $user, string $column = 'organization_id')
+    {
+        if ($this->isUnrestricted($user)) {
+            return $query;
+        }
+
+        return $query->whereIn($column, $this->allowedOrganizationIds($user));
+    }
+
+    /**
+     * Whether the user may create/update/delete records belonging to the given
+     * organization. Identical to read access today (scope is symmetric), but
+     * kept separate so a future read-only scoped role can diverge without
+     * touching call sites.
+     */
+    public function canManageWithinScope(User $user, int|string|Organization|null $organization): bool
+    {
+        return $this->canAccess($user, $organization);
+    }
+
+    /**
+     * Whether the actor may grant another user access to the given
+     * organization. A scoped actor may only delegate organizations inside
+     * their own accessible set; Super Admin / City Admin / unscoped staff are
+     * unrestricted.
+     */
+    public function canAssignUserToScope(User $actor, int|string|Organization|null $organization): bool
+    {
+        $organizationId = $this->normalizeOrganizationId($organization);
+
+        if ($organizationId === null) {
+            return false;
+        }
+
+        if ($this->isUnrestricted($actor)) {
+            return true;
+        }
+
+        return in_array($organizationId, $this->allowedOrganizationIds($actor), true);
+    }
+
+    /**
+     * An actor is "unrestricted" when they are Super Admin / City Admin or
+     * carry no explicit organization-scope record. This mirrors the default
+     * used by {@see canAccessOrganization()}.
+     */
+    public function isUnrestricted(User $user): bool
+    {
+        if ($user->hasRole('Super Admin') || $user->hasRole('City Admin')) {
+            return true;
+        }
+
+        return ! $user->organizationScopes()->exists();
+    }
+
+    private function normalizeOrganizationId(int|string|Organization|null $organization): ?string
+    {
+        if ($organization === null) {
+            return null;
+        }
+
+        if ($organization instanceof Organization) {
+            return (string) $organization->getKey();
+        }
+
+        return (string) $organization;
     }
 
     public function clearCache(?User $user = null): void
@@ -102,25 +213,46 @@ class OrganizationScopeService
 
         $organizations = Organization::query()
             ->whereIn('id', $allOrgIds)
+            ->where('status', '!=', OrganizationStatus::Archived->value)
             ->with('type:id,name_en,name_am,code')
             ->get()
             ->keyBy('id');
 
         $childrenByParent = $edges->groupBy('parent_organization_id');
-        $childIds = $edges->pluck('child_organization_id')->unique()->values();
-        $rootIds = $allOrgIds->diff($childIds)->values();
+        $parentsByChild = $edges->groupBy('child_organization_id');
+
+        // A child may reference a parent that is soft-deleted (or otherwise not
+        // in the live/allowed set). Such children must still surface as display
+        // roots — otherwise a hierarchy whose root org was soft-deleted collapses
+        // to an empty tree, which falsely reads as "no published hierarchy".
+        $rootIds = $organizations->keys()
+            ->filter(function (string $orgId) use ($parentsByChild, $organizations): bool {
+                $parentIds = $parentsByChild->get($orgId, collect())->pluck('parent_organization_id');
+
+                if ($parentIds->isEmpty()) {
+                    return true; // genuine root — never appears as a child
+                }
+
+                // Promote to root when none of its parents are live/visible.
+                return $parentIds->every(fn ($parentId): bool => ! $organizations->has($parentId));
+            })
+            ->values();
 
         $flat = [];
+        $visited = [];
 
         $buildFlat = function (string $orgId, int $depth, ?string $parentId) use (
-            &$buildFlat, &$flat, $organizations, $childrenByParent
+            &$buildFlat, &$flat, &$visited, $organizations, $childrenByParent
         ): void {
             $org = $organizations->get($orgId);
-            if ($org === null) {
+            if ($org === null || isset($visited[$orgId])) {
                 return;
             }
+            $visited[$orgId] = true;
 
-            $childEdges = $childrenByParent->get($orgId, collect());
+            $childEdges = $childrenByParent->get($orgId, collect())
+                ->filter(fn ($edge): bool => $organizations->has($edge->child_organization_id))
+                ->values();
 
             $flat[] = [
                 'id' => $org->id,

@@ -32,10 +32,12 @@ class EmployeeDetailResource extends EmployeeResource
             'organization' => $assignment->organization ? [
                 'id' => $assignment->organization->id,
                 'name_en' => $assignment->organization->name_en,
+                'name_am' => $assignment->organization->name_am,
             ] : null,
             'position' => $assignment->position ? [
                 'id' => $assignment->position->id,
                 'title_en' => $assignment->position->title_en,
+                'title_am' => $assignment->position->title_am,
             ] : null,
         ])->all());
         $data['duplicate_flags'] = $this->whenLoaded('employeeDuplicateFlags', fn (): array => $this->employeeDuplicateFlags->map(fn ($flag): array => [
@@ -63,10 +65,12 @@ class EmployeeDetailResource extends EmployeeResource
             'from_organization' => $transfer->fromOrganization ? [
                 'id' => $transfer->fromOrganization->id,
                 'name_en' => $transfer->fromOrganization->name_en,
+                'name_am' => $transfer->fromOrganization->name_am,
             ] : null,
             'to_organization' => $transfer->toOrganization ? [
                 'id' => $transfer->toOrganization->id,
                 'name_en' => $transfer->toOrganization->name_en,
+                'name_am' => $transfer->toOrganization->name_am,
             ] : null,
         ])->all());
 

@@ -24,15 +24,15 @@ class UpdatePublicHolidayRequest extends FormRequest
         $holidayId = $this->route('publicHoliday')?->id;
 
         return [
-            'name_en'         => ['required', 'string', 'max:255'],
-            'name_am'         => ['nullable', 'string', 'max:255'],
-            'holiday_date'    => ['required', 'date', Rule::unique('public_holidays', 'holiday_date')->ignore($holidayId)],
-            'is_recurring'    => ['boolean'],
+            'name_en' => ['required', 'string', 'max:255'],
+            'name_am' => ['nullable', 'string', 'max:255'],
+            'holiday_date' => ['required', 'date', Rule::unique('public_holidays', 'holiday_date')->ignore($holidayId)],
+            'is_recurring' => ['boolean'],
             'recurrence_type' => ['nullable', 'in:gregorian,ethiopian', 'required_if:is_recurring,true'],
-            'country_code'    => ['nullable', 'string', 'max:5'],
-            'region'          => ['nullable', 'string', 'max:100'],
-            'is_active'       => ['boolean'],
-            'description'     => ['nullable', 'string', 'max:1000'],
+            'country_code' => ['nullable', 'string', 'max:5'],
+            'region' => ['nullable', 'string', 'max:100'],
+            'is_active' => ['boolean'],
+            'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

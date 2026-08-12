@@ -12,6 +12,15 @@ class HierarchyTreeNodeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            // Unified node fields (new)
+            'id' => $this['id'] ?? $this['organization_id'],
+            'type' => $this['type'] ?? 'organization',
+            'label' => $this['label'] ?? $this['name_en'],
+            'node_type_label' => $this['node_type_label'] ?? null,
+            'node_type_label_am' => $this['node_type_label_am'] ?? null,
+            'status_label' => $this['status_label'] ?? null,
+            'meta' => $this['meta'] ?? null,
+            // Legacy fields kept for backwards compatibility
             'organization_id' => $this['organization_id'],
             'edge_id' => $this['edge_id'],
             'parent_organization_id' => $this['parent_organization_id'],

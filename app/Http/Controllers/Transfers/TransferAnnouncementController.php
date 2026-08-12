@@ -52,8 +52,8 @@ class TransferAnnouncementController extends Controller
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->when($request->filled('search'), function ($q) use ($request): void {
                 $term = '%'.$request->string('search').'%';
-                $q->whereHas('organization', fn ($o) => $o->where('name_en', 'like', $term)->orWhere('name_am', 'like', $term))
-                    ->orWhereHas('position', fn ($p) => $p->where('title_en', 'like', $term)->orWhere('title_am', 'like', $term));
+                $q->whereHas('organization', fn ($o) => $o->where('name_en', ci_like_operator(), $term)->orWhere('name_am', ci_like_operator(), $term))
+                    ->orWhereHas('position', fn ($p) => $p->where('title_en', ci_like_operator(), $term)->orWhere('title_am', ci_like_operator(), $term));
             })
             ->latest();
 

@@ -56,8 +56,8 @@ final readonly class ProviderTransactionExportService
                 $term = '%'.str_replace(['%', '_'], ['\%', '\_'], (string) $filters['employee_search']).'%';
 
                 return $query->whereHas('employee', function (Builder $employeeQuery) use ($term): void {
-                    $employeeQuery->where('employee_number', 'like', $term)
-                        ->orWhere('full_name', 'like', $term);
+                    $employeeQuery->where('employee_number', ci_like_operator(), $term)
+                        ->orWhere('full_name', ci_like_operator(), $term);
                 });
             })
             ->when((string) ($filters['order_id'] ?? '') !== '', fn (Builder $query): Builder => $query->whereHas('foodOrder', fn (Builder $orderQuery): Builder => $orderQuery->whereKey($filters['order_id'])))
@@ -341,7 +341,7 @@ final readonly class ProviderTransactionExportService
      * Post-process rows for CSV/XLSX: replace raw status (col 16) with a localized label.
      * NOT used for PDF rows — the Blade template handles status display with CSS class logic.
      *
-     * @param  array<int, array<int, mixed>> $rows
+     * @param  array<int, array<int, mixed>>  $rows
      * @return array<int, array<int, mixed>>
      */
     private function localizeRows(array $rows): array

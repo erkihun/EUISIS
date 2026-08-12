@@ -26,10 +26,10 @@ class ProfileUpdateRequest extends FormRequest
         $phone = filled($rawPhone) ? $rawPhone : null;
 
         $this->merge([
-            'national_id'      => $nid,
+            'national_id' => $nid,
             'national_id_hash' => $nid !== null ? hash('sha256', $nid) : null,
-            'phone_number'     => $phone,
-            'gender'           => filled($this->input('gender')) ? $this->input('gender') : null,
+            'phone_number' => $phone,
+            'gender' => filled($this->input('gender')) ? $this->input('gender') : null,
         ]);
     }
 

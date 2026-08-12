@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\OrganizationUnitStatus;
 use App\Enums\OrganizationUnitType;
+use App\Http\Requests\Concerns\ValidatesOrganizationWithinScope;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType as OrganizationUnitTypeModel;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,6 +15,8 @@ use Illuminate\Validation\Rules\Enum;
 
 class StoreOrganizationUnitRequest extends FormRequest
 {
+    use ValidatesOrganizationWithinScope;
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', OrganizationUnit::class) ?? false;
@@ -24,8 +27,8 @@ class StoreOrganizationUnitRequest extends FormRequest
         $organizationId = $this->input('organization_id');
 
         return [
-            'organization_id'          => ['required', 'uuid', 'exists:organizations,id'],
-            'parent_unit_id'           => [
+            'organization_id' => ['required', 'uuid', 'exists:organizations,id', $this->organizationWithinScopeRule()],
+            'parent_unit_id' => [
                 'nullable',
                 'uuid',
                 Rule::exists('organization_units', 'id')->where('organization_id', $organizationId)->whereNull('deleted_at'),
@@ -35,22 +38,22 @@ class StoreOrganizationUnitRequest extends FormRequest
                 'uuid',
                 Rule::exists('organization_unit_types', 'id')->whereNull('deleted_at'),
             ],
-            'unit_type'                => ['nullable', new Enum(OrganizationUnitType::class)],
-            'code'                     => [
+            'unit_type' => ['nullable', new Enum(OrganizationUnitType::class)],
+            'code' => [
                 'nullable',
                 'string',
                 'max:255',
                 Rule::unique('organization_units', 'code')->where('organization_id', $organizationId),
             ],
-            'name_en'                  => ['required', 'string', 'max:255'],
-            'name_am'                  => ['nullable', 'string', 'max:255'],
-            'description_en'           => ['nullable', 'string'],
-            'description_am'           => ['nullable', 'string'],
-            'status'                   => ['required', new Enum(OrganizationUnitStatus::class)],
-            'effective_from'           => ['nullable', 'date'],
-            'effective_to'             => ['nullable', 'date', 'after:effective_from'],
-            'sort_order'               => ['nullable', 'integer', 'min:0'],
-            'metadata'                 => ['nullable', 'array'],
+            'name_en' => ['required', 'string', 'max:255'],
+            'name_am' => ['nullable', 'string', 'max:255'],
+            'description_en' => ['nullable', 'string'],
+            'description_am' => ['nullable', 'string'],
+            'status' => ['required', new Enum(OrganizationUnitStatus::class)],
+            'effective_from' => ['nullable', 'date'],
+            'effective_to' => ['nullable', 'date', 'after:effective_from'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'metadata' => ['nullable', 'array'],
         ];
     }
 

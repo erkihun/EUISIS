@@ -6,8 +6,6 @@ namespace App\Services\Verification;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
-use App\Enums\CardStatus;
-use App\Enums\EmployeeStatus;
 use App\Enums\EntitlementStatus;
 use App\Models\CardVerification;
 use App\Models\Entitlement;
@@ -15,11 +13,15 @@ use App\Models\IdCard;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
+use App\Services\EmployeeServiceEligibilityService;
 use Illuminate\Http\Request;
 
 readonly class VerifyCardForServiceAction
 {
-    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+    public function __construct(
+        private WriteAuditLogAction $writeAuditLogAction,
+        private EmployeeServiceEligibilityService $serviceEligibility,
+    ) {}
 
     public function execute(string $token, ServiceType $serviceType, ?ServiceProvider $provider, ?User $actor = null, ?Request $request = null): array
     {
@@ -40,16 +42,17 @@ readonly class VerifyCardForServiceAction
             return $this->deny('invalid_token', null, $serviceType, $provider, $actor, $request);
         }
 
-        if (! in_array($card->status, [CardStatus::Active, CardStatus::Issued], true)) {
-            return $this->deny('card_inactive', $card, $serviceType, $provider, $actor, $request);
-        }
+        $serviceEligibility = $this->serviceEligibility->check(
+            $card->employee,
+            $card,
+            $serviceType->code,
+            $actor,
+            $provider?->id,
+            $request,
+        );
 
-        if ($card->expires_at !== null && $card->expires_at->isPast()) {
-            return $this->deny('card_expired', $card, $serviceType, $provider, $actor, $request);
-        }
-
-        if ($card->employee->status !== EmployeeStatus::Active) {
-            return $this->deny('employee_inactive', $card, $serviceType, $provider, $actor, $request);
+        if (! $serviceEligibility['eligible']) {
+            return $this->deny($serviceEligibility['reason_code'], $card, $serviceType, $provider, $actor, $request);
         }
 
         if ($card->employee->currentAssignment === null) {
@@ -137,10 +140,14 @@ readonly class VerifyCardForServiceAction
 
     private function deny(string $resultCode, ?IdCard $card, ServiceType $serviceType, ?ServiceProvider $provider, ?User $actor, ?Request $request): array
     {
+        $messageKey = "service-eligibility.reasons.{$resultCode}";
+        $localizedMessage = __($messageKey);
         $response = [
             'allowed' => false,
             'result_code' => $resultCode,
-            'denial_reason' => str_replace('_', ' ', $resultCode),
+            'denial_reason' => $localizedMessage === $messageKey
+                ? str_replace('_', ' ', $resultCode)
+                : $localizedMessage,
             'card_status' => $card?->status?->value,
             'employee_status' => $card?->employee?->status?->value,
             'service_type' => $serviceType->code,

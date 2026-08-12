@@ -58,8 +58,8 @@ class DetectUnitLikeOrganizations extends Command
         // Match by name patterns
         $query->where(function ($q): void {
             foreach (self::NAME_PATTERNS as $pattern) {
-                $q->orWhere('name_en', 'like', "%{$pattern}%")
-                    ->orWhere('name_am', 'like', "%{$pattern}%");
+                $q->orWhere('name_en', ci_like_operator(), "%{$pattern}%")
+                    ->orWhere('name_am', ci_like_operator(), "%{$pattern}%");
             }
         });
 
@@ -70,7 +70,7 @@ class DetectUnitLikeOrganizations extends Command
             ->with('type:id,code,name_en')
             ->whereHas('type', function ($q): void {
                 foreach (self::TYPE_CODE_PATTERNS as $pattern) {
-                    $q->orWhere('code', 'like', "%{$pattern}%");
+                    $q->orWhere('code', ci_like_operator(), "%{$pattern}%");
                 }
             })
             ->limit($limit);

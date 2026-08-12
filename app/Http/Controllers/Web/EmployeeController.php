@@ -12,6 +12,8 @@ use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\HierarchyVersionStatus;
+use App\Enums\OrganizationStatus;
+use App\Enums\OrganizationUnitStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\EmployeeStoreRequest;
 use App\Http\Requests\EmployeeTransferRequest;
@@ -157,7 +159,7 @@ class EmployeeController extends Controller
             }
         }
 
-        $employees = Employee::query()
+        $employeesPaginated = Employee::query()
             ->with(['currentAssignment.organization', 'currentAssignment.organizationUnit', 'currentAssignment.position'])
             ->withCount('employeeDuplicateFlags')
             ->when(
@@ -175,14 +177,15 @@ class EmployeeController extends Controller
             ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
                 $query->where(function ($nested) use ($search): void {
-                    $nested->where('employee_number', 'like', "%{$search}%")
-                        ->orWhere('full_name', 'like', "%{$search}%")
-                        ->orWhere('phone', 'like', "%{$search}%");
+                    $nested->where('employee_number', ci_like_operator(), "%{$search}%")
+                        ->orWhere('full_name', ci_like_operator(), "%{$search}%")
+                        ->orWhere('phone', ci_like_operator(), "%{$search}%");
                 });
             })
             ->when($request->string('status')->toString() !== '', fn ($query) => $query->where('status', $request->string('status')->toString()))
             ->orderBy('full_name')
-            ->get();
+            ->paginate(50)
+            ->withQueryString();
 
         return Inertia::render('Employees/Index', [
             'organizationTree' => $organizationTree,
@@ -203,7 +206,13 @@ class EmployeeController extends Controller
                 'title_am' => $selectedPosition->title_am,
                 'organization_unit_id' => $selectedPosition->organization_unit_id,
             ] : null,
-            'employees' => EmployeeResource::collection($employees)->resolve(),
+            'employees' => EmployeeResource::collection($employeesPaginated->getCollection())->resolve(),
+            'employees_pagination' => [
+                'current_page' => $employeesPaginated->currentPage(),
+                'last_page' => $employeesPaginated->lastPage(),
+                'per_page' => $employeesPaginated->perPage(),
+                'total' => $employeesPaginated->total(),
+            ],
             'filters' => $request->only(['search', 'status', 'organization_id', 'position_id']),
             'can' => [
                 'create' => $user?->can('create', Employee::class) ?? false,
@@ -246,7 +255,9 @@ class EmployeeController extends Controller
             abort(403);
         }
 
+        // Only active structures may receive a new employee assignment.
         $organizationQuery = Organization::query()
+            ->where('status', OrganizationStatus::Active->value)
             ->orderBy('name_en');
 
         if ($accessibleOrganizationIds->isNotEmpty()) {
@@ -254,6 +265,7 @@ class EmployeeController extends Controller
         }
 
         $organizationUnitQuery = OrganizationUnit::query()
+            ->where('status', OrganizationUnitStatus::Active->value)
             ->whereNull('deleted_at')
             ->orderBy('name_en');
 
@@ -398,6 +410,7 @@ class EmployeeController extends Controller
             'first_name',
             'middle_name',
             'last_name',
+            'name_en',
             'phone',
             'email',
             'date_of_birth',

@@ -8,10 +8,10 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\CodeRule;
 use App\Models\User;
-use Illuminate\Database\QueryException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -139,7 +139,7 @@ class RecycleBinService
                 $query->where(function (Builder $nested) use ($search): void {
                     foreach (['code', 'job_position_code', 'name', 'name_en', 'name_am', 'title_en', 'title_am'] as $column) {
                         if ($this->hasColumn($nested, $column)) {
-                            $nested->orWhere($column, 'like', "%{$search}%");
+                            $nested->orWhere($column, ci_like_operator(), "%{$search}%");
                         }
                     }
                 });

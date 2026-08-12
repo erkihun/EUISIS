@@ -17,15 +17,15 @@ class StorePublicHolidayRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name_en'          => ['required', 'string', 'max:255'],
-            'name_am'          => ['nullable', 'string', 'max:255'],
-            'holiday_date'     => ['required', 'date', 'unique:public_holidays,holiday_date'],
-            'is_recurring'     => ['boolean'],
-            'recurrence_type'  => ['nullable', 'in:gregorian,ethiopian', 'required_if:is_recurring,true'],
-            'country_code'     => ['nullable', 'string', 'max:5'],
-            'region'           => ['nullable', 'string', 'max:100'],
-            'is_active'        => ['boolean'],
-            'description'      => ['nullable', 'string', 'max:1000'],
+            'name_en' => ['required', 'string', 'max:255'],
+            'name_am' => ['nullable', 'string', 'max:255'],
+            'holiday_date' => ['required', 'date', 'unique:public_holidays,holiday_date'],
+            'is_recurring' => ['boolean'],
+            'recurrence_type' => ['nullable', 'in:gregorian,ethiopian', 'required_if:is_recurring,true'],
+            'country_code' => ['nullable', 'string', 'max:5'],
+            'region' => ['nullable', 'string', 'max:100'],
+            'is_active' => ['boolean'],
+            'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 }

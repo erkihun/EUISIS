@@ -7,14 +7,18 @@ namespace App\Policies;
 use App\Enums\OrganizationStatus;
 use App\Models\Organization;
 use App\Models\User;
-use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use App\Services\Organizations\OrganizationDeletionGuard;
+use App\Services\OrganizationScope\OrganizationScopeService;
 
 readonly class OrganizationPolicy
 {
     use DeniesNonAdminUsers;
 
-    public function __construct(private OrganizationScopeService $organizationScopeService) {}
+    public function __construct(
+        private OrganizationScopeService $organizationScopeService,
+        private OrganizationDeletionGuard $organizationDeletionGuard,
+    ) {}
 
     public function viewAny(User $user): bool
     {
@@ -34,17 +38,33 @@ readonly class OrganizationPolicy
 
     public function update(User $user, Organization $organization): bool
     {
-        return $user->can('organizations.manage');
+        return $user->can('organizations.manage')
+            && $this->organizationScopeService->canManageWithinScope($user, $organization);
     }
 
     public function delete(User $user, Organization $organization): bool
     {
-        return $user->can('organizations.manage');
+        return $user->can('organizations.manage')
+            && $this->organizationScopeService->canManageWithinScope($user, $organization)
+            && $this->organizationDeletionGuard->canBeDeletedSafely($organization);
+    }
+
+    public function archive(User $user, Organization $organization): bool
+    {
+        return $user->can('organizations.manage')
+            && $this->organizationScopeService->canManageWithinScope($user, $organization);
+    }
+
+    public function deactivate(User $user, Organization $organization): bool
+    {
+        return $user->can('organizations.manage')
+            && $this->organizationScopeService->canManageWithinScope($user, $organization);
     }
 
     public function restore(User $user, Organization $organization): bool
     {
-        return $user->can('organizations.manage');
+        return $user->can('organizations.manage')
+            && $this->organizationScopeService->canManageWithinScope($user, $organization);
     }
 
     public function createChild(User $user, Organization $organization): bool
@@ -63,5 +83,21 @@ readonly class OrganizationPolicy
     public function manageHierarchy(User $user): bool
     {
         return $user->can('organizations.manage');
+    }
+
+    /**
+     * Gate for the Organization Structure Import wizard (upload → preview →
+     * confirm). Deliberately its own permission rather than folding into
+     * `organizations.manage`: bulk import writes units, positions, employees
+     * and assignments in one shot, so it is granted separately.
+     *
+     * Per-organization scope is *not* checked here — the target organization is
+     * only known once the workbook is parsed. The service re-checks
+     * {@see OrganizationScopeService::canAccessOrganization()} against the
+     * organization the file actually resolves to.
+     */
+    public function import(User $user): bool
+    {
+        return $user->can('organizations.import');
     }
 }

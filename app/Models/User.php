@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Security\MfaRequirementService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -189,17 +190,13 @@ class User extends Authenticatable
     // ── MFA helpers ────────────────────────────────────────────────────────
 
     /**
-     * True when the user's role(s) require multi-factor authentication. The
-     * required role list comes from config('security.mfa_required_roles').
+     * True when the user must use multi-factor authentication — either via the
+     * env baseline config('security.mfa_required_roles') or the role-based
+     * rules configured in System Settings > Security.
      */
     public function requiresMfa(): bool
     {
-        $required = (array) config('security.mfa_required_roles', []);
-        if ($required === []) {
-            return false;
-        }
-
-        return $this->hasAnyRole($required);
+        return app(MfaRequirementService::class)->requiresMfa($this);
     }
 
     /**

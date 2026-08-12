@@ -13,6 +13,8 @@ class PermissionResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $user = $request->user();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -27,6 +29,17 @@ class PermissionResource extends JsonResource
             'roles_count' => $this->whenCounted('roles'),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
+            // Backend policies stay the source of truth; these flags only
+            // decide which action buttons the UI renders.
+            'can' => [
+                'view' => $user?->can('view', $this->resource) ?? false,
+                'update' => $user?->can('update', $this->resource) ?? false,
+                // System permissions are never deletable — checked here in
+                // addition to the policy because Gate::before (Super Admin)
+                // bypasses policy methods, and the controller enforces the
+                // same rule server-side.
+                'delete' => ! $this->is_system && ($user?->can('delete', $this->resource) ?? false),
+            ],
         ];
     }
 }

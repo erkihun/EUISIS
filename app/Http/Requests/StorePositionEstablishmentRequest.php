@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesOrganizationWithinScope;
 use App\Models\PositionEstablishment;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePositionEstablishmentRequest extends FormRequest
 {
+    use ValidatesOrganizationWithinScope;
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', PositionEstablishment::class) ?? false;
@@ -17,7 +20,7 @@ class StorePositionEstablishmentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
+            'organization_id' => ['required', 'uuid', 'exists:organizations,id', $this->organizationWithinScopeRule()],
             'organization_unit_id' => ['nullable', 'uuid', 'exists:organization_units,id'],
             'position_id' => ['required', 'uuid', 'exists:positions,id'],
             'occupation_id' => ['nullable', 'uuid', 'exists:occupations,id'],

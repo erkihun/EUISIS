@@ -30,7 +30,7 @@ class EntitlementRuleController extends Controller
             ->withCount('entitlements')
             ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
-                $query->where('name', 'like', "%{$search}%");
+                $query->where('name', ci_like_operator(), "%{$search}%");
             })
             ->when($request->string('service_type_id')->toString() !== '', fn ($query) => $query->where('service_type_id', $request->string('service_type_id')->toString()))
             ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', $request->boolean('is_active')))

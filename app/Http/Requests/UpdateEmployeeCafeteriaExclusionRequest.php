@@ -18,13 +18,13 @@ class UpdateEmployeeCafeteriaExclusionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'exclusion_type'    => ['required', Rule::in(array_column(CafeteriaExclusionType::cases(), 'value'))],
-            'starts_on'         => ['required', 'date'],
-            'ends_on'           => ['nullable', 'date', 'after_or_equal:starts_on'],
+            'exclusion_type' => ['required', Rule::in(array_column(CafeteriaExclusionType::cases(), 'value'))],
+            'starts_on' => ['required', 'date'],
+            'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
             'return_to_work_on' => ['nullable', 'date'],
-            'is_open_ended'     => ['boolean'],
-            'reason_en'         => ['nullable', 'string', 'max:2000'],
-            'reason_am'         => ['nullable', 'string', 'max:2000'],
+            'is_open_ended' => ['boolean'],
+            'reason_en' => ['nullable', 'string', 'max:2000'],
+            'reason_am' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }

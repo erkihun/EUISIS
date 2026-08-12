@@ -52,6 +52,7 @@ class UpdateGeneralSettingsRequest extends FormRequest
             'login_page_message_am' => ['nullable', 'string', 'max:2000'],
             'identity_system_logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.$maxUploadKilobytes],
             'favicon' => ['nullable', 'file', 'mimes:ico,png,webp', 'max:'.$maxUploadKilobytes],
+            'seal' => ['nullable', 'file', 'image', 'mimes:png', 'max:'.$maxUploadKilobytes],
         ];
     }
 

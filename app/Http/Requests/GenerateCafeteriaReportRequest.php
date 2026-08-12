@@ -17,9 +17,9 @@ class GenerateCafeteriaReportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'report_type'     => ['required', 'in:daily,weekly,monthly'],
-            'period_start'    => ['required', 'date'],
-            'period_end'      => ['required', 'date', 'after_or_equal:period_start'],
+            'report_type' => ['required', 'in:daily,weekly,monthly'],
+            'period_start' => ['required', 'date'],
+            'period_end' => ['required', 'date', 'after_or_equal:period_start'],
             'organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
         ];
     }

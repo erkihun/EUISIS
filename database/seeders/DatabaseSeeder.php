@@ -527,6 +527,7 @@ class DatabaseSeeder extends Seeder
             // Legacy (kept for backward compatibility with existing tests/policies)
             'organizations.view',
             'organizations.manage',
+            'organizations.import',
             'employees.view',
             'employees.manage',
             'cards.view',
@@ -792,6 +793,7 @@ class DatabaseSeeder extends Seeder
         $institutionAdminPerms = [
             'dashboard.view',
             'organizations.view', 'organizations.manage',
+            'organizations.import',
             'organizations.viewAny',
             'organization-types.viewAny', 'organization-types.view',
             'hierarchy-versions.viewAny', 'hierarchy-versions.view',
@@ -879,7 +881,10 @@ class DatabaseSeeder extends Seeder
             // Security
             ['group' => 'security', 'key' => 'session_timeout_minutes', 'value' => '120',  'type' => 'integer', 'label_en' => 'Session Timeout (minutes)',   'is_public' => false, 'sort_order' => 1],
             ['group' => 'security', 'key' => 'max_login_attempts',      'value' => '5',    'type' => 'integer', 'label_en' => 'Max Login Attempts',          'is_public' => false, 'sort_order' => 2],
-            ['group' => 'security', 'key' => 'require_mfa_for_admins',  'value' => 'false', 'type' => 'boolean', 'label_en' => 'Require MFA for Admins',      'is_public' => false, 'sort_order' => 3],
+            ['group' => 'security', 'key' => 'require_mfa_for_admins',  'value' => 'false', 'type' => 'boolean', 'label_en' => 'Require MFA for Admins (Legacy)', 'is_public' => false, 'sort_order' => 3],
+            ['group' => 'security', 'key' => 'mfa_enabled',             'value' => 'true',  'type' => 'boolean', 'label_en' => 'Enable MFA',                  'is_public' => false, 'sort_order' => 4],
+            ['group' => 'security', 'key' => 'mfa_required_for_all',    'value' => 'false', 'type' => 'boolean', 'label_en' => 'Require MFA for All Users',   'is_public' => false, 'sort_order' => 5],
+            ['group' => 'security', 'key' => 'mfa_required_role_ids',   'value' => '[]',    'type' => 'multiselect', 'label_en' => 'Require MFA for Selected Roles', 'is_public' => false, 'sort_order' => 6],
         ];
 
         foreach ($defaults as $row) {
@@ -984,8 +989,12 @@ class DatabaseSeeder extends Seeder
                 'name_en' => 'Job Position Code',
                 'name_am' => 'የስራ መደብ ኮድ',
                 'prefix' => 'POS',
-                'format' => '{PREFIX}-{SEQUENCE}',
-                'sequence_length' => 4,
+                // ownerCode/sequence, or ownerCode/hostCode/sequence when the
+                // unit operates inside a host organization. The empty host
+                // segment collapses because the separator is '/'.
+                'format' => '{OWNER_ORG_CODE}/{HOST_ORG_CODE}/{SEQUENCE}',
+                'separator' => '/',
+                'sequence_length' => 2,
             ],
             [
                 'entity_type' => CodeRuleEntityType::IdCard->value,
@@ -1085,7 +1094,7 @@ class DatabaseSeeder extends Seeder
                         $default['scope_id'],
                     ),
                     'suffix' => null,
-                    'separator' => '-',
+                    'separator' => $default['separator'] ?? '-',
                     'next_number' => 1,
                     'reset_frequency' => CodeRuleResetFrequency::Never,
                     'year_format' => 'Y',

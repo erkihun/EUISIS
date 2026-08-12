@@ -9,6 +9,7 @@ use App\Enums\OrganizationRelationshipType;
 use App\Enums\OrganizationStatus;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
+use App\Models\OrganizationType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Validator;
@@ -59,6 +60,17 @@ class OrganizationStoreRequest extends FormRequest
     {
         return [
             function (Validator $validator): void {
+                $orgTypeId = $this->string('organization_type_id')->toString();
+
+                if ($orgTypeId !== '') {
+                    $childType = OrganizationType::query()->find($orgTypeId);
+
+                    if ($childType !== null && ! $childType->is_active) {
+                        $validator->errors()->add('organization_type_id', __('organizations.inactive_organization_type'));
+                    }
+                }
+            },
+            function (Validator $validator): void {
                 $parentOrganizationId = $this->string('parent_organization_id')->toString();
 
                 if ($parentOrganizationId === '') {
@@ -77,6 +89,18 @@ class OrganizationStoreRequest extends FormRequest
 
                 if (! ($this->user()?->can('createChild', $parentOrganization) ?? false)) {
                     $validator->errors()->add('parent_organization_id', __('organizations.parent_organization_outside_scope'));
+                }
+
+                // Validate that child org type allows this parent org type
+                $orgTypeId = $this->string('organization_type_id')->toString();
+
+                if ($orgTypeId !== '') {
+                    $childType = OrganizationType::query()->find($orgTypeId);
+                    $parentType = $parentOrganization->organizationType;
+
+                    if ($childType !== null && $parentType !== null && ! $childType->allowsParentType($parentType)) {
+                        $validator->errors()->add('organization_type_id', __('organizations.invalid_parent_organization_type'));
+                    }
                 }
 
                 $hierarchyVersionId = $this->string('hierarchy_version_id')->toString();

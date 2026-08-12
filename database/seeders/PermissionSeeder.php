@@ -22,7 +22,7 @@ class PermissionSeeder extends Seeder
 
         $legacy = [
             'dashboard.view', 'dashboard.reports',
-            'organizations.view', 'organizations.manage',
+            'organizations.view', 'organizations.manage', 'organizations.import',
             'employees.view', 'employees.manage',
             'cards.view', 'cards.manage',
             'entitlements.view', 'entitlements.manage',
@@ -168,10 +168,32 @@ class PermissionSeeder extends Seeder
             'cafeteria-portal.impersonate', 'cafeteria-portal.exportTransactions',
             'provider-cafeteria-transactions.export',
             'provider-cafeteria-payment-claims.export',
+
+            // Grievance & Administrative Tribunal module
+            'grievances.view', 'grievances.manage', 'grievances.committee',
+            'grievances.chairperson', 'grievances.manager', 'grievances.tribunal',
         ];
 
         foreach ($legacy as $permission) {
-            Permission::findOrCreate($permission, 'web');
+            $legacyPermission = Permission::firstOrCreate(
+                ['name' => $permission, 'guard_name' => 'web'],
+            );
+
+            $fallback = [];
+            if (blank($legacyPermission->description_en) || blank($legacyPermission->description_am)) {
+                $fallback['description_en'] = "Allows performing the {$permission} system operation.";
+                $fallback['description_am'] = "{$permission} የተባለውን የሥርዓት ተግባር መፈጸም ያስችላል።";
+            }
+
+            // Keep stragglers out of the UI's "other" bucket by deriving the
+            // group from the permission name prefix.
+            if (blank($legacyPermission->group)) {
+                $fallback['group'] = str($permission)->before('.')->toString();
+            }
+
+            if ($fallback !== []) {
+                $legacyPermission->update($fallback);
+            }
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

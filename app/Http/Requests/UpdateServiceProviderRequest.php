@@ -19,12 +19,12 @@ class UpdateServiceProviderRequest extends FormRequest
         $id = $this->route('serviceProvider')?->id;
 
         return [
-            'name'             => ['required', 'string', 'max:255'],
-            'code'             => ['required', 'string', 'max:50', Rule::unique('service_providers', 'code')->ignore($id)],
-            'service_type_id'  => ['required', 'uuid', 'exists:service_types,id'],
-            'organization_id'  => ['nullable', 'uuid', 'exists:organizations,id'],
-            'status'           => ['required', 'string', 'in:active,inactive,suspended'],
-            'is_demo'          => ['boolean'],
+            'name' => ['required', 'string', 'max:255'],
+            'code' => ['required', 'string', 'max:50', Rule::unique('service_providers', 'code')->ignore($id)],
+            'service_type_id' => ['required', 'uuid', 'exists:service_types,id'],
+            'organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
+            'status' => ['required', 'string', 'in:active,inactive,suspended'],
+            'is_demo' => ['boolean'],
         ];
     }
 }

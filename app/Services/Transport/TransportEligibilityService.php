@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Transport;
 
-use App\Enums\CardStatus;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\Provider;
@@ -25,14 +24,6 @@ class TransportEligibilityService
 
         if (! $provider->hasService('transport')) {
             return $this->deny('provider_transport_service_disabled');
-        }
-
-        if (! in_array($card->status, [CardStatus::Active, CardStatus::Issued], true) || $card->qr_status !== 'active') {
-            return $this->deny('card_inactive');
-        }
-
-        if ($card->expires_at !== null && $card->expires_at->isPast()) {
-            return $this->deny('card_expired');
         }
 
         if ($employee->currentAssignment === null) {

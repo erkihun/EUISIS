@@ -35,10 +35,12 @@ class PermissionController extends Controller
 
         if ($search = $request->string('search')->trim()->value()) {
             $query->where(static function ($q) use ($search): void {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('label_en', 'like', "%{$search}%")
-                    ->orWhere('label_am', 'like', "%{$search}%")
-                    ->orWhere('description_en', 'like', "%{$search}%");
+                $q->where('name', ci_like_operator(), "%{$search}%")
+                    ->orWhere('group', ci_like_operator(), "%{$search}%")
+                    ->orWhere('label_en', ci_like_operator(), "%{$search}%")
+                    ->orWhere('label_am', ci_like_operator(), "%{$search}%")
+                    ->orWhere('description_en', ci_like_operator(), "%{$search}%")
+                    ->orWhere('description_am', ci_like_operator(), "%{$search}%");
             });
         }
 
@@ -46,24 +48,52 @@ class PermissionController extends Controller
             $query->where('group', $group);
         }
 
-        $permissions = [
-            'data' => PermissionResource::collection($query->get())->resolve(),
+        if ($guard = $request->string('guard')->trim()->value()) {
+            $query->where('guard_name', $guard);
+        }
+
+        $paginated = $query->paginate(25)->withQueryString();
+
+        // Cheap aggregates only — no per-user computations.
+        $groupCounts = Permission::query()
+            ->whereNotNull('group')
+            ->select('group')
+            ->selectRaw('count(*) as total')
+            ->groupBy('group')
+            ->orderBy('group')
+            ->pluck('total', 'group');
+
+        $stats = [
+            'total' => Permission::query()->count(),
+            'groups' => $groupCounts->count(),
+            'system' => Permission::query()->where('is_system', true)->count(),
         ];
 
-        $groups = Permission::query()
-            ->whereNotNull('group')
+        $guards = Permission::query()
             ->distinct()
-            ->orderBy('group')
-            ->pluck('group')
+            ->orderBy('guard_name')
+            ->pluck('guard_name')
             ->values()
             ->toArray();
 
         return Inertia::render('Permissions/Index', [
-            'permissions' => $permissions,
-            'groups' => $groups,
+            'permissions' => [
+                'data' => PermissionResource::collection($paginated)->resolve(),
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+            ],
+            'groups' => $groupCounts->keys()->values()->toArray(),
+            'groupCounts' => $groupCounts->toArray(),
+            'guards' => $guards,
+            'stats' => $stats,
             'filters' => [
                 'search' => $request->string('search')->trim()->value(),
                 'group' => $request->string('group')->trim()->value(),
+                'guard' => $request->string('guard')->trim()->value(),
             ],
             'can' => [
                 'create' => $actor?->can('create', Permission::class) ?? false,
@@ -117,7 +147,7 @@ class PermissionController extends Controller
         $permission->load('roles:id,name');
 
         return Inertia::render('Permissions/Show', [
-            'permission' => new PermissionResource($permission),
+            'permission' => (new PermissionResource($permission))->resolve(),
             'roles' => $permission->roles->map(fn ($r) => ['id' => $r->id, 'name' => $r->name])->values(),
         ]);
     }
@@ -135,7 +165,7 @@ class PermissionController extends Controller
             ->toArray();
 
         return Inertia::render('Permissions/Edit', [
-            'permission' => new PermissionResource($permission),
+            'permission' => (new PermissionResource($permission))->resolve(),
             'groups' => $groups,
         ]);
     }

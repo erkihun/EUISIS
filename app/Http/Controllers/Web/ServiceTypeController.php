@@ -29,9 +29,9 @@ class ServiceTypeController extends Controller
             ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
                 $query->where(function ($nested) use ($search): void {
-                    $nested->where('code', 'like', "%{$search}%")
-                        ->orWhere('name_en', 'like', "%{$search}%")
-                        ->orWhere('name_am', 'like', "%{$search}%");
+                    $nested->where('code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_am', ci_like_operator(), "%{$search}%");
                 });
             })
             ->when($request->filled('is_active'), fn ($query) => $query->where('is_active', $request->boolean('is_active')))

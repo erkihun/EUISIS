@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\ServiceProviderUser;
 use App\Models\ServiceProvider;
+use App\Models\ServiceProviderUser;
 use App\Models\ServiceType;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,13 +31,13 @@ class ServiceProviderUserController extends Controller
 
                 $q->where(function ($nested) use ($search): void {
                     $nested
-                        ->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('username', 'like', "%{$search}%")
+                        ->where('name', ci_like_operator(), "%{$search}%")
+                        ->orWhere('email', ci_like_operator(), "%{$search}%")
+                        ->orWhere('username', ci_like_operator(), "%{$search}%")
                         ->orWhereHas('serviceType', function ($serviceTypeQuery) use ($search): void {
                             $serviceTypeQuery
-                                ->where('name_en', 'like', "%{$search}%")
-                                ->orWhere('code', 'like', "%{$search}%");
+                                ->where('name_en', ci_like_operator(), "%{$search}%")
+                                ->orWhere('code', ci_like_operator(), "%{$search}%");
                         });
                 });
             })
@@ -52,37 +52,37 @@ class ServiceProviderUserController extends Controller
 
         return Inertia::render('ServiceProviderUsers/AllIndex', [
             'providerUsers' => $query->through(fn (ServiceProviderUser $pu) => [
-                'id'             => $pu->id,
-                'name'           => $pu->name ?? 'Provider User',
-                'email'          => $pu->email,
-                'username'       => $pu->username,
-                'phone_number'   => $pu->phone_number,
-                'status'         => $pu->status ?? 'active',
+                'id' => $pu->id,
+                'name' => $pu->name ?? 'Provider User',
+                'email' => $pu->email,
+                'username' => $pu->username,
+                'phone_number' => $pu->phone_number,
+                'status' => $pu->status ?? 'active',
                 'portal_enabled' => (bool) $pu->portal_enabled,
                 'must_change_password' => (bool) $pu->must_change_password,
-                'service_type'   => $pu->serviceType ? [
-                    'id'      => $pu->serviceType->id,
-                    'code'    => $pu->serviceType->code,
+                'service_type' => $pu->serviceType ? [
+                    'id' => $pu->serviceType->id,
+                    'code' => $pu->serviceType->code,
                     'name_en' => $pu->serviceType->name_en,
                 ] : null,
                 'provider' => $pu->serviceProvider ? [
-                    'id'     => $pu->serviceProvider->id,
-                    'code'   => $pu->serviceProvider->code,
-                    'name'   => $pu->serviceProvider->name,
+                    'id' => $pu->serviceProvider->id,
+                    'code' => $pu->serviceProvider->code,
+                    'name' => $pu->serviceProvider->name,
                     'status' => $pu->serviceProvider->status,
                 ] : null,
                 'can' => [
-                    'view'           => $user?->can('viewAny', ServiceProvider::class) ?? false,
-                    'edit'           => $user?->can('create', ServiceProvider::class) ?? false,
-                    'delete'         => $user?->can('create', ServiceProvider::class) ?? false,
-                    'suspend'        => $user?->can('create', ServiceProvider::class) ?? false,
-                    'resetPassword'  => $user?->can('create', ServiceProvider::class) ?? false,
+                    'view' => $user?->can('viewAny', ServiceProvider::class) ?? false,
+                    'edit' => $user?->can('create', ServiceProvider::class) ?? false,
+                    'delete' => $user?->can('create', ServiceProvider::class) ?? false,
+                    'suspend' => $user?->can('create', ServiceProvider::class) ?? false,
+                    'resetPassword' => $user?->can('create', ServiceProvider::class) ?? false,
                 ],
             ]),
             'meta' => [
                 'current_page' => $query->currentPage(),
-                'last_page'    => $query->lastPage(),
-                'total'        => $query->total(),
+                'last_page' => $query->lastPage(),
+                'total' => $query->total(),
             ],
             'filters' => $request->only(['search', 'status']),
         ]);
@@ -96,27 +96,27 @@ class ServiceProviderUserController extends Controller
 
         return Inertia::render('ServiceProviderUsers/Show', [
             'providerUser' => [
-                'id'                   => $providerUser->id,
-                'name'                 => $providerUser->name,
-                'email'                => $providerUser->email,
-                'username'             => $providerUser->username,
-                'phone_number'         => $providerUser->phone_number,
-                'status'               => $providerUser->status,
-                'portal_enabled'       => (bool) $providerUser->portal_enabled,
+                'id' => $providerUser->id,
+                'name' => $providerUser->name,
+                'email' => $providerUser->email,
+                'username' => $providerUser->username,
+                'phone_number' => $providerUser->phone_number,
+                'status' => $providerUser->status,
+                'portal_enabled' => (bool) $providerUser->portal_enabled,
                 'must_change_password' => (bool) $providerUser->must_change_password,
-                'last_login_at'        => $providerUser->last_login_at?->toDateTimeString(),
-                'suspended_at'         => $providerUser->suspended_at?->toDateTimeString(),
-                'suspension_reason'    => $providerUser->suspension_reason,
-                'created_at'           => $providerUser->created_at?->toDateTimeString(),
-                'service_type'         => $providerUser->serviceType ? [
-                    'id'      => $providerUser->serviceType->id,
-                    'code'    => $providerUser->serviceType->code,
+                'last_login_at' => $providerUser->last_login_at?->toDateTimeString(),
+                'suspended_at' => $providerUser->suspended_at?->toDateTimeString(),
+                'suspension_reason' => $providerUser->suspension_reason,
+                'created_at' => $providerUser->created_at?->toDateTimeString(),
+                'service_type' => $providerUser->serviceType ? [
+                    'id' => $providerUser->serviceType->id,
+                    'code' => $providerUser->serviceType->code,
                     'name_en' => $providerUser->serviceType->name_en,
                 ] : null,
                 'provider' => $providerUser->serviceProvider ? [
-                    'id'     => $providerUser->serviceProvider->id,
-                    'code'   => $providerUser->serviceProvider->code,
-                    'name'   => $providerUser->serviceProvider->name,
+                    'id' => $providerUser->serviceProvider->id,
+                    'code' => $providerUser->serviceProvider->code,
+                    'name' => $providerUser->serviceProvider->name,
                     'status' => $providerUser->serviceProvider->status,
                 ] : null,
             ],
@@ -137,14 +137,14 @@ class ServiceProviderUserController extends Controller
         $this->authorize('create', ServiceProvider::class);
 
         $validated = $request->validate([
-            'service_type_id'      => ['required', 'uuid', 'exists:service_types,id'],
-            'name'                 => ['required', 'string', 'max:255'],
-            'email'                => ['nullable', 'string', 'email', 'max:255', 'unique:service_provider_users,email'],
-            'username'             => ['nullable', 'string', 'max:100', 'unique:service_provider_users,username', 'alpha_dash'],
-            'phone_number'         => ['nullable', 'string', 'max:30'],
-            'password'             => ['required', Password::min(8)],
-            'status'               => ['required', 'string', 'in:active,inactive,suspended'],
-            'portal_enabled'       => ['boolean'],
+            'service_type_id' => ['required', 'uuid', 'exists:service_types,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:service_provider_users,email'],
+            'username' => ['nullable', 'string', 'max:100', 'unique:service_provider_users,username', 'alpha_dash'],
+            'phone_number' => ['nullable', 'string', 'max:30'],
+            'password' => ['required', Password::min(8)],
+            'status' => ['required', 'string', 'in:active,inactive,suspended'],
+            'portal_enabled' => ['boolean'],
             'must_change_password' => ['boolean'],
         ]);
 
@@ -156,7 +156,7 @@ class ServiceProviderUserController extends Controller
 
         ServiceProviderUser::query()->create([
             ...$validated,
-            'password'   => Hash::make($validated['password']),
+            'password' => Hash::make($validated['password']),
             'created_by' => $request->user()?->id,
             'updated_by' => $request->user()?->id,
         ]);
@@ -171,16 +171,16 @@ class ServiceProviderUserController extends Controller
         $this->authorize('create', ServiceProvider::class);
 
         return Inertia::render('ServiceProviderUsers/Edit', [
-            'providerUser'  => [
-                'id'                   => $providerUser->id,
-                'name'                 => $providerUser->name,
-                'email'                => $providerUser->email,
-                'username'             => $providerUser->username,
-                'phone_number'         => $providerUser->phone_number,
-                'status'               => $providerUser->status,
-                'portal_enabled'       => (bool) $providerUser->portal_enabled,
+            'providerUser' => [
+                'id' => $providerUser->id,
+                'name' => $providerUser->name,
+                'email' => $providerUser->email,
+                'username' => $providerUser->username,
+                'phone_number' => $providerUser->phone_number,
+                'status' => $providerUser->status,
+                'portal_enabled' => (bool) $providerUser->portal_enabled,
                 'must_change_password' => (bool) $providerUser->must_change_password,
-                'service_type_id'      => $providerUser->service_type_id,
+                'service_type_id' => $providerUser->service_type_id,
             ],
             'serviceTypes' => $this->serviceTypeOptions(),
         ]);
@@ -191,13 +191,13 @@ class ServiceProviderUserController extends Controller
         $this->authorize('create', ServiceProvider::class);
 
         $validated = $request->validate([
-            'service_type_id'      => ['required', 'uuid', 'exists:service_types,id'],
-            'name'                 => ['required', 'string', 'max:255'],
-            'email'                => ['nullable', 'string', 'email', 'max:255', "unique:service_provider_users,email,{$providerUser->id}"],
-            'username'             => ['nullable', 'string', 'max:100', "unique:service_provider_users,username,{$providerUser->id}", 'alpha_dash'],
-            'phone_number'         => ['nullable', 'string', 'max:30'],
-            'status'               => ['required', 'string', 'in:active,inactive,suspended'],
-            'portal_enabled'       => ['boolean'],
+            'service_type_id' => ['required', 'uuid', 'exists:service_types,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['nullable', 'string', 'email', 'max:255', "unique:service_provider_users,email,{$providerUser->id}"],
+            'username' => ['nullable', 'string', 'max:100', "unique:service_provider_users,username,{$providerUser->id}", 'alpha_dash'],
+            'phone_number' => ['nullable', 'string', 'max:30'],
+            'status' => ['required', 'string', 'in:active,inactive,suspended'],
+            'portal_enabled' => ['boolean'],
             'must_change_password' => ['boolean'],
         ]);
 
@@ -226,10 +226,10 @@ class ServiceProviderUserController extends Controller
         ]);
 
         $providerUser->update([
-            'status'             => 'suspended',
-            'suspended_at'       => now(),
-            'suspended_by'       => $request->user()?->id,
-            'suspension_reason'  => $validated['suspension_reason'] ?? null,
+            'status' => 'suspended',
+            'suspended_at' => now(),
+            'suspended_by' => $request->user()?->id,
+            'suspension_reason' => $validated['suspension_reason'] ?? null,
         ]);
 
         return back()->with('flash', ['message' => __('cafeteria.providerUserSuspended'), 'type' => 'warning']);
@@ -240,9 +240,9 @@ class ServiceProviderUserController extends Controller
         $this->authorize('create', ServiceProvider::class);
 
         $providerUser->update([
-            'status'            => 'active',
-            'suspended_at'      => null,
-            'suspended_by'      => null,
+            'status' => 'active',
+            'suspended_at' => null,
+            'suspended_by' => null,
             'suspension_reason' => null,
         ]);
 
@@ -258,9 +258,9 @@ class ServiceProviderUserController extends Controller
         ]);
 
         $providerUser->update([
-            'password'             => Hash::make($validated['password']),
+            'password' => Hash::make($validated['password']),
             'must_change_password' => true,
-            'updated_by'           => $request->user()?->id,
+            'updated_by' => $request->user()?->id,
         ]);
 
         return back()->with('flash', ['message' => __('cafeteria.providerUserPasswordReset'), 'type' => 'success']);
@@ -285,8 +285,8 @@ class ServiceProviderUserController extends Controller
             ->orderBy('name_en')
             ->get(['id', 'code', 'name_en'])
             ->map(fn (ServiceType $st) => [
-                'id'      => $st->id,
-                'code'    => $st->code,
+                'id' => $st->id,
+                'code' => $st->code,
                 'name_en' => $st->name_en,
             ])
             ->values()

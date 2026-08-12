@@ -20,6 +20,8 @@ class EntitlementController extends Controller
 {
     public function index(): Response
     {
+        $this->authorize('viewAny', Entitlement::class);
+
         return Inertia::render('Entitlements/Index', [
             'entitlements' => Entitlement::query()
                 ->with(['employee.currentAssignment.organization', 'serviceType', 'serviceProvider'])

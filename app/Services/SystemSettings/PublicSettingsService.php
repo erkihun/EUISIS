@@ -27,6 +27,7 @@ class PublicSettingsService
 
         $logoPath = $settings['general']['identity_system_logo'] ?? null;
         $faviconPath = $settings['general']['favicon'] ?? null;
+        $sealPath = $settings['general']['seal'] ?? null;
 
         return [
             'app.name' => $settings['general']['application_name'] ?? 'Addis Ababa Employee Unified ID & Service Platform',
@@ -42,6 +43,7 @@ class PublicSettingsService
             'general.login_page_message_am' => $settings['general']['login_page_message_am'] ?? null,
             'general.identity_system_logo_url' => $this->publicAssetUrl($logoPath),
             'general.favicon_url' => $this->publicAssetUrl($faviconPath),
+            'general.seal_url' => $this->publicAssetUrl($sealPath),
             'localization.default_locale' => $settings['localization']['default_locale'] ?? 'en',
             'localization.fallback_locale' => $settings['localization']['fallback_locale'] ?? 'en',
             'localization.supported_locales' => $settings['localization']['supported_locales'] ?? ['en', 'am'],

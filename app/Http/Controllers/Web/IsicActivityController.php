@@ -30,9 +30,9 @@ class IsicActivityController extends Controller
             ->when($request->string('search')->toString() !== '', function ($q) use ($request): void {
                 $search = $request->string('search')->toString();
                 $q->where(function ($nested) use ($search): void {
-                    $nested->where('isic_code', 'like', "%{$search}%")
-                        ->orWhere('name_en', 'like', "%{$search}%")
-                        ->orWhere('name_am', 'like', "%{$search}%");
+                    $nested->where('isic_code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_am', ci_like_operator(), "%{$search}%");
                 });
             })
             ->when($request->filled('level'), fn ($q) => $q->where('level', $request->string('level')->toString()))

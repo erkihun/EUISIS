@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\OrganizationTypeCategory;
 use App\Models\OrganizationType;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class OrganizationTypeStoreRequest extends FormRequest
 {
@@ -32,6 +34,10 @@ class OrganizationTypeStoreRequest extends FormRequest
             'description_am' => ['nullable', 'string', 'max:1000'],
             'is_active' => ['boolean'],
             'sort_order' => ['integer', 'min:0'],
+            'level_order' => ['nullable', 'integer', 'min:1'],
+            'category' => ['nullable', 'string', new Enum(OrganizationTypeCategory::class)],
+            'parent_allowed_types' => ['nullable', 'array'],
+            'parent_allowed_types.*' => ['string', 'exists:organization_types,code'],
         ];
     }
 
@@ -39,6 +45,9 @@ class OrganizationTypeStoreRequest extends FormRequest
     {
         return [
             'prefix' => __('organization-types.prefix'),
+            'level_order' => __('organization-types.level_order'),
+            'category' => __('organization-types.category'),
+            'parent_allowed_types' => __('organization-types.parent_allowed_types'),
         ];
     }
 

@@ -25,8 +25,10 @@ class UpdatePositionRequest extends FormRequest
 
         return [
             'job_position_code' => ['required', 'string', 'max:255', Rule::unique('positions', 'job_position_code')->ignore($position->id)],
+            'old_code' => ['nullable', 'string', 'max:100'],
             'title_en' => ['nullable', 'string', 'max:255', 'required_without:title_am'],
             'title_am' => ['nullable', 'string', 'max:255', 'required_without:title_en'],
+            'bpr_name' => ['nullable', 'string', 'max:255'],
             'organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
             'organization_unit_id' => ['nullable', 'uuid', 'exists:organization_units,id'],
             'occupation_id' => ['nullable', 'uuid', 'exists:occupations,id'],

@@ -23,7 +23,14 @@ class UpdateSecuritySettingsRequest extends FormRequest
             'max_login_attempts' => ['required', 'integer', 'min:1', 'max:50'],
             'lockout_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
             'password_expiry_days' => ['nullable', 'integer', 'min:0', 'max:3650'],
-            'require_mfa_for_admins' => ['required', 'boolean'],
+            'mfa_enabled' => ['required', 'boolean'],
+            'mfa_required_for_all' => ['required', 'boolean'],
+            'mfa_required_role_ids' => ['nullable', 'array'],
+            'mfa_required_role_ids.*' => ['integer', 'exists:roles,id'],
+            // Legacy flag: accepted for backward compatibility but no longer
+            // sent by the settings UI. When omitted, saving the new MFA
+            // settings retires it (see SystemSettingController::updateSecurity).
+            'require_mfa_for_admins' => ['sometimes', 'boolean'],
             'force_https' => ['required', 'boolean'],
             'maintenance_banner_enabled' => ['required', 'boolean'],
             'maintenance_banner_message_en' => ['nullable', 'string', 'max:2000'],

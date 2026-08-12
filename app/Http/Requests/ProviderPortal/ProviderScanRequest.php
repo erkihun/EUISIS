@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\ProviderPortal;
 
 use App\Enums\CafeteriaUsageMode;
+use App\Models\ProviderUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,7 +13,7 @@ class ProviderScanRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        /** @var \App\Models\ProviderUser|null $providerUser */
+        /** @var ProviderUser|null $providerUser */
         $providerUser = auth('provider')->user();
 
         return $providerUser?->hasService('cafeteria') ?? false;

@@ -31,8 +31,8 @@ class PublicHolidayController extends Controller
             ->when($request->string('search')->toString() !== '', function ($q) use ($request): void {
                 $search = $request->string('search')->toString();
                 $q->where(function ($nested) use ($search): void {
-                    $nested->where('name_en', 'like', "%{$search}%")
-                        ->orWhere('name_am', 'like', "%{$search}%");
+                    $nested->where('name_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_am', ci_like_operator(), "%{$search}%");
                 });
             })
             ->orderBy('holiday_date');
@@ -40,16 +40,16 @@ class PublicHolidayController extends Controller
         $holidays = $query->paginate(50)->withQueryString();
 
         return Inertia::render('Cafeteria/Holidays/Index', [
-            'holidays'   => PublicHolidayResource::collection($holidays)->resolve(),
-            'meta'       => [
+            'holidays' => PublicHolidayResource::collection($holidays)->resolve(),
+            'meta' => [
                 'current_page' => $holidays->currentPage(),
-                'last_page'    => $holidays->lastPage(),
-                'total'        => $holidays->total(),
-                'per_page'     => $holidays->perPage(),
+                'last_page' => $holidays->lastPage(),
+                'total' => $holidays->total(),
+                'per_page' => $holidays->perPage(),
             ],
-            'filters'    => $request->only(['search', 'year', 'include_inactive']),
-            'year'       => $yearFilter,
-            'can'        => [
+            'filters' => $request->only(['search', 'year', 'include_inactive']),
+            'year' => $yearFilter,
+            'can' => [
                 'create' => $request->user()?->can('create', PublicHoliday::class) ?? false,
             ],
         ]);

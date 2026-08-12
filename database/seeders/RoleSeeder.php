@@ -19,7 +19,7 @@ class RoleSeeder extends Seeder
 
         $institutionAdminPerms = [
             'dashboard.view',
-            'organizations.view', 'organizations.manage', 'organizations.viewAny',
+            'organizations.view', 'organizations.manage', 'organizations.import', 'organizations.viewAny',
             'organization-types.viewAny', 'organization-types.view',
             'hierarchy-versions.viewAny', 'hierarchy-versions.view',
             'organization-edges.view',
@@ -32,10 +32,66 @@ class RoleSeeder extends Seeder
             'audit.view', 'reports.view',
         ];
 
+        // Organizational Admin — full operational control INSIDE the assigned
+        // organization scope (enforced at runtime by OrganizationScopeService /
+        // the policies), and no access outside it. Deliberately excludes global
+        // concerns: roles/permissions management, system settings, and
+        // Super Admin assignment. User management is granted but the User
+        // policy + scope service confine it to the actor's own organizations.
+        $organizationalAdminPerms = [
+            'dashboard.view', 'dashboard.reports',
+
+            // Organization profile/details (scoped by policy)
+            'organizations.viewAny', 'organizations.view', 'organizations.manage',
+            'organization-types.viewAny', 'organization-types.view',
+            'hierarchy-versions.viewAny', 'hierarchy-versions.view',
+            'organization-edges.view',
+
+            // Organization units
+            'organization-units.viewAny', 'organization-units.view',
+            'organization-units.create', 'organization-units.update',
+            'organization-units.archive', 'organization-units.restore',
+            'organization-units.manageHierarchy',
+            'organization-unit-types.viewAny', 'organization-unit-types.view',
+
+            // Positions
+            'positions.viewAny', 'positions.view', 'positions.create',
+            'positions.update', 'positions.archive', 'positions.restore',
+            'grade-levels.viewAny', 'grade-levels.view',
+            'occupations.viewAny', 'occupations.view',
+
+            // Employees & assignments
+            'employees.viewAny', 'employees.view', 'employees.viewPii', 'employees.manage',
+
+            // ID cards
+            'id-cards.viewAny', 'id-cards.view', 'id-cards.create', 'id-cards.update',
+            'id-cards.submitRequest', 'id-cards.verifyRequest', 'id-cards.approveRequest',
+            'id-cards.print', 'id-cards.issue', 'id-cards.activate', 'id-cards.replace',
+            'id-cards.reportLost', 'id-cards.reportDamaged', 'id-cards.revoke',
+            'id-cards.printAnytime', 'id-cards.exportPng', 'id-cards.previewSvg',
+            'cards.view', 'cards.manage',
+
+            // Transfers & vacancies (scoped)
+            'transfers.viewAny', 'transfers.view',
+            'vacancy-announcements.viewAny', 'vacancy-announcements.view',
+            'vacancy-applications.viewAny', 'vacancy-applications.view',
+
+            // Users within own scope (confined by UserPolicy + scope service)
+            'users.viewAny', 'users.view', 'users.create', 'users.update',
+            'users.deactivate', 'users.archive', 'users.restore', 'users.assignRoles',
+            'users.assignOrganizationScopes',
+            'user-organization-scopes.viewAny', 'user-organization-scopes.create',
+            'user-organization-scopes.update', 'user-organization-scopes.delete',
+
+            // Reports
+            'reports.view', 'audit.view',
+        ];
+
         $roleMap = [
             'Super Admin' => $allPermissions,
             'Public Service Bureau Admin' => $allPermissions,
             'City Admin' => $allPermissions,
+            'Organizational Admin' => $organizationalAdminPerms,
             'Institution Admin' => $institutionAdminPerms,
             'Sub-city Admin' => [
                 'dashboard.view', 'organizations.view', 'organizations.viewAny',

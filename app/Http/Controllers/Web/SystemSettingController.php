@@ -12,9 +12,9 @@ use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\TestNotificationChannelRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;
-use App\Http\Requests\Settings\UpdateIdCardSettingsRequest;
 use App\Http\Requests\Settings\UpdateEmailSettingsRequest;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
+use App\Http\Requests\Settings\UpdateIdCardSettingsRequest;
 use App\Http\Requests\Settings\UpdateLocalizationSettingsRequest;
 use App\Http\Requests\Settings\UpdateNotificationSettingsRequest;
 use App\Http\Requests\Settings\UpdateSecuritySettingsRequest;
@@ -28,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 class SystemSettingController extends Controller
 {
@@ -46,14 +47,37 @@ class SystemSettingController extends Controller
 
         $groups = [];
         foreach (SystemSettingsRegistry::groups() as $group) {
+            $fields = $this->settingsService->getGroupForAdmin($group);
+
+            if ($group === SystemSettingsRegistry::GROUP_SECURITY) {
+                // The legacy admin-only flag is enforced via backward-compat
+                // mapping but is no longer editable — the role checklist below
+                // replaces it.
+                $fields = array_values(array_filter(
+                    $fields,
+                    fn (array $field): bool => $field['key'] !== 'require_mfa_for_admins',
+                ));
+            }
+
             $groups[$group] = [
-                'fields' => $this->settingsService->getGroupForAdmin($group),
+                'fields' => $fields,
                 'can_manage' => $user?->can('system-settings.manage'.ucfirst($group)) ?? false,
             ];
         }
 
         return Inertia::render('SystemSettings/Index', [
             'settingGroups' => $groups,
+            'roles' => Role::query()
+                ->withCount('users')
+                ->orderBy('name')
+                ->get(['id', 'name', 'guard_name'])
+                ->map(fn (Role $role): array => [
+                    'id' => (string) $role->id,
+                    'name' => $role->name,
+                    'guard_name' => $role->guard_name,
+                    'users_count' => (int) $role->users_count,
+                ])
+                ->all(),
             'can' => [
                 'view' => $user?->can('system-settings.view') ?? false,
                 'update' => $user?->can('system-settings.update') ?? false,
@@ -78,9 +102,10 @@ class SystemSettingController extends Controller
         $assets = [
             'identity_system_logo' => $request->file('identity_system_logo'),
             'favicon' => $request->file('favicon'),
+            'seal' => $request->file('seal'),
         ];
 
-        unset($validated['identity_system_logo'], $validated['favicon']);
+        unset($validated['identity_system_logo'], $validated['favicon'], $validated['seal']);
 
         $this->updateGroupAction->execute(
             SystemSettingsRegistry::GROUP_GENERAL,
@@ -154,9 +179,23 @@ class SystemSettingController extends Controller
 
     public function updateSecurity(UpdateSecuritySettingsRequest $request): RedirectResponse
     {
+        $validated = $request->validated();
+
+        // Store role ids as strings so json round-trips are type-stable.
+        $validated['mfa_required_role_ids'] = array_map(
+            strval(...),
+            array_values($validated['mfa_required_role_ids'] ?? []),
+        );
+
+        // Saving the new role-based MFA settings retires the legacy
+        // admin-only flag (its backward-compat mapping stops applying).
+        if (! array_key_exists('require_mfa_for_admins', $validated)) {
+            $validated['require_mfa_for_admins'] = false;
+        }
+
         $this->updateGroupAction->execute(
             SystemSettingsRegistry::GROUP_SECURITY,
-            $request->validated(),
+            $validated,
             $request->user(),
         );
 

@@ -10,6 +10,7 @@ use App\Models\ProviderUser;
 use App\Models\TransportRoute;
 use App\Models\TransportTransaction;
 use App\Models\TransportTrip;
+use App\Services\EmployeeServiceEligibilityService;
 use App\Services\IdCards\CardQrPayloadService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -19,6 +20,7 @@ class TransportQrScanService
     public function __construct(
         private readonly CardQrPayloadService $qrPayloadService,
         private readonly TransportEligibilityService $eligibility,
+        private readonly EmployeeServiceEligibilityService $serviceEligibility,
     ) {}
 
     /**
@@ -77,6 +79,23 @@ class TransportQrScanService
         }
 
         $employee = $card->employee;
+        $serviceEligibility = $this->serviceEligibility->check(
+            $employee,
+            $card,
+            'transport',
+            providerId: $provider->id,
+            attemptedBy: $providerUserId,
+        );
+
+        if (! $serviceEligibility['eligible']) {
+            return [
+                'accepted' => false,
+                'result_code' => $serviceEligibility['reason_code'],
+                'transaction' => null,
+                'message_key' => $serviceEligibility['message_key'],
+            ];
+        }
+
         $eligibility = $this->eligibility->check($employee, $card, $provider, $route, $scannedAt);
         $status = $eligibility['eligible'] ? 'accepted' : 'rejected';
         $resultCode = $eligibility['reason'] ?? 'transport_scan_accepted';

@@ -32,10 +32,10 @@ class OccupationController extends Controller
             ->when($request->string('search')->toString() !== '', function ($q) use ($request): void {
                 $search = $request->string('search')->toString();
                 $q->where(function ($nested) use ($search): void {
-                    $nested->where('isco_code', 'like', "%{$search}%")
-                        ->orWhere('name_en', 'like', "%{$search}%")
-                        ->orWhere('name_am', 'like', "%{$search}%")
-                        ->orWhere('skill_specialization', 'like', "%{$search}%");
+                    $nested->where('isco_code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_am', ci_like_operator(), "%{$search}%")
+                        ->orWhere('skill_specialization', ci_like_operator(), "%{$search}%");
                 });
             })
             ->orderBy('isco_code');

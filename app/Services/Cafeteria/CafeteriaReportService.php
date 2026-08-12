@@ -79,7 +79,7 @@ class CafeteriaReportService
         $totals = (clone $query)
             ->selectRaw('
                 COUNT(*) as total_transactions,
-                SUM(CASE WHEN is_extra_scan = 1 THEN 1 ELSE 0 END) as total_extra_scans,
+                SUM(CASE WHEN is_extra_scan THEN 1 ELSE 0 END) as total_extra_scans,
                 SUM(meal_amount) as total_meal_amount,
                 SUM(subsidy_amount_applied) as total_subsidy,
                 SUM(employee_payable_amount) as total_employee_payable,

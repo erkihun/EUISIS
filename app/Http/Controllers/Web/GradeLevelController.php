@@ -27,7 +27,7 @@ class GradeLevelController extends Controller
         $query = GradeLevel::query()
             ->when($request->string('search')->toString() !== '', function ($q) use ($request): void {
                 $search = $request->string('search')->toString();
-                $q->where('name', 'like', "%{$search}%");
+                $q->where('name', ci_like_operator(), "%{$search}%");
             })
             ->when(
                 $request->filled('is_active') && $request->string('is_active')->toString() === '0',

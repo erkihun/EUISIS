@@ -8,14 +8,17 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\CafeteriaTransactionStatus;
 use App\Enums\CafeteriaUsageMode;
-use App\Enums\CardStatus;
+use App\Enums\TransactionStatus;
 use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaTransaction;
 use App\Models\CafeteriaTransactionConsumedDay;
 use App\Models\Employee;
 use App\Models\EmployeeCafeteriaExclusion;
 use App\Models\IdCard;
+use App\Models\ServiceTransaction;
+use App\Models\ServiceType;
 use App\Models\User;
+use App\Services\EmployeeServiceEligibilityService;
 use App\Services\IdCards\CardQrPayloadService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -34,6 +37,7 @@ class CafeteriaQrScanService
         private readonly CafeteriaSettingsService $settings,
         private readonly CafeteriaInstitutionAccessService $institutionAccess,
         private readonly WriteAuditLogAction $auditLog,
+        private readonly EmployeeServiceEligibilityService $serviceEligibility,
     ) {}
 
     /**
@@ -94,17 +98,26 @@ class CafeteriaQrScanService
 
         // ── Step 2: Card validity ────────────────────────────────────────────
 
-        if (! in_array($card->status, [CardStatus::Active, CardStatus::Issued], true)) {
-            return $this->deny('card_inactive');
-        }
-
-        if ($card->expires_at !== null && $card->expires_at->isPast()) {
-            return $this->deny('card_expired');
-        }
-
         // ── Step 3: Employee eligibility ─────────────────────────────────────
 
         $employee = $card->employee;
+        $serviceEligibility = $this->serviceEligibility->check(
+            $employee,
+            $card,
+            'cafeteria',
+            $actor,
+            $provider->id,
+            $request,
+        );
+
+        if (! $serviceEligibility['eligible']) {
+            return $this->deny(
+                $serviceEligibility['reason_code'],
+                $employee,
+                $card,
+                $serviceEligibility['message'],
+            );
+        }
         $eligibilityCheck = $this->eligibility->check($employee, $card);
 
         if (! $eligibilityCheck['eligible']) {
@@ -121,12 +134,12 @@ class CafeteriaQrScanService
                 $provider,
                 $provider->organization_id,
                 newValues: [
-                    'denial_reason'         => 'wrong_institution',
-                    'provider_id'           => $provider->id,
+                    'denial_reason' => 'wrong_institution',
+                    'provider_id' => $provider->id,
                     'provider_organization_id' => $provider->organization_id,
-                    'employee_id'           => $employee->id,
+                    'employee_id' => $employee->id,
                     'employee_organization_id' => $this->institutionAccess->employeeOrganizationId($employee),
-                    'assigned_scope_type'   => $provider->assigned_scope_type ?? 'self',
+                    'assigned_scope_type' => $provider->assigned_scope_type ?? 'self',
                 ],
                 request: $request,
             );
@@ -259,8 +272,29 @@ class CafeteriaQrScanService
             $isExtraScan, $scanSequence, $actor,
             $availability, $scanNonce, $scanRequestHash,
         ): CafeteriaTransaction {
+            $transactionNumber = $this->generateTransactionNumber();
+            $serviceType = ServiceType::query()
+                ->where('code', 'cafeteria')
+                ->firstOrFail();
+
+            $serviceTransaction = ServiceTransaction::query()->create([
+                'employee_id' => $employee->id,
+                'id_card_id' => $card->id,
+                'service_type_id' => $serviceType->id,
+                'service_provider_id' => $provider->service_provider_id,
+                'status' => TransactionStatus::Authorized,
+                'occurred_at' => $scannedAt,
+                'reference' => $transactionNumber,
+                'amount' => $mealAmount,
+                'metadata' => [
+                    'source' => 'cafeteria_scan',
+                    'usage_mode' => $usageMode->value,
+                ],
+            ]);
+
             $txn = CafeteriaTransaction::query()->create([
-                'transaction_number' => $this->generateTransactionNumber(),
+                'service_transaction_id' => $serviceTransaction->id,
+                'transaction_number' => $transactionNumber,
                 'employee_id' => $employee->id,
                 'id_card_id' => $card->id,
                 'cafeteria_provider_id' => $provider->id,
@@ -352,10 +386,6 @@ class CafeteriaQrScanService
 
             if ($card === null) {
                 return null;
-            }
-
-            if ($card->qr_status !== 'active') {
-                return null; // treated as invalid
             }
 
             return $card;
@@ -488,14 +518,22 @@ class CafeteriaQrScanService
     }
 
     /** @return array{allowed: false, result_code: string, transaction: null, denial_reason: string, is_extra_scan: false, usage_mode: string, available_amount_before: float, subsidy_applied: float, employee_payable: float, available_days_count: int, consumed_days_count: int, remaining_after: float, week_start: null, week_end: null} */
-    private function deny(string $reason): array
-    {
+    private function deny(
+        string $reason,
+        ?Employee $employee = null,
+        ?IdCard $card = null,
+        ?string $message = null,
+    ): array {
         return [
             'allowed' => false,
             'result_code' => 'rejected',
             'transaction' => null,
             'is_extra_scan' => false,
             'denial_reason' => $reason,
+            'denial_message' => $message ?? $reason,
+            'employee' => $employee,
+            'id_card' => $card,
+            'card_status' => $card?->status?->value,
             'usage_mode' => CafeteriaUsageMode::SingleDay->value,
             'available_amount_before' => 0.0,
             'subsidy_applied' => 0.0,

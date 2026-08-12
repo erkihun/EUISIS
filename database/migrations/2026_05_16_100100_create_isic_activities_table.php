@@ -31,9 +31,15 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('parent_id')->references('id')->on('isic_activities')->nullOnDelete();
             $table->index(['level', 'is_active']);
             $table->index(['section_code', 'division_code']);
+        });
+
+        // Self-referencing FK added after the table (and its primary key) exists.
+        // On Postgres the PK is created via a separate ALTER, so an in-block
+        // self-FK would reference a not-yet-unique column and fail.
+        Schema::table('isic_activities', function (Blueprint $table): void {
+            $table->foreign('parent_id')->references('id')->on('isic_activities')->nullOnDelete();
         });
     }
 

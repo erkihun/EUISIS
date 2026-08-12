@@ -17,6 +17,10 @@ class EmployeeUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->merge([
+            'name_en' => filled($this->input('name_en')) ? trim((string) $this->input('name_en')) : null,
+        ]);
+
         if ($this->has('national_id')) {
             $nid = filled($this->input('national_id')) ? trim((string) $this->input('national_id')) : null;
             $this->merge([
@@ -34,6 +38,7 @@ class EmployeeUpdateRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'name_en' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:32'],
             'email' => ['nullable', 'email', 'max:255', "unique:employees,email,{$employeeId},id"],
             'date_of_birth' => ['nullable', 'date'],

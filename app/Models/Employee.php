@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Employee extends Model
 {
@@ -23,6 +25,7 @@ class Employee extends Model
         'middle_name',
         'last_name',
         'full_name',
+        'name_en',
         'national_id',
         'national_id_hash',
         'date_of_birth',
@@ -92,6 +95,18 @@ class Employee extends Model
     public function cardRequests(): HasMany
     {
         return $this->hasMany(CardRequest::class);
+    }
+
+    public function activeIdCard(): HasOne
+    {
+        return $this->hasOne(IdCard::class)
+            ->where('status', CardStatus::Active)
+            ->whereNull('revoked_at')
+            ->where(function ($query): void {
+                $query->whereNull('expires_at')->orWhereDate('expires_at', '>=', today()->toDateString());
+            })
+            ->orderByDesc('activated_at')
+            ->orderByDesc('created_at');
     }
 
     public function entitlements(): HasMany

@@ -16,11 +16,11 @@ class UpdateCafeteriaDayRuleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'is_open'        => ['required', 'boolean'],
+            'is_open' => ['required', 'boolean'],
             'is_subsidy_day' => ['required', 'boolean'],
-            'open_time'      => ['nullable', 'date_format:H:i'],
-            'close_time'     => ['nullable', 'date_format:H:i', 'after:open_time'],
-            'notes'          => ['nullable', 'string', 'max:500'],
+            'open_time' => ['nullable', 'date_format:H:i'],
+            'close_time' => ['nullable', 'date_format:H:i', 'after:open_time'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

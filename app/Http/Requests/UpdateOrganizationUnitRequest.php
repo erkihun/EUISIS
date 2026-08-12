@@ -27,12 +27,12 @@ class UpdateOrganizationUnitRequest extends FormRequest
     public function rules(): array
     {
         /** @var OrganizationUnit $unit */
-        $unit           = $this->route('organizationUnit');
+        $unit = $this->route('organizationUnit');
         $organizationId = $this->input('organization_id', $unit->organization_id);
 
         return [
-            'organization_id'           => ['required', 'uuid', 'exists:organizations,id'],
-            'parent_unit_id'            => [
+            'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
+            'parent_unit_id' => [
                 'nullable',
                 'uuid',
                 Rule::exists('organization_units', 'id')->where('organization_id', $organizationId)->whereNull('deleted_at'),
@@ -57,8 +57,8 @@ class UpdateOrganizationUnitRequest extends FormRequest
                 'uuid',
                 Rule::exists('organization_unit_types', 'id')->whereNull('deleted_at'),
             ],
-            'unit_type'                 => ['nullable', new Enum(OrganizationUnitType::class)],
-            'code'                      => [
+            'unit_type' => ['nullable', new Enum(OrganizationUnitType::class)],
+            'code' => [
                 'nullable',
                 'string',
                 'max:255',
@@ -66,15 +66,15 @@ class UpdateOrganizationUnitRequest extends FormRequest
                     ->where('organization_id', $organizationId)
                     ->ignore($unit->getKey()),
             ],
-            'name_en'                   => ['required', 'string', 'max:255'],
-            'name_am'                   => ['nullable', 'string', 'max:255'],
-            'description_en'            => ['nullable', 'string'],
-            'description_am'            => ['nullable', 'string'],
-            'status'                    => ['required', new Enum(OrganizationUnitStatus::class)],
-            'effective_from'            => ['nullable', 'date'],
-            'effective_to'              => ['nullable', 'date', 'after:effective_from'],
-            'sort_order'                => ['nullable', 'integer', 'min:0'],
-            'metadata'                  => ['nullable', 'array'],
+            'name_en' => ['required', 'string', 'max:255'],
+            'name_am' => ['nullable', 'string', 'max:255'],
+            'description_en' => ['nullable', 'string'],
+            'description_am' => ['nullable', 'string'],
+            'status' => ['required', new Enum(OrganizationUnitStatus::class)],
+            'effective_from' => ['nullable', 'date'],
+            'effective_to' => ['nullable', 'date', 'after:effective_from'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'metadata' => ['nullable', 'array'],
         ];
     }
 
