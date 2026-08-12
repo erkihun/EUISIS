@@ -65,4 +65,19 @@ return [
     'do_not_create_departments_as_organizations' => 'Do not create departments or teams as organizations — use Organization Units instead.',
     'institution_office_help' => 'Institution Offices are the actual offices or branches of an institution operating in a geographic area.',
     'organization_unit_help' => 'Organization Units are internal departments, directorates, and teams inside an institution office.',
+    'invalid_parent_organization_type' => 'The selected organization type does not allow this parent organization type.',
+    'inactive_organization_type' => 'Inactive organization type cannot be used for new organizations.',
+
+    // Deletion guard
+    'cannot_delete_used' => 'This organization is already used. Deactivate or archive it instead.',
+    'cannot_be_deleted' => 'Organization cannot be deleted.',
+    'deleted_successfully' => 'Organization deleted successfully.',
+    'archived_successfully' => 'Organization archived successfully.',
+    'deactivated_successfully' => 'Organization deactivated successfully.',
+    'deletion_blocker_used_in_published_hierarchy' => 'Used in published hierarchy',
+    'deletion_blocker_has_child_organizations' => 'Has child organizations',
+    'deletion_blocker_has_organization_units' => 'Has organization units',
+    'deletion_blocker_has_positions' => 'Has positions',
+    'deletion_blocker_has_employee_assignments' => 'Has employee assignments',
+    'deletion_blocker_has_other_references' => 'Referenced by other records (providers, transfers, or audit history)',
 ];

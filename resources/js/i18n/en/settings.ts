@@ -57,6 +57,17 @@ const settings = {
         test_channel_missing: ':channel test target is not configured.',
         test_channel_queued: ':channel test has been queued safely.',
     },
+    mfa: {
+        title: 'Multi-Factor Authentication',
+        enable: 'Enable MFA',
+        requireAll: 'Require MFA for all users',
+        requireRoles: 'Require MFA for selected roles',
+        selectRoles: 'Select roles that must use MFA',
+        helper: 'MFA can be enforced globally or only for selected roles.',
+        requireAllActive: 'MFA is currently required for all users, so the role selection is ignored.',
+        requiredForRole: 'MFA is required for your role',
+        updated: 'MFA settings updated',
+    },
     fields: {
         sampleCardTitle: 'Sample card',
         sampleCardText: 'Preview how cards, buttons, and badges respond to appearance settings.',

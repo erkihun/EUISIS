@@ -46,6 +46,17 @@ const idCards = {
     scanToVerify: 'ለማረጋገጥ ስካን ያድርጉ',
     allowed: 'ተፈቅዷል',
     denied: 'ተከልክሏል',
+    employeeNumber: 'የሠራተኛ ቁጥር',
+    organization: 'ተቋም',
+    organizationUnit: 'የተቋም የሥራ ክፍል',
+    position: 'የሥራ መደብ',
+    jobGrade: 'የሥራ ደረጃ',
+    returnIfFound: 'ከተገኘ ይመለስ',
+    issuingAuthority: 'ሰጪ ባለሥልጣን',
+    verificationInstruction: 'የማረጋገጫ መመሪያ',
+    fieldVisibility: 'የመረጃ መታየት',
+    idCardLayout: 'የመታወቂያ ካርድ አቀማመጥ',
+    showOnCard: 'በካርዱ ላይ አሳይ',
 } as const;
 
 export default idCards;

@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 return [
-    'title' => 'የስርዓት ቅንብሮች',
+    'title' => 'የሥርዓት ቅንብሮች',
     'messages' => [
         'general_updated' => 'አጠቃላይ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
         'localization_updated' => 'የአካባቢ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
@@ -13,7 +15,7 @@ return [
         'appearance_updated' => 'የገጽታ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
         'id_cards_updated' => 'የመታወቂያ ካርድ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
         'setting_updated' => 'ቅንብሩ በተሳካ ሁኔታ ተዘምኗል።',
-        'cache_cleared' => 'የቅንብር ካሽ በተሳካ ሁኔታ ጸድቷል።',
+        'cache_cleared' => 'የቅንብር ካሽ በተሳካ ሁኔታ ተጽድቷል።',
         'test_channel_missing' => 'የ:channel የሙከራ መዳረሻ አልተቀናበረም።',
         'test_channel_queued' => 'የ:channel ሙከራ በደህና ተላልፏል።',
     ],

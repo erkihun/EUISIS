@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'title' => 'ሠራተኞች',
     'employee' => 'ሠራተኛ',
@@ -11,14 +13,14 @@ return [
     'gender' => 'ፆታ',
     'nationality' => 'ዜግነት',
     'organization' => 'ተቋም',
-    'position' => 'የስራ መደብ',
-    'department' => 'የስራ ክፍል',
+    'position' => 'የሥራ መደብ',
+    'department' => 'የተቋም መዋቅራዊ ክፍል',
     'employment_date' => 'የቅጥር ቀን',
     'employment_status' => 'የቅጥር ሁኔታ',
-    'create' => 'ፍጠር',
-    'edit' => 'አርትዕ',
-    'view' => 'ይመልከቱ',
-    'no_employees' => 'ምንም ሠራተኛ አልተገኘም',
+    'create' => 'ሠራተኛ ፍጠር',
+    'edit' => 'ሠራተኛ አርትዕ',
+    'view' => 'ሠራተኛ ይመልከቱ',
+    'no_employees' => 'ምንም ሠራተኛ አልተገኘም።',
     'personal_info' => 'የግል መረጃ',
     'employment_info' => 'የቅጥር መረጃ',
 ];

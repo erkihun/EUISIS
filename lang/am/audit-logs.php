@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 return [
-    'title' => 'የኦዲት ምዝግቦች',
+    'title' => 'የኦዲት መዝገቦች',
     'event' => 'ክስተት',
     'actor' => 'ፈጻሚ',
-    'subject' => 'ርዕሰ ጉዳይ',
+    'subject' => 'የተመለከተው መዝገብ',
     'changes' => 'ለውጦች',
-    'timestamp' => 'ሰዓተ ምልክት',
-    'no_logs' => 'ምንም የኦዲት ምዝገባ አልተገኘም',
-    'search_logs' => 'ምዝግቦችን ፈልግ…',
-    'read_only' => 'የኦዲት ምዝግቦች ማንበብ ብቻ ናቸው',
+    'timestamp' => 'የጊዜ ማህተም',
+    'no_logs' => 'ምንም የኦዲት መዝገብ አልተገኘም።',
+    'search_logs' => 'የኦዲት መዝገቦችን ፈልግ…',
+    'read_only' => 'የኦዲት መዝገቦች ለንባብ ብቻ ናቸው።',
 ];

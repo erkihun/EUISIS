@@ -3,11 +3,11 @@
 declare(strict_types=1);
 
 return [
-    'grade_level' => 'የደረጃ ደረጃ',
-    'grade_levels' => 'የደረጃ ደረጃዎች',
-    'name' => 'የደረጃ ደረጃ',
-    'created_successfully' => 'የደረጃ ደረጃ በተሳካ ሁኔታ ተፈጥሯል።',
-    'updated_successfully' => 'የደረጃ ደረጃ በተሳካ ሁኔታ ተዘምኗል።',
-    'archived_successfully' => 'የደረጃ ደረጃ በተሳካ ሁኔታ ተሰርዟል።',
-    'restored_successfully' => 'የደረጃ ደረጃ በተሳካ ሁኔታ ተመልሷል።',
+    'grade_level' => 'የደረጃ መለኪያ',
+    'grade_levels' => 'የደረጃ መለኪያዎች',
+    'name' => 'የደረጃ መለኪያ',
+    'created_successfully' => 'የደረጃ መለኪያው በተሳካ ሁኔታ ተፈጥሯል።',
+    'updated_successfully' => 'የደረጃ መለኪያው በተሳካ ሁኔታ ተዘምኗል።',
+    'archived_successfully' => 'የደረጃ መለኪያው በተሳካ ሁኔታ ወደ ማህደር ተዛውሯል።',
+    'restored_successfully' => 'የደረጃ መለኪያው በተሳካ ሁኔታ ተመልሷል።',
 ];

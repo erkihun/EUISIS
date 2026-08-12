@@ -36,10 +36,23 @@ return [
     'cannot_delete_last_super_admin' => 'The last Super Admin account cannot be deleted.',
     'cannot_deactivate_last_super_admin' => 'The last Super Admin account cannot be deactivated.',
     'cannot_remove_last_super_admin' => 'You cannot remove the last Super Admin.',
+    'cannot_assign_super_admin' => 'You do not have permission to assign the Super Admin role.',
+    'cannot_assign_role' => 'You cannot assign the ":role" role.',
     'photo_updated' => 'Profile photo updated successfully.',
     'created' => 'User created successfully.',
     'updated' => 'User updated successfully.',
     'deactivated' => 'User deactivated successfully.',
     'restored' => 'User restored successfully.',
     'roles_updated' => 'Roles updated successfully.',
+
+    // Organization scopes
+    'organization_scope_assigned' => 'User organization scope assigned successfully.',
+    'organization_scope_updated' => 'User organization scopes updated successfully.',
+    'organization_scope_removed' => 'User organization scope removed successfully.',
+    'organization_scope_inactive_organization' => 'An inactive organization cannot be assigned as a scope.',
+    'organization_scope_outside_actor_scope' => 'You cannot assign an organization outside your own scope.',
+    'organization_scope_citywide_forbidden' => 'You cannot assign a citywide organization scope.',
+    'organization_scope_required' => 'An organization scope is required.',
+    'access_denied_outside_scope' => 'Access denied outside your organization scope.',
+    'manage_only_within_scope' => 'You can manage only records within your assigned organization.',
 ];

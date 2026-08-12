@@ -57,6 +57,17 @@ const settings = {
         test_channel_missing: 'የ:channel የሙከራ መዳረሻ አልተቀናበረም።',
         test_channel_queued: 'የ:channel ሙከራ በደህና ተላልፏል።',
     },
+    mfa: {
+        title: 'የብዙ-ደረጃ ማረጋገጫ',
+        enable: 'MFA አንቃ',
+        requireAll: 'ለሁሉም ተጠቃሚዎች MFA አስፈልግ',
+        requireRoles: 'ለተመረጡ ሚናዎች MFA አስፈልግ',
+        selectRoles: 'MFA መጠቀም ያለባቸውን ሚናዎች ይምረጡ',
+        helper: 'MFA በአጠቃላይ ወይም ለተመረጡ ሚናዎች ብቻ ማስፈጸም ይቻላል።',
+        requireAllActive: 'MFA አሁን ለሁሉም ተጠቃሚዎች ግዴታ ስለሆነ የሚና ምርጫው አይተገበርም።',
+        requiredForRole: 'ለሚናዎ MFA ያስፈልጋል',
+        updated: 'የMFA ቅንብሮች ተዘምነዋል',
+    },
     fields: {
         sampleCardTitle: 'የምሳሌ ካርድ',
         sampleCardText: 'ካርዶች፣ አዝራሮች እና ምልክቶች በገጽታ ቅንብሮች እንዴት እንደሚቀየሩ ይመልከቱ።',

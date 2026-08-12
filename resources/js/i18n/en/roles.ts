@@ -15,6 +15,7 @@ const roles = {
     permissionGroups: 'Permission Groups',
     cannotEditSuperAdmin: 'Super Admin role cannot be edited',
     cannotDeleteSuperAdmin: 'Super Admin role cannot be deleted',
+    cannotAssignPermissionsNotice: 'You do not have permission to change what this role grants. You can still rename it.',
     selectAll: 'Select All',
     deselectAll: 'Deselect All',
     noRoles: 'No roles defined',

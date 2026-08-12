@@ -50,6 +50,9 @@ const auditLogs = {
         // Organization
         organization_created: 'ተቋም ተፈጥሯል',
         organization_updated: 'ተቋም ተዘምኗል',
+        organization_deleted: 'ተቋም ተሰርዟል',
+        organization_archived: 'ተቋም ወደ ማህደር ገብቷል',
+        organization_deactivated: 'ተቋም ቦዷል',
         organization_logo_uploaded: 'የተቋም አርማ ተሰቅሏል',
         organization_branding_updated: 'የተቋም ምልክት ተዘምኗል',
         hierarchy_published: 'የመዋቅር ስሪት ታትሟል',
@@ -80,6 +83,7 @@ const auditLogs = {
         entitlement_revoked: 'መብት ተሰርዟል',
         entitlement_overridden: 'መብት ተሻሽሏል',
         service_transaction_recorded: 'የአገልግሎት ግብይት ተመዝግቧል',
+        service_access_blocked: 'የአገልግሎት መዳረሻ ታግዷል',
         service_transaction_reversed: 'የአገልግሎት ግብይት ተሰርዟል',
         provider_api_denied: 'የአቅራቢ API ተከልክሏል',
         export_performed: 'ወደ ውጭ ተልኳል',

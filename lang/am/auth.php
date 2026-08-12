@@ -1,23 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 return [
-    'failed' => 'ይህ ምስክርነት ከመዝገቦቻችን ጋር አይዛመድም።',
-    'password' => 'የቀረበው የይለፍ ቃል የተሳሳተ ነው።',
-    'throttle' => 'ብዙ የመግቢያ ሙከራዎች። እባክዎ ከ :seconds ሰከንዶች በኋላ እንደገና ይሞክሩ።',
-    'sign_in' => 'ግባ',
-    'sign_out' => 'ውጣ',
+    'failed' => 'የገቡት መግቢያ መረጃዎች ከመዝገቦቻችን ጋር አይዛመዱም።',
+    'password' => 'የገቡት የይለፍ ቃል ትክክል አይደለም።',
+    'throttle' => 'በጣም ብዙ የመግቢያ ሙከራ ተደርጓል። እባክዎ ከ :seconds ሰከንድ በኋላ እንደገና ይሞክሩ።',
+    'sign_in' => 'ይግቡ',
+    'sign_out' => 'ይውጡ',
     'email' => 'የኢሜይል አድራሻ',
     'password_label' => 'የይለፍ ቃል',
-    'remember_me' => 'አስታወሰኝ',
+    'remember_me' => 'አስታውሰኝ',
     'forgot_password' => 'የይለፍ ቃልዎን ረሱ?',
     'reset_password' => 'የይለፍ ቃል ዳግም አስጀምር',
     'confirm_password' => 'የይለፍ ቃል አረጋግጥ',
-    'send_reset_link' => 'የይለፍ ቃል ዳግም ማስጀመሪያ ሊንክ ላክ',
-
-    'account_inactive' => 'መለያዎ ተሰናክሏል። እባክዎ አስተዳዳሪዎን ያናግሩ።',
-
-    // Employee self-registration
+    'send_reset_link' => 'የይለፍ ቃል ዳግም ማስጀመሪያ አገናኝ ላክ',
+    'account_inactive' => 'መለያዎ ታግዷል። እባክዎ አስተዳዳሪዎን ያናግሩ።',
     'employee_not_found' => 'በዚህ የሠራተኛ ቁጥር ምንም ሠራተኛ አልተገኘም።',
-    'employee_no_email' => 'ለዚህ ሠራተኛ ኢሜይል አድራሻ አልተመዘገበም። እባክዎ ከ HR ጋር ያነጋግሩ።',
+    'employee_no_email' => 'ለዚህ ሠራተኛ የኢሜይል አድራሻ አልተመዘገበም። እባክዎ የሰው ሀብት ክፍልን ያነጋግሩ።',
     'employee_already_registered' => 'ለዚህ ሠራተኛ መለያ ቀደም ሲል ተፈጥሯል። እባክዎ ይግቡ።',
 ];

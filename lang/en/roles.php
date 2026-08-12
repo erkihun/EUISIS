@@ -14,6 +14,7 @@ return [
     'delete' => 'Delete Role',
     'assign_permissions' => 'Assign Permissions',
     'cannot_edit_super_admin' => 'Super Admin role cannot be edited',
+    'cannot_grant_unheld_permission' => 'You cannot grant the permission ":permission" because you do not hold it yourself.',
     'no_roles' => 'No roles defined',
     'select_all' => 'Select All',
     'deselect_all' => 'Deselect All',

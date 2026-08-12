@@ -46,6 +46,17 @@ const idCards = {
     scanToVerify: 'Scan to Verify',
     allowed: 'Allowed',
     denied: 'Denied',
+    employeeNumber: 'Employee Number',
+    organization: 'Organization',
+    organizationUnit: 'Organization Unit',
+    position: 'Position',
+    jobGrade: 'Job Grade',
+    returnIfFound: 'Return If Found',
+    issuingAuthority: 'Issuing Authority',
+    verificationInstruction: 'Verification Instruction',
+    fieldVisibility: 'Field Visibility',
+    idCardLayout: 'ID Card Layout',
+    showOnCard: 'Show on Card',
 } as const;
 
 export default idCards;

@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 return [
-    'dashboard' => 'ዳሽቦርድ',
+    'dashboard' => 'የሥራ አመራር ማሳያ',
     'organizations' => 'ተቋማት',
     'registered_organizations' => 'የተመዘገቡ ተቋማት',
     'organization_types' => 'የተቋም ዓይነቶች',
@@ -9,10 +11,10 @@ return [
     'id_cards' => 'መታወቂያ ካርዶች',
     'providers' => 'አቅራቢዎች',
     'entitlements' => 'መብቶች',
-    'audit_logs' => 'የኦዲት ምዝግቦች',
+    'audit_logs' => 'የክትትል መዝገቦች',
     'users' => 'ተጠቃሚዎች',
     'roles' => 'ሚናዎች',
     'permissions' => 'ፈቃዶች',
     'system_settings' => 'የስርዓት ቅንብሮች',
-    'admin' => 'አስተዳደር',
+    'admin' => 'የሥርዓት አስተዳደር',
 ];

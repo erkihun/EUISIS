@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'title' => 'መብቶች',
     'entitlement' => 'መብት',
@@ -12,7 +14,7 @@ return [
     'edit' => 'መብት አርትዕ',
     'view' => 'መብት ይመልከቱ',
     'revoke' => 'መብት ሰርዝ',
-    'no_entitlements' => 'ምንም መብት አልተገኘም',
+    'no_entitlements' => 'ምንም መብት አልተገኘም።',
     'active_entitlements' => 'ንቁ መብቶች',
-    'granted_successfully' => 'መብቱ ተፈቅዷል።',
+    'granted_successfully' => 'መብቱ በተሳካ ሁኔታ ተፈቅዷል።',
 ];

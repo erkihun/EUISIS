@@ -22,4 +22,5 @@ return [
     'parent_unit_must_same_office' => 'Parent unit must belong to the same organization.',
     'institution_office' => 'Institution Office',
     'select_institution_office' => 'Select Institution Office',
+    'structure_copied' => 'Organization unit structure copied successfully.',
 ];

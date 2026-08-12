@@ -50,6 +50,9 @@ const auditLogs = {
         // Organization
         organization_created: 'Organization Created',
         organization_updated: 'Organization Updated',
+        organization_deleted: 'Organization Deleted',
+        organization_archived: 'Organization Archived',
+        organization_deactivated: 'Organization Deactivated',
         organization_logo_uploaded: 'Organization Logo Uploaded',
         organization_branding_updated: 'Organization Branding Updated',
         hierarchy_published: 'Hierarchy Published',
@@ -80,6 +83,7 @@ const auditLogs = {
         entitlement_revoked: 'Entitlement Revoked',
         entitlement_overridden: 'Entitlement Overridden',
         service_transaction_recorded: 'Service Transaction Recorded',
+        service_access_blocked: 'Service Access Blocked',
         service_transaction_reversed: 'Service Transaction Reversed',
         provider_api_denied: 'Provider API Denied',
         export_performed: 'Export Performed',
