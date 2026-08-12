@@ -39,7 +39,7 @@ class IdCardExportController extends Controller
     {
         $this->authorize('previewSvg', $card);
 
-        $card->load(['employee.currentAssignment.organization', 'employee.currentAssignment.position']);
+        $this->loadRenderRelations($card);
 
         $this->writeAudit($request, $card, AuditEventType::CardPreviewedSvg, 'front');
 
@@ -56,7 +56,7 @@ class IdCardExportController extends Controller
     {
         $this->authorize('previewSvg', $card);
 
-        $card->load(['employee.currentAssignment.organization', 'employee.currentAssignment.position']);
+        $this->loadRenderRelations($card);
 
         $this->writeAudit($request, $card, AuditEventType::CardPreviewedSvg, 'back');
 
@@ -75,7 +75,7 @@ class IdCardExportController extends Controller
     {
         $this->authorize('exportPng', $card);
 
-        $card->load(['employee.currentAssignment.organization', 'employee.currentAssignment.position']);
+        $this->loadRenderRelations($card);
 
         $this->writeAudit($request, $card, AuditEventType::CardExportedPngServer, 'front');
 
@@ -89,7 +89,7 @@ class IdCardExportController extends Controller
     {
         $this->authorize('exportPng', $card);
 
-        $card->load(['employee.currentAssignment.organization', 'employee.currentAssignment.position']);
+        $this->loadRenderRelations($card);
 
         $this->writeAudit($request, $card, AuditEventType::CardExportedPngServer, 'back');
 
@@ -103,7 +103,7 @@ class IdCardExportController extends Controller
     {
         $this->authorize('exportPng', $card);
 
-        $card->load(['employee.currentAssignment.organization', 'employee.currentAssignment.position']);
+        $this->loadRenderRelations($card);
 
         $this->writeAudit($request, $card, AuditEventType::CardExportedPngServer, 'both');
 
@@ -140,6 +140,15 @@ class IdCardExportController extends Controller
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
             'Content-Length' => strlen($png),
             'Cache-Control' => 'no-store, no-cache',
+        ]);
+    }
+
+    private function loadRenderRelations(IdCard $card): void
+    {
+        $card->load([
+            'employee.currentAssignment.organization',
+            'employee.currentAssignment.organizationUnit',
+            'employee.currentAssignment.position',
         ]);
     }
 

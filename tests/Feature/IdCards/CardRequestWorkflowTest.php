@@ -32,7 +32,7 @@ beforeEach(function (): void {
 
 function makeActiveEmployee(): Employee
 {
-    $type = OrganizationType::query()->firstOrCreate(['code' => 'bureau'], ['name_en' => 'Bureau']);
+    $type = OrganizationType::query()->firstOrCreate(['code' => 'BUREAU'], ['name_en' => 'Bureau']);
     $org = Organization::query()->firstOrCreate(
         ['code' => 'TEST-ORG'],
         ['organization_type_id' => $type->id, 'name_en' => 'Test Org', 'status' => 'active']

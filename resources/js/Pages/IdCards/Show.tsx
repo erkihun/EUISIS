@@ -9,6 +9,8 @@ import IdCardPortraitFront from '@/Components/IdCards/IdCardPortraitFront';
 import IdCardPortraitBack from '@/Components/IdCards/IdCardPortraitBack';
 import CardPrintExportModal from '@/Components/IdCards/CardPrintExportModal';
 import CardPortraitPrintExportModal from '@/Components/IdCards/CardPortraitPrintExportModal';
+import { formatDateDisplay } from '@/lib/calendar/dateFormat';
+import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
@@ -24,15 +26,21 @@ type CardData = {
     revoke_reason?: string | null;
     notes?: string | null;
     qr_payload?: string | null;
+    public_card_uuid?: string | null;
     employee?: {
         full_name: string;
+        metadata?: { name_en?: string | null; name_am?: string | null } | null;
+        name_en?: string | null;
+        gender?: string | null;
         employee_number: string;
         status: string;
         photo_path?: string | null;
         photo_url?: string | null;
         current_assignment?: {
-            organization?: { name_en: string; code: string; logo_url?: string | null } | null;
-            position?: { title_en: string } | null;
+            assignment_status?: string | null;
+            organization?: { name_en: string; name_am?: string | null; code: string; logo_url?: string | null } | null;
+            organization_unit?: { name_en: string; name_am?: string | null } | null;
+            position?: { title_en: string; title_am?: string | null; job_position_code?: string | null; grade_level?: string | null } | null;
         } | null;
     } | null;
     card_request?: {
@@ -244,7 +252,8 @@ const inputCls = 'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 te
 // ── Main component ───────────────────────────────────────────────────────────
 
 export default function IdCardShow({ card, can }: PageProps) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
+    const calendarSystem = useCalendarSystem();
     const { errors } = usePage().props as { errors: Record<string, string> };
     const [modal, setModal] = useState<string | null>(null);
     const [cardDesign, setCardDesign] = useState<'landscape' | 'portrait'>('landscape');
@@ -264,7 +273,7 @@ export default function IdCardShow({ card, can }: PageProps) {
     const revokeForm   = useForm({ reason: '' });
 
     const fmtDate = (v?: string | null) =>
-        v ? v.slice(0, 10) : '—';
+        v ? (formatDateDisplay(v.slice(0, 10), calendarSystem, locale) || v.slice(0, 10)) : undefined;
 
     const hasAnyAction = can.issue || can.activate || can.reportLost || can.reportDamaged || can.replace || can.revoke;
 
@@ -386,11 +395,19 @@ export default function IdCardShow({ card, can }: PageProps) {
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <IdCardFront
                                     cardNumber={card.card_number}
-                                    fullName={card.employee?.full_name}
+                                    fullName={card.employee?.name_en ?? card.employee?.metadata?.name_en ?? card.employee?.full_name}
+                                    fullNameAm={card.employee?.metadata?.name_am ?? card.employee?.full_name}
                                     employeeNumber={card.employee?.employee_number}
                                     organizationName={card.employee?.current_assignment?.organization?.name_en}
+                                    organizationNameAm={card.employee?.current_assignment?.organization?.name_am}
+                                    organizationUnitName={locale === 'am' ? card.employee?.current_assignment?.organization_unit?.name_am : card.employee?.current_assignment?.organization_unit?.name_en}
                                     organizationLogoUrl={card.employee?.current_assignment?.organization?.logo_url}
                                     positionTitle={card.employee?.current_assignment?.position?.title_en}
+                                    positionTitleAm={card.employee?.current_assignment?.position?.title_am}
+                                    positionCode={card.employee?.current_assignment?.position?.job_position_code}
+                                    jobGrade={card.employee?.current_assignment?.position?.grade_level}
+                                    employmentStatus={card.employee?.status}
+                                    gender={card.employee?.gender}
                                     photoUrl={card.employee?.photo_url}
                                     issueDate={fmtDate(card.issued_at)}
                                     expiryDate={fmtDate(card.expires_at)}
@@ -398,7 +415,9 @@ export default function IdCardShow({ card, can }: PageProps) {
                                 />
                                 <IdCardBack
                                     cardNumber={card.card_number}
-                                    qrValue={card.qr_payload || route('id-cards.show', card.id)}
+                                    qrValue={card.public_card_uuid ? route('id-cards.verify.public', card.public_card_uuid) : null}
+                                    issueDate={fmtDate(card.issued_at)}
+                                    expiryDate={fmtDate(card.expires_at)}
                                 />
                             </div>
                         ) : (
@@ -406,11 +425,19 @@ export default function IdCardShow({ card, can }: PageProps) {
                                 <div className="flex flex-wrap justify-center gap-6">
                                     <IdCardPortraitFront
                                         cardNumber={card.card_number}
-                                        fullName={card.employee?.full_name}
+                                        fullName={card.employee?.name_en ?? card.employee?.metadata?.name_en ?? card.employee?.full_name}
+                                        fullNameAm={card.employee?.metadata?.name_am ?? card.employee?.full_name}
                                         employeeNumber={card.employee?.employee_number}
                                         organizationName={card.employee?.current_assignment?.organization?.name_en}
+                                        organizationNameAm={card.employee?.current_assignment?.organization?.name_am}
+                                        organizationUnitName={locale === 'am' ? card.employee?.current_assignment?.organization_unit?.name_am : card.employee?.current_assignment?.organization_unit?.name_en}
                                         organizationLogoUrl={card.employee?.current_assignment?.organization?.logo_url}
                                         positionTitle={card.employee?.current_assignment?.position?.title_en}
+                                        positionTitleAm={card.employee?.current_assignment?.position?.title_am}
+                                        positionCode={card.employee?.current_assignment?.position?.job_position_code}
+                                        jobGrade={card.employee?.current_assignment?.position?.grade_level}
+                                        employmentStatus={card.employee?.status}
+                                        gender={card.employee?.gender}
                                         photoUrl={card.employee?.photo_url}
                                         issueDate={fmtDate(card.issued_at)}
                                         expiryDate={fmtDate(card.expires_at)}
@@ -418,7 +445,9 @@ export default function IdCardShow({ card, can }: PageProps) {
                                     />
                                     <IdCardPortraitBack
                                         cardNumber={card.card_number}
-                                        qrValue={card.qr_payload || route('id-cards.show', card.id)}
+                                        qrValue={card.public_card_uuid ? route('id-cards.verify.public', card.public_card_uuid) : null}
+                                        issueDate={fmtDate(card.issued_at)}
+                                        expiryDate={fmtDate(card.expires_at)}
                                     />
                                 </div>
                                 {/* Portrait print / export actions */}
@@ -824,12 +853,16 @@ export default function IdCardShow({ card, can }: PageProps) {
                     status: card.status,
                     issued_at: card.issued_at,
                     expires_at: card.expires_at,
+                    public_card_uuid: card.public_card_uuid,
                     can: {
                         printAnytime: can.printAnytime,
                         exportPng: can.exportPng,
                     },
                     employee: card.employee ? {
                         full_name: card.employee.full_name,
+                        metadata: card.employee.metadata,
+                        gender: card.employee.gender,
+                        status: card.employee.status,
                         employee_number: card.employee.employee_number,
                         photo_url: card.employee.photo_url,
                         current_assignment: card.employee.current_assignment ? {
@@ -849,31 +882,11 @@ export default function IdCardShow({ card, can }: PageProps) {
 
             <CardPrintExportModal
                 card={{
-                    id: card.id,
-                    card_number: card.card_number,
-                    status: card.status,
-                    issued_at: card.issued_at,
-                    expires_at: card.expires_at,
+                    ...card,
                     can: {
                         printAnytime: can.printAnytime,
                         exportPng: can.exportPng,
                     },
-                    employee: card.employee ? {
-                        full_name: card.employee.full_name,
-                        employee_number: card.employee.employee_number,
-                        photo_url: card.employee.photo_url,
-                        current_assignment: card.employee.current_assignment ? {
-                            organization: card.employee.current_assignment.organization
-                                ? {
-                                    name_en: card.employee.current_assignment.organization.name_en,
-                                    logo_url: card.employee.current_assignment.organization.logo_url,
-                                }
-                                : null,
-                            position: card.employee.current_assignment.position
-                                ? { title_en: card.employee.current_assignment.position.title_en }
-                                : null,
-                        } : null,
-                    } : null,
                 }}
                 isOpen={exportModal.open}
                 initialAction={exportModal.action}

@@ -35,6 +35,22 @@ final readonly class IdCardLayoutSettings
         // Feature flags
         public bool $showOrganizationLogo,
         public bool $showMagneticStripe,
+        public bool $showPhoto,
+        public bool $showFullNameEn,
+        public bool $showFullNameAm,
+        public bool $showEmployeeNumber,
+        public bool $showCardNumber,
+        public bool $showOrganization,
+        public bool $showOrganizationUnit,
+        public bool $showPosition,
+        public bool $showJobGrade,
+        public bool $showEmploymentStatus,
+        public bool $showIssueDate,
+        public bool $showExpiryDate,
+        public bool $showSignature,
+        public bool $showQr,
+        public bool $showReturnNotice,
+        public bool $showEmergencyContact,
 
         // Sizing
         public int $qrSize,        // pixels, 64–200

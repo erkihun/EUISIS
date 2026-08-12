@@ -135,7 +135,7 @@ it('revoked card verification returns denied', function (): void {
 
     $result = app(VerifyCardForServiceAction::class)->execute($card->id.'|'.$rawToken, $serviceType, $provider);
     expect($result['allowed'])->toBeFalse()
-        ->and($result['result_code'])->toBe('card_inactive');
+        ->and($result['result_code'])->toBe('id_card_revoked');
 });
 
 // Test 15: Expired card cannot verify
@@ -155,7 +155,7 @@ it('expired card verification returns denied', function (): void {
 
     $result = app(VerifyCardForServiceAction::class)->execute($card->id.'|'.$rawToken, $serviceType, $provider);
     expect($result['allowed'])->toBeFalse()
-        ->and($result['result_code'])->toBe('card_expired');
+        ->and($result['result_code'])->toBe('id_card_expired');
 });
 
 // Test 16: Card status flow: printed -> issued -> active

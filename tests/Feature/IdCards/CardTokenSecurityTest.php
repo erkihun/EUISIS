@@ -30,7 +30,7 @@ beforeEach(function (): void {
 
 function makeActiveCard(): array
 {
-    $type = OrganizationType::query()->firstOrCreate(['code' => 'sec-bureau'], ['name_en' => 'Security Bureau']);
+    $type = OrganizationType::query()->firstOrCreate(['code' => 'SEC-BUREAU'], ['name_en' => 'Security Bureau']);
     $organization = Organization::query()->firstOrCreate(
         ['code' => 'SEC-ORG'],
         ['organization_type_id' => $type->id, 'name_en' => 'Security Org', 'status' => OrganizationStatus::Active]

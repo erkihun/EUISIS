@@ -1,15 +1,33 @@
 import type { CSSProperties } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import enDict from '@/i18n/en';
+import amDict from '@/i18n/am';
+
+// The card face is bilingual by design (labels show both languages at once),
+// so labels are read from both dictionaries instead of the active locale.
+const biLabel = (key: 'idLabel' | 'cardLabel' | 'positionNoLabel'): string =>
+    `${enDict.idCards[key]}/${amDict.idCards[key]}`;
 
 type IdCardFrontProps = {
     cardNumber: string;
     fullName?: string | null;
     fullNameAm?: string | null;
     employeeNumber?: string | null;
+    /** Organization name in English. */
     organizationName?: string | null;
+    /** Organization name in Amharic — shown together with the English name. */
+    organizationNameAm?: string | null;
+    organizationUnitName?: string | null;
     organizationLogoUrl?: string | null;
+    /** Position title in English. */
     positionTitle?: string | null;
+    /** Position title in Amharic, displayed beside the Amharic organization. */
+    positionTitleAm?: string | null;
+    positionCode?: string | null;
+    jobGrade?: string | null;
+    employmentStatus?: string | null;
+    gender?: string | null;
     photoUrl?: string | null;
     issueDate?: string | null;
     expiryDate?: string | null;
@@ -36,8 +54,15 @@ export default function IdCardFront({
     fullNameAm,
     employeeNumber,
     organizationName,
+    organizationNameAm,
+    organizationUnitName,
     organizationLogoUrl,
     positionTitle,
+    positionTitleAm,
+    positionCode,
+    jobGrade,
+    employmentStatus,
+    gender,
     photoUrl,
     issueDate,
     expiryDate,
@@ -55,17 +80,24 @@ export default function IdCardFront({
     const nameFontSz = getString('id_cards.front_name_font_size', 'sm');
     const lblFontSz  = getString('id_cards.front_label_font_size', 'xs');
     const showLogo          = getBoolean('id_cards.show_organization_logo', true);
+    const showPhoto         = getBoolean('id_cards.show_photo', true);
+    const showFullNameEn    = getBoolean('id_cards.show_full_name_en', true);
+    const showFullNameAm    = getBoolean('id_cards.show_full_name_am', true);
+    const showEmployeeNo    = getBoolean('id_cards.show_employee_number', true);
+    const showCardNo        = getBoolean('id_cards.show_card_number', true);
+    const showOrganization  = getBoolean('id_cards.show_organization', true);
+    const showUnit          = getBoolean('id_cards.show_organization_unit', true);
+    const showPosition      = getBoolean('id_cards.show_position', true);
+    const showJobGrade      = getBoolean('id_cards.show_job_grade', true);
+    const showEmployment    = getBoolean('id_cards.show_employment_status', true);
     const padding           = getString('id_cards.card_padding', 'normal');
     // Fall back to the system identity logo when no cityLogoUrl is passed as a prop
     const systemLogoUrl     = getString('general.identity_system_logo_url', '');
     const resolvedCityLogo  = cityLogoUrl || (systemLogoUrl || null);
 
-    const cityName = locale === 'am'
-        ? getString('id_cards.city_name_am', 'አዲስ አበባ ከተማ አስተዳደር')
-        : getString('id_cards.city_name_en', 'Addis Ababa City Administration');
-    const bureauName = locale === 'am'
-        ? getString('id_cards.bureau_name_am', 'የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ')
-        : getString('id_cards.bureau_name_en', 'Public Service & HRD Bureau');
+    // The header shows the issuing organization name in both languages at once.
+    const cityNameEn = getString('id_cards.city_name_en', 'Addis Ababa City Administration');
+    const cityNameAm = getString('id_cards.city_name_am', 'አዲስ አበባ ከተማ አስተዳደር');
 
     const nameSizeMap: Record<string, string> = { xs: 'text-xs', sm: 'text-sm', base: 'text-base', lg: 'text-lg' };
     const lblSizeMap: Record<string, string>  = { xs: 'text-[9px]', sm: 'text-xs' };
@@ -75,7 +107,7 @@ export default function IdCardFront({
     const lblCls  = lblSizeMap[lblFontSz]  ?? 'text-[9px]';
 
     const watermarkText = status ? WATERMARK_STATUSES[status] : null;
-    const displayName = locale === 'am' && fullNameAm ? fullNameAm : fullName;
+    const genderAm = gender === 'male' ? 'ወንድ' : gender === 'female' ? 'ሴት' : gender;
 
     return (
         <div
@@ -137,43 +169,53 @@ export default function IdCardFront({
                 </div>
             )}
 
-            {/* Header band */}
+            {/* Header band: system logo | issuing org name (EN + AM) | org logo */}
             <div className="absolute inset-x-0 top-0 flex items-center gap-2 bg-white/15 px-3 py-1.5">
-                {/* City logo or org logo */}
-                {showLogo && (resolvedCityLogo || organizationLogoUrl) ? (
+                {/* Logo 1 — system / city logo */}
+                {showLogo && resolvedCityLogo ? (
                     <img
-                        src={resolvedCityLogo ?? organizationLogoUrl!}
-                        alt={organizationName ?? 'Logo'}
-                        className="h-7 w-7 rounded-full object-contain bg-white/10"
+                        src={resolvedCityLogo}
+                        alt={cityNameEn}
+                        className="h-9 w-9 shrink-0 object-contain"
                         crossOrigin="anonymous"
                     />
                 ) : (
                     <div
-                        className="h-7 w-7 rounded-full bg-white/20 flex items-center justify-center text-[9px] font-bold shrink-0"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center text-[9px] font-bold"
                         style={{ color: textPri }}
                     >
                         AA
                     </div>
                 )}
-                <div className="min-w-0 flex-1">
-                    <p className="truncate text-[10px] font-bold leading-tight" style={{ color: textPri }}>{cityName}</p>
-                    <p className="truncate text-[8px] leading-tight" style={{ color: textSec }}>{bureauName}</p>
+                {/* Center — issuing organization name in both languages */}
+                <div className="min-w-0 flex-1 text-center">
+                    <p className="truncate text-[9px] font-bold leading-tight" style={{ color: textPri }}>{cityNameAm}</p>
+                    {organizationNameAm && (
+                        <p className="truncate text-[7px] leading-tight" style={{ color: textSec }}>{organizationNameAm}</p>
+                    )}
+                    <p className="truncate text-[9px] font-bold leading-tight" style={{ color: textPri }}>{cityNameEn}</p>
+                    {organizationName && (
+                        <p className="truncate text-[7px] leading-tight" style={{ color: textSec }}>{organizationName}</p>
+                    )}
                 </div>
-                <div className="ml-auto shrink-0">
-                    <span
-                        className="rounded px-1.5 py-0.5 text-[8px] font-mono uppercase tracking-wider bg-white/20 border border-white/20"
-                        style={{ color: textPri }}
-                    >
-                        {t('idCards.officialIdBadge')}
-                    </span>
-                </div>
+                {/* Logo 2 — employee's organization logo */}
+                {showLogo && organizationLogoUrl ? (
+                    <img
+                        src={organizationLogoUrl}
+                        alt={organizationName ?? 'Logo'}
+                        className="h-9 w-9 shrink-0 object-contain"
+                        crossOrigin="anonymous"
+                    />
+                ) : (
+                    <div className="h-7 w-7 shrink-0" aria-hidden="true" />
+                )}
             </div>
 
             {/* Body */}
-            <div className={`absolute inset-x-0 top-12 bottom-6 flex gap-3 ${padCls} pt-1`}>
+            <div className={`absolute inset-x-0 top-12 bottom-6 flex gap-3 ${padCls} pt-3`}>
                 {/* Photo column */}
                 <div className="flex-shrink-0 flex flex-col items-start gap-1">
-                    {photoUrl ? (
+                    {showPhoto && (photoUrl ? (
                         <img
                             src={photoUrl}
                             alt={t('employees.photo')}
@@ -197,66 +239,72 @@ export default function IdCardFront({
                         >
                             {t('idCards.photoPlaceholder')}
                         </div>
-                    )}
-                    {/* Employee / Card numbers below photo */}
+                    ))}
+                    {/* Employee / Card numbers below photo — bilingual labels */}
                     <div className="w-full space-y-0.5">
-                        <div>
-                            <span className={`${lblCls} uppercase tracking-wider block`} style={{ color: textSec }}>
-                                {t('idCards.idLabel')}
+                        {showEmployeeNo && <div>
+                            <span className={`${lblCls} tracking-wide block`} style={{ color: textSec }}>
+                                {biLabel('idLabel')}
                             </span>
                             <span className={`${lblCls} font-mono truncate block font-medium`} style={{ color: textPri }}>
                                 {employeeNumber ?? '—'}
                             </span>
-                        </div>
-                        <div>
-                            <span className={`${lblCls} uppercase tracking-wider block`} style={{ color: textSec }}>
-                                {t('idCards.cardLabel')}
+                        </div>}
+                        {showCardNo && <div>
+                            <span className={`${lblCls} tracking-wide block`} style={{ color: textSec }}>
+                                {biLabel('positionNoLabel')}
                             </span>
                             <span className={`${lblCls} font-mono truncate block`} style={{ color: textPri }}>
-                                {cardNumber}
+                                {positionCode ?? '—'}
                             </span>
-                        </div>
+                        </div>}
                     </div>
                 </div>
 
-                {/* Text fields */}
+                {/* Text fields — Amharic block (name, org, position) then English block (name, org, position) */}
                 <div className="min-w-0 flex-1 flex flex-col justify-between">
                     <div className="space-y-0.5">
-                        <p className={`${nameCls} font-bold leading-tight`} style={{ color: textPri }}>
-                            {displayName ?? '—'}
-                        </p>
-                        {positionTitle && (
-                            <p className="text-[10px] leading-tight truncate" style={{ color: textSec }}>
-                                {positionTitle}
+                        {/* Amharic block — skipped when identical to the English name */}
+                        {showFullNameAm && fullNameAm && fullNameAm !== fullName && (
+                            <p className={`${nameCls} font-bold leading-tight`} style={{ color: textPri }}>
+                                {fullNameAm}
                             </p>
                         )}
-                        {organizationName && (
-                            <p className="text-[9px] leading-tight truncate mt-0.5" style={{ color: textSec, opacity: 0.8 }}>
+                        {showEmployment && gender && (
+                            <p className="text-[8px] leading-tight" style={{ color: textSec }}>
+                                ፆታ፡ {genderAm}
+                            </p>
+                        )}
+                        {showOrganization && organizationNameAm && (
+                            <p className="truncate text-[9px] leading-tight" style={{ color: textSec }}>
+                                {organizationNameAm}
+                            </p>
+                        )}
+                        {showPosition && positionTitleAm && (
+                            <p className="truncate text-[9px] leading-tight" style={{ color: textSec }}>
+                                {positionTitleAm}
+                            </p>
+                        )}
+                        {/* English block */}
+                        {showFullNameEn && (
+                            <p className={`${nameCls} font-bold leading-tight pt-0.5`} style={{ color: textPri }}>
+                                {fullName ?? '—'}
+                            </p>
+                        )}
+                        {showEmployment && gender && (
+                            <p className="text-[8px] leading-tight" style={{ color: textSec }}>
+                                Sex: {gender}
+                            </p>
+                        )}
+                        {showOrganization && organizationName && (
+                            <p className="text-[9px] leading-tight" style={{ color: textSec }}>
                                 {organizationName}
                             </p>
                         )}
-                    </div>
-                    {/* Issue / Expiry date pills */}
-                    <div className="flex gap-1.5">
-                        {issueDate && (
-                            <div className="flex-1 rounded-md px-1.5 py-1 bg-white/10 border border-white/10">
-                                <p className="text-[7px] uppercase tracking-wider leading-none mb-0.5" style={{ color: textSec }}>
-                                    {t('idCards.issueDate')}
-                                </p>
-                                <p className={`${lblCls} font-semibold font-mono leading-none`} style={{ color: textPri }}>
-                                    {issueDate}
-                                </p>
-                            </div>
-                        )}
-                        {expiryDate && (
-                            <div className="flex-1 rounded-md px-1.5 py-1 bg-white/10 border border-white/10">
-                                <p className="text-[7px] uppercase tracking-wider leading-none mb-0.5" style={{ color: textSec }}>
-                                    {t('idCards.expLabel')}
-                                </p>
-                                <p className={`${lblCls} font-semibold font-mono leading-none`} style={{ color: textPri }}>
-                                    {expiryDate}
-                                </p>
-                            </div>
+                        {showPosition && positionTitle && (
+                            <p className="text-[9px] leading-tight truncate" style={{ color: textSec }}>
+                                {positionTitle}
+                            </p>
                         )}
                     </div>
                 </div>

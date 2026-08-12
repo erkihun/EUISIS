@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { CheckCircle, XCircle, AlertTriangle, ShieldCheck } from '@/Components/Icons';
 
 type VerifyResult = {
@@ -78,7 +79,7 @@ export default function PublicVerify({ result }: Props) {
 
                         {result.expires_at && (
                             <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-                                {t('idCards.verifyExpires')} {result.expires_at}
+                                {t('idCards.verifyExpires')} <LocalizedDateDisplay value={result.expires_at} />
                             </p>
                         )}
                     </div>

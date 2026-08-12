@@ -20,12 +20,18 @@ final readonly class IdCardRenderData
         public ?string $employeeNumber,
         public ?string $fullNameEn,
         public ?string $fullNameAm,
+        public ?string $gender,
+        public ?string $employmentStatus,
 
         // Assignment
         public ?string $organizationNameEn,
         public ?string $organizationNameAm,
+        public ?string $organizationUnitNameEn,
+        public ?string $organizationUnitNameAm,
         public ?string $positionTitleEn,
         public ?string $positionTitleAm,
+        public ?string $positionCode,
+        public ?string $jobGrade,
 
         // Dates (pre-formatted strings, e.g. "16 May 2026")
         public ?string $issueDateFormatted,

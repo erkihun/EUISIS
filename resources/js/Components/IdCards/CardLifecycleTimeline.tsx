@@ -1,3 +1,4 @@
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 
 type StepStatus = 'completed' | 'current' | 'upcoming' | 'terminal';
@@ -122,7 +123,7 @@ export default function CardLifecycleTimeline({
                                 </p>
                                 {step.timestamp && (
                                     <p className="mt-0.5 text-[11px] text-gray-400 dark:text-slate-500">
-                                        {step.timestamp}
+                                        <LocalizedDateDisplay value={step.timestamp} withTime />
                                     </p>
                                 )}
                                 {step.actor && (

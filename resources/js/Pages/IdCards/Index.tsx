@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
 import CardStatusBadge from '@/Components/IdCards/CardStatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
@@ -16,7 +17,12 @@ type CardRow = {
     employee?: {
         full_name: string;
         employee_number: string;
-        current_assignment?: { organization?: { name_en: string } | null } | null;
+        photo_url?: string | null;
+        current_assignment?: {
+            organization?: { name_en: string; name_am?: string | null } | null;
+            organization_unit?: { name_en: string; name_am?: string | null } | null;
+            position?: { title_en: string; title_am?: string | null } | null;
+        } | null;
     } | null;
     can?: {
         view?: boolean;
@@ -32,9 +38,12 @@ type CardRow = {
 type PageProps = {
     cards: {
         data: CardRow[];
-        current_page: number;
-        last_page: number;
-        total: number;
+        meta: {
+            current_page: number;
+            last_page: number;
+            total: number;
+            links: Array<{ url: string | null; label: string; active: boolean }>;
+        };
     };
     can?: {
         submitRequest?: boolean;
@@ -43,7 +52,12 @@ type PageProps = {
     filters?: {
         search?: string;
         status?: string;
+        organization_id?: string;
+        issued_from?: string;
+        expires_to?: string;
     };
+    summary: { total: number; active: number; pending: number; expired: number; revoked: number; lost: number };
+    organizations: Array<{ id: string; name_en: string; name_am?: string | null }>;
 };
 
 const CARD_STATUSES = [
@@ -51,26 +65,26 @@ const CARD_STATUSES = [
     'expired', 'lost', 'damaged', 'suspended', 'revoked', 'replaced',
 ];
 
-export default function IdCardsIndex({ cards, can, filters = {} }: PageProps) {
-    const { t } = useLocale();
+export default function IdCardsIndex({ cards, can, filters = {}, summary, organizations }: PageProps) {
+    const { t, locale } = useLocale();
 
     const [search, setSearch] = useState(filters.search ?? '');
     const [status, setStatus] = useState(filters.status ?? '');
+    const [organizationId, setOrganizationId] = useState(filters.organization_id ?? '');
+    const [issuedFrom, setIssuedFrom] = useState(filters.issued_from ?? '');
+    const [expiresTo, setExpiresTo] = useState(filters.expires_to ?? '');
 
     function applyFilters() {
-        router.get(route('id-cards.index'), { search, status }, {
+        router.get(route('id-cards.index'), { search, status, organization_id: organizationId, issued_from: issuedFrom, expires_to: expiresTo }, {
             preserveState: true,
             replace: true,
         });
     }
 
     function resetFilters() {
-        setSearch(''); setStatus('');
+        setSearch(''); setStatus(''); setOrganizationId(''); setIssuedFrom(''); setExpiresTo('');
         router.get(route('id-cards.index'), {}, { preserveState: false, replace: true });
     }
-
-    const fmtDate = (v?: string | null) =>
-        v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
     const selectCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200';
     const inputCls  = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500';
@@ -80,7 +94,7 @@ export default function IdCardsIndex({ cards, can, filters = {} }: PageProps) {
             header={
                 <PageHeader
                     title={t('idCards.title')}
-                    description=""
+                    description={t('idCards.indexDescription')}
                     actions={
                         <div className="flex gap-2">
                             {can?.submitRequest && (
@@ -112,6 +126,22 @@ export default function IdCardsIndex({ cards, can, filters = {} }: PageProps) {
         >
             <Head title={t('idCards.title')} />
 
+            <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+                {[
+                    ['totalCards', summary.total, 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300'],
+                    ['activeCards', summary.active, 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'],
+                    ['pendingApproval', summary.pending, 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'],
+                    ['expiredCards', summary.expired, 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200'],
+                    ['revokedCards', summary.revoked, 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'],
+                    ['lostCards', summary.lost, 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'],
+                ].map(([key, value, color]) => (
+                    <div key={String(key)} className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <span className={`inline-flex rounded-lg px-2 py-1 text-lg font-bold ${color}`}>{value}</span>
+                        <p className="mt-2 text-xs font-medium text-gray-500 dark:text-slate-400">{t(`idCards.${key}`)}</p>
+                    </div>
+                ))}
+            </div>
+
             {/* Filter bar */}
             <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex flex-wrap gap-3 items-end">
@@ -139,6 +169,23 @@ export default function IdCardsIndex({ cards, can, filters = {} }: PageProps) {
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    <div className="min-w-[190px]">
+                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">{t('idCards.organization')}</label>
+                        <select className={selectCls + ' w-full'} value={organizationId} onChange={(e) => setOrganizationId(e.target.value)}>
+                            <option value="">{t('common.all')}</option>
+                            {organizations.map((organization) => (
+                                <option key={organization.id} value={organization.id}>{locale === 'am' ? organization.name_am ?? organization.name_en : organization.name_en}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">{t('idCards.issueDate')}</label>
+                        <input type="date" className={inputCls} value={issuedFrom} onChange={(e) => setIssuedFrom(e.target.value)} />
+                    </div>
+                    <div>
+                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">{t('idCards.expiryDate')}</label>
+                        <input type="date" className={inputCls} value={expiresTo} onChange={(e) => setExpiresTo(e.target.value)} />
                     </div>
                     <div className="flex gap-2">
                         <button
@@ -183,16 +230,25 @@ export default function IdCardsIndex({ cards, can, filters = {} }: PageProps) {
                             <thead>
                                 <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
                                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                                        {t('idCards.cardNumber')}
+                                        {t('employees.employee')}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                                        {t('employees.employeeNumber')}
+                                        {t('idCards.cardNumber')}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                                         {t('organizations.organization')}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                        {t('idCards.organizationUnit')}
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                        {t('idCards.position')}
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                                         {t('common.status')}
+                                    </th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                        {t('idCards.issueDate')}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                                         {t('idCards.expiryDate')}
@@ -209,35 +265,35 @@ export default function IdCardsIndex({ cards, can, filters = {} }: PageProps) {
                                         className="transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/50"
                                     >
                                         <td className="px-4 py-3">
-                                            <span className="font-mono text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                                {card.card_number}
-                                            </span>
+                                            <div className="flex items-center gap-3">
+                                                {card.employee?.photo_url ? <img src={card.employee.photo_url} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <div className="h-9 w-9 rounded-lg bg-gray-100 dark:bg-slate-800" />}
+                                                <div><p className="font-medium text-gray-900 dark:text-slate-100">{card.employee?.full_name ?? t('common.notAvailable')}</p><p className="font-mono text-xs text-gray-500">{card.employee?.employee_number}</p></div>
+                                            </div>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <p className="font-mono text-sm font-medium text-gray-800 dark:text-slate-200">
-                                                {card.employee?.employee_number}
-                                            </p>
-                                            <p className="text-xs text-gray-400 dark:text-slate-500">
-                                                {card.employee?.full_name}
-                                            </p>
+                                            <span className="font-mono text-sm font-semibold text-gray-900 dark:text-slate-100">{card.card_number}</span>
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-400 max-w-[200px] truncate">
-                                            {card.employee?.current_assignment?.organization?.name_en ?? t('idCards.unknownOrg')}
+                                            {locale === 'am' ? card.employee?.current_assignment?.organization?.name_am ?? card.employee?.current_assignment?.organization?.name_en : card.employee?.current_assignment?.organization?.name_en ?? t('common.notAvailable')}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                            {locale === 'am' ? card.employee?.current_assignment?.organization_unit?.name_am ?? card.employee?.current_assignment?.organization_unit?.name_en : card.employee?.current_assignment?.organization_unit?.name_en ?? t('common.notAvailable')}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-gray-600 dark:text-slate-400">
+                                            {locale === 'am' ? card.employee?.current_assignment?.position?.title_am ?? card.employee?.current_assignment?.position?.title_en : card.employee?.current_assignment?.position?.title_en ?? t('common.notAvailable')}
                                         </td>
                                         <td className="px-4 py-3">
                                             <CardStatusBadge status={card.status} />
                                         </td>
                                         <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
-                                            {fmtDate(card.expires_at)}
+                                            <LocalizedDateDisplay value={card.issued_at} />
+                                        </td>
+                                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                            <LocalizedDateDisplay value={card.expires_at} />
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             {card.can?.view !== false && (
-                                                <Link
-                                                    href={route('id-cards.show', card.id)}
-                                                    className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                                >
-                                                    {t('common.view')}
-                                                </Link>
+                                                <div className="flex justify-end gap-3"><Link href={route('id-cards.show', card.id)} className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400">{t('common.view')}</Link><Link href={route('id-cards.preview', card.id)} className="text-xs font-medium text-gray-600 hover:text-gray-900 dark:text-slate-300">{t('idCards.previewCard')}</Link></div>
                                             )}
                                         </td>
                                     </tr>
@@ -247,12 +303,12 @@ export default function IdCardsIndex({ cards, can, filters = {} }: PageProps) {
                     </div>
                 )}
 
-                {cards.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3 text-xs text-gray-400 dark:border-slate-800 dark:text-slate-500">
+                {cards.meta.last_page > 1 && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 text-xs text-gray-500 dark:border-slate-800 dark:text-slate-400">
                         <span>
-                            {t('common.page')} {cards.current_page} {t('common.of')} {cards.last_page}
+                            {t('common.page')} {cards.meta.current_page} {t('common.of')} {cards.meta.last_page}
                         </span>
-                        <span>{cards.total} {t('common.total').toLowerCase()}</span>
+                        <div className="flex gap-1">{cards.meta.links.map((link, index) => link.url ? <Link key={index} href={link.url} preserveScroll className={`rounded-lg border px-3 py-1.5 ${link.active ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-800'}`} dangerouslySetInnerHTML={{ __html: link.label }} /> : <span key={index} className="rounded-lg border border-gray-100 px-3 py-1.5 opacity-50 dark:border-slate-800" dangerouslySetInnerHTML={{ __html: link.label }} />)}</div>
                     </div>
                 )}
             </div>

@@ -36,7 +36,7 @@ beforeEach(function (): void {
 
 function auditEmployee(): array
 {
-    $type = OrganizationType::query()->firstOrCreate(['code' => 'audit-bureau'], ['name_en' => 'Audit Bureau']);
+    $type = OrganizationType::query()->firstOrCreate(['code' => 'AUDIT-BUREAU'], ['name_en' => 'Audit Bureau']);
     $org = Organization::query()->firstOrCreate(
         ['code' => 'AUDIT-ORG'],
         ['organization_type_id' => $type->id, 'name_en' => 'Audit Org', 'status' => OrganizationStatus::Active]

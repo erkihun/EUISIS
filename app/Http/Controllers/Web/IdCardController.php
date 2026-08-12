@@ -19,7 +19,10 @@ use App\Http\Requests\IdCards\ReplaceCardRequest;
 use App\Http\Requests\IdCards\ReportDamagedCardRequest;
 use App\Http\Requests\IdCards\ReportLostCardRequest;
 use App\Http\Requests\IdCards\RevokeCardRequest;
+use App\Http\Resources\IdCardResource;
 use App\Models\IdCard;
+use App\Models\Organization;
+use App\Services\IdCards\CardQrPayloadService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -29,26 +32,76 @@ use Inertia\Response;
 
 class IdCardController extends Controller
 {
-    public function index(OrganizationScopeService $scopeService): Response
+    public function index(Request $request, OrganizationScopeService $scopeService): Response
     {
         $this->authorize('viewAny', IdCard::class);
 
-        $allowedOrgIds = $scopeService->accessibleOrganizationIds(request()->user());
+        $allowedOrgIds = $scopeService->accessibleOrganizationIds($request->user());
 
-        $cards = IdCard::query()
-            ->with(['employee.currentAssignment.organization', 'employee.currentAssignment.position', 'previousCard'])
+        $baseQuery = IdCard::query()
+            ->with([
+                'employee.currentAssignment.organization',
+                'employee.currentAssignment.organizationUnit',
+                'employee.currentAssignment.position',
+            ])
             ->when(
                 $allowedOrgIds->isNotEmpty(),
                 fn ($q) => $q->whereHas(
                     'employee.currentAssignment',
                     fn ($aq) => $aq->whereIn('organization_id', $allowedOrgIds)
                 )
-            )
+            );
+
+        $summary = [
+            'total' => (clone $baseQuery)->count(),
+            'active' => (clone $baseQuery)->where('status', CardStatus::Active)->count(),
+            'pending' => (clone $baseQuery)->where('status', CardStatus::PendingPrint)->count(),
+            'expired' => (clone $baseQuery)->where('status', CardStatus::Expired)->count(),
+            'revoked' => (clone $baseQuery)->where('status', CardStatus::Revoked)->count(),
+            'lost' => (clone $baseQuery)->where('status', CardStatus::Lost)->count(),
+        ];
+
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'string', 'max:40'],
+            'organization_id' => ['nullable', 'uuid'],
+            'issued_from' => ['nullable', 'date_format:Y-m-d'],
+            'expires_to' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        $cards = $baseQuery
+            ->when($filters['search'] ?? null, function ($query, string $search): void {
+                $query->where(function ($nested) use ($search): void {
+                    $nested->whereLike('card_number', "%{$search}%", caseSensitive: false)
+                        ->orWhereHas('employee', fn ($employee) => $employee
+                            ->whereLike('employee_number', "%{$search}%", caseSensitive: false)
+                            ->orWhereLike('first_name', "%{$search}%", caseSensitive: false)
+                            ->orWhereLike('middle_name', "%{$search}%", caseSensitive: false)
+                            ->orWhereLike('last_name', "%{$search}%", caseSensitive: false));
+                });
+            })
+            ->when($filters['status'] ?? null, fn ($query, string $status) => $query->where('status', $status))
+            ->when($filters['organization_id'] ?? null, fn ($query, string $organizationId) => $query->whereHas(
+                'employee.currentAssignment',
+                fn ($assignment) => $assignment->where('organization_id', $organizationId),
+            ))
+            ->when($filters['issued_from'] ?? null, fn ($query, string $date) => $query->whereDate('issued_at', '>=', $date))
+            ->when($filters['expires_to'] ?? null, fn ($query, string $date) => $query->whereDate('expires_at', '<=', $date))
             ->orderByDesc('created_at')
-            ->paginate(25);
+            ->paginate(25)
+            ->withQueryString();
+
+        $organizations = Organization::query()
+            ->select(['id', 'name_en', 'name_am'])
+            ->when($allowedOrgIds->isNotEmpty(), fn ($query) => $query->whereIn('id', $allowedOrgIds))
+            ->orderBy('name_en')
+            ->get();
 
         return Inertia::render('IdCards/Index', [
-            'cards' => $cards,
+            'cards' => IdCardResource::collection($cards),
+            'summary' => $summary,
+            'filters' => $filters,
+            'organizations' => $organizations,
             'can' => [
                 'create' => request()->user()?->can('create', IdCard::class),
                 'submitRequest' => request()->user()?->can('id-cards.submitRequest') || request()->user()?->can('cards.manage'),
@@ -57,13 +110,15 @@ class IdCardController extends Controller
         ]);
     }
 
-    public function show(IdCard $card): Response
+    public function show(IdCard $card, CardQrPayloadService $qrPayloadService): Response
     {
         $this->authorize('view', $card);
+        $qrPayloadService->ensurePublicReference($card);
 
         $card->load([
             'employee.currentAssignment.organization',
             'employee.currentAssignment.position',
+            'employee.currentAssignment.organizationUnit',
             'cardRequest.requester',
             'cardRequest.reviewer',
             'cardRequest.approver',
@@ -97,11 +152,17 @@ class IdCardController extends Controller
         ]);
     }
 
-    public function preview(IdCard $card): Response
+    public function preview(IdCard $card, CardQrPayloadService $qrPayloadService): Response
     {
         $this->authorize('view', $card);
+        $qrPayloadService->ensurePublicReference($card);
 
-        $card->load(['employee.currentAssignment.organization', 'employee.currentAssignment.position', 'cardRequest']);
+        $card->load([
+            'employee.currentAssignment.organization',
+            'employee.currentAssignment.organizationUnit',
+            'employee.currentAssignment.position',
+            'cardRequest',
+        ]);
 
         $user = request()->user();
 

@@ -28,6 +28,7 @@ final readonly class IdCardRenderDataFactory
         $employee = $card->employee;
         $assignment = $employee?->currentAssignment;
         $org = $assignment?->organization;
+        $unit = $assignment?->organizationUnit;
         $position = $assignment?->position;
         $layout = $this->layoutService->get();
 
@@ -37,13 +38,19 @@ final readonly class IdCardRenderDataFactory
             status: $card->status->value,
 
             employeeNumber: $employee?->employee_number,
-            fullNameEn: $employee?->full_name,
+            fullNameEn: $employee?->name_en ?? $employee?->full_name,
             fullNameAm: $employee?->metadata['name_am'] ?? null,
+            gender: $employee?->gender,
+            employmentStatus: $employee?->status?->value,
 
             organizationNameEn: $org?->name_en,
             organizationNameAm: $org?->name_am,
+            organizationUnitNameEn: $unit?->name_en,
+            organizationUnitNameAm: $unit?->name_am,
             positionTitleEn: $position?->title_en ?? null,
             positionTitleAm: $position?->title_am ?? null,
+            positionCode: $position?->job_position_code ?? $position?->code,
+            jobGrade: $position?->grade_level,
 
             issueDateFormatted: $card->issued_at?->format('d M Y'),
             expiryDateFormatted: $card->expires_at?->format('d M Y'),

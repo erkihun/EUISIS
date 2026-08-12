@@ -148,7 +148,7 @@ final class IdCardSvgRenderer
         );
 
         // ── Photo ────────────────────────────────────────────────────────
-        if ($data->photoDataUri !== null) {
+        if ($l->showPhoto && $data->photoDataUri !== null) {
             $svg .= sprintf(
                 '<clipPath id="photoClip">'
                 .'<rect x="%d" y="%d" width="%d" height="%d" rx="6" ry="6"/>'
@@ -160,7 +160,7 @@ final class IdCardSvgRenderer
                 $photoX, $photoY, $photoW, $photoH,
                 $data->photoDataUri,
             );
-        } else {
+        } elseif ($l->showPhoto) {
             $svg .= sprintf(
                 '<rect x="%d" y="%d" width="%d" height="%d" rx="6" ry="6"'
                 .' fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
@@ -176,51 +176,59 @@ final class IdCardSvgRenderer
         // ── Labels below photo ───────────────────────────────────────────
         $belowPhotoY = $photoY + $photoH + 10;
 
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" font-size="%d"'
-            .' letter-spacing="1" fill="%s">ID</text>',
-            $photoX, $belowPhotoY,
-            self::FONT, $labelFontSize,
-            $this->e($l->frontTextSecondary),
-        );
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" font-size="%d"'
-            .' font-weight="600" fill="%s">%s</text>',
-            $photoX, $belowPhotoY + 13,
-            self::FONT, $labelFontSize,
-            $this->e($l->frontTextPrimary),
-            $this->e($this->trunc($data->employeeNumber ?? '—', 14)),
-        );
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" font-size="%d"'
-            .' letter-spacing="1" fill="%s">CARD</text>',
-            $photoX, $belowPhotoY + 28,
-            self::FONT, $labelFontSize,
-            $this->e($l->frontTextSecondary),
-        );
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" font-size="%d"'
-            .' fill="%s">%s</text>',
-            $photoX, $belowPhotoY + 41,
-            self::FONT, $labelFontSize,
-            $this->e($l->frontTextPrimary),
-            $this->e($this->trunc($data->cardNumber, 16)),
-        );
+        if ($l->showEmployeeNumber) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="%d"'
+                .' letter-spacing="1" fill="%s">ID</text>',
+                $photoX, $belowPhotoY,
+                self::FONT, $labelFontSize,
+                $this->e($l->frontTextSecondary),
+            );
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="%d"'
+                .' font-weight="600" fill="%s">%s</text>',
+                $photoX, $belowPhotoY + 13,
+                self::FONT, $labelFontSize,
+                $this->e($l->frontTextPrimary),
+                $this->e($this->trunc($data->employeeNumber ?? '—', 14)),
+            );
+        }
+        if ($l->showCardNumber) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="%d"'
+                .' letter-spacing="1" fill="%s">CARD</text>',
+                $photoX, $belowPhotoY + 28,
+                self::FONT, $labelFontSize,
+                $this->e($l->frontTextSecondary),
+            );
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="%d"'
+                .' fill="%s">%s</text>',
+                $photoX, $belowPhotoY + 41,
+                self::FONT, $labelFontSize,
+                $this->e($l->frontTextPrimary),
+                $this->e($this->trunc($data->cardNumber, 16)),
+            );
+        }
 
         // ── Text column ───────────────────────────────────────────────────
         // Name
-        $displayName = $data->fullNameEn ?? $data->fullNameAm ?? '—';
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" font-size="%d"'
-            .' font-weight="700" fill="%s">%s</text>',
-            $textX, $photoY + 18,
-            self::FONT, $nameFontSize,
-            $this->e($l->frontTextPrimary),
-            $this->e($this->trunc($displayName, 28)),
-        );
+        $displayName = $l->showFullNameEn
+            ? ($data->fullNameEn ?? ($l->showFullNameAm ? $data->fullNameAm : null))
+            : ($l->showFullNameAm ? $data->fullNameAm : null);
+        if ($displayName !== null) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="%d"'
+                .' font-weight="700" fill="%s">%s</text>',
+                $textX, $photoY + 18,
+                self::FONT, $nameFontSize,
+                $this->e($l->frontTextPrimary),
+                $this->e($this->trunc($displayName, 28)),
+            );
+        }
 
         // Amharic name (if different from primary display)
-        $amName = $data->fullNameAm;
+        $amName = $l->showFullNameAm ? $data->fullNameAm : null;
         if ($amName !== null && $amName !== $displayName) {
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" font-size="11"'
@@ -236,19 +244,19 @@ final class IdCardSvgRenderer
         }
 
         // Position
-        if ($data->positionTitleEn !== null) {
+        if ($l->showPosition && $data->positionTitleEn !== null) {
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" font-size="10"'
                 .' fill="%s">%s</text>',
                 $textX, $photoY + 33 + $offsetY,
                 self::FONT,
                 $this->e($l->frontTextSecondary),
-                $this->e($this->trunc($data->positionTitleEn, 40)),
+                $this->e($this->trunc($data->positionTitleEn.($data->positionCode ? ' ('.$data->positionCode.')' : ''), 40)),
             );
         }
 
         // Organization
-        if ($data->organizationNameEn !== null) {
+        if ($l->showOrganization && $data->organizationNameEn !== null) {
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" font-size="9"'
                 .' fill="%s" opacity="0.8">%s</text>',
@@ -260,15 +268,37 @@ final class IdCardSvgRenderer
         }
 
         // ── Date pills ───────────────────────────────────────────────────
+        if ($l->showOrganizationUnit && $data->organizationUnitNameEn !== null) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="9" fill="%s" opacity="0.8">%s</text>',
+                $textX, $photoY + 63 + $offsetY, self::FONT,
+                $this->e($l->frontTextSecondary),
+                $this->e($this->trunc($data->organizationUnitNameEn, 48)),
+            );
+        }
+
+        if (($l->showJobGrade && $data->jobGrade !== null) || ($l->showEmploymentStatus && $data->employmentStatus !== null)) {
+            $meta = implode(' • ', array_filter([
+                $l->showJobGrade ? $data->jobGrade : null,
+                $l->showEmploymentStatus ? $data->employmentStatus : null,
+            ]));
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="8" fill="%s" opacity="0.75">%s</text>',
+                $textX, $photoY + 78 + $offsetY, self::FONT,
+                $this->e($l->frontTextSecondary),
+                $this->e($this->trunc($meta, 48)),
+            );
+        }
+
         $pillY = 478;
         $pillH = 32;
         $pillW = (int) (($textW - 8) / 2);
         $pillX2 = $textX + $pillW + 8;
 
-        if ($data->issueDateFormatted !== null) {
+        if ($l->showIssueDate && $data->issueDateFormatted !== null) {
             $svg .= $this->datePill($textX, $pillY, $pillW, $pillH, 'ISSUE DATE', $data->issueDateFormatted, $l, $labelFontSize);
         }
-        if ($data->expiryDateFormatted !== null) {
+        if ($l->showExpiryDate && $data->expiryDateFormatted !== null) {
             $svg .= $this->datePill($pillX2, $pillY, $pillW, $pillH, 'EXP', $data->expiryDateFormatted, $l, $labelFontSize);
         }
 
@@ -385,7 +415,7 @@ final class IdCardSvgRenderer
         );
 
         // QR code image
-        if ($data->qrVerificationUrl !== '') {
+        if ($l->showQr && $data->qrVerificationUrl !== '') {
             $qrDataUri = $this->qrRenderer->asSvgDataUri($data->qrVerificationUrl, $qrSize);
             if ($qrDataUri !== '') {
                 $svg .= sprintf(
@@ -418,13 +448,15 @@ final class IdCardSvgRenderer
         );
 
         // Property notice
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" font-size="7" fill="%s" opacity="0.65">%s</text>',
-            $textX, $topTextY + 14,
-            self::FONT,
-            $this->e($l->backTextColor),
-            $this->e($this->trunc('If found, please return to the issuing bureau.', 55)),
-        );
+        if ($l->showReturnNotice) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="7" fill="%s" opacity="0.65">%s</text>',
+                $textX, $topTextY + 14,
+                self::FONT,
+                $this->e($l->backTextColor),
+                $this->e($this->trunc('If found, please return to the issuing bureau.', 55)),
+            );
+        }
 
         // Verification URL
         if ($l->verificationUrl !== '') {
@@ -440,16 +472,18 @@ final class IdCardSvgRenderer
         // Bottom text block: card number, support contact, return address
         $bottomY = self::H - 8 - 38; // leave room for 3 lines
 
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" font-size="8"'
-            .' font-weight="600" letter-spacing="1" fill="%s">%s</text>',
-            $textX, $bottomY,
-            self::FONT,
-            $this->e($l->backTextColor),
-            $this->e($data->cardNumber),
-        );
+        if ($l->showCardNumber) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="8"'
+                .' font-weight="600" letter-spacing="1" fill="%s">%s</text>',
+                $textX, $bottomY,
+                self::FONT,
+                $this->e($l->backTextColor),
+                $this->e($data->cardNumber),
+            );
+        }
 
-        if ($l->supportContact !== '') {
+        if ($l->showEmergencyContact && $l->supportContact !== '') {
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" font-size="7" fill="%s" opacity="0.55">%s</text>',
                 $textX, $bottomY + 13,
@@ -460,13 +494,15 @@ final class IdCardSvgRenderer
         }
 
         $returnAddr = $l->returnAddressEn;
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" font-size="7" fill="%s" opacity="0.45">%s</text>',
-            $textX, $bottomY + ($l->supportContact !== '' ? 26 : 13),
-            self::FONT,
-            $this->e($l->backTextColor),
-            $this->e($this->trunc($returnAddr, 58)),
-        );
+        if ($l->showReturnNotice) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" font-size="7" fill="%s" opacity="0.45">%s</text>',
+                $textX, $bottomY + ($l->supportContact !== '' ? 26 : 13),
+                self::FONT,
+                $this->e($l->backTextColor),
+                $this->e($this->trunc($returnAddr, 58)),
+            );
+        }
 
         // Bottom thin accent
         $svg .= '<defs><linearGradient id="backFooter" x1="0%" y1="0%" x2="100%" y2="0%">'
