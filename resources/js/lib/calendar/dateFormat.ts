@@ -20,12 +20,22 @@ export function formatDateDisplay(
 ): string {
     if (!gregorianIso) return '';
 
-    const eth = gregorianIsoToEthiopian(gregorianIso);
+    // Extract bare date — handles both 'YYYY-MM-DD' and 'YYYY-MM-DDTHH:MM:SS.000Z'
+    // (Laravel's 'date' cast serializes as a full ISO datetime)
+    const datePart = gregorianIso.slice(0, 10);
+
+    const eth = gregorianIsoToEthiopian(datePart);
     if (calendarSystem === 'ethiopian' && eth) {
         const months = locale === 'am' ? ETH_MONTHS_AM : ETH_MONTHS_EN;
         const monthName = months[eth.month] ?? String(eth.month);
         const suffix = locale === 'am' ? '' : ' E.C.';
         return `${monthName} ${eth.day}, ${eth.year}${suffix}`;
+    }
+
+    // Gregorian display: format as DD/MM/YYYY
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+        const [y, m, d] = datePart.split('-');
+        return `${d}/${m}/${y}`;
     }
 
     return gregorianIso;
@@ -39,7 +49,10 @@ export function formatDateTimeDisplay(
 ): string {
     if (!isoDateTime) return '';
     const datePart = isoDateTime.slice(0, 10);
-    const timePart = isoDateTime.length > 10 ? isoDateTime.slice(11, 16) : '';
+    // Extract time portion — handle both "T" separator and space separator
+    const sep = isoDateTime.indexOf('T') !== -1 ? 'T' : ' ';
+    const afterDate = isoDateTime.indexOf(sep) !== -1 ? isoDateTime.slice(isoDateTime.indexOf(sep) + 1) : '';
+    const timePart = afterDate ? afterDate.slice(0, 5) : '';
     const displayDate = formatDateDisplay(datePart, calendarSystem, locale);
     return timePart ? `${displayDate} ${timePart}` : displayDate;
 }
