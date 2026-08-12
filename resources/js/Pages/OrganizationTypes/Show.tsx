@@ -2,6 +2,7 @@ import { Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 
 type OrgType = {
@@ -80,8 +81,8 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
                     <Detail label={t('organizationTypes.nameAm')} value={type.name_am ?? t('organizationTypes.notProvided')} />
                     <Detail label={t('organizationTypes.organizationsCount')} value={type.organizations_count} />
                     <Detail label={t('organizationTypes.sortOrder')} value={type.sort_order} />
-                    <Detail label={t('common.createdAt')} value={type.created_at ?? ''} />
-                    <Detail label={t('common.updatedAt')} value={type.updated_at ?? ''} />
+                    <Detail label={t('common.createdAt')} value={<LocalizedDateDisplay value={type.created_at} withTime />} />
+                    <Detail label={t('common.updatedAt')} value={<LocalizedDateDisplay value={type.updated_at} withTime />} />
                 </dl>
 
                 {(type.description_en || type.description_am) && (

@@ -16,6 +16,9 @@ type OrgType = {
     description_en: string | null;
     is_active: boolean;
     sort_order: number;
+    level_order: number;
+    category: string | null;
+    parent_allowed_types: string[];
     organizations_count: number;
     can: { update: boolean; delete: boolean };
 };
@@ -40,6 +43,24 @@ export default function OrganizationTypesIndex({
         });
         if (!confirmed) return;
         router.delete(route('organization-types.destroy', id), { preserveScroll: true });
+    }
+
+    function categoryLabel(cat: string | null): string {
+        if (!cat) return tr('organizationTypes.noCategory');
+        const map: Record<string, string> = {
+            root: tr('organizationTypes.categoryRoot'),
+            functional: tr('organizationTypes.categoryFunctional'),
+            geographic: tr('organizationTypes.categoryGeographic'),
+            service_provider: tr('organizationTypes.categoryServiceProvider'),
+            independent: tr('organizationTypes.categoryIndependent'),
+            other: tr('organizationTypes.categoryOther'),
+        };
+        return map[cat] ?? cat;
+    }
+
+    function parentTypesLabel(codes: string[]): string {
+        if (codes.length === 0) return tr('organizationTypes.rootOnly');
+        return codes.join(', ');
     }
 
     return (
@@ -81,8 +102,10 @@ export default function OrganizationTypesIndex({
                                         tr('common.code'),
                                         tr('organizationTypes.prefix'),
                                         tr('common.name'),
+                                        tr('organizationTypes.category'),
+                                        tr('organizationTypes.levelOrder'),
+                                        tr('organizationTypes.parentAllowedTypes'),
                                         tr('organizationTypes.organizationsCount'),
-                                        tr('common.order'),
                                         tr('common.status'),
                                         '',
                                     ].map((h) => (
@@ -123,11 +146,25 @@ export default function OrganizationTypesIndex({
                                                 </p>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
-                                            {type.organizations_count}
+                                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                            {categoryLabel(type.category)}
                                         </td>
                                         <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
-                                            {type.sort_order}
+                                            {type.level_order}
+                                        </td>
+                                        <td className="px-4 py-3 max-w-[180px]">
+                                            {type.parent_allowed_types.length === 0 ? (
+                                                <span className="text-xs text-amber-600 dark:text-amber-400">
+                                                    {tr('organizationTypes.rootOnly')}
+                                                </span>
+                                            ) : (
+                                                <span className="font-mono text-xs text-gray-500 dark:text-slate-400">
+                                                    {parentTypesLabel(type.parent_allowed_types)}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
+                                            {type.organizations_count}
                                         </td>
                                         <td className="px-4 py-3">
                                             <StatusBadge status={type.is_active ? 'active' : 'inactive'} />

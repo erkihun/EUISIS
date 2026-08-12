@@ -13,6 +13,7 @@ use App\Http\Requests\OrganizationTypeShowRequest;
 use App\Http\Requests\OrganizationTypeStoreRequest;
 use App\Http\Requests\OrganizationTypeUpdateRequest;
 use App\Models\OrganizationType;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,8 +26,10 @@ class OrganizationTypeController extends Controller
     {
         $this->authorize('viewAny', OrganizationType::class);
 
+        /** @var User|null $user */
         $user = Auth::user();
         $types = OrganizationType::query()
+            ->orderBy('level_order')
             ->orderBy('sort_order')
             ->orderBy('name_en')
             ->get();
@@ -41,6 +44,9 @@ class OrganizationTypeController extends Controller
                 'description_en' => $t->description_en,
                 'is_active' => $t->is_active,
                 'sort_order' => $t->sort_order,
+                'level_order' => $t->level_order,
+                'category' => $t->category,
+                'parent_allowed_types' => $t->parent_allowed_types ?? [],
                 'organizations_count' => $t->organizations()->count(),
                 'can' => [
                     'update' => $user?->can('update', $t) ?? false,
@@ -57,7 +63,9 @@ class OrganizationTypeController extends Controller
     {
         $this->authorize('create', OrganizationType::class);
 
-        return Inertia::render('OrganizationTypes/Create');
+        return Inertia::render('OrganizationTypes/Create', [
+            'allTypes' => $this->allTypesForSelect(),
+        ]);
     }
 
     public function show(OrganizationTypeShowRequest $request, OrganizationType $organizationType): Response
@@ -73,6 +81,9 @@ class OrganizationTypeController extends Controller
                 'description_am' => $organizationType->description_am,
                 'is_active' => $organizationType->is_active,
                 'sort_order' => $organizationType->sort_order,
+                'level_order' => $organizationType->level_order,
+                'category' => $organizationType->category,
+                'parent_allowed_types' => $organizationType->parent_allowed_types ?? [],
                 'organizations_count' => $organizationType->organizations()->count(),
                 'created_at' => $organizationType->created_at?->toISOString(),
                 'updated_at' => $organizationType->updated_at?->toISOString(),
@@ -100,6 +111,7 @@ class OrganizationTypeController extends Controller
 
         return Inertia::render('OrganizationTypes/Edit', [
             'type' => $organizationType,
+            'allTypes' => $this->allTypesForSelect(),
         ]);
     }
 
@@ -140,5 +152,17 @@ class OrganizationTypeController extends Controller
 
         return to_route('organization-types.index')
             ->with('success', __('recycle-bin.restored_successfully'));
+    }
+
+    /** @return array<int, array{code: string, name_en: string}> */
+    private function allTypesForSelect(): array
+    {
+        return OrganizationType::query()
+            ->orderBy('level_order')
+            ->orderBy('name_en')
+            ->get(['id', 'code', 'name_en'])
+            ->map(fn (OrganizationType $t) => ['code' => $t->code, 'name_en' => $t->name_en])
+            ->values()
+            ->all();
     }
 }

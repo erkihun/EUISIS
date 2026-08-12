@@ -30,6 +30,21 @@ const organizationTypes = {
     createType: 'Create Type',
     saveChanges: 'Save Changes',
     deleteConfirm: 'Are you sure you want to delete this organization type? It will be moved to the Recycle Bin.',
+    levelOrder: 'Level Order',
+    levelOrderHelp: 'Used for sorting and display only. Actual hierarchy rules are controlled by Allowed Parent Types.',
+    category: 'Category',
+    categoryPlaceholder: 'Select category',
+    parentAllowedTypes: 'Allowed Parent Types',
+    parentAllowedTypesHelp: 'Controls which parent organization types are allowed. Empty array = root type (no parent). Not set = no restriction.',
+    categoryRoot: 'Root',
+    categoryFunctional: 'Functional',
+    categoryGeographic: 'Geographic',
+    categoryServiceProvider: 'Service Provider',
+    categoryIndependent: 'Independent',
+    categoryOther: 'Other',
+    noCategory: 'No category',
+    noParentRestriction: 'No restriction',
+    rootOnly: 'Root (no parent)',
 } as const;
 
 export default organizationTypes;

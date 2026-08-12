@@ -30,6 +30,21 @@ const organizationTypes = {
     createType: 'ዓይነት ፍጠር',
     saveChanges: 'ለውጦችን አስቀምጥ',
     deleteConfirm: 'ይህን የተቋም ዓይነት መሰረዝ ይፈልጋሉ? ወደ መልሶ ማግኛ ቅርጫት ይተላለፋል።',
+    levelOrder: 'የደረጃ ቅደም ተከተል',
+    levelOrderHelp: 'ለደርድር እና ማሳያ ብቻ ጥቅም ላይ ይውላል። ትክክለኛ ደንቦቹ በተፈቀዱ ወላጅ ዓይነቶች ቁጥጥር ሥር ናቸው።',
+    category: 'ምድብ',
+    categoryPlaceholder: 'ምድብ ምረጥ',
+    parentAllowedTypes: 'የተፈቀዱ የወላጅ ዓይነቶች',
+    parentAllowedTypesHelp: 'የትኞቹ የወላጅ ዓይነቶች እንደሚፈቀዱ ይቆጣጠራል። ባዶ = ሥር ዓይነት (ወላጅ የለም)። ያልተሰጠ = ገደብ የለም።',
+    categoryRoot: 'ሥር',
+    categoryFunctional: 'ተግባራዊ',
+    categoryGeographic: 'ጂኦግራፊያዊ',
+    categoryServiceProvider: 'አገልግሎት አቅራቢ',
+    categoryIndependent: 'ነጻ',
+    categoryOther: 'ሌላ',
+    noCategory: 'ምድብ የለም',
+    noParentRestriction: 'ምንም ገደብ የለም',
+    rootOnly: 'ሥር ብቻ (ወላጅ የለም)',
 } as const;
 
 export default organizationTypes;
