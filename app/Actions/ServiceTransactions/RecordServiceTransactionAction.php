@@ -14,6 +14,7 @@ use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\User;
+use App\Services\EmployeeServiceEligibilityService;
 use DomainException;
 
 readonly class RecordServiceTransactionAction
@@ -21,6 +22,7 @@ readonly class RecordServiceTransactionAction
     public function __construct(
         private RecalculateEntitlementsAction $recalculateEntitlementsAction,
         private WriteAuditLogAction $writeAuditLogAction,
+        private EmployeeServiceEligibilityService $serviceEligibility,
     ) {}
 
     public function execute(
@@ -33,6 +35,18 @@ readonly class RecordServiceTransactionAction
         User $actor,
         array $metadata = [],
     ): ServiceTransaction {
+        $eligibility = $this->serviceEligibility->check(
+            $employee,
+            $card,
+            $serviceType->code,
+            $actor,
+            $provider->id,
+        );
+
+        if (! $eligibility['eligible']) {
+            throw new DomainException($eligibility['reason_code']);
+        }
+
         if (($metadata['reference'] ?? null) !== null) {
             $duplicate = ServiceTransaction::query()
                 ->where('service_provider_id', $provider->id)

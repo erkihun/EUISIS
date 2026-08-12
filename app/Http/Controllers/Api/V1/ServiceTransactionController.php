@@ -49,11 +49,16 @@ class ServiceTransactionController extends Controller
                         'amount' => $request->input('amount'),
                     ],
                 );
-            } catch (DomainException) {
+            } catch (DomainException $exception) {
+                $reasonCode = $exception->getMessage() === 'Duplicate provider transaction reference.'
+                    ? 'duplicate_transaction'
+                    : $exception->getMessage();
                 $result = [
                     'allowed' => false,
-                    'result_code' => 'duplicate_transaction',
-                    'denial_reason' => 'duplicate transaction',
+                    'result_code' => $reasonCode,
+                    'denial_reason' => $reasonCode === 'duplicate_transaction'
+                        ? 'duplicate transaction'
+                        : __("service-eligibility.reasons.{$reasonCode}"),
                     'card_status' => $card->status->value,
                     'employee_status' => $card->employee->status->value,
                     'service_type' => $serviceTypeModel->code,

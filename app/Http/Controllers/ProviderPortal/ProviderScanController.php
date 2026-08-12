@@ -87,7 +87,9 @@ class ProviderScanController extends Controller
         return back()->with([
             'provider_scan_result' => $this->scanResultPayload($result),
             'flash' => [
-                'message' => $result['allowed'] ? __('provider-portal.scan_recorded') : __('provider-portal.scan_denied'),
+                'message' => $result['allowed']
+                    ? __('provider-portal.scan_recorded')
+                    : ($result['denial_message'] ?? __('provider-portal.scan_denied')),
                 'type' => $result['allowed'] ? 'success' : 'error',
             ],
         ]);
@@ -133,7 +135,7 @@ class ProviderScanController extends Controller
     private function scanResultPayload(array $result): array
     {
         $transaction = $result['transaction'];
-        $employee = $transaction?->employee;
+        $employee = $transaction?->employee ?? ($result['employee'] ?? null);
 
         if ($transaction !== null) {
             $transaction->loadMissing('employee.currentAssignment.position', 'idCard');
@@ -144,13 +146,15 @@ class ProviderScanController extends Controller
             'allowed' => (bool) $result['allowed'],
             'is_extra_scan' => (bool) ($result['is_extra_scan'] ?? false),
             'denial_reason' => $result['denial_reason'] ?? null,
+            'denial_message' => $result['denial_message'] ?? null,
             'employee' => $employee ? [
                 'full_name' => $employee->full_name,
                 'employee_number' => $employee->employee_number,
                 'position' => $employee->currentAssignment?->position?->title_en,
                 'photo_url' => $employee->photo_path ? asset('storage/'.$employee->photo_path) : null,
             ] : null,
-            'card_number' => $transaction?->idCard?->card_number,
+            'card_number' => $transaction?->idCard?->card_number ?? ($result['id_card'] ?? null)?->card_number,
+            'card_status' => $transaction?->idCard?->status?->value ?? ($result['card_status'] ?? null),
             'subsidy_applied' => (float) ($result['subsidy_applied'] ?? 0),
             'employee_payable' => (float) ($result['employee_payable'] ?? 0),
             'remaining_after' => (float) ($result['remaining_after'] ?? 0),

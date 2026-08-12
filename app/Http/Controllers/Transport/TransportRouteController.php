@@ -21,9 +21,12 @@ class TransportRouteController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = $request->user();
+        abort_unless($user?->can('transport-routes.viewAny'), 403);
+
         $routes = TransportRoute::query()
             ->with('provider')
-            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('name_en', 'like', "%{$s}%")->orWhere('route_code', 'like', "%{$s}%")))
+            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('name_en', ci_like_operator(), "%{$s}%")->orWhere('route_code', ci_like_operator(), "%{$s}%")))
             ->when($request->is_active !== null && $request->is_active !== '', fn ($q) => $q->where('is_active', (bool) $request->is_active))
             ->latest()
             ->paginate(20);
@@ -31,11 +34,17 @@ class TransportRouteController extends Controller
         return Inertia::render('Transport/Routes/Index', [
             'routes' => TransportRouteResource::collection($routes)->response()->getData(true),
             'filters' => $request->only('search', 'is_active'),
+            'can' => [
+                'create' => $user->can('transport-routes.create'),
+                'update' => $user->can('transport-routes.update'),
+            ],
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        abort_unless($request->user()?->can('transport-routes.create'), 403);
+
         return Inertia::render('Transport/Routes/Create', $this->formPayload());
     }
 
@@ -52,8 +61,10 @@ class TransportRouteController extends Controller
         return to_route('transport.routes.index')->with('flash', ['type' => 'success', 'message' => __('transport.route_created')]);
     }
 
-    public function edit(TransportRoute $route): Response
+    public function edit(Request $request, TransportRoute $route): Response
     {
+        abort_unless($request->user()?->can('transport-routes.update'), 403);
+
         return Inertia::render('Transport/Routes/Edit', [
             'route' => (new TransportRouteResource($route))->resolve(),
             ...$this->formPayload(),

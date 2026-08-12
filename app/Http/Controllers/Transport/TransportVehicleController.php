@@ -13,6 +13,7 @@ use App\Models\Provider;
 use App\Models\TransportRoute;
 use App\Models\TransportVehicle;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,9 +22,12 @@ class TransportVehicleController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = $request->user();
+        abort_unless($user?->can('transport-vehicles.viewAny'), 403);
+
         $vehicles = TransportVehicle::query()
             ->with(['provider', 'route'])
-            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('vehicle_code', 'like', "%{$s}%")->orWhere('plate_number', 'like', "%{$s}%")))
+            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('vehicle_code', ci_like_operator(), "%{$s}%")->orWhere('plate_number', ci_like_operator(), "%{$s}%")))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->latest()
             ->paginate(20);
@@ -31,11 +35,17 @@ class TransportVehicleController extends Controller
         return Inertia::render('Transport/Vehicles/Index', [
             'vehicles' => TransportVehicleResource::collection($vehicles)->response()->getData(true),
             'filters' => $request->only('search', 'status'),
+            'can' => [
+                'create' => $user->can('transport-vehicles.create'),
+                'update' => $user->can('transport-vehicles.update'),
+            ],
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        abort_unless($request->user()?->can('transport-vehicles.create'), 403);
+
         return Inertia::render('Transport/Vehicles/Create', $this->formPayload());
     }
 
@@ -52,8 +62,10 @@ class TransportVehicleController extends Controller
         return to_route('transport.vehicles.index')->with('flash', ['type' => 'success', 'message' => __('transport.vehicle_created')]);
     }
 
-    public function edit(TransportVehicle $vehicle): Response
+    public function edit(Request $request, TransportVehicle $vehicle): Response
     {
+        abort_unless($request->user()?->can('transport-vehicles.update'), 403);
+
         return Inertia::render('Transport/Vehicles/Edit', [
             'vehicle' => (new TransportVehicleResource($vehicle->load('route')))->resolve(),
             ...$this->formPayload(),

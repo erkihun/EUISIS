@@ -31,7 +31,7 @@ class CafeteriaSpecialDayController extends Controller
             ->when($isArchivedFilter, fn ($q) => $q->onlyTrashed(), fn ($q) => $q->withoutTrashed())
             ->when($request->string('search')->toString() !== '', function ($q) use ($request): void {
                 $s = $request->string('search')->toString();
-                $q->where(fn ($n) => $n->where('name_en', 'like', "%{$s}%")->orWhere('name_am', 'like', "%{$s}%"));
+                $q->where(fn ($n) => $n->where('name_en', ci_like_operator(), "%{$s}%")->orWhere('name_am', ci_like_operator(), "%{$s}%"));
             })
             ->when($request->string('year')->toString() !== '', fn ($q) => $q->whereYear('special_date', $request->integer('year')))
             ->orderBy('special_date', 'desc');
@@ -39,11 +39,11 @@ class CafeteriaSpecialDayController extends Controller
         $days = $query->paginate(30)->withQueryString();
 
         return Inertia::render('Cafeteria/SpecialDays/Index', [
-            'days'      => CafeteriaSpecialDayResource::collection($days)->resolve(),
-            'meta'      => ['current_page' => $days->currentPage(), 'last_page' => $days->lastPage(), 'total' => $days->total()],
-            'filters'   => $request->only(['search', 'archived', 'year']),
+            'days' => CafeteriaSpecialDayResource::collection($days)->resolve(),
+            'meta' => ['current_page' => $days->currentPage(), 'last_page' => $days->lastPage(), 'total' => $days->total()],
+            'filters' => $request->only(['search', 'archived', 'year']),
             'day_types' => collect(CafeteriaSpecialDayType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
-            'can'       => ['create' => $request->user()?->can('create', CafeteriaSpecialDay::class) ?? false],
+            'can' => ['create' => $request->user()?->can('create', CafeteriaSpecialDay::class) ?? false],
         ]);
     }
 
@@ -69,7 +69,7 @@ class CafeteriaSpecialDayController extends Controller
         $this->authorize('update', $cafeteriaSpecialDay);
 
         return Inertia::render('Cafeteria/SpecialDays/Edit', [
-            'day'       => (new CafeteriaSpecialDayResource($cafeteriaSpecialDay))->resolve(),
+            'day' => (new CafeteriaSpecialDayResource($cafeteriaSpecialDay))->resolve(),
             'day_types' => collect(CafeteriaSpecialDayType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
         ]);
     }

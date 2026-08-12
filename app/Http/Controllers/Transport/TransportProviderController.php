@@ -20,10 +20,13 @@ class TransportProviderController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = $request->user();
+        abort_unless($user?->can('transport-providers.viewAny'), 403);
+
         $providers = Provider::query()
             ->with(['transportProfile', 'assignedOrganization', 'providerType'])
             ->whereHas('services.serviceType', fn ($query) => $query->where('code', 'transport'))
-            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('name_en', 'like', "%{$s}%")->orWhere('provider_code', 'like', "%{$s}%")))
+            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('name_en', ci_like_operator(), "%{$s}%")->orWhere('provider_code', ci_like_operator(), "%{$s}%")))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->latest()
             ->paginate(20);
@@ -31,11 +34,18 @@ class TransportProviderController extends Controller
         return Inertia::render('Transport/Providers/Index', [
             'providers' => TransportProviderResource::collection($providers)->response()->getData(true),
             'filters' => $request->only('search', 'status'),
+            'can' => [
+                'create' => $user->can('transport-providers.create'),
+                'update' => $user->can('transport-providers.update'),
+                'delete' => $user->can('transport-providers.delete'),
+            ],
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        abort_unless($request->user()?->can('transport-providers.create'), 403);
+
         return Inertia::render('Transport/Providers/Create', [
             'organizations' => Organization::query()->orderBy('name_en')->limit(500)->get(['id', 'name_en', 'name_am']),
         ]);
@@ -48,17 +58,24 @@ class TransportProviderController extends Controller
         return to_route('transport.providers.show', $provider)->with('flash', ['type' => 'success', 'message' => __('transport.provider_created')]);
     }
 
-    public function show(Provider $provider): Response
+    public function show(Request $request, Provider $provider): Response
     {
+        $user = $request->user();
+        abort_unless($user?->can('transport-providers.view'), 403);
         $this->assertTransportProvider($provider);
 
         return Inertia::render('Transport/Providers/Show', [
             'provider' => (new TransportProviderResource($provider->load(['transportProfile', 'assignedOrganization', 'services.serviceType', 'users'])))->resolve(),
+            'can' => [
+                'update' => $user->can('transport-providers.update'),
+                'delete' => $user->can('transport-providers.delete'),
+            ],
         ]);
     }
 
-    public function edit(Provider $provider): Response
+    public function edit(Request $request, Provider $provider): Response
     {
+        abort_unless($request->user()?->can('transport-providers.update'), 403);
         $this->assertTransportProvider($provider);
 
         return Inertia::render('Transport/Providers/Edit', [

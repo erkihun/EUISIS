@@ -142,10 +142,10 @@ class CafeteriaTransactionController extends Controller
             : 0;
 
         return Inertia::render('Cafeteria/MobileScan', [
-            'providers'         => $providers,
-            'provider_locked'   => $providers->count() === 1 && ! $this->providerAccess->canAccessAllProviders($request->user()),
-            'today_scan_count'  => $todayCount,
-            'scan_result'       => $request->session()->get('scan_result'),
+            'providers' => $providers,
+            'provider_locked' => $providers->count() === 1 && ! $this->providerAccess->canAccessAllProviders($request->user()),
+            'today_scan_count' => $todayCount,
+            'scan_result' => $request->session()->get('scan_result'),
         ]);
     }
 
@@ -205,13 +205,26 @@ class CafeteriaTransactionController extends Controller
         $scanRoute = $isMobile ? 'cafeteria.scan.mobile' : 'cafeteria.scan';
 
         if (! $result['allowed']) {
+            $employee = $result['employee'] ?? null;
+            $card = $result['id_card'] ?? null;
+            $employeeData = $employee ? [
+                'full_name' => $employee->full_name,
+                'employee_number' => $employee->employee_number,
+                'photo_url' => $employee->photo_path ? asset('storage/'.$employee->photo_path) : null,
+                'position' => $employee->currentAssignment?->position?->title_en,
+                'organization' => $employee->currentAssignment?->organization?->name_en,
+                'organization_unit' => $employee->currentAssignment?->organizationUnit?->name_en,
+            ] : null;
+
             return redirect()->route($scanRoute)->with([
                 'scan_result' => [
                     'allowed' => false,
                     'is_extra_scan' => false,
                     'denial_reason' => $result['denial_reason'],
-                    'employee' => null,
-                    'card_number' => null,
+                    'denial_message' => $result['denial_message'] ?? null,
+                    'employee' => $employeeData,
+                    'card_number' => $card?->card_number,
+                    'card_status' => $result['card_status'] ?? null,
                     'usage_mode' => $result['usage_mode'],
                     'subsidy_applied' => 0.0,
                     'employee_payable' => 0.0,
@@ -224,7 +237,7 @@ class CafeteriaTransactionController extends Controller
                     'calendar_days' => [],
                 ],
                 'flash' => [
-                    'message' => __('cafeteria.scanDenied', ['reason' => $result['denial_reason']]),
+                    'message' => $result['denial_message'] ?? __('cafeteria.scanDenied', ['reason' => $result['denial_reason']]),
                     'type' => 'error',
                 ],
             ]);

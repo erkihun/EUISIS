@@ -22,9 +22,12 @@ class TransportDriverController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = $request->user();
+        abort_unless($user?->can('transport-drivers.viewAny'), 403);
+
         $drivers = TransportDriver::query()
             ->with(['provider', 'vehicle'])
-            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('full_name', 'like', "%{$s}%")->orWhere('license_number', 'like', "%{$s}%")))
+            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('full_name', ci_like_operator(), "%{$s}%")->orWhere('license_number', ci_like_operator(), "%{$s}%")))
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->latest()
             ->paginate(20);
@@ -32,11 +35,17 @@ class TransportDriverController extends Controller
         return Inertia::render('Transport/Drivers/Index', [
             'drivers' => TransportDriverResource::collection($drivers)->response()->getData(true),
             'filters' => $request->only('search', 'status'),
+            'can' => [
+                'create' => $user->can('transport-drivers.create'),
+                'update' => $user->can('transport-drivers.update'),
+            ],
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        abort_unless($request->user()?->can('transport-drivers.create'), 403);
+
         return Inertia::render('Transport/Drivers/Create', $this->formPayload());
     }
 
@@ -53,8 +62,10 @@ class TransportDriverController extends Controller
         return to_route('transport.drivers.index')->with('flash', ['type' => 'success', 'message' => __('transport.driver_created')]);
     }
 
-    public function edit(TransportDriver $driver): Response
+    public function edit(Request $request, TransportDriver $driver): Response
     {
+        abort_unless($request->user()?->can('transport-drivers.update'), 403);
+
         return Inertia::render('Transport/Drivers/Edit', [
             'driver' => (new TransportDriverResource($driver->load('vehicle')))->resolve(),
             ...$this->formPayload(),

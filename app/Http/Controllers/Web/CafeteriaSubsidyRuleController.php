@@ -31,9 +31,9 @@ class CafeteriaSubsidyRuleController extends Controller
             ->when($request->string('search')->toString() !== '', function ($q) use ($request): void {
                 $search = $request->string('search')->toString();
                 $q->where(function ($nested) use ($search): void {
-                    $nested->where('code', 'like', "%{$search}%")
-                        ->orWhere('name_en', 'like', "%{$search}%")
-                        ->orWhere('name_am', 'like', "%{$search}%");
+                    $nested->where('code', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_am', ci_like_operator(), "%{$search}%");
                 });
             })
             ->orderByDesc('effective_from');
@@ -42,14 +42,14 @@ class CafeteriaSubsidyRuleController extends Controller
 
         return Inertia::render('Cafeteria/SubsidyRules/Index', [
             'rules' => CafeteriaSubsidyRuleResource::collection($rules)->resolve(),
-            'meta'  => [
+            'meta' => [
                 'current_page' => $rules->currentPage(),
-                'last_page'    => $rules->lastPage(),
-                'total'        => $rules->total(),
-                'per_page'     => $rules->perPage(),
+                'last_page' => $rules->lastPage(),
+                'total' => $rules->total(),
+                'per_page' => $rules->perPage(),
             ],
             'filters' => $request->only(['search', 'is_active']),
-            'can'     => [
+            'can' => [
                 'create' => $request->user()?->can('create', CafeteriaSubsidyRule::class) ?? false,
             ],
         ]);
