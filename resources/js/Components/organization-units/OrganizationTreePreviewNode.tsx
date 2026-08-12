@@ -1,10 +1,12 @@
 import { ChevronRight, ChevronDown, Building2 } from '@/Components/Icons';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
 import type { OrganizationTreeNode } from '@/types/organizationUnit';
 
 interface Props {
     node: OrganizationTreeNode;
+    hierarchyNumber: string;
     expandedIds: Set<string>;
     selectedId: string | null;
     onToggle: (id: string) => void;
@@ -13,13 +15,21 @@ interface Props {
 
 export default function OrganizationTreePreviewNode({
     node,
+    hierarchyNumber,
     expandedIds,
     selectedId,
     onToggle,
     onSelect,
 }: Props) {
-    const { t } = useLocale();
+    const { locale, t } = useLocale();
     const indentPx = node.depth * 20;
+    const levelColor = [
+        'bg-blue-600 text-white ring-blue-200 dark:ring-blue-800',
+        'bg-violet-600 text-white ring-violet-200 dark:ring-violet-800',
+        'bg-emerald-600 text-white ring-emerald-200 dark:ring-emerald-800',
+        'bg-amber-500 text-white ring-amber-200 dark:ring-amber-800',
+        'bg-rose-600 text-white ring-rose-200 dark:ring-rose-800',
+    ][node.depth % 5];
     const hasChildren = node.children && node.children.length > 0;
     const isExpanded = expandedIds.has(node.id);
     const isSelected = selectedId === node.id;
@@ -65,6 +75,15 @@ export default function OrganizationTreePreviewNode({
                     )}
                 </button>
 
+                {/* Organization hierarchy level */}
+                <span
+                    className={`inline-flex h-6 min-w-6 flex-shrink-0 items-center justify-center rounded-full px-1.5 text-[11px] font-bold tabular-nums ring-2 ${levelColor}`}
+                    title={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
+                    aria-label={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
+                >
+                    {hierarchyNumber}
+                </span>
+
                 {/* Logo / avatar */}
                 {node.has_logo && node.logo_url ? (
                     <img
@@ -88,17 +107,16 @@ export default function OrganizationTreePreviewNode({
                                     : 'text-gray-900 dark:text-slate-100'
                             }`}
                         >
-                            {node.name_en}
+                            {localizedName(node.name_en, node.name_am, locale)}
                         </span>
                         {node.type && (
                             <span className="inline-flex items-center rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                                {node.type.name_en}
+                                {localizedName(node.type.name_en, node.type.name_am, locale)}
                             </span>
                         )}
                         <StatusBadge status={node.status} />
                     </div>
                     <div className="flex items-center gap-2 text-[11px] text-gray-400 dark:text-slate-500">
-                        <span className="font-mono">{node.code}</span>
                         {node.organization_units_count !== undefined && (
                             <span>
                                 {node.organization_units_count} {t('organizationUnits.unitCount').toLowerCase()}
@@ -117,10 +135,11 @@ export default function OrganizationTreePreviewNode({
             {/* Render children when expanded */}
             {hasChildren && isExpanded && (
                 <div role="group">
-                    {node.children.map((child) => (
+                    {node.children.map((child, index) => (
                         <OrganizationTreePreviewNode
                             key={child.id}
                             node={child}
+                            hierarchyNumber={`${hierarchyNumber}.${index + 1}`}
                             expandedIds={expandedIds}
                             selectedId={selectedId}
                             onToggle={onToggle}

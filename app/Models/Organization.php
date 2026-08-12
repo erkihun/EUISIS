@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\OrganizationStatus;
 use App\Enums\RelationshipTargetType;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Services\Organizations\OrganizationDeletionGuard;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -132,5 +133,17 @@ class Organization extends Model
     {
         return $this->hasMany(OrganizationUnitRelationship::class, 'target_id')
             ->where('target_type', RelationshipTargetType::Organization->value);
+    }
+
+    /**
+     * Whether this organization has no dependent hierarchy edges, child
+     * organizations, units, positions, assignments, or other references and
+     * can therefore be physically (soft-)deleted. See
+     * {@see OrganizationDeletionGuard} for the
+     * detailed reason breakdown used by the policy and UI.
+     */
+    public function canBeDeletedSafely(): bool
+    {
+        return app(OrganizationDeletionGuard::class)->canBeDeletedSafely($this);
     }
 }

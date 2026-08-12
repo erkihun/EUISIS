@@ -24,7 +24,7 @@ use Spatie\Permission\Models\Role;
 function makeInstitution(): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'test-inst-type'],
+        ['code' => 'TEST-INST-TYPE'],
         ['name_en' => 'Test Institution Type', 'is_demo' => false],
     );
 

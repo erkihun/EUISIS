@@ -14,7 +14,7 @@ use Spatie\Permission\Models\Role;
 function makeOrgForIndexTest(): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'idx-test-type'],
+        ['code' => 'IDX-TEST-TYPE'],
         ['name_en' => 'Index Test Type', 'is_demo' => false],
     );
 

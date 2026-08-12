@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Actions\OrganizationUnits\ArchiveOrganizationUnitAction;
+use App\Actions\OrganizationUnits\CopyOrganizationUnitStructureAction;
 use App\Actions\OrganizationUnits\CreateOrganizationUnitAction;
 use App\Actions\OrganizationUnits\RestoreOrganizationUnitAction;
 use App\Actions\OrganizationUnits\UpdateOrganizationUnitAction;
@@ -15,6 +16,7 @@ use App\Enums\RelationshipStatus;
 use App\Enums\RelationshipTargetType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrganizationUnitRequest;
+use App\Http\Requests\StoreOrganizationUnitStructureCopyRequest;
 use App\Http\Requests\UpdateOrganizationUnitRequest;
 use App\Http\Resources\OrganizationUnitRelationshipResource;
 use App\Http\Resources\OrganizationUnitResource;
@@ -24,6 +26,8 @@ use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType as OrganizationUnitTypeModel;
+use App\Services\CodeGeneration\PositionCodeContextResolver;
+use App\Services\Hierarchy\HierarchyVersionResolver;
 use App\Services\OrganizationUnits\OrganizationUnitTreeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +38,7 @@ use Inertia\Response;
 
 class OrganizationUnitController extends Controller
 {
-    public function index(Request $request, OrganizationUnitTreeService $treeService): Response
+    public function index(Request $request, OrganizationUnitTreeService $treeService, HierarchyVersionResolver $resolver): Response
     {
         $this->authorize('viewAny', OrganizationUnit::class);
 
@@ -55,18 +59,45 @@ class OrganizationUnitController extends Controller
             'status', 'logo_path', 'effective_from',
         ]);
 
-        // Build organization hierarchy tree from current published version
-        $publishedVersion = HierarchyVersion::query()
-            ->where('status', HierarchyVersionStatus::Published)
-            ->latest('effective_from')
-            ->first(['id']);
+        // Resolve the best available hierarchy version (published → draft → null)
+        $resolvedVersion = $resolver->resolveForRequest($request);
 
-        $hasPublishedHierarchy = $publishedVersion !== null;
+        $hasPublishedHierarchy = $resolvedVersion !== null
+            && $resolvedVersion->status === HierarchyVersionStatus::Published;
+
+        $usingDraftFallback = $resolvedVersion !== null
+            && $resolvedVersion->status === HierarchyVersionStatus::Draft;
+
+        $usingFlatFallback = $resolvedVersion === null;
+
+        // Build available versions list for the selector dropdown
+        $availableVersions = HierarchyVersion::query()
+            ->whereIn('status', [HierarchyVersionStatus::Published->value, HierarchyVersionStatus::Draft->value])
+            ->latest('updated_at')
+            ->get(['id', 'version_name', 'status', 'effective_from'])
+            ->map(fn (HierarchyVersion $v) => [
+                'id' => $v->id,
+                'name' => $v->version_name,
+                'status' => $v->status->value,
+                'is_draft' => $v->status === HierarchyVersionStatus::Draft,
+                'effective_from' => $v->effective_from?->toDateString(),
+            ])
+            ->values()
+            ->all();
+
+        $selectedVersion = $resolvedVersion !== null ? [
+            'id' => $resolvedVersion->id,
+            'name' => $resolvedVersion->version_name,
+            'status' => $resolvedVersion->status->value,
+            'is_draft' => $resolvedVersion->status === HierarchyVersionStatus::Draft,
+            'effective_from' => $resolvedVersion->effective_from?->toDateString(),
+        ] : null;
+
         $orgMap = $organizations->keyBy('id');
 
-        if ($hasPublishedHierarchy) {
+        if ($resolvedVersion !== null) {
             $edges = OrganizationEdge::query()
-                ->where('hierarchy_version_id', $publishedVersion->id)
+                ->where('hierarchy_version_id', $resolvedVersion->id)
                 ->get(['parent_organization_id', 'child_organization_id']);
 
             $childrenMap = [];
@@ -169,8 +200,18 @@ class OrganizationUnitController extends Controller
         return Inertia::render('OrganizationUnits/Index', [
             'organizationTree' => $organizationTree,
             'hasPublishedHierarchy' => $hasPublishedHierarchy,
+            'usingDraftFallback' => $usingDraftFallback,
+            'usingFlatFallback' => $usingFlatFallback,
+            'selectedVersion' => $selectedVersion,
+            'availableVersions' => $availableVersions,
             'selectedOrganization' => $selectedOrganization,
             'organizationUnits' => $organizationUnits,
+            'organizations' => $organizations->map(fn ($org) => [
+                'id' => $org->id,
+                'code' => $org->code,
+                'name_en' => $org->name_en,
+                'name_am' => $org->name_am,
+            ])->values(),
             'unitTypes' => OrganizationUnitTypeModel::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -248,8 +289,31 @@ class OrganizationUnitController extends Controller
 
         $organizationUnit->loadCount('children');
 
+        // Owner/host pair for units operating inside another organization —
+        // drives the hosted-unit banner and explains position code composition.
+        $resolvedCodeContext = app(PositionCodeContextResolver::class)
+            ->resolve($organizationUnit->organization_id, $organizationUnit->id);
+
+        $hostedContext = null;
+
+        if ($resolvedCodeContext['host_organization_id'] !== null) {
+            $pair = Organization::query()
+                ->whereIn('id', array_filter([
+                    $resolvedCodeContext['owner_organization_id'],
+                    $resolvedCodeContext['host_organization_id'],
+                ]))
+                ->get(['id', 'code', 'name_en', 'name_am'])
+                ->keyBy('id');
+
+            $hostedContext = [
+                'owner_organization' => $pair->get($resolvedCodeContext['owner_organization_id'])?->only(['id', 'code', 'name_en', 'name_am']),
+                'host_organization' => $pair->get($resolvedCodeContext['host_organization_id'])?->only(['id', 'code', 'name_en', 'name_am']),
+            ];
+        }
+
         return Inertia::render('OrganizationUnits/Show', [
             'unit' => (new OrganizationUnitResource($organizationUnit))->resolve(request()),
+            'hostedContext' => $hostedContext,
             'relationships' => OrganizationUnitRelationshipResource::collection($organizationUnit->relationships)->resolve(request()),
             'relationshipOptions' => [
                 'targetTypes' => array_map(
@@ -326,6 +390,16 @@ class OrganizationUnitController extends Controller
 
         return redirect()->route('organization-units.show', $unit)
             ->with('success', __('recycle-bin.restored_successfully'));
+    }
+
+    public function copyStructure(
+        StoreOrganizationUnitStructureCopyRequest $request,
+        CopyOrganizationUnitStructureAction $action,
+    ): RedirectResponse {
+        $action->execute($request->validated(), $request->user());
+
+        return to_route('organization-units.index')
+            ->with('success', __('organization-units.structure_copied'));
     }
 
     public function options(Organization $organization, OrganizationUnitTreeService $treeService): JsonResponse

@@ -41,7 +41,7 @@ function ouRelTestAdmin(): User
 function ouRelTestOrganization(string $suffix = ''): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'ou-rel-test-type'],
+        ['code' => 'OU-REL-TEST-TYPE'],
         ['name_en' => 'OU Rel Test Type'],
     );
 

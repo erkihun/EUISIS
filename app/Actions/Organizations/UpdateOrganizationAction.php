@@ -9,6 +9,7 @@ use App\Enums\AuditEventType;
 use App\Models\Organization;
 use App\Models\OrganizationNameHistory;
 use App\Models\User;
+use DateTimeInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -27,7 +28,8 @@ readonly class UpdateOrganizationAction
                 'logo_path', 'branding_primary_color', 'branding_secondary_color',
             ]);
 
-            $nameChanged = isset($attributes['name_en']) && $attributes['name_en'] !== $organization->name_en;
+            $nameChanged = $this->attributeChanged($attributes, 'name_en', $organization->name_en)
+                || $this->attributeChanged($attributes, 'name_am', $organization->name_am);
 
             // Handle logo upload.
             $logoFile = ($attributes['logo'] ?? null) instanceof UploadedFile ? $attributes['logo'] : null;
@@ -59,6 +61,9 @@ readonly class UpdateOrganizationAction
                 }
             }
 
+            $effectiveDateChanged = $this->attributeChanged($attributes, 'effective_from', $oldValues['effective_from'])
+                || $this->attributeChanged($attributes, 'effective_to', $oldValues['effective_to']);
+
             $organization->update($attributes);
 
             if ($nameChanged) {
@@ -66,6 +71,12 @@ readonly class UpdateOrganizationAction
                     'organization_id' => $organization->id,
                     'name_en' => $organization->name_en,
                     'name_am' => $organization->name_am,
+                    'effective_from' => $organization->effective_from ?? now()->toDateString(),
+                    'effective_to' => $organization->effective_to,
+                ]);
+            } elseif ($effectiveDateChanged) {
+                // Keep the current name history record in sync when only dates change.
+                $organization->nameHistories()->first()?->update([
                     'effective_from' => $organization->effective_from ?? now()->toDateString(),
                     'effective_to' => $organization->effective_to,
                 ]);
@@ -115,5 +126,18 @@ readonly class UpdateOrganizationAction
 
             return $organization->fresh();
         });
+    }
+
+    private function attributeChanged(array $attributes, string $key, mixed $currentValue): bool
+    {
+        if (! array_key_exists($key, $attributes)) {
+            return false;
+        }
+
+        if ($currentValue instanceof DateTimeInterface) {
+            return (string) $attributes[$key] !== $currentValue->format('Y-m-d');
+        }
+
+        return (string) ($attributes[$key] ?? '') !== (string) ($currentValue ?? '');
     }
 }

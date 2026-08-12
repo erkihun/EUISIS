@@ -133,6 +133,8 @@ class OrganizationUnitTypeController extends Controller
 
     public function options(): JsonResponse
     {
+        $this->authorize('viewAny', OrganizationUnitType::class);
+
         $types = OrganizationUnitType::query()
             ->where('is_active', true)
             ->orderBy('sort_order')

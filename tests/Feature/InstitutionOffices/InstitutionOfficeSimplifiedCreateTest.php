@@ -44,7 +44,7 @@ function simplifiedCreateAdmin(): User
 function simplifiedCreateOrganization(string $name): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'simplified-office-test-type'],
+        ['code' => 'SIMPLIFIED-OFFICE-TEST-TYPE'],
         ['name_en' => 'Simplified Office Test Type'],
     );
 

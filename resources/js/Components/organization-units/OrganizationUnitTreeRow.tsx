@@ -3,10 +3,12 @@ import { ChevronRight, ChevronDown, Plus } from '@/Components/Icons';
 import OrganizationUnitStatusBadge from '@/Components/organization-units/OrganizationUnitStatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
+import { localizedName } from '@/utils/localizedName';
 import type { OrganizationUnitTreeNode } from '@/types/organizationUnit';
 
 interface Props {
     node: OrganizationUnitTreeNode;
+    hierarchyNumber: string;
     expanded: boolean;
     onToggle: (id: string) => void;
     canCreate: boolean;
@@ -18,6 +20,7 @@ interface Props {
 
 export default function OrganizationUnitTreeRow({
     node,
+    hierarchyNumber,
     expanded,
     onToggle,
     canCreate,
@@ -26,10 +29,17 @@ export default function OrganizationUnitTreeRow({
     canRestore,
     selectedOrgId,
 }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { confirm } = useConfirm();
 
     const indent = node.depth * 24;
+    const levelColor = [
+        'bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:ring-blue-800',
+        'bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:ring-violet-800',
+        'bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:ring-emerald-800',
+        'bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:ring-amber-800',
+        'bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:ring-rose-800',
+    ][node.depth % 5];
 
     async function handleDelete() {
         const { confirmed } = await confirm({
@@ -70,24 +80,25 @@ export default function OrganizationUnitTreeRow({
                     ) : (
                         <span className="h-5 w-5 flex-shrink-0" />
                     )}
-                    <span className="font-mono text-xs text-gray-400 dark:text-slate-500">{node.code}</span>
+                    <span
+                        className={`inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold tabular-nums ring-1 ${levelColor}`}
+                        title={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
+                        aria-label={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
+                    >
+                        {hierarchyNumber}
+                    </span>
+                    <Link
+                        href={route('organization-units.show', node.id)}
+                        className={`font-medium hover:underline ${node.is_deleted ? 'line-through text-gray-400 dark:text-slate-500' : 'text-blue-600 dark:text-blue-400'}`}
+                    >
+                        {localizedName(node.name_en, node.name_am, locale)}
+                    </Link>
                 </div>
-            </td>
-            <td className="px-4 py-2.5">
-                <Link
-                    href={route('organization-units.show', node.id)}
-                    className={`font-medium hover:underline ${node.is_deleted ? 'line-through text-gray-400 dark:text-slate-500' : 'text-blue-600 dark:text-blue-400'}`}
-                >
-                    {node.name_en}
-                </Link>
-                {node.name_am && (
-                    <p className="text-xs text-gray-400 dark:text-slate-500">{node.name_am}</p>
-                )}
             </td>
             <td className="px-4 py-2.5">
                 {node.unit_type_label && (
                     <span className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                        {node.unit_type_label}
+                        {localizedName(node.unit_type_label, node.unit_type_name_am, locale)}
                     </span>
                 )}
             </td>

@@ -11,26 +11,28 @@ use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-readonly class ArchiveOrganizationAction
+/**
+ * The lighter-weight safe alternative to deleting an organization: marks it
+ * inactive without removing the record or its references.
+ */
+readonly class DeactivateOrganizationAction
 {
     public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
 
     public function execute(Organization $organization, User $actor): Organization
     {
         return DB::transaction(function () use ($organization, $actor): Organization {
-            $oldStatus = $organization->status instanceof \BackedEnum
-                ? $organization->status->value
-                : (string) $organization->status;
+            $oldValues = $organization->only(['status']);
 
-            $organization->update(['status' => OrganizationStatus::Archived]);
+            $organization->update(['status' => OrganizationStatus::Inactive]);
 
             $this->writeAuditLogAction->execute(
-                AuditEventType::OrganizationArchived,
+                AuditEventType::OrganizationDeactivated,
                 $actor,
                 $organization,
                 $organization->id,
-                oldValues: ['status' => $oldStatus],
-                newValues: ['status' => OrganizationStatus::Archived->value],
+                oldValues: $oldValues,
+                newValues: ['status' => OrganizationStatus::Inactive->value],
             );
 
             return $organization->fresh();

@@ -56,7 +56,7 @@ function relationshipAdmin(): User
 function relationshipOrganization(string $code): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'relationship-test-type'],
+        ['code' => 'RELATIONSHIP-TEST-TYPE'],
         ['name_en' => 'Relationship Test Type'],
     );
 

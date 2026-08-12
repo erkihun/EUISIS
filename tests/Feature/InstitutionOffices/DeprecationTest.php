@@ -38,7 +38,7 @@ function deprecationTestAdmin(): User
 function deprecationTestOrganization(string $suffix = ''): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'dep-test-type'],
+        ['code' => 'DEP-TEST-TYPE'],
         ['name_en' => 'Deprecation Test Type'],
     );
 

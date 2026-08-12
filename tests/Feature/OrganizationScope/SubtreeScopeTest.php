@@ -28,7 +28,7 @@ use Spatie\Permission\Models\Role;
 function scopeOrgType(): OrganizationType
 {
     return OrganizationType::query()->firstOrCreate(
-        ['code' => 'scope-test-bureau'],
+        ['code' => 'SCOPE-TEST-BUREAU'],
         ['name_en' => 'Scope Test Bureau', 'is_demo' => false],
     );
 }

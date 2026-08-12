@@ -50,6 +50,7 @@ function filterTree(nodes: OrganizationUnitTreeNode[], query: string): Organizat
 
 function renderRows(
     nodes: OrganizationUnitTreeNode[],
+    parentNumber: string,
     expanded: Set<string>,
     onToggle: (id: string) => void,
     canCreate: boolean,
@@ -59,11 +60,13 @@ function renderRows(
     selectedOrgId: string,
 ): React.ReactNode[] {
     const rows: React.ReactNode[] = [];
-    for (const node of nodes) {
+    nodes.forEach((node, index) => {
+        const hierarchyNumber = parentNumber ? `${parentNumber}.${index + 1}` : `${index + 1}`;
         rows.push(
             <OrganizationUnitTreeRow
                 key={node.id}
                 node={node}
+                hierarchyNumber={hierarchyNumber}
                 expanded={expanded.has(node.id)}
                 onToggle={onToggle}
                 canCreate={canCreate}
@@ -77,6 +80,7 @@ function renderRows(
             rows.push(
                 ...renderRows(
                     node.children,
+                    hierarchyNumber,
                     expanded,
                     onToggle,
                     canCreate,
@@ -87,7 +91,7 @@ function renderRows(
                 ),
             );
         }
-    }
+    });
     return rows;
 }
 
@@ -191,9 +195,6 @@ export default function OrganizationUnitTree({
                         <thead className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
                             <tr>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
-                                    {t('organizationUnits.unitCode')}
-                                </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
                                     {t('common.name')}
                                 </th>
                                 <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
@@ -211,6 +212,7 @@ export default function OrganizationUnitTree({
                         <tbody>
                             {renderRows(
                                 filteredUnits,
+                                '',
                                 expanded,
                                 toggleNode,
                                 canCreate,

@@ -4,11 +4,32 @@ import { useLocale } from '@/hooks/useLocale';
 import OrganizationTreePreviewNode from '@/Components/organization-units/OrganizationTreePreviewNode';
 import type { OrganizationTreeNode } from '@/types/organizationUnit';
 
+interface SelectedVersion {
+    id: string;
+    name: string;
+    status: string;
+    is_draft: boolean;
+    effective_from: string | null;
+}
+
+interface AvailableVersion {
+    id: string;
+    name: string;
+    status: string;
+    is_draft: boolean;
+    effective_from: string | null;
+}
+
 interface Props {
     tree: OrganizationTreeNode[];
     selectedId: string | null;
     hasPublishedHierarchy: boolean;
+    usingDraftFallback?: boolean;
+    usingFlatFallback?: boolean;
+    selectedVersion?: SelectedVersion | null;
+    availableVersions?: AvailableVersion[];
     onSelect: (node: OrganizationTreeNode) => void;
+    onVersionChange?: (versionId: string) => void;
 }
 
 /** Returns the IDs of all nodes on the path from a root to the target (inclusive). */
@@ -68,7 +89,12 @@ export default function OrganizationTreePreview({
     tree,
     selectedId,
     hasPublishedHierarchy,
+    usingDraftFallback = false,
+    usingFlatFallback = false,
+    selectedVersion = null,
+    availableVersions = [],
     onSelect,
+    onVersionChange,
 }: Props) {
     const { t } = useLocale();
     const [search, setSearch] = useState('');
@@ -152,10 +178,38 @@ export default function OrganizationTreePreview({
                 </div>
             </div>
 
-            {/* No published hierarchy warning */}
-            {!hasPublishedHierarchy && (
+            {/* Draft hierarchy warning */}
+            {usingDraftFallback && selectedVersion && (
                 <div className="mx-3 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-                    {t('organizationUnits.noPublishedHierarchy')}
+                    <span className="font-medium">{selectedVersion.name}</span>
+                    {' — '}
+                    {t('organizationUnits.showingDraftHierarchy')}
+                </div>
+            )}
+
+            {/* Flat fallback warning — only when no version exists at all */}
+            {usingFlatFallback && (
+                <div className="mx-3 mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+                    {t('organizationUnits.noHierarchyVersionFoundFlatList')}
+                </div>
+            )}
+
+            {/* Version selector */}
+            {availableVersions.length > 1 && onVersionChange && (
+                <div className="px-3 pt-2">
+                    <select
+                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 px-2 text-xs text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        value={selectedVersion?.id ?? ''}
+                        onChange={(e) => onVersionChange(e.target.value)}
+                        aria-label={t('hierarchyVersions.selectedHierarchyVersion')}
+                    >
+                        {availableVersions.map((v) => (
+                            <option key={v.id} value={v.id}>
+                                {v.name}
+                                {v.is_draft ? ` (${t('hierarchyVersions.draft')})` : ` (${t('hierarchyVersions.published')})`}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             )}
 
@@ -183,10 +237,11 @@ export default function OrganizationTreePreview({
                         </p>
                     </div>
                 ) : (
-                    filteredTree.map((node) => (
+                    filteredTree.map((node, index) => (
                         <OrganizationTreePreviewNode
                             key={node.id}
                             node={node}
+                            hierarchyNumber={`${index + 1}`}
                             expandedIds={effectiveExpandedIds}
                             selectedId={selectedId}
                             onToggle={toggleNode}

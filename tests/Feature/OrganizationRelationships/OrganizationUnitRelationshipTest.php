@@ -32,7 +32,7 @@ function unitRelationshipAdmin(): User
 function unitRelationshipOrganization(string $code): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'unit-relationship-test-type'],
+        ['code' => 'UNIT-RELATIONSHIP-TEST-TYPE'],
         ['name_en' => 'Unit Relationship Test Type'],
     );
 

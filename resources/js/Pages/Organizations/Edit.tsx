@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useRef, useState } from 'react';
 import { toDateInput } from '@/lib/dateUtils';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
+import FormSection from '@/Components/FormSection';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
@@ -30,20 +31,24 @@ const inputCls =
     'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 
 const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
+const helpCls = 'mt-1 text-xs text-gray-400 dark:text-slate-500';
 
 function Field({
     label,
     error,
     children,
+    help,
 }: {
     label: string;
     error?: string;
     children: React.ReactNode;
+    help?: string;
 }) {
     return (
         <div>
             <label className={labelCls}>{label}</label>
             <div className="mt-1">{children}</div>
+            {help && <p className={helpCls}>{help}</p>}
             {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
         </div>
     );
@@ -130,6 +135,7 @@ export default function EditOrganization({
         <AuthenticatedLayout
             header={
                 <PageHeader
+                    backHref={route('organizations.show', organization.id)}
                     title={`${t('organizations.editPrefix')} ${organization.name_en}`}
                     description={organization.code}
                 />
@@ -137,103 +143,107 @@ export default function EditOrganization({
         >
             <Head title={`${t('organizations.editPrefix')} ${organization.name_en}`} />
 
-            <div className="mx-auto max-w-6xl">
+            <div className="mx-auto max-w-5xl">
                 <form
                     onSubmit={submit}
                     className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
                 >
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <Field label={t('organizations.organizationType')} error={form.errors.organization_type_id}>
-                            <select
-                                className={inputCls}
-                                value={form.data.organization_type_id}
-                                onChange={(e) => form.setData('organization_type_id', e.target.value)}
-                            >
-                                {organizationTypes.map((ot) => (
-                                    <option key={ot.id} value={ot.id}>
-                                        {locale === 'am' ? (ot.name_am || ot.name_en) : ot.name_en} ({ot.code})
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
+                    <div className="space-y-6">
+                        {/* Basic Information */}
+                        <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')}>
+                            <Field label={t('organizations.nameEn')} error={form.errors.name_en}>
+                                <input
+                                    className={inputCls}
+                                    value={form.data.name_en}
+                                    onChange={(e) => form.setData('name_en', e.target.value)}
+                                />
+                            </Field>
+                            <Field label={t('organizations.nameAm')} error={form.errors.name_am}>
+                                <input
+                                    className={inputCls}
+                                    placeholder={t('organizations.fullNameAmPlaceholder')}
+                                    value={form.data.name_am}
+                                    onChange={(e) => form.setData('name_am', e.target.value)}
+                                />
+                            </Field>
+                            <Field label={t('organizations.legalBasisRef')} error={form.errors.legal_basis_ref}>
+                                <input
+                                    className={inputCls}
+                                    placeholder={t('organizations.legalBasisPlaceholder')}
+                                    value={form.data.legal_basis_ref}
+                                    onChange={(e) => form.setData('legal_basis_ref', e.target.value)}
+                                />
+                            </Field>
+                        </FormSection>
 
-                        <CodeRuleField
-                            entityType="organization"
-                            value={form.data.code}
-                            onChange={(v) => form.setData('code', v)}
-                            fieldName="code"
-                            label={t('organizations.code')}
-                            canManualOverride={false}
-                            existingCode={organization.code}
-                            preserveExistingCodeOnEdit
-                            error={form.errors.code}
-                        />
-                        <Field label={t('common.status')} error={form.errors.status}>
-                            <select
-                                className={inputCls}
-                                value={form.data.status}
-                                onChange={(e) => form.setData('status', e.target.value)}
-                            >
-                                <option value="active">{t('organizations.statusActive')}</option>
-                                <option value="draft">{t('organizations.statusDraft')}</option>
-                                <option value="inactive">{t('organizations.statusInactive')}</option>
-                                <option value="merged">{t('organizations.statusMerged')}</option>
-                                <option value="dissolved">{t('organizations.statusDissolved')}</option>
-                            </select>
-                        </Field>
+                        {/* Classification */}
+                        <FormSection title={t('organizations.sectionClassification')} description={t('organizations.sectionClassificationHelp')}>
+                            <Field label={t('organizations.organizationType')} error={form.errors.organization_type_id} help={t('organizations.typeHelpText')}>
+                                <select
+                                    className={inputCls}
+                                    value={form.data.organization_type_id}
+                                    onChange={(e) => form.setData('organization_type_id', e.target.value)}
+                                >
+                                    {organizationTypes.map((ot) => (
+                                        <option key={ot.id} value={ot.id}>
+                                            {locale === 'am' ? (ot.name_am || ot.name_en) : ot.name_en} ({ot.code})
+                                        </option>
+                                    ))}
+                                </select>
+                            </Field>
 
-                        <Field label={t('organizations.nameEn')} error={form.errors.name_en}>
-                            <input
-                                className={inputCls}
-                                value={form.data.name_en}
-                                onChange={(e) => form.setData('name_en', e.target.value)}
+                            <CodeRuleField
+                                entityType="organization"
+                                value={form.data.code}
+                                onChange={(v) => form.setData('code', v)}
+                                fieldName="code"
+                                label={t('organizations.code')}
+                                canManualOverride={false}
+                                existingCode={organization.code}
+                                preserveExistingCodeOnEdit
+                                error={form.errors.code}
                             />
-                        </Field>
+                        </FormSection>
 
-                        <Field label={t('organizations.nameAm')} error={form.errors.name_am}>
-                            <input
-                                className={inputCls}
-                                placeholder={t('organizations.fullNameAmPlaceholder')}
-                                value={form.data.name_am}
-                                onChange={(e) => form.setData('name_am', e.target.value)}
-                            />
-                        </Field>
-
-                        <Field label={t('organizations.legalBasisRef')} error={form.errors.legal_basis_ref}>
-                            <input
-                                className={inputCls}
-                                placeholder={t('organizations.legalBasisPlaceholder')}
-                                value={form.data.legal_basis_ref}
-                                onChange={(e) => form.setData('legal_basis_ref', e.target.value)}
-                            />
-                        </Field>
-
-                        <Field label={t('common.effectiveFrom')} error={form.errors.effective_from}>
-                            <LocalizedDatePicker
-                                className={inputCls}
-                                value={form.data.effective_from}
-                                onChange={(iso) => form.setData('effective_from', iso)}
-                            />
-                        </Field>
-                        <Field label={t('common.effectiveTo')} error={form.errors.effective_to}>
-                            <LocalizedDatePicker
-                                className={inputCls}
-                                value={form.data.effective_to}
-                                onChange={(iso) => form.setData('effective_to', iso)}
-                            />
-                        </Field>
+                        {/* Status & Validity */}
+                        <FormSection title={t('organizations.sectionStatusValidity')} description={t('organizations.sectionStatusValidityHelp')}>
+                            <Field label={t('common.status')} error={form.errors.status}>
+                                <select
+                                    className={inputCls}
+                                    value={form.data.status}
+                                    onChange={(e) => form.setData('status', e.target.value)}
+                                >
+                                    <option value="active">{t('organizations.statusActive')}</option>
+                                    <option value="draft">{t('organizations.statusDraft')}</option>
+                                    <option value="inactive">{t('organizations.statusInactive')}</option>
+                                    <option value="merged">{t('organizations.statusMerged')}</option>
+                                    <option value="dissolved">{t('organizations.statusDissolved')}</option>
+                                </select>
+                            </Field>
+                            <div className="hidden md:block" aria-hidden="true" />
+                            <Field label={t('common.effectiveFrom')} error={form.errors.effective_from}>
+                                <LocalizedDatePicker
+                                    className={inputCls}
+                                    value={form.data.effective_from}
+                                    onChange={(iso) => form.setData('effective_from', iso)}
+                                />
+                            </Field>
+                            <Field label={t('common.effectiveTo')} error={form.errors.effective_to}>
+                                <LocalizedDatePicker
+                                    className={inputCls}
+                                    value={form.data.effective_to}
+                                    onChange={(iso) => form.setData('effective_to', iso)}
+                                />
+                            </Field>
+                        </FormSection>
 
                         {/* Branding */}
-                        <div className="border-t border-gray-100 pt-4 md:col-span-2 dark:border-slate-800">
-                            <p className="mb-3 text-xs font-medium uppercase text-gray-400 dark:text-slate-500">
-                                {t('organizations.branding')}
-                            </p>
+                        <FormSection title={t('organizations.branding')} description={t('organizations.brandingHelpText')} grid={false}>
                             <div className="grid gap-5 sm:grid-cols-2">
                                 {/* Logo */}
                                 <div>
                                     <label className={labelCls}>{t('organizations.logo')}</label>
                                     <div className="mt-1 space-y-2">
-                                        {/* Current saved logo */}
                                         {showCurrentLogo && organization.logo_url && (
                                             <div className="flex items-center gap-3">
                                                 <img
@@ -256,7 +266,6 @@ export default function EditOrganization({
                                             </div>
                                         )}
 
-                                        {/* Remove logo confirmation */}
                                         {form.data.remove_logo && (
                                             <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-800 dark:bg-red-950">
                                                 <span className="text-xs text-red-700 dark:text-red-300">
@@ -272,7 +281,6 @@ export default function EditOrganization({
                                             </div>
                                         )}
 
-                                        {/* New logo preview */}
                                         {logoPreview && (
                                             <div className="flex items-center gap-3">
                                                 <img
@@ -372,10 +380,11 @@ export default function EditOrganization({
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        </FormSection>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
+                    {/* Sticky action bar */}
+                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
                         <Link
                             href={route('organizations.show', organization.id)}
                             className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"

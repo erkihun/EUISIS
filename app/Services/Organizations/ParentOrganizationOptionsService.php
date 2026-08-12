@@ -44,9 +44,9 @@ readonly class ParentOrganizationOptionsService
             ->when(
                 $search !== null && $search !== '',
                 fn ($builder) => $builder->where(function ($inner) use ($search): void {
-                    $inner->where('code', 'like', '%'.$search.'%')
-                        ->orWhere('name_en', 'like', '%'.$search.'%')
-                        ->orWhere('name_am', 'like', '%'.$search.'%');
+                    $inner->where('code', ci_like_operator(), '%'.$search.'%')
+                        ->orWhere('name_en', ci_like_operator(), '%'.$search.'%')
+                        ->orWhere('name_am', ci_like_operator(), '%'.$search.'%');
                 })
             )
             ->orderBy('name_en')

@@ -18,7 +18,7 @@ use Spatie\Permission\Models\Role;
 function makeOrganizationForUnitTest(): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'test-type-ou'],
+        ['code' => 'TEST-TYPE-OU'],
         ['name_en' => 'Test Type', 'is_demo' => false],
     );
 

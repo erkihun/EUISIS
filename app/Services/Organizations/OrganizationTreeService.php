@@ -36,9 +36,9 @@ readonly class OrganizationTreeService
         $query->when($search, function ($organizationQuery, string $term): void {
             $organizationQuery->where(function ($innerQuery) use ($term): void {
                 $innerQuery
-                    ->where('code', 'like', "%{$term}%")
-                    ->orWhere('name_en', 'like', "%{$term}%")
-                    ->orWhere('name_am', 'like', "%{$term}%");
+                    ->where('code', ci_like_operator(), "%{$term}%")
+                    ->orWhere('name_en', ci_like_operator(), "%{$term}%")
+                    ->orWhere('name_am', ci_like_operator(), "%{$term}%");
             });
         });
 
