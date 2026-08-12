@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -70,9 +71,9 @@ export default function VacancyApplicationsMyApplications({ applications }: Prop
                                 </div>
                             </div>
                             <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">
-                                {t('vacancies.appliedAt')}: {app.applied_at}
+                                {t('vacancies.appliedAt')}: <LocalizedDateDisplay value={app.applied_at} />
                                 {app.announcement?.application_closes_at && (
-                                    <> · {t('vacancies.applicationClosesAt')}: {app.announcement.application_closes_at}</>
+                                    <> · {t('vacancies.applicationClosesAt')}: <LocalizedDateDisplay value={app.announcement.application_closes_at} /></>
                                 )}
                             </p>
                         </div>

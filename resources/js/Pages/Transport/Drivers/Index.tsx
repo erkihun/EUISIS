@@ -26,9 +26,11 @@ const statusColors: Record<string, string> = {
 export default function Index({
     drivers,
     filters = {},
+    can = { create: false, update: false },
 }: {
     drivers: { data: Driver[]; meta: Meta };
     filters?: Record<string, string>;
+    can?: { create: boolean; update: boolean };
 }) {
     const { t } = useLocale();
     const rows = drivers?.data ?? [];

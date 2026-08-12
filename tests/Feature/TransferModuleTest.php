@@ -46,7 +46,7 @@ beforeEach(function (): void {
 
 function makeTransferOrg(string $code): Organization
 {
-    $type = OrganizationType::query()->firstOrCreate(['code' => 'dept'], ['name_en' => 'Department']);
+    $type = OrganizationType::query()->firstOrCreate(['code' => 'DEPT'], ['name_en' => 'Department']);
 
     return Organization::query()->create([
         'organization_type_id' => $type->id,

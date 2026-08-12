@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 
 type Permission = {
@@ -15,6 +16,9 @@ type Permission = {
     sort_order: number;
     is_system: boolean;
     roles_count: number | null;
+    created_at: string | null;
+    updated_at: string | null;
+    can: { view: boolean; update: boolean; delete: boolean };
 };
 
 type RoleRef = { id: number; name: string };
@@ -39,12 +43,14 @@ export default function ShowPermission({
                     title={label}
                     description={permission.name}
                     actions={
-                        <Link
-                            href={route('permissions.edit', permission.id)}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-                        >
-                            {t('permissions.editPermission')}
-                        </Link>
+                        permission.can?.update ? (
+                            <Link
+                                href={route('permissions.edit', permission.id)}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                            >
+                                {t('permissions.editPermission')}
+                            </Link>
+                        ) : undefined
                     }
                 />
             }
@@ -53,6 +59,9 @@ export default function ShowPermission({
 
             <div className="mx-auto max-w-2xl space-y-5">
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                        {t('permissions.basicInformation')}
+                    </h2>
                     <dl className="space-y-4 text-sm">
                         <div>
                             <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('permissions.permissionKey')}</dt>
@@ -101,6 +110,20 @@ export default function ShowPermission({
                                     </span>
                                 )}
                             </dd>
+                        </div>
+                        <div className="flex gap-8">
+                            <div>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.createdAt')}</dt>
+                                <dd className="mt-1 text-gray-900 dark:text-slate-100">
+                                    <LocalizedDateDisplay value={permission.created_at} withTime />
+                                </dd>
+                            </div>
+                            <div>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.updatedAt')}</dt>
+                                <dd className="mt-1 text-gray-900 dark:text-slate-100">
+                                    <LocalizedDateDisplay value={permission.updated_at} withTime />
+                                </dd>
+                            </div>
                         </div>
                     </dl>
                 </div>

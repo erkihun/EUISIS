@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -104,7 +105,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                                     <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.announcement?.title_en ?? '—'}</td>
                                     <td className="px-4 py-3 text-gray-700 dark:text-slate-200">{a.positionEntry?.position?.title_en ?? '—'}</td>
                                     <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.positionEntry?.organization?.name_en ?? '—'}</td>
-                                    <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400">{a.applied_at}</td>
+                                    <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.applied_at} /></td>
                                     <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
                                 </tr>
                             ))}

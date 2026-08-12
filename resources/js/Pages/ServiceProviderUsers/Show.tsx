@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router } from '@inertiajs/react';
 import { useConfirm } from '@/hooks/useConfirm';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 type ProviderUser = {
     id: string;
@@ -165,14 +166,14 @@ export default function ShowProviderUser({ providerUser }: { providerUser: Provi
                                 ? <span className="font-medium text-amber-600 dark:text-amber-400">Yes</span>
                                 : <span className="text-gray-400">No</span>}
                         </Field>
-                        <Field label="Last Login">{providerUser.last_login_at ?? '—'}</Field>
+                        <Field label="Last Login"><LocalizedDateDisplay value={providerUser.last_login_at} withTime /></Field>
                         {providerUser.suspended_at && (
-                            <Field label="Suspended At">{providerUser.suspended_at}</Field>
+                            <Field label="Suspended At"><LocalizedDateDisplay value={providerUser.suspended_at} withTime /></Field>
                         )}
                         {providerUser.suspension_reason && (
                             <Field label="Suspension Reason">{providerUser.suspension_reason}</Field>
                         )}
-                        <Field label="Created At">{providerUser.created_at ?? '—'}</Field>
+                        <Field label="Created At"><LocalizedDateDisplay value={providerUser.created_at} withTime /></Field>
                     </dl>
                 </section>
 

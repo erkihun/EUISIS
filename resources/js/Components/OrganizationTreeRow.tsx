@@ -1,8 +1,26 @@
 import { Link } from '@inertiajs/react';
 import StatusBadge from '@/Components/StatusBadge';
 import OrganizationActionsMenu from '@/Components/OrganizationActionsMenu';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronDown, ChevronRight } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+
+/** Keys returned by OrganizationDeletionGuard::reasons(). */
+type DeletionBlockerKey =
+    | 'usedInPublishedHierarchy'
+    | 'hasChildOrganizations'
+    | 'hasOrganizationUnits'
+    | 'hasPositions'
+    | 'hasEmployeeAssignments'
+    | 'hasOtherReferences';
+
+type RowCan = {
+    update: boolean;
+    delete: boolean;
+    archive: boolean;
+    deactivate: boolean;
+    createChild: boolean;
+};
 
 export type OrgTreeNode = {
     id: string;
@@ -15,28 +33,25 @@ export type OrgTreeNode = {
     depth: number;
     parent_id: string | null;
     children_count: number;
-    type: { name_en: string; name_am?: string | null; code: string } | null;
+    type: { name_en: string; name_am?: string | null; code: string; category?: string | null } | null;
     branding_primary_color: string | null;
     logo_url: string | null;
-    can?: {
-        createChild: boolean;
-    };
+    created_at?: string | null;
+    can?: RowCan;
+    deletion_blockers?: DeletionBlockerKey[];
 };
 
 type Props = {
     node: OrgTreeNode;
     expanded: boolean;
     onToggle: (id: string) => void;
-    can: {
-        update: boolean;
-        archive: boolean;
-        createChild: boolean;
-    };
+    can: RowCan;
+    deletionBlockers?: DeletionBlockerKey[];
 };
 
 const INDENT_PX = 20;
 
-export default function OrganizationTreeRow({ node, expanded, onToggle, can }: Props) {
+export default function OrganizationTreeRow({ node, expanded, onToggle, can, deletionBlockers }: Props) {
     const { locale } = useLocale();
     const indent = node.depth * INDENT_PX;
     const hasChildren = node.children_count > 0;
@@ -100,10 +115,10 @@ export default function OrganizationTreeRow({ node, expanded, onToggle, can }: P
                 <StatusBadge status={node.status} />
             </td>
             <td className="px-3 py-2.5 text-xs text-gray-400 dark:text-slate-500">
-                {node.effective_from ?? '-'}
+                <LocalizedDateDisplay value={node.created_at} />
             </td>
             <td className="py-2.5 pl-3 pr-4 text-right">
-                <OrganizationActionsMenu organizationId={node.id} can={can} />
+                <OrganizationActionsMenu organizationId={node.id} can={can} deletionBlockers={deletionBlockers} />
             </td>
         </tr>
     );

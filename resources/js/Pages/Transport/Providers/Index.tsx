@@ -22,9 +22,11 @@ type Meta = { current_page: number; last_page: number; total: number; per_page: 
 export default function Index({
     providers,
     filters = {},
+    can = { create: false, update: false },
 }: {
     providers: { data: Provider[]; meta: Meta };
     filters?: Record<string, string>;
+    can?: { create: boolean; update: boolean };
 }) {
     const { t } = useLocale();
     const rows = providers?.data ?? [];
@@ -47,12 +49,14 @@ export default function Index({
                 <PageHeader
                     title={t('transport.providers')}
                     actions={
-                        <Link
-                            href={route('transport.providers.create')}
-                            className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                        >
-                            {t('transport.registerProvider')}
-                        </Link>
+                        can.create ? (
+                            <Link
+                                href={route('transport.providers.create')}
+                                className="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                            >
+                                {t('transport.registerProvider')}
+                            </Link>
+                        ) : undefined
                     }
                 />
             }

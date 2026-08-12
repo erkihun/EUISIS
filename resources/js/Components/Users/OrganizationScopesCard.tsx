@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
 type OrganizationScope = {
@@ -12,7 +13,15 @@ type OrganizationScope = {
     is_active: boolean;
 };
 
-type OrgOption = { id: string; name_en: string; name_am?: string };
+type OrgOption = {
+    id: string;
+    code?: string | null;
+    name_en: string;
+    name_am?: string | null;
+    /** 'active' | 'inactive' | … — inactive orgs may not be newly assigned. */
+    status?: string;
+    type?: { name_en: string; name_am?: string | null } | null;
+};
 
 type Props = {
     userId: string;
@@ -52,17 +61,32 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
         return t(`users.userOrganizationScopes.scopeTypes.${st}`);
     }
 
-    function orgName(org: OrgOption | null | undefined): string {
+    function orgName(org: { name_en: string; name_am?: string | null } | null | undefined): string {
         if (!org) return '—';
-        return (locale === 'am' && org.name_am) ? org.name_am : org.name_en;
+        return localizedName(org.name_en, org.name_am, locale);
+    }
+
+    /** Organizations without an explicit status are treated as active (back-compat). */
+    function isActiveOrg(org: OrgOption): boolean {
+        return (org.status ?? 'active') === 'active';
+    }
+
+    /**
+     * An inactive organization is still shown (so an existing scope renders), but
+     * may only be kept on the scope that already points at it — never assigned anew.
+     */
+    function isAssignable(org: OrgOption): boolean {
+        if (isActiveOrg(org)) return true;
+        const editing = editingId ? scopes.find((s) => s.id === editingId) : null;
+        return editing?.organization?.id === org.id;
     }
 
     function filteredOrgs(): OrgOption[] {
-        const q = orgSearch.toLowerCase();
-        return organizations.filter(
-            (o) =>
-                o.name_en.toLowerCase().includes(q) ||
-                (o.name_am ?? '').toLowerCase().includes(q),
+        const q = orgSearch.trim().toLowerCase();
+        if (q === '') return organizations;
+
+        return organizations.filter((o) =>
+            `${o.code ?? ''} ${o.name_en} ${o.name_am ?? ''}`.toLowerCase().includes(q),
         );
     }
 
@@ -81,7 +105,9 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
             effective_to: scope.effective_to ?? '',
             is_active: scope.is_active,
         });
-        setOrgSearch(scope.organization ? orgName(scope.organization) : '');
+        // Keep the search box empty so the full list stays browsable; the current
+        // organization is highlighted as selected in the list instead.
+        setOrgSearch('');
         setEditingId(scope.id);
         setShowForm(true);
     }
@@ -127,7 +153,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
     }
 
     return (
-        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
             <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                     {t('users.userOrganizationScopes.title')}
@@ -143,14 +169,18 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                 )}
             </div>
 
-            {scopes.length === 0 && !showForm && (
+            {/* This card lives in the page's narrow right column, so the list and the
+                add/edit form stack vertically rather than sitting side by side. */}
+            <div className="space-y-4">
+                <div className="min-w-0">
+            {scopes.length === 0 && (
                 <p className="text-sm text-gray-500 dark:text-slate-400">
                     {t('users.userOrganizationScopes.noScopes')}
                 </p>
             )}
 
             {scopes.length > 0 && (
-                <div className="mb-4 overflow-x-auto">
+                <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr className="border-b border-gray-100 dark:border-slate-800">
@@ -217,9 +247,15 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                     </table>
                 </div>
             )}
+                </div>
 
             {showForm && (
-                <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                    <p className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                        {editingId
+                            ? t('users.userOrganizationScopes.editScope')
+                            : t('users.userOrganizationScopes.addScope')}
+                    </p>
                     <div className="space-y-3">
                         <div>
                             <label className={labelCls}>{t('users.userOrganizationScopes.scopeType')}</label>
@@ -247,35 +283,93 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                         {form.scope_type !== 'citywide' && (
                             <div>
                                 <label className={labelCls}>{t('users.userOrganizationScopes.organization')}</label>
-                                <div className="mt-1 space-y-1">
-                                    <input
-                                        className={inputCls}
-                                        placeholder={t('common.search')}
-                                        value={orgSearch}
-                                        onChange={(e) => {
-                                            setOrgSearch(e.target.value);
-                                            setForm((f) => ({ ...f, organization_id: '' }));
-                                        }}
-                                    />
-                                    {orgSearch.length > 0 && form.organization_id === '' && (
-                                        <ul className="max-h-40 overflow-y-auto rounded-lg border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-                                            {filteredOrgs().map((o) => (
-                                                <li key={o.id}>
-                                                    <button
-                                                        type="button"
-                                                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-slate-800"
-                                                        onClick={() => {
-                                                            setForm((f) => ({ ...f, organization_id: o.id }));
-                                                            setOrgSearch(orgName(o));
-                                                        }}
-                                                    >
-                                                        {orgName(o)}
-                                                    </button>
+                                <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+                                    {t('users.userOrganizationScopes.selectOrganizations')}
+                                </p>
+
+                                {organizations.length === 0 ? (
+                                    <p className="mt-2 rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
+                                        {t('users.userOrganizationScopes.noOrganizations')}
+                                    </p>
+                                ) : (
+                                    <div className="mt-1 space-y-1">
+                                        <input
+                                            className={inputCls}
+                                            placeholder={t('users.userOrganizationScopes.searchOrganizations')}
+                                            value={orgSearch}
+                                            onChange={(e) => setOrgSearch(e.target.value)}
+                                        />
+
+                                        {/* The list is always visible — the user must be able to
+                                            browse organizations without guessing a search term. */}
+                                        <ul className="max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                                            {filteredOrgs().length === 0 ? (
+                                                <li className="px-3 py-4 text-center text-sm text-gray-500 dark:text-slate-400">
+                                                    {t('users.userOrganizationScopes.noOrganizationsMatch')}
                                                 </li>
-                                            ))}
+                                            ) : (
+                                                filteredOrgs().map((o) => {
+                                                    const selected = form.organization_id === o.id;
+                                                    // An inactive org may stay on the scope it already
+                                                    // has, but may not be picked for a different one.
+                                                    const assignable = isAssignable(o);
+
+                                                    return (
+                                                        <li key={o.id}>
+                                                            <button
+                                                                type="button"
+                                                                disabled={!assignable}
+                                                                title={!assignable ? t('users.userOrganizationScopes.inactiveCannotAssign') : undefined}
+                                                                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors ${
+                                                                    selected
+                                                                        ? 'bg-blue-50 dark:bg-blue-900/20'
+                                                                        : assignable
+                                                                            ? 'hover:bg-gray-50 dark:hover:bg-slate-800'
+                                                                            : 'cursor-not-allowed opacity-50'
+                                                                }`}
+                                                                onClick={() => {
+                                                                    if (!assignable) return;
+                                                                    setForm((f) => ({ ...f, organization_id: o.id }));
+                                                                }}
+                                                            >
+                                                                <span className="min-w-0">
+                                                                    <span className="flex flex-wrap items-center gap-1.5">
+                                                                        {o.code && (
+                                                                            <span className="font-mono text-xs text-gray-400 dark:text-slate-500">
+                                                                                {o.code}
+                                                                            </span>
+                                                                        )}
+                                                                        <span className="truncate font-medium text-gray-900 dark:text-slate-100">
+                                                                            {orgName(o)}
+                                                                        </span>
+                                                                    </span>
+                                                                    <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                                                                        {o.type && (
+                                                                            <span className="text-xs text-gray-500 dark:text-slate-400">
+                                                                                {localizedName(o.type.name_en, o.type.name_am, locale)}
+                                                                            </span>
+                                                                        )}
+                                                                        {!isActiveOrg(o) && (
+                                                                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                                                {t('users.userOrganizationScopes.inactiveOrganization')}
+                                                                            </span>
+                                                                        )}
+                                                                    </span>
+                                                                </span>
+                                                                {selected && (
+                                                                    <span className="shrink-0 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                                                        ✓
+                                                                    </span>
+                                                                )}
+                                                            </button>
+                                                        </li>
+                                                    );
+                                                })
+                                            )}
                                         </ul>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+
                                 {form.scope_type === 'self' && (
                                     <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                                         {t('users.userOrganizationScopes.selfHelperText')}
@@ -340,6 +434,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                     </div>
                 </div>
             )}
+            </div>
         </div>
     );
 }

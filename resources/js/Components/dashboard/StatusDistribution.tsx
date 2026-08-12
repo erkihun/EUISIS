@@ -1,7 +1,6 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import EmptyDashboardState from './EmptyDashboardState';
-
-const colors = ['#2563eb', '#ea580c', '#16a34a', '#64748b', '#dc2626', '#7c3aed'];
+import { useChartColors } from '@/hooks/useChartColors';
 
 interface Item {
     key: string;
@@ -14,6 +13,8 @@ interface Props {
 }
 
 export default function StatusDistribution({ data, labelFor }: Props) {
+    const { series: colors } = useChartColors();
+
     if (data.length === 0) {
         return <EmptyDashboardState compact />;
     }

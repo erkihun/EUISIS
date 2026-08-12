@@ -1,4 +1,5 @@
 import { useLocale } from '@/hooks/useLocale';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { MegaphoneIcon, ChevronRight } from '@/Components/Icons';
 import { Link } from '@inertiajs/react';
@@ -128,7 +129,7 @@ function AnnouncementCard({ a, useAmharic, t }: { a: Announcement; useAmharic: b
                         {a.opening_date && a.closing_date && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 dark:bg-slate-800">
                                 <CalendarIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                                {a.opening_date} → {a.closing_date}
+                                <LocalizedDateDisplay value={a.opening_date} /> → <LocalizedDateDisplay value={a.closing_date} />
                             </span>
                         )}
                     </div>

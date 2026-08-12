@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import CardStatusBadge from '@/Components/IdCards/CardStatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -78,9 +79,6 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
     const { t } = useLocale();
     const markForm = useForm({ printer_notes: '' });
 
-    const fmtDate = (v?: string | null) =>
-        v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-
     const printProgress = batch.total_cards > 0
         ? Math.round((batch.printed_count / batch.total_cards) * 100)
         : 0;
@@ -148,7 +146,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                         {batch.created_by.name}
                                         {batch.created_at && (
                                             <span className="ml-1 text-xs text-gray-400 dark:text-slate-500">
-                                                · {fmtDate(batch.created_at)}
+                                                · <LocalizedDateDisplay value={batch.created_at} withTime />
                                             </span>
                                         )}
                                     </Field>
@@ -158,7 +156,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                         {batch.printed_by.name}
                                         {batch.printed_at && (
                                             <span className="ml-1 text-xs text-gray-400 dark:text-slate-500">
-                                                · {fmtDate(batch.printed_at)}
+                                                · <LocalizedDateDisplay value={batch.printed_at} withTime />
                                             </span>
                                         )}
                                     </Field>

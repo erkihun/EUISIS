@@ -102,6 +102,19 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        key: 'grievances',
+        labelKey: 'nav.groupGrievances',
+        icon: ScrollText,
+        items: [
+            { routeName: 'grievances.index',           labelKey: 'nav.grievances',          icon: ClipboardListIcon, permission: 'grievances.manage' },
+            { routeName: 'grievances.my',              labelKey: 'nav.myGrievances',         icon: Inbox },
+            { routeName: 'grievance-committees.index', labelKey: 'nav.grievanceCommittees',  icon: Users,             permission: 'grievances.manage' },
+            { routeName: 'grievance-categories.index', labelKey: 'nav.grievanceCategories',  icon: TagsIcon,          permission: 'grievances.manage' },
+            { routeName: 'grievance-sla-rules.index',  labelKey: 'nav.grievanceSlaRules',    icon: SettingsIcon,      permission: 'grievances.manage' },
+            { routeName: 'tribunal-cases.index',       labelKey: 'nav.tribunalCases',        icon: ShieldCheck,       permission: 'grievances.tribunal' },
+        ],
+    },
+    {
         key: 'identity',
         labelKey: 'nav.groupIdentity',
         icon: CreditCard,
@@ -174,14 +187,28 @@ const employeeNav: NavItem[] = [
     { routeName: 'public.transfer-announcements', labelKey: 'nav.announcements',         icon: MegaphoneIcon },
 ];
 
-const adminNav: NavItem[] = [
-    { routeName: 'users.index',                      labelKey: 'nav.users',               icon: UserCogIcon,  permission: 'users.viewAny' },
-    { routeName: 'provider-users.index',             labelKey: 'nav.cafeteriaProviderUsers', icon: HandshakeIcon, permission: 'cafeteria-provider-users.viewAny' },
-    { routeName: 'roles.index',                      labelKey: 'nav.roles',               icon: ShieldCheck,  permission: 'roles.viewAny' },
-    { routeName: 'permissions.index',                labelKey: 'nav.permissions',         icon: KeyIcon,      permission: 'permissions.viewAny' },
-    { routeName: 'recycle-bin.index',                labelKey: 'nav.recycleBin',          icon: TrashIcon,    permission: 'recycle-bin.view' },
-    { routeName: 'system-settings.index',            labelKey: 'nav.systemSettings',      icon: SettingsIcon, permission: 'system-settings.view' },
+/** Administration is split into labeled sub-clusters so 6 unrelated concerns stay scannable. */
+const adminGroups: { labelKey: string; items: NavItem[] }[] = [
+    {
+        labelKey: 'nav.adminAccess',
+        items: [
+            { routeName: 'users.index',          labelKey: 'nav.users',                  icon: UserCogIcon,   permission: 'users.viewAny' },
+            { routeName: 'provider-users.index', labelKey: 'nav.cafeteriaProviderUsers', icon: HandshakeIcon, permission: 'cafeteria-provider-users.viewAny' },
+            { routeName: 'roles.index',          labelKey: 'nav.roles',                  icon: ShieldCheck,   permission: 'roles.viewAny' },
+            { routeName: 'permissions.index',    labelKey: 'nav.permissions',            icon: KeyIcon,       permission: 'permissions.viewAny' },
+        ],
+    },
+    {
+        labelKey: 'nav.adminSystem',
+        items: [
+            { routeName: 'recycle-bin.index',     labelKey: 'nav.recycleBin',     icon: TrashIcon,    permission: 'recycle-bin.view' },
+            { routeName: 'system-settings.index', labelKey: 'nav.systemSettings', icon: SettingsIcon, permission: 'system-settings.view' },
+        ],
+    },
 ];
+
+/** Flattened admin items — used for active-state detection and collapsed icon rail. */
+const adminNav: NavItem[] = adminGroups.flatMap((g) => g.items);
 
 interface Props {
     onClose?: () => void;
@@ -212,7 +239,7 @@ function ChevronDown({ className }: { className?: string }) {
 }
 
 /** Single nav item — expanded or icon-only collapsed */
-function NavLink({ item, collapsed, isAdmin = false }: { item: NavItem; collapsed: boolean; isAdmin?: boolean }) {
+function NavLink({ item, collapsed, isAdmin = false, index = 0 }: { item: NavItem; collapsed: boolean; isAdmin?: boolean; index?: number }) {
     const { can } = useCan();
     const { t } = useLocale();
     const { url: pageUrl } = usePage();
@@ -243,8 +270,9 @@ function NavLink({ item, collapsed, isAdmin = false }: { item: NavItem; collapse
                     aria-label={label}
                     aria-current={isActive ? 'page' : undefined}
                     className={[
-                        'group relative mx-2 flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
+                        'sidebar-press group relative mx-2 flex h-10 w-10 items-center justify-center rounded-lg',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                        'hover:scale-[1.06]',
                         isActive
                             ? `${activeBar} ${activeText}`
                             : `text-gray-500 dark:text-slate-500 ${hoverBg}`,
@@ -263,26 +291,32 @@ function NavLink({ item, collapsed, isAdmin = false }: { item: NavItem; collapse
     }
 
     return (
-        <li>
+        <li className="sidebar-item" style={{ '--i': index } as CSSProperties}>
             <Link
                 href={href}
                 aria-current={isActive ? 'page' : undefined}
                 className={[
-                    'group flex items-center gap-3 rounded-lg py-2.5 pl-3 pr-3 text-[15px] font-normal transition-colors',
+                    'sidebar-press group relative flex items-center gap-3 overflow-hidden rounded-lg py-2.5 pl-3 pr-3 text-[15px] font-normal',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
                     isActive
-                        ? `border-l-2 ${activeBar} ${activeText}`
-                        : `border-l-2 border-transparent text-gray-600 dark:text-slate-400 ${hoverBg}`,
+                        ? `${activeBar} ${activeText}`
+                        : `text-gray-600 dark:text-slate-400 ${hoverBg}`,
                 ].join(' ')}
             >
+                {isActive && (
+                    <span
+                        aria-hidden="true"
+                        className="sidebar-active-bar absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--color-primary)]"
+                    />
+                )}
                 <Icon
                     className={[
-                        'h-[19px] w-[19px] shrink-0 transition-colors',
+                        'h-[19px] w-[19px] shrink-0 transition-all duration-200 group-hover:scale-110',
                         isActive ? activeIcon : 'text-gray-500 group-hover:text-gray-800 dark:text-slate-500 dark:group-hover:text-slate-300',
                     ].join(' ')}
                     aria-hidden="true"
                 />
-                <span className="truncate">{label}</span>
+                <span className="truncate transition-transform duration-200 group-hover:translate-x-0.5">{label}</span>
             </Link>
         </li>
     );
@@ -292,9 +326,11 @@ function NavLink({ item, collapsed, isAdmin = false }: { item: NavItem; collapse
 function NavItemDropdown({
     item,
     collapsed,
+    index = 0,
 }: {
     item: NavItem & { children: NavSubItem[] };
     collapsed: boolean;
+    index?: number;
 }) {
     const { can } = useCan();
     const { t } = useLocale();
@@ -322,7 +358,7 @@ function NavItemDropdown({
                     aria-label={label}
                     onClick={() => setOpen((o) => !o)}
                     className={[
-                        'group relative mx-2 flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
+                        'sidebar-press group relative mx-2 flex h-10 w-10 items-center justify-center rounded-lg hover:scale-[1.06]',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
                         anyChildActive
                             ? `${activeBar} ${activeText}`
@@ -336,22 +372,28 @@ function NavItemDropdown({
     }
 
     return (
-        <li>
+        <li className="sidebar-item" style={{ '--i': index } as CSSProperties}>
             <button
                 type="button"
                 onClick={() => setOpen((o) => !o)}
                 aria-expanded={open}
                 className={[
-                    'group flex w-full items-center gap-3 rounded-lg py-2.5 pl-3 pr-3 text-[15px] font-normal transition-colors',
+                    'sidebar-press group relative flex w-full items-center gap-3 overflow-hidden rounded-lg py-2.5 pl-3 pr-3 text-[15px] font-normal',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
                     anyChildActive
-                        ? `border-l-2 ${activeBar} ${activeText}`
-                        : `border-l-2 border-transparent text-gray-600 dark:text-slate-400 ${hoverBg}`,
+                        ? `${activeBar} ${activeText}`
+                        : `text-gray-600 dark:text-slate-400 ${hoverBg}`,
                 ].join(' ')}
             >
+                {anyChildActive && (
+                    <span
+                        aria-hidden="true"
+                        className="sidebar-active-bar absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--color-primary)]"
+                    />
+                )}
                 <Icon
                     className={[
-                        'h-[19px] w-[19px] shrink-0 transition-colors',
+                        'h-[19px] w-[19px] shrink-0 transition-all duration-200 group-hover:scale-110',
                         anyChildActive
                             ? activeText
                             : 'text-gray-500 group-hover:text-gray-800 dark:text-slate-500 dark:group-hover:text-slate-300',
@@ -360,20 +402,19 @@ function NavItemDropdown({
                 />
                 <span className="min-w-0 flex-1 truncate text-left">{label}</span>
                 <ChevronDown
-                    className={[
-                        'h-3.5 w-3.5 shrink-0 transition-transform duration-200',
-                        open ? '' : '-rotate-90',
-                    ].join(' ')}
+                    className={['sidebar-chevron h-3.5 w-3.5 shrink-0', open ? '' : '-rotate-90'].join(' ')}
                 />
             </button>
 
-            {open && (
-                <ul role="list" className="mt-0.5 mb-1 space-y-0.5 pl-5 border-l border-gray-200 ml-5 dark:border-slate-700">
-                    {visibleChildren.map((child) => (
-                        <NavLink key={child.routeName} item={child} collapsed={false} />
-                    ))}
-                </ul>
-            )}
+            <div className="sidebar-collapsible" data-open={open}>
+                <div className="sidebar-collapsible-inner">
+                    <ul role="list" className="mt-0.5 mb-1 space-y-0.5 pl-5 border-l border-gray-200 ml-5 dark:border-slate-700">
+                        {visibleChildren.map((child, i) => (
+                            <NavLink key={child.routeName} item={child} collapsed={false} index={i} />
+                        ))}
+                    </ul>
+                </div>
+            </div>
         </li>
     );
 }
@@ -410,9 +451,16 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         [can],
     );
 
-    const visibleAdminNav = useMemo(() =>
-        adminNav.filter((item) => !item.permission || can(item.permission)),
+    const visibleAdminGroups = useMemo(() =>
+        adminGroups
+            .map((g) => ({ ...g, items: g.items.filter((item) => !item.permission || can(item.permission)) }))
+            .filter((g) => g.items.length > 0),
         [can],
+    );
+
+    const visibleAdminNav = useMemo(() =>
+        visibleAdminGroups.flatMap((g) => g.items),
+        [visibleAdminGroups],
     );
 
     const activeGroupKeys = useMemo(() => new Set(
@@ -467,7 +515,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     onClick={() => toggleGroup(group.key)}
                     aria-expanded={isOpen}
                     className={[
-                        'flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left transition-colors',
+                        'sidebar-press flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left',
                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
                         isActive ? headerActive : headerDefault,
                     ].join(' ')}
@@ -480,19 +528,79 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         {label}
                     </span>
                     <ChevronDown
-                        className={['h-3.5 w-3.5 shrink-0 transition-transform duration-200', isOpen ? '' : '-rotate-90'].join(' ')}
+                        className={['sidebar-chevron h-3.5 w-3.5 shrink-0', isOpen ? '' : '-rotate-90'].join(' ')}
                     />
                 </button>
 
-                {isOpen && (
-                    <ul role="list" className="mt-0.5 mb-1 space-y-0.5 pl-1">
-                        {group.items.map((item) =>
-                            item.children
-                                ? <NavItemDropdown key={item.routeName} item={item as NavItem & { children: NavSubItem[] }} collapsed={false} />
-                                : <NavLink key={item.routeName} item={item} collapsed={false} isAdmin={isAdmin} />
-                        )}
-                    </ul>
-                )}
+                <div className="sidebar-collapsible" data-open={isOpen}>
+                    <div className="sidebar-collapsible-inner">
+                        <ul role="list" className="mt-0.5 mb-1 space-y-0.5 pl-1">
+                            {group.items.map((item, i) =>
+                                item.children
+                                    ? <NavItemDropdown key={item.routeName} item={item as NavItem & { children: NavSubItem[] }} collapsed={false} index={i} />
+                                    : <NavLink key={item.routeName} item={item} collapsed={false} isAdmin={isAdmin} index={i} />
+                            )}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    /** Administration: one consistent collapsible header, with items grouped into labeled sub-clusters. */
+    const renderAdminGroup = () => {
+        const isActive = activeGroupKeys.has('admin');
+        const isOpen   = openGroups.admin ?? isActive;
+
+        const headerActive  = 'text-[color:var(--color-primary)]';
+        const headerDefault = 'text-gray-500 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-300';
+        const iconActive    = 'text-[color:var(--color-primary)]';
+
+        return (
+            <div>
+                <button
+                    type="button"
+                    onClick={() => toggleGroup('admin')}
+                    aria-expanded={isOpen}
+                    className={[
+                        'sidebar-press flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                        isActive ? headerActive : headerDefault,
+                    ].join(' ')}
+                >
+                    <ShieldCheck
+                        className={['h-4 w-4 shrink-0', isActive ? iconActive : 'text-gray-400 dark:text-slate-600'].join(' ')}
+                        aria-hidden="true"
+                    />
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{t('nav.admin')}</span>
+                    <ChevronDown
+                        className={['sidebar-chevron h-3.5 w-3.5 shrink-0', isOpen ? '' : '-rotate-90'].join(' ')}
+                    />
+                </button>
+
+                <div className="sidebar-collapsible" data-open={isOpen}>
+                    <div className="sidebar-collapsible-inner">
+                        <div className="mt-0.5 mb-1 space-y-1.5 pl-1">
+                            {visibleAdminGroups.map((sub, gi) => {
+                                // Continuous stagger index across sub-clusters so items cascade as one list.
+                                const offset = visibleAdminGroups.slice(0, gi).reduce((n, g) => n + g.items.length, 0);
+                                return (
+                                    <div key={sub.labelKey}>
+                                        <p className="sidebar-item px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-slate-600"
+                                           style={{ '--i': offset } as CSSProperties}>
+                                            {t(sub.labelKey)}
+                                        </p>
+                                        <ul role="list" className="space-y-0.5">
+                                            {sub.items.map((item, i) => (
+                                                <NavLink key={item.routeName} item={item} collapsed={false} isAdmin index={offset + i + 1} />
+                                            ))}
+                                        </ul>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     };
@@ -602,34 +710,26 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     </>
                 )}
 
-                {/* Administration section — admin only */}
+                {/* Administration — admin only. One consistent collapsible group; items
+                    split into labeled sub-clusters (Access Control / System). */}
                 {!isEmployeeUser && visibleAdminNav.length > 0 && (
-                    <div className="mt-3">
-                        {collapsed ? (
-                            <>
-                                <div className="mx-auto mb-1 h-px w-8 bg-gray-200 dark:bg-white/5" />
-                                <ul role="list" className="space-y-0.5 py-0.5">
-                                    {visibleAdminNav.map((item) => (
-                                        <NavLink key={item.routeName} item={item} collapsed isAdmin />
-                                    ))}
-                                </ul>
-                            </>
-                        ) : (
+                    collapsed ? (
+                        <>
+                            <div className="mx-auto my-1 h-px w-8 bg-gray-200 dark:bg-white/5" />
+                            <ul role="list" className="space-y-0.5 py-0.5">
+                                {visibleAdminNav.map((item) => (
+                                    <NavLink key={item.routeName} item={item} collapsed isAdmin />
+                                ))}
+                            </ul>
+                        </>
+                    ) : (
+                        <>
+                            <div className="mx-3 my-2 h-px bg-gray-200 dark:bg-white/5" />
                             <div className="px-3">
-                                <div className="mb-1 flex items-center gap-2">
-                                    <div className="h-px flex-1 bg-gray-200 dark:bg-white/5" />
-                                    <span className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-slate-500">
-                                        {t('nav.admin')}
-                                    </span>
-                                    <div className="h-px flex-1 bg-gray-200 dark:bg-white/5" />
-                                </div>
-                                {renderGroup(
-                                    { key: 'admin', labelKey: 'nav.admin', icon: ShieldCheck, items: visibleAdminNav },
-                                    true,
-                                )}
+                                {renderAdminGroup()}
                             </div>
-                        )}
-                    </div>
+                        </>
+                    )
                 )}
             </nav>
 

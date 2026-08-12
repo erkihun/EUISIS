@@ -1,4 +1,5 @@
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, router } from '@inertiajs/react';
@@ -41,10 +42,6 @@ type Props = {
 
 const STATUSES = ['draft', 'published', 'closed', 'cancelled'] as const;
 
-function formatDate(iso: string | null | undefined): string {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-}
 
 const btnBase = 'inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none';
 const btnGray  = `${btnBase} border border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-300`;
@@ -229,8 +226,8 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                         </td>
                                         <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.grade_level ?? '—'}</td>
                                         <td className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-slate-200">{a.number_of_vacancies}</td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400">{formatDate(a.opening_date)}</td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400">{formatDate(a.closing_date)}</td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.opening_date} /></td>
+                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.closing_date} /></td>
                                         <td className="px-4 py-3 text-center">
                                             {a.applications_count > 0 ? (
                                                 <Link href={route('transfer-applications.index') + `?announcement_id=${a.id}`} className="font-semibold text-blue-600 hover:underline dark:text-blue-400">

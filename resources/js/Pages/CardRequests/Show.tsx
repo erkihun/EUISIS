@@ -5,6 +5,7 @@ import CardRequestTypeBadge from '@/Components/IdCards/CardRequestTypeBadge';
 import CardDataChecklist from '@/Components/IdCards/CardDataChecklist';
 import CardLifecycleTimeline from '@/Components/IdCards/CardLifecycleTimeline';
 import CardStatusBadge from '@/Components/IdCards/CardStatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
@@ -150,15 +151,12 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
 
     const isFinal = ['approved', 'rejected', 'cancelled'].includes(cardRequest.status);
 
-    const fmtDate = (v?: string | null) =>
-        v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-
-    // Build timeline events from dates
+    // Build timeline events from dates — pass raw ISO, timeline renders via LocalizedDateDisplay
     const timelineEvents: Record<string, { timestamp?: string | null; actor?: string | null }> = {};
-    if (cardRequest.submitted_at) timelineEvents['submitted'] = { timestamp: fmtDate(cardRequest.submitted_at), actor: cardRequest.requested_by?.name };
-    if (cardRequest.verified_at)  timelineEvents['verified']  = { timestamp: fmtDate(cardRequest.verified_at),  actor: cardRequest.reviewed_by?.name };
-    if (cardRequest.approved_at)  timelineEvents['approved']  = { timestamp: fmtDate(cardRequest.approved_at),  actor: cardRequest.approved_by?.name };
-    if (cardRequest.rejected_at)  timelineEvents['rejected']  = { timestamp: fmtDate(cardRequest.rejected_at),  actor: cardRequest.rejected_by?.name };
+    if (cardRequest.submitted_at) timelineEvents['submitted'] = { timestamp: cardRequest.submitted_at, actor: cardRequest.requested_by?.name };
+    if (cardRequest.verified_at)  timelineEvents['verified']  = { timestamp: cardRequest.verified_at,  actor: cardRequest.reviewed_by?.name };
+    if (cardRequest.approved_at)  timelineEvents['approved']  = { timestamp: cardRequest.approved_at,  actor: cardRequest.approved_by?.name };
+    if (cardRequest.rejected_at)  timelineEvents['rejected']  = { timestamp: cardRequest.rejected_at,  actor: cardRequest.rejected_by?.name };
 
     const hasAnyAction = can.verify || can.approve || can.reject || can.cancel;
 
@@ -188,7 +186,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                             )}
                             {cardRequest.submitted_at && (
                                 <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">
-                                    {fmtDate(cardRequest.submitted_at)}
+                                    <LocalizedDateDisplay value={cardRequest.submitted_at} withTime />
                                 </span>
                             )}
                         </div>

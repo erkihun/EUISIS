@@ -16,7 +16,26 @@
     --color-success:       #16a34a;
     --color-warning:       #d97706;
     --color-danger:        #dc2626;
+    --app-background:      #f9fafb;
+    --app-foreground:      #0f172a;
     --font-ethiopic: 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', system-ui, sans-serif;
+}
+
+.dark {
+    --app-background: #020617;
+    --app-foreground: #f8fafc;
+}
+
+html,
+body,
+#app {
+    min-height: 100vh;
+    background: var(--app-background);
+    color: var(--app-foreground);
+}
+
+body {
+    margin: 0;
 }
 
 /* ── Amharic locale font ────────────────────────────────────── */
@@ -304,6 +323,63 @@ html[data-button-style="soft"] a[class*="rounded-2xl"] { border-radius: 0.5rem; 
 .animate-fade-in-right { animation: fade-in-right 0.65s ease-out both; }
 .animate-float-y       { animation: float-y 5s ease-in-out infinite; }
 .animate-orb-drift     { animation: orb-drift 10s ease-in-out infinite; }
+
+/* ── Sidebar motion ─────────────────────────────────────────── */
+/* Smooth expand/collapse for nav groups. The wrapper animates grid-rows
+   0fr → 1fr so it collapses to true zero height with no fixed max-height. */
+.sidebar-collapsible {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.sidebar-collapsible[data-open="true"] {
+    grid-template-rows: 1fr;
+}
+.sidebar-collapsible > .sidebar-collapsible-inner {
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* Each nav item slides up + fades in; stagger via --i set inline. */
+@keyframes sidebar-item-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.sidebar-collapsible[data-open="true"] .sidebar-item {
+    animation: sidebar-item-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 28ms);
+}
+
+/* Chevron rotates with a slight overshoot for a livelier feel. */
+.sidebar-chevron {
+    transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Active-indicator bar grows in vertically rather than snapping. */
+@keyframes sidebar-bar-in {
+    from { transform: scaleY(0); }
+    to   { transform: scaleY(1); }
+}
+.sidebar-active-bar {
+    transform-origin: center;
+    animation: sidebar-bar-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Press feedback on nav rows. */
+.sidebar-press {
+    transition: transform 120ms ease, background-color 160ms ease, color 160ms ease;
+}
+.sidebar-press:active {
+    transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-collapsible,
+    .sidebar-chevron,
+    .sidebar-press { transition: none; }
+    .sidebar-collapsible .sidebar-item,
+    .sidebar-active-bar { animation: none; }
+}
 
 /* ── Org tree connectors ────────────────────────────────────── */
 .org-tree-connector::before {

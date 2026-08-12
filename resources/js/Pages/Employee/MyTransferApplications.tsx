@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
@@ -93,8 +94,8 @@ export default function MyTransferApplications({ applications, has_employee }: P
                                 </div>
 
                                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 dark:text-slate-500">
-                                    {app.submitted_at && <span>Applied: {app.submitted_at}</span>}
-                                    {app.closing_date && <span>{t('transfers.closes')}: {app.closing_date}</span>}
+                                    {app.submitted_at && <span>Applied: <LocalizedDateDisplay value={app.submitted_at} /></span>}
+                                    {app.closing_date && <span>{t('transfers.closes')}: <LocalizedDateDisplay value={app.closing_date} /></span>}
                                 </div>
 
                                 {app.applicant_notes && (

@@ -1,4 +1,5 @@
 import PublicLayout from '@/Layouts/PublicLayout';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { SVGProps } from 'react';
@@ -161,7 +162,7 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                             <div className="mt-4 flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400">
                                 <CalendarIcon className="h-4 w-4 shrink-0" />
                                 <span>
-                                    {a.opening_date} → {a.closing_date}
+                                    <LocalizedDateDisplay value={a.opening_date} /> → <LocalizedDateDisplay value={a.closing_date} />
                                 </span>
                             </div>
                         )}
@@ -231,7 +232,7 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                                 </a>
                             )}
                             <p className="text-xs text-gray-400 dark:text-slate-500">
-                                {t('transfers.closingOn')} {a.closing_date}
+                                {t('transfers.closingOn')} <LocalizedDateDisplay value={a.closing_date} />
                             </p>
                         </div>
                     ) : (

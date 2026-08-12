@@ -20,7 +20,7 @@ use App\Models\User;
 function ptaOrgType(): OrganizationType
 {
     return OrganizationType::query()->firstOrCreate(
-        ['code' => 'pta-dept'],
+        ['code' => 'PTA-DEPT'],
         ['name_en' => 'PTA Department'],
     );
 }

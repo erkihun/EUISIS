@@ -1,5 +1,5 @@
 import { Toaster } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePage } from '@inertiajs/react';
 import { toast } from '@/lib/toast';
 
@@ -22,10 +22,17 @@ export default function AppToaster() {
     const page = usePage();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const flash = (page.props as any).flash as FlashProps | undefined;
-    const url = page.url;
+    const lastFlash = useRef<FlashProps | undefined>(undefined);
 
+    // Keyed on the flash object itself, NOT the URL: Inertia hands out a fresh
+    // props object on every server response, so `flash` is a new reference per
+    // action even when it redirects back to the same page (back(), archive on
+    // an index, a wizard step, …). Keying on the URL swallowed exactly those
+    // messages. The ref guards against re-toasting the same response when the
+    // component re-renders for unrelated reasons.
     useEffect(() => {
-        if (!flash) return;
+        if (!flash || flash === lastFlash.current) return;
+        lastFlash.current = flash;
 
         if (flash.success)  toast.success(flash.success);
         if (flash.error)    toast.error(flash.error);
@@ -40,8 +47,7 @@ export default function AppToaster() {
             else if (type === 'warning')  toast.warning(flash.message);
             else                          toast.info(flash.message);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [url]);
+    }, [flash]);
 
     return (
         <Toaster

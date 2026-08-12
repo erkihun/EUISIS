@@ -39,7 +39,7 @@ export default function ReportShow({ report }: { report: ReportRun }) {
     return (
         <AuthenticatedLayout
             header={
-                <PageHeader backHref={route('reports.index')} title={report.report_number} />
+                <PageHeader backHref={route('cafeteria.reports.index')} title={report.report_number} />
             }
         >
             <Head title={report.report_number} />

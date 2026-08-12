@@ -16,6 +16,7 @@ import ProviderRanking from '@/Components/dashboard/ProviderRanking';
 import CardLifecycleFunnel from '@/Components/dashboard/CardLifecycleFunnel';
 import ProgressMetric from '@/Components/dashboard/ProgressMetric';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { useChartColors } from '@/hooks/useChartColors';
 
 interface KpiItem {
     key: string;
@@ -90,6 +91,8 @@ function keyLabel(t: (key: string) => string, prefix: string) {
 }
 
 function SimpleBarChart({ data, labelFor, emptyTitle }: { data: KeyValueDatum[]; labelFor: (key: string) => string; emptyTitle?: string }) {
+    const colors = useChartColors();
+
     if (data.length === 0) {
         return <EmptyDashboardState compact title={emptyTitle} />;
     }
@@ -97,20 +100,22 @@ function SimpleBarChart({ data, labelFor, emptyTitle }: { data: KeyValueDatum[];
     return (
         <ResponsiveContainer width="100%" height={260}>
             <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
                 <XAxis dataKey="key" tickFormatter={labelFor} tick={{ fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                 <Tooltip
                     formatter={(value, name) => [Number(value ?? 0), labelFor(String(name))]}
                     labelFormatter={(label) => labelFor(String(label))}
                 />
-                <Bar dataKey="value" fill="#2563eb" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="value" fill={colors.primary} radius={[8, 8, 0, 0]} />
             </BarChart>
         </ResponsiveContainer>
     );
 }
 
 function SimpleLineChart({ data, emptyTitle }: { data: LabelValueDatum[]; emptyTitle?: string }) {
+    const colors = useChartColors();
+
     if (data.length === 0) {
         return <EmptyDashboardState compact title={emptyTitle} />;
     }
@@ -118,11 +123,11 @@ function SimpleLineChart({ data, emptyTitle }: { data: LabelValueDatum[]; emptyT
     return (
         <ResponsiveContainer width="100%" height={260}>
             <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
+                <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#ea580c" strokeWidth={3} dot={false} />
+                <Line type="monotone" dataKey="value" stroke={colors.accent} strokeWidth={3} dot={false} />
             </LineChart>
         </ResponsiveContainer>
     );

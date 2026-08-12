@@ -1,5 +1,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 /** Safely decode Laravel pagination HTML entities without dangerouslySetInnerHTML. */
 function paginationLabel(label: string): string {
@@ -209,10 +210,10 @@ export default function HierarchyVersionsIndex({
                                             {version.approver?.name ?? '-'}
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400">
-                                            {version.approval_date ?? '-'}
+                                            <LocalizedDateDisplay value={version.approval_date} withTime />
                                         </td>
                                         <td className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400">
-                                            {version.effective_from ?? '-'}
+                                            <LocalizedDateDisplay value={version.effective_from} />
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <div className="flex flex-wrap justify-end gap-2">

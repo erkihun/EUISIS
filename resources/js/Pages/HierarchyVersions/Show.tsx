@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import HierarchyTreePreview from '@/Components/organizations/HierarchyTreePreview';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
@@ -146,7 +147,7 @@ export default function HierarchyVersionShow({
                                 {t('hierarchyVersions.effectiveFrom')}
                             </dt>
                             <dd className="mt-1 text-sm text-gray-800 dark:text-slate-200">
-                                {version.effective_from ?? '—'}
+                                <LocalizedDateDisplay value={version.effective_from} />
                             </dd>
                         </div>
                         <div>
@@ -154,7 +155,7 @@ export default function HierarchyVersionShow({
                                 {t('hierarchyVersions.effectiveTo')}
                             </dt>
                             <dd className="mt-1 text-sm text-gray-800 dark:text-slate-200">
-                                {version.effective_to ?? '—'}
+                                <LocalizedDateDisplay value={version.effective_to} />
                             </dd>
                         </div>
                         <div>

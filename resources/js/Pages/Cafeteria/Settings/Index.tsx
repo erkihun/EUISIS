@@ -782,8 +782,6 @@ export default function CafeteriaSettingsIndex({
                                             { label: t('cafeteria.branches'), value: viewingAssignment.branch ? `${viewingAssignment.branch.name_en} · ${viewingAssignment.branch.code}` : '—' },
                                             { label: t('common.organization'), value: viewingAssignment.organization ? `${viewingAssignment.organization.name_en} · ${viewingAssignment.organization.code}` : t('common.allOrganizations') },
                                             { label: t('cafeteria.providerRole'), value: viewingAssignment.provider_role ?? 'operator' },
-                                            { label: t('common.effectiveFrom'), value: viewingAssignment.effective_from ?? '—' },
-                                            { label: t('common.effectiveTo'), value: viewingAssignment.effective_to ?? '—' },
                                             { label: t('common.active'), value: viewingAssignment.is_active ? t('common.yes') : t('common.no') },
                                         ].map(({ label, value }) => (
                                             <div key={label}>
@@ -791,6 +789,22 @@ export default function CafeteriaSettingsIndex({
                                                 <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-100">{value}</dd>
                                             </div>
                                         ))}
+                                        <div>
+                                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.effectiveFrom')}</dt>
+                                            <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-100">
+                                                {viewingAssignment.effective_from
+                                                    ? <LocalizedDateDisplay value={viewingAssignment.effective_from} />
+                                                    : '—'}
+                                            </dd>
+                                        </div>
+                                        <div>
+                                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.effectiveTo')}</dt>
+                                            <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-100">
+                                                {viewingAssignment.effective_to
+                                                    ? <LocalizedDateDisplay value={viewingAssignment.effective_to} />
+                                                    : '—'}
+                                            </dd>
+                                        </div>
                                     </dl>
                                     <div className="flex justify-end">
                                         <button type="button" onClick={() => setViewingAssignment(null)} className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">

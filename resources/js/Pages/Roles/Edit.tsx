@@ -33,6 +33,7 @@ function PermissionGroup({
     onToggle,
     locale,
     t,
+    disabled,
 }: {
     group: string;
     permissions: PermissionEntry[];
@@ -40,10 +41,14 @@ function PermissionGroup({
     onToggle: (name: string) => void;
     locale: string;
     t: (key: string) => string;
+    disabled: boolean;
 }) {
     const allSelected = permissions.every((p) => selected.includes(p.name));
 
     function toggleAll() {
+        if (disabled) {
+            return;
+        }
         if (allSelected) {
             permissions.forEach((p) => selected.includes(p.name) && onToggle(p.name));
         } else {
@@ -71,7 +76,8 @@ function PermissionGroup({
                 <button
                     type="button"
                     onClick={toggleAll}
-                    className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                    disabled={disabled}
+                    className="text-xs text-blue-600 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline dark:text-blue-400 dark:disabled:text-slate-600"
                 >
                     {allSelected ? t('permissions.clearGroup') : t('permissions.selectAllInGroup')}
                 </button>
@@ -80,12 +86,14 @@ function PermissionGroup({
                 {permissions.map((perm) => (
                     <label
                         key={perm.name}
-                        className="flex cursor-pointer items-start gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800"
+                        className="flex items-start gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-50 aria-disabled:cursor-not-allowed aria-disabled:opacity-60 aria-disabled:hover:bg-transparent dark:hover:bg-slate-800"
+                        aria-disabled={disabled}
                     >
                         <input
                             type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600"
+                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed dark:border-slate-600"
                             checked={selected.includes(perm.name)}
+                            disabled={disabled}
                             onChange={() => onToggle(perm.name)}
                         />
                         <div className="min-w-0">
@@ -117,9 +125,11 @@ function PermissionGroup({
 export default function EditRole({
     role,
     permissions,
+    can,
 }: {
     role: RoleData;
     permissions: Record<string, PermissionEntry[]>;
+    can: { assignPermissions: boolean };
 }) {
     const { t, locale } = useLocale();
     const [search, setSearch] = useState('');
@@ -130,6 +140,9 @@ export default function EditRole({
     });
 
     function togglePermission(name: string) {
+        if (!can.assignPermissions) {
+            return;
+        }
         const current = form.data.permissions;
         form.setData(
             'permissions',
@@ -207,6 +220,11 @@ export default function EditRole({
                                 className="w-64 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
                             />
                         </div>
+                        {!can.assignPermissions && (
+                            <p className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+                                {t('roles.cannotAssignPermissionsNotice')}
+                            </p>
+                        )}
                         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                             {Object.entries(filteredPermissions).map(([group, perms]) => (
                                 <PermissionGroup
@@ -217,6 +235,7 @@ export default function EditRole({
                                     onToggle={togglePermission}
                                     locale={locale}
                                     t={t}
+                                    disabled={!can.assignPermissions}
                                 />
                             ))}
                         </div>

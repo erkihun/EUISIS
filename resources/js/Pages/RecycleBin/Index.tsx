@@ -8,6 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { toast } from '@/lib/toast';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 type RecycleBinRecord = {
     type: string;
@@ -149,7 +150,9 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                                             <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">{record.display_name}</td>
                                             <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-slate-300">{record.code ?? '-'}</td>
                                             <td className="px-4 py-3 text-gray-600 dark:text-slate-300">{record.deleted_by?.name ?? '-'}</td>
-                                            <td className="px-4 py-3 text-gray-600 dark:text-slate-300">{record.deleted_at ? new Date(record.deleted_at).toLocaleString() : '-'}</td>
+                                            <td className="px-4 py-3 text-gray-600 dark:text-slate-300">
+                                                {record.deleted_at ? <LocalizedDateDisplay value={record.deleted_at} withTime /> : '-'}
+                                            </td>
                                             <td className="max-w-xs truncate px-4 py-3 text-gray-600 dark:text-slate-300">{record.deletion_reason ?? '-'}</td>
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex items-center justify-end gap-2">

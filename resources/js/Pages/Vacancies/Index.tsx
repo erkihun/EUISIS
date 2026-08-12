@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 type Announcement = {
     id: string;
@@ -132,7 +133,11 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-gray-500 dark:text-slate-400">{announcement.application_closes_at ?? '-'}</span>
+                                                <span className="text-gray-500 dark:text-slate-400">
+                                                    {announcement.application_closes_at
+                                                        ? <LocalizedDateDisplay value={announcement.application_closes_at} />
+                                                        : '-'}
+                                                </span>
                                                 {announcement.status === 'published' && (
                                                     <DeadlineBadge closesAt={announcement.application_closes_at} t={t as never} />
                                                 )}

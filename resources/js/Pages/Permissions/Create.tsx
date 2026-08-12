@@ -51,6 +51,9 @@ export default function CreatePermission({ groups }: { groups: string[] }) {
             <div className="mx-auto max-w-2xl">
                 <form onSubmit={submit} className="space-y-5">
                     <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                        <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                            {t('permissions.basicInformation')}
+                        </h2>
                         <div className="space-y-4">
                             <div>
                                 <label className={labelCls}>{t('permissions.permissionKey')}</label>
@@ -128,40 +131,46 @@ export default function CreatePermission({ groups }: { groups: string[] }) {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className={labelCls}>{t('permissions.permissionGroup')}</label>
-                                    <div className="mt-1">
-                                        <input
-                                            list="group-suggestions"
-                                            className={inputCls}
-                                            value={form.data.group}
-                                            onChange={(e) => form.setData('group', e.target.value)}
-                                            placeholder="e.g. organizations"
-                                        />
-                                        <datalist id="group-suggestions">
-                                            {groups.map((g) => <option key={g} value={g} />)}
-                                        </datalist>
-                                    </div>
-                                    {form.errors.group && (
-                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.group}</p>
-                                    )}
+                        </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                        <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                            {t('permissions.classification')}
+                        </h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelCls}>{t('permissions.permissionGroup')}</label>
+                                <div className="mt-1">
+                                    <input
+                                        list="group-suggestions"
+                                        className={inputCls}
+                                        value={form.data.group}
+                                        onChange={(e) => form.setData('group', e.target.value)}
+                                        placeholder="e.g. organizations"
+                                    />
+                                    <datalist id="group-suggestions">
+                                        {groups.map((g) => <option key={g} value={g} />)}
+                                    </datalist>
                                 </div>
-                                <div>
-                                    <label className={labelCls}>{t('permissions.sortOrder')}</label>
-                                    <div className="mt-1">
-                                        <input
-                                            type="number"
-                                            className={inputCls}
-                                            value={form.data.sort_order}
-                                            onChange={(e) => form.setData('sort_order', e.target.value)}
-                                            placeholder="0"
-                                        />
-                                    </div>
-                                    {form.errors.sort_order && (
-                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.sort_order}</p>
-                                    )}
+                                {form.errors.group && (
+                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.group}</p>
+                                )}
+                            </div>
+                            <div>
+                                <label className={labelCls}>{t('permissions.sortOrder')}</label>
+                                <div className="mt-1">
+                                    <input
+                                        type="number"
+                                        className={inputCls}
+                                        value={form.data.sort_order}
+                                        onChange={(e) => form.setData('sort_order', e.target.value)}
+                                        placeholder="0"
+                                    />
                                 </div>
+                                {form.errors.sort_order && (
+                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.sort_order}</p>
+                                )}
                             </div>
                         </div>
                     </div>

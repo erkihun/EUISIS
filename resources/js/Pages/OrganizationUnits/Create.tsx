@@ -46,7 +46,7 @@ export default function OrganizationUnitsCreate({
     unitTypes,
     statusOptions,
 }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { data, setData, post, processing, errors } = useForm({
         organization_id: selectedOrg?.id ?? '',
         parent_unit_id: null as string | null,
@@ -71,6 +71,20 @@ export default function OrganizationUnitsCreate({
     const backUrl = data.organization_id
         ? route('organization-units.index', { organization_id: data.organization_id })
         : route('organization-units.index');
+
+    const localizedName = (item: { name_en?: string | null; name_am?: string | null; code?: string | null }): string => {
+        const primary = locale === 'am' ? item.name_am : item.name_en;
+        const fallback = locale === 'am' ? item.name_en : item.name_am;
+
+        return primary || fallback || item.code || '';
+    };
+
+    const localizedStatus = (value: string, fallback: string): string => {
+        const key = `common.${value}`;
+        const label = t(key);
+
+        return label === key ? fallback : label;
+    };
 
     return (
         <AuthenticatedLayout
@@ -97,7 +111,7 @@ export default function OrganizationUnitsCreate({
                             {selectedOrg ? (
                                 <>
                                     <div className={`${inputCls} bg-gray-50 text-gray-600 dark:bg-slate-800 dark:text-slate-400`}>
-                                        {selectedOrg.name_en}{' '}
+                                        {localizedName(selectedOrg)}{' '}
                                         <span className="font-mono text-xs text-gray-400">({selectedOrg.code})</span>
                                     </div>
                                     <input type="hidden" name="organization_id" value={selectedOrg.id} />
@@ -114,7 +128,7 @@ export default function OrganizationUnitsCreate({
                                     <option value="">{t('organizationUnits.selectOrganization')}</option>
                                     {organizations.map((o) => (
                                         <option key={o.id} value={o.id}>
-                                            {o.name_en}
+                                            {localizedName(o)}
                                         </option>
                                     ))}
                                 </select>
@@ -138,7 +152,7 @@ export default function OrganizationUnitsCreate({
                                     <option value="">{t('organizationUnitTypes.selectUnitType')}</option>
                                     {unitTypes.map((ut) => (
                                         <option key={ut.id} value={ut.id}>
-                                            {ut.name_en}
+                                            {localizedName(ut)}
                                         </option>
                                     ))}
                                 </select>
@@ -146,7 +160,7 @@ export default function OrganizationUnitsCreate({
                             <InputError message={errors.organization_unit_type_id} />
                         </div>
 
-                        {/* Parent Unit — optional */}
+                        {/* Parent Unit - optional */}
                         <div className="md:col-span-2">
                             <InputLabel value={t('organizationUnits.parentUnitOptional')} />
                             {data.organization_id ? (
@@ -161,7 +175,7 @@ export default function OrganizationUnitsCreate({
                                         <option value="">{t('organizationUnits.noParentUnit')}</option>
                                         {parentUnits.map((pu) => (
                                             <option key={pu.id} value={pu.id}>
-                                                {'—'.repeat(pu.depth)} {pu.name_en} ({pu.code})
+                                                {'-'.repeat(pu.depth)} {localizedName(pu)} ({pu.code})
                                             </option>
                                         ))}
                                     </select>
@@ -229,7 +243,7 @@ export default function OrganizationUnitsCreate({
                             >
                                 {statusOptions.map((opt) => (
                                     <option key={opt.value} value={opt.value}>
-                                        {opt.label}
+                                        {localizedStatus(opt.value, opt.label)}
                                     </option>
                                 ))}
                             </select>

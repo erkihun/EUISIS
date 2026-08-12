@@ -43,7 +43,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
         <AuthenticatedLayout
             header={
                 <PageHeader
-                    backHref={route('employee-exclusions.index')}
+                    backHref={route('cafeteria.employee-exclusions.index')}
                     title={t('cafeteria.employeeExclusion')}
                     actions={
                         <div className="flex gap-2">

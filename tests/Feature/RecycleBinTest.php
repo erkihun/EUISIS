@@ -83,7 +83,7 @@ it('lists deleted records and restores them', function (): void {
 it('has recycle bin localization files', function (): void {
     expect(file_exists(resource_path('js/i18n/en/recycleBin.ts')))->toBeTrue()
         ->and(file_exists(resource_path('js/i18n/am/recycleBin.ts')))->toBeTrue()
-        ->and(trans('recycle-bin.deleted_successfully', [], 'en'))->toBe('Record deleted successfully.');
+        ->and(trans('recycle-bin.deleted_successfully', [], 'en'))->toBe('Record permanently deleted.');
 });
 
 it('does not fail audit logging when an organization reference is stale', function (): void {

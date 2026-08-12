@@ -35,6 +35,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | MFA: privileged roles (legacy mapping)
+    |--------------------------------------------------------------------------
+    |
+    | Role names treated as "privileged/admin" when the legacy
+    | security.require_mfa_for_admins system setting is still true. Used only
+    | for backward compatibility until administrators save the new role-based
+    | MFA settings (security.mfa_required_role_ids).
+    |
+    */
+
+    'mfa_privileged_roles' => array_values(array_filter(array_map(
+        'trim',
+        explode(',', (string) env('MFA_PRIVILEGED_ROLES', 'Super Admin,City Admin,Organization Admin'))
+    ))),
+
+    /*
+    |--------------------------------------------------------------------------
     | MFA: enforcement switch
     |--------------------------------------------------------------------------
     |

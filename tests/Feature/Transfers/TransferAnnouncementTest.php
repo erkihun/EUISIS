@@ -19,7 +19,7 @@ use Spatie\Permission\Models\Permission;
 
 function taOrg(string $code): Organization
 {
-    $type = OrganizationType::query()->firstOrCreate(['code' => 'ta-dept'], ['name_en' => 'TA Department']);
+    $type = OrganizationType::query()->firstOrCreate(['code' => 'TA-DEPT'], ['name_en' => 'TA Department']);
 
     return Organization::query()->create([
         'organization_type_id' => $type->id,

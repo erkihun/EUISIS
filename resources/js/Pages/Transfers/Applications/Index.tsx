@@ -1,5 +1,6 @@
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
@@ -84,7 +85,7 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
                                     <td className="px-4 py-3 text-gray-500 dark:text-slate-400">
                                         {(useAmharic ? app.receivingOrganization?.name_am : null) ?? app.receivingOrganization?.name_en ?? '-'}
                                     </td>
-                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{app.submitted_at?.slice(0, 10) ?? '-'}</td>
+                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={app.submitted_at} fallback="-" /></td>
                                     <td className="px-4 py-3"><StatusBadge status={app.status} /></td>
                                 </tr>
                             ))}

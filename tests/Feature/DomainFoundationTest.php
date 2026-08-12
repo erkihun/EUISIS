@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Employees\RegisterEmployeeAction;
 use App\Actions\Entitlements\GrantEntitlementAction;
+use App\Actions\IdCards\ActivateCardAction;
 use App\Actions\IdCards\ApproveCardRequestAction;
 use App\Actions\IdCards\CreatePrintBatchAction;
 use App\Actions\IdCards\GenerateCardTokenAction;
@@ -311,6 +312,7 @@ it('enforces card approval, print, issue, token privacy, replacement, and verifi
 
     $card->update(['status' => CardStatus::Printed]);
     $issued = app(IssueCardAction::class)->execute($card->fresh(), $actor, 'Recipient');
+    $issued = app(ActivateCardAction::class)->execute($issued->fresh(), $actor);
     $rawToken = app(GenerateCardTokenAction::class)->execute($issued);
     $token = $issued->id.'|'.$rawToken;
 
@@ -370,6 +372,7 @@ it('records service transactions, audits them, and returns minimal provider api 
     $card = app(CreatePrintBatchAction::class)->execute($request->fresh(), $actor);
     $card->update(['status' => CardStatus::Printed]);
     $issued = app(IssueCardAction::class)->execute($card->fresh(), $actor);
+    $issued = app(ActivateCardAction::class)->execute($issued->fresh(), $actor);
     $rawToken = app(GenerateCardTokenAction::class)->execute($issued);
     $token = $issued->id.'|'.$rawToken;
 

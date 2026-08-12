@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
@@ -186,7 +187,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                             <p className={`mt-1.5 text-lg font-bold capitalize ${CARD_COLOR[id_card.status] ?? 'text-gray-900 dark:text-slate-100'}`}>
                                 {id_card.status.replace(/_/g, ' ')}
                             </p>
-                            <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{id_card.expires_at ? `Exp. ${id_card.expires_at}` : id_card.card_number ?? '—'}</p>
+                            <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{id_card.expires_at ? <><span>Exp. </span><LocalizedDateDisplay value={id_card.expires_at} /></> : id_card.card_number ?? '—'}</p>
                         </>
                     ) : (
                         <p className="mt-1.5 text-sm text-gray-400 dark:text-slate-500">No card</p>
@@ -287,7 +288,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                                 className="text-sm font-medium text-gray-900 hover:text-[var(--color-primary,#2563eb)] dark:text-slate-100">
                                                 {app.position ?? '—'}
                                             </Link>
-                                            <p className="truncate text-xs text-gray-400 dark:text-slate-500">{app.organization}{app.submitted_at && ` · ${app.submitted_at}`}</p>
+                                            <p className="truncate text-xs text-gray-400 dark:text-slate-500">{app.organization}{app.submitted_at && <> · <LocalizedDateDisplay value={app.submitted_at} /></>}</p>
                                         </div>
                                         <StatusPill status={app.status} label={app.status_label} />
                                     </div>
@@ -312,7 +313,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                             <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                                                 {a.vacancies} open
                                             </span>
-                                            {a.closing_date && <p className="mt-0.5 text-[10px] text-gray-400">Closes {a.closing_date}</p>}
+                                            {a.closing_date && <p className="mt-0.5 text-[10px] text-gray-400">Closes <LocalizedDateDisplay value={a.closing_date} /></p>}
                                         </div>
                                     </Link>
                                 ))}
@@ -384,7 +385,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                 <p className="mt-3 font-mono text-sm opacity-80">{id_card.card_number ?? '——————'}</p>
                                 <div className="mt-2 flex items-end justify-between">
                                     <p className="text-xs capitalize opacity-70">{id_card.status.replace(/_/g, ' ')}</p>
-                                    {id_card.expires_at && <p className="text-xs opacity-70">Exp. {id_card.expires_at}</p>}
+                                    {id_card.expires_at && <p className="text-xs opacity-70">Exp. <LocalizedDateDisplay value={id_card.expires_at} /></p>}
                                 </div>
                             </div>
                         ) : (
@@ -415,7 +416,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                                 </div>
                                             </div>
                                         )}
-                                        {e.effective_to && <p className="mt-1 text-[10px] text-gray-400">Until {e.effective_to}</p>}
+                                        {e.effective_to && <p className="mt-1 text-[10px] text-gray-400">Until <LocalizedDateDisplay value={e.effective_to} /></p>}
                                     </div>
                                 ))}
                             </div>

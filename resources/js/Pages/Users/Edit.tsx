@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import FormSection from '@/Components/FormSection';
 import UserAvatar from '@/Components/UserAvatar';
 import OrganizationScopesCard from '@/Components/Users/OrganizationScopesCard';
 import { useLocale } from '@/hooks/useLocale';
@@ -18,7 +19,14 @@ type OrganizationScope = {
     is_active: boolean;
 };
 
-type OrgOption = { id: string; name_en: string; name_am?: string };
+type OrgOption = {
+    id: string;
+    code?: string | null;
+    name_en: string;
+    name_am?: string | null;
+    status?: string;
+    type?: { name_en: string; name_am?: string | null } | null;
+};
 
 const inputCls =
     'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
@@ -28,13 +36,15 @@ function Field({
     label,
     error,
     children,
+    className,
 }: {
     label: string;
     error?: string;
     children: React.ReactNode;
+    className?: string;
 }) {
     return (
-        <div>
+        <div className={className}>
             <label className={labelCls}>{label}</label>
             <div className="mt-1">{children}</div>
             {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
@@ -159,6 +169,7 @@ export default function EditUser({
         <AuthenticatedLayout
             header={
                 <PageHeader
+                    backHref={route('users.index')}
                     title={t('users.editTitle')}
                     description={`${t('users.editPrefix')} ${user.name}`}
                 />
@@ -166,23 +177,22 @@ export default function EditUser({
         >
             <Head title={t('users.editTitle')} />
 
-            <div className="mx-auto max-w-2xl">
+            {/* Two columns: profile form on the left, organization scopes on the right. */}
+            <div className="grid w-full items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                 <form
                     id="user-edit-form"
                     onSubmit={submit}
                     className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
                 >
-                    <div className="space-y-4">
-
-                        {/* Profile Photo */}
-                        <div>
-                            <p className={labelCls}>{t('users.profilePhoto')}</p>
-                            <div className="mt-2 flex items-center gap-4">
-                                <UserAvatar
-                                    src={currentPhoto}
-                                    name={form.data.name || user.name}
-                                    size={56}
-                                />
+                    <div className="space-y-6">
+                        {/* ── Profile ───────────────────────────────────── */}
+                        <FormSection
+                            title={t('users.sectionProfile')}
+                            description={t('users.sectionProfileHelp')}
+                            grid={false}
+                        >
+                            <div className="flex items-center gap-4">
+                                <UserAvatar src={currentPhoto} name={form.data.name || user.name} size={56} />
                                 <div className="flex flex-col gap-1.5">
                                     <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">
                                         {user.profile_photo_url ? t('users.changePhoto') : t('users.uploadPhoto')}
@@ -197,7 +207,7 @@ export default function EditUser({
                                         <button
                                             type="button"
                                             onClick={removePhoto}
-                                            className="text-xs text-red-500 hover:text-red-700 dark:text-red-400"
+                                            className="text-left text-xs text-red-500 hover:text-red-700 dark:text-red-400"
                                         >
                                             {t('common.remove')}
                                         </button>
@@ -205,21 +215,23 @@ export default function EditUser({
                                 </div>
                             </div>
                             {form.errors.profile_photo && (
-                                <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                                    {form.errors.profile_photo}
-                                </p>
+                                <p className="text-xs text-red-600 dark:text-red-400">{form.errors.profile_photo}</p>
                             )}
-                        </div>
 
-                        <Field label={t('users.name')} error={form.errors.name}>
-                            <input
-                                className={inputCls}
-                                value={form.data.name}
-                                onChange={(e) => form.setData('name', e.target.value)}
-                            />
-                        </Field>
+                            <Field label={t('users.name')} error={form.errors.name}>
+                                <input
+                                    className={inputCls}
+                                    value={form.data.name}
+                                    onChange={(e) => form.setData('name', e.target.value)}
+                                />
+                            </Field>
+                        </FormSection>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        {/* ── Account Access ────────────────────────────── */}
+                        <FormSection
+                            title={t('users.sectionAccount')}
+                            description={t('users.sectionAccountHelp')}
+                        >
                             <Field label={t('users.email')} error={form.errors.email}>
                                 <input
                                     type="email"
@@ -228,6 +240,7 @@ export default function EditUser({
                                     onChange={(e) => form.setData('email', e.target.value)}
                                 />
                             </Field>
+
                             <Field label={t('users.status')} error={form.errors.status}>
                                 <select
                                     className={inputCls}
@@ -238,41 +251,43 @@ export default function EditUser({
                                     <option value="inactive">{t('users.inactive')}</option>
                                 </select>
                             </Field>
-                        </div>
 
-                        <div className="rounded-lg border border-gray-100 p-3 dark:border-slate-800">
-                            <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
-                                {t('users.changePasswordNote')}
-                            </p>
-                            <div className="mt-2 grid grid-cols-2 gap-4">
-                                <Field label={t('users.newPassword')} error={form.errors.password}>
-                                    <input
-                                        type="password"
-                                        className={inputCls}
-                                        placeholder={t('users.newPasswordPlaceholder')}
-                                        value={form.data.password}
-                                        onChange={(e) => form.setData('password', e.target.value)}
-                                    />
-                                </Field>
-                                <Field
-                                    label={t('users.confirmNewPassword')}
-                                    error={form.errors.password_confirmation}
-                                >
-                                    <input
-                                        type="password"
-                                        className={inputCls}
-                                        placeholder={t('users.repeatNewPasswordPlaceholder')}
-                                        value={form.data.password_confirmation}
-                                        onChange={(e) =>
-                                            form.setData('password_confirmation', e.target.value)
-                                        }
-                                    />
-                                </Field>
+                            {/* Password is optional on edit — leaving it blank keeps the current one. */}
+                            <div className="rounded-lg border border-gray-100 p-3 md:col-span-2 dark:border-slate-800">
+                                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                                    {t('users.changePasswordNote')}
+                                </p>
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <Field label={t('users.newPassword')} error={form.errors.password}>
+                                        <input
+                                            type="password"
+                                            className={inputCls}
+                                            placeholder={t('users.newPasswordPlaceholder')}
+                                            value={form.data.password}
+                                            onChange={(e) => form.setData('password', e.target.value)}
+                                        />
+                                    </Field>
+                                    <Field
+                                        label={t('users.confirmNewPassword')}
+                                        error={form.errors.password_confirmation}
+                                    >
+                                        <input
+                                            type="password"
+                                            className={inputCls}
+                                            placeholder={t('users.repeatNewPasswordPlaceholder')}
+                                            value={form.data.password_confirmation}
+                                            onChange={(e) => form.setData('password_confirmation', e.target.value)}
+                                        />
+                                    </Field>
+                                </div>
                             </div>
-                        </div>
+                        </FormSection>
 
-                        {/* National ID + Phone */}
-                        <div className="grid grid-cols-2 gap-4">
+                        {/* ── Personal Details ──────────────────────────── */}
+                        <FormSection
+                            title={t('users.sectionPersonal')}
+                            description={t('users.sectionPersonalHelp')}
+                        >
                             <Field label={t('users.nationalId')} error={form.errors.national_id}>
                                 <input
                                     className={inputCls}
@@ -286,6 +301,7 @@ export default function EditUser({
                                     }}
                                 />
                             </Field>
+
                             <Field label={t('users.phoneNumber')} error={form.errors.phone_number}>
                                 <div className="flex">
                                     <span className="inline-flex items-center rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
@@ -303,27 +319,34 @@ export default function EditUser({
                                     />
                                 </div>
                             </Field>
-                        </div>
 
-                        {/* Gender */}
-                        <Field label={t('users.gender')} error={form.errors.gender}>
-                            <select
-                                className={inputCls}
-                                value={form.data.gender}
-                                onChange={(e) => form.setData('gender', e.target.value)}
-                            >
-                                {genderOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </Field>
+                            <Field label={t('users.gender')} error={form.errors.gender}>
+                                <select
+                                    className={inputCls}
+                                    value={form.data.gender}
+                                    onChange={(e) => form.setData('gender', e.target.value)}
+                                >
+                                    {genderOptions.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </Field>
+                        </FormSection>
 
-                        {roles.length > 0 && (
-                            <div>
-                                <p className={labelCls}>{t('users.roles')}</p>
-                                <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {/* ── Roles ─────────────────────────────────────── */}
+                        <FormSection
+                            title={t('users.sectionRoles')}
+                            description={t('users.sectionRolesHelp')}
+                            grid={false}
+                        >
+                            {roles.length === 0 ? (
+                                <p className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
+                                    {t('users.noRoles')}
+                                </p>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                                     {roles.map((role) => (
                                         <label
                                             key={role.id}
@@ -341,16 +364,15 @@ export default function EditUser({
                                         </label>
                                     ))}
                                 </div>
-                                {form.errors.roles && (
-                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                                        {form.errors.roles}
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                            )}
+                            {form.errors.roles && (
+                                <p className="text-xs text-red-600 dark:text-red-400">{form.errors.roles}</p>
+                            )}
+                        </FormSection>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
+                    {/* Sticky action bar */}
+                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
                         {/* Self-edit guard: hide deactivate for own account */}
                         {isSelf && (
                             <p className="mr-auto text-xs text-amber-600 dark:text-amber-400">

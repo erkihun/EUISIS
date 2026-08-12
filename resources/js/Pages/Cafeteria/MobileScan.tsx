@@ -13,6 +13,7 @@ type Provider = {
 
 type ScanResult = {
     allowed: boolean; is_extra_scan: boolean; denial_reason: string | null;
+    denial_message?: string | null; card_status?: string | null;
     employee: { full_name: string; employee_number: string; photo_url: string | null; position: string | null; organization: string | null } | null;
     card_number: string | null; subsidy_applied: number | null; employee_payable: number | null;
     remaining_after: number | null; usage_mode: string | null; duplicate?: boolean;
@@ -217,7 +218,7 @@ export default function MobileScan({
     }
 
     const denialMessage = scan_result && !scan_result.allowed
-        ? (() => {
+        ? scan_result.denial_message ?? (() => {
             const key = DENIAL_REASON_KEY[scan_result.denial_reason ?? ''];
             return key ? t(`cafeteria.${key}`) : scan_result.denial_reason ?? '';
         })()

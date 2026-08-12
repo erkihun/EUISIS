@@ -38,7 +38,7 @@ beforeEach(function (): void {
 function makeTestOrgForAnnouncement(): Organization
 {
     $orgType = OrganizationType::query()->firstOrCreate(
-        ['code' => 'test-type-ann'],
+        ['code' => 'TEST-TYPE-ANN'],
         ['name_en' => 'Test Type', 'is_active' => true],
     );
 

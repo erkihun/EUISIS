@@ -7,6 +7,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import OrganizationTreePreview from '@/Components/organization-units/OrganizationTreePreview';
 import { AlertTriangle, Building2, Plus, Users } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary, OrganizationTreeNode } from '@/types/organizationUnit';
 
 type PositionOption = {
@@ -28,10 +29,17 @@ type EmployeeRow = {
     status: string;
     duplicate_flags_count?: number;
     current_assignment?: {
-        organization?: { name_en: string } | null;
-        organization_unit?: { code: string | null; name_en: string } | null;
-        position?: { title_en: string } | null;
+        organization?: { name_en: string; name_am?: string | null } | null;
+        organization_unit?: { code: string | null; name_en: string; name_am?: string | null } | null;
+        position?: { title_en: string; title_am?: string | null } | null;
     } | null;
+};
+
+type EmployeesPagination = {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
 };
 
 interface Props {
@@ -41,6 +49,7 @@ interface Props {
     positions: PositionOption[];
     selectedPosition: PositionOption | null;
     employees: EmployeeRow[];
+    employees_pagination?: EmployeesPagination;
     filters: { search?: string; status?: string; organization_id?: string; position_id?: string };
     can: { create: boolean };
 }
@@ -52,10 +61,19 @@ export default function EmployeesIndex({
     positions,
     selectedPosition,
     employees,
+    employees_pagination,
     filters,
     can,
 }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
+
+    /** Localized status label, falling back to StatusBadge's own default when a key is missing. */
+    function statusLabel(namespace: 'employees' | 'common', status: string): string | undefined {
+        const key = `${namespace}.${status}`;
+        const translated = t(key);
+        return translated === key ? undefined : translated;
+    }
+
     const [localSelected, setLocalSelected] = useState<OrganizationSummary | null>(
         selectedOrganization ?? null,
     );
@@ -145,19 +163,21 @@ export default function EmployeesIndex({
                                         />
                                     ) : (
                                         <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                                            {displayOrg.name_en.charAt(0).toUpperCase()}
+                                            {localizedName(displayOrg.name_en, displayOrg.name_am, locale).charAt(0).toUpperCase()}
                                         </span>
                                     )}
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-1.5">
                                             <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                                {displayOrg.name_en}
+                                                {localizedName(displayOrg.name_en, displayOrg.name_am, locale)}
                                             </h2>
-                                            <StatusBadge status={displayOrg.status} />
+                                            <StatusBadge status={displayOrg.status} label={statusLabel('common', displayOrg.status)} />
                                         </div>
                                         <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
                                             <span className="font-mono">{displayOrg.code}</span>
-                                            {displayOrg.type && <span>{displayOrg.type.name_en}</span>}
+                                            {displayOrg.type && (
+                                                <span>{localizedName(displayOrg.type.name_en, displayOrg.type.name_am, locale)}</span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -203,7 +223,7 @@ export default function EmployeesIndex({
                                                         }`}
                                                     >
                                                         <span className="block truncate text-sm font-medium text-gray-900 dark:text-slate-100">
-                                                            {position.title_en}
+                                                            {localizedName(position.title_en, position.title_am, locale)}
                                                         </span>
                                                         <span className="mt-0.5 block truncate font-mono text-xs text-gray-400 dark:text-slate-500">
                                                             {position.job_position_code ?? t('employees.notAvailable')}
@@ -235,7 +255,9 @@ export default function EmployeesIndex({
                                         {selectedPosition ? t('employees.selectedPosition') : t('employees.selectedOrganization')}
                                     </p>
                                     <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                        {selectedPosition?.title_en ?? displayOrg.name_en}
+                                        {selectedPosition
+                                            ? localizedName(selectedPosition.title_en, selectedPosition.title_am, locale)
+                                            : localizedName(displayOrg.name_en, displayOrg.name_am, locale)}
                                     </p>
                                 </div>
                                 {can.create && (
@@ -346,21 +368,42 @@ export default function EmployeesIndex({
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3">
-                                                            <StatusBadge status={employee.status} />
+                                                            <StatusBadge
+                                                                status={employee.status}
+                                                                label={statusLabel('employees', employee.status)}
+                                                            />
                                                         </td>
                                                         <td className="px-4 py-3 text-gray-500 dark:text-slate-400">
                                                             <div>
-                                                                <p>{employee.current_assignment?.organization?.name_en ?? t('common.unassigned')}</p>
+                                                                <p>
+                                                                    {employee.current_assignment?.organization
+                                                                        ? localizedName(
+                                                                            employee.current_assignment.organization.name_en,
+                                                                            employee.current_assignment.organization.name_am,
+                                                                            locale,
+                                                                        )
+                                                                        : t('common.unassigned')}
+                                                                </p>
                                                                 {employee.current_assignment?.organization_unit ? (
                                                                     <p className="text-xs text-gray-400 dark:text-slate-500">
-                                                                        {employee.current_assignment.organization_unit.code ? `${employee.current_assignment.organization_unit.code} - ` : ''}
-                                                                        {employee.current_assignment.organization_unit.name_en}
+                                                                        {employee.current_assignment.organization_unit.code ? `${employee.current_assignment.organization_unit.code} — ` : ''}
+                                                                        {localizedName(
+                                                                            employee.current_assignment.organization_unit.name_en,
+                                                                            employee.current_assignment.organization_unit.name_am,
+                                                                            locale,
+                                                                        )}
                                                                     </p>
                                                                 ) : null}
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-gray-500 dark:text-slate-400">
-                                                            {employee.current_assignment?.position?.title_en ?? t('employees.notAvailable')}
+                                                            {employee.current_assignment?.position
+                                                                ? localizedName(
+                                                                    employee.current_assignment.position.title_en,
+                                                                    employee.current_assignment.position.title_am,
+                                                                    locale,
+                                                                )
+                                                                : t('employees.notAvailable')}
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             {(employee.duplicate_flags_count ?? 0) > 0 ? (
@@ -392,6 +435,41 @@ export default function EmployeesIndex({
                                                 ))}
                                             </tbody>
                                         </table>
+                                    </div>
+                                )}
+                                {employees_pagination && employees_pagination.last_page > 1 && (
+                                    <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3 dark:border-slate-800">
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                            {t('common.page')} {employees_pagination.current_page} / {employees_pagination.last_page}
+                                            {' · '}
+                                            {employees_pagination.total} {t('common.results')}
+                                        </p>
+                                        <div className="flex gap-2">
+                                            {employees_pagination.current_page > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => router.get(route('employees.index'), {
+                                                        ...filters,
+                                                        page: employees_pagination.current_page - 1,
+                                                    }, { preserveState: true, preserveScroll: true })}
+                                                    className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 hover:border-blue-300 dark:border-slate-700 dark:text-slate-300"
+                                                >
+                                                    {t('common.previous')}
+                                                </button>
+                                            )}
+                                            {employees_pagination.current_page < employees_pagination.last_page && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => router.get(route('employees.index'), {
+                                                        ...filters,
+                                                        page: employees_pagination.current_page + 1,
+                                                    }, { preserveState: true, preserveScroll: true })}
+                                                    className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 hover:border-blue-300 dark:border-slate-700 dark:text-slate-300"
+                                                >
+                                                    {t('common.next')}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </section>

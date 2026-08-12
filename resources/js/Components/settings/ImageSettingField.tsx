@@ -9,6 +9,7 @@ type Props = {
     configured: boolean;
     error?: string;
     disabled?: boolean;
+    accept?: string;
     onChange: (file: File | null) => void;
 };
 
@@ -19,6 +20,7 @@ export default function ImageSettingField({
     configured,
     error,
     disabled = false,
+    accept = '.jpg,.jpeg,.png,.webp,.ico',
     onChange,
 }: Props) {
     const { t } = useLocale();
@@ -96,7 +98,7 @@ export default function ImageSettingField({
                         <input
                             ref={inputRef}
                             type="file"
-                            accept=".jpg,.jpeg,.png,.webp,.ico"
+                            accept={accept}
                             disabled={disabled}
                             onChange={handleChange}
                             className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:file:bg-slate-800 dark:file:text-slate-200"

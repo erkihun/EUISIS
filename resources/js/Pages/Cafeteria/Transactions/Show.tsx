@@ -60,7 +60,7 @@ export default function TransactionShow({ transaction }: { transaction: Transact
         <AuthenticatedLayout
             header={
                 <PageHeader
-                    backHref={route('transactions.index')}
+                    backHref={route('cafeteria.transactions.index')}
                     title={transaction.transaction_number}
                     actions={
                         transaction.can.reverse ? (

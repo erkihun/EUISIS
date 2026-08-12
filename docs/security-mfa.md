@@ -7,15 +7,31 @@ backed by [`pragmarx/google2fa-qrcode`](https://github.com/antonioribeiro/google
 Any RFC 6238 authenticator app works (Google Authenticator, 1Password, Authy,
 Microsoft Authenticator, Bitwarden, etc.).
 
-Enrolment and challenge are gated by user role: only members of roles listed in
-`config/security.php` → `mfa_required_roles` are forced through MFA. Other
-users may still enrol voluntarily via `/mfa/setup`.
+Enforcement is decided by `App\Services\Security\MfaRequirementService`.
+`security.mfa_enabled` (System Settings > Security, default **on**) is the
+master switch: when off, no one is forced through MFA. While on, two sources
+are combined (union):
+
+1. **Env baseline** — members of roles listed in `config/security.php` →
+   `mfa_required_roles` are forced through MFA.
+2. **System Settings > Security** (database-backed, admin-editable):
+   - `security.mfa_enabled` — master switch (gates the env baseline too).
+   - `security.mfa_required_for_all` — every user must use MFA.
+   - `security.mfa_required_role_ids` — role-id checklist (guard-aware, since
+     role ids are unique across guards).
+   - `security.require_mfa_for_admins` — **legacy** flag; while still `true`
+     it maps to `config('security.mfa_privileged_roles')`. It is hidden from
+     the settings UI and automatically set to `false` the first time the new
+     role-based settings are saved.
+
+Other users may still enrol voluntarily via `/mfa/setup`.
 
 ## Configuration
 
 | Env var | Default | Purpose |
 |---|---|---|
-| `MFA_REQUIRED_ROLES` | `"Super Admin,City Admin"` | Comma-separated role names whose users must enrol MFA. |
+| `MFA_REQUIRED_ROLES` | `"Super Admin,City Admin"` | Comma-separated role names whose users must enrol MFA (baseline, independent of DB settings). |
+| `MFA_PRIVILEGED_ROLES` | `"Super Admin,City Admin,Organization Admin"` | Role names treated as "admins" for the legacy `require_mfa_for_admins` setting. |
 | `MFA_ENFORCE` | `true` (false during `php artisan test`) | Master kill-switch for the `RequireMfa` middleware. |
 | `MFA_SESSION_LIFETIME_MINUTES` | falls back to `SESSION_LIFETIME` | How long an MFA session verification lasts before re-challenge. |
 

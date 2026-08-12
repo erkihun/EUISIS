@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -62,7 +63,7 @@ export default function PositionEstablishmentsIndex({ establishments, filters }:
                                 <td className="px-4 py-3 text-gray-700 dark:text-slate-200">{e.position?.title_en ?? '—'}</td>
                                 <td className="px-4 py-3 text-gray-700 dark:text-slate-200">{e.approved_slots}</td>
                                 <td className="px-4 py-3"><StatusBadge status={e.status} /></td>
-                                <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{e.effective_from}</td>
+                                <td className="px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={e.effective_from} /></td>
                             </tr>
                         ))}
                     </tbody>

@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 type Approval = { id: string; approval_type: string; status: string; rejection_reason: string | null; decided_at: string | null; approver: { name: string } | null };
 type Review = { id: string; action: string; notes: string | null; created_at: string; reviewer: { name: string } | null };
@@ -158,7 +159,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
                         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                             <div><dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('transfers.releasingOrganization')}</dt><dd className="mt-1 text-gray-800 dark:text-slate-200">{orgName(application.releasingOrganization)}</dd></div>
                             <div><dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('transfers.receivingOrganization')}</dt><dd className="mt-1 text-gray-800 dark:text-slate-200">{orgName(application.receivingOrganization)}</dd></div>
-                            <div><dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.submittedAt')}</dt><dd className="mt-1 text-gray-800 dark:text-slate-200">{application.submitted_at?.slice(0, 10) ?? '-'}</dd></div>
+                            <div><dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.submittedAt')}</dt><dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={application.submitted_at} fallback="-" /></dd></div>
                         </dl>
 
                         {application.applicant_notes && (
@@ -184,7 +185,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
                                     <div key={approval.id} className="flex items-center justify-between rounded-lg border border-gray-100 px-4 py-3 dark:border-slate-700">
                                         <div>
                                             <p className="text-sm font-medium text-gray-700 dark:text-slate-200">{APPROVAL_TYPE_LABELS[approval.approval_type] ?? approval.approval_type}</p>
-                                            {approval.approver && <p className="text-xs text-gray-400">{approval.approver.name} · {approval.decided_at?.slice(0, 10)}</p>}
+                                            {approval.approver && <p className="text-xs text-gray-400">{approval.approver.name} · <LocalizedDateDisplay value={approval.decided_at} /></p>}
                                         </div>
                                         <StatusBadge status={approval.status} />
                                     </div>
@@ -205,7 +206,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
                                 <li key={review.id} className="rounded-lg border border-gray-100 p-3 dark:border-slate-700">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">{SCREEN_ACTION_LABELS[review.action] ?? review.action}</span>
-                                        <span className="text-xs text-gray-400">{review.created_at.slice(0, 10)}</span>
+                                        <LocalizedDateDisplay value={review.created_at} className="text-xs text-gray-400" />
                                     </div>
                                     {review.reviewer && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{review.reviewer.name}</p>}
                                     {review.notes && <p className="mt-1 text-sm text-gray-700 dark:text-slate-300">{review.notes}</p>}

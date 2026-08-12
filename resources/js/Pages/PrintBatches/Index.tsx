@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -55,9 +56,6 @@ function BatchStatusBadge({ status }: { status: string }) {
 
 export default function PrintBatchesIndex({ batches, can }: PageProps) {
     const { t } = useLocale();
-
-    const fmtDate = (v?: string | null) =>
-        v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
     return (
         <AuthenticatedLayout
@@ -161,10 +159,10 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                                             </div>
                                         </td>
                                         <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
-                                            {fmtDate(batch.printed_at)}
+                                            <LocalizedDateDisplay value={batch.printed_at} withTime />
                                         </td>
                                         <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
-                                            {fmtDate(batch.created_at)}
+                                            <LocalizedDateDisplay value={batch.created_at} withTime />
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <Link

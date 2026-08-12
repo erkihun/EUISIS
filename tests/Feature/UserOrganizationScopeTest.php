@@ -47,7 +47,7 @@ function scopeManager(): User
 function makeScopeTestOrg(): Organization
 {
     $type = OrganizationType::query()->firstOrCreate(
-        ['code' => 'scope_test_type'],
+        ['code' => 'SCOPE_TEST_TYPE'],
         ['name_en' => 'Scope Test Type', 'is_demo' => true],
     );
 

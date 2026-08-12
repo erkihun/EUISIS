@@ -1,5 +1,6 @@
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
@@ -35,11 +36,6 @@ type Props = {
     announcement: Announcement;
     can: { update: boolean; publish: boolean; close: boolean; cancel: boolean; delete: boolean };
 };
-
-function formatDate(iso: string | null | undefined): string {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-}
 
 const btnBase = 'inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none';
 
@@ -171,14 +167,20 @@ export default function TransferAnnouncementShow({ announcement, can }: Props) {
                             {[
                                 { label: t('transfers.gradeLevel'),        value: announcement.grade_level ?? '—' },
                                 { label: t('transfers.numberOfVacancies'), value: String(announcement.number_of_vacancies) },
-                                { label: t('transfers.openingDate'),       value: formatDate(announcement.opening_date) },
-                                { label: t('transfers.closingDate'),       value: formatDate(announcement.closing_date) },
                             ].map(({ label, value }) => (
                                 <div key={label}>
                                     <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
                                     <dd className="mt-1 text-gray-800 dark:text-slate-200">{value}</dd>
                                 </div>
                             ))}
+                            <div>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('transfers.openingDate')}</dt>
+                                <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={announcement.opening_date} /></dd>
+                            </div>
+                            <div>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('transfers.closingDate')}</dt>
+                                <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={announcement.closing_date} /></dd>
+                            </div>
                         </dl>
 
                         {announcement.eligibility_rules && announcement.eligibility_rules.length > 0 && (

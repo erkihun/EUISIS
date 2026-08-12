@@ -7,6 +7,7 @@ namespace App\Providers;
 use App\Models\AuditLog;
 use App\Models\CafeteriaDayRule;
 use App\Models\CafeteriaProvider;
+use App\Models\CafeteriaProviderUser;
 use App\Models\CafeteriaReportRun;
 use App\Models\CafeteriaSetting;
 use App\Models\CafeteriaSpecialDay;
@@ -35,8 +36,8 @@ use App\Models\PositionEstablishment;
 use App\Models\PublicHoliday;
 use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTransaction;
-use App\Models\ServiceType;
-use App\Models\SystemSetting; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\ServiceType; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\SystemSetting;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
 use App\Models\TransferSetting;
@@ -46,7 +47,6 @@ use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CafeteriaDayRulePolicy;
-use App\Models\CafeteriaProviderUser;
 use App\Policies\CafeteriaProviderPolicy;
 use App\Policies\CafeteriaProviderUserPolicy;
 use App\Policies\CafeteriaReportRunPolicy;
@@ -89,6 +89,7 @@ use App\Policies\VacancyAnnouncementPolicy;
 use App\Policies\VacancyApplicationPolicy;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
+use App\Services\Calendar\LocalizedDateService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -110,6 +111,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);
+        $this->app->singleton(LocalizedDateService::class);
     }
 
     /**

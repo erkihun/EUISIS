@@ -49,7 +49,7 @@ beforeEach(function (): void {
 function makeTestOrgForApp(): Organization
 {
     $orgType = OrganizationType::query()->firstOrCreate(
-        ['code' => 'test-type-app'],
+        ['code' => 'TEST-TYPE-APP'],
         ['name_en' => 'Test Type', 'is_active' => true],
     );
 

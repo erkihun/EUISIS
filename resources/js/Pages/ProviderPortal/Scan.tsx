@@ -26,6 +26,7 @@ type TodayScan = {
 
 type ScanResult = {
     allowed: boolean; is_extra_scan: boolean; denial_reason: string | null;
+    denial_message?: string | null; card_status?: string | null;
     employee: { full_name: string; employee_number: string; photo_url: string | null; position: string | null; organization: string | null } | null;
     card_number: string | null; usage_mode: string | null;
     subsidy_applied: number | null; employee_payable: number | null;
@@ -346,7 +347,7 @@ export default function ProviderPortalScan({
                         <p className={`font-semibold ${scan_result.allowed ? (scan_result.is_extra_scan ? 'text-orange-700 dark:text-orange-300' : 'text-emerald-700 dark:text-emerald-300') : 'text-red-700 dark:text-red-300'}`}>
                             {scan_result.allowed
                                 ? (scan_result.is_extra_scan ? t('cafeteria.extraScanRecorded') : t('cafeteria.scanRecorded'))
-                                : (() => { const key = DENIAL_REASON_KEY[scan_result.denial_reason ?? '']; return key ? `${t('cafeteria.scanDenied')} — ${t(`cafeteria.${key}`)}` : `${t('cafeteria.scanDenied')} — ${scan_result.denial_reason ?? ''}`; })()}
+                                : scan_result.denial_message ?? (() => { const key = DENIAL_REASON_KEY[scan_result.denial_reason ?? '']; return key ? `${t('cafeteria.scanDenied')} — ${t(`cafeteria.${key}`)}` : `${t('cafeteria.scanDenied')} — ${scan_result.denial_reason ?? ''}`; })()}
                         </p>
                         {countdown !== null && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('cafeteria.scanAgainIn').replace('{{count}}', String(countdown))}</p>}
                     </div>
@@ -477,12 +478,12 @@ export default function ProviderPortalScan({
                             <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-slate-700 dark:bg-slate-950">
                                 <div className="flex flex-col items-center text-center">
                                     {scan_result.employee.photo_url
-                                        ? <img src={scan_result.employee.photo_url} alt={scan_result.employee.full_name} className={`h-24 w-24 rounded-full object-cover ring-4 ${scan_result.is_extra_scan ? 'ring-orange-400' : 'ring-emerald-400'}`} />
-                                        : <div className={`flex h-24 w-24 items-center justify-center rounded-full text-3xl font-bold ring-4 ${scan_result.is_extra_scan ? 'bg-orange-100 text-orange-600 ring-orange-400' : 'bg-emerald-100 text-emerald-600 ring-emerald-400'}`}>{scan_result.employee.full_name.charAt(0).toUpperCase()}</div>
+                                        ? <img src={scan_result.employee.photo_url} alt={scan_result.employee.full_name} className={`h-24 w-24 rounded-full object-cover ring-4 ${!scan_result.allowed ? 'ring-red-400' : scan_result.is_extra_scan ? 'ring-orange-400' : 'ring-emerald-400'}`} />
+                                        : <div className={`flex h-24 w-24 items-center justify-center rounded-full text-3xl font-bold ring-4 ${!scan_result.allowed ? 'bg-red-100 text-red-600 ring-red-400' : scan_result.is_extra_scan ? 'bg-orange-100 text-orange-600 ring-orange-400' : 'bg-emerald-100 text-emerald-600 ring-emerald-400'}`}>{scan_result.employee.full_name.charAt(0).toUpperCase()}</div>
                                     }
-                                    <div className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${scan_result.is_extra_scan ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                                    <div className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${!scan_result.allowed ? 'bg-red-100 text-red-700' : scan_result.is_extra_scan ? 'bg-orange-100 text-orange-700' : 'bg-emerald-100 text-emerald-700'}`}>
                                         <CheckCircle className="h-3.5 w-3.5" />
-                                        {scan_result.is_extra_scan ? t('cafeteria.extraScanBadge') : t('cafeteria.scanRecorded')}
+                                        {!scan_result.allowed ? scan_result.card_status ?? scan_result.denial_reason : scan_result.is_extra_scan ? t('cafeteria.extraScanBadge') : t('cafeteria.scanRecorded')}
                                     </div>
                                     <h3 className="mt-3 text-base font-bold text-gray-900 dark:text-white">{scan_result.employee.full_name}</h3>
                                     <p className="text-sm text-gray-500">#{scan_result.employee.employee_number}</p>

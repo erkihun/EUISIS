@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -168,9 +169,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                             { label: t('vacancies.announcement'), value: application.announcement?.title_en ?? '—' },
                             { label: t('positionEstablishments.organization'), value: application.positionEntry?.organization?.name_en ?? '—' },
                             { label: t('positionEstablishments.position'), value: application.positionEntry?.position?.title_en ?? '—' },
-                            { label: t('vacancies.appliedAt'), value: application.applied_at },
                             { label: t('vacancies.screeningScore'), value: application.screening_score ?? '—' },
-                            { label: t('vacancies.selectedAt'), value: application.selected_at ?? '—' },
                             ...(application.rejection_reason ? [{ label: t('vacancies.rejectionReason'), value: application.rejection_reason }] : []),
                         ].map(({ label, value }) => (
                             <div key={label}>
@@ -178,6 +177,14 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                                 <dd className="mt-1 text-gray-800 dark:text-slate-200">{value}</dd>
                             </div>
                         ))}
+                        <div>
+                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('vacancies.appliedAt')}</dt>
+                            <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={application.applied_at} /></dd>
+                        </div>
+                        <div>
+                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('vacancies.selectedAt')}</dt>
+                            <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={application.selected_at} /></dd>
+                        </div>
                         {application.screening_notes && (
                             <div className="col-span-2">
                                 <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('vacancies.screeningNotes')}</dt>

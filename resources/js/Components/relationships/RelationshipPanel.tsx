@@ -78,7 +78,7 @@ export default function RelationshipPanel({
     const { t, locale } = useLocale();
 
     function targetName(name_en: string | null | undefined, name_am: string | null | undefined, fallback?: string): string {
-        const name = locale === 'am' ? (name_am || name_en) : name_en;
+        const name = locale === 'am' ? name_am : name_en;
         return name ?? fallback ?? '';
     }
     const form = useForm(emptyForm);

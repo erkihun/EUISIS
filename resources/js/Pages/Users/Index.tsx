@@ -7,6 +7,7 @@ import EmptyState from '@/Components/EmptyState';
 import UserAvatar from '@/Components/UserAvatar';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 type UserRow = {
     id: number;
@@ -133,7 +134,9 @@ export default function UsersIndex({
                                             <StatusBadge status={u.status} />
                                         </td>
                                         <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
-                                            {u.last_login_at ?? t('users.notAvailable')}
+                                            {u.last_login_at
+                                                ? <LocalizedDateDisplay value={u.last_login_at} withTime />
+                                                : t('users.notAvailable')}
                                         </td>
                                         <td className="py-3 pl-4 pr-5">
                                             <div className="flex items-center justify-end gap-3">

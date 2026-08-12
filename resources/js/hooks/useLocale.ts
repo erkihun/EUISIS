@@ -34,6 +34,7 @@ import amServiceTypes from '@/i18n/am/serviceTypes';
 import amSettings from '@/i18n/am/settings';
 import amOrganizationUnits from '@/i18n/am/organizationUnits';
 import amOrganizationUnitTypes from '@/i18n/am/organizationUnitTypes';
+import amOrganizationStructureImport from '@/i18n/am/organizationStructureImport';
 import amPermissions from '@/i18n/am/permissions';
 import amTransfers from '@/i18n/am/transfers';
 import amTransport from '@/i18n/am/transport';
@@ -67,6 +68,7 @@ import enHierarchyVersions from '@/i18n/en/hierarchyVersions';
 import enNavigation from '@/i18n/en/navigation';
 import enOrganizationUnits from '@/i18n/en/organizationUnits';
 import enOrganizationUnitTypes from '@/i18n/en/organizationUnitTypes';
+import enOrganizationStructureImport from '@/i18n/en/organizationStructureImport';
 import enOrganizations from '@/i18n/en/organizations';
 import enPermissions from '@/i18n/en/permissions';
 import enPositions from '@/i18n/en/positions';
@@ -81,6 +83,8 @@ import enUsers from '@/i18n/en/users';
 import enVacancies from '@/i18n/en/vacancies';
 import enInstitutionOffices from '@/i18n/en/institutionOffices';
 import enRelationships from '@/i18n/en/relationships';
+import enGrievances from '@/i18n/en/grievances';
+import amGrievances from '@/i18n/am/grievances';
 import type { PageProps } from '@/types';
 
 type Locale = 'en' | 'am';
@@ -104,11 +108,12 @@ const translations: Record<Locale, TranslationTree> = {
         organizationTypes: enOrganizationTypes,
         organizationUnits: enOrganizationUnits,
         organizationUnitTypes: enOrganizationUnitTypes,
+        organizationStructureImport: enOrganizationStructureImport,
         hierarchyVersions: enHierarchyVersions,
         permissions: enPermissions,
         positionEstablishments: enPositionEstablishments,
         providers: enProviders,
-        roles: enRoles,
+        roles: { ...((en.roles as TranslationTree | undefined) ?? {}), ...enRoles },
         transfers: enTransfers,
         transport: enTransport,
         positions: enPositions,
@@ -125,6 +130,7 @@ const translations: Record<Locale, TranslationTree> = {
         vacancies: enVacancies,
         institutionOffices: enInstitutionOffices,
         relationships: enRelationships,
+        grievances: enGrievances,
         confirmations: enConfirmations,
         auth: enAuth,
         security: enSecurity,
@@ -146,11 +152,12 @@ const translations: Record<Locale, TranslationTree> = {
         organizationTypes: amOrganizationTypes,
         organizationUnits: amOrganizationUnits,
         organizationUnitTypes: amOrganizationUnitTypes,
+        organizationStructureImport: amOrganizationStructureImport,
         hierarchyVersions: amHierarchyVersions,
         permissions: amPermissions,
         positionEstablishments: amPositionEstablishments,
         providers: amProviders,
-        roles: amRoles,
+        roles: { ...(((am as { roles?: TranslationTree }).roles) ?? {}), ...amRoles },
         transfers: amTransfers,
         transport: amTransport,
         positions: amPositions,
@@ -167,6 +174,7 @@ const translations: Record<Locale, TranslationTree> = {
         vacancies: amVacancies,
         institutionOffices: amInstitutionOffices,
         relationships: amRelationships,
+        grievances: amGrievances,
         confirmations: amConfirmations,
         auth: amAuth,
         security: amSecurity,

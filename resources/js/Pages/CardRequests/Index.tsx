@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
 import CardRequestStatusBadge from '@/Components/IdCards/CardRequestStatusBadge';
 import CardRequestTypeBadge from '@/Components/IdCards/CardRequestTypeBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
@@ -64,9 +65,6 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
         setSearch(''); setStatus(''); setReqType('');
         router.get(route('card-requests.index'), {}, { preserveState: false, replace: true });
     }
-
-    const fmtDate = (v?: string | null) =>
-        v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
     const selectCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200';
     const inputCls  = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500';
@@ -223,7 +221,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                             <CardRequestStatusBadge status={req.status} />
                                         </td>
                                         <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
-                                            {fmtDate(req.submitted_at)}
+                                            <LocalizedDateDisplay value={req.submitted_at} withTime />
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             {req.can?.view !== false && (

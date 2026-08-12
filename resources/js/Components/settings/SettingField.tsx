@@ -62,6 +62,7 @@ export default function SettingField({ field, locale, value, error, disabled = f
                 configured={field.configured}
                 error={error}
                 disabled={disabled}
+                accept={field.key === 'seal' ? '.png,image/png' : undefined}
                 onChange={(file) => onChange(file)}
             />
         );

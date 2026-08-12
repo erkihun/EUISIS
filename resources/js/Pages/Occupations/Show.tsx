@@ -4,6 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 export default function OccupationsShow({ occupation }: { occupation: any }) {
     const { t } = useLocale();
@@ -112,11 +113,11 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                     <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="text-xs text-gray-500 dark:text-slate-400">{t('common.createdAt')}</div>
                         <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
-                            {occupation.created_at ?? '—'}
+                            <LocalizedDateDisplay value={occupation.created_at} withTime />
                         </div>
                         <div className="mt-3 text-xs text-gray-500 dark:text-slate-400">{t('common.updatedAt')}</div>
                         <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
-                            {occupation.updated_at ?? '—'}
+                            <LocalizedDateDisplay value={occupation.updated_at} withTime />
                         </div>
                     </section>
                     <div>

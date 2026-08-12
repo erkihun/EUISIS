@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Calendar\CalendarService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
 use Throwable;
 
@@ -98,7 +99,11 @@ class HandleInertiaRequests extends Middleware
     private function resolveIsEmployeeUser(User $user): bool
     {
         try {
-            return $user->employee()->exists();
+            return Cache::remember(
+                "user_{$user->id}_is_employee",
+                300, // 5 minutes
+                fn (): bool => $user->employee()->exists(),
+            );
         } catch (Throwable) {
             return false;
         }
@@ -107,7 +112,11 @@ class HandleInertiaRequests extends Middleware
     private function publishedAnnouncementCount(): int
     {
         try {
-            return TransferAnnouncement::where('status', TransferAnnouncementStatus::Published)->count();
+            return Cache::remember(
+                'published_transfer_announcement_count',
+                60, // 1 minute
+                fn (): int => TransferAnnouncement::where('status', TransferAnnouncementStatus::Published)->count(),
+            );
         } catch (Throwable) {
             return 0;
         }

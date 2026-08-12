@@ -13,6 +13,8 @@ type Employee = {
     middle_name?: string | null;
     last_name: string;
     full_name: string;
+    name_en?: string | null;
+    metadata?: { name_en?: string | null; name_am?: string | null } | null;
     national_id?: string | null;
     phone?: string | null;
     email?: string | null;
@@ -56,6 +58,7 @@ export default function EmployeesEdit({
         first_name: string;
         middle_name: string;
         last_name: string;
+        name_en: string;
         national_id: string;
         phone: string;
         email: string;
@@ -68,6 +71,7 @@ export default function EmployeesEdit({
         first_name: employee.first_name ?? '',
         middle_name: employee.middle_name ?? '',
         last_name: employee.last_name ?? '',
+        name_en: employee.name_en ?? employee.metadata?.name_en ?? '',
         national_id: employee.national_id ?? '',
         phone: employee.phone ?? '',
         email: employee.email ?? '',
@@ -194,6 +198,15 @@ export default function EmployeesEdit({
                             placeholder={t('employees.lastName')}
                             value={form.data.last_name}
                             onChange={(e) => form.setData('last_name', e.target.value)}
+                        />
+                    </Field>
+
+                    <Field label={t('employees.fullNameEn')} error={form.errors.name_en}>
+                        <input
+                            className={inputCls}
+                            placeholder={t('employees.fullNameEnPlaceholder')}
+                            value={form.data.name_en}
+                            onChange={(e) => form.setData('name_en', e.target.value)}
                         />
                     </Field>
 

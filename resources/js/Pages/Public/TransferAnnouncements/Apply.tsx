@@ -1,4 +1,5 @@
 import PublicLayout from '@/Layouts/PublicLayout';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { FormEvent, useRef } from 'react';
@@ -119,7 +120,7 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
                         )}
                         {a.closing_date && (
                             <span className="rounded-full bg-slate-800 px-2.5 py-1">
-                                {t('transfers.closes')}: <strong className="text-slate-200">{a.closing_date}</strong>
+                                {t('transfers.closes')}: <strong className="text-slate-200"><LocalizedDateDisplay value={a.closing_date} /></strong>
                             </span>
                         )}
                     </div>

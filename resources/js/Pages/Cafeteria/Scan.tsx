@@ -80,6 +80,8 @@ type ScanResult = {
     allowed: boolean;
     is_extra_scan: boolean;
     denial_reason: string | null;
+    denial_message?: string | null;
+    card_status?: string | null;
     employee: EmployeeInfo | null;
     card_number: string | null;
     // Weekly window fields
@@ -564,7 +566,7 @@ export default function CafeteriaScan({
                             }`}>
                                 {scan_result.allowed
                                     ? (scan_result.is_extra_scan ? t('cafeteria.extraScanRecorded') : t('cafeteria.scanRecorded'))
-                                    : (() => {
+                                    : scan_result.denial_message ?? (() => {
                                         const key = DENIAL_REASON_KEY[scan_result.denial_reason ?? ''];
                                         return key
                                             ? `${t('cafeteria.scanDenied')} — ${t(`cafeteria.${key}`)}`

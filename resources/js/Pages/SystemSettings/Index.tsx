@@ -27,10 +27,20 @@ type SettingsCan = {
     testChannels: boolean;
 };
 
+type RoleOption = {
+    id: string;
+    name: string;
+    guard_name: string;
+    users_count: number;
+};
+
 type Props = {
     settingGroups: Record<string, SettingsGroupPayload>;
+    roles: RoleOption[];
     can: SettingsCan;
 };
+
+const mfaFieldKeys = ['mfa_enabled', 'mfa_required_for_all', 'mfa_required_role_ids'];
 
 type FormValue = string | number | boolean | string[] | File | null;
 type FormShape = Record<string, FormValue>;
@@ -327,16 +337,41 @@ function GroupFormPanel({
     routeName,
     readOnly,
     canTest,
+    roles,
 }: {
     groupId: string;
     payload: SettingsGroupPayload;
     routeName: string;
     readOnly: boolean;
     canTest: boolean;
+    roles: RoleOption[];
 }) {
     const { locale, t } = useLocale();
     const initial = useMemo(() => buildInitialData(payload.fields), [payload.fields]);
     const form = useForm<FormShape>(initial);
+
+    const isSecurity = groupId === 'security';
+    const genericFields = isSecurity
+        ? payload.fields.filter((field) => !mfaFieldKeys.includes(field.key))
+        : payload.fields;
+    const mfaToggleFields = isSecurity
+        ? payload.fields.filter((field) => field.key === 'mfa_enabled' || field.key === 'mfa_required_for_all')
+        : [];
+    const hasMfaRoleField = isSecurity && payload.fields.some((field) => field.key === 'mfa_required_role_ids');
+
+    const mfaEnabled = Boolean(form.data.mfa_enabled);
+    const mfaRequiredForAll = Boolean(form.data.mfa_required_for_all);
+    const selectedMfaRoleIds = Array.isArray(form.data.mfa_required_role_ids)
+        ? (form.data.mfa_required_role_ids as string[])
+        : [];
+    const mfaRolesDisabled = readOnly || !mfaEnabled || mfaRequiredForAll;
+
+    const toggleMfaRole = (roleId: string) => {
+        const next = selectedMfaRoleIds.includes(roleId)
+            ? selectedMfaRoleIds.filter((id) => id !== roleId)
+            : [...selectedMfaRoleIds, roleId];
+        form.setData('mfa_required_role_ids', next);
+    };
 
     const isDirty = useMemo(
         () => JSON.stringify(form.data) !== JSON.stringify(initial),
@@ -374,19 +409,21 @@ function GroupFormPanel({
         }
     };
 
-    const footer = (
-        <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-gray-500 dark:text-slate-400">
-                {isDirty && !readOnly ? t('settings.unsavedChanges') : ''}
-            </span>
-            <Button
-                type="submit"
-                size="sm"
-                loading={form.processing}
-                disabled={readOnly || !isDirty}
-            >
-                {t('common.save')}
-            </Button>
+    const saveBar = (
+        <div className="sticky bottom-0 z-10 -mx-5 -mb-5 mt-6 border-t border-gray-200 bg-white/95 px-5 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+            <div className="flex items-center justify-between gap-3">
+                <span className="text-xs text-gray-500 dark:text-slate-400">
+                    {isDirty && !readOnly ? t('settings.unsavedChanges') : ''}
+                </span>
+                <Button
+                    type="submit"
+                    size="sm"
+                    loading={form.processing}
+                    disabled={readOnly || !isDirty}
+                >
+                    {t('common.save')}
+                </Button>
+            </div>
         </div>
     );
 
@@ -401,9 +438,8 @@ function GroupFormPanel({
                     processing={form.processing}
                 />
             ) : undefined}
-            footer={footer}
         >
-            {payload.fields.map((field) => (
+            {genericFields.map((field) => (
                 <SettingField
                     key={field.key}
                     field={field}
@@ -447,6 +483,77 @@ function GroupFormPanel({
                     mainCard
                 )}
 
+                {isSecurity && mfaToggleFields.length > 0 && (
+                    <SettingsCard
+                        title={t('settings.mfa.title')}
+                        description={t('settings.mfa.helper')}
+                    >
+                        {mfaToggleFields
+                            .filter((field) => field.key === 'mfa_enabled' || mfaEnabled)
+                            .map((field) => (
+                                <SettingField
+                                    key={field.key}
+                                    field={field}
+                                    locale={locale}
+                                    value={form.data[field.key]}
+                                    error={form.errors[field.key]}
+                                    disabled={readOnly}
+                                    onChange={(nextValue) => form.setData(field.key, nextValue)}
+                                />
+                            ))}
+
+                        {hasMfaRoleField && mfaEnabled && (
+                            <div className="grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-3 md:items-start">
+                                <div>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                                        {t('settings.mfa.requireRoles')}
+                                    </span>
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                        {t('settings.mfa.selectRoles')}
+                                    </p>
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                        {roles.map((role) => (
+                                            <label
+                                                key={role.id}
+                                                className={[
+                                                    'flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 dark:border-slate-700',
+                                                    mfaRolesDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                                                ].join(' ')}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedMfaRoleIds.includes(role.id)}
+                                                    disabled={mfaRolesDisabled}
+                                                    onChange={() => toggleMfaRole(role.id)}
+                                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600"
+                                                />
+                                                <span className="min-w-0 flex-1 truncate text-sm text-gray-800 dark:text-slate-200">
+                                                    {role.name}
+                                                </span>
+                                                <span className="shrink-0 text-[11px] text-gray-400 dark:text-slate-500">
+                                                    {role.guard_name} · {role.users_count}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    {mfaRequiredForAll && (
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                            {t('settings.mfa.requireAllActive')}
+                                        </p>
+                                    )}
+                                    {form.errors.mfa_required_role_ids && (
+                                        <p className="text-sm text-red-600 dark:text-red-400">
+                                            {form.errors.mfa_required_role_ids}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </SettingsCard>
+                )}
+
                 {groupId === 'security' && (
                     <SettingsCard
                         title={t('settings.groups.securityWarning')}
@@ -458,11 +565,13 @@ function GroupFormPanel({
                     </SettingsCard>
                 )}
             </SettingsSection>
+
+            {saveBar}
         </form>
     );
 }
 
-export default function SystemSettingsIndex({ settingGroups, can }: Props) {
+export default function SystemSettingsIndex({ settingGroups, roles, can }: Props) {
     const { t } = useLocale();
     const [activeTab, setActiveTab] = useState<string>('general');
 
@@ -510,6 +619,7 @@ export default function SystemSettingsIndex({ settingGroups, can }: Props) {
                                 routeName={tab.routeName}
                                 readOnly={!can[tab.canKey]}
                                 canTest={can.testChannels && ['email', 'sms', 'telegram'].includes(tab.id)}
+                                roles={roles ?? []}
                             />
                         );
                     })}

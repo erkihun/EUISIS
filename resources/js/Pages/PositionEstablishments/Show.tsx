@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -77,16 +78,27 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             { label: t('positionEstablishments.occupation'), value: establishment.occupation?.title_en ?? '—' },
                             { label: t('positionEstablishments.approvedSlots'), value: establishment.approved_slots },
                             { label: t('positionEstablishments.approvalReference'), value: establishment.approval_reference ?? '—' },
-                            { label: t('positionEstablishments.effectiveFrom'), value: establishment.effective_from },
-                            { label: t('positionEstablishments.effectiveTo'), value: establishment.effective_to ?? t('common.current') },
                             { label: t('positionEstablishments.approvedBy'), value: establishment.approved_by?.name ?? '—' },
-                            { label: t('positionEstablishments.approvedAt'), value: establishment.approved_at ?? '—' },
                         ].map(({ label, value }) => (
                             <div key={label}>
                                 <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
                                 <dd className="mt-1 text-gray-800 dark:text-slate-200">{value}</dd>
                             </div>
                         ))}
+                        <div>
+                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('positionEstablishments.effectiveFrom')}</dt>
+                            <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={establishment.effective_from} /></dd>
+                        </div>
+                        <div>
+                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('positionEstablishments.effectiveTo')}</dt>
+                            <dd className="mt-1 text-gray-800 dark:text-slate-200">
+                                {establishment.effective_to ? <LocalizedDateDisplay value={establishment.effective_to} /> : t('common.current')}
+                            </dd>
+                        </div>
+                        <div>
+                            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('positionEstablishments.approvedAt')}</dt>
+                            <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={establishment.approved_at} /></dd>
+                        </div>
                     </dl>
                     {establishment.notes && (
                         <div className="mt-4">

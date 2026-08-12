@@ -3,6 +3,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 type Application = {
     id: string;
@@ -122,17 +123,34 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                         )}
 
                         <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-                            {[
-                                { label: t('vacancies.vacancySlots'), value: `${totalAvailable} / ${totalSlots}` },
-                                { label: t('vacancies.applicationOpensAt'), value: announcement.application_opens_at ?? '-' },
-                                { label: t('vacancies.applicationClosesAt'), value: announcement.application_closes_at ?? '-' },
-                                { label: t('vacancies.publishedAt'), value: announcement.published_at ?? '-' },
-                            ].map(({ label, value }) => (
-                                <div key={label}>
-                                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
-                                    <dd className="mt-1 text-gray-800 dark:text-slate-200">{value}</dd>
-                                </div>
-                            ))}
+                            <div>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('vacancies.vacancySlots')}</dt>
+                                <dd className="mt-1 text-gray-800 dark:text-slate-200">{totalAvailable} / {totalSlots}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('vacancies.applicationOpensAt')}</dt>
+                                <dd className="mt-1 text-gray-800 dark:text-slate-200">
+                                    {announcement.application_opens_at
+                                        ? <LocalizedDateDisplay value={announcement.application_opens_at} withTime />
+                                        : '-'}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('vacancies.applicationClosesAt')}</dt>
+                                <dd className="mt-1 text-gray-800 dark:text-slate-200">
+                                    {announcement.application_closes_at
+                                        ? <LocalizedDateDisplay value={announcement.application_closes_at} withTime />
+                                        : '-'}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('vacancies.publishedAt')}</dt>
+                                <dd className="mt-1 text-gray-800 dark:text-slate-200">
+                                    {announcement.published_at
+                                        ? <LocalizedDateDisplay value={announcement.published_at} withTime />
+                                        : '-'}
+                                </dd>
+                            </div>
                         </dl>
                     </section>
 

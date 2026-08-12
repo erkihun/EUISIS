@@ -37,13 +37,14 @@ use App\Http\Controllers\Transport\TransportRouteController;
 use App\Http\Controllers\Transport\TransportScanController;
 use App\Http\Controllers\Transport\TransportSettingsController;
 use App\Http\Controllers\Transport\TransportVehicleController;
+use App\Http\Controllers\Web\AdministrativeTribunalController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\CafeteriaDashboardController;
 use App\Http\Controllers\Web\CafeteriaDayRuleController;
 use App\Http\Controllers\Web\CafeteriaProviderBranchController;
 use App\Http\Controllers\Web\CafeteriaProviderController;
-use App\Http\Controllers\Web\CafeteriaProviderUserController;
 use App\Http\Controllers\Web\CafeteriaProviderDashboardController;
+use App\Http\Controllers\Web\CafeteriaProviderUserController;
 use App\Http\Controllers\Web\CafeteriaReportController;
 use App\Http\Controllers\Web\CafeteriaSettingController;
 use App\Http\Controllers\Web\CafeteriaSpecialDayController;
@@ -60,15 +61,19 @@ use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EntitlementController;
 use App\Http\Controllers\Web\EntitlementRuleController;
 use App\Http\Controllers\Web\GradeLevelController;
+use App\Http\Controllers\Web\GrievanceCategoryController;
+use App\Http\Controllers\Web\GrievanceCommitteeController;
+use App\Http\Controllers\Web\GrievanceController;
+use App\Http\Controllers\Web\GrievanceSlaRuleController;
 use App\Http\Controllers\Web\HierarchyVersionController;
-use App\Http\Controllers\Web\InstitutionOfficeController;
-use App\Http\Controllers\Web\InstitutionOfficeRelationshipController;
 use App\Http\Controllers\Web\IdCardController;
 use App\Http\Controllers\Web\IdCardExportController;
+use App\Http\Controllers\Web\InstitutionOfficeController;
 use App\Http\Controllers\Web\IsicActivityController;
 use App\Http\Controllers\Web\OccupationController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationEdgeController;
+use App\Http\Controllers\Web\OrganizationStructureImportController;
 use App\Http\Controllers\Web\OrganizationTypeController;
 use App\Http\Controllers\Web\OrganizationUnitController;
 use App\Http\Controllers\Web\OrganizationUnitRelationshipController;
@@ -287,10 +292,21 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
     Route::post('/organizations', [OrganizationController::class, 'store'])->name('organizations.store');
     Route::get('/organizations/create', [OrganizationController::class, 'create'])->name('organizations.create');
     Route::get('/organizations/parent-options', [OrganizationController::class, 'parentOptions'])->name('organizations.parent-options');
+
+    // Organization Structure Import wizard — declared before the
+    // /organizations/{organization} wildcard so "import-structure" is not
+    // captured as an organization id.
+    Route::get('/organizations/import-structure', [OrganizationStructureImportController::class, 'create'])->name('organizations.import-structure.create');
+    Route::get('/organizations/import-structure/template', [OrganizationStructureImportController::class, 'template'])->name('organizations.import-structure.template');
+    Route::post('/organizations/import-structure/preview', [OrganizationStructureImportController::class, 'preview'])->name('organizations.import-structure.preview');
+    Route::post('/organizations/import-structure/confirm', [OrganizationStructureImportController::class, 'confirm'])->name('organizations.import-structure.confirm');
+
     Route::get('/organizations/{organization}', [OrganizationController::class, 'show'])->name('organizations.show');
     Route::get('/organizations/{organization}/edit', [OrganizationController::class, 'edit'])->name('organizations.edit');
     Route::patch('/organizations/{organization}', [OrganizationController::class, 'update'])->name('organizations.update');
     Route::delete('/organizations/{organization}', [OrganizationController::class, 'archive'])->name('organizations.archive');
+    Route::patch('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])->name('organizations.deactivate');
+    Route::delete('/organizations/{organization}/destroy', [OrganizationController::class, 'destroy'])->name('organizations.destroy');
 
     // Organization Types
     Route::get('/organization-types', [OrganizationTypeController::class, 'index'])->name('organization-types.index');
@@ -333,6 +349,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
     Route::patch('/organization-units/{organizationUnit}', [OrganizationUnitController::class, 'update'])->name('organization-units.update');
     Route::post('/organization-units/{organizationUnit}/archive', [OrganizationUnitController::class, 'archive'])->name('organization-units.archive');
     Route::post('/organization-units/{organizationUnit}/restore', [OrganizationUnitController::class, 'restore'])->name('organization-units.restore');
+    Route::post('/organization-units/copy-structure', [OrganizationUnitController::class, 'copyStructure'])->name('organization-units.copy-structure');
     Route::get('/organizations/{organization}/units/options', [OrganizationUnitController::class, 'options'])->name('organizations.units.options');
     Route::get('/organizations/{organization}/units/tree', [OrganizationUnitController::class, 'tree'])->name('organizations.units.tree');
 
@@ -623,39 +640,43 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
     Route::post('/provider-users/{providerUser}/reset-password', [ServiceProviderUserController::class, 'resetPassword'])->name('provider-users.reset-password');
 
     // Transport Provider Module
+    // Admin-side transport pages are gated by the `transport-*` permission set.
+    // (store/update also re-check inside their FormRequests.) The QR scan
+    // terminal is available to any authenticated staff user, mirroring the
+    // cafeteria scan terminal.
     Route::prefix('transport')->name('transport.')->group(function (): void {
-        Route::get('/providers', [TransportProviderController::class, 'index'])->name('providers.index');
-        Route::get('/providers/create', [TransportProviderController::class, 'create'])->name('providers.create');
+        Route::get('/providers', [TransportProviderController::class, 'index'])->middleware('can:transport-providers.viewAny')->name('providers.index');
+        Route::get('/providers/create', [TransportProviderController::class, 'create'])->middleware('can:transport-providers.create')->name('providers.create');
         Route::post('/providers', [TransportProviderController::class, 'store'])->name('providers.store');
-        Route::get('/providers/{provider}', [TransportProviderController::class, 'show'])->name('providers.show');
-        Route::get('/providers/{provider}/edit', [TransportProviderController::class, 'edit'])->name('providers.edit');
+        Route::get('/providers/{provider}', [TransportProviderController::class, 'show'])->middleware('can:transport-providers.view')->name('providers.show');
+        Route::get('/providers/{provider}/edit', [TransportProviderController::class, 'edit'])->middleware('can:transport-providers.update')->name('providers.edit');
         Route::match(['put', 'patch'], '/providers/{provider}', [TransportProviderController::class, 'update'])->name('providers.update');
         Route::delete('/providers/{provider}', [TransportProviderController::class, 'destroy'])->name('providers.destroy');
         Route::get('/scan', [TransportScanController::class, 'index'])->name('scan');
         Route::post('/scan', [TransportScanController::class, 'store'])->middleware('throttle:60,1')->name('scan.store');
-        Route::get('/settings', [TransportSettingsController::class, 'index'])->name('settings.index');
-        Route::patch('/settings', [TransportSettingsController::class, 'update'])->name('settings.update');
-        Route::get('/routes', [TransportRouteController::class, 'index'])->name('routes.index');
-        Route::get('/routes/create', [TransportRouteController::class, 'create'])->name('routes.create');
+        Route::get('/settings', [TransportSettingsController::class, 'index'])->middleware('can:transport-settings.view')->name('settings.index');
+        Route::patch('/settings', [TransportSettingsController::class, 'update'])->middleware('can:transport-settings.update')->name('settings.update');
+        Route::get('/routes', [TransportRouteController::class, 'index'])->middleware('can:transport-routes.viewAny')->name('routes.index');
+        Route::get('/routes/create', [TransportRouteController::class, 'create'])->middleware('can:transport-routes.create')->name('routes.create');
         Route::post('/routes', [TransportRouteController::class, 'store'])->name('routes.store');
-        Route::get('/routes/{route}/edit', [TransportRouteController::class, 'edit'])->name('routes.edit');
+        Route::get('/routes/{route}/edit', [TransportRouteController::class, 'edit'])->middleware('can:transport-routes.update')->name('routes.edit');
         Route::patch('/routes/{route}', [TransportRouteController::class, 'update'])->name('routes.update');
-        Route::get('/vehicles', [TransportVehicleController::class, 'index'])->name('vehicles.index');
-        Route::get('/vehicles/create', [TransportVehicleController::class, 'create'])->name('vehicles.create');
+        Route::get('/vehicles', [TransportVehicleController::class, 'index'])->middleware('can:transport-vehicles.viewAny')->name('vehicles.index');
+        Route::get('/vehicles/create', [TransportVehicleController::class, 'create'])->middleware('can:transport-vehicles.create')->name('vehicles.create');
         Route::post('/vehicles', [TransportVehicleController::class, 'store'])->name('vehicles.store');
-        Route::get('/vehicles/{vehicle}/edit', [TransportVehicleController::class, 'edit'])->name('vehicles.edit');
+        Route::get('/vehicles/{vehicle}/edit', [TransportVehicleController::class, 'edit'])->middleware('can:transport-vehicles.update')->name('vehicles.edit');
         Route::patch('/vehicles/{vehicle}', [TransportVehicleController::class, 'update'])->name('vehicles.update');
-        Route::get('/drivers', [TransportDriverController::class, 'index'])->name('drivers.index');
-        Route::get('/drivers/create', [TransportDriverController::class, 'create'])->name('drivers.create');
+        Route::get('/drivers', [TransportDriverController::class, 'index'])->middleware('can:transport-drivers.viewAny')->name('drivers.index');
+        Route::get('/drivers/create', [TransportDriverController::class, 'create'])->middleware('can:transport-drivers.create')->name('drivers.create');
         Route::post('/drivers', [TransportDriverController::class, 'store'])->name('drivers.store');
-        Route::get('/drivers/{driver}/edit', [TransportDriverController::class, 'edit'])->name('drivers.edit');
+        Route::get('/drivers/{driver}/edit', [TransportDriverController::class, 'edit'])->middleware('can:transport-drivers.update')->name('drivers.edit');
         Route::patch('/drivers/{driver}', [TransportDriverController::class, 'update'])->name('drivers.update');
-        Route::get('/passes', [TransportPassController::class, 'index'])->name('passes.index');
-        Route::get('/passes/create', [TransportPassController::class, 'create'])->name('passes.create');
+        Route::get('/passes', [TransportPassController::class, 'index'])->middleware('can:transport-passes.viewAny')->name('passes.index');
+        Route::get('/passes/create', [TransportPassController::class, 'create'])->middleware('can:transport-passes.create')->name('passes.create');
         Route::post('/passes', [TransportPassController::class, 'store'])->name('passes.store');
-        Route::get('/passes/{pass}/edit', [TransportPassController::class, 'edit'])->name('passes.edit');
+        Route::get('/passes/{pass}/edit', [TransportPassController::class, 'edit'])->middleware('can:transport-passes.update')->name('passes.edit');
         Route::patch('/passes/{pass}', [TransportPassController::class, 'update'])->name('passes.update');
-        Route::get('/reports', [TransportReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports', [TransportReportController::class, 'index'])->middleware('can:transport-reports.view')->name('reports.index');
     });
 
     // Institution Offices — deprecated; GET routes redirect to Organization Units.
@@ -709,7 +730,6 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
         Route::get('/reports', [CafeteriaReportController::class, 'index'])->name('reports.index');
         Route::post('/reports/generate', [CafeteriaReportController::class, 'generate'])->name('reports.generate');
         Route::get('/reports/{cafeteriaReport}', [CafeteriaReportController::class, 'show'])->name('reports.show');
-
 
         // Provider Dashboard
         Route::get('/providers/dashboard', CafeteriaProviderDashboardController::class)->name('providers.dashboard');
@@ -788,6 +808,49 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
         Route::post('/employee-exclusions/{employeeCafeteriaExclusion}/end', [EmployeeCafeteriaExclusionController::class, 'end'])->name('employee-exclusions.end');
         Route::delete('/employee-exclusions/{employeeCafeteriaExclusion}', [EmployeeCafeteriaExclusionController::class, 'archive'])->name('employee-exclusions.archive');
     });
+});
+
+// ── Grievance Module ───────────────────────────────────────────────────────────
+Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (): void {
+    // My Grievances (any authenticated user)
+    Route::get('/grievances/my', [GrievanceController::class, 'myGrievances'])->name('grievances.my');
+    Route::get('/grievances/create', [GrievanceController::class, 'create'])->name('grievances.create');
+    Route::post('/grievances', [GrievanceController::class, 'store'])->name('grievances.store');
+
+    // Grievances (admin/committee/manager views)
+    Route::get('/grievances', [GrievanceController::class, 'index'])->name('grievances.index');
+    Route::get('/grievances/{grievance}', [GrievanceController::class, 'show'])->name('grievances.show');
+    Route::post('/grievances/{grievance}/assign', [GrievanceController::class, 'assign'])->name('grievances.assign');
+    Route::post('/grievances/{grievance}/check-requirement', [GrievanceController::class, 'checkRequirement'])->name('grievances.check-requirement');
+    Route::post('/grievances/{grievance}/compile-response', [GrievanceController::class, 'compileResponse'])->name('grievances.compile-response');
+    Route::post('/grievances/{grievance}/approve-response', [GrievanceController::class, 'approveResponse'])->name('grievances.approve-response');
+    Route::post('/grievances/{grievance}/reject-response', [GrievanceController::class, 'rejectResponse'])->name('grievances.reject-response');
+    Route::get('/grievances/{grievance}/letter', [GrievanceController::class, 'downloadLetter'])->name('grievances.letter');
+
+    // Grievance Categories
+    Route::get('/grievance-categories', [GrievanceCategoryController::class, 'index'])->name('grievance-categories.index');
+    Route::post('/grievance-categories', [GrievanceCategoryController::class, 'store'])->name('grievance-categories.store');
+    Route::patch('/grievance-categories/{grievanceCategory}', [GrievanceCategoryController::class, 'update'])->name('grievance-categories.update');
+
+    // Grievance Committees
+    Route::get('/grievance-committees', [GrievanceCommitteeController::class, 'index'])->name('grievance-committees.index');
+    Route::get('/grievance-committees/create', [GrievanceCommitteeController::class, 'create'])->name('grievance-committees.create');
+    Route::post('/grievance-committees', [GrievanceCommitteeController::class, 'store'])->name('grievance-committees.store');
+    Route::get('/grievance-committees/{grievanceCommittee}', [GrievanceCommitteeController::class, 'show'])->name('grievance-committees.show');
+    Route::post('/grievance-committees/{grievanceCommittee}/members', [GrievanceCommitteeController::class, 'addMember'])->name('grievance-committees.members.add');
+    Route::delete('/grievance-committees/{grievanceCommittee}/members/{member}', [GrievanceCommitteeController::class, 'removeMember'])->name('grievance-committees.members.remove');
+    Route::delete('/grievance-committees/{grievanceCommittee}', [GrievanceCommitteeController::class, 'destroy'])->name('grievance-committees.destroy');
+
+    // Grievance SLA Rules
+    Route::get('/grievance-sla-rules', [GrievanceSlaRuleController::class, 'index'])->name('grievance-sla-rules.index');
+    Route::post('/grievance-sla-rules', [GrievanceSlaRuleController::class, 'store'])->name('grievance-sla-rules.store');
+    Route::patch('/grievance-sla-rules/{grievanceSlaRule}', [GrievanceSlaRuleController::class, 'update'])->name('grievance-sla-rules.update');
+    Route::delete('/grievance-sla-rules/{grievanceSlaRule}', [GrievanceSlaRuleController::class, 'destroy'])->name('grievance-sla-rules.destroy');
+
+    // Administrative Tribunal
+    Route::get('/tribunal-cases', [AdministrativeTribunalController::class, 'index'])->name('tribunal-cases.index');
+    Route::get('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'show'])->name('tribunal-cases.show');
+    Route::patch('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'update'])->name('tribunal-cases.update');
 });
 
 Route::middleware(['auth', 'admin.access'])->group(function () {

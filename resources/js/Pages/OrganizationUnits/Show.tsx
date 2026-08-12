@@ -9,11 +9,19 @@ import type { OrganizationUnit } from '@/types/organizationUnit';
 import RelationshipPanel, { type RelationshipRow } from '@/Components/relationships/RelationshipPanel';
 import ReportingLinesPanel from '@/Components/relationships/ReportingLinesPanel';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import { localizedName } from '@/utils/localizedName';
+
+type HostedOrgRef = { id: string; code: string; name_en: string; name_am: string | null };
 
 interface Props {
     unit: OrganizationUnit;
     relationships: RelationshipRow[];
     relationshipOptions: ComponentProps<typeof RelationshipPanel>['options'];
+    /** Present only when the unit belongs functionally to another organization. */
+    hostedContext?: {
+        owner_organization: HostedOrgRef | null;
+        host_organization: HostedOrgRef | null;
+    } | null;
     can: {
         manageRelationships: boolean;
         updateRelationships: boolean;
@@ -21,9 +29,11 @@ interface Props {
     };
 }
 
-export default function OrganizationUnitsShow({ unit, relationships, relationshipOptions, can }: Props) {
-    const { t } = useLocale();
+export default function OrganizationUnitsShow({ unit, relationships, relationshipOptions, hostedContext = null, can }: Props) {
+    const { t, locale } = useLocale();
     const { post, processing } = useForm();
+    const unitName = localizedName(unit.name_en, unit.name_am, locale);
+    const description = localizedName(unit.description_en, unit.description_am, locale);
 
     function handleArchive() {
         if (!confirm(t('common.cannotUndo'))) return;
@@ -39,7 +49,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
             header={
                 <PageHeader
                     backHref={route('organizations.show', unit.organization_id)}
-                    title={unit.name_en}
+                    title={unitName}
                     actions={
                         <div className="flex gap-2">
                             {unit.can.update && (
@@ -75,7 +85,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                 />
             }
         >
-            <Head title={unit.name_en} />
+            <Head title={unitName} />
 
             <div className="mx-auto max-w-5xl space-y-6">
                 {/* Header badges */}
@@ -84,6 +94,39 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                     <OrganizationUnitTypeBadge unitType={unit.unit_type} />
                     <OrganizationUnitStatusBadge status={unit.status} />
                 </div>
+
+                {/* Hosted unit — owner vs. operating organization */}
+                {hostedContext?.host_organization && (
+                    <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                        <div className="grid gap-4 text-sm sm:grid-cols-2">
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                                    {t('organizationUnits.ownerOrganization')}
+                                </p>
+                                <p className="mt-1 font-medium text-gray-900 dark:text-slate-100">
+                                    <span className="font-mono text-xs text-gray-500 dark:text-slate-400">{hostedContext.owner_organization?.code}</span>
+                                    {' — '}
+                                    {hostedContext.owner_organization
+                                        ? localizedName(hostedContext.owner_organization.name_en, hostedContext.owner_organization.name_am, locale)
+                                        : '—'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-xs font-medium uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                                    {t('organizationUnits.operatingOrganization')}
+                                </p>
+                                <p className="mt-1 font-medium text-gray-900 dark:text-slate-100">
+                                    <span className="font-mono text-xs text-gray-500 dark:text-slate-400">{hostedContext.host_organization.code}</span>
+                                    {' — '}
+                                    {localizedName(hostedContext.host_organization.name_en, hostedContext.host_organization.name_am, locale)}
+                                </p>
+                            </div>
+                        </div>
+                        <p className="mt-3 text-xs text-blue-700 dark:text-blue-300">
+                            {t('organizationUnits.hostedUnitHelp')}
+                        </p>
+                    </section>
+                )}
 
                 {/* Details Card */}
                 <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
@@ -99,7 +142,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                         href={route('organizations.show', unit.organization.id)}
                                         className="text-blue-600 hover:underline dark:text-blue-400"
                                     >
-                                        {unit.organization.name_en}
+                                        {localizedName(unit.organization.name_en, unit.organization.name_am, locale)}
                                     </Link>
                                 ) : '—'}
                             </dd>
@@ -114,7 +157,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                         href={route('organization-units.show', unit.parent.id)}
                                         className="text-blue-600 hover:underline dark:text-blue-400"
                                     >
-                                        {unit.parent.name_en}
+                                        {localizedName(unit.parent.name_en, unit.parent.name_am, locale)}
                                     </Link>
                                 ) : '—'}
                             </dd>
@@ -139,13 +182,13 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                 </dd>
                             </div>
                         )}
-                        {unit.description_en && (
+                        {description && (
                             <div className="col-span-2">
                                 <dt className="text-gray-500 dark:text-slate-400">
-                                    {t('organizationUnits.descriptionEn')}
+                                    {t('organizationUnits.description')}
                                 </dt>
                                 <dd className="font-medium text-gray-900 dark:text-slate-100">
-                                    {unit.description_en}
+                                    {description}
                                 </dd>
                             </div>
                         )}
@@ -166,7 +209,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                             href={route('organization-units.show', child.id)}
                                             className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
                                         >
-                                            {child.name_en}
+                                            {localizedName(child.name_en, child.name_am, locale)}
                                         </Link>
                                         <span className="ml-2 font-mono text-xs text-gray-400">{child.code}</span>
                                     </div>
