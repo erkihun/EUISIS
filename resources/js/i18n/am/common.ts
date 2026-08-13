@@ -107,6 +107,20 @@ const common = {
     page: 'ገጽ',
     of: 'ከ',
     preview: 'ቅድመ ዕይታ',
+    occupied: 'የተያዘ',
+    vacant: 'ክፍት',
+    retired: 'ጡረታ የወጣ',
+    terminated: 'የተቋረጠ',
+    transferred: 'የተዛወረ',
+    deceased: 'የሞተ',
+    pending_print: 'ለህትመት በመጠባበቅ ላይ',
+    printed: 'የታተመ',
+    issued: 'የተሰጠ',
+    expired: 'ጊዜው ያለፈ',
+    revoked: 'የተሰረዘ',
+    lost: 'የጠፋ',
+    damaged: 'የተበላሸ',
+    replaced: 'የተተካ',
 } as const;
 
 export default common;

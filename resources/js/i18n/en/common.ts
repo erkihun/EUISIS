@@ -107,6 +107,20 @@ const common = {
     page: 'Page',
     of: 'of',
     preview: 'Preview',
+    occupied: 'Occupied',
+    vacant: 'Vacant',
+    retired: 'Retired',
+    terminated: 'Terminated',
+    transferred: 'Transferred',
+    deceased: 'Deceased',
+    pending_print: 'Pending Print',
+    printed: 'Printed',
+    issued: 'Issued',
+    expired: 'Expired',
+    revoked: 'Revoked',
+    lost: 'Lost',
+    damaged: 'Damaged',
+    replaced: 'Replaced',
 } as const;
 
 export default common;

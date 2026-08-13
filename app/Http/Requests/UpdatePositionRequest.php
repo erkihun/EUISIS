@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesOrganizationWithinScope;
 use App\Models\Position;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdatePositionRequest extends FormRequest
 {
+    use ValidatesOrganizationWithinScope;
+
     public function authorize(): bool
     {
         /** @var Position $position */
@@ -29,8 +32,8 @@ class UpdatePositionRequest extends FormRequest
             'title_en' => ['nullable', 'string', 'max:255', 'required_without:title_am'],
             'title_am' => ['nullable', 'string', 'max:255', 'required_without:title_en'],
             'bpr_name' => ['nullable', 'string', 'max:255'],
-            'organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
-            'organization_unit_id' => ['nullable', 'uuid', 'exists:organization_units,id'],
+            'organization_id' => ['nullable', 'uuid', 'exists:organizations,id', $this->organizationWithinScopeRule()],
+            'organization_unit_id' => ['nullable', 'uuid', 'exists:organization_units,id', $this->organizationUnitBelongsToOrganizationRule()],
             'occupation_id' => ['nullable', 'uuid', 'exists:occupations,id'],
             'description_en' => ['nullable', 'string'],
             'description_am' => ['nullable', 'string'],

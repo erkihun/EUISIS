@@ -9,6 +9,7 @@ import type { RelationshipRow } from '@/Components/relationships/RelationshipPan
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { localizedName } from '@/utils/localizedName';
 import OrganizationStructureTree, { type OrganizationStructureTreeData } from '@/Components/organizations/OrganizationStructureTree';
+import StatusDistribution from '@/Components/dashboard/StatusDistribution';
 import { useState } from 'react';
 
 /** Keys returned by OrganizationDeletionGuard::reasons(), mapped to i18n labels below. */
@@ -65,12 +66,29 @@ type InstitutionOfficePreview = {
     status: string;
 };
 
+type OrganizationStatistics = {
+    units: { total: number; active: number; inactive: number; draft: number; archived: number };
+    positions: { total: number; active: number; inactive: number; occupied: number; vacant: number; by_status: Record<string, number> };
+    employees: { total: number; active: number; suspended: number; retired: number; terminated: number; by_status: Record<string, number> };
+    id_cards: { total: number; active: number; pending: number; inactive: number; by_status: Record<string, number> };
+    child_organizations: number;
+    scoped_users: number;
+    employees_by_unit: Array<{
+        id: string;
+        code: string | null;
+        name_en: string | null;
+        name_am: string | null;
+        employees_count: number;
+    }>;
+};
+
 export default function OrganizationShow({
     organization,
     parentOrganizationId,
     parentOrganization = null,
     structureSummary,
     structureTree,
+    statistics = null,
     descendants,
     can,
     deletionBlockers = [],
@@ -100,6 +118,7 @@ export default function OrganizationShow({
     currentAssignmentsCount: number;
     structureSummary: StructureSummary;
     structureTree: OrganizationStructureTreeData;
+    statistics?: OrganizationStatistics | null;
     descendants: Descendant[];
     can: CanProps;
     deletionBlockers?: DeletionBlockerKey[];
@@ -108,6 +127,17 @@ export default function OrganizationShow({
     reportingUnits?: RelationshipRow[];
 }) {
     const { t, locale } = useLocale();
+
+    /**
+     * Localized label for a status key, falling back to the raw key when no
+     * translation exists so a new enum case degrades to something readable
+     * rather than an empty slice label.
+     */
+    function statusLabel(status: string): string {
+        const key = `common.${status}`;
+        const translated = t(key);
+        return translated === key ? status.replace(/_/g, ' ') : translated;
+    }
     const deleteForm = useForm({});
     const archiveForm = useForm({});
     const deactivateForm = useForm({});
@@ -153,6 +183,13 @@ export default function OrganizationShow({
                                     {t('organizations.addChild')}
                                 </Link>
                             )}
+                            {/* Read-only view: gated by `view`, which the user already holds here. */}
+                            <Link
+                                href={route('organizations.organogram', organization.id)}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                            >
+                                {t('organizations.generateOrganogram')}
+                            </Link>
                             {can.update && (
                                 <Link
                                     href={route('organizations.edit', organization.id)}
@@ -521,6 +558,92 @@ export default function OrganizationShow({
                             </tbody>
                         </table>
                     </div>
+                </section>
+            )}
+
+            {statistics && (
+                <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('organizations.statistics')}</h3>
+
+                    <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+                        {[
+                            { label: t('organizations.totalUnits'), value: statistics.units.total },
+                            { label: t('organizations.activeUnits'), value: statistics.units.active },
+                            { label: t('organizations.inactiveUnits'), value: statistics.units.inactive },
+                            { label: t('organizations.totalPositions'), value: statistics.positions.total },
+                            { label: t('organizations.occupiedPositions'), value: statistics.positions.occupied },
+                            { label: t('organizations.vacantPositions'), value: statistics.positions.vacant },
+                            { label: t('organizations.totalEmployees'), value: statistics.employees.total },
+                            { label: t('organizations.activeEmployees'), value: statistics.employees.active },
+                            { label: t('organizations.activeCards'), value: statistics.id_cards.active },
+                            { label: t('organizations.pendingCards'), value: statistics.id_cards.pending },
+                            { label: t('organizations.inactiveCards'), value: statistics.id_cards.inactive },
+                            { label: t('organizations.childOrganizations'), value: statistics.child_organizations },
+                            { label: t('organizations.scopedUsers'), value: statistics.scoped_users },
+                        ].map(({ label, value }) => (
+                            <div key={label} className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-center dark:border-slate-800 dark:bg-slate-950">
+                                <dd className="text-lg font-bold tabular-nums text-gray-900 dark:text-slate-100">{value}</dd>
+                                <dt className="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-slate-400">{label}</dt>
+                            </div>
+                        ))}
+                    </dl>
+
+                    <div className="mt-6 grid gap-6 xl:grid-cols-3">
+                        {[
+                            { title: t('organizations.positionsByStatus'), data: statistics.positions.by_status },
+                            { title: t('organizations.employeesByStatus'), data: statistics.employees.by_status },
+                            { title: t('organizations.idCardsByStatus'), data: statistics.id_cards.by_status },
+                        ].map(({ title, data }) => {
+                            const series = Object.entries(data)
+                                .filter(([, value]) => value > 0)
+                                .map(([key, value]) => ({ key, value }));
+
+                            return (
+                                <div key={title} className="min-w-0 rounded-xl border border-gray-100 p-4 dark:border-slate-800">
+                                    <h4 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h4>
+                                    <div className="mt-3">
+                                        {series.length === 0 ? (
+                                            <p className="py-8 text-center text-xs text-gray-400 dark:text-slate-500">
+                                                {t('organizations.noStatistics')}
+                                            </p>
+                                        ) : (
+                                            <StatusDistribution
+                                                data={series}
+                                                labelFor={(key) => statusLabel(key)}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {statistics.employees_by_unit.length > 0 && (
+                        <div className="mt-6">
+                            <h4 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('organizations.employeesByUnit')}</h4>
+                            <div className="mt-3 overflow-x-auto rounded-xl border border-gray-100 dark:border-slate-800">
+                                <table className="min-w-full text-left text-sm">
+                                    <thead className="bg-gray-50 dark:bg-slate-950">
+                                        <tr>
+                                            <th className="px-4 py-2 font-medium text-gray-600 dark:text-slate-400">{t('organizations.organizationUnits')}</th>
+                                            <th className="px-4 py-2 text-right font-medium text-gray-600 dark:text-slate-400">{t('organizations.assignedEmployees')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                        {statistics.employees_by_unit.map((row) => (
+                                            <tr key={row.id}>
+                                                <td className="px-4 py-2 text-gray-800 dark:text-slate-200">
+                                                    <span className="font-mono text-[11px] text-gray-400">{row.code}</span>{' '}
+                                                    {localizedName(row.name_en, row.name_am, locale)}
+                                                </td>
+                                                <td className="px-4 py-2 text-right tabular-nums text-gray-800 dark:text-slate-200">{row.employees_count}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
                 </section>
             )}
 

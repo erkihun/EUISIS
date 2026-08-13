@@ -24,4 +24,5 @@ return [
     'total_job_positions' => 'Total Job Positions',
     'filled_positions' => 'Assigned Positions',
     'vacant_positions' => 'Vacant Positions',
+    'unit_outside_organization' => 'The selected organization unit does not belong to the selected organization.',
 ];

@@ -43,7 +43,6 @@ const employees = {
     currentOrganization: 'የአሁኑ ተቋም',
     selectedOrganization: 'የተመረጠ ተቋም',
     selectedPosition: 'የተመረጠ የስራ መደብ',
-    positionsInOrganization: 'በድርጅቱ ያሉ የስራ መደቦች',
     noPositionsForOrganization: 'ለዚህ ተቋም ንቁ የስራ መደቦች አልተገኙም።',
     selectOrganizationToViewEmployees: 'ሠራተኞችን ለማየት ተቋም ይምረጡ።',
     noHierarchyVersion: 'የመዋቅር ስሪት የለም',
@@ -98,6 +97,14 @@ const employees = {
     onlyVacantPositionsShown: 'ንቁ እና ያልተያዙ የስራ መደቦች ብቻ ተዘርዝረዋል።',
     photoHint: 'JPG፣ PNG ወይም WEBP። ከፍተኛ መጠን 4 MB።',
     removePhoto: 'ፎቶ አስወግድ',
+    organizationAutoFilledFromPosition: 'ተቋሙና የተቋም ዩኒቱ ከሥራ መደቡ በራስ-ሰር ይመረጣሉ',
+    positionUnitMismatch: 'የተመረጠው የሥራ መደብ ከተመረጠው የተቋም ዩኒት ጋር አይዛመድም',
+    selectedOrganizationUnit: 'የተመረጠ የተቋም ዩኒት',
+    changePosition: 'የሥራ መደብ ቀይር',
+    selectVacantPositionFirst: 'ሠራተኛ ከመፍጠርዎ በፊት ክፍት የሥራ መደብ ይምረጡ',
+    placementFromPositionContext: 'ተቋሙ፣ የተቋም ዩኒቱና የሥራ መደቡ ከሥራ መደቡ አውድ ተመርጠዋል',
+    positionOccupiedCannotCreate: 'ይህ የሥራ መደብ ቀድሞ ተይዟል። ለዚህ የሥራ መደብ ሠራተኛ መፍጠር አይችሉም።',
+    selectVacantPosition: 'ክፍት የሥራ መደብ ይምረጡ',
 } as const;
 
 export default employees;

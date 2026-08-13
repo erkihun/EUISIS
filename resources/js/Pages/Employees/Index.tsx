@@ -4,9 +4,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import ScopedOrganizationStructure, { type ScopedOrganization } from '@/Components/employees/ScopedOrganizationStructure';
+import ScopedOrganizationStructure, { type ScopedOrganization } from '@/Components/organization-structure/ScopedOrganizationStructure';
 import { AlertTriangle, Building2, Plus, Users } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { toast } from '@/lib/toast';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
@@ -17,6 +18,7 @@ type PositionOption = {
     title_am: string | null;
     organization_id?: string;
     organization_unit_id?: string | null;
+    occupancy_status?: 'vacant' | 'occupied';
 };
 
 type EmployeeRow = {
@@ -119,6 +121,10 @@ export default function EmployeesIndex({
         );
     }
 
+    // Backend re-checks this on the create route; the disabled button is only
+    // there to explain the block before the user navigates.
+    const selectedPositionIsOccupied = selectedPosition?.occupancy_status === 'occupied';
+
     const createHref =
         route('employees.create') +
         '?organization_id=' +
@@ -158,13 +164,26 @@ export default function EmployeesIndex({
                                     </p>
                                 </div>
                                 {can.create && (
-                                    <Link
-                                        href={createHref}
-                                        className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-                                    >
-                                        <Plus className="h-3.5 w-3.5" />
-                                        {t('employees.createEmployee')}
-                                    </Link>
+                                    selectedPositionIsOccupied ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => toast.error(t('employees.positionOccupiedCannotCreate'))}
+                                            title={t('employees.positionOccupiedCannotCreate')}
+                                            aria-disabled="true"
+                                            className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-lg bg-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 dark:bg-slate-700 dark:text-slate-400"
+                                        >
+                                            <Plus className="h-3.5 w-3.5" />
+                                            {t('employees.createEmployee')}
+                                        </button>
+                                    ) : (
+                                        <Link
+                                            href={createHref}
+                                            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                                        >
+                                            <Plus className="h-3.5 w-3.5" />
+                                            {t('employees.createEmployee')}
+                                        </Link>
+                                    )
                                 )}
                             </div>
 

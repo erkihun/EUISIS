@@ -84,4 +84,8 @@ return [
     'deletion_blocker_has_positions' => 'የስራ መደቦች አሉት',
     'deletion_blocker_has_employee_assignments' => 'የሰራተኛ ምደባዎች አሉት',
     'deletion_blocker_has_other_references' => 'በሌሎች መዝገቦች (አቅራቢዎች፣ ዝውውሮች ወይም የኦዲት ታሪክ) ውስጥ ጥቅም ላይ ውሏል',
+    'organizationOrganogram' => 'የተቋም መዋቅር ሰንጠረዥ',
+    'noStructureFound' => 'መዋቅር አልተገኘም',
+    'organizationUnits' => 'የተቋም ዩኒቶች',
+    'positions' => 'የሥራ መደቦች',
 ];

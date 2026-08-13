@@ -302,6 +302,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
     Route::post('/organizations/import-structure/confirm', [OrganizationStructureImportController::class, 'confirm'])->name('organizations.import-structure.confirm');
 
     Route::get('/organizations/{organization}', [OrganizationController::class, 'show'])->name('organizations.show');
+    Route::get('/organizations/{organization}/organogram', [OrganizationController::class, 'organogram'])->name('organizations.organogram');
     Route::get('/organizations/{organization}/edit', [OrganizationController::class, 'edit'])->name('organizations.edit');
     Route::patch('/organizations/{organization}', [OrganizationController::class, 'update'])->name('organizations.update');
     Route::delete('/organizations/{organization}', [OrganizationController::class, 'archive'])->name('organizations.archive');

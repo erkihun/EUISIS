@@ -28,6 +28,7 @@ use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Positions\ScopedPositionStructureService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -189,8 +190,11 @@ class PositionController extends Controller
         ]);
     }
 
-    public function index(Request $request, OrganizationScopeService $organizationScopeService): Response
-    {
+    public function index(
+        Request $request,
+        OrganizationScopeService $organizationScopeService,
+        ScopedPositionStructureService $scopedPositionStructureService,
+    ): Response {
         $this->authorize('viewAny', Position::class);
 
         $user = $request->user();
@@ -202,7 +206,9 @@ class PositionController extends Controller
             ->withCount(['organizationUnits' => fn ($q) => $q->whereNull('deleted_at')])
             ->orderBy('name_en');
 
-        if ($accessibleOrganizationIds->isNotEmpty()) {
+        // Fail closed: a scoped actor whose accessible set resolves empty must
+        // see nothing. Skipping the constraint would expose every organization.
+        if (! $organizationScopeService->isUnrestricted($user)) {
             $orgQuery->whereIn('id', $accessibleOrganizationIds);
         }
 
@@ -304,7 +310,9 @@ class PositionController extends Controller
         if ($request->filled('organization_id')) {
             $orgId = $request->string('organization_id')->toString();
 
-            if ($accessibleOrganizationIds->isNotEmpty() && ! $accessibleOrganizationIds->contains($orgId)) {
+            // Fail closed: an empty accessible set for a scoped actor means no
+            // access, not unrestricted access.
+            if (! $organizationScopeService->canAccess($user, $orgId)) {
                 abort(403);
             }
 
@@ -403,6 +411,8 @@ class PositionController extends Controller
             ->all();
 
         return Inertia::render('Positions/Index', [
+            'organizationStructure' => $scopedPositionStructureService->build($user),
+            'isOrganizationScoped' => ! $organizationScopeService->isUnrestricted($user),
             'organizationTree' => $organizationTree,
             'hasPublishedHierarchy' => $hasPublishedHierarchy,
             'selectedOrganization' => $selectedOrganization,
@@ -426,6 +436,31 @@ class PositionController extends Controller
 
         $organizationId = $request->string('organization_id')->toString() ?: null;
         $organizationUnitId = $request->string('organization_unit_id')->toString() ?: null;
+
+        // Prefill params arrive from the structure tree, but they are just query
+        // string values — validate them against the actor's scope, and make sure
+        // the unit really belongs to the organization it is paired with.
+        if ($organizationId !== null && ! $organizationScopeService->canAccess($request->user(), $organizationId)) {
+            abort(403);
+        }
+
+        if ($organizationUnitId !== null) {
+            $unitOrganizationId = OrganizationUnit::query()
+                ->whereKey($organizationUnitId)
+                ->value('organization_id');
+
+            if ($unitOrganizationId !== null) {
+                if (! $organizationScopeService->canAccess($request->user(), (string) $unitOrganizationId)) {
+                    abort(403);
+                }
+
+                if ($organizationId !== null && (string) $unitOrganizationId !== $organizationId) {
+                    abort(403);
+                }
+
+                $organizationId ??= (string) $unitOrganizationId;
+            }
+        }
 
         $organizationUnits = $organizationId
             ? OrganizationUnit::query()

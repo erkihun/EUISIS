@@ -24,4 +24,5 @@ return [
     'total_job_positions' => 'ጠቅላላ የሥራ መደቦች',
     'filled_positions' => 'የተመደቡ መደቦች',
     'vacant_positions' => 'ክፍት መደቦች',
+    'unit_outside_organization' => 'የተመረጠው የተቋም ዩኒት ከተመረጠው ተቋም ጋር አይዛመድም።',
 ];

@@ -73,6 +73,10 @@ const positions = {
     hostedUnitHelp: 'This unit belongs to the owner organization functionally but operates within the selected host organization.',
     invalidHostOrganization: 'Invalid host organization.',
     positionCodeAlreadyExists: 'This position code already exists.',
+    positionsInOrganization: 'Positions in Organization',
+    positionsInOrganizationUnit: 'Positions in Organization Unit',
+    selectedOrganization: 'Selected Organization',
+    selectedOrganizationUnit: 'Selected Organization Unit',
 } as const;
 
 export default positions;

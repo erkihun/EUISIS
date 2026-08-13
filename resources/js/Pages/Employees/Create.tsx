@@ -27,6 +27,30 @@ const inputCls =
 const labelCls = 'mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400';
 const helpCls = 'mt-1 text-xs text-gray-400 dark:text-slate-500';
 
+type PlacementRecord = {
+    id: string;
+    code: string | null;
+    name_en: string | null;
+    name_am: string | null;
+};
+
+type PlacementContext = {
+    organization: PlacementRecord | null;
+    organization_unit: PlacementRecord | null;
+    position: PlacementRecord;
+};
+
+/** A resolved placement value shown instead of an editable control. */
+function ReadOnlyValue({ label, value, code }: { label: string; value: string; code?: string | null }) {
+    return (
+        <div className="min-w-0">
+            <dt className={labelCls}>{label}</dt>
+            <dd className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{value}</dd>
+            {code && <dd className="mt-0.5 font-mono text-[11px] text-gray-400 dark:text-slate-500">{code}</dd>}
+        </div>
+    );
+}
+
 function Field({
     label,
     error,
@@ -58,6 +82,7 @@ export default function EmployeesCreate({
     selectedOrganizationId,
     selectedOrganizationUnitId,
     selectedPositionId,
+    placementContext,
 }: {
     organizations: Option[];
     organizationUnits: Option[];
@@ -66,6 +91,7 @@ export default function EmployeesCreate({
     selectedOrganizationId: string | null;
     selectedOrganizationUnitId: string | null;
     selectedPositionId: string | null;
+    placementContext: PlacementContext | null;
 }) {
     const { t, locale } = useLocale();
 
@@ -170,13 +196,24 @@ export default function EmployeesCreate({
         });
     }
 
+    /**
+     * The position is the authoritative choice: its organization and unit win
+     * over whatever is currently selected, so the three fields can never drift
+     * out of sync (the backend rejects a mismatch either way).
+     */
     function changePosition(positionId: string) {
         const position = positions.find((candidate) => candidate.id === positionId);
+
+        if (position === undefined) {
+            form.setData({ ...form.data, position_id: '' });
+            return;
+        }
 
         form.setData({
             ...form.data,
             position_id: positionId,
-            organization_unit_id: form.data.organization_unit_id || position?.organization_unit_id || '',
+            organization_id: position.organization_id ?? form.data.organization_id,
+            organization_unit_id: position.organization_unit_id ?? '',
         });
     }
 
@@ -321,31 +358,86 @@ export default function EmployeesCreate({
                             description={t('employees.sectionPlacementHelp')}
                             columns={3}
                         >
-                            <Field label={t('employees.organization')} error={form.errors.organization_id}>
-                                <select
-                                    className={inputCls}
-                                    value={form.data.organization_id}
-                                    onChange={(e) => changeOrganization(e.target.value)}
-                                    disabled={orgLocked}
-                                >
-                                    {orgLocked ? (
-                                        <option value={form.data.organization_id}>
-                                            {selectedOrg
-                                                ? localizedName(selectedOrg.name_en, selectedOrg.name_am, locale)
-                                                : t('employees.selectedOrganization')}
-                                        </option>
-                                    ) : (
-                                        <>
-                                            <option value="">{t('employees.selectOrganization')}</option>
-                                            {organizations.map((o) => (
-                                                <option key={o.id} value={o.id}>
-                                                    {localizedName(o.name_en, o.name_am, locale)}
-                                                </option>
-                                            ))}
-                                        </>
-                                    )}
-                                </select>
-                            </Field>
+                            {placementContext ? (
+                                <div className="md:col-span-2 xl:col-span-3">
+                                    <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+                                        <dl className="grid gap-4 sm:grid-cols-3">
+                                            <ReadOnlyValue
+                                                label={t('employees.selectedOrganization')}
+                                                code={placementContext.organization?.code ?? null}
+                                                value={placementContext.organization
+                                                    ? localizedName(placementContext.organization.name_en, placementContext.organization.name_am, locale)
+                                                    : '—'}
+                                            />
+                                            <ReadOnlyValue
+                                                label={t('employees.selectedOrganizationUnit')}
+                                                code={placementContext.organization_unit?.code ?? null}
+                                                value={placementContext.organization_unit
+                                                    ? localizedName(placementContext.organization_unit.name_en, placementContext.organization_unit.name_am, locale)
+                                                    : '—'}
+                                            />
+                                            <ReadOnlyValue
+                                                label={t('employees.selectedPosition')}
+                                                code={placementContext.position.code}
+                                                value={localizedName(placementContext.position.name_en, placementContext.position.name_am, locale)}
+                                            />
+                                        </dl>
+                                        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                                                {t('employees.placementFromPositionContext')}
+                                            </p>
+                                            <Link
+                                                href={route('positions.index')}
+                                                className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                            >
+                                                {t('employees.changePosition')}
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="md:col-span-2 xl:col-span-3">
+                                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-900/60">
+                                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                                                {t('employees.selectVacantPositionFirst')}
+                                            </p>
+                                            <Link
+                                                href={route('positions.index')}
+                                                className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                            >
+                                                {t('employees.selectPosition')}
+                                            </Link>
+                                        </div>
+                                    </div>
+
+                                <Field label={t('employees.organization')} error={form.errors.organization_id}>
+                                    <select
+                                        className={inputCls}
+                                        value={form.data.organization_id}
+                                        onChange={(e) => changeOrganization(e.target.value)}
+                                        disabled={orgLocked}
+                                    >
+                                        {orgLocked ? (
+                                            <option value={form.data.organization_id}>
+                                                {selectedOrg
+                                                    ? localizedName(selectedOrg.name_en, selectedOrg.name_am, locale)
+                                                    : t('employees.selectedOrganization')}
+                                            </option>
+                                        ) : (
+                                            <>
+                                                <option value="">{t('employees.selectOrganization')}</option>
+                                                {organizations.map((o) => (
+                                                    <option key={o.id} value={o.id}>
+                                                        {localizedName(o.name_en, o.name_am, locale)}
+                                                    </option>
+                                                ))}
+                                            </>
+                                        )}
+                                    </select>
+                                </Field>
+                                </>
+                            )}
 
                             {!positionLocked && (
                                 <Field
@@ -385,7 +477,7 @@ export default function EmployeesCreate({
                                             ? t('employees.selectOrganizationFirst')
                                             : filteredPositions.length === 0
                                                 ? t('employees.noPositionsForOrganization')
-                                                : t('employees.onlyVacantPositionsShown')
+                                                : `${t('employees.onlyVacantPositionsShown')} · ${t('employees.organizationAutoFilledFromPosition')}`
                                     }
                                 >
                                     <select

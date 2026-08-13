@@ -20,6 +20,7 @@ use App\Http\Requests\EmployeeUpdateRequest;
 use App\Http\Resources\EmployeeDetailResource;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
@@ -133,6 +134,9 @@ class EmployeeController extends Controller
                 'title_en' => $selectedPosition->title_en,
                 'title_am' => $selectedPosition->title_am,
                 'organization_unit_id' => $selectedPosition->organization_unit_id,
+                // Drives the disabled "Create Employee" affordance; the create
+                // route re-checks this regardless of what the client does.
+                'occupancy_status' => $this->positionIsOccupied($selectedPosition->id) ? 'occupied' : 'vacant',
             ] : null,
             'employees' => EmployeeResource::collection($employeesPaginated->getCollection())->resolve(),
             'employees_pagination' => [
@@ -148,7 +152,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function create(OrganizationScopeService $organizationScopeService): Response
+    public function create(OrganizationScopeService $organizationScopeService): Response|RedirectResponse
     {
         $this->authorize('create', Employee::class);
 
@@ -185,6 +189,16 @@ class EmployeeController extends Controller
 
             if ($selectedPositionOrganizationId !== null && ! $organizationScopeService->canAccess($user, $selectedPositionOrganizationId)) {
                 abort(403);
+            }
+
+            // In scope but unusable — almost always because someone already
+            // holds it. Bounce back with a message instead of silently loading
+            // the form with the position dropped.
+            if ($this->positionIsOccupied($selectedPositionId)) {
+                return back()->with('flash', [
+                    'message' => __('validation.position_already_occupied'),
+                    'type' => 'error',
+                ]);
             }
         }
 
@@ -232,7 +246,73 @@ class EmployeeController extends Controller
             'selectedOrganizationId' => $selectedOrganizationId,
             'selectedOrganizationUnitId' => $selectedOrganizationUnitId,
             'selectedPositionId' => $selectedPositionId,
+            // Resolved names for the read-only placement summary. Built server
+            // side so the display never depends on the record happening to be
+            // present in the selectable option lists.
+            'placementContext' => $this->placementContext(
+                $selectedOrganizationId,
+                $selectedOrganizationUnitId,
+                $selectedPosition,
+            ),
         ]);
+    }
+
+    /**
+     * Whether an active, current assignment already holds the position. Mirrors
+     * the vacancy rule used by the create-page query and EmployeeStoreRequest.
+     */
+    private function positionIsOccupied(string $positionId): bool
+    {
+        return EmployeeAssignment::query()
+            ->where('position_id', $positionId)
+            ->where('is_current', true)
+            ->where('assignment_status', AssignmentStatus::Active)
+            ->exists();
+    }
+
+    /**
+     * Localized organization / unit / position names for a position-driven
+     * create. Returns null when the page was opened without a position context.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function placementContext(
+        ?string $organizationId,
+        ?string $organizationUnitId,
+        ?Position $position,
+    ): ?array {
+        if ($position === null) {
+            return null;
+        }
+
+        $organization = $organizationId !== null
+            ? Organization::query()->find($organizationId, ['id', 'code', 'name_en', 'name_am'])
+            : null;
+
+        $unit = $organizationUnitId !== null
+            ? OrganizationUnit::query()->find($organizationUnitId, ['id', 'code', 'name_en', 'name_am'])
+            : null;
+
+        return [
+            'organization' => $organization ? [
+                'id' => $organization->id,
+                'code' => $organization->code,
+                'name_en' => $organization->name_en,
+                'name_am' => $organization->name_am,
+            ] : null,
+            'organization_unit' => $unit ? [
+                'id' => $unit->id,
+                'code' => $unit->code,
+                'name_en' => $unit->name_en,
+                'name_am' => $unit->name_am,
+            ] : null,
+            'position' => [
+                'id' => $position->id,
+                'code' => $position->job_position_code,
+                'name_en' => $position->title_en,
+                'name_am' => $position->title_am,
+            ],
+        ];
     }
 
     private function organizationStructure(Collection $organizations, User $user, OrganizationScopeService $organizationScopeService): array

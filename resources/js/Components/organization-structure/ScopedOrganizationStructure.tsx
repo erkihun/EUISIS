@@ -93,16 +93,20 @@ function UnitNode({
     depth,
     expandedIds,
     selectedPositionId,
+    selectedUnitId,
     onToggle,
     onSelectPosition,
+    onSelectUnit,
 }: {
     unit: ScopedOrganizationUnit;
     organizationId: string;
     depth: number;
     expandedIds: Set<string>;
     selectedPositionId: string | null;
+    selectedUnitId?: string | null;
     onToggle: (id: string) => void;
     onSelectPosition: (organizationId: string, positionId: string) => void;
+    onSelectUnit?: (organizationId: string, unitId: string) => void;
 }) {
     const { t, locale } = useLocale();
     const expansionId = `unit:${unit.id}`;
@@ -111,7 +115,11 @@ function UnitNode({
     return (
         <div role="treeitem" aria-expanded={isExpanded}>
             <div
-                className="flex items-center gap-2 rounded-lg py-1.5 pr-2 text-sm text-gray-800 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50"
+                className={`flex items-center gap-2 rounded-lg py-1.5 pr-2 text-sm ${
+                    selectedUnitId === unit.id
+                        ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
+                        : 'text-gray-800 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
+                }`}
                 style={{ paddingLeft: `${12 + depth * 16}px` }}
             >
                 <button
@@ -122,7 +130,13 @@ function UnitNode({
                 >
                     {isExpanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                 </button>
-                <span className="min-w-0 flex-1 truncate font-medium">{localizedName(unit.name_en, unit.name_am, locale)}</span>
+                <button
+                    type="button"
+                    onClick={() => onSelectUnit?.(organizationId, unit.id)}
+                    className="min-w-0 flex-1 truncate text-left font-medium"
+                >
+                    {localizedName(unit.name_en, unit.name_am, locale)}
+                </button>
                 <span className="font-mono text-[10px] text-gray-400">{unit.code}</span>
                 <StatusBadge status={unit.status} label={t(`common.${unit.status}`)} className="px-1.5 py-0 text-[10px]" />
             </div>
@@ -164,8 +178,10 @@ function UnitNode({
                             depth={depth + 1}
                             expandedIds={expandedIds}
                             selectedPositionId={selectedPositionId}
+                            selectedUnitId={selectedUnitId}
                             onToggle={onToggle}
                             onSelectPosition={onSelectPosition}
+                            onSelectUnit={onSelectUnit}
                         />
                     ))}
                 </div>
@@ -179,16 +195,20 @@ export default function ScopedOrganizationStructure({
     isScoped,
     selectedOrganizationId,
     selectedPositionId,
+    selectedUnitId = null,
     onSelectOrganization,
     onSelectPosition,
+    onSelectUnit,
     onClearPosition,
 }: {
     organizations: ScopedOrganization[];
     isScoped: boolean;
     selectedOrganizationId: string | null;
     selectedPositionId: string | null;
+    selectedUnitId?: string | null;
     onSelectOrganization: (organizationId: string) => void;
     onSelectPosition: (organizationId: string, positionId: string) => void;
+    onSelectUnit?: (organizationId: string, unitId: string) => void;
     onClearPosition: () => void;
 }) {
     const { t, locale } = useLocale();
@@ -268,8 +288,10 @@ export default function ScopedOrganizationStructure({
                                             depth={0}
                                             expandedIds={effectiveExpandedIds}
                                             selectedPositionId={selectedPositionId}
+                                            selectedUnitId={selectedUnitId}
                                             onToggle={toggle}
                                             onSelectPosition={onSelectPosition}
+                                            onSelectUnit={onSelectUnit}
                                         />
                                     ))}
                                 </div>

@@ -43,7 +43,6 @@ const employees = {
     currentOrganization: 'Current Organization',
     selectedOrganization: 'Selected Organization',
     selectedPosition: 'Selected Position',
-    positionsInOrganization: 'Positions in Organization',
     noPositionsForOrganization: 'No active positions found for this organization.',
     selectOrganizationToViewEmployees: 'Select an organization to view employees.',
     noHierarchyVersion: 'No hierarchy version',
@@ -98,6 +97,14 @@ const employees = {
     onlyVacantPositionsShown: 'Only active, unoccupied positions are listed.',
     photoHint: 'JPG, PNG or WEBP. Maximum size 4 MB.',
     removePhoto: 'Remove photo',
+    organizationAutoFilledFromPosition: 'Organization and Organization Unit are selected automatically from the position',
+    positionUnitMismatch: 'Selected position does not belong to selected organization unit',
+    selectedOrganizationUnit: 'Selected Organization Unit',
+    changePosition: 'Change Position',
+    selectVacantPositionFirst: 'Please select a vacant position before creating an employee',
+    placementFromPositionContext: 'Organization, organization unit, and position are selected from the position context',
+    positionOccupiedCannotCreate: 'This position is already occupied. You cannot create an employee for this position.',
+    selectVacantPosition: 'Select a vacant position',
 } as const;
 
 export default employees;

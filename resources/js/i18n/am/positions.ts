@@ -73,6 +73,10 @@ const positions = {
     hostedUnitHelp: 'ይህ ክፍል በተግባር የባለቤት ድርጅቱ ነው፤ ነገር ግን በተመረጠው አስተናጋጅ ድርጅት ውስጥ ይሰራል።',
     invalidHostOrganization: 'ልክ ያልሆነ አስተናጋጅ ድርጅት።',
     positionCodeAlreadyExists: 'ይህ የስራ መደብ ኮድ አስቀድሞ አለ።',
+    positionsInOrganization: 'በተቋሙ ያሉ የሥራ መደቦች',
+    positionsInOrganizationUnit: 'በተቋም ዩኒቱ ያሉ የሥራ መደቦች',
+    selectedOrganization: 'የተመረጠ ተቋም',
+    selectedOrganizationUnit: 'የተመረጠ የተቋም ዩኒት',
 } as const;
 
 export default positions;

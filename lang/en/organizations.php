@@ -82,4 +82,8 @@ return [
     'deletion_blocker_has_positions' => 'Has positions',
     'deletion_blocker_has_employee_assignments' => 'Has employee assignments',
     'deletion_blocker_has_other_references' => 'Referenced by other records (providers, transfers, or audit history)',
+    'organizationOrganogram' => 'Organization Organogram',
+    'noStructureFound' => 'No structure found',
+    'organizationUnits' => 'Organization Units',
+    'positions' => 'Positions',
 ];

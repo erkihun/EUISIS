@@ -12,7 +12,7 @@ test('employees index uses the organization structure instead of a positions col
 });
 
 test('employee organization structure supports units positions search and empty states', function (): void {
-    $source = file_get_contents(dirname(__DIR__, 2).'/resources/js/Components/employees/ScopedOrganizationStructure.tsx');
+    $source = file_get_contents(dirname(__DIR__, 2).'/resources/js/Components/organization-structure/ScopedOrganizationStructure.tsx');
 
     expect($source)
         ->toContain("t('organizations.searchStructure')")

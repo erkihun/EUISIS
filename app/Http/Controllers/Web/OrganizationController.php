@@ -24,12 +24,15 @@ use App\Models\OrganizationType;
 use App\Models\User;
 use App\Services\OrganizationRelationships\ReportingLineService;
 use App\Services\Organizations\OrganizationDeletionGuard;
+use App\Services\Organizations\OrganizationStatisticsService;
 use App\Services\Organizations\ParentOrganizationOptionsService;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use DateTimeInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -228,13 +231,15 @@ class OrganizationController extends Controller
         ReportingLineService $reportingLineService,
         OrganizationDeletionGuard $organizationDeletionGuard,
         GetOrganizationFullTreeAction $getOrganizationFullTreeAction,
+        OrganizationStatisticsService $organizationStatisticsService,
     ): Response {
         $user = Auth::user();
 
         $this->authorize('view', $organization);
 
-        $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
-        if ($accessibleOrganizationIds->isNotEmpty() && ! $accessibleOrganizationIds->contains($organization->id)) {
+        // Fail closed: a scoped actor whose accessible set resolves empty must
+        // not fall through to unrestricted access.
+        if (! $organizationScopeService->canAccess($user, $organization->id)) {
             abort(403);
         }
 
@@ -277,6 +282,7 @@ class OrganizationController extends Controller
                 'descendants' => count($descendants),
             ],
             'structureTree' => $getOrganizationFullTreeAction->execute($organization),
+            'statistics' => $organizationStatisticsService->forOrganization($organization),
             'descendants' => $descendants,
             'institutionOffices' => $institutionOffices,
             'reportingOffices' => ReportingLineResource::collection(
@@ -298,6 +304,47 @@ class OrganizationController extends Controller
                 'createChild' => $user?->can('createChild', $organization) ?? false,
             ],
             'deletionBlockers' => $organizationDeletionGuard->reasons($organization),
+        ]);
+    }
+
+    /**
+     * Organogram for a single organization: Organization -> Units -> Positions
+     * -> assigned employee. Reuses the same scoped tree builder as the detail
+     * page, so there is exactly one definition of the structure.
+     *
+     * `?format=pdf` renders the printable variant through the existing dompdf
+     * integration; everything else returns the interactive Inertia page.
+     */
+    public function organogram(
+        Request $request,
+        Organization $organization,
+        OrganizationScopeService $organizationScopeService,
+        GetOrganizationFullTreeAction $getOrganizationFullTreeAction,
+    ): Response|HttpResponse {
+        $user = Auth::user();
+
+        $this->authorize('view', $organization);
+
+        // Fail closed — never fall through to unrestricted access.
+        if (! $organizationScopeService->canAccess($user, $organization->id)) {
+            abort(403);
+        }
+
+        $organization->load('type:id,code,name_en,name_am');
+        $tree = $getOrganizationFullTreeAction->execute($organization);
+
+        if ($request->string('format')->toString() === 'pdf') {
+            return Pdf::loadView('organizations.organogram', [
+                'tree' => $tree,
+                'locale' => app()->getLocale(),
+                'generatedAt' => now(),
+            ])
+                ->setPaper('a3', 'landscape')
+                ->download(sprintf('organogram-%s.pdf', $organization->code));
+        }
+
+        return Inertia::render('Organizations/Organogram', [
+            'tree' => $tree,
         ]);
     }
 

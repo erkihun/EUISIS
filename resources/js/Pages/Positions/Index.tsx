@@ -4,12 +4,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import OrganizationTreePreview from '@/Components/organization-units/OrganizationTreePreview';
-import { Building2, ChevronDown, ChevronRight, Plus } from '@/Components/Icons';
+import ScopedOrganizationStructure, { type ScopedOrganization } from '@/Components/organization-structure/ScopedOrganizationStructure';
+import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
-import type { OrganizationTreeNode, OrganizationSummary } from '@/types/organizationUnit';
+import type { OrganizationSummary } from '@/types/organizationUnit';
 
 type EstablishmentSummary = {
     id: string;
@@ -37,98 +37,22 @@ type PositionRow = {
     can: { view: boolean; update: boolean; archive: boolean; restore: boolean };
 };
 
-type UnitTreeNode = {
-    id: string;
-    code: string;
-    name_en: string;
-    name_am: string | null;
-    depth: number;
-    children: UnitTreeNode[];
-};
-
 type UnitSummary = { id: string; name_en: string; name_am: string | null };
 
 interface Props {
-    organizationTree: OrganizationTreeNode[];
-    hasPublishedHierarchy: boolean;
+    organizationStructure: ScopedOrganization[];
+    isOrganizationScoped: boolean;
     selectedOrganization: OrganizationSummary | null;
-    organizationUnits: UnitTreeNode[];
     selectedUnit: UnitSummary | null;
     positions: PositionRow[];
     filters: Record<string, string>;
     can: { create: boolean; approve_establishment: boolean };
 }
 
-function UnitNodeItem({
-    unit, hierarchyNumber, selectedId, onSelect,
-}: {
-    unit: UnitTreeNode;
-    hierarchyNumber: string;
-    selectedId: string | null;
-    onSelect: (id: string) => void;
-}) {
-    const { locale, t } = useLocale();
-    const [expanded, setExpanded] = useState(true);
-    const hasChildren = unit.children.length > 0;
-    const isSelected = selectedId === unit.id;
-    const levelColor = [
-        'bg-blue-100 text-blue-700 ring-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:ring-blue-800',
-        'bg-violet-100 text-violet-700 ring-violet-200 dark:bg-violet-900/40 dark:text-violet-300 dark:ring-violet-800',
-        'bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:ring-emerald-800',
-        'bg-amber-100 text-amber-700 ring-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:ring-amber-800',
-        'bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:ring-rose-800',
-    ][unit.depth % 5];
-
-    return (
-        <div>
-            <div
-                className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors ${
-                    isSelected
-                        ? 'bg-violet-50 ring-1 ring-violet-300 dark:bg-violet-900/20 dark:ring-violet-600'
-                        : 'hover:bg-gray-50 dark:hover:bg-slate-800/40'
-                }`}
-                style={{ paddingLeft: `${unit.depth * 14 + 8}px` }}
-                onClick={() => onSelect(unit.id)}
-            >
-                <button
-                    type="button"
-                    className="flex h-4 w-4 flex-shrink-0 items-center justify-center text-gray-400 dark:text-slate-500"
-                    onClick={(e) => { e.stopPropagation(); if (hasChildren) setExpanded((v) => !v); }}
-                    tabIndex={-1}
-                >
-                    {hasChildren
-                        ? (expanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />)
-                        : <span className="h-3 w-3" />}
-                </button>
-                <span
-                    className={`inline-flex h-6 min-w-6 flex-shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-bold tabular-nums ring-1 ${levelColor}`}
-                    aria-label={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
-                    title={`${t('hierarchyVersions.hierarchyLevel')} ${hierarchyNumber}`}
-                >
-                    {hierarchyNumber}
-                </span>
-                <span className={`truncate text-xs ${isSelected ? 'font-semibold text-violet-700 dark:text-violet-300' : 'text-gray-800 dark:text-slate-200'}`}>
-                    {localizedName(unit.name_en, unit.name_am, locale)}
-                </span>
-            </div>
-            {hasChildren && expanded && unit.children.map((child, index) => (
-                <UnitNodeItem
-                    key={child.id}
-                    unit={child}
-                    hierarchyNumber={`${hierarchyNumber}.${index + 1}`}
-                    selectedId={selectedId}
-                    onSelect={onSelect}
-                />
-            ))}
-        </div>
-    );
-}
-
 export default function PositionsIndex({
-    organizationTree,
-    hasPublishedHierarchy,
+    organizationStructure,
+    isOrganizationScoped,
     selectedOrganization,
-    organizationUnits,
     selectedUnit,
     positions,
     filters,
@@ -163,11 +87,33 @@ export default function PositionsIndex({
         '?organization_id=' + (displayOrg?.id ?? '') +
         (selectedUnit ? '&organization_unit_id=' + selectedUnit.id : '');
 
-    function selectOrganization(node: OrganizationTreeNode) {
-        router.get(route('positions.index'), { organization_id: node.id }, { preserveState: false });
+    function selectOrganizationById(organizationId: string) {
+        router.get(route('positions.index'), { organization_id: organizationId }, { preserveState: false });
     }
-    function selectUnit(unitId: string) {
-        router.get(route('positions.index'), { organization_id: displayOrg?.id ?? '', organization_unit_id: unitId }, { preserveState: true });
+
+    /** Clicking a unit narrows the positions list to that unit. */
+    function selectUnitInStructure(organizationId: string, unitId: string) {
+        router.get(
+            route('positions.index'),
+            { organization_id: organizationId, organization_unit_id: unitId },
+            { preserveState: true },
+        );
+    }
+
+    /** Clicking a position in the tree drills into its owning unit. */
+    function selectPositionInStructure(organizationId: string, positionId: string) {
+        const unitId = organizationStructure
+            .find((organization) => organization.id === organizationId)
+            ?.units.flatMap(function flatten(unit): typeof unit[] {
+                return [unit, ...unit.children.flatMap(flatten)];
+            })
+            .find((unit) => unit.positions.some((position) => position.id === positionId))?.id;
+
+        router.get(
+            route('positions.index'),
+            { organization_id: organizationId, ...(unitId ? { organization_unit_id: unitId } : {}) },
+            { preserveState: true },
+        );
     }
     function clearUnit() {
         router.get(route('positions.index'), { organization_id: displayOrg?.id ?? '' }, { preserveState: true });
@@ -200,90 +146,57 @@ export default function PositionsIndex({
 
             <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
 
-                {/* Column 1: Organization Tree */}
-                <div className="w-full lg:w-[26%] lg:min-h-[600px]">
-                    <OrganizationTreePreview
-                        tree={organizationTree}
-                        selectedId={displayOrg?.id ?? null}
-                        hasPublishedHierarchy={hasPublishedHierarchy}
-                        onSelect={selectOrganization}
+                {/* Organization -> Units -> Positions structure */}
+                <div className="w-full lg:w-[34%] lg:min-h-[600px]">
+                    <ScopedOrganizationStructure
+                        organizations={organizationStructure}
+                        isScoped={isOrganizationScoped}
+                        selectedOrganizationId={displayOrg?.id ?? null}
+                        selectedPositionId={null}
+                        selectedUnitId={selectedUnit?.id ?? null}
+                        onSelectOrganization={selectOrganizationById}
+                        onSelectPosition={selectPositionInStructure}
+                        onSelectUnit={selectUnitInStructure}
+                        onClearPosition={clearUnit}
                     />
                 </div>
 
-                {/* Column 2: Org Unit Tree */}
-                <div className="w-full lg:w-[26%]">
-                    {displayOrg ? (
-                        <div className="flex h-full flex-col gap-3">
-                            <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                                <div className="flex items-center gap-3">
-                                    {displayOrg.has_logo && displayOrg.logo_url ? (
-                                        <img src={displayOrg.logo_url} alt="" className="h-10 w-10 flex-shrink-0 rounded-xl object-cover" />
-                                    ) : (
-                                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                                            {localizedName(displayOrg.name_en, displayOrg.name_am, locale).charAt(0).toUpperCase()}
-                                        </span>
-                                    )}
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex flex-wrap items-center gap-1.5">
-                                            <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{localizedName(displayOrg.name_en, displayOrg.name_am, locale)}</h2>
-                                            <StatusBadge status={displayOrg.status} label={statusLabel(displayOrg.status)} />
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
-                                            <span className="font-mono">{displayOrg.code}</span>
-                                            {displayOrg.type && <span>{localizedName(displayOrg.type.name_en, displayOrg.type.name_am, locale)}</span>}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {!hasUnits ? (
-                                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-center dark:border-amber-800 dark:bg-amber-950/30">
-                                    <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">{t('positions.noOrganizationUnits')}</p>
-                                    <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{t('positions.noOrganizationUnitsHint')}</p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                                    <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-slate-800">
-                                        <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('positions.organizationUnit')}</h3>
-                                        {selectedUnit && (
-                                            <button type="button" onClick={clearUnit} className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
-                                                {t('common.clear')}
-                                            </button>
-                                        )}
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto p-2">
-                                        {organizationUnits.map((unit, index) => (
-                                            <UnitNodeItem
-                                                key={unit.id}
-                                                unit={unit}
-                                                hierarchyNumber={`${index + 1}`}
-                                                selectedId={selectedUnit?.id ?? null}
-                                                onSelect={selectUnit}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900">
-                            <Building2 className="h-8 w-8 text-gray-300 dark:text-slate-600" />
-                            <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">{t('positions.selectOrganizationToViewPositions')}</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Column 3: Positions Table */}
+                {/* Positions panel — units now live in the structure tree above */}
                 <div className="w-full lg:flex-1">
-                    {selectedUnit ? (
+                    {displayOrg ? (
                         <div className="space-y-4">
-                            {/* Unit header */}
+                            {/* Contextual header: reflects the unit when one is selected, otherwise the organization */}
                             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
-                                <div>
-                                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('positions.organizationUnit')}</p>
-                                    <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                        {localizedName(selectedUnit.name_en, selectedUnit.name_am, locale)}
-                                    </p>
+                                <div className="flex min-w-0 items-center gap-3">
+                                    {displayOrg && (
+                                        displayOrg.has_logo && displayOrg.logo_url ? (
+                                            <img src={displayOrg.logo_url} alt="" className="h-9 w-9 flex-shrink-0 rounded-xl object-cover" />
+                                        ) : (
+                                            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                                {localizedName(displayOrg.name_en, displayOrg.name_am, locale).charAt(0).toUpperCase()}
+                                            </span>
+                                        )
+                                    )}
+                                    <div className="min-w-0">
+                                        {displayOrg && (
+                                            <p className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+                                                <span className="truncate">{localizedName(displayOrg.name_en, displayOrg.name_am, locale)}</span>
+                                                <span className="font-mono">{displayOrg.code}</span>
+                                                <StatusBadge status={displayOrg.status} label={statusLabel(displayOrg.status)} />
+                                            </p>
+                                        )}
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                            {selectedUnit ? t('positions.selectedOrganizationUnit') : t('positions.selectedOrganization')}
+                                        </p>
+                                        <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
+                                            {selectedUnit
+                                                ? localizedName(selectedUnit.name_en, selectedUnit.name_am, locale)
+                                                : localizedName(displayOrg.name_en, displayOrg.name_am, locale)}
+                                        </p>
+                                        <p className="truncate text-xs text-gray-400 dark:text-slate-500">
+                                            {selectedUnit ? t('positions.positionsInOrganizationUnit') : t('positions.positionsInOrganization')}
+                                        </p>
+                                    </div>
                                 </div>
                                 {can.create && (
                                     <Link href={createHref} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
@@ -435,7 +348,7 @@ export default function PositionsIndex({
                     ) : (
                         <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900">
                             <p className="text-sm text-gray-500 dark:text-slate-400">
-                                {displayOrg && hasUnits ? t('positions.selectUnitToViewPositions') : t('positions.selectOrganizationToViewPositions')}
+                                {t('positions.selectOrganizationToViewPositions')}
                             </p>
                         </div>
                     )}
