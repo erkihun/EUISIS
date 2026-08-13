@@ -25,6 +25,7 @@ type Props = {
     currentOrganizationId?: string;
     endpoint: string;
     disabled?: boolean;
+    allowNoParent?: boolean;
     locale: string;
     onChange: (value: string, option: ParentOrganizationOption | null) => void;
     labels: {
@@ -54,6 +55,7 @@ export default function ParentOrganizationSelect({
     currentOrganizationId,
     endpoint,
     disabled = false,
+    allowNoParent = true,
     locale,
     onChange,
     labels,
@@ -173,22 +175,24 @@ export default function ParentOrganizationSelect({
                     <span>{loading ? '...' : displayOptions.length}</span>
                 </div>
 
-                <button
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => {
-                        setSelected(null);
-                        onChange('', null);
-                    }}
-                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition ${
-                        value === ''
-                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                            : 'text-gray-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-900'
-                    }`}
-                >
-                    <span>{labels.noParent}</span>
-                    <ChevronDown className="h-4 w-4 opacity-60" />
-                </button>
+                {allowNoParent && (
+                    <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => {
+                            setSelected(null);
+                            onChange('', null);
+                        }}
+                        className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition ${
+                            value === ''
+                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+                                : 'text-gray-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-900'
+                        }`}
+                    >
+                        <span>{labels.noParent}</span>
+                        <ChevronDown className="h-4 w-4 opacity-60" />
+                    </button>
+                )}
 
                 {displayOptions.length === 0 ? (
                     <div className="px-3 py-4 text-sm text-gray-500 dark:text-slate-400">{labels.noResults}</div>

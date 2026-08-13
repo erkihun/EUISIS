@@ -24,6 +24,7 @@ beforeEach(function (): void {
     }
 
     Role::findOrCreate('Super Admin', 'web')->givePermissionTo(['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete']);
+    Role::findOrCreate('Organizational Admin', 'web')->givePermissionTo(['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete']);
     Role::findOrCreate('Organization Manager', 'web')->givePermissionTo(['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete']);
     Role::findOrCreate('Viewer', 'web')->givePermissionTo(['organizations.view']);
 });
@@ -119,6 +120,22 @@ function scopedManager(Organization $organization): User
     return $user;
 }
 
+function parentOptionsOrganizationalAdmin(Organization $organization, OrganizationScopeType $scopeType = OrganizationScopeType::Subtree): User
+{
+    $user = User::factory()->create();
+    $user->assignRole('Organizational Admin');
+
+    UserOrganizationScope::query()->create([
+        'user_id' => $user->id,
+        'organization_id' => $organization->id,
+        'scope_type' => $scopeType,
+        'effective_from' => now()->subDay()->toDateString(),
+        'is_active' => true,
+    ]);
+
+    return $user;
+}
+
 test('create page returns multiple eligible parent organizations for super admin', function (): void {
     $type = createOrganizationType();
 
@@ -155,6 +172,110 @@ test('parent options endpoint applies subtree scope filtering', function (): voi
         ->assertOk()
         ->assertJsonCount(1, 'options')
         ->assertJsonPath('options.0.id', $finance->id);
+});
+
+test('organizational admin create page exposes and preselects only the directly assigned parent', function (): void {
+    $type = createOrganizationType();
+    $published = createHierarchyVersion('published-direct-parent', HierarchyVersionStatus::Published);
+    $assigned = createOrganization($type, 'ORG-ASSIGNED', 'Assigned Organization');
+    $descendant = createOrganization($type, 'ORG-DESCENDANT', 'Accessible Descendant');
+    createOrganization($type, 'ORG-OUTSIDE', 'Outside Organization');
+    attachHierarchy($published, $assigned, $descendant);
+
+    $this->actingAs(parentOptionsOrganizationalAdmin($assigned))
+        ->get(route('organizations.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Organizations/Create')
+            ->where('requiresParentOrganization', true)
+            ->has('parentOrganizationOptions', 1)
+            ->where('parentOrganizationOptions.0.id', $assigned->id)
+            ->where('selectedParentOrganization.id', $assigned->id)
+        );
+});
+
+test('organizational admin without an assigned organization cannot access organization creation', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole('Organizational Admin');
+
+    $this->actingAs($user)
+        ->get(route('organizations.create'))
+        ->assertForbidden();
+});
+
+test('organizational admin can create a direct child under the assigned organization', function (): void {
+    $type = createOrganizationType();
+    $draft = createHierarchyVersion('draft-org-admin-child', HierarchyVersionStatus::Draft);
+    $assigned = createOrganization($type, 'ORG-ASSIGNED', 'Assigned Organization');
+    $user = parentOptionsOrganizationalAdmin($assigned);
+
+    $response = $this->actingAs($user)->post(route('organizations.store'), [
+        'organization_type_id' => $type->id,
+        'code' => 'ORG-DIRECT-CHILD',
+        'name_en' => 'Direct Child',
+        'status' => OrganizationStatus::Active->value,
+        'parent_organization_id' => $assigned->id,
+        'hierarchy_version_id' => $draft->id,
+        'relationship_type' => OrganizationRelationshipType::ReportsTo->value,
+    ]);
+
+    $child = Organization::query()->where('code', 'ORG-DIRECT-CHILD')->firstOrFail();
+
+    $response->assertRedirect(route('organizations.show', $assigned));
+    $this->assertDatabaseHas('organization_edges', [
+        'parent_organization_id' => $assigned->id,
+        'child_organization_id' => $child->id,
+        'hierarchy_version_id' => $draft->id,
+    ]);
+});
+
+test('organizational admin cannot create a root organization', function (): void {
+    $type = createOrganizationType();
+    $assigned = createOrganization($type, 'ORG-ASSIGNED', 'Assigned Organization');
+
+    $this->actingAs(parentOptionsOrganizationalAdmin($assigned))
+        ->from(route('organizations.create'))
+        ->post(route('organizations.store'), [
+            'organization_type_id' => $type->id,
+            'code' => 'ORG-ROOT-BLOCKED',
+            'name_en' => 'Blocked Root',
+            'status' => OrganizationStatus::Active->value,
+        ])
+        ->assertRedirect(route('organizations.create'))
+        ->assertSessionHasErrors([
+            'parent_organization_id' => __('organizations.organizational_admin_child_only'),
+        ]);
+});
+
+test('organizational admin cannot create under another organization or an accessible descendant', function (): void {
+    $type = createOrganizationType();
+    $draft = createHierarchyVersion('draft-org-admin-blocked', HierarchyVersionStatus::Draft);
+    $published = createHierarchyVersion('published-org-admin-blocked', HierarchyVersionStatus::Published);
+    $assigned = createOrganization($type, 'ORG-ASSIGNED', 'Assigned Organization');
+    $descendant = createOrganization($type, 'ORG-DESCENDANT', 'Accessible Descendant');
+    $outside = createOrganization($type, 'ORG-OUTSIDE', 'Outside Organization');
+    attachHierarchy($published, $assigned, $descendant);
+    $user = parentOptionsOrganizationalAdmin($assigned);
+
+    foreach ([$descendant, $outside] as $invalidParent) {
+        $this->actingAs($user)
+            ->from(route('organizations.create'))
+            ->post(route('organizations.store'), [
+                'organization_type_id' => $type->id,
+                'code' => 'ORG-BLOCKED-'.$invalidParent->code,
+                'name_en' => 'Blocked Child',
+                'status' => OrganizationStatus::Active->value,
+                'parent_organization_id' => $invalidParent->id,
+                'hierarchy_version_id' => $draft->id,
+                'relationship_type' => OrganizationRelationshipType::ReportsTo->value,
+            ])
+            ->assertRedirect(route('organizations.create'))
+            ->assertSessionHasErrors([
+                'parent_organization_id' => __('organizations.organizational_admin_child_only'),
+            ]);
+    }
+
+    expect(Organization::query()->where('name_en', 'Blocked Child')->exists())->toBeFalse();
 });
 
 test('users without organization management cannot access parent options endpoint', function (): void {

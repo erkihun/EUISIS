@@ -33,7 +33,12 @@ readonly class OrganizationPolicy
 
     public function create(User $user): bool
     {
-        return $user->can('organizations.create');
+        if (! $user->can('organizations.create')) {
+            return false;
+        }
+
+        return ! $this->organizationScopeService->mustCreateUnderAssignedOrganization($user)
+            || $this->organizationScopeService->assignedOrganizationIds($user) !== [];
     }
 
     public function update(User $user, Organization $organization): bool
@@ -77,7 +82,7 @@ readonly class OrganizationPolicy
             return false;
         }
 
-        return $this->organizationScopeService->canAccessOrganization($user, $organization->id);
+        return $this->organizationScopeService->canCreateOrganizationUnder($user, $organization);
     }
 
     public function manageHierarchy(User $user): bool

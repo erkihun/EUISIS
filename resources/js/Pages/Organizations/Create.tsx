@@ -33,11 +33,13 @@ export default function CreateOrganization({
     hierarchyVersions,
     parentOrganizationOptions,
     selectedParentOrganization,
+    requiresParentOrganization,
 }: {
     organizationTypes: OrgType[];
     hierarchyVersions: HierarchyVersion[];
     parentOrganizationOptions: ParentOrganizationOption[];
     selectedParentOrganization: ParentOrganizationOption | null;
+    requiresParentOrganization: boolean;
 }) {
     const { t, locale } = useLocale();
 
@@ -257,6 +259,7 @@ export default function CreateOrganization({
                                     selectedOption={selectedParent}
                                     hierarchyVersionId={form.data.hierarchy_version_id || undefined}
                                     endpoint={route('organizations.parent-options')}
+                                    allowNoParent={!requiresParentOrganization}
                                     locale={locale}
                                     onChange={(value, option) => {
                                         form.setData('parent_organization_id', value);

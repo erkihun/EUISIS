@@ -63,6 +63,47 @@ class OrganizationScopeService
     }
 
     /**
+     * Organization ids explicitly assigned by an active scope, without
+     * expanding subtree access to descendant organizations.
+     *
+     * @return array<int, string>
+     */
+    public function assignedOrganizationIds(User $user): array
+    {
+        return $user->organizationScopes()
+            ->active()
+            ->whereNotNull('organization_id')
+            ->pluck('organization_id')
+            ->map(static fn ($id): string => (string) $id)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    public function mustCreateUnderAssignedOrganization(User $user): bool
+    {
+        return $user->hasRole('Organizational Admin')
+            && ! $user->hasRole('Super Admin')
+            && ! $user->hasRole('City Admin');
+    }
+
+    public function canCreateOrganizationUnder(User $user, int|string|Organization|null $organization): bool
+    {
+        $organizationId = $this->normalizeOrganizationId($organization);
+
+        if ($organizationId === null) {
+            return false;
+        }
+
+        if (! $this->mustCreateUnderAssignedOrganization($user)) {
+            return $this->canAccessOrganization($user, $organizationId);
+        }
+
+        return in_array($organizationId, $this->allowedOrganizationIds($user), true)
+            && in_array($organizationId, $this->assignedOrganizationIds($user), true);
+    }
+
+    /**
      * True when the record's organization is inside the user's scope.
      * Accepts an id (string/int) or an Organization instance.
      */

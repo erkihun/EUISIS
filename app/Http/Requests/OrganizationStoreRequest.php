@@ -10,6 +10,7 @@ use App\Enums\OrganizationStatus;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationType;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Validator;
@@ -38,6 +39,9 @@ class OrganizationStoreRequest extends FormRequest
 
     public function rules(): array
     {
+        $requiresAssignedParent = $this->user() !== null
+            && app(OrganizationScopeService::class)->mustCreateUnderAssignedOrganization($this->user());
+
         return [
             'organization_type_id' => ['required', 'uuid', 'exists:organization_types,id'],
             'code' => ['nullable', 'string', 'max:255', 'unique:organizations,code'],
@@ -47,12 +51,19 @@ class OrganizationStoreRequest extends FormRequest
             'status' => ['required', new Enum(OrganizationStatus::class)],
             'effective_from' => ['nullable', 'date'],
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
-            'parent_organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
+            'parent_organization_id' => [$requiresAssignedParent ? 'required' : 'nullable', 'uuid', 'exists:organizations,id'],
             'hierarchy_version_id' => ['nullable', 'required_with:parent_organization_id', 'uuid', 'exists:hierarchy_versions,id'],
             'relationship_type' => ['nullable', 'required_with:parent_organization_id', new Enum(OrganizationRelationshipType::class)],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'branding_primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'branding_secondary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'parent_organization_id.required' => __('organizations.organizational_admin_child_only'),
         ];
     }
 
@@ -72,6 +83,23 @@ class OrganizationStoreRequest extends FormRequest
             },
             function (Validator $validator): void {
                 $parentOrganizationId = $this->string('parent_organization_id')->toString();
+
+                $scopeService = app(OrganizationScopeService::class);
+
+                if ($this->user() !== null && $scopeService->mustCreateUnderAssignedOrganization($this->user())) {
+                    $canCreateUnderParent = $parentOrganizationId !== ''
+                        && $scopeService->canCreateOrganizationUnder(
+                            $this->user(),
+                            $parentOrganizationId,
+                        );
+
+                    if (! $canCreateUnderParent) {
+                        $validator->errors()->add(
+                            'parent_organization_id',
+                            __('organizations.organizational_admin_child_only'),
+                        );
+                    }
+                }
 
                 if ($parentOrganizationId === '') {
                     return;

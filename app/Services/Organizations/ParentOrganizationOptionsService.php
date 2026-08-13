@@ -32,13 +32,16 @@ readonly class ParentOrganizationOptionsService
         int $limit = 25,
     ): array {
         $accessibleOrganizationIds = $this->organizationScopeService->accessibleOrganizationIds($user);
+        $eligibleOrganizationIds = $this->organizationScopeService->mustCreateUnderAssignedOrganization($user)
+            ? $this->organizationScopeService->assignedOrganizationIds($user)
+            : $accessibleOrganizationIds;
 
         $query = Organization::query()
             ->with('type:id,name_en,name_am,code')
             ->where('status', OrganizationStatus::Active->value)
             ->when(
                 ! $user->hasRole('Super Admin') && ! $user->hasRole('City Admin'),
-                fn ($builder) => $builder->whereIn('id', $accessibleOrganizationIds)
+                fn ($builder) => $builder->whereIn('id', $eligibleOrganizationIds)
             )
             ->when($currentOrganizationId !== null, fn ($builder) => $builder->whereKeyNot($currentOrganizationId))
             ->when(
@@ -69,7 +72,7 @@ readonly class ParentOrganizationOptionsService
                 ->where('status', OrganizationStatus::Active->value)
                 ->when(
                     ! $user->hasRole('Super Admin') && ! $user->hasRole('City Admin'),
-                    fn ($builder) => $builder->whereIn('id', $accessibleOrganizationIds)
+                    fn ($builder) => $builder->whereIn('id', $eligibleOrganizationIds)
                 )
                 ->when($currentOrganizationId !== null, fn ($builder) => $builder->whereKeyNot($currentOrganizationId))
                 ->find($selectedId, [

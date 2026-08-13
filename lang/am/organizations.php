@@ -56,6 +56,7 @@ return [
     'parent_organization_required' => 'የበላይ ተቋም መምረጥ ያስፈልጋል።',
     'invalid_parent_organization' => 'የተመረጠው የበላይ ተቋም ትክክል አይደለም።',
     'parent_organization_outside_scope' => 'የበላይ ተቋሙ ከተፈቀደልዎ ወሰን ውጭ ነው።',
+    'organizational_admin_child_only' => 'የተቋም አስተዳዳሪ ተቋማትን መፍጠር የሚችለው በተመደበለት ተቋም ሥር ብቻ ነው።',
     'parent_organization_must_be_active' => 'የበላይ ተቋሙ ንቁ መሆን አለበት።',
     'parent_and_child_cannot_match' => 'የበላይ እና ተጠሪ ተቋም አንድ ሊሆኑ አይችሉም።',
     'circularHierarchy' => 'በየተቋም መዋቅር ተዋረድ ውስጥ ዑደት መፍጠር አይፈቀድም።',

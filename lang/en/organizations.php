@@ -54,6 +54,7 @@ return [
     'parent_organization_required' => 'Parent organization is required.',
     'invalid_parent_organization' => 'Invalid parent organization.',
     'parent_organization_outside_scope' => 'Parent organization is outside your allowed scope.',
+    'organizational_admin_child_only' => 'Organizational Admin can create organizations only under their assigned organization.',
     'parent_organization_must_be_active' => 'Parent organization must be active.',
     'parent_and_child_cannot_match' => 'Parent and child organization cannot be the same.',
     'circularHierarchy' => 'Parent organization would create a circular hierarchy.',

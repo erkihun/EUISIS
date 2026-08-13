@@ -175,8 +175,11 @@ class OrganizationController extends Controller
         ];
     }
 
-    public function create(Request $request, ParentOrganizationOptionsService $parentOrganizationOptionsService): Response
-    {
+    public function create(
+        Request $request,
+        ParentOrganizationOptionsService $parentOrganizationOptionsService,
+        OrganizationScopeService $organizationScopeService,
+    ): Response {
         $this->authorize('create', Organization::class);
 
         $selectedParentId = $request->string('parent')->toString() ?: null;
@@ -184,6 +187,11 @@ class OrganizationController extends Controller
             $request->user(),
             selectedId: $selectedParentId,
         );
+        $requiresParentOrganization = $organizationScopeService->mustCreateUnderAssignedOrganization($request->user());
+
+        if ($requiresParentOrganization && count($parentOptions['options']) === 1) {
+            $parentOptions['selected'] = $parentOptions['options'][0];
+        }
 
         return Inertia::render('Organizations/Create', [
             'organizationTypes' => OrganizationType::query()->active()->orderBy('name_en')->get(['id', 'name_en', 'name_am', 'code']),
@@ -193,6 +201,7 @@ class OrganizationController extends Controller
                 ->get(['id', 'version_name', 'status']),
             'parentOrganizationOptions' => $parentOptions['options'],
             'selectedParentOrganization' => $parentOptions['selected'],
+            'requiresParentOrganization' => $requiresParentOrganization,
         ]);
     }
 
