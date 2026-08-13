@@ -13,7 +13,7 @@ type PermissionEntry = {
     is_system: boolean;
 };
 
-type RoleData = { id: number; name: string; permissions: string[] };
+type RoleData = { id: number; name: string; scope_type: 'scoped' | 'global'; permissions: string[] };
 
 const CRITICAL = new Set([
     'users.assignRoles',
@@ -129,13 +129,14 @@ export default function EditRole({
 }: {
     role: RoleData;
     permissions: Record<string, PermissionEntry[]>;
-    can: { assignPermissions: boolean };
+    can: { assignPermissions: boolean; manageGlobalRoles: boolean };
 }) {
     const { t, locale } = useLocale();
     const [search, setSearch] = useState('');
 
-    const form = useForm<{ name: string; permissions: string[] }>({
+    const form = useForm<{ name: string; scope_type: 'scoped' | 'global'; permissions: string[] }>({
         name: role.name,
+        scope_type: role.scope_type,
         permissions: role.permissions,
     });
 
@@ -185,7 +186,8 @@ export default function EditRole({
             <div className="w-full">
                 <form onSubmit={submit} className="space-y-5">
                     <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <div className="max-w-lg">
+                        <div className="grid max-w-3xl gap-5 md:grid-cols-2">
+                            <div>
                             <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">
                                 {t('roles.roleName')}
                             </label>
@@ -201,6 +203,26 @@ export default function EditRole({
                                     {form.errors.name}
                                 </p>
                             )}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">
+                                    {t('roles.scopeType')}
+                                </label>
+                                <select
+                                    className={`${inputCls} mt-1`}
+                                    value={form.data.scope_type}
+                                    onChange={(e) => form.setData('scope_type', e.target.value as 'scoped' | 'global')}
+                                >
+                                    <option value="scoped">{t('roles.scopedRole')}</option>
+                                    <option value="global" disabled={!can.manageGlobalRoles}>{t('roles.globalRole')}</option>
+                                </select>
+                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                    {form.data.scope_type === 'scoped'
+                                        ? t('roles.scopedRoleHelp')
+                                        : t('roles.globalRoleHelp')}
+                                </p>
+                                {form.errors.scope_type && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.scope_type}</p>}
+                            </div>
                         </div>
                     </div>
 

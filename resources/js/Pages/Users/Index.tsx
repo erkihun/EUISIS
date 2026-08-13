@@ -26,9 +26,11 @@ type UserRow = {
 export default function UsersIndex({
     users,
     can,
+    scopedUserManagement,
 }: {
     users: UserRow[];
     can: { create: boolean };
+    scopedUserManagement: boolean;
 }) {
     const { t } = useLocale();
 
@@ -68,6 +70,12 @@ export default function UsersIndex({
             }
         >
             <Head title={t('users.title')} />
+
+            {scopedUserManagement && (
+                <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950/30 dark:text-blue-200">
+                    {t('users.manageUsersWithinScope')}
+                </div>
+            )}
 
             <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 {users.length === 0 ? (

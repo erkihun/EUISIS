@@ -20,11 +20,24 @@ use Illuminate\Support\Facades\Auth;
 
 class UserOrganizationScopeController extends Controller
 {
-    public function index(User $user): JsonResponse
+    public function index(User $user, OrganizationScopeService $scopeService): JsonResponse
     {
         $this->authorize('viewAny', UserOrganizationScope::class);
 
-        $scopes = $user->organizationScopes()->with('organization')->get();
+        /** @var User $actor */
+        $actor = Auth::user();
+
+        if (! $scopeService->isUnrestricted($actor)) {
+            $this->authorize('view', $user);
+        }
+
+        $scopes = $user->organizationScopes()
+            ->with('organization')
+            ->when(
+                ! $scopeService->isUnrestricted($actor),
+                fn ($query) => $query->whereIn('organization_id', $scopeService->allowedOrganizationIds($actor)),
+            )
+            ->get();
 
         return response()->json(UserOrganizationScopeResource::collection($scopes));
     }
@@ -96,6 +109,8 @@ class UserOrganizationScopeController extends Controller
         WriteAuditLogAction $auditLog,
         OrganizationScopeService $scopeService,
     ): RedirectResponse {
+        abort_unless((string) $scope->user_id === (string) $user->getKey(), 404);
+        $this->authorize('assignOrganizationScope', $user);
         $this->authorize('delete', $scope);
 
         /** @var User $actor */

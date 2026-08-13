@@ -8,6 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 type RoleRow = {
     id: number;
     name: string;
+    scope_type: 'scoped' | 'global';
     users_count: number;
     permissions: string[];
     is_super_admin: boolean;
@@ -62,6 +63,7 @@ export default function RolesIndex({
                                 <tr>
                                     {[
                                         t('roles.role'),
+                                        t('roles.scopeType'),
                                         t('roles.permissions'),
                                         t('roles.usersCount'),
                                         '',
@@ -92,6 +94,13 @@ export default function RolesIndex({
                                                     </span>
                                                 )}
                                             </div>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${r.scope_type === 'global'
+                                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'}`}>
+                                                {r.scope_type === 'global' ? t('roles.globalRole') : t('roles.scopedRole')}
+                                            </span>
                                         </td>
                                         <td className="px-4 py-3">
                                             {r.is_super_admin ? (

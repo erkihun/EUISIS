@@ -27,8 +27,12 @@ class OrganizationScopeService
             return false;
         }
 
-        if ($user->hasRole('Super Admin') || $user->hasRole('City Admin')) {
+        if ($user->hasGlobalRole() || $user->hasAnyRole(['Super Admin', 'System Admin', 'City Admin'])) {
             return true;
+        }
+
+        if ($this->isScopedOrganizationalAdmin($user)) {
+            return $this->accessibleOrganizationIds($user)->contains($organizationId);
         }
 
         $hasAnyScopeRecord = $user->organizationScopes()->exists();
@@ -81,6 +85,11 @@ class OrganizationScopeService
     }
 
     public function mustCreateUnderAssignedOrganization(User $user): bool
+    {
+        return $this->isScopedOrganizationalAdmin($user);
+    }
+
+    public function isScopedOrganizationalAdmin(User $user): bool
     {
         return $user->hasRole('Organizational Admin')
             && ! $user->hasRole('Super Admin')
@@ -137,6 +146,38 @@ class OrganizationScopeService
     }
 
     /**
+     * Limit a user query to accounts linked to at least one organization the
+     * actor may access. Expired/inactive scope records do not grant visibility.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function applyUserScope(Builder $query, User $actor): Builder
+    {
+        if ($this->isUnrestricted($actor)) {
+            return $query;
+        }
+
+        $allowed = $this->allowedOrganizationIds($actor);
+
+        return $query->where(function (Builder $scoped) use ($allowed): void {
+            $scoped->whereHas(
+                'organizationScopes',
+                fn (Builder $scopeQuery) => $scopeQuery->active()->whereIn('organization_id', $allowed),
+            )->orWhereIn('default_organization_id', $allowed);
+        });
+    }
+
+    public function canManageUser(User $actor, User $target): bool
+    {
+        if ($this->isUnrestricted($actor)) {
+            return true;
+        }
+
+        return $this->applyUserScope(User::query()->whereKey($target), $actor)->exists();
+    }
+
+    /**
      * Whether the user may create/update/delete records belonging to the given
      * organization. Identical to read access today (scope is symmetric), but
      * kept separate so a future read-only scoped role can diverge without
@@ -175,8 +216,12 @@ class OrganizationScopeService
      */
     public function isUnrestricted(User $user): bool
     {
-        if ($user->hasRole('Super Admin') || $user->hasRole('City Admin')) {
+        if ($user->hasGlobalRole() || $user->hasAnyRole(['Super Admin', 'System Admin', 'City Admin'])) {
             return true;
+        }
+
+        if ($this->isScopedOrganizationalAdmin($user)) {
+            return false;
         }
 
         return ! $user->organizationScopes()->exists();
@@ -474,7 +519,7 @@ class OrganizationScopeService
 
     public function accessibleOrganizationIds(User $user): Collection
     {
-        if ($user->hasRole('Super Admin') || $user->hasRole('City Admin')) {
+        if ($user->hasGlobalRole() || $user->hasAnyRole(['Super Admin', 'System Admin', 'City Admin'])) {
             return Organization::query()->pluck('id');
         }
 

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\Permission;
+use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RoleSeeder extends Seeder
@@ -91,6 +91,7 @@ class RoleSeeder extends Seeder
 
         $roleMap = [
             'Super Admin' => $allPermissions,
+            'System Admin' => $allPermissions,
             'Public Service Bureau Admin' => $allPermissions,
             'City Admin' => $allPermissions,
             'Organizational Admin' => $organizationalAdminPerms,
@@ -135,6 +136,18 @@ class RoleSeeder extends Seeder
                 'card-verifications.viewAny',
                 'id-cards.export', 'id-cards.printAnytime', 'id-cards.exportPng',
                 'id-cards.previewSvg',
+            ],
+            'Position Officer' => [
+                'dashboard.view',
+                'positions.viewAny', 'positions.view', 'positions.create', 'positions.update',
+                'grade-levels.viewAny', 'grade-levels.view',
+                'occupations.viewAny', 'occupations.view',
+            ],
+            'Employee Officer' => [
+                'dashboard.view',
+                'employees.viewAny', 'employees.view', 'employees.manage',
+                'positions.viewAny', 'positions.view',
+                'organization-units.viewAny', 'organization-units.view',
             ],
             'Service Provider User' => [
                 'dashboard.view', 'transactions.manage', 'service-transactions.viewAny',
@@ -220,8 +233,19 @@ class RoleSeeder extends Seeder
             ],
         ];
 
+        $globalRoles = [
+            'Super Admin',
+            'System Admin',
+            'City Admin',
+            'Public Service Bureau Admin',
+            'Security Settings Manager',
+        ];
+
         foreach ($roleMap as $roleName => $permissions) {
-            $role = Role::findOrCreate($roleName, 'web');
+            $role = Role::query()->updateOrCreate(
+                ['name' => $roleName, 'guard_name' => 'web'],
+                ['scope_type' => in_array($roleName, $globalRoles, true) ? 'global' : 'scoped'],
+            );
             $role->syncPermissions($permissions);
         }
 

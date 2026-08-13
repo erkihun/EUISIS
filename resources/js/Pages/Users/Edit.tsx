@@ -8,7 +8,7 @@ import OrganizationScopesCard from '@/Components/Users/OrganizationScopesCard';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 
-type Role = { id: number; name: string };
+type Role = { id: number; name: string; scope: 'organization' | 'global' };
 
 type OrganizationScope = {
     id: string;
@@ -358,9 +358,12 @@ export default function EditUser({
                                                 checked={form.data.roles.includes(role.name)}
                                                 onChange={() => toggleRole(role.name)}
                                             />
-                                            <span className="text-sm text-gray-700 dark:text-slate-300">
-                                                {role.name}
-                                            </span>
+                                              <span className="min-w-0 flex-1 text-sm text-gray-700 dark:text-slate-300">
+                                                 {role.name}
+                                              </span>
+                                              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                                                  {role.scope === 'organization' ? t('users.scopedRole') : t('users.globalRole')}
+                                              </span>
                                         </label>
                                     ))}
                                 </div>

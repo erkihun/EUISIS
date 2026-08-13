@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Enums\AuditEventType;
+use App\Models\Organization;
+use App\Models\OrganizationType;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -133,6 +135,16 @@ test('users with create permission can store a user', function (): void {
 test('users with create permission can store profile fields and photo', function (): void {
     Storage::fake('public');
     Role::findOrCreate('Operator', 'web');
+    $organizationType = OrganizationType::query()->create([
+        'code' => 'USER-CRUD',
+        'name_en' => 'User CRUD Organization',
+    ]);
+    $organization = Organization::query()->create([
+        'organization_type_id' => $organizationType->id,
+        'code' => 'USER-CRUD-ORG',
+        'name_en' => 'User CRUD Organization',
+        'status' => 'active',
+    ]);
 
     $this->actingAs(userMgmtAdmin())
         ->post(route('users.store'), [
@@ -145,6 +157,8 @@ test('users with create permission can store profile fields and photo', function
             'phone_number' => '+251911111111',
             'gender' => 'other',
             'roles' => ['Operator'],
+            'organization_id' => $organization->id,
+            'scope_type' => 'self',
             'profile_photo' => UploadedFile::fake()->image('avatar.jpg'),
         ])
         ->assertSessionHasNoErrors()
@@ -228,6 +242,21 @@ test('users with update permission can update profile fields photo and roles', f
     Storage::fake('public');
     $target = makeTargetUser();
     Role::findOrCreate('Supervisor', 'web');
+    $organizationType = OrganizationType::query()->create([
+        'code' => 'USER-UPDATE',
+        'name_en' => 'User Update Organization',
+    ]);
+    $organization = Organization::query()->create([
+        'organization_type_id' => $organizationType->id,
+        'code' => 'USER-UPDATE-ORG',
+        'name_en' => 'User Update Organization',
+        'status' => 'active',
+    ]);
+    $target->organizationScopes()->create([
+        'organization_id' => $organization->id,
+        'scope_type' => 'self',
+        'is_active' => true,
+    ]);
 
     $this->actingAs(userMgmtAdmin())
         ->patch(route('users.update', $target), [

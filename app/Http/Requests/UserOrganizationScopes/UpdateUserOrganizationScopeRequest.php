@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\UserOrganizationScopes;
 
 use App\Http\Requests\UserOrganizationScopes\Concerns\ValidatesAssignableOrganization;
+use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,8 +17,12 @@ class UpdateUserOrganizationScopeRequest extends FormRequest
     public function authorize(): bool
     {
         $scope = $this->route('scope');
+        $target = $this->route('user');
 
         return $scope instanceof UserOrganizationScope
+            && $target instanceof User
+            && (string) $scope->user_id === (string) $target->getKey()
+            && ($this->user()?->can('assignOrganizationScope', $target) ?? false)
             ? ($this->user()?->can('update', $scope) ?? false)
             : false;
     }

@@ -18,17 +18,20 @@ use App\Http\Requests\UserUpdateRequest;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Users\AssignableUserRoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    public function __construct(private readonly OrganizationScopeService $organizationScopeService) {}
+    public function __construct(
+        private readonly OrganizationScopeService $organizationScopeService,
+        private readonly AssignableUserRoleService $assignableUserRoleService,
+    ) {}
 
     public function index(): Response
     {
@@ -37,20 +40,10 @@ class UserController extends Controller
         /** @var User $actor */
         $actor = Auth::user();
 
-        $users = User::query()
-            ->with('roles')
-            // Scoped actors (e.g. Organizational Admin) only see users who share
-            // at least one of their accessible organizations. Super Admin / City
-            // Admin / unscoped staff are unrestricted and see everyone.
-            ->when(
-                ! $this->organizationScopeService->isUnrestricted($actor),
-                fn ($query) => $query->where(function ($q) use ($actor): void {
-                    $allowed = $this->organizationScopeService->allowedOrganizationIds($actor);
-                    $q->whereHas('organizationScopes', fn ($scopeQuery) => $scopeQuery->whereIn('organization_id', $allowed))
-                        ->orWhereIn('default_organization_id', $allowed)
-                        ->orWhereKey($actor->getKey());
-                }),
-            )
+        $usersQuery = User::query()->with('roles');
+        $this->organizationScopeService->applyUserScope($usersQuery, $actor);
+
+        $users = $usersQuery
             ->orderBy('name')
             ->get()
             ->map(fn (User $u) => [
@@ -75,6 +68,7 @@ class UserController extends Controller
 
         return Inertia::render('Users/Index', [
             'users' => $users,
+            'scopedUserManagement' => $this->organizationScopeService->isScopedOrganizationalAdmin($actor),
             'can' => [
                 'create' => $actor->can('create', User::class),
             ],
@@ -91,6 +85,7 @@ class UserController extends Controller
         return Inertia::render('Users/Create', [
             'roles' => $this->assignableRoles($actor),
             'statusOptions' => ['active', 'inactive'],
+            'requiresOrganizationScope' => $this->organizationScopeService->isScopedOrganizationalAdmin($actor),
             'organizations' => Organization::query()
                 ->where('status', 'active')
                 // A scoped actor may only place a new user inside their own orgs.
@@ -113,14 +108,12 @@ class UserController extends Controller
      */
     private function assignableRoles(User $actor): Collection
     {
-        $elevated = ['Super Admin', 'City Admin', 'Public Service Bureau Admin'];
-
-        return Role::query()
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->reject(fn (Role $role): bool => ! $this->organizationScopeService->isUnrestricted($actor)
-                && in_array($role->name, $elevated, true))
-            ->values();
+        return $this->assignableUserRoleService->rolesFor($actor)
+            ->map(fn ($role): array => [
+                'id' => $role->id,
+                'name' => $role->name,
+                'scope' => $this->assignableUserRoleService->isOrganizationScoped($role) ? 'organization' : 'global',
+            ]);
     }
 
     public function store(UserStoreRequest $request, CreateUserAction $action, UploadUserProfilePhotoAction $photoAction): RedirectResponse
@@ -146,10 +139,17 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $user->load('organizationScopes.organization');
-
         /** @var User $actor */
         $actor = Auth::user();
+
+        $user->load([
+            'organizationScopes' => function ($query) use ($actor): void {
+                if (! $this->organizationScopeService->isUnrestricted($actor)) {
+                    $query->whereIn('organization_id', $this->organizationScopeService->allowedOrganizationIds($actor));
+                }
+            },
+            'organizationScopes.organization',
+        ]);
 
         return Inertia::render('Users/Edit', [
             'user' => array_merge(
@@ -207,13 +207,7 @@ class UserController extends Controller
             // editable, but the actor cannot introduce a new out-of-scope one.
             ->when(
                 ! $this->organizationScopeService->isUnrestricted($actor),
-                fn ($query) => $query->where(function ($q) use ($actor, $alreadyScopedIds): void {
-                    $q->whereIn('id', $this->organizationScopeService->allowedOrganizationIds($actor));
-
-                    if ($alreadyScopedIds !== []) {
-                        $q->orWhereIn('id', $alreadyScopedIds);
-                    }
-                }),
+                fn ($query) => $query->whereIn('id', $this->organizationScopeService->allowedOrganizationIds($actor)),
             )
             ->where(function ($query) use ($alreadyScopedIds): void {
                 $query->where('status', OrganizationStatus::Active->value);

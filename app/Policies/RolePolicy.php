@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
-use Spatie\Permission\Models\Role;
 
 class RolePolicy
 {
@@ -29,7 +29,11 @@ class RolePolicy
 
     public function update(User $user, Role $role): bool
     {
-        if ($role->name === 'Super Admin') {
+        if ($role->isProtected() && ! $user->hasRole('Super Admin')) {
+            return false;
+        }
+
+        if ($role->isGlobal() && ! $user->hasAnyRole(['Super Admin', 'System Admin'])) {
             return false;
         }
 
@@ -38,7 +42,7 @@ class RolePolicy
 
     public function delete(User $user, Role $role): bool
     {
-        if ($role->name === 'Super Admin') {
+        if ($role->isProtected()) {
             return false;
         }
 
@@ -47,7 +51,7 @@ class RolePolicy
 
     public function assignPermissions(User $user, Role $role): bool
     {
-        if ($role->name === 'Super Admin') {
+        if ($role->isProtected() && ! $user->hasRole('Super Admin')) {
             return false;
         }
 

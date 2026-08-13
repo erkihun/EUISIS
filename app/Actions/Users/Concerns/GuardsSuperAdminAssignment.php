@@ -6,6 +6,7 @@ namespace App\Actions\Users\Concerns;
 
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Users\AssignableUserRoleService;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -41,17 +42,14 @@ trait GuardsSuperAdminAssignment
             return;
         }
 
-        // Roles that confer citywide/global authority.
-        $elevatedRoles = ['Super Admin', 'City Admin', 'Public Service Bureau Admin'];
+        $roleService = app(AssignableUserRoleService::class);
+        $newlyAssignedRoles = array_values(array_diff($newRoles, $oldRoles));
+        $unassignableRole = $roleService->firstUnassignableRole($actor, $newlyAssignedRoles);
 
-        foreach ($elevatedRoles as $elevated) {
-            $granting = in_array($elevated, $newRoles, true) && ! in_array($elevated, $oldRoles, true);
-
-            if ($granting) {
-                throw ValidationException::withMessages([
-                    'roles' => __('users.cannot_assign_role', ['role' => $elevated]),
-                ]);
-            }
+        if ($unassignableRole !== null) {
+            throw ValidationException::withMessages([
+                'roles' => __('users.cannot_assign_role', ['role' => $unassignableRole]),
+            ]);
         }
     }
 }

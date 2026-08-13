@@ -58,6 +58,17 @@ readonly class UpdateUserAction
 
             if (is_array($roles) && $actor->can('assignRoles', $user)) {
                 $user->syncRoles($roles);
+
+                if (collect($oldRoles)->sort()->values()->all() !== collect($roles)->sort()->values()->all()) {
+                    $this->writeAuditLogAction->execute(
+                        AuditEventType::PermissionChanged,
+                        $actor,
+                        $user,
+                        null,
+                        oldValues: ['roles' => $oldRoles],
+                        newValues: ['roles' => $roles],
+                    );
+                }
             }
 
             $this->writeAuditLogAction->execute(

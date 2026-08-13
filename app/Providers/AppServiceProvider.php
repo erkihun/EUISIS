@@ -34,6 +34,7 @@ use App\Models\Permission;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\PublicHoliday;
+use App\Models\Role;
 use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType; // alias to avoid clash with Illuminate\Support\ServiceProvider
@@ -99,7 +100,6 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
-use Spatie\Permission\Models\Role;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider

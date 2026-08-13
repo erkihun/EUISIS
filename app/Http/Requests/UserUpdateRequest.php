@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Role;
+use App\Models\User;
+use App\Services\Users\AssignableUserRoleService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UserUpdateRequest extends FormRequest
 {
@@ -44,6 +48,35 @@ class UserUpdateRequest extends FormRequest
             ],
             'phone_number' => ['nullable', 'string', 'max:30', 'regex:/^[+\d\s\-()]+$/'],
             'gender' => ['nullable', 'string', 'in:male,female,other,not_specified'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $actor = $this->user();
+                $target = $this->route('user');
+                $roleNames = $this->input('roles');
+
+                if ($actor === null || ! $target instanceof User || ! is_array($roleNames)) {
+                    return;
+                }
+
+                if (app(AssignableUserRoleService::class)->firstUnassignableRole($actor, $roleNames) !== null) {
+                    $validator->errors()->add('roles', __('users.cannot_assign_this_role'));
+
+                    return;
+                }
+
+                $roleService = app(AssignableUserRoleService::class);
+                $hasScopedRole = Role::query()->whereIn('name', $roleNames)->get()
+                    ->contains(fn (Role $role): bool => $roleService->isOrganizationScoped($role));
+
+                if ($hasScopedRole && ! $target->organizationScopes()->active()->exists()) {
+                    $validator->errors()->add('roles', __('roles.scoped_role_requires_organization'));
+                }
+            },
         ];
     }
 }

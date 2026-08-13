@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\UserOrganizationScopes;
 
 use App\Http\Requests\UserOrganizationScopes\Concerns\ValidatesAssignableOrganization;
+use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -15,7 +16,11 @@ class StoreUserOrganizationScopeRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('create', UserOrganizationScope::class) ?? false;
+        $target = $this->route('user');
+
+        return $target instanceof User
+            && ($this->user()?->can('assignOrganizationScope', $target) ?? false)
+            && ($this->user()?->can('create', UserOrganizationScope::class) ?? false);
     }
 
     public function rules(): array

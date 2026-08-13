@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\RoleStoreRequest;
 use App\Http\Requests\RoleUpdateRequest;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
@@ -38,6 +38,7 @@ class RoleController extends Controller
             ->map(fn (Role $r) => [
                 'id' => $r->id,
                 'name' => $r->name,
+                'scope_type' => $r->scope_type->value,
                 'users_count' => $r->users_count,
                 'permissions' => $r->permissions->pluck('name')->toArray(),
                 'is_super_admin' => $r->name === 'Super Admin',
@@ -67,6 +68,7 @@ class RoleController extends Controller
             'permissions' => $this->groupedPermissions(),
             'can' => [
                 'assignPermissions' => $actor->can('roles.assignPermissions'),
+                'manageGlobalRoles' => $actor->hasAnyRole(['Super Admin', 'System Admin']),
             ],
         ]);
     }
@@ -87,7 +89,11 @@ class RoleController extends Controller
         }
 
         DB::transaction(function () use ($request, $permissions): void {
-            $role = Role::create(['name' => $request->validated('name'), 'guard_name' => 'web']);
+            $role = Role::create([
+                'name' => $request->validated('name'),
+                'guard_name' => 'web',
+                'scope_type' => $request->validated('scope_type'),
+            ]);
             $role->syncPermissions($permissions);
 
             $this->writeAuditLogAction->execute(
@@ -95,7 +101,11 @@ class RoleController extends Controller
                 $request->user(),
                 null,
                 null,
-                newValues: ['name' => $role->name, 'permissions' => $request->validated('permissions', [])],
+                newValues: [
+                    'name' => $role->name,
+                    'scope_type' => $role->scope_type->value,
+                    'permissions' => $request->validated('permissions', []),
+                ],
             );
         });
 
@@ -114,11 +124,13 @@ class RoleController extends Controller
             'role' => [
                 'id' => $role->id,
                 'name' => $role->name,
+                'scope_type' => $role->scope_type->value,
                 'permissions' => $role->permissions->pluck('name')->toArray(),
             ],
             'permissions' => $this->groupedPermissions(),
             'can' => [
                 'assignPermissions' => $actor->can('assignPermissions', $role),
+                'manageGlobalRoles' => $actor->hasAnyRole(['Super Admin', 'System Admin']),
             ],
         ]);
     }
@@ -137,7 +149,11 @@ class RoleController extends Controller
 
         DB::transaction(function () use ($request, $role, $newPermissions): void {
             $oldPermissions = $role->permissions->pluck('name')->toArray();
-            $role->update(['name' => $request->validated('name')]);
+            $oldScopeType = $role->scope_type->value;
+            $role->update([
+                'name' => $request->validated('name'),
+                'scope_type' => $request->validated('scope_type'),
+            ]);
             $role->syncPermissions($newPermissions);
 
             $this->writeAuditLogAction->execute(
@@ -145,8 +161,8 @@ class RoleController extends Controller
                 $request->user(),
                 null,
                 null,
-                oldValues: ['name' => $role->getOriginal('name'), 'permissions' => $oldPermissions],
-                newValues: ['name' => $role->name, 'permissions' => $newPermissions],
+                oldValues: ['name' => $role->getOriginal('name'), 'scope_type' => $oldScopeType, 'permissions' => $oldPermissions],
+                newValues: ['name' => $role->name, 'scope_type' => $role->scope_type->value, 'permissions' => $newPermissions],
             );
         });
 

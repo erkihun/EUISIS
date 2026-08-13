@@ -36,6 +36,7 @@ use App\Models\OrganizationNameHistory;
 use App\Models\OrganizationType;
 use App\Models\Permission;
 use App\Models\Position;
+use App\Models\Role;
 use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
@@ -48,7 +49,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
@@ -813,6 +813,7 @@ class DatabaseSeeder extends Seeder
 
         $roleMap = [
             'Super Admin' => $allPermissions,
+            'System Admin' => $allPermissions,
             'Public Service Bureau Admin' => $allPermissions,
             'City Admin' => $allPermissions,
             'Institution Admin' => $institutionAdminPerms,
@@ -850,8 +851,13 @@ class DatabaseSeeder extends Seeder
             'Report Viewer' => ['dashboard.view', 'reports.view', 'dashboard.reports'],
         ];
 
+        $globalRoles = ['Super Admin', 'System Admin', 'City Admin', 'Public Service Bureau Admin'];
+
         foreach ($roleMap as $role => $grantedPermissions) {
-            $roleModel = Role::findOrCreate($role, 'web');
+            $roleModel = Role::query()->updateOrCreate(
+                ['name' => $role, 'guard_name' => 'web'],
+                ['scope_type' => in_array($role, $globalRoles, true) ? 'global' : 'scoped'],
+            );
             $roleModel->syncPermissions($grantedPermissions);
         }
     }

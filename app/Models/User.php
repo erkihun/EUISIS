@@ -108,6 +108,28 @@ class User extends Authenticatable
         return $this->hasRole('Super Admin');
     }
 
+    public function hasGlobalRole(): bool
+    {
+        return $this->roles()->where('scope_type', 'global')->exists();
+    }
+
+    public function hasScopedRole(): bool
+    {
+        return $this->roles()->where('scope_type', 'scoped')->exists();
+    }
+
+    public function hasGlobalPermission(string $permission): bool
+    {
+        if ($this->permissions()->where('name', $permission)->exists()) {
+            return true;
+        }
+
+        return $this->roles()
+            ->where('scope_type', 'global')
+            ->whereHas('permissions', fn ($query) => $query->where('name', $permission))
+            ->exists();
+    }
+
     public function profilePhotoUrl(): ?string
     {
         if (! $this->profile_photo_path) {

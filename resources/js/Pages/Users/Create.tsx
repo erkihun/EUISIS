@@ -6,7 +6,7 @@ import FormSection from '@/Components/FormSection';
 import UserAvatar from '@/Components/UserAvatar';
 import { useLocale } from '@/hooks/useLocale';
 
-type Role = { id: number; name: string };
+type Role = { id: number; name: string; scope: 'organization' | 'global' };
 
 const inputCls =
     'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
@@ -42,11 +42,13 @@ type OrgOption = { id: string; name_en: string; name_am?: string | null };
 export default function CreateUser({
     roles,
     statusOptions,
-    organizations: _organizations,
+    organizations = [],
+    requiresOrganizationScope,
 }: {
     roles: Role[];
     statusOptions: string[];
     organizations?: OrgOption[];
+    requiresOrganizationScope: boolean;
 }) {
     const { t } = useLocale();
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -71,22 +73,26 @@ export default function CreateUser({
         password: string;
         password_confirmation: string;
         status: string;
-        roles: string[];
+        role_ids: number[];
         profile_photo: File | null;
         national_id: string;
         phone_number: string;
         gender: string;
+        organization_scope_ids: string[];
+        scope_type: string;
     }>({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
         status: 'active',
-        roles: [],
+        role_ids: [],
         profile_photo: null,
         national_id: '',
         phone_number: '',
         gender: '',
+        organization_scope_ids: organizations.length === 1 && requiresOrganizationScope ? [organizations[0].id] : [],
+        scope_type: 'self',
     });
 
     function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -103,18 +109,28 @@ export default function CreateUser({
         setPhotoPreview(null);
     }
 
-    function toggleRole(name: string) {
-        const current = form.data.roles;
-        form.setData(
-            'roles',
-            current.includes(name) ? current.filter((r) => r !== name) : [...current, name],
+    function toggleRole(id: number) {
+        const current = form.data.role_ids;
+        const nextRoleIds = current.includes(id) ? current.filter((roleId) => roleId !== id) : [...current, id];
+        form.setData('role_ids', nextRoleIds);
+
+        const nextRequiresScope = roles.some(
+            (role) => nextRoleIds.includes(role.id) && role.scope === 'organization',
         );
+        if (nextRequiresScope && form.data.organization_scope_ids.length === 0 && organizations.length === 1) {
+            form.setData('organization_scope_ids', [organizations[0].id]);
+        }
     }
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
         form.post(route('users.store'), { forceFormData: true });
     }
+
+    const selectedRoleRequiresScope = roles.some(
+        (role) => form.data.role_ids.includes(role.id) && role.scope === 'organization',
+    );
+    const organizationScopeRequired = requiresOrganizationScope || selectedRoleRequiresScope;
 
     return (
         <AuthenticatedLayout
@@ -281,10 +297,46 @@ export default function CreateUser({
                             </Field>
                         </FormSection>
 
+                        <FormSection
+                            title={t('users.userOrganizationScopes.title')}
+                            description={organizationScopeRequired
+                                ? t('users.organizationScopeRequired')
+                                : t('users.userOrganizationScopes.selectOrganizations')}
+                            columns={2}
+                        >
+                            <Field label={t('users.userOrganizationScopes.organization')} error={form.errors.organization_scope_ids}>
+                                <select
+                                    className={inputCls}
+                                    value={form.data.organization_scope_ids[0] ?? ''}
+                                    onChange={(e) => form.setData('organization_scope_ids', e.target.value ? [e.target.value] : [])}
+                                >
+                                    <option value="">{t('users.userOrganizationScopes.noOrganizations')}</option>
+                                    {organizations.map((organization) => (
+                                        <option key={organization.id} value={organization.id}>
+                                            {organization.name_en}
+                                        </option>
+                                    ))}
+                                </select>
+                            </Field>
+
+                            <Field label={t('users.userOrganizationScopes.scopeType')} error={form.errors.scope_type}>
+                                <select
+                                    className={inputCls}
+                                    value={form.data.scope_type}
+                                    onChange={(e) => form.setData('scope_type', e.target.value)}
+                                >
+                                    <option value="self">{t('users.userOrganizationScopes.scopeTypes.self')}</option>
+                                    <option value="subtree">{t('users.userOrganizationScopes.scopeTypes.subtree')}</option>
+                                </select>
+                            </Field>
+                        </FormSection>
+
                         {/* ── Roles ─────────────────────────────────────── */}
                         <FormSection
-                            title={t('users.sectionRoles')}
-                            description={t('users.sectionRolesHelp')}
+                            title={t('users.selectRole')}
+                            description={organizationScopeRequired
+                                ? t('users.roleAppliesWithinScope')
+                                : t('users.sectionRolesHelp')}
                             grid={false}
                         >
                             {roles.length === 0 ? (
@@ -296,23 +348,26 @@ export default function CreateUser({
                                     {roles.map((role) => (
                                         <label
                                             key={role.id}
-                                            className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                                            className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
                                         >
                                             <input
                                                 type="checkbox"
                                                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600"
-                                                checked={form.data.roles.includes(role.name)}
-                                                onChange={() => toggleRole(role.name)}
+                                                checked={form.data.role_ids.includes(role.id)}
+                                                onChange={() => toggleRole(role.id)}
                                             />
-                                            <span className="text-sm text-gray-700 dark:text-slate-300">
+                                            <span className="min-w-0 flex-1 text-sm text-gray-700 dark:text-slate-300">
                                                 {role.name}
+                                            </span>
+                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                                                {role.scope === 'organization' ? t('users.scopedRole') : t('users.globalRole')}
                                             </span>
                                         </label>
                                     ))}
                                 </div>
                             )}
-                            {form.errors.roles && (
-                                <p className="text-xs text-red-600 dark:text-red-400">{form.errors.roles}</p>
+                            {form.errors.role_ids && (
+                                <p className="text-xs text-red-600 dark:text-red-400">{form.errors.role_ids}</p>
                             )}
                         </FormSection>
                     </div>
@@ -335,9 +390,6 @@ export default function CreateUser({
                     </div>
                 </form>
 
-                <div className="mt-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700 dark:border-blue-900/30 dark:bg-blue-900/10 dark:text-blue-300">
-                    {t('users.userOrganizationScopes.addScopeAfterCreate')}
-                </div>
             </div>
         </AuthenticatedLayout>
     );

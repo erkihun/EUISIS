@@ -22,12 +22,21 @@ readonly class UserPolicy
             return true;
         }
 
+        if ($this->isProtectedUser($target) && ! $this->isGlobalAdministrator($actor)) {
+            return false;
+        }
+
         return $actor->can('users.view') && $this->sharesScope($actor, $target);
     }
 
     public function create(User $actor): bool
     {
-        return $actor->can('users.create');
+        if (! $actor->can('users.create')) {
+            return false;
+        }
+
+        return ! $this->organizationScopeService->isScopedOrganizationalAdmin($actor)
+            || $this->organizationScopeService->assignedOrganizationIds($actor) !== [];
     }
 
     public function update(User $actor, User $target): bool
@@ -35,7 +44,7 @@ readonly class UserPolicy
         // A non-Super-Admin must never be able to edit a Super Admin account
         // (email/password change = account takeover). Editing one's own
         // profile is handled separately via ProfileController.
-        if ($target->hasRole('Super Admin') && $actor->id !== $target->id && ! $actor->hasRole('Super Admin')) {
+        if ($this->isProtectedUser($target) && ! $this->isGlobalAdministrator($actor)) {
             return false;
         }
 
@@ -52,6 +61,10 @@ readonly class UserPolicy
             return false;
         }
 
+        if ($this->isProtectedUser($model) && ! $this->isGlobalAdministrator($actor)) {
+            return false;
+        }
+
         return $actor->can('users.delete') && $this->sharesScope($actor, $model);
     }
 
@@ -62,6 +75,10 @@ readonly class UserPolicy
         }
 
         if ($this->isLastActiveSuperAdmin($model)) {
+            return false;
+        }
+
+        if ($this->isProtectedUser($model) && ! $this->isGlobalAdministrator($actor)) {
             return false;
         }
 
@@ -78,17 +95,49 @@ readonly class UserPolicy
             return false;
         }
 
+        if ($this->isProtectedUser($target) && ! $this->isGlobalAdministrator($actor)) {
+            return false;
+        }
+
         return $actor->can('users.archive') && $this->sharesScope($actor, $target);
     }
 
     public function restore(User $actor, User $target): bool
     {
+        if ($this->isProtectedUser($target) && ! $this->isGlobalAdministrator($actor)) {
+            return false;
+        }
+
         return $actor->can('users.restore') && $this->sharesScope($actor, $target);
     }
 
     public function assignRoles(User $actor, User $target): bool
     {
+        if ($actor->id === $target->id || ($this->isProtectedUser($target) && ! $this->isGlobalAdministrator($actor))) {
+            return false;
+        }
+
         return $actor->can('users.assignRoles') && $this->sharesScope($actor, $target);
+    }
+
+    public function assignOrganizationScope(User $actor, User $target): bool
+    {
+        if ($actor->id === $target->id || ! $actor->can('users.assignOrganizationScopes')) {
+            return false;
+        }
+
+        if ($this->isProtectedUser($target) && ! $this->isGlobalAdministrator($actor)) {
+            return false;
+        }
+
+        if ($this->organizationScopeService->isUnrestricted($actor)) {
+            return true;
+        }
+
+        $hasOrganizationLink = $target->default_organization_id !== null
+            || $target->organizationScopes()->exists();
+
+        return ! $hasOrganizationLink || $this->sharesScope($actor, $target);
     }
 
     public function resetPassword(User $actor, User $target): bool
@@ -108,20 +157,17 @@ readonly class UserPolicy
      */
     private function sharesScope(User $actor, User $target): bool
     {
-        if ($this->organizationScopeService->isUnrestricted($actor)) {
-            return true;
-        }
+        return $this->organizationScopeService->canManageUser($actor, $target);
+    }
 
-        $allowed = $this->organizationScopeService->allowedOrganizationIds($actor);
+    private function isProtectedUser(User $user): bool
+    {
+        return $user->hasAnyRole(['Super Admin', 'System Admin', 'City Admin', 'Public Service Bureau Admin']);
+    }
 
-        if ($target->default_organization_id !== null
-            && in_array((string) $target->default_organization_id, $allowed, true)) {
-            return true;
-        }
-
-        return $target->organizationScopes()
-            ->whereIn('organization_id', $allowed)
-            ->exists();
+    private function isGlobalAdministrator(User $user): bool
+    {
+        return $user->hasAnyRole(['Super Admin', 'System Admin', 'City Admin']);
     }
 
     private function isLastActiveSuperAdmin(User $model): bool
