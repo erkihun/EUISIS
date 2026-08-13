@@ -33,7 +33,9 @@ final readonly class GetOrganizationFullTreeAction
             ->where('assignment_status', AssignmentStatus::Active->value)
             ->whereIn('position_id', $positions->pluck('id'))
             ->with(['employee' => fn ($query) => $query
-                ->select(['id', 'employee_number', 'full_name', 'name_en', 'status'])
+                // photo_path backs the photo_url accessor; no other
+                // employee columns are loaded.
+                ->select(['id', 'employee_number', 'full_name', 'name_en', 'status', 'photo_path'])
                 ->with('activeIdCard:id,employee_id,status')])
             ->get(['id', 'employee_id', 'position_id', 'effective_from'])
             ->keyBy('position_id');
@@ -116,6 +118,8 @@ final readonly class GetOrganizationFullTreeAction
                     'full_name' => $employee->full_name,
                     'name_en' => $employee->name_en,
                     'status' => $employee->status->value,
+                    // Public-disk URL via the shared accessor; null when unset.
+                    'photo_url' => $employee->photo_url,
                     'has_active_id_card' => $employee->activeIdCard !== null,
                 ],
             ] : null,

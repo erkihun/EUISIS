@@ -187,6 +187,16 @@ const organizations = {
     layoutUnitFocused: 'Unit-Focused',
     selectedLayout: 'Selected Layout',
     changeLayout: 'Change Layout',
+    displayDepth: 'Display Depth',
+    depthUntilUnit: 'Until Organization Unit',
+    depthUntilPosition: 'Until Position',
+    depthUntilEmployee: 'Until Employee',
+    showUnitsOnly: 'Show Units Only',
+    showPositions: 'Show Positions',
+    showEmployees: 'Show Employees',
+    employeePhoto: 'Employee Photo',
+    noPhoto: 'No Photo',
+    photoUnavailable: 'Photo unavailable',
 } as const;
 
 export default organizations;

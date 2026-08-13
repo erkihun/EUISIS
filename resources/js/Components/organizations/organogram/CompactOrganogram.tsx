@@ -1,5 +1,6 @@
 import {
     ChildRow,
+    EmployeePhoto,
     OccupancyBadge,
     OrganizationBox,
     Stem,
@@ -27,8 +28,11 @@ function CompactPositionRow({ position }: { position: OrganogramTree['direct_pos
                 {localizedName(position.name_en, position.name_am, locale)}
             </span>
             {employee ? (
-                <span className="truncate text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
-                    {employee.full_name}
+                <span className="flex min-w-0 items-center gap-1">
+                    <EmployeePhoto employee={employee} size={16} />
+                    <span className="truncate text-[10px] font-medium text-emerald-700 dark:text-emerald-400">
+                        {employee.full_name}
+                    </span>
                 </span>
             ) : (
                 <OccupancyBadge occupancy="vacant" />

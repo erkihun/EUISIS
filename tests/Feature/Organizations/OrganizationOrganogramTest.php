@@ -392,3 +392,123 @@ it('shares node content across layouts instead of duplicating it', function (): 
         expect($source)->toContain("from './shared'");
     }
 });
+
+it('offers all three display depth options', function (): void {
+    $base = dirname(__DIR__, 3).'/resources/js/Components/organizations/organogram';
+    $shared = file_get_contents($base.'/shared.tsx');
+    $selector = file_get_contents($base.'/OrganogramDepthSelector.tsx');
+
+    foreach (['organization_unit', 'position', 'employee'] as $depth) {
+        expect($shared)->toContain("'{$depth}'");
+    }
+
+    foreach (['depthUntilUnit', 'depthUntilPosition', 'depthUntilEmployee'] as $key) {
+        expect($shared)->toContain("organizations.{$key}");
+    }
+
+    expect($selector)->toContain("t('organizations.displayDepth')")
+        ->toContain('ORGANOGRAM_DEPTHS.map');
+});
+
+it('prunes the tree by depth before any layout renders it', function (): void {
+    $shared = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/organogram/shared.tsx');
+
+    expect($shared)
+        ->toContain('export function applyDepth')
+        // organization_unit drops positions entirely.
+        ->toContain("depth === 'organization_unit'")
+        // position keeps the box but strips the employee assignment.
+        ->toContain('assignment: null');
+});
+
+it('feeds the depth-pruned tree to every layout and the export target', function (): void {
+    $chart = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/OrganogramChart.tsx');
+
+    expect($chart)->toContain('applyDepth(tree, depth)');
+
+    // No layout may receive the unpruned tree.
+    expect(substr_count($chart, 'tree={visibleTree}'))->toBe(5)
+        ->and($chart)->not->toContain('tree={tree}');
+
+    // Depth persists in the URL alongside layout.
+    expect($chart)->toContain("url.searchParams.set('depth', depth)")
+        ->toContain('data-organogram-depth={depth}');
+
+    // renderLayout() sits inside captureRef, so PNG/PDF/print follow depth.
+    $captureBlock = substr($chart, strpos($chart, 'ref={captureRef}'));
+    expect($captureBlock)->toContain('{renderLayout()}');
+});
+
+it('keeps depth selection independent of the layout selector', function (): void {
+    $chart = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/OrganogramChart.tsx');
+
+    // Both selectors are rendered, and depth is applied regardless of layout.
+    expect($chart)
+        ->toContain('<OrganogramTypeSelector')
+        ->toContain('<OrganogramDepthSelector')
+        ->toContain('useMemo(() => applyDepth(tree, depth)');
+});
+
+it('includes a photo url on the assigned employee summary', function (): void {
+    $this->employee->update(['photo_path' => 'employees/og-emp-1.jpg']);
+
+    $this->actingAs(ogUser())
+        ->get(route('organizations.organogram', $this->org))
+        ->assertInertia(function (Assert $page): void {
+            $employee = $page->toArray()['props']['tree']['units'][0]['positions'][0]['assignment']['employee'];
+
+            expect($employee['photo_url'])->toContain('employees/og-emp-1.jpg')
+                // The raw storage path is never exposed.
+                ->and($employee)->not->toHaveKey('photo_path');
+        });
+});
+
+it('returns a null photo url when the employee has no photo', function (): void {
+    $this->actingAs(ogUser())
+        ->get(route('organizations.organogram', $this->org))
+        ->assertInertia(function (Assert $page): void {
+            $employee = $page->toArray()['props']['tree']['units'][0]['positions'][0]['assignment']['employee'];
+
+            expect($employee['photo_url'])->toBeNull();
+        });
+});
+
+it('keeps the employee payload limited to the four allowed fields plus id', function (): void {
+    $this->employee->update(['photo_path' => 'employees/og-emp-1.jpg']);
+
+    $this->actingAs(ogUser())
+        ->get(route('organizations.organogram', $this->org))
+        ->assertInertia(function (Assert $page): void {
+            $employee = $page->toArray()['props']['tree']['units'][0]['positions'][0]['assignment']['employee'];
+
+            foreach (['national_id', 'phone', 'email', 'date_of_birth', 'photo_path'] as $field) {
+                expect($employee)->not->toHaveKey($field);
+            }
+
+            expect($employee)->toHaveKeys(['employee_number', 'full_name', 'status', 'photo_url']);
+        });
+});
+
+it('renders the photo only inside the employee node, which depth gates', function (): void {
+    $shared = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/organogram/shared.tsx');
+
+    expect($shared)
+        ->toContain('export function EmployeePhoto')
+        // Placeholder when there is no photo.
+        ->toContain('initialsOf(employee.full_name)')
+        ->toContain("t('organizations.noPhoto')")
+        // crossOrigin keeps the canvas exportable for PNG/PDF.
+        ->toContain('crossOrigin="anonymous"');
+
+    // EmployeePhoto is only reachable through the employee node, and
+    // applyDepth nulls the assignment below depth = employee.
+    expect($shared)->toContain('const employee = position.assignment?.employee')
+        ->toContain('assignment: null');
+});
+
+it('waits for photos to load before rasterising an export', function (): void {
+    $hook = file_get_contents(dirname(__DIR__, 3).'/resources/js/hooks/useOrganogramExport.ts');
+
+    // waitForCardAssets resolves once every <img> in the node has decoded.
+    expect($hook)->toContain('await waitForCardAssets(node)');
+});

@@ -3,7 +3,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { localizedName } from '@/utils/localizedName';
 import { useMemo, useState } from 'react';
 
-type Employee = { id: string; employee_number: string; full_name: string; name_en: string | null; status: string; has_active_id_card: boolean };
+type Employee = { id: string; employee_number: string; full_name: string; name_en: string | null; status: string; has_active_id_card: boolean; photo_url: string | null };
 type Position = { id: string; code: string; old_code: string | null; name_en: string; name_am: string | null; bpr_name: string | null; grade_level: string | null; status: string; occupancy: 'occupied' | 'vacant'; assignment: { effective_from: string | null; employee: Employee } | null };
 type Unit = { id: string; code: string; name_en: string; name_am: string | null; unit_type: { code: string | null; name_en: string | null; name_am: string | null }; parent_unit_id: string | null; status: string; child_units_count: number; positions_count: number; employees_count: number; positions: Position[]; children: Unit[] };
 export type OrganizationStructureTreeData = { organization: { id: string; code: string; name_en: string; name_am: string | null; type: { name_en: string; name_am: string | null } | null; status: string }; units: Unit[]; direct_positions: Position[]; counters: { units: number; positions: number; occupied_positions: number; vacant_positions: number; employees: number } };

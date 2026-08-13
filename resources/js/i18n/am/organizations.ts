@@ -187,6 +187,16 @@ const organizations = {
     layoutUnitFocused: 'በተቋም ዩኒት ላይ ያተኮረ',
     selectedLayout: 'የተመረጠ አቀማመጥ',
     changeLayout: 'አቀማመጥ ቀይር',
+    displayDepth: 'የማሳያ ጥልቀት',
+    depthUntilUnit: 'እስከ የተቋም ዩኒት ድረስ',
+    depthUntilPosition: 'እስከ የሥራ መደብ ድረስ',
+    depthUntilEmployee: 'እስከ ሠራተኛ ድረስ',
+    showUnitsOnly: 'ዩኒቶችን ብቻ አሳይ',
+    showPositions: 'የሥራ መደቦችን አሳይ',
+    showEmployees: 'ሠራተኞችን አሳይ',
+    employeePhoto: 'የሠራተኛ ፎቶ',
+    noPhoto: 'ፎቶ የለም',
+    photoUnavailable: 'ፎቶ አይገኝም',
 } as const;
 
 export default organizations;

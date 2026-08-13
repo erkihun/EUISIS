@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationStructureTreeData } from '@/Components/organizations/OrganizationStructureTree';
@@ -156,6 +157,52 @@ export function UnitBox({
     );
 }
 
+/** First letters of the first two words — used when no photo is stored. */
+function initialsOf(fullName: string): string {
+    return fullName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((word) => word.charAt(0).toLocaleUpperCase())
+        .join('');
+}
+
+/**
+ * Employee photo thumbnail, falling back to initials. The employee node only
+ * renders at depth = employee, so the photo is inherently depth-gated: at
+ * shallower depths `applyDepth` nulls the assignment and this never mounts.
+ */
+export function EmployeePhoto({ employee, size }: { employee: { full_name: string; photo_url: string | null }; size: number }) {
+    const { t } = useLocale();
+    const [failed, setFailed] = useState(false);
+    const dimension = { width: `${size}px`, height: `${size}px` };
+
+    if (!employee.photo_url || failed) {
+        return (
+            <span
+                style={dimension}
+                title={t('organizations.noPhoto')}
+                className="flex flex-none items-center justify-center rounded-full bg-emerald-200 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
+            >
+                {initialsOf(employee.full_name) || '—'}
+            </span>
+        );
+    }
+
+    return (
+        <img
+            src={employee.photo_url}
+            alt={t('organizations.employeePhoto')}
+            style={dimension}
+            onError={() => setFailed(true)}
+            // crossOrigin keeps the canvas untainted so html-to-image can
+            // rasterise the photo for PNG/PDF export.
+            crossOrigin="anonymous"
+            className="flex-none rounded-full object-cover ring-1 ring-emerald-300 dark:ring-emerald-800"
+        />
+    );
+}
+
 export function EmployeeBox({ position, compact = false }: { position: OrganogramPosition; compact?: boolean }) {
     const { t } = useLocale();
     const employee = position.assignment?.employee;
@@ -166,21 +213,24 @@ export function EmployeeBox({ position, compact = false }: { position: Organogra
 
     return (
         <div
-            className={`rounded-lg border border-emerald-300 bg-emerald-50 text-center dark:border-emerald-800 dark:bg-emerald-950/40 ${
+            className={`flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 text-left dark:border-emerald-800 dark:bg-emerald-950/40 ${
                 compact ? 'w-40 px-2 py-1' : 'w-52 px-3 py-2'
             }`}
         >
-            <p className="truncate font-mono text-[10px] text-emerald-700 dark:text-emerald-400">
-                {employee.employee_number}
-            </p>
-            <p className={`truncate font-semibold text-gray-900 dark:text-slate-100 ${compact ? 'text-[11px]' : 'text-xs'}`}>
-                {employee.full_name}
-            </p>
-            {!compact && (
-                <p className="truncate text-[10px] text-emerald-700 dark:text-emerald-400">
-                    {t(`common.${employee.status}`)}
+            <EmployeePhoto employee={employee} size={compact ? 22 : 30} />
+            <div className="min-w-0 flex-1">
+                <p className="truncate font-mono text-[10px] text-emerald-700 dark:text-emerald-400">
+                    {employee.employee_number}
                 </p>
-            )}
+                <p className={`truncate font-semibold text-gray-900 dark:text-slate-100 ${compact ? 'text-[11px]' : 'text-xs'}`}>
+                    {employee.full_name}
+                </p>
+                {!compact && (
+                    <p className="truncate text-[10px] text-emerald-700 dark:text-emerald-400">
+                        {t(`common.${employee.status}`)}
+                    </p>
+                )}
+            </div>
         </div>
     );
 }
@@ -232,6 +282,58 @@ export function PositionBox({
             </span>
         </div>
     );
+}
+
+export type OrganogramDepth = 'organization_unit' | 'position' | 'employee';
+
+export const ORGANOGRAM_DEPTHS: OrganogramDepth[] = ['organization_unit', 'position', 'employee'];
+
+/** i18n key per depth, kept beside the union so they cannot drift apart. */
+export const DEPTH_LABEL_KEYS: Record<OrganogramDepth, string> = {
+    organization_unit: 'organizations.depthUntilUnit',
+    position: 'organizations.depthUntilPosition',
+    employee: 'organizations.depthUntilEmployee',
+};
+
+export function isOrganogramDepth(value: unknown): value is OrganogramDepth {
+    return typeof value === 'string' && (ORGANOGRAM_DEPTHS as string[]).includes(value);
+}
+
+/**
+ * Apply the selected depth by pruning the tree ONCE, before any layout sees it.
+ *
+ * Doing it here rather than inside each layout means depth cannot be honoured
+ * inconsistently — and because the layouts render whatever tree they are given,
+ * PNG/PDF/print automatically capture the pruned structure too.
+ *
+ * - organization_unit → positions removed entirely
+ * - position          → positions kept, employee assignment stripped
+ * - employee          → full tree, unchanged
+ */
+export function applyDepth(tree: OrganogramTree, depth: OrganogramDepth): OrganogramTree {
+    if (depth === 'employee') {
+        return tree;
+    }
+
+    const prunePositions = (positions: OrganogramPosition[]): OrganogramPosition[] =>
+        depth === 'organization_unit'
+            ? []
+            // Drop the assignment so no employee data reaches the DOM at all;
+            // occupancy is kept so the vacant/occupied badge stays truthful.
+            : positions.map((position) => ({ ...position, assignment: null }));
+
+    const pruneUnits = (units: OrganogramUnit[]): OrganogramUnit[] =>
+        units.map((unit) => ({
+            ...unit,
+            positions: prunePositions(unit.positions),
+            children: pruneUnits(unit.children),
+        }));
+
+    return {
+        ...tree,
+        units: pruneUnits(tree.units),
+        direct_positions: prunePositions(tree.direct_positions),
+    };
 }
 
 /** Every unit id in the tree — seeds expand-all and collapse-all. */

@@ -3,11 +3,19 @@ import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationStructureTreeData } from '@/Components/organizations/OrganizationStructureTree';
 import CompactOrganogram from './organogram/CompactOrganogram';
 import HorizontalOrganogram from './organogram/HorizontalOrganogram';
+import OrganogramDepthSelector from './organogram/OrganogramDepthSelector';
 import OrganogramTypeSelector from './organogram/OrganogramTypeSelector';
 import PositionFocusedOrganogram from './organogram/PositionFocusedOrganogram';
 import UnitFocusedOrganogram from './organogram/UnitFocusedOrganogram';
 import VerticalOrganogram from './organogram/VerticalOrganogram';
-import { collectUnitIds, isOrganogramLayout, type OrganogramLayout } from './organogram/shared';
+import {
+    applyDepth,
+    collectUnitIds,
+    isOrganogramDepth,
+    isOrganogramLayout,
+    type OrganogramDepth,
+    type OrganogramLayout,
+} from './organogram/shared';
 
 /**
  * Organogram host: owns the layout choice, expand/collapse state and zoom, then
@@ -29,6 +37,17 @@ function readLayoutFromUrl(): OrganogramLayout {
     return isOrganogramLayout(value) ? value : 'vertical';
 }
 
+/** Depth also persists in the URL, alongside the layout. */
+function readDepthFromUrl(): OrganogramDepth {
+    if (typeof window === 'undefined') {
+        return 'employee';
+    }
+
+    const value = new URLSearchParams(window.location.search).get('depth');
+
+    return isOrganogramDepth(value) ? value : 'employee';
+}
+
 export default function OrganogramChart({
     tree,
     captureRef,
@@ -43,7 +62,12 @@ export default function OrganogramChart({
     const allUnitIds = useMemo(() => collectUnitIds(tree.units), [tree.units]);
 
     const [layout, setLayout] = useState<OrganogramLayout>(readLayoutFromUrl);
+    const [depth, setDepth] = useState<OrganogramDepth>(readDepthFromUrl);
     const [zoom, setZoom] = useState(1);
+
+    // Prune once, here — every layout below renders this tree, so screen,
+    // print, PNG and PDF all reflect the selected depth automatically.
+    const visibleTree = useMemo(() => applyDepth(tree, depth), [tree, depth]);
 
     // Compact is meant for large structures, so it starts fully collapsed;
     // the others open the first level.
@@ -59,11 +83,12 @@ export default function OrganogramChart({
 
         const url = new URL(window.location.href);
 
-        if (url.searchParams.get('layout') !== layout) {
+        if (url.searchParams.get('layout') !== layout || url.searchParams.get('depth') !== depth) {
             url.searchParams.set('layout', layout);
+            url.searchParams.set('depth', depth);
             window.history.replaceState({}, '', url);
         }
-    }, [layout]);
+    }, [layout, depth]);
 
     function changeLayout(next: OrganogramLayout) {
         setLayout(next);
@@ -88,16 +113,16 @@ export default function OrganogramChart({
     function renderLayout() {
         switch (layout) {
             case 'horizontal':
-                return <HorizontalOrganogram tree={tree} expandedIds={expandedIds} onToggle={toggle} />;
+                return <HorizontalOrganogram tree={visibleTree} expandedIds={expandedIds} onToggle={toggle} />;
             case 'compact':
-                return <CompactOrganogram tree={tree} expandedIds={expandedIds} onToggle={toggle} />;
+                return <CompactOrganogram tree={visibleTree} expandedIds={expandedIds} onToggle={toggle} />;
             case 'position-focused':
-                return <PositionFocusedOrganogram tree={tree} />;
+                return <PositionFocusedOrganogram tree={visibleTree} />;
             case 'unit-focused':
-                return <UnitFocusedOrganogram tree={tree} />;
+                return <UnitFocusedOrganogram tree={visibleTree} />;
             case 'vertical':
             default:
-                return <VerticalOrganogram tree={tree} expandedIds={expandedIds} onToggle={toggle} />;
+                return <VerticalOrganogram tree={visibleTree} expandedIds={expandedIds} onToggle={toggle} />;
         }
     }
 
@@ -105,6 +130,7 @@ export default function OrganogramChart({
         <div>
             <div className="mb-4 flex flex-wrap items-center gap-2 print:hidden">
                 <OrganogramTypeSelector value={layout} onChange={changeLayout} />
+                <OrganogramDepthSelector value={depth} onChange={setDepth} />
 
                 {supportsExpansion && (
                     <>
@@ -149,6 +175,7 @@ export default function OrganogramChart({
                     <div
                         ref={captureRef}
                         data-organogram-layout={layout}
+                        data-organogram-depth={depth}
                         className="inline-block min-w-full origin-top-left bg-white p-4 dark:bg-slate-900"
                         style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
                     >
