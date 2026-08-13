@@ -245,28 +245,41 @@ it('renders a box-and-line chart component rather than the indented list', funct
 });
 
 it('builds every organogram box from payload data with no sample labels', function (): void {
-    $chart = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/OrganogramChart.tsx');
+    $base = dirname(__DIR__, 3).'/resources/js/Components/organizations';
+    $chart = file_get_contents($base.'/OrganogramChart.tsx');
+    // Node content lives in the shared primitives every layout imports.
+    $shared = file_get_contents($base.'/organogram/shared.tsx');
 
-    // Node content must come from the tree payload.
-    expect($chart)
-        ->toContain('tree.organization.code')
+    expect($shared)
+        ->toContain('organization.code')
         ->toContain('employee.employee_number')
         ->toContain('employee.full_name')
-        ->toContain('position.bpr_name')
-        // Zoom / expand controls.
+        ->toContain('position.bpr_name');
+
+    expect($chart)
         ->toContain("t('organizations.zoomIn')")
         ->toContain("t('organizations.zoomOut')")
         ->toContain("t('organizations.expandAll')")
         ->toContain("t('organizations.collapseAll')");
 
-    // No hard-coded org-chart sample text.
-    foreach (['CEO', 'Manager', 'Workers', 'Lorem', 'John Doe'] as $sample) {
-        expect($chart)->not->toContain($sample);
+    // No hard-coded org-chart sample text in the host or any layout.
+    $sources = [$chart, $shared];
+    foreach ([
+        'VerticalOrganogram', 'HorizontalOrganogram', 'CompactOrganogram',
+        'PositionFocusedOrganogram', 'UnitFocusedOrganogram',
+    ] as $component) {
+        $sources[] = file_get_contents($base."/organogram/{$component}.tsx");
+    }
+
+    foreach ($sources as $source) {
+        foreach (['CEO', 'Manager', 'Workers', 'Lorem', 'John Doe'] as $sample) {
+            expect($source)->not->toContain($sample);
+        }
     }
 });
 
 it('does not render employee fields beyond number, name and status in the chart', function (): void {
-    $chart = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/OrganogramChart.tsx');
+    $chart = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/organogram/shared.tsx');
 
     expect($chart)
         ->not->toContain('national_id')
@@ -311,4 +324,71 @@ it('exports use only the already-authorized on-screen payload', function (): voi
         ->not->toContain('axios')
         ->not->toContain('fetch(')
         ->not->toContain('route(');
+});
+
+it('offers all five organogram layout types in the selector', function (): void {
+    $shared = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/organogram/shared.tsx');
+    $selector = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/organogram/OrganogramTypeSelector.tsx');
+
+    foreach (['vertical', 'horizontal', 'compact', 'position-focused', 'unit-focused'] as $layout) {
+        expect($shared)->toContain("'{$layout}'");
+    }
+
+    foreach ([
+        'layoutVertical', 'layoutHorizontal', 'layoutCompact',
+        'layoutPositionFocused', 'layoutUnitFocused',
+    ] as $key) {
+        expect($shared)->toContain("organizations.{$key}");
+    }
+
+    expect($selector)->toContain("t('organizations.organogramType')")
+        ->toContain('ORGANOGRAM_LAYOUTS.map');
+});
+
+it('renders each layout through its own component from the same payload', function (): void {
+    $chart = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/OrganogramChart.tsx');
+
+    expect($chart)
+        ->toContain('<VerticalOrganogram')
+        ->toContain('<HorizontalOrganogram')
+        ->toContain('<CompactOrganogram')
+        ->toContain('<PositionFocusedOrganogram')
+        ->toContain('<UnitFocusedOrganogram')
+        // Every layout is handed the same `tree` prop — no per-layout fetch.
+        ->not->toContain('axios')
+        ->not->toContain('fetch(');
+});
+
+it('keeps the selected layout inside the export capture target', function (): void {
+    $chart = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/OrganogramChart.tsx');
+
+    // renderLayout() must sit inside the node carrying captureRef, so PNG/PDF
+    // and print always capture the layout currently on screen.
+    $captureBlock = substr($chart, strpos($chart, 'ref={captureRef}'));
+
+    expect($captureBlock)->toContain('{renderLayout()}')
+        ->and($chart)->toContain('data-organogram-layout={layout}');
+});
+
+it('shares node content across layouts instead of duplicating it', function (): void {
+    $shared = file_get_contents(dirname(__DIR__, 3).'/resources/js/Components/organizations/organogram/shared.tsx');
+
+    // Boxes are defined once; employee fields stay limited to the allowed three.
+    expect($shared)
+        ->toContain('export function OrganizationBox')
+        ->toContain('export function UnitBox')
+        ->toContain('export function PositionBox')
+        ->toContain('export function EmployeeBox')
+        ->toContain('employee.employee_number')
+        ->toContain('employee.full_name')
+        ->not->toContain('national_id')
+        ->not->toContain('date_of_birth');
+
+    foreach ([
+        'VerticalOrganogram', 'HorizontalOrganogram', 'CompactOrganogram',
+        'PositionFocusedOrganogram', 'UnitFocusedOrganogram',
+    ] as $component) {
+        $source = file_get_contents(dirname(__DIR__, 3)."/resources/js/Components/organizations/organogram/{$component}.tsx");
+        expect($source)->toContain("from './shared'");
+    }
 });

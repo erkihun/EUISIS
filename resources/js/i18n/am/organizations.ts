@@ -179,6 +179,14 @@ const organizations = {
     exportFailed: 'መላክ አልተሳካም',
     generatedDate: 'የተመነጨበት ቀን',
     exportOutlinePdf: 'የጽሑፍ PDF ላክ',
+    organogramType: 'የመዋቅር ሰንጠረዥ ዓይነት',
+    layoutVertical: 'ቁመታዊ ተዋረድ',
+    layoutHorizontal: 'አግድም ተዋረድ',
+    layoutCompact: 'አጭር ዛፍ',
+    layoutPositionFocused: 'በሥራ መደብ ላይ ያተኮረ',
+    layoutUnitFocused: 'በተቋም ዩኒት ላይ ያተኮረ',
+    selectedLayout: 'የተመረጠ አቀማመጥ',
+    changeLayout: 'አቀማመጥ ቀይር',
 } as const;
 
 export default organizations;

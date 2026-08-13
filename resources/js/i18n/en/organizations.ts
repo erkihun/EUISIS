@@ -179,6 +179,14 @@ const organizations = {
     exportFailed: 'Export failed',
     generatedDate: 'Generated Date',
     exportOutlinePdf: 'Export Outline PDF',
+    organogramType: 'Organogram Type',
+    layoutVertical: 'Vertical Hierarchy',
+    layoutHorizontal: 'Horizontal Hierarchy',
+    layoutCompact: 'Compact Tree',
+    layoutPositionFocused: 'Position-Focused',
+    layoutUnitFocused: 'Unit-Focused',
+    selectedLayout: 'Selected Layout',
+    changeLayout: 'Change Layout',
 } as const;
 
 export default organizations;
