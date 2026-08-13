@@ -18,8 +18,58 @@ use Illuminate\Support\Facades\Log;
 
 class OrganizationScopeService
 {
+    /**
+     * Administrative roles that legitimately span every organization.
+     *
+     * @var array<int, string>
+     */
+    public const UNRESTRICTED_ROLES = [
+        'Super Admin',
+        'System Admin',
+        'City Admin',
+        'Public Service Bureau Admin',
+    ];
+
     /** @var array<string, Collection> */
     private array $requestCache = [];
+
+    public function __construct(
+        private readonly PermissionScopeClassifier $permissionScopeClassifier = new PermissionScopeClassifier,
+    ) {}
+
+    /**
+     * Authoritative check for "may this user exercise $permission against
+     * $organizationId?". Combines three things the spec requires together:
+     * the permission grant, the role scope type, and the organization scope.
+     *
+     * System permissions (roles, permissions, audit logs, code rules, security
+     * settings) may be exercised system-wide when granted through a global
+     * role. Operational permissions always require organization scope.
+     */
+    public function canExercisePermission(User $user, string $permission, ?string $organizationId = null): bool
+    {
+        if (! $user->can($permission)) {
+            return false;
+        }
+
+        if ($this->hasUnrestrictedRole($user)) {
+            return true;
+        }
+
+        // System-module work granted via a global role is not tied to an org.
+        if ($this->permissionScopeClassifier->isSystemPermission($permission)
+            && $user->hasGlobalPermission($permission)) {
+            return true;
+        }
+
+        // Everything else is operational: it must resolve inside the scope.
+        if ($organizationId === null) {
+            return ! $this->isScopedOrganizationalAdmin($user)
+                && ! $user->organizationScopes()->exists();
+        }
+
+        return $this->canAccessOrganization($user, $organizationId);
+    }
 
     public function canAccessOrganization(User $user, ?string $organizationId): bool
     {
@@ -27,7 +77,7 @@ class OrganizationScopeService
             return false;
         }
 
-        if ($user->hasGlobalRole() || $user->hasAnyRole(['Super Admin', 'System Admin', 'City Admin'])) {
+        if ($this->hasUnrestrictedRole($user)) {
             return true;
         }
 
@@ -37,6 +87,9 @@ class OrganizationScopeService
 
         $hasAnyScopeRecord = $user->organizationScopes()->exists();
 
+        // Established convention: no explicit scope record means "not scoped
+        // yet", which grants org-wide access. Tightening this would silently
+        // lock out every existing role that has no scope rows, so it stays.
         if (! $hasAnyScopeRecord) {
             return true;
         }
@@ -216,7 +269,7 @@ class OrganizationScopeService
      */
     public function isUnrestricted(User $user): bool
     {
-        if ($user->hasGlobalRole() || $user->hasAnyRole(['Super Admin', 'System Admin', 'City Admin'])) {
+        if ($this->hasUnrestrictedRole($user)) {
             return true;
         }
 
@@ -225,6 +278,20 @@ class OrganizationScopeService
         }
 
         return ! $user->organizationScopes()->exists();
+    }
+
+    /**
+     * Roles that genuinely see every organization.
+     *
+     * Deliberately NOT "any role with scope_type = global": a global role only
+     * lifts organization scoping for the system modules it administers. A role
+     * flagged global that merely holds an operational permission (e.g.
+     * reports.view) must still be confined to its assigned organizations,
+     * otherwise scope_type becomes a blanket bypass of the whole scoping model.
+     */
+    public function hasUnrestrictedRole(User $user): bool
+    {
+        return $user->hasAnyRole(self::UNRESTRICTED_ROLES);
     }
 
     private function normalizeOrganizationId(int|string|Organization|null $organization): ?string
@@ -519,7 +586,7 @@ class OrganizationScopeService
 
     public function accessibleOrganizationIds(User $user): Collection
     {
-        if ($user->hasGlobalRole() || $user->hasAnyRole(['Super Admin', 'System Admin', 'City Admin'])) {
+        if ($this->hasUnrestrictedRole($user)) {
             return Organization::query()->pluck('id');
         }
 
