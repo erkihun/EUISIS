@@ -12,6 +12,7 @@ return [
     'exists' => 'The selected :attribute is invalid.',
     'image' => 'The :attribute must be an image.',
     'integer' => 'The :attribute must be an integer.',
+    'enum' => 'The selected :attribute is invalid.',
     'min' => [
         'file' => 'The :attribute must be at least :min kilobytes.',
         'numeric' => 'The :attribute must be at least :min.',
@@ -33,6 +34,9 @@ return [
     'uuid' => 'The :attribute must be a valid UUID.',
 
     'attributes' => [
+        'code' => 'code',
+        'legal_basis_ref' => 'legal basis reference',
+        'logo' => 'logo',
         'organization_type_id' => 'organization type',
         'parent_organization_id' => 'parent organization',
         'child_organization_id' => 'child organization',
@@ -53,4 +57,5 @@ return [
         'sort_order' => 'sort order',
     ],
     'position_already_occupied' => 'This position is already assigned to another employee.',
+    'organization_scope_denied' => 'Access denied outside your organization scope.',
 ];

@@ -115,7 +115,7 @@ export default function EmployeesEdit({
     function submit(e: React.FormEvent) {
         e.preventDefault();
         form.transform((data) => ({ ...data, _method: 'patch' }));
-        form.post(route('employees.update', employee.id), { preserveState: true });
+        form.post(route('employees.update', employee.id));
     }
 
     const showCurrentPhoto = !!employee.photo_url && !form.data.remove_photo && !photoPreview;

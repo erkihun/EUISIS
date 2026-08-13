@@ -21,4 +21,6 @@ return [
     'no_employees' => 'No employees found',
     'personal_info' => 'Personal Information',
     'employment_info' => 'Employment Information',
+    'created_successfully' => 'Employee registered successfully.',
+    'updated_successfully' => 'Employee updated successfully.',
 ];

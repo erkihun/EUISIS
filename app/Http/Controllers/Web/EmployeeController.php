@@ -11,7 +11,6 @@ use App\Actions\Transfers\RequestEmployeeTransferAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
-use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Http\Controllers\Controller;
@@ -23,12 +22,13 @@ use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
-use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -40,96 +40,32 @@ class EmployeeController extends Controller
         $this->authorize('viewAny', Employee::class);
 
         $user = $request->user();
-        $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
+        $allowedOrganizationIds = $organizationScopeService->allowedOrganizationIds($user);
+        $isOrganizationScoped = ! $organizationScopeService->isUnrestricted($user);
 
         $orgQuery = Organization::query()
-            ->with(['type:id,name_en,name_am,code'])
-            ->withCount(['organizationUnits' => fn ($query) => $query->whereNull('deleted_at')])
             ->orderBy('name_en');
 
-        if ($accessibleOrganizationIds->isNotEmpty()) {
-            $orgQuery->whereIn('id', $accessibleOrganizationIds);
-        }
+        $organizationScopeService->applyOrganizationScope($orgQuery, $user, 'id');
 
         $organizations = $orgQuery->get([
             'id',
-            'organization_type_id',
             'code',
             'name_en',
             'name_am',
             'status',
-            'logo_path',
-            'effective_from',
         ]);
 
-        $publishedVersion = HierarchyVersion::query()
-            ->where('status', HierarchyVersionStatus::Published)
-            ->latest('effective_from')
-            ->first(['id']);
-
-        $hasPublishedHierarchy = $publishedVersion !== null;
-        $orgMap = $organizations->keyBy('id');
-
-        if ($hasPublishedHierarchy) {
-            $edges = OrganizationEdge::query()
-                ->where('hierarchy_version_id', $publishedVersion->id)
-                ->get(['parent_organization_id', 'child_organization_id']);
-
-            $childrenMap = [];
-            $edgeChildIds = [];
-
-            foreach ($edges as $edge) {
-                $parentId = $edge->parent_organization_id;
-                $childId = $edge->child_organization_id;
-
-                if ($orgMap->has($parentId) && $orgMap->has($childId)) {
-                    $childrenMap[$parentId][] = $childId;
-                    $edgeChildIds[] = $childId;
-                }
-            }
-
-            $edgeChildIds = array_unique($edgeChildIds);
-
-            $buildOrgNode = function (string $orgId, int $depth) use (&$buildOrgNode, $orgMap, $childrenMap): ?array {
-                $organization = $orgMap->get($orgId);
-
-                if (! $organization) {
-                    return null;
-                }
-
-                $children = [];
-                foreach ($childrenMap[$orgId] ?? [] as $childId) {
-                    $child = $buildOrgNode($childId, $depth + 1);
-
-                    if ($child !== null) {
-                        $children[] = $child;
-                    }
-                }
-
-                return $this->organizationTreeNode($organization, $depth, $children);
-            };
-
-            $organizationTree = $organizations
-                ->filter(fn (Organization $organization): bool => ! in_array($organization->id, $edgeChildIds, true))
-                ->map(fn (Organization $organization): ?array => $buildOrgNode($organization->id, 0))
-                ->filter()
-                ->values()
-                ->all();
-        } else {
-            $organizationTree = $organizations
-                ->map(fn (Organization $organization): array => $this->organizationTreeNode($organization, 0))
-                ->values()
-                ->all();
-        }
+        $organizationStructure = $this->organizationStructure($organizations, $user, $organizationScopeService);
 
         $selectedOrganization = null;
-        $positions = collect();
         $selectedPosition = null;
-        $selectedOrganizationId = $request->string('organization_id')->toString() ?: null;
+        $selectedOrganizationId = $request->string('organization_id')->toString()
+            ?: ($isOrganizationScoped ? $organizations->first()?->id : null);
         $selectedPositionId = $request->string('position_id')->toString() ?: null;
 
         if ($selectedOrganizationId !== null) {
-            if ($accessibleOrganizationIds->isNotEmpty() && ! $accessibleOrganizationIds->contains($selectedOrganizationId)) {
+            if (! $organizationScopeService->canAccess($user, $selectedOrganizationId)) {
                 abort(403);
             }
 
@@ -147,15 +83,15 @@ class EmployeeController extends Controller
                     'effective_from',
                 ]);
 
-            $positions = Position::query()
-                ->where('organization_id', $selectedOrganizationId)
-                ->where('is_active', true)
-                ->orderBy('title_en')
-                ->get(['id', 'job_position_code', 'title_en', 'title_am', 'organization_id', 'organization_unit_id']);
-
             if ($selectedPositionId !== null) {
-                $selectedPosition = $positions
-                    ->firstWhere('id', $selectedPositionId);
+                $selectedPositionQuery = Position::query()
+                    ->where('organization_id', $selectedOrganizationId)
+                    ->where('is_active', true)
+                    ->whereKey($selectedPositionId);
+                $organizationScopeService->applyOrganizationScope($selectedPositionQuery, $user);
+                $selectedPosition = $selectedPositionQuery->first([
+                    'id', 'job_position_code', 'title_en', 'title_am', 'organization_id', 'organization_unit_id',
+                ]);
             }
         }
 
@@ -163,8 +99,8 @@ class EmployeeController extends Controller
             ->with(['currentAssignment.organization', 'currentAssignment.organizationUnit', 'currentAssignment.position'])
             ->withCount('employeeDuplicateFlags')
             ->when(
-                ! $user->hasRole(['Super Admin', 'City Admin']),
-                fn ($query) => $query->whereHas('currentAssignment', fn ($assignmentQuery) => $assignmentQuery->whereIn('organization_id', $accessibleOrganizationIds))
+                $isOrganizationScoped,
+                fn ($query) => $query->whereHas('currentAssignment', fn ($assignmentQuery) => $assignmentQuery->whereIn('organization_id', $allowedOrganizationIds))
             )
             ->when(
                 $selectedOrganizationId !== null,
@@ -188,17 +124,9 @@ class EmployeeController extends Controller
             ->withQueryString();
 
         return Inertia::render('Employees/Index', [
-            'organizationTree' => $organizationTree,
-            'hasPublishedHierarchy' => $hasPublishedHierarchy,
+            'organizationStructure' => $organizationStructure,
+            'isOrganizationScoped' => $isOrganizationScoped,
             'selectedOrganization' => $selectedOrganization,
-            'positions' => $positions->map(fn (Position $position): array => [
-                'id' => $position->id,
-                'job_position_code' => $position->job_position_code,
-                'title_en' => $position->title_en,
-                'title_am' => $position->title_am,
-                'organization_id' => $position->organization_id,
-                'organization_unit_id' => $position->organization_unit_id,
-            ])->values()->all(),
             'selectedPosition' => $selectedPosition ? [
                 'id' => $selectedPosition->id,
                 'job_position_code' => $selectedPosition->job_position_code,
@@ -225,33 +153,47 @@ class EmployeeController extends Controller
         $this->authorize('create', Employee::class);
 
         $request = request();
-        $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($request->user());
+        $user = $request->user();
         $selectedOrganizationId = $request->string('organization_id')->toString() ?: null;
         $selectedPositionId = $request->string('position_id')->toString() ?: null;
         $selectedOrganizationUnitId = $request->string('organization_unit_id')->toString() ?: null;
 
-        if ($selectedOrganizationId !== null && $accessibleOrganizationIds->isNotEmpty() && ! $accessibleOrganizationIds->contains($selectedOrganizationId)) {
+        if ($selectedOrganizationId !== null && ! $organizationScopeService->canAccess($user, $selectedOrganizationId)) {
             abort(403);
         }
 
-        $selectedPosition = $selectedPositionId
-            ? Position::query()
-                ->where('is_active', true)
-                ->whereDoesntHave('assignments', fn ($q) => $q
-                    ->where('is_current', true)
-                    ->where('assignment_status', AssignmentStatus::Active)
-                )
-                ->when($accessibleOrganizationIds->isNotEmpty(), fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
-                ->when($selectedOrganizationId !== null, fn ($query) => $query->where('organization_id', $selectedOrganizationId))
-                ->firstWhere('id', $selectedPositionId)
-            : null;
+        if ($selectedOrganizationUnitId !== null) {
+            $selectedUnitOrganizationId = OrganizationUnit::query()->whereKey($selectedOrganizationUnitId)->value('organization_id');
+
+            if ($selectedUnitOrganizationId !== null && ! $organizationScopeService->canAccess($user, $selectedUnitOrganizationId)) {
+                abort(403);
+            }
+        }
+
+        $selectedPositionQuery = Position::query()
+            ->where('is_active', true)
+            ->whereDoesntHave('assignments', fn ($q) => $q
+                ->where('is_current', true)
+                ->where('assignment_status', AssignmentStatus::Active)
+            )
+            ->when($selectedOrganizationId !== null, fn ($query) => $query->where('organization_id', $selectedOrganizationId));
+        $organizationScopeService->applyOrganizationScope($selectedPositionQuery, $user);
+        $selectedPosition = $selectedPositionId ? $selectedPositionQuery->firstWhere('id', $selectedPositionId) : null;
+
+        if ($selectedPositionId !== null && $selectedPosition === null) {
+            $selectedPositionOrganizationId = Position::query()->whereKey($selectedPositionId)->value('organization_id');
+
+            if ($selectedPositionOrganizationId !== null && ! $organizationScopeService->canAccess($user, $selectedPositionOrganizationId)) {
+                abort(403);
+            }
+        }
 
         if ($selectedPosition !== null) {
             $selectedOrganizationId ??= $selectedPosition->organization_id;
             $selectedOrganizationUnitId ??= $selectedPosition->organization_unit_id;
         }
 
-        if ($selectedOrganizationId !== null && $accessibleOrganizationIds->isNotEmpty() && ! $accessibleOrganizationIds->contains($selectedOrganizationId)) {
+        if ($selectedOrganizationId !== null && ! $organizationScopeService->canAccess($user, $selectedOrganizationId)) {
             abort(403);
         }
 
@@ -260,9 +202,7 @@ class EmployeeController extends Controller
             ->where('status', OrganizationStatus::Active->value)
             ->orderBy('name_en');
 
-        if ($accessibleOrganizationIds->isNotEmpty()) {
-            $organizationQuery->whereIn('id', $accessibleOrganizationIds);
-        }
+        $organizationScopeService->applyOrganizationScope($organizationQuery, $user, 'id');
 
         $organizationUnitQuery = OrganizationUnit::query()
             ->where('status', OrganizationUnitStatus::Active->value)
@@ -278,10 +218,8 @@ class EmployeeController extends Controller
             )
             ->orderBy('title_en');
 
-        if ($accessibleOrganizationIds->isNotEmpty()) {
-            $organizationUnitQuery->whereIn('organization_id', $accessibleOrganizationIds);
-            $positionQuery->whereIn('organization_id', $accessibleOrganizationIds);
-        }
+        $organizationScopeService->applyOrganizationScope($organizationUnitQuery, $user);
+        $organizationScopeService->applyOrganizationScope($positionQuery, $user);
 
         return Inertia::render('Employees/Create', [
             'organizations' => $organizationQuery
@@ -297,26 +235,77 @@ class EmployeeController extends Controller
         ]);
     }
 
-    private function organizationTreeNode(Organization $organization, int $depth, array $children = []): array
+    private function organizationStructure(Collection $organizations, User $user, OrganizationScopeService $organizationScopeService): array
     {
-        return [
-            'id' => $organization->id,
-            'code' => $organization->code,
-            'name_en' => $organization->name_en,
-            'name_am' => $organization->name_am,
-            'status' => $organization->status,
-            'logo_url' => $organization->logo_url,
-            'has_logo' => $organization->has_logo,
-            'organization_units_count' => $organization->organization_units_count,
-            'type' => $organization->type ? [
-                'id' => $organization->type->id,
-                'code' => $organization->type->code,
-                'name_en' => $organization->type->name_en,
-                'name_am' => $organization->type->name_am,
-            ] : null,
-            'depth' => $depth,
-            'children' => $children,
-        ];
+        $unitQuery = OrganizationUnit::query()
+            ->whereNull('deleted_at')
+            ->orderBy('sort_order')
+            ->orderBy('name_en');
+        $organizationScopeService->applyOrganizationScope($unitQuery, $user);
+        $unitsByOrganization = $unitQuery
+            ->get(['id', 'organization_id', 'parent_unit_id', 'code', 'name_en', 'name_am', 'status'])
+            ->groupBy('organization_id');
+
+        $positionQuery = Position::query()
+            ->whereNull('deleted_at')
+            ->withExists(['assignments as is_occupied' => fn ($query) => $query
+                ->where('is_current', true)
+                ->where('assignment_status', AssignmentStatus::Active->value)])
+            ->orderBy('title_en');
+        $organizationScopeService->applyOrganizationScope($positionQuery, $user);
+        $positionsByUnit = $positionQuery
+            ->get(['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am', 'is_active'])
+            ->groupBy('organization_unit_id');
+
+        return $organizations->map(function (Organization $organization) use ($unitsByOrganization, $positionsByUnit): array {
+            $organizationUnits = $unitsByOrganization->get($organization->id, collect());
+            $unitIds = $organizationUnits->pluck('id')->all();
+            $unitsByParent = $organizationUnits
+                ->groupBy(fn (OrganizationUnit $unit): string => $unit->parent_unit_id ?? 'root');
+            $builtIds = [];
+
+            $buildUnit = function (OrganizationUnit $unit) use (&$buildUnit, &$builtIds, $unitsByParent, $positionsByUnit): ?array {
+                if (isset($builtIds[$unit->id])) {
+                    return null;
+                }
+
+                $builtIds[$unit->id] = true;
+
+                return [
+                    'id' => $unit->id,
+                    'code' => $unit->code,
+                    'name_en' => $unit->name_en,
+                    'name_am' => $unit->name_am,
+                    'parent_unit_id' => $unit->parent_unit_id,
+                    'status' => $unit->status instanceof \BackedEnum ? $unit->status->value : (string) $unit->status,
+                    'positions' => $positionsByUnit->get($unit->id, collect())->map(fn (Position $position): array => [
+                        'id' => $position->id,
+                        'code' => $position->job_position_code,
+                        'standard_name' => $position->title_en,
+                        'standard_name_am' => $position->title_am,
+                        'organization_unit_id' => $position->organization_unit_id,
+                        'status' => $position->is_active ? 'active' : 'inactive',
+                        'occupancy_status' => $position->is_occupied ? 'occupied' : 'vacant',
+                    ])->values()->all(),
+                    'children' => $unitsByParent->get($unit->id, collect())->map($buildUnit)->filter()->values()->all(),
+                ];
+            };
+
+            $rootUnits = $organizationUnits
+                ->filter(fn (OrganizationUnit $unit): bool => $unit->parent_unit_id === null || ! in_array($unit->parent_unit_id, $unitIds, true));
+            $tree = $rootUnits->map($buildUnit)->filter()->values();
+            $tree = $tree->concat($organizationUnits->reject(fn (OrganizationUnit $unit): bool => isset($builtIds[$unit->id]))
+                ->map($buildUnit)->filter())->values();
+
+            return [
+                'id' => $organization->id,
+                'code' => $organization->code,
+                'name_en' => $organization->name_en,
+                'name_am' => $organization->name_am,
+                'status' => $organization->status instanceof \BackedEnum ? $organization->status->value : (string) $organization->status,
+                'units' => $tree->all(),
+            ];
+        })->values()->all();
     }
 
     public function edit(Employee $employee, OrganizationScopeService $organizationScopeService): Response
@@ -327,7 +316,9 @@ class EmployeeController extends Controller
 
         return Inertia::render('Employees/Edit', [
             'employee' => (new EmployeeDetailResource($employee))->resolve(),
-            'positions' => Position::query()->where('is_active', true)->orderBy('title_en')->get(['id', 'title_en']),
+            'positions' => $organizationScopeService
+                ->applyOrganizationScope(Position::query()->where('is_active', true)->orderBy('title_en'), request()->user())
+                ->get(['id', 'title_en']),
         ]);
     }
 
@@ -449,7 +440,7 @@ class EmployeeController extends Controller
         }
 
         return to_route('employees.show', $employee)
-            ->with('flash', ['message' => __('Employee registered successfully.'), 'type' => 'success']);
+            ->with('flash', ['message' => __('employees.created_successfully'), 'type' => 'success']);
     }
 
     public function update(
@@ -495,7 +486,8 @@ class EmployeeController extends Controller
             request: $request,
         );
 
-        return back()->with('flash', ['message' => __('Employee updated successfully.'), 'type' => 'success']);
+        return to_route('employees.show', $employee)
+            ->with('flash', ['message' => __('employees.updated_successfully'), 'type' => 'success']);
     }
 
     public function transfer(

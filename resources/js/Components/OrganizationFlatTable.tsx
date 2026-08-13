@@ -49,8 +49,8 @@ export default function OrganizationFlatTable({ rows, emptyText }: { rows: OrgRo
     const { t, locale } = useLocale();
 
     function categoryLabel(category?: string | null): string {
-        if (!category) return '—';
-        return CATEGORY_KEYS.includes(category) ? t(`organizations.categories.${category}`) : category;
+        if (!category) return '\u2014';
+        return CATEGORY_KEYS.includes(category) ? t(`organizations.categories.${category}`) : t('organizations.categories.other');
     }
 
     const headers = [
@@ -103,13 +103,13 @@ export default function OrganizationFlatTable({ rows, emptyText }: { rows: OrgRo
                             </td>
                             <td className="px-4 py-2.5">{localizedName(org.name_en, org.name_am, locale)}</td>
                             <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                                {org.type ? localizedName(org.type.name_en, org.type.name_am, locale) : '—'}
+                                {org.type ? localizedName(org.type.name_en, org.type.name_am, locale) : '\u2014'}
                             </td>
                             <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
                                 {categoryLabel(org.type?.category)}
                             </td>
                             <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
-                                {org.parent_label ?? '—'}
+                                {org.parent_label ?? '\u2014'}
                             </td>
                             <td className="px-4 py-2.5">
                                 <StatusBadge status={org.status} label={t(`common.${org.status}`)} />

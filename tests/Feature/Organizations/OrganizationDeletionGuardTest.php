@@ -31,11 +31,11 @@ use Spatie\Permission\Models\Role;
  * dependency the guard checks, plus the permission gate and audit trail.
  */
 beforeEach(function (): void {
-    foreach (['organizations.view', 'organizations.manage'] as $perm) {
+    foreach (['organizations.view', 'organizations.update', 'organizations.delete'] as $perm) {
         Permission::findOrCreate($perm, 'web');
     }
 
-    Role::findOrCreate('ODG Manager', 'web')->givePermissionTo(['organizations.view', 'organizations.manage']);
+    Role::findOrCreate('ODG Manager', 'web')->givePermissionTo(['organizations.view', 'organizations.update', 'organizations.delete']);
     Role::findOrCreate('ODG Viewer', 'web')->givePermissionTo(['organizations.view']);
 
     $this->orgType = OrganizationType::query()->create([
@@ -112,7 +112,7 @@ function odgEmployeeAssignment(Organization $organization): EmployeeAssignment
 
 // ── Permission gate ───────────────────────────────────────────────────────
 
-it('user without organizations.manage cannot delete an organization', function (): void {
+it('user without organizations.delete cannot delete an organization', function (): void {
     $org = odgOrg('ODG-001');
 
     $this->actingAs(odgViewer())
@@ -161,6 +161,22 @@ it('writes an audit log entry when an organization is deleted', function (): voi
         ->and($log->actor_user_id)->toBe($actor->id);
 });
 
+it('does not treat an organization audit log as a deletion dependency', function (): void {
+    $org = odgOrg('ODG-AUDIT-ONLY');
+    AuditLog::query()->create([
+        'event_type' => 'organization_created',
+        'auditable_type' => Organization::class,
+        'auditable_id' => $org->id,
+        'organization_id' => $org->id,
+    ]);
+
+    expect(app(OrganizationDeletionGuard::class)->reasons($org))->toBe([]);
+
+    $this->actingAs(odgManager())
+        ->delete(route('organizations.destroy', $org))
+        ->assertRedirect(route('organizations.index'));
+});
+
 it('shows no deletion blockers on the show page for an unused organization', function (): void {
     $org = odgOrg('ODG-005');
 
@@ -174,7 +190,7 @@ it('shows no deletion blockers on the show page for an unused organization', fun
 
 // ── Index page: per-row actions + deletion blockers ───────────────────────
 
-it('carries per-row can and deletion_blockers on the unassigned organizations list', function (): void {
+it('carries per-row permissions and deletion blockers on the paginated organization list', function (): void {
     $blocked = odgOrg('ODG-019');
     odgEmployeeAssignment($blocked);
     $clean = odgOrg('ODG-020');
@@ -182,11 +198,11 @@ it('carries per-row can and deletion_blockers on the unassigned organizations li
     $this->actingAs(odgManager())
         ->get(route('organizations.index'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('unassigned', 2)
-            ->where('unassigned.0.can.delete', true)
-            ->where('unassigned.0.can.archive', true)
-            ->where('unassigned.0.deletion_blockers', ['hasEmployeeAssignments'])
-            ->where('unassigned.1.deletion_blockers', [])
+            ->has('organizations.data', 2)
+            ->where('organizations.data.0.can.delete', true)
+            ->where('organizations.data.0.can.archive', true)
+            ->where('organizations.data.0.deletion_blockers', ['hasEmployeeAssignments'])
+            ->where('organizations.data.1.deletion_blockers', [])
         );
 
     expect($blocked->code)->toBe('ODG-019')->and($clean->code)->toBe('ODG-020');
@@ -198,10 +214,10 @@ it('index page rows for a viewer without permission have every action disabled',
     $this->actingAs(odgViewer())
         ->get(route('organizations.index'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('unassigned.0.can.delete', false)
-            ->where('unassigned.0.can.archive', false)
-            ->where('unassigned.0.can.deactivate', false)
-            ->where('unassigned.0.can.update', false)
+            ->where('organizations.data.0.can.delete', false)
+            ->where('organizations.data.0.can.archive', false)
+            ->where('organizations.data.0.can.deactivate', false)
+            ->where('organizations.data.0.can.update', false)
         );
 
     expect($org->code)->toBe('ODG-021');
@@ -395,7 +411,7 @@ it('deactivating sets status to inactive and writes an audit log', function (): 
         ->toBeTrue();
 });
 
-it('user without organizations.manage cannot archive or deactivate an organization', function (): void {
+it('user without organizations.update cannot archive or deactivate an organization', function (): void {
     $org = odgOrg('ODG-018');
     $viewer = odgViewer();
 
@@ -475,7 +491,7 @@ it('sends the same deletion_blockers to the frontend as the backend guard comput
     $this->actingAs(odgManager())
         ->get(route('organizations.index'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('unassigned.0.deletion_blockers', $guardReasons)
+            ->where('organizations.data.0.deletion_blockers', $guardReasons)
         );
 
     // Show page prop

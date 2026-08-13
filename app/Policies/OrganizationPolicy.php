@@ -33,43 +33,43 @@ readonly class OrganizationPolicy
 
     public function create(User $user): bool
     {
-        return $user->can('organizations.manage');
+        return $user->can('organizations.create');
     }
 
     public function update(User $user, Organization $organization): bool
     {
-        return $user->can('organizations.manage')
+        return $user->can('organizations.update')
             && $this->organizationScopeService->canManageWithinScope($user, $organization);
     }
 
     public function delete(User $user, Organization $organization): bool
     {
-        return $user->can('organizations.manage')
+        return $user->can('organizations.delete')
             && $this->organizationScopeService->canManageWithinScope($user, $organization)
             && $this->organizationDeletionGuard->canBeDeletedSafely($organization);
     }
 
     public function archive(User $user, Organization $organization): bool
     {
-        return $user->can('organizations.manage')
+        return $user->can('organizations.update')
             && $this->organizationScopeService->canManageWithinScope($user, $organization);
     }
 
     public function deactivate(User $user, Organization $organization): bool
     {
-        return $user->can('organizations.manage')
+        return $user->can('organizations.update')
             && $this->organizationScopeService->canManageWithinScope($user, $organization);
     }
 
     public function restore(User $user, Organization $organization): bool
     {
-        return $user->can('organizations.manage')
+        return $user->can('organizations.update')
             && $this->organizationScopeService->canManageWithinScope($user, $organization);
     }
 
     public function createChild(User $user, Organization $organization): bool
     {
-        if (! $user->can('organizations.manage')) {
+        if (! $user->can('organizations.create')) {
             return false;
         }
 

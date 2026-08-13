@@ -6,17 +6,21 @@ namespace App\Services\Organizations;
 
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationStatus;
-use App\Models\AuditLog;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeTransfer;
 use App\Models\HierarchyVersion;
 use App\Models\InstitutionOffice;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
+use App\Models\OrganizationUnit;
+use App\Models\Position;
 use App\Models\Provider;
 use App\Models\ServiceProvider;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * Decides whether an Organization can be physically (soft-)deleted.
@@ -29,6 +33,58 @@ use Illuminate\Support\Facades\Log;
  */
 class OrganizationDeletionGuard
 {
+    /**
+     * Resolve blockers for an index page with a fixed number of aggregate
+     * queries instead of running the full guard once per row.
+     *
+     * @param  Collection<int, Organization>  $organizations
+     * @return array<string, list<string>>
+     */
+    public function reasonsFor(Collection $organizations): array
+    {
+        $ids = $organizations->pluck('id')->all();
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $result = array_fill_keys($ids, []);
+        $add = function (iterable $organizationIds, string $reason) use (&$result): void {
+            foreach (collect($organizationIds)->filter()->unique() as $organizationId) {
+                if (array_key_exists((string) $organizationId, $result)) {
+                    $result[(string) $organizationId][] = $reason;
+                }
+            }
+        };
+
+        $publishedVersionIds = HierarchyVersion::query()
+            ->where('status', HierarchyVersionStatus::Published->value)
+            ->pluck('id');
+
+        if ($publishedVersionIds->isNotEmpty()) {
+            $publishedEdges = OrganizationEdge::query()
+                ->whereIn('hierarchy_version_id', $publishedVersionIds)
+                ->where(fn ($query) => $query->whereIn('parent_organization_id', $ids)->orWhereIn('child_organization_id', $ids))
+                ->get(['parent_organization_id', 'child_organization_id']);
+            $add($publishedEdges->pluck('parent_organization_id')->merge($publishedEdges->pluck('child_organization_id')), 'usedInPublishedHierarchy');
+        }
+
+        $add(
+            OrganizationEdge::query()
+                ->whereIn('parent_organization_id', $ids)
+                ->whereHas('childOrganization', fn ($query) => $query->where('status', OrganizationStatus::Active->value))
+                ->pluck('parent_organization_id'),
+            'hasChildOrganizations',
+        );
+        $add(OrganizationUnit::query()->whereIn('organization_id', $ids)->pluck('organization_id'), 'hasOrganizationUnits');
+        $add(Position::query()->whereIn('organization_id', $ids)->pluck('organization_id'), 'hasPositions');
+        $add(EmployeeAssignment::query()->whereIn('organization_id', $ids)->pluck('organization_id'), 'hasEmployeeAssignments');
+
+        $add($this->otherReferencedOrganizationIds($ids), 'hasOtherReferences');
+
+        return $result;
+    }
+
     /**
      * Ordered list of blocking reason keys for the given organization.
      * Empty array means the organization is safe to delete.
@@ -163,9 +219,9 @@ class OrganizationDeletionGuard
     }
 
     /**
-     * Rule 6: referenced by providers, transfers, institution offices, or
-     * audit-sensitive history. Reports are computed on demand and hold no
-     * persisted reference, so they are not checked here.
+     * Rule 6: referenced by providers, transfers, or institution offices.
+     * Audit logs deliberately do not block a soft delete: they retain the
+     * organization UUID and remain the historical record of the operation.
      */
     private function hasOtherReferences(Organization $organization): bool
     {
@@ -194,6 +250,62 @@ class OrganizationDeletionGuard
             return true;
         }
 
-        return AuditLog::query()->where('organization_id', $id)->exists();
+        return $this->otherReferencedOrganizationIds([$id])->isNotEmpty();
+    }
+
+    /**
+     * Operational references that make deleting an organization misleading.
+     * Audit logs and organization name history are intentionally excluded:
+     * both are immutable historical records and safely retain the UUID.
+     *
+     * @param  list<string>  $organizationIds
+     */
+    private function otherReferencedOrganizationIds(array $organizationIds): Collection
+    {
+        $references = [
+            'organization_change_requests' => ['organization_id'],
+            'user_organization_scopes' => ['organization_id'],
+            'service_providers' => ['organization_id'],
+            'providers' => ['assigned_organization_id'],
+            'employee_transfers' => ['from_organization_id', 'to_organization_id'],
+            'institution_offices' => ['institution_id', 'geographic_organization_id', 'structural_organization_id'],
+            'position_establishments' => ['organization_id'],
+            'position_occupancies' => ['organization_id'],
+            'vacancy_announcements' => ['organization_id'],
+            'vacancy_announcement_positions' => ['organization_id'],
+            'vacancy_applications' => ['current_organization_id'],
+            'transfer_announcements' => ['organization_id'],
+            'transfer_announcement_positions' => ['organization_id'],
+            'transfer_applications' => ['releasing_organization_id', 'receiving_organization_id'],
+            'cafeteria_providers' => ['organization_id'],
+            'cafeteria_subsidy_rules' => ['organization_id'],
+            'cafeteria_report_runs' => ['organization_id'],
+            'cafeteria_special_days' => ['organization_id'],
+            'cafeteria_provider_branches' => ['organization_id'],
+            'cafeteria_provider_users' => ['organization_id'],
+            'transport_providers' => ['assigned_organization_id'],
+            'transport_routes' => ['assigned_organization_id'],
+            'grievance_committees' => ['organization_id'],
+            'grievances' => ['organization_id'],
+            'grievance_sla_rules' => ['organization_id'],
+        ];
+
+        $found = collect();
+
+        foreach ($references as $table => $columns) {
+            if (! Schema::hasTable($table)) {
+                continue;
+            }
+
+            foreach ($columns as $column) {
+                if (Schema::hasColumn($table, $column)) {
+                    $found = $found->merge(
+                        DB::table($table)->whereIn($column, $organizationIds)->pluck($column),
+                    );
+                }
+            }
+        }
+
+        return $found->filter()->unique()->values();
     }
 }

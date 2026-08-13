@@ -17,11 +17,11 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    foreach (['organizations.view', 'organizations.manage'] as $perm) {
+    foreach (['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete'] as $perm) {
         Permission::findOrCreate($perm, 'web');
     }
 
-    Role::findOrCreate('Super Admin', 'web')->givePermissionTo(['organizations.view', 'organizations.manage']);
+    Role::findOrCreate('Super Admin', 'web')->givePermissionTo(['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete']);
     Role::findOrCreate('Viewer', 'web')->givePermissionTo(['organizations.view']);
 });
 
@@ -69,15 +69,32 @@ test('authenticated users can view the organizations index', function (): void {
         ->assertOk();
 });
 
+test('organizations index is paginated', function (): void {
+    $type = makeOrgType();
+
+    foreach (range(1, 25) as $number) {
+        makeOrg($type, sprintf('ORG-%03d', $number));
+    }
+
+    $this->actingAs(viewerUser())
+        ->get(route('organizations.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('organizations.data', 20)
+            ->where('organizations.total', 25)
+            ->where('organizations.per_page', 20)
+        );
+});
+
 // ── Create page ────────────────────────────────────────────────────────────
 
-test('users without organizations.manage cannot access the create page', function (): void {
+test('users without organizations.create cannot access the create page', function (): void {
     $this->actingAs(viewerUser())
         ->get(route('organizations.create'))
         ->assertForbidden();
 });
 
-test('users with organizations.manage can access the create page', function (): void {
+test('users with organizations.create can access the create page', function (): void {
     $this->actingAs(managerUser())
         ->get(route('organizations.create'))
         ->assertOk();
@@ -85,7 +102,7 @@ test('users with organizations.manage can access the create page', function (): 
 
 // ── Store ──────────────────────────────────────────────────────────────────
 
-test('users without organizations.manage cannot create an organization', function (): void {
+test('users without organizations.create cannot create an organization', function (): void {
     $type = makeOrgType();
 
     $this->actingAs(viewerUser())
@@ -98,7 +115,7 @@ test('users without organizations.manage cannot create an organization', functio
         ->assertForbidden();
 });
 
-test('users with organizations.manage can create an organization', function (): void {
+test('users with organizations.create can create an organization', function (): void {
     $type = makeOrgType();
 
     $this->actingAs(managerUser())
@@ -113,9 +130,50 @@ test('users with organizations.manage can create an organization', function (): 
     $this->assertDatabaseHas('organizations', ['code' => 'ORG-NEW']);
 });
 
+test('duplicate organization code is rejected', function (): void {
+    $type = makeOrgType();
+    makeOrg($type, 'ORG-DUPLICATE');
+
+    $this->actingAs(managerUser())
+        ->post(route('organizations.store'), [
+            'organization_type_id' => $type->id,
+            'code' => 'ORG-DUPLICATE',
+            'name_en' => 'Duplicate Organization',
+            'status' => 'active',
+        ])
+        ->assertSessionHasErrors('code');
+});
+
+test('inactive organization type is rejected', function (): void {
+    $type = makeOrgType();
+    $type->update(['is_active' => false]);
+
+    $this->actingAs(managerUser())
+        ->post(route('organizations.store'), [
+            'organization_type_id' => $type->id,
+            'code' => 'ORG-INACTIVE-TYPE',
+            'name_en' => 'Invalid Organization',
+            'status' => 'active',
+        ])
+        ->assertSessionHasErrors('organization_type_id');
+});
+
+test('invalid organization status is rejected', function (): void {
+    $type = makeOrgType();
+
+    $this->actingAs(managerUser())
+        ->post(route('organizations.store'), [
+            'organization_type_id' => $type->id,
+            'code' => 'ORG-BAD-STATUS',
+            'name_en' => 'Invalid Status Organization',
+            'status' => 'enabled',
+        ])
+        ->assertSessionHasErrors('status');
+});
+
 // ── Edit page ──────────────────────────────────────────────────────────────
 
-test('users without organizations.manage cannot access the edit page', function (): void {
+test('users without organizations.update cannot access the edit page', function (): void {
     $org = makeOrg(makeOrgType());
 
     $this->actingAs(viewerUser())
@@ -123,7 +181,7 @@ test('users without organizations.manage cannot access the edit page', function 
         ->assertForbidden();
 });
 
-test('users with organizations.manage can access the edit page', function (): void {
+test('users with organizations.update can access the edit page', function (): void {
     $org = makeOrg(makeOrgType());
 
     $this->actingAs(managerUser())
@@ -133,7 +191,7 @@ test('users with organizations.manage can access the edit page', function (): vo
 
 // ── Update ─────────────────────────────────────────────────────────────────
 
-test('users without organizations.manage cannot update an organization', function (): void {
+test('users without organizations.update cannot update an organization', function (): void {
     $org = makeOrg(makeOrgType());
 
     $this->actingAs(viewerUser())
@@ -146,7 +204,7 @@ test('users without organizations.manage cannot update an organization', functio
         ->assertForbidden();
 });
 
-test('users with organizations.manage can update an organization', function (): void {
+test('users with organizations.update can update an organization', function (): void {
     $org = makeOrg(makeOrgType());
 
     $this->actingAs(managerUser())
@@ -318,7 +376,7 @@ test('organization show includes the full tree component contract', function ():
 
 // ── Archive ────────────────────────────────────────────────────────────────
 
-test('users without organizations.manage cannot archive an organization', function (): void {
+test('users without organizations.update cannot archive an organization', function (): void {
     $org = makeOrg(makeOrgType());
 
     $this->actingAs(viewerUser())

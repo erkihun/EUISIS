@@ -70,6 +70,7 @@ function auditAdminUser(): User
     foreach ([
         'organizations.view',
         'organizations.manage',
+        'organizations.create',
         'organization-types.viewAny',
         'organization-units.viewAny',
         'organization-units.view',
@@ -89,6 +90,7 @@ function auditAdminUser(): User
     $role->syncPermissions([
         'organizations.view',
         'organizations.manage',
+        'organizations.create',
         'organization-types.viewAny',
         'organization-units.viewAny',
         'organization-units.view',

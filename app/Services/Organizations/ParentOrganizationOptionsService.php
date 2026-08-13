@@ -34,7 +34,7 @@ readonly class ParentOrganizationOptionsService
         $accessibleOrganizationIds = $this->organizationScopeService->accessibleOrganizationIds($user);
 
         $query = Organization::query()
-            ->with('type:id,name_en,code')
+            ->with('type:id,name_en,name_am,code')
             ->where('status', OrganizationStatus::Active->value)
             ->when(
                 ! $user->hasRole('Super Admin') && ! $user->hasRole('City Admin'),
@@ -65,7 +65,13 @@ readonly class ParentOrganizationOptionsService
 
         if ($selectedId !== null) {
             $selectedOrganization = Organization::query()
-                ->with('type:id,name_en,code')
+                ->with('type:id,name_en,name_am,code')
+                ->where('status', OrganizationStatus::Active->value)
+                ->when(
+                    ! $user->hasRole('Super Admin') && ! $user->hasRole('City Admin'),
+                    fn ($builder) => $builder->whereIn('id', $accessibleOrganizationIds)
+                )
+                ->when($currentOrganizationId !== null, fn ($builder) => $builder->whereKeyNot($currentOrganizationId))
                 ->find($selectedId, [
                     'id',
                     'organization_type_id',
@@ -123,6 +129,7 @@ readonly class ParentOrganizationOptionsService
                     'organization_type' => $organization->type ? [
                         'code' => $organization->type->code,
                         'name_en' => $organization->type->name_en,
+                        'name_am' => $organization->type->name_am,
                     ] : null,
                     'depth' => $hint['depth'],
                     'parent_path' => $hint['parent_path'],
@@ -169,9 +176,11 @@ readonly class ParentOrganizationOptionsService
 
         $ancestorIds = $paths->pluck('ancestor_organization_id')->unique()->all();
 
-        $ancestorNames = Organization::query()
+        $ancestors = Organization::query()
             ->whereIn('id', $ancestorIds)
-            ->pluck('name_en', 'id');
+            ->get(['id', 'name_en', 'name_am'])
+            ->keyBy('id');
+        $useAmharic = app()->getLocale() === 'am';
 
         $hints = [];
 
@@ -181,7 +190,13 @@ readonly class ParentOrganizationOptionsService
             $parentPath = $descendantPaths
                 ->filter(fn (OrganizationClosurePath $path): bool => $path->depth > 0)
                 ->sortByDesc('depth')
-                ->map(fn (OrganizationClosurePath $path): ?string => $ancestorNames->get($path->ancestor_organization_id))
+                ->map(function (OrganizationClosurePath $path) use ($ancestors, $useAmharic): ?string {
+                    $ancestor = $ancestors->get($path->ancestor_organization_id);
+
+                    return $ancestor === null
+                        ? null
+                        : ($useAmharic ? ($ancestor->name_am ?: $ancestor->name_en) : $ancestor->name_en);
+                })
                 ->filter()
                 ->implode(' / ');
 

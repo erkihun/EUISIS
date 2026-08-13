@@ -13,6 +13,7 @@ export type ParentOrganizationOption = {
     organization_type: {
         code: string;
         name_en: string;
+        name_am: string | null;
     } | null;
 };
 
@@ -24,6 +25,7 @@ type Props = {
     currentOrganizationId?: string;
     endpoint: string;
     disabled?: boolean;
+    locale: string;
     onChange: (value: string, option: ParentOrganizationOption | null) => void;
     labels: {
         placeholder: string;
@@ -32,6 +34,7 @@ type Props = {
         noResults: string;
         eligibleParents: string;
         permissionHint: string;
+        level: string;
     };
 };
 
@@ -51,6 +54,7 @@ export default function ParentOrganizationSelect({
     currentOrganizationId,
     endpoint,
     disabled = false,
+    locale,
     onChange,
     labels,
 }: Props) {
@@ -211,10 +215,14 @@ export default function ParentOrganizationSelect({
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
                                             <div className="font-medium">
-                                                {option.code} - {option.name_en}
+                                                {option.code} - {locale === 'am' ? (option.name_am || option.name_en) : option.name_en}
                                             </div>
                                             <div className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                                {option.organization_type?.name_en ?? option.status}
+                                                {option.organization_type
+                                                    ? (locale === 'am'
+                                                        ? (option.organization_type.name_am || option.organization_type.name_en)
+                                                        : option.organization_type.name_en)
+                                                    : option.status}
                                             </div>
                                             {option.parent_path && (
                                                 <div className="mt-1 text-xs text-gray-400 dark:text-slate-500">
@@ -223,7 +231,7 @@ export default function ParentOrganizationSelect({
                                             )}
                                         </div>
                                         <div className="text-right text-xs text-gray-400 dark:text-slate-500">
-                                            {option.depth !== null ? `L${option.depth}` : null}
+                                            {option.depth !== null ? `${labels.level} ${option.depth}` : null}
                                         </div>
                                     </div>
                                     {!option.can_create_child && (

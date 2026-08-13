@@ -19,7 +19,8 @@ class RoleSeeder extends Seeder
 
         $institutionAdminPerms = [
             'dashboard.view',
-            'organizations.view', 'organizations.manage', 'organizations.import', 'organizations.viewAny',
+            'organizations.view', 'organizations.manage', 'organizations.create', 'organizations.update',
+            'organizations.delete', 'organizations.import', 'organizations.viewAny',
             'organization-types.viewAny', 'organization-types.view',
             'hierarchy-versions.viewAny', 'hierarchy-versions.view',
             'organization-edges.view',
@@ -43,6 +44,7 @@ class RoleSeeder extends Seeder
 
             // Organization profile/details (scoped by policy)
             'organizations.viewAny', 'organizations.view', 'organizations.manage',
+            'organizations.create', 'organizations.update', 'organizations.delete',
             'organization-types.viewAny', 'organization-types.view',
             'hierarchy-versions.viewAny', 'hierarchy-versions.view',
             'organization-edges.view',

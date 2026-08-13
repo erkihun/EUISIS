@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'updated_successfully' => 'Organization updated successfully.',
     'title' => 'Organizations',
     'organization' => 'Organization',
     'parent_organization' => 'Parent Organization',

@@ -1,4 +1,9 @@
 const organizationUnits = {
+    yourOrganizationStructure: 'Your Organization Structure',
+    organizationTreePreview: 'Organization Tree Preview',
+    positions: 'Positions',
+    noOrganizationStructureFound: 'No organization structure found',
+    accessDeniedOutsideOrganizationScope: 'Access denied outside your organization scope',
     organizationUnits: 'Organization Units',
     organizationUnit: 'Organization Unit',
     createOrganizationUnit: 'Create Organization Unit',
@@ -74,7 +79,6 @@ const organizationUnits = {
     parentUnitMustBelongToOrganization: 'Parent unit must belong to the selected organization',
     noParentUnitsYetHint: 'No parent units yet. This unit will be created as a root unit.',
     searchOrganizations: 'Search organizations...',
-    organizationTreePreview: 'Organization Tree Preview',
     noPublishedHierarchy: 'No published hierarchy version found. Showing organizations as a flat list.',
     showingDraftHierarchy: 'Showing draft hierarchy version. This structure has not been published yet.',
     noHierarchyVersionFoundFlatList: 'No hierarchy version found. Showing organizations as a flat list.',

@@ -1,14 +1,14 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import OrganizationTreePreview from '@/Components/organization-units/OrganizationTreePreview';
+import ScopedOrganizationStructure, { type ScopedOrganization } from '@/Components/employees/ScopedOrganizationStructure';
 import { AlertTriangle, Building2, Plus, Users } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
-import type { OrganizationSummary, OrganizationTreeNode } from '@/types/organizationUnit';
+import type { OrganizationSummary } from '@/types/organizationUnit';
 
 type PositionOption = {
     id: string;
@@ -43,10 +43,9 @@ type EmployeesPagination = {
 };
 
 interface Props {
-    organizationTree: OrganizationTreeNode[];
-    hasPublishedHierarchy: boolean;
+    organizationStructure: ScopedOrganization[];
+    isOrganizationScoped: boolean;
     selectedOrganization: OrganizationSummary | null;
-    positions: PositionOption[];
     selectedPosition: PositionOption | null;
     employees: EmployeeRow[];
     employees_pagination?: EmployeesPagination;
@@ -55,10 +54,9 @@ interface Props {
 }
 
 export default function EmployeesIndex({
-    organizationTree,
-    hasPublishedHierarchy,
+    organizationStructure,
+    isOrganizationScoped,
     selectedOrganization,
-    positions,
     selectedPosition,
     employees,
     employees_pagination,
@@ -74,36 +72,28 @@ export default function EmployeesIndex({
         return translated === key ? undefined : translated;
     }
 
-    const [localSelected, setLocalSelected] = useState<OrganizationSummary | null>(
-        selectedOrganization ?? null,
-    );
-
-    useEffect(() => {
-        setLocalSelected(selectedOrganization ?? null);
-    }, [selectedOrganization]);
-
     const filterForm = useForm({
         search: filters.search ?? '',
         status: filters.status ?? '',
     });
 
-    const displayOrg = localSelected ?? selectedOrganization;
+    const displayOrg = selectedOrganization;
 
     const inputCls =
         'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 
-    function selectOrganization(node: OrganizationTreeNode) {
+    function selectOrganizationId(organizationId: string) {
         router.get(
             route('employees.index'),
-            { organization_id: node.id },
+            { organization_id: organizationId },
             { preserveState: false, preserveScroll: false },
         );
     }
 
-    function selectPosition(positionId: string) {
+    function selectScopedPosition(organizationId: string, positionId: string) {
         router.get(
             route('employees.index'),
-            { organization_id: displayOrg?.id ?? '', position_id: positionId },
+            { organization_id: organizationId, position_id: positionId },
             { preserveState: true, preserveScroll: true },
         );
     }
@@ -141,109 +131,16 @@ export default function EmployeesIndex({
             <Head title={t('employees.title')} />
 
             <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-                <div className="w-full lg:w-[26%] lg:min-h-[600px]">
-                    <OrganizationTreePreview
-                        tree={organizationTree}
-                        selectedId={displayOrg?.id ?? null}
-                        hasPublishedHierarchy={hasPublishedHierarchy}
-                        onSelect={selectOrganization}
+                <div className="w-full lg:min-h-[600px] lg:w-[36%]">
+                    <ScopedOrganizationStructure
+                        organizations={organizationStructure}
+                        isScoped={isOrganizationScoped}
+                        selectedOrganizationId={displayOrg?.id ?? null}
+                        selectedPositionId={selectedPosition?.id ?? null}
+                        onSelectOrganization={selectOrganizationId}
+                        onSelectPosition={selectScopedPosition}
+                        onClearPosition={clearPosition}
                     />
-                </div>
-
-                <div className="w-full lg:w-[26%]">
-                    {displayOrg ? (
-                        <div className="flex h-full flex-col gap-3">
-                            <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                                <div className="flex items-center gap-3">
-                                    {displayOrg.has_logo && displayOrg.logo_url ? (
-                                        <img
-                                            src={displayOrg.logo_url}
-                                            alt=""
-                                            className="h-10 w-10 flex-shrink-0 rounded-xl object-cover"
-                                        />
-                                    ) : (
-                                        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-sm font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                                            {localizedName(displayOrg.name_en, displayOrg.name_am, locale).charAt(0).toUpperCase()}
-                                        </span>
-                                    )}
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex flex-wrap items-center gap-1.5">
-                                            <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                                {localizedName(displayOrg.name_en, displayOrg.name_am, locale)}
-                                            </h2>
-                                            <StatusBadge status={displayOrg.status} label={statusLabel('common', displayOrg.status)} />
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-slate-400">
-                                            <span className="font-mono">{displayOrg.code}</span>
-                                            {displayOrg.type && (
-                                                <span>{localizedName(displayOrg.type.name_en, displayOrg.type.name_am, locale)}</span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                                <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-slate-800">
-                                    <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                        {t('employees.positionsInOrganization')}
-                                    </h3>
-                                    {selectedPosition && (
-                                        <button
-                                            type="button"
-                                            onClick={clearPosition}
-                                            className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
-                                        >
-                                            {t('common.clear')}
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="flex-1 overflow-y-auto p-2">
-                                    {positions.length === 0 ? (
-                                        <div className="flex min-h-40 flex-col items-center justify-center px-4 text-center">
-                                            <Users className="h-8 w-8 text-gray-300 dark:text-slate-600" />
-                                            <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-                                                {t('employees.noPositionsForOrganization')}
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-1">
-                                            {positions.map((position) => {
-                                                const isSelected = selectedPosition?.id === position.id;
-
-                                                return (
-                                                    <button
-                                                        key={position.id}
-                                                        type="button"
-                                                        onClick={() => selectPosition(position.id)}
-                                                        className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${
-                                                            isSelected
-                                                                ? 'bg-blue-50 ring-1 ring-blue-300 dark:bg-blue-900/20 dark:ring-blue-600'
-                                                                : 'hover:bg-gray-50 dark:hover:bg-slate-800/50'
-                                                        }`}
-                                                    >
-                                                        <span className="block truncate text-sm font-medium text-gray-900 dark:text-slate-100">
-                                                            {localizedName(position.title_en, position.title_am, locale)}
-                                                        </span>
-                                                        <span className="mt-0.5 block truncate font-mono text-xs text-gray-400 dark:text-slate-500">
-                                                            {position.job_position_code ?? t('employees.notAvailable')}
-                                                        </span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900">
-                            <Building2 className="h-8 w-8 text-gray-300 dark:text-slate-600" />
-                            <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">
-                                {t('employees.selectOrganizationToViewEmployees')}
-                            </p>
-                        </div>
-                    )}
                 </div>
 
                 <div className="w-full lg:flex-1">

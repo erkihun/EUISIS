@@ -93,6 +93,7 @@ export default function EditOrganization({
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const errorMessages = Object.values(form.errors).filter(Boolean);
 
     function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0] ?? null;
@@ -136,21 +137,29 @@ export default function EditOrganization({
             header={
                 <PageHeader
                     backHref={route('organizations.show', organization.id)}
-                    title={`${t('organizations.editPrefix')} ${organization.name_en}`}
+                    title={`${t('organizations.editPrefix')} ${locale === 'am' ? (organization.name_am || organization.name_en) : organization.name_en}`}
                     description={organization.code}
                 />
             }
         >
-            <Head title={`${t('organizations.editPrefix')} ${organization.name_en}`} />
+            <Head title={`${t('organizations.editPrefix')} ${locale === 'am' ? (organization.name_am || organization.name_en) : organization.name_en}`} />
 
-            <div className="mx-auto max-w-5xl">
+            <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
                 >
+                    {errorMessages.length > 0 && (
+                        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
+                            <p className="text-sm font-medium text-red-700 dark:text-red-300">{t('common.error')}</p>
+                            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700 dark:text-red-300">
+                                {errorMessages.map((message, index) => <li key={`${message}-${index}`}>{message}</li>)}
+                            </ul>
+                        </div>
+                    )}
                     <div className="space-y-6">
                         {/* Basic Information */}
-                        <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')}>
+                        <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')} columns={3}>
                             <Field label={t('organizations.nameEn')} error={form.errors.name_en}>
                                 <input
                                     className={inputCls}
@@ -206,7 +215,7 @@ export default function EditOrganization({
                         </FormSection>
 
                         {/* Status & Validity */}
-                        <FormSection title={t('organizations.sectionStatusValidity')} description={t('organizations.sectionStatusValidityHelp')}>
+                        <FormSection title={t('organizations.sectionStatusValidity')} description={t('organizations.sectionStatusValidityHelp')} columns={3}>
                             <Field label={t('common.status')} error={form.errors.status}>
                                 <select
                                     className={inputCls}
@@ -220,7 +229,6 @@ export default function EditOrganization({
                                     <option value="dissolved">{t('organizations.statusDissolved')}</option>
                                 </select>
                             </Field>
-                            <div className="hidden md:block" aria-hidden="true" />
                             <Field label={t('common.effectiveFrom')} error={form.errors.effective_from}>
                                 <LocalizedDatePicker
                                     className={inputCls}
@@ -248,7 +256,7 @@ export default function EditOrganization({
                                             <div className="flex items-center gap-3">
                                                 <img
                                                     src={organization.logo_url}
-                                                    alt="current logo"
+                                                    alt={t('organizations.currentLogo')}
                                                     className="h-14 w-14 rounded-lg border border-gray-200 object-contain p-1 dark:border-slate-700"
                                                 />
                                                 <div className="flex flex-col gap-1">
@@ -285,7 +293,7 @@ export default function EditOrganization({
                                             <div className="flex items-center gap-3">
                                                 <img
                                                     src={logoPreview}
-                                                    alt="new logo preview"
+                                                    alt={t('organizations.logoPreview')}
                                                     className="h-14 w-14 rounded-lg border border-blue-200 object-contain p-1 dark:border-blue-700"
                                                 />
                                                 <div className="flex flex-col gap-1">
@@ -384,7 +392,7 @@ export default function EditOrganization({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-gray-100 bg-white/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8 dark:border-slate-800 dark:bg-slate-900/95">
                         <Link
                             href={route('organizations.show', organization.id)}
                             className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"

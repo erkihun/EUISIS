@@ -9,6 +9,7 @@ use App\Enums\EmployeeStatus;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Models\EmployeeAssignment;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -69,6 +70,11 @@ class EmployeeStoreRequest extends FormRequest
                 Rule::exists('organizations', 'id')
                     ->where('status', OrganizationStatus::Active->value)
                     ->whereNull('deleted_at'),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! app(OrganizationScopeService::class)->canAccess($this->user(), (string) $value)) {
+                        $fail(__('validation.organization_scope_denied'));
+                    }
+                },
             ],
             'organization_unit_id' => [
                 'nullable',

@@ -96,15 +96,15 @@ export default function OrganizationUnitsCreate({
         >
             <Head title={t('organizationUnits.createOrganizationUnit')} />
 
-            <div className="mx-auto max-w-3xl">
+            <div className="w-full">
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
                         post(route('organization-units.store'));
                     }}
-                    className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full space-y-6 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
                 >
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Organization */}
                         <div>
                             <InputLabel value={`${t('organizationUnits.organization')} *`} />
@@ -161,7 +161,7 @@ export default function OrganizationUnitsCreate({
                         </div>
 
                         {/* Parent Unit - optional */}
-                        <div className="md:col-span-2">
+                        <div>
                             <InputLabel value={t('organizationUnits.parentUnitOptional')} />
                             {data.organization_id ? (
                                 <>
@@ -193,6 +193,9 @@ export default function OrganizationUnitsCreate({
                             <InputError message={errors.parent_unit_id} />
                         </div>
 
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Code */}
                         <div>
                             <CodeRuleField
@@ -233,6 +236,9 @@ export default function OrganizationUnitsCreate({
                             <InputError message={errors.name_am} />
                         </div>
 
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                         {/* Status */}
                         <div>
                             <InputLabel value={`${t('common.status')} *`} />
@@ -285,31 +291,33 @@ export default function OrganizationUnitsCreate({
                         </div>
                     </div>
 
-                    {/* Description EN */}
-                    <div>
-                        <InputLabel value={t('organizationUnits.descriptionEn')} />
-                        <textarea
-                            className={inputCls}
-                            rows={3}
-                            value={data.description_en}
-                            onChange={(e) => setData('description_en', e.target.value)}
-                        />
-                        <InputError message={errors.description_en} />
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {/* Description EN */}
+                        <div>
+                            <InputLabel value={t('organizationUnits.descriptionEn')} />
+                            <textarea
+                                className={inputCls}
+                                rows={4}
+                                value={data.description_en}
+                                onChange={(e) => setData('description_en', e.target.value)}
+                            />
+                            <InputError message={errors.description_en} />
+                        </div>
+
+                        {/* Description AM */}
+                        <div>
+                            <InputLabel value={t('organizationUnits.descriptionAm')} />
+                            <textarea
+                                className={inputCls}
+                                rows={4}
+                                value={data.description_am}
+                                onChange={(e) => setData('description_am', e.target.value)}
+                            />
+                            <InputError message={errors.description_am} />
+                        </div>
                     </div>
 
-                    {/* Description AM */}
-                    <div>
-                        <InputLabel value={t('organizationUnits.descriptionAm')} />
-                        <textarea
-                            className={inputCls}
-                            rows={3}
-                            value={data.description_am}
-                            onChange={(e) => setData('description_am', e.target.value)}
-                        />
-                        <InputError message={errors.description_am} />
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-2">
+                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
                         <PrimaryButton type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('organizationUnits.createOrganizationUnit')}
                         </PrimaryButton>

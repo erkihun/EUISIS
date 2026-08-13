@@ -112,13 +112,13 @@ export default function EditOrganizationType({
         >
             <Head title={t('organizationTypes.editTitle')} />
 
-            <div className="mx-auto max-w-2xl">
+            <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
                 >
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                             <CodeRuleField
                                 entityType="organization_type"
                                 value={form.data.code}
@@ -186,22 +186,24 @@ export default function EditOrganizationType({
                             </Field>
                         </div>
 
-                        <Field label={t('organizationTypes.nameEn')} error={form.errors.name_en}>
-                            <input
-                                className={inputCls}
-                                value={form.data.name_en}
-                                onChange={(e) => form.setData('name_en', e.target.value)}
-                            />
-                        </Field>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <Field label={t('organizationTypes.nameEn')} error={form.errors.name_en}>
+                                <input
+                                    className={inputCls}
+                                    value={form.data.name_en}
+                                    onChange={(e) => form.setData('name_en', e.target.value)}
+                                />
+                            </Field>
 
-                        <Field label={t('organizationTypes.nameAm')} error={form.errors.name_am}>
-                            <input
-                                className={inputCls}
-                                placeholder={t('organizations.fullNameAmPlaceholder')}
-                                value={form.data.name_am}
-                                onChange={(e) => form.setData('name_am', e.target.value)}
-                            />
-                        </Field>
+                            <Field label={t('organizationTypes.nameAm')} error={form.errors.name_am}>
+                                <input
+                                    className={inputCls}
+                                    placeholder={t('organizations.fullNameAmPlaceholder')}
+                                    value={form.data.name_am}
+                                    onChange={(e) => form.setData('name_am', e.target.value)}
+                                />
+                            </Field>
+                        </div>
 
                         {allTypes.length > 0 && (
                             <Field
@@ -209,7 +211,7 @@ export default function EditOrganizationType({
                                 help={t('organizationTypes.parentAllowedTypesHelp')}
                                 error={form.errors.parent_allowed_types}
                             >
-                                <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-gray-200 p-2 dark:border-slate-700">
+                                <div className="mt-1 grid max-h-56 grid-cols-1 gap-1 overflow-y-auto rounded-lg border border-gray-200 p-2 md:grid-cols-2 xl:grid-cols-3 dark:border-slate-700">
                                     {allTypes.map((ot) => (
                                         <label
                                             key={ot.code}
@@ -233,24 +235,26 @@ export default function EditOrganizationType({
                             </Field>
                         )}
 
-                        <Field label={t('organizationTypes.descriptionEn')} error={form.errors.description_en}>
-                            <textarea
-                                className={inputCls}
-                                rows={2}
-                                value={form.data.description_en}
-                                onChange={(e) => form.setData('description_en', e.target.value)}
-                            />
-                        </Field>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <Field label={t('organizationTypes.descriptionEn')} error={form.errors.description_en}>
+                                <textarea
+                                    className={inputCls}
+                                    rows={3}
+                                    value={form.data.description_en}
+                                    onChange={(e) => form.setData('description_en', e.target.value)}
+                                />
+                            </Field>
 
-                        <Field label={t('organizationTypes.descriptionAm')} error={form.errors.description_am}>
-                            <textarea
-                                className={inputCls}
-                                rows={2}
-                                placeholder={t('organizationTypes.descriptionAmPlaceholder')}
-                                value={form.data.description_am}
-                                onChange={(e) => form.setData('description_am', e.target.value)}
-                            />
-                        </Field>
+                            <Field label={t('organizationTypes.descriptionAm')} error={form.errors.description_am}>
+                                <textarea
+                                    className={inputCls}
+                                    rows={3}
+                                    placeholder={t('organizationTypes.descriptionAmPlaceholder')}
+                                    value={form.data.description_am}
+                                    onChange={(e) => form.setData('description_am', e.target.value)}
+                                />
+                            </Field>
+                        </div>
 
                         <div className="flex items-center gap-2">
                             <input
@@ -269,7 +273,7 @@ export default function EditOrganizationType({
                         </div>
                     </div>
 
-                    <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
+                    <div className="mt-8 flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
                         <Link
                             href={route('organization-types.index')}
                             className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"

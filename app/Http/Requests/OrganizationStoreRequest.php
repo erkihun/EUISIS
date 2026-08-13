@@ -18,7 +18,7 @@ class OrganizationStoreRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('organizations.manage') ?? false;
+        return $this->user()?->can('create', Organization::class) ?? false;
     }
 
     protected function prepareForValidation(): void
@@ -44,7 +44,7 @@ class OrganizationStoreRequest extends FormRequest
             'name_en' => ['required', 'string', 'max:255'],
             'name_am' => ['nullable', 'string', 'max:255'],
             'legal_basis_ref' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'string'],
+            'status' => ['required', new Enum(OrganizationStatus::class)],
             'effective_from' => ['nullable', 'date'],
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'parent_organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],

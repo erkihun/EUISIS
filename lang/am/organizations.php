@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'updated_successfully' => 'ድርጅቱ በተሳካ ሁኔታ ተዘምኗል።',
     'title' => 'ተቋማት',
     'organization' => 'ተቋም',
     'parent_organization' => 'የበላይ ተቋም',

@@ -52,6 +52,22 @@ test('Content-Security-Policy header is present', function (): void {
         ->and($csp)->toContain("form-action 'self'");
 });
 
+test('local Content-Security-Policy permits the IPv6 Vite development server', function (): void {
+    $originalEnvironment = app()->environment();
+    app()->detectEnvironment(fn (): string => 'local');
+
+    try {
+        $response = $this->get('/login');
+        $csp = $response->headers->get('Content-Security-Policy');
+
+        expect($csp)
+            ->toContain('http://[::1]:5173')
+            ->toContain('ws://[::1]:5173');
+    } finally {
+        app()->detectEnvironment(fn (): string => $originalEnvironment);
+    }
+});
+
 test('HSTS header is not sent over plain HTTP', function (): void {
     // In the test environment requests are not HTTPS, so HSTS must be absent
     // to prevent accidental HTTP pinning in development.
@@ -62,7 +78,7 @@ test('HSTS header is not sent over plain HTTP', function (): void {
 
 test('error page does not expose stack trace', function (): void {
     // Trigger a 404 — should return generic Inertia error page, not a stack trace.
-    $response = $this->get('/nonexistent-route-' . uniqid());
+    $response = $this->get('/nonexistent-route-'.uniqid());
 
     $response->assertStatus(404);
 

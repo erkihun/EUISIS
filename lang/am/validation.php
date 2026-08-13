@@ -12,6 +12,7 @@ return [
     'exists' => 'የተመረጠው :attribute ትክክል አይደለም።',
     'image' => 'የ:attribute መስክ ምስል መሆን አለበት።',
     'integer' => 'የ:attribute መስክ ሙሉ ቁጥር መሆን አለበት።',
+    'enum' => 'የተመረጠው :attribute ትክክል አይደለም።',
     'min' => [
         'file' => 'የ:attribute መጠን ቢያንስ :min ኪሎባይት መሆን አለበት።',
         'numeric' => 'የ:attribute መስክ ቢያንስ :min መሆን አለበት።',
@@ -33,6 +34,9 @@ return [
     'uuid' => 'የ:attribute መስክ ትክክለኛ UUID መሆን አለበት።',
 
     'attributes' => [
+        'code' => 'ኮድ',
+        'legal_basis_ref' => 'የሕግ መሠረት ማጣቀሻ',
+        'logo' => 'አርማ',
         'organization_type_id' => 'የተቋም ዓይነት',
         'parent_organization_id' => 'የበላይ ተቋም',
         'child_organization_id' => 'ተጠሪ ተቋም',
@@ -53,4 +57,5 @@ return [
         'sort_order' => 'ቅደም ተከተል',
     ],
     'position_already_occupied' => 'ይህ ስራ መደብ ቀድሞ ለሌላ ሰራተኛ ተመድቧል።',
+    'organization_scope_denied' => 'ከተቋምዎ ወሰን ውጭ መዳረሻ ተከልክሏል።',
 ];

@@ -28,6 +28,7 @@ use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType as OrganizationUnitTypeModel;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\Hierarchy\HierarchyVersionResolver;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\OrganizationUnits\OrganizationUnitTreeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -402,14 +403,17 @@ class OrganizationUnitController extends Controller
             ->with('success', __('organization-units.structure_copied'));
     }
 
-    public function options(Organization $organization, OrganizationUnitTreeService $treeService): JsonResponse
+    public function options(Organization $organization, OrganizationUnitTreeService $treeService, OrganizationScopeService $scopeService): JsonResponse
     {
+        abort_unless($scopeService->canAccess(request()->user(), $organization), 403);
+
         return response()->json($treeService->optionsForOrganization($organization->id));
     }
 
-    public function tree(Organization $organization, OrganizationUnitTreeService $treeService): JsonResponse
+    public function tree(Organization $organization, OrganizationUnitTreeService $treeService, OrganizationScopeService $scopeService): JsonResponse
     {
         $this->authorize('viewAny', OrganizationUnit::class);
+        abort_unless($scopeService->canAccess(request()->user(), $organization), 403);
 
         return response()->json($treeService->buildTree($organization->id));
     }

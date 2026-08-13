@@ -12,30 +12,38 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+        ]);
+
         $users = [
             [
-                'name'     => 'Super Admin',
-                'email'    => 'super.admin@demo.local',
+                'name' => 'Super Admin',
+                'email' => 'super.admin@demo.local',
                 'password' => Hash::make('password'),
-                'status'   => 'active',
-                'is_demo'  => true,
-                'role'     => 'Super Admin',
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'is_demo' => true,
+                'role' => 'Super Admin',
             ],
             [
-                'name'     => 'City Admin',
-                'email'    => 'city.admin@demo.local',
+                'name' => 'City Admin',
+                'email' => 'city.admin@demo.local',
                 'password' => Hash::make('password'),
-                'status'   => 'active',
-                'is_demo'  => true,
-                'role'     => 'City Admin',
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'is_demo' => true,
+                'role' => 'City Admin',
             ],
             [
-                'name'     => 'HR Officer',
-                'email'    => 'hr.officer@demo.local',
+                'name' => 'HR Officer',
+                'email' => 'hr.officer@demo.local',
                 'password' => Hash::make('password'),
-                'status'   => 'active',
-                'is_demo'  => true,
-                'role'     => 'HR Officer',
+                'status' => 'active',
+                'email_verified_at' => now(),
+                'is_demo' => true,
+                'role' => 'HR Officer',
             ],
         ];
 
@@ -43,7 +51,7 @@ class UserSeeder extends Seeder
             $role = $data['role'];
             unset($data['role']);
 
-            $user = User::firstOrCreate(
+            $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 $data,
             );

@@ -52,6 +52,8 @@ const organizations = {
     relationshipType: 'የግንኙነት አይነት',
     draftHierarchyVersionRequired: 'የረቂቅ የተዋረድ ስሪት ያስፈልጋል',
     cannotCreateChildUnderThisOrganization: 'በዚህ ተቋም ስር ንዑስ ተቋም መፍጠር አይቻልም',
+    level: 'ደረጃ',
+    logoPreview: 'የድርጅት አርማ ቅድመ እይታ',
     noPermissionCreateChildHere: 'እዚህ ንዑስ ተቋም ለመፍጠር ፈቃድ የለዎትም',
     childOrganizationCreatedSuccessfully: 'ንዑስ ድርጅቱ በተሳካ ሁኔታ ተፈጥሯል',
     createdSuccessfully: 'ድርጅቱ በተሳካ ሁኔታ ተፈጥሯል',

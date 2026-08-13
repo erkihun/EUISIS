@@ -527,6 +527,9 @@ class DatabaseSeeder extends Seeder
             // Legacy (kept for backward compatibility with existing tests/policies)
             'organizations.view',
             'organizations.manage',
+            'organizations.create',
+            'organizations.update',
+            'organizations.delete',
             'organizations.import',
             'employees.view',
             'employees.manage',
@@ -792,7 +795,8 @@ class DatabaseSeeder extends Seeder
 
         $institutionAdminPerms = [
             'dashboard.view',
-            'organizations.view', 'organizations.manage',
+            'organizations.view', 'organizations.manage', 'organizations.create',
+            'organizations.update', 'organizations.delete',
             'organizations.import',
             'organizations.viewAny',
             'organization-types.viewAny', 'organization-types.view',

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\OrganizationStatus;
+use App\Models\OrganizationType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Validator;
 
 class OrganizationUpdateRequest extends FormRequest
 {
@@ -38,13 +42,32 @@ class OrganizationUpdateRequest extends FormRequest
             'name_en' => ['required', 'string', 'max:255'],
             'name_am' => ['nullable', 'string', 'max:255'],
             'legal_basis_ref' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'string'],
+            'status' => ['required', new Enum(OrganizationStatus::class)],
             'effective_from' => ['nullable', 'date'],
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'remove_logo' => ['nullable', 'boolean'],
             'branding_primary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'branding_secondary_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator): void {
+                $organizationTypeId = $this->string('organization_type_id')->toString();
+
+                if ($organizationTypeId === '') {
+                    return;
+                }
+
+                $organizationType = OrganizationType::query()->find($organizationTypeId);
+
+                if ($organizationType !== null && ! $organizationType->is_active) {
+                    $validator->errors()->add('organization_type_id', __('organizations.inactive_organization_type'));
+                }
+            },
         ];
     }
 }

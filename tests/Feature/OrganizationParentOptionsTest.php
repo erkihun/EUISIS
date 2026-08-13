@@ -19,12 +19,12 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function (): void {
-    foreach (['organizations.view', 'organizations.manage'] as $permission) {
+    foreach (['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
 
-    Role::findOrCreate('Super Admin', 'web')->givePermissionTo(['organizations.view', 'organizations.manage']);
-    Role::findOrCreate('Organization Manager', 'web')->givePermissionTo(['organizations.view', 'organizations.manage']);
+    Role::findOrCreate('Super Admin', 'web')->givePermissionTo(['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete']);
+    Role::findOrCreate('Organization Manager', 'web')->givePermissionTo(['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete']);
     Role::findOrCreate('Viewer', 'web')->givePermissionTo(['organizations.view']);
 });
 
@@ -179,6 +179,63 @@ test('parent options endpoint supports search and preserves selected parent', fu
         ->assertOk()
         ->assertJsonPath('selected.id', $finance->id)
         ->assertJsonPath('options.0.id', $finance->id);
+});
+
+test('parent options exclude inactive and current organizations', function (): void {
+    $type = createOrganizationType();
+    $current = createOrganization($type, 'ORG-CURRENT', 'Current Organization');
+    $inactive = createOrganization($type, 'ORG-INACTIVE', 'Inactive Organization', OrganizationStatus::Inactive);
+    $active = createOrganization($type, 'ORG-ACTIVE', 'Active Organization');
+
+    $response = $this->actingAs(superAdmin())->getJson(route('organizations.parent-options', [
+        'selected_id' => $inactive->id,
+        'current_organization_id' => $current->id,
+    ]));
+
+    $response->assertOk()->assertJsonPath('selected', null);
+    expect(collect($response->json('options'))->pluck('id')->all())
+        ->toBe([$active->id]);
+});
+
+test('creating a child rejects an inactive parent organization', function (): void {
+    $type = createOrganizationType();
+    $draft = createHierarchyVersion('draft-inactive-parent', HierarchyVersionStatus::Draft);
+    $parent = createOrganization($type, 'ORG-INACTIVE-PARENT', 'Inactive Parent', OrganizationStatus::Inactive);
+
+    $this->actingAs(superAdmin())
+        ->post(route('organizations.store'), [
+            'organization_type_id' => $type->id,
+            'code' => 'ORG-INVALID-CHILD',
+            'name_en' => 'Invalid Child',
+            'status' => 'active',
+            'parent_organization_id' => $parent->id,
+            'hierarchy_version_id' => $draft->id,
+            'relationship_type' => OrganizationRelationshipType::ReportsTo->value,
+        ])
+        ->assertSessionHasErrors('parent_organization_id');
+});
+
+test('creating a child rejects an invalid parent type relationship', function (): void {
+    $parentType = OrganizationType::query()->create(['code' => 'PARENT-A', 'name_en' => 'Parent A']);
+    $childType = OrganizationType::query()->create([
+        'code' => 'CHILD-B',
+        'name_en' => 'Child B',
+        'parent_allowed_types' => ['PARENT-B'],
+    ]);
+    $draft = createHierarchyVersion('draft-invalid-parent-type', HierarchyVersionStatus::Draft);
+    $parent = createOrganization($parentType, 'ORG-PARENT-A', 'Parent A');
+
+    $this->actingAs(superAdmin())
+        ->post(route('organizations.store'), [
+            'organization_type_id' => $childType->id,
+            'code' => 'ORG-CHILD-B',
+            'name_en' => 'Child B',
+            'status' => 'active',
+            'parent_organization_id' => $parent->id,
+            'hierarchy_version_id' => $draft->id,
+            'relationship_type' => OrganizationRelationshipType::ReportsTo->value,
+        ])
+        ->assertSessionHasErrors('organization_type_id');
 });
 
 test('creating child organization under valid scoped parent creates organization edge and audit log', function (): void {

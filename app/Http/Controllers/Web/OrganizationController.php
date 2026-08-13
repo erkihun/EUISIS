@@ -19,6 +19,7 @@ use App\Http\Resources\ReportingLineResource;
 use App\Models\HierarchyVersion;
 use App\Models\InstitutionOffice;
 use App\Models\Organization;
+use App\Models\OrganizationEdge;
 use App\Models\OrganizationType;
 use App\Models\User;
 use App\Services\OrganizationRelationships\ReportingLineService;
@@ -29,89 +30,98 @@ use DateTimeInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class OrganizationController extends Controller
 {
-    public function index(OrganizationScopeService $scopeService, OrganizationDeletionGuard $organizationDeletionGuard): Response
+    public function index(Request $request, OrganizationScopeService $scopeService, OrganizationDeletionGuard $organizationDeletionGuard): Response
     {
         $user = Auth::user();
+
+        $this->authorize('viewAny', Organization::class);
 
         $publishedVersion = HierarchyVersion::query()
             ->where('status', 'published')
             ->latest('approval_date')
             ->first();
 
-        $allowedOrgIds = $user !== null ? $scopeService->accessibleOrganizationIds($user) : collect();
+        $filters = [
+            'search' => $request->string('search')->trim()->toString(),
+            'type' => $request->string('type')->toString(),
+            'status' => $request->string('status')->toString(),
+            'category' => $request->string('category')->toString(),
+        ];
 
-        $tree = $scopeService->buildFlatTreeForIndex($publishedVersion, $allowedOrgIds->isNotEmpty() ? $allowedOrgIds->all() : null);
-
-        if ($user !== null) {
-            $organizationsById = Organization::query()
-                ->whereIn('id', collect($tree)->pluck('id'))
-                ->with('type:id,code,name_en,name_am,category')
-                ->get()
-                ->keyBy('id');
-
-            $tree = collect($tree)
-                ->map(function (array $node) use ($organizationsById, $user, $organizationDeletionGuard): array {
-                    $organization = $organizationsById->get($node['id']);
-
-                    $node['can'] = $this->rowActionPermissions($user, $organization);
-                    $node['deletion_blockers'] = $organization !== null
-                        ? $organizationDeletionGuard->reasons($organization)
-                        : [];
-                    $node['created_at'] = $organization?->created_at?->toIso8601String();
-
-                    if (is_array($node['type']) && $organization?->type !== null) {
-                        $node['type']['category'] = $organization->type->category;
-                    }
-
-                    return $node;
-                })
-                ->all();
-        }
-
-        $assignedIds = collect($tree)->pluck('id');
-
-        $unassignedQuery = Organization::query()
+        $organizationsQuery = Organization::query()
             ->where('status', '!=', OrganizationStatus::Archived->value)
-            ->when($assignedIds->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $assignedIds))
             ->with('type:id,code,name_en,name_am,category')
+            ->when($filters['search'] !== '', function ($query) use ($filters): void {
+                $search = '%'.$filters['search'].'%';
+                $query->where(fn ($inner) => $inner
+                    ->where('code', ci_like_operator(), $search)
+                    ->orWhere('name_en', ci_like_operator(), $search)
+                    ->orWhere('name_am', ci_like_operator(), $search));
+            })
+            ->when($filters['type'] !== '', fn ($query) => $query->whereHas('type', fn ($typeQuery) => $typeQuery->where('code', $filters['type'])))
+            ->when($filters['category'] !== '', fn ($query) => $query->whereHas('type', fn ($typeQuery) => $typeQuery->where('category', $filters['category'])))
+            ->when($filters['status'] !== '', fn ($query) => $query->where('status', $filters['status']))
             ->orderBy('name_en');
 
-        if ($allowedOrgIds->isNotEmpty()) {
-            $unassignedQuery->whereIn('id', $allowedOrgIds);
-        }
+        $scopeService->applyOrganizationScope($organizationsQuery, $user, 'id');
 
-        $unassigned = $unassignedQuery->get(['id', 'code', 'name_en', 'name_am', 'status', 'effective_from', 'effective_to', 'organization_type_id', 'created_at'])
-            ->map(fn (Organization $organization): array => [
-                'id' => $organization->id,
-                'code' => $organization->code,
-                'name_en' => $organization->name_en,
-                'name_am' => $organization->name_am,
-                'status' => $organization->status,
-                'type' => $organization->type,
-                'created_at' => $organization->created_at?->toIso8601String(),
-                'can' => $this->rowActionPermissions($user, $organization),
-                'deletion_blockers' => $organizationDeletionGuard->reasons($organization),
-            ])
-            ->values();
+        $paginator = $organizationsQuery
+            ->paginate(20, ['id', 'code', 'name_en', 'name_am', 'status', 'organization_type_id', 'created_at'])
+            ->withQueryString();
+        $pageOrganizations = $paginator->getCollection();
+        $deletionBlockers = $organizationDeletionGuard->reasonsFor($pageOrganizations);
 
-        $canManage = $user?->can('organizations.manage') ?? false;
+        $parentIdsByChild = $publishedVersion === null
+            ? collect()
+            : OrganizationEdge::query()
+                ->where('hierarchy_version_id', $publishedVersion->id)
+                ->whereIn('child_organization_id', $pageOrganizations->pluck('id'))
+                ->pluck('parent_organization_id', 'child_organization_id');
+        $parents = Organization::query()
+            ->whereIn('id', $parentIdsByChild->values()->unique())
+            ->get(['id', 'code', 'name_en', 'name_am'])
+            ->keyBy('id');
+
+        $organizationRows = $pageOrganizations
+            ->map(function (Organization $organization) use ($user, $deletionBlockers, $parentIdsByChild, $parents): array {
+                $parent = $parents->get($parentIdsByChild->get($organization->id));
+
+                return [
+                    'id' => $organization->id,
+                    'code' => $organization->code,
+                    'name_en' => $organization->name_en,
+                    'name_am' => $organization->name_am,
+                    'status' => $organization->status,
+                    'type' => $organization->type,
+                    'created_at' => $organization->created_at?->toIso8601String(),
+                    'parent' => $parent?->only(['id', 'code', 'name_en', 'name_am']),
+                    'can' => $this->rowActionPermissions($user, $organization),
+                    'deletion_blockers' => $deletionBlockers[$organization->id] ?? [],
+                ];
+            })->values();
+
+        $paginator->setCollection($organizationRows);
 
         return Inertia::render('Organizations/Index', [
-            'tree' => $tree,
-            'unassigned' => $unassigned,
-            'stats' => $this->indexStats($allowedOrgIds),
+            'organizations' => $paginator,
+            'filters' => $filters,
+            'filterOptions' => [
+                'types' => OrganizationType::query()->orderBy('name_en')->get(['code', 'name_en', 'name_am']),
+                'statuses' => collect(OrganizationStatus::cases())->reject(fn (OrganizationStatus $status) => $status === OrganizationStatus::Archived)->pluck('value'),
+                'categories' => OrganizationType::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category'),
+            ],
+            'stats' => $this->indexStats($user, $scopeService),
             'publishedVersion' => $publishedVersion?->only(['id', 'version_name', 'approval_date']),
             'hierarchyVersions' => HierarchyVersion::query()->orderByDesc('created_at')->get(['id', 'version_name', 'status', 'approval_date']),
             'can' => [
-                'create' => $canManage,
-                'manageHierarchy' => $canManage,
+                'create' => $user?->can('create', Organization::class) ?? false,
+                'manageHierarchy' => $user?->can('manageHierarchy', Organization::class) ?? false,
             ],
         ]);
     }
@@ -121,14 +131,16 @@ class OrganizationController extends Controller
      * user may access. Cheap COUNT queries — passed as page props, never as
      * global Inertia shared props.
      *
-     * @param  Collection<int, string>  $allowedOrgIds
      * @return array{total: int, active: int, inactive: int, types: int}
      */
-    private function indexStats(Collection $allowedOrgIds): array
+    private function indexStats(User $user, OrganizationScopeService $scopeService): array
     {
-        $scoped = fn () => Organization::query()
-            ->where('status', '!=', OrganizationStatus::Archived->value)
-            ->when($allowedOrgIds->isNotEmpty(), fn ($q) => $q->whereIn('id', $allowedOrgIds->all()));
+        $scoped = function () use ($user, $scopeService) {
+            $query = Organization::query()->where('status', '!=', OrganizationStatus::Archived->value);
+            $scopeService->applyOrganizationScope($query, $user, 'id');
+
+            return $query;
+        };
 
         return [
             'total' => $scoped()->count(),
@@ -155,7 +167,8 @@ class OrganizationController extends Controller
 
         return [
             'update' => $user->can('update', $organization),
-            'delete' => $user->can('organizations.manage'),
+            'delete' => $user->can('organizations.delete')
+                && app(OrganizationScopeService::class)->canManageWithinScope($user, $organization),
             'archive' => $user->can('archive', $organization),
             'deactivate' => $user->can('deactivate', $organization),
             'createChild' => $user->can('createChild', $organization),
@@ -173,7 +186,7 @@ class OrganizationController extends Controller
         );
 
         return Inertia::render('Organizations/Create', [
-            'organizationTypes' => OrganizationType::query()->orderBy('name_en')->get(['id', 'name_en', 'name_am', 'code']),
+            'organizationTypes' => OrganizationType::query()->active()->orderBy('name_en')->get(['id', 'name_en', 'name_am', 'code']),
             'hierarchyVersions' => HierarchyVersion::query()
                 ->where('status', HierarchyVersionStatus::Draft->value)
                 ->orderByDesc('created_at')
@@ -269,7 +282,8 @@ class OrganizationController extends Controller
             // disabled — has dependencies". `deletionBlockers` carries the latter.
             'can' => [
                 'update' => $user?->can('update', $organization) ?? false,
-                'delete' => $user?->can('organizations.manage') ?? false,
+                'delete' => $user?->can('organizations.delete')
+                    && ($user !== null && $organizationScopeService->canManageWithinScope($user, $organization)),
                 'archive' => $user?->can('archive', $organization) ?? false,
                 'deactivate' => $user?->can('deactivate', $organization) ?? false,
                 'createChild' => $user?->can('createChild', $organization) ?? false,
@@ -298,7 +312,10 @@ class OrganizationController extends Controller
 
         return Inertia::render('Organizations/Edit', [
             'organization' => $this->organizationPayload($organization->load('type')),
-            'organizationTypes' => OrganizationType::query()->orderBy('name_en')->get(['id', 'name_en', 'name_am', 'code']),
+            'organizationTypes' => OrganizationType::query()
+                ->where(fn ($query) => $query->active()->orWhere('id', $organization->organization_type_id))
+                ->orderBy('name_en')
+                ->get(['id', 'name_en', 'name_am', 'code']),
         ]);
     }
 
@@ -309,7 +326,8 @@ class OrganizationController extends Controller
     ): RedirectResponse {
         $updateOrganizationAction->execute($request->validated(), $organization, $request->user());
 
-        return to_route('organizations.show', $organization);
+        return to_route('organizations.show', $organization)
+            ->with('flash', ['message' => __('organizations.updated_successfully'), 'type' => 'success']);
     }
 
     /**

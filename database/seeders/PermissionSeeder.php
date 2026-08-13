@@ -22,7 +22,8 @@ class PermissionSeeder extends Seeder
 
         $legacy = [
             'dashboard.view', 'dashboard.reports',
-            'organizations.view', 'organizations.manage', 'organizations.import',
+            'organizations.view', 'organizations.manage', 'organizations.create',
+            'organizations.update', 'organizations.delete', 'organizations.import',
             'employees.view', 'employees.manage',
             'cards.view', 'cards.manage',
             'entitlements.view', 'entitlements.manage',

@@ -22,6 +22,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -34,6 +35,7 @@ beforeEach(function (): void {
     $orgAdminPerms = [
         'dashboard.view',
         'organizations.viewAny', 'organizations.view', 'organizations.manage',
+        'organizations.create', 'organizations.update', 'organizations.delete',
         'organization-units.viewAny', 'organization-units.view',
         'organization-units.create', 'organization-units.update', 'organization-units.archive',
         'positions.viewAny', 'positions.view', 'positions.create', 'positions.update',
@@ -413,4 +415,116 @@ test('Super Admin retains unrestricted access to any organization', function ():
 
     actingAs($superAdmin)->get(route('organizations.show', $a))->assertOk();
     actingAs($superAdmin)->get(route('organizations.show', $b))->assertOk();
+});
+
+test('Super Admin sees the full organization unit and position structure on the employee index', function (): void {
+    $a = oaMakeOrg('employee-tree-a');
+    $b = oaMakeOrg('employee-tree-b');
+    $unit = OrganizationUnit::query()->create([
+        'organization_id' => $a->id, 'unit_type' => 'unit', 'code' => 'SUPER-UNIT',
+        'name_en' => 'Super Unit', 'status' => 'active',
+    ]);
+    $position = Position::query()->create([
+        'organization_id' => $a->id, 'organization_unit_id' => $unit->id,
+        'job_position_code' => 'SUPER-POS', 'title_en' => 'Super Position', 'is_active' => true,
+        'effective_from' => now()->toDateString(),
+    ]);
+    $superAdmin = User::factory()->create();
+    $superAdmin->assignRole('Super Admin');
+
+    actingAs($superAdmin)->get(route('employees.index'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use ($a, $b, $unit, $position): void {
+            $props = $page->toArray()['props'];
+            $structure = collect($props['organizationStructure']);
+            $organization = $structure->firstWhere('id', $a->id);
+
+            expect($props['isOrganizationScoped'])->toBeFalse()
+                ->and($structure->pluck('id'))->toContain($a->id)
+                ->and($structure->pluck('id'))->toContain($b->id)
+                ->and(data_get($organization, 'units.0.id'))->toBe($unit->id)
+                ->and(data_get($organization, 'units.0.positions.0.id'))->toBe($position->id);
+        });
+});
+
+test('Organizational Admin employee index contains only its organization unit and position structure', function (): void {
+    $own = oaMakeOrg('employee-structure-own');
+    $other = oaMakeOrg('employee-structure-other');
+    $admin = oaOrgAdminFor($own);
+    $ownUnit = OrganizationUnit::query()->create([
+        'organization_id' => $own->id, 'unit_type' => 'unit', 'code' => 'OWN-UNIT',
+        'name_en' => 'Own Unit', 'status' => 'active',
+    ]);
+    OrganizationUnit::query()->create([
+        'organization_id' => $other->id, 'unit_type' => 'unit', 'code' => 'OTHER-UNIT',
+        'name_en' => 'Other Unit', 'status' => 'active',
+    ]);
+    $ownPosition = Position::query()->create([
+        'organization_id' => $own->id, 'organization_unit_id' => $ownUnit->id,
+        'job_position_code' => 'OWN-POS', 'title_en' => 'Own Position', 'is_active' => true,
+        'effective_from' => now()->toDateString(),
+    ]);
+
+    actingAs($admin)->get(route('employees.index'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use ($own, $other, $ownUnit, $ownPosition): void {
+            $props = $page->toArray()['props'];
+            $structure = collect($props['organizationStructure']);
+
+            expect($props['isOrganizationScoped'])->toBeTrue()
+                ->and($structure->pluck('id'))->toContain($own->id)
+                ->and($structure->pluck('id'))->not->toContain($other->id)
+                ->and(data_get($structure->first(), 'units.0.id'))->toBe($ownUnit->id)
+                ->and(data_get($structure->first(), 'units.0.positions.0.id'))->toBe($ownPosition->id);
+        });
+});
+
+test('Organizational Admin cannot select another organization on the employee index', function (): void {
+    $own = oaMakeOrg('employee-filter-own');
+    $other = oaMakeOrg('employee-filter-other');
+    $admin = oaOrgAdminFor($own);
+
+    actingAs($admin)->get(route('employees.index', ['organization_id' => $other->id]))->assertForbidden();
+});
+
+test('Organizational Admin cannot request another organization unit tree directly', function (): void {
+    $own = oaMakeOrg('unit-tree-own');
+    $other = oaMakeOrg('unit-tree-other');
+    $admin = oaOrgAdminFor($own);
+
+    actingAs($admin)->get(route('organizations.units.tree', $other))->assertForbidden();
+});
+
+test('Organizational Admin create page filters units and positions to its scope', function (): void {
+    $own = oaMakeOrg('create-scope-own');
+    $other = oaMakeOrg('create-scope-other');
+    $admin = oaOrgAdminFor($own);
+    $ownUnit = OrganizationUnit::query()->create([
+        'organization_id' => $own->id, 'unit_type' => 'unit', 'code' => 'CREATE-OWN-UNIT',
+        'name_en' => 'Own Unit', 'status' => 'active',
+    ]);
+    $otherUnit = OrganizationUnit::query()->create([
+        'organization_id' => $other->id, 'unit_type' => 'unit', 'code' => 'CREATE-OTHER-UNIT',
+        'name_en' => 'Other Unit', 'status' => 'active',
+    ]);
+    $ownPosition = Position::query()->create([
+        'organization_id' => $own->id, 'organization_unit_id' => $ownUnit->id,
+        'job_position_code' => 'CREATE-OWN-POS', 'title_en' => 'Own Position', 'is_active' => true,
+        'effective_from' => now()->toDateString(),
+    ]);
+    $otherPosition = Position::query()->create([
+        'organization_id' => $other->id, 'organization_unit_id' => $otherUnit->id,
+        'job_position_code' => 'CREATE-OTHER-POS', 'title_en' => 'Other Position', 'is_active' => true,
+        'effective_from' => now()->toDateString(),
+    ]);
+
+    actingAs($admin)->get(route('employees.create'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use ($ownUnit, $otherUnit, $ownPosition, $otherPosition): void {
+            $props = $page->toArray()['props'];
+            expect(collect($props['organizationUnits'])->pluck('id'))->toContain($ownUnit->id)
+                ->and(collect($props['organizationUnits'])->pluck('id'))->not->toContain($otherUnit->id)
+                ->and(collect($props['positions'])->pluck('id'))->toContain($ownPosition->id)
+                ->and(collect($props['positions'])->pluck('id'))->not->toContain($otherPosition->id);
+        });
 });

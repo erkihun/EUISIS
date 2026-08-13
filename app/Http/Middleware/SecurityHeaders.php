@@ -49,9 +49,6 @@ class SecurityHeaders
         //   base-uri 'self'        — prevents base-tag injection
         //   form-action 'self'     — prevents cross-origin form submission
         //
-        // fonts.bunny.net is a privacy-respecting font CDN (Bunny Fonts) used for
-        // the Figtree typeface. It is allowed in style-src and font-src at all times.
-        //
         // In local development the Vite dev server runs on a separate origin
         // (typically http://[::1]:5173 or http://localhost:5173). Scripts and
         // WebSocket HMR connections from that origin are explicitly allowed here so
@@ -62,19 +59,19 @@ class SecurityHeaders
         $isLocal = app()->environment('local');
 
         $scriptSrc = $isLocal
-            ? "script-src 'self' 'unsafe-inline' http://localhost:5173 http://127.0.0.1:5173"
+            ? "script-src 'self' 'unsafe-inline' http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173"
             : "script-src 'self' 'unsafe-inline'";
 
         $connectSrc = $isLocal
-            ? "connect-src 'self' ws: wss: ws://localhost:5173 ws://127.0.0.1:5173 http://localhost:5173 http://127.0.0.1:5173"
+            ? "connect-src 'self' ws: wss: ws://localhost:5173 ws://127.0.0.1:5173 ws://[::1]:5173 http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173"
             : "connect-src 'self' ws: wss:";
 
         $response->headers->set('Content-Security-Policy', implode('; ', [
             "default-src 'self'",
             $scriptSrc,
-            "style-src 'self' 'unsafe-inline' https://fonts.bunny.net https://fonts.googleapis.com",
+            "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: blob:",
-            "font-src 'self' data: https://fonts.bunny.net https://fonts.gstatic.com",
+            "font-src 'self' data:",
             $connectSrc,
             "frame-ancestors 'none'",
             "object-src 'none'",

@@ -23,4 +23,6 @@ return [
     'no_employees' => 'ምንም ሠራተኛ አልተገኘም።',
     'personal_info' => 'የግል መረጃ',
     'employment_info' => 'የቅጥር መረጃ',
+    'created_successfully' => 'ሠራተኛው በተሳካ ሁኔታ ተመዝግቧል።',
+    'updated_successfully' => 'የሠራተኛው መረጃ በተሳካ ሁኔታ ተሻሽሏል።',
 ];

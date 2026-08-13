@@ -7,24 +7,10 @@ import { useRef, useState } from 'react';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import FormSection from '@/Components/FormSection';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import ParentOrganizationSelect, { type ParentOrganizationOption } from '@/Components/organizations/ParentOrganizationSelect';
 
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
 type HierarchyVersion = { id: string; version_name: string; status: string };
-type ParentOrganizationOption = {
-    id: string;
-    code: string;
-    name_en: string;
-    name_am: string | null;
-    status: string;
-    depth: number | null;
-    parent_path: string | null;
-    can_create_child: boolean;
-    organization_type: {
-        code: string;
-        name_en: string;
-    } | null;
-};
-
 const inputCls =
     'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 
@@ -88,12 +74,9 @@ export default function CreateOrganization({
     });
 
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
+    const [selectedParent, setSelectedParent] = useState<ParentOrganizationOption | null>(selectedParentOrganization);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const errorMessages = Object.values(form.errors).filter(Boolean);
-    const selectedParent =
-        parentOrganizationOptions.find((option) => option.id === form.data.parent_organization_id)
-        ?? selectedParentOrganization
-        ?? null;
 
     function handleLogoChange(event: React.ChangeEvent<HTMLInputElement>) {
         const file = event.target.files?.[0] ?? null;
@@ -159,10 +142,10 @@ export default function CreateOrganization({
         >
             <Head title={t('organizations.createOrganization')} />
 
-            <div className="mx-auto max-w-5xl">
+            <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
                 >
                     {errorMessages.length > 0 && (
                         <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
@@ -179,7 +162,7 @@ export default function CreateOrganization({
 
                     <div className="space-y-6">
                         {/* Basic Information */}
-                        <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')}>
+                        <FormSection title={t('organizations.sectionBasicInfo')} description={t('organizations.sectionBasicInfoHelp')} columns={3}>
                             <Field label={t('organizations.nameEn')} error={form.errors.name_en}>
                                 <input
                                     className={inputCls}
@@ -237,7 +220,7 @@ export default function CreateOrganization({
                         </FormSection>
 
                         {/* Status & Validity */}
-                        <FormSection title={t('organizations.sectionStatusValidity')} description={t('organizations.sectionStatusValidityHelp')}>
+                        <FormSection title={t('organizations.sectionStatusValidity')} description={t('organizations.sectionStatusValidityHelp')} columns={3}>
                             <Field label={t('common.status')} error={form.errors.status}>
                                 <select
                                     className={inputCls}
@@ -249,7 +232,6 @@ export default function CreateOrganization({
                                     <option value="inactive">{t('organizations.statusInactive')}</option>
                                 </select>
                             </Field>
-                            <div className="hidden md:block" aria-hidden="true" />
                             <Field label={t('common.effectiveFrom')} error={form.errors.effective_from}>
                                 <LocalizedDatePicker
                                     className={inputCls}
@@ -269,19 +251,27 @@ export default function CreateOrganization({
                         {/* Hierarchy Placement */}
                         <FormSection title={t('organizations.sectionHierarchy')} grid={false}>
                             <Field label={t('organizations.parentOrganization')} error={form.errors.parent_organization_id} help={t('organizations.parentHelpText')}>
-                                <select
-                                    className={inputCls}
+                                <ParentOrganizationSelect
                                     value={form.data.parent_organization_id}
-                                    onChange={(event) => form.setData('parent_organization_id', event.target.value)}
-                                >
-                                    <option value="">{t('organizations.noParent')}</option>
-                                    {parentOrganizationOptions.map((option) => (
-                                        <option key={option.id} value={option.id}>
-                                            {option.code} - {option.name_en}
-                                            {option.organization_type ? ` (${option.organization_type.name_en})` : ''}
-                                        </option>
-                                    ))}
-                                </select>
+                                    initialOptions={parentOrganizationOptions}
+                                    selectedOption={selectedParent}
+                                    hierarchyVersionId={form.data.hierarchy_version_id || undefined}
+                                    endpoint={route('organizations.parent-options')}
+                                    locale={locale}
+                                    onChange={(value, option) => {
+                                        form.setData('parent_organization_id', value);
+                                        setSelectedParent(option);
+                                    }}
+                                    labels={{
+                                        placeholder: t('organizations.selectParentOrganization'),
+                                        searchPlaceholder: t('organizations.searchParentOrganizations'),
+                                        noParent: t('organizations.noParent'),
+                                        noResults: t('organizations.noEligibleParentOrganizationsFound'),
+                                        eligibleParents: t('organizations.eligibleParentOrganizations'),
+                                        permissionHint: t('organizations.cannotCreateChildUnderThisOrganization'),
+                                        level: t('organizations.level'),
+                                    }}
+                                />
                             </Field>
 
                             {form.data.parent_organization_id && (
@@ -292,7 +282,9 @@ export default function CreateOrganization({
                                                 {t('organizations.selectedParent')}
                                             </div>
                                             <div className="mt-1 text-sm font-medium text-gray-900 dark:text-slate-100">
-                                                {selectedParent.code} - {selectedParent.name_en}
+                                                {selectedParent.code} - {locale === 'am'
+                                                    ? (selectedParent.name_am || selectedParent.name_en)
+                                                    : selectedParent.name_en}
                                             </div>
                                             {selectedParent.parent_path && (
                                                 <div className="mt-1 text-xs text-gray-600 dark:text-slate-400">
@@ -317,7 +309,7 @@ export default function CreateOrganization({
                                                 <option value="">{t('organizations.selectVersion')}</option>
                                                 {hierarchyVersions.map((version) => (
                                                     <option key={version.id} value={version.id}>
-                                                        {version.version_name} ({version.status})
+                                                        {version.version_name} ({t(`common.${version.status}`)})
                                                     </option>
                                                 ))}
                                             </select>
@@ -355,7 +347,7 @@ export default function CreateOrganization({
                                             <div className="flex items-center gap-3">
                                                 <img
                                                     src={logoPreview}
-                                                    alt="logo preview"
+                                                    alt={t('organizations.logoPreview')}
                                                     className="h-14 w-14 rounded-lg border border-gray-200 object-contain p-1 dark:border-slate-700"
                                                 />
                                                 <button
@@ -444,7 +436,7 @@ export default function CreateOrganization({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                    <div className="sticky bottom-0 -mx-4 -mb-4 mt-8 flex items-center justify-end gap-3 border-t border-gray-100 bg-white/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:-mb-6 sm:px-6 lg:-mx-8 lg:-mb-8 lg:px-8 dark:border-slate-800 dark:bg-slate-900/95">
                         <Link
                             href={route('organizations.index')}
                             className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"

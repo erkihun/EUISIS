@@ -129,6 +129,27 @@ function ecOccupy(Position $position, Organization $org): EmployeeAssignment
     ]);
 }
 
+function ecAssignedEmployee(Organization $org): Employee
+{
+    $employee = Employee::query()->create([
+        'employee_number' => 'EC-UPDATE-'.uniqid(),
+        'first_name' => 'Before',
+        'last_name' => 'Update',
+        'full_name' => 'Before Update',
+        'status' => EmployeeStatus::Active->value,
+    ]);
+    $assignment = EmployeeAssignment::query()->create([
+        'employee_id' => $employee->id,
+        'organization_id' => $org->id,
+        'assignment_status' => AssignmentStatus::Active->value,
+        'effective_from' => now()->toDateString(),
+        'is_current' => true,
+    ]);
+    $employee->update(['current_assignment_id' => $assignment->id]);
+
+    return $employee->fresh();
+}
+
 /** A minimally valid create payload. */
 function ecPayload(Organization $org, array $overrides = []): array
 {
@@ -294,7 +315,7 @@ it('creates an employee in an active organization and position', function (): vo
     $unit = ecUnit($org, 'EC-U-8');
     $position = ecPosition($org, $unit, 'EC-P-8');
 
-    $this->actingAs(ecManager())
+    $response = $this->actingAs(ecManager())
         ->post(route('employees.store'), ecPayload($org, [
             'name_en' => 'Abebe Bekele',
             'organization_unit_id' => $unit->id,
@@ -302,7 +323,69 @@ it('creates an employee in an active organization and position', function (): vo
         ]))
         ->assertSessionHasNoErrors();
 
-    expect(Employee::query()->where('first_name', 'Abebe')->value('name_en'))->toBe('Abebe Bekele');
+    $employee = Employee::query()->where('first_name', 'Abebe')->firstOrFail();
+    $response->assertRedirect(route('employees.show', $employee))
+        ->assertSessionHas('flash.message', __('employees.created_successfully'))
+        ->assertSessionHas('flash.type', 'success');
+
+    expect($employee->name_en)->toBe('Abebe Bekele');
+});
+
+it('returns failed employee creation validation to the create form with errors', function (): void {
+    $this->actingAs(ecManager())
+        ->from(route('employees.create'))
+        ->post(route('employees.store'), [])
+        ->assertRedirect(route('employees.create'))
+        ->assertSessionHasErrors(['first_name', 'last_name', 'organization_id']);
+});
+
+it('redirects a successful employee update to the employee show page', function (): void {
+    $employee = ecAssignedEmployee(ecOrg('EC-UPDATE'));
+
+    $this->actingAs(ecManager())
+        ->patch(route('employees.update', $employee), [
+            'first_name' => 'After',
+            'middle_name' => '',
+            'last_name' => 'Update',
+            'name_en' => 'After Update',
+            'status' => EmployeeStatus::Active->value,
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('employees.show', $employee))
+        ->assertSessionHas('flash.message', __('employees.updated_successfully'))
+        ->assertSessionHas('flash.type', 'success');
+
+    expect($employee->fresh()->full_name)->toBe('After Update');
+});
+
+it('returns failed employee update validation to the edit form with errors', function (): void {
+    $employee = ecAssignedEmployee(ecOrg('EC-UPDATE-INVALID'));
+
+    $this->actingAs(ecManager())
+        ->from(route('employees.edit', $employee))
+        ->patch(route('employees.update', $employee), [
+            'first_name' => '',
+            'last_name' => '',
+            'status' => 'invalid',
+        ])
+        ->assertRedirect(route('employees.edit', $employee))
+        ->assertSessionHasErrors(['first_name', 'last_name', 'status']);
+
+    expect($employee->fresh()->full_name)->toBe('Before Update');
+});
+
+it('forbids an unauthorized user from updating an employee', function (): void {
+    $employee = ecAssignedEmployee(ecOrg('EC-UPDATE-FORBIDDEN'));
+
+    $this->actingAs(ecViewer())
+        ->patch(route('employees.update', $employee), [
+            'first_name' => 'Unauthorized',
+            'last_name' => 'Update',
+            'status' => EmployeeStatus::Active->value,
+        ])
+        ->assertForbidden();
+
+    expect($employee->fresh()->first_name)->toBe('Before');
 });
 
 it('renders the create page without raw ISO datetime strings in its props', function (): void {

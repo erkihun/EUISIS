@@ -16,11 +16,11 @@ use Spatie\Permission\Models\Role;
  * logic is covered elsewhere (OrganizationCrudTest, OrganizationDeletionGuardTest).
  */
 beforeEach(function (): void {
-    foreach (['organizations.view', 'organizations.manage'] as $perm) {
+    foreach (['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete'] as $perm) {
         Permission::findOrCreate($perm, 'web');
     }
 
-    Role::findOrCreate('OP Manager', 'web')->givePermissionTo(['organizations.view', 'organizations.manage']);
+    Role::findOrCreate('OP Manager', 'web')->givePermissionTo(['organizations.view', 'organizations.create', 'organizations.update', 'organizations.delete']);
     Role::findOrCreate('OP Viewer', 'web')->givePermissionTo(['organizations.view']);
 
     $this->opType = OrganizationType::query()->create(['code' => 'OP-TYPE', 'name_en' => 'Pages Test Type']);
@@ -61,7 +61,7 @@ it('renders the index with KPI summary counts', function (): void {
             ->where('stats.active', 2)
             ->where('stats.inactive', 1)
             ->where('stats.types', 1)
-            ->has('unassigned.0', fn (Assert $row) => $row
+            ->has('organizations.data.0', fn (Assert $row) => $row
                 ->has('created_at')
                 ->has('can')
                 ->has('deletion_blockers')
@@ -82,8 +82,8 @@ it('does not display archived organizations on the index', function (): void {
             ->where('stats.total', 1)
             ->where('stats.active', 1)
             ->where('stats.inactive', 0)
-            ->has('unassigned', 1)
-            ->where('unassigned.0.code', 'OP-ACTIVE')
+            ->has('organizations.data', 1)
+            ->where('organizations.data.0.code', 'OP-ACTIVE')
         );
 });
 
@@ -135,14 +135,14 @@ it('exposes permission-aware action flags per row', function (): void {
     // Manager: can manage → delete flag true
     $this->actingAs(opManager())
         ->get(route('organizations.index'))
-        ->assertInertia(fn (Assert $page) => $page->where('unassigned.0.can.delete', true));
+        ->assertInertia(fn (Assert $page) => $page->where('organizations.data.0.can.delete', true));
 
     // Viewer: no manage permission → every action false
     $this->actingAs(opViewer())
         ->get(route('organizations.index'))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('unassigned.0.can.delete', false)
-            ->where('unassigned.0.can.update', false)
-            ->where('unassigned.0.can.archive', false)
+            ->where('organizations.data.0.can.delete', false)
+            ->where('organizations.data.0.can.update', false)
+            ->where('organizations.data.0.can.archive', false)
         );
 });

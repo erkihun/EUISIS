@@ -1,4 +1,8 @@
 const organizationUnits = {
+    yourOrganizationStructure: 'የእርስዎ የተቋም መዋቅር',
+    positions: 'የሥራ መደቦች',
+    noOrganizationStructureFound: 'የተቋም መዋቅር አልተገኘም',
+    accessDeniedOutsideOrganizationScope: 'ከተቋምዎ ወሰን ውጭ መዳረሻ ተከልክሏል',
     organizationUnits: 'የተቋም ዩኒቶች',
     organizationUnit: 'የተቋም ዩኒት',
     createOrganizationUnit: 'ዩኒት ፍጠር',

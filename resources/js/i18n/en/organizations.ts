@@ -52,6 +52,8 @@ const organizations = {
     relationshipType: 'Relationship Type',
     draftHierarchyVersionRequired: 'Draft Hierarchy Version Required',
     cannotCreateChildUnderThisOrganization: 'Cannot create child under this organization',
+    level: 'Level',
+    logoPreview: 'Organization logo preview',
     noPermissionCreateChildHere: 'You do not have permission to create a child organization here',
     childOrganizationCreatedSuccessfully: 'Child organization created successfully',
     createdSuccessfully: 'Organization created successfully',
