@@ -92,6 +92,8 @@ class SystemSettingController extends Controller
                 'manageIdCards' => $user?->can('system-settings.manageIdCards') ?? false,
                 'clearCache' => $user?->can('system-settings.clearCache') ?? false,
                 'testChannels' => $user?->can('system-settings.testNotificationChannels') ?? false,
+                // Drives the API Management tab beside Security.
+                'apiManagement' => $user?->can('api_management.view') ?? false,
             ],
         ]);
     }

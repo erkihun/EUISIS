@@ -74,6 +74,9 @@ class HandleInertiaRequests extends Middleware
                 // Single-message fallback — set via session()->flash('flash.message', …)
                 'message' => session('flash.message'),
                 'type' => session('flash.type'),
+                // One-time API token, shown once immediately after generation.
+                // Never persisted — only this single response carries it.
+                'generated_token' => session('flash.generated_token'),
             ],
         ];
     }

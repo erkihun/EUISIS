@@ -38,6 +38,7 @@ use App\Http\Controllers\Transport\TransportScanController;
 use App\Http\Controllers\Transport\TransportSettingsController;
 use App\Http\Controllers\Transport\TransportVehicleController;
 use App\Http\Controllers\Web\AdministrativeTribunalController;
+use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\CafeteriaDashboardController;
 use App\Http\Controllers\Web\CafeteriaDayRuleController;
@@ -52,7 +53,6 @@ use App\Http\Controllers\Web\CafeteriaSubsidyLedgerController;
 use App\Http\Controllers\Web\CafeteriaSubsidyRuleController;
 use App\Http\Controllers\Web\CafeteriaTransactionController;
 use App\Http\Controllers\Web\CardPrintBatchController;
-use App\Http\Controllers\Web\CardPublicVerifyController;
 use App\Http\Controllers\Web\CardRequestController;
 use App\Http\Controllers\Web\CodeRuleController;
 use App\Http\Controllers\Web\DashboardController;
@@ -82,6 +82,7 @@ use App\Http\Controllers\Web\PermissionController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PublicHolidayController;
+use App\Http\Controllers\Web\PublicIdCheckerController;
 use App\Http\Controllers\Web\RecycleBinController;
 use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
@@ -279,8 +280,45 @@ Route::get('/services', [PublicServicesController::class, 'index'])
 Route::get('/support', [PublicSupportController::class, 'index'])
     ->name('public.support');
 
-// Public card verification — QR gateway, no auth required
-Route::get('/verify/card/{publicCardUuid}', CardPublicVerifyController::class)
+/*
+ * Public Global ID Checker — anonymous, OTP-gated.
+ *
+ * The QR printed on a card opens /id-checker/{card_uuid}. That page reveals
+ * only whether the card is active; the holder's details require a one-time
+ * code sent to the holder's own email and phone.
+ *
+ * Rate limits: browsing is generous, issuing a code is tight (it sends real
+ * mail/SMS to an employee), and verification is throttled on top of the
+ * per-code attempt ceiling enforced in the service.
+ */
+Route::get('/id-checker', [PublicIdCheckerController::class, 'index'])
+    ->middleware('throttle:30,1')
+    ->name('id-checker.index');
+
+Route::get('/id-checker/{cardUuid}', [PublicIdCheckerController::class, 'show'])
+    ->middleware('throttle:30,1')
+    ->name('id-checker.show');
+
+Route::post('/id-checker/{cardUuid}/send-otp', [PublicIdCheckerController::class, 'sendOtp'])
+    ->middleware('throttle:id-checker-send-otp')
+    ->name('id-checker.send-otp');
+
+Route::post('/id-checker/{cardUuid}/verify-otp', [PublicIdCheckerController::class, 'verifyOtp'])
+    ->middleware('throttle:id-checker-verify-otp')
+    ->name('id-checker.verify-otp');
+
+/*
+ * Legacy public card verification.
+ *
+ * This page displayed the organization and card number to anyone who scanned,
+ * with no consent from the card holder. It is kept only as a redirect because
+ * cards printed before the Global ID Checker carry this URL in their QR — a
+ * physical card cannot be patched, so the link has to keep working.
+ *
+ * Everything now lands on the OTP-gated checker instead.
+ */
+Route::get('/verify/card/{publicCardUuid}', fn (string $publicCardUuid) => redirect()
+    ->route('id-checker.show', $publicCardUuid, 301))
     ->name('id-cards.verify.public')
     ->middleware('throttle:30,1');
 
@@ -610,6 +648,23 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
     Route::get('/permissions/{permission}/edit', [PermissionController::class, 'edit'])->name('permissions.edit');
     Route::patch('/permissions/{permission}', [PermissionController::class, 'update'])->name('permissions.update');
     Route::delete('/permissions/{permission}', [PermissionController::class, 'destroy'])->name('permissions.destroy');
+
+    // Admin: System Settings → API Management
+    Route::get('/system-settings/api-management', [ApiManagementController::class, 'index'])->name('api-management.index');
+    Route::post('/system-settings/api-management', [ApiManagementController::class, 'store'])->name('api-management.store');
+    Route::get('/system-settings/api-management/logs', [ApiManagementController::class, 'logs'])->name('api-management.logs');
+    Route::get('/system-settings/api-management/docs', [ApiManagementController::class, 'docs'])->name('api-management.docs');
+    // Declared before the {externalApplication} route so "endpoints" is not
+    // captured as an application id.
+    Route::get('/system-settings/api-management/endpoints', [ApiManagementController::class, 'endpoints'])->name('api-management.endpoints');
+    Route::post('/system-settings/api-management/endpoints/sync', [ApiManagementController::class, 'syncEndpoints'])->name('api-management.endpoints.sync');
+    Route::get('/system-settings/api-management/endpoints/{apiEndpointDefinition}', [ApiManagementController::class, 'showEndpoint'])->name('api-management.endpoints.show');
+    Route::patch('/system-settings/api-management/endpoints/{apiEndpointDefinition}', [ApiManagementController::class, 'updateEndpoint'])->name('api-management.endpoints.update');
+    Route::get('/system-settings/api-management/{externalApplication}', [ApiManagementController::class, 'show'])->name('api-management.show');
+    Route::patch('/system-settings/api-management/{externalApplication}', [ApiManagementController::class, 'update'])->name('api-management.update');
+    Route::delete('/system-settings/api-management/{externalApplication}', [ApiManagementController::class, 'destroy'])->name('api-management.destroy');
+    Route::post('/system-settings/api-management/{externalApplication}/tokens', [ApiManagementController::class, 'storeToken'])->name('api-management.tokens.store');
+    Route::delete('/system-settings/api-management/{externalApplication}/tokens/{tokenId}', [ApiManagementController::class, 'destroyToken'])->name('api-management.tokens.destroy');
 
     // Admin: System Settings
     Route::get('/system-settings', [SystemSettingController::class, 'index'])->name('system-settings.index');

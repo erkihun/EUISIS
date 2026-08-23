@@ -1,5 +1,19 @@
-/* ── Amharic / Ethiopic font via Google Fonts ──────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Abyssinica+SIL&display=swap');
+/*
+ * ── Amharic / Ethiopic font ───────────────────────────────────
+ *
+ * Deliberately NOT imported from Google Fonts. The application's CSP is
+ * `style-src 'self'` / `font-src 'self' data:`, so an external stylesheet is
+ * blocked by the browser — which also failed the CSS preload and crashed the
+ * page into the error boundary.
+ *
+ * Loosening the CSP was the alternative, but a public government page should
+ * not disclose every visitor to a third party just to fetch a typeface. The
+ * stack below resolves locally: Nyala ships with Windows, Noto Sans Ethiopic
+ * with Android and most Linux distributions, and Kefa with macOS/iOS.
+ *
+ * To use Abyssinica SIL, vendor the .woff2 into resources/fonts and declare an
+ * @font-face here; it will then satisfy `font-src 'self'`.
+ */
 
 @tailwind base;
 @tailwind components;
@@ -18,7 +32,8 @@
     --color-danger:        #dc2626;
     --app-background:      #f9fafb;
     --app-foreground:      #0f172a;
-    --font-ethiopic: 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', system-ui, sans-serif;
+    /* Ordered by coverage: Windows, Android/Linux, macOS/iOS, then generic. */
+    --font-ethiopic: 'Abyssinica SIL', 'Nyala', 'Noto Sans Ethiopic', 'Kefa', system-ui, sans-serif;
 }
 
 .dark {

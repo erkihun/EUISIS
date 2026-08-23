@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\IdCards;
 
+use App\Enums\IdCardTemplate;
+
 /**
  * Validated, clamped layout settings for card rendering.
  * All color fields are safe hex strings; numeric fields are within safe ranges.
@@ -11,6 +13,8 @@ namespace App\Services\IdCards;
 final readonly class IdCardLayoutSettings
 {
     public function __construct(
+        public IdCardTemplate $template,
+
         // Front colors
         public string $frontBgFrom,
         public string $frontBgTo,

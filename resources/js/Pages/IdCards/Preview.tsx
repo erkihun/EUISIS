@@ -89,7 +89,7 @@ export default function IdCardPreview({ card, can }: PageProps) {
                         <div className="max-w-sm">
                             <IdCardBack
                                 cardNumber={card.card_number}
-                                qrValue={card.public_card_uuid ? route('id-cards.verify.public', card.public_card_uuid) : null}
+                                qrValue={card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null}
                                 issueDate={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), calendarSystem, locale) || card.issued_at.slice(0, 10)) : undefined}
                                 expiryDate={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), calendarSystem, locale) || card.expires_at.slice(0, 10)) : undefined}
                             />

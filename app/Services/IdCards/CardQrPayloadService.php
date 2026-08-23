@@ -33,8 +33,8 @@ final class CardQrPayloadService
 
         $card->update([
             'public_card_uuid' => Str::uuid()->toString(),
-            'qr_status'        => 'active',
-            'qr_issued_at'     => now(),
+            'qr_status' => 'active',
+            'qr_issued_at' => now(),
         ]);
     }
 
@@ -46,7 +46,10 @@ final class CardQrPayloadService
     {
         $this->ensurePublicReference($card);
 
-        return URL::route('id-cards.verify.public', $card->public_card_uuid);
+        // Points at the OTP-gated Global ID Checker. The older
+        // /verify/card/{uuid} page showed the organization and card number to
+        // anyone who scanned, with no consent from the card holder.
+        return URL::route('id-checker.show', $card->public_card_uuid);
     }
 
     /**
@@ -57,9 +60,9 @@ final class CardQrPayloadService
     {
         $card->update([
             'public_card_uuid' => Str::uuid()->toString(),
-            'qr_status'        => 'active',
-            'qr_issued_at'     => now(),
-            'qr_rotated_at'    => now(),
+            'qr_status' => 'active',
+            'qr_issued_at' => now(),
+            'qr_rotated_at' => now(),
         ]);
     }
 

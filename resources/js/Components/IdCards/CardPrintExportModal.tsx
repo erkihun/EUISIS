@@ -73,7 +73,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
     const fmtDate = (v?: string | null) =>
         v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : undefined;
 
-    const qrValue = card.public_card_uuid ? route('id-cards.verify.public', card.public_card_uuid) : null;
+    const qrValue = card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null;
 
     const canPrint      = card.can.printAnytime === true;
     const canExport     = card.can.exportPng    === true;

@@ -40,6 +40,7 @@ final readonly class IdCardRenderData
         // Assets – base64 data URIs or null
         public ?string $photoDataUri,
         public ?string $logoDataUri,
+        public ?string $sealDataUri,
 
         // QR payload – the signed verification URL (no raw token/hash)
         public string $qrVerificationUrl,

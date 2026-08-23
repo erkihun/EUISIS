@@ -202,6 +202,8 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
         labelKey: 'nav.adminSystem',
         items: [
             { routeName: 'recycle-bin.index',     labelKey: 'nav.recycleBin',     icon: TrashIcon,    permission: 'recycle-bin.view' },
+            // API Management lives as a tab inside System Settings, beside
+            // Security — not as a separate sidebar entry.
             { routeName: 'system-settings.index', labelKey: 'nav.systemSettings', icon: SettingsIcon, permission: 'system-settings.view' },
         ],
     },

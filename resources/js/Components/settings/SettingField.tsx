@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import ColorSettingField from '@/Components/settings/ColorSettingField';
 import ImageSettingField from '@/Components/settings/ImageSettingField';
+import IdCardTemplateSettingField from '@/Components/settings/IdCardTemplateSettingField';
 import LocaleSettingField from '@/Components/settings/LocaleSettingField';
 import SecretSettingField from '@/Components/settings/SecretSettingField';
 import TimezoneSettingField from '@/Components/settings/TimezoneSettingField';
@@ -25,6 +26,19 @@ export default function SettingField({ field, locale, value, error, disabled = f
     const { t } = useLocale();
     const label = (locale === 'am' ? field.label_am : field.label_en) ?? field.label_en ?? field.key;
     const description = (locale === 'am' ? field.description_am : field.description_en) ?? field.description_en ?? null;
+
+    if (field.key === 'template' && field.group === 'id_cards') {
+        return (
+            <IdCardTemplateSettingField
+                label={label}
+                description={description}
+                value={(value as string) ?? 'classic'}
+                error={error}
+                disabled={disabled}
+                onChange={onChange}
+            />
+        );
+    }
 
     if (field.is_encrypted) {
         return (

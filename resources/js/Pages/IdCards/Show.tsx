@@ -415,7 +415,7 @@ export default function IdCardShow({ card, can }: PageProps) {
                                 />
                                 <IdCardBack
                                     cardNumber={card.card_number}
-                                    qrValue={card.public_card_uuid ? route('id-cards.verify.public', card.public_card_uuid) : null}
+                                    qrValue={card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null}
                                     issueDate={fmtDate(card.issued_at)}
                                     expiryDate={fmtDate(card.expires_at)}
                                 />
@@ -445,7 +445,7 @@ export default function IdCardShow({ card, can }: PageProps) {
                                     />
                                     <IdCardPortraitBack
                                         cardNumber={card.card_number}
-                                        qrValue={card.public_card_uuid ? route('id-cards.verify.public', card.public_card_uuid) : null}
+                                        qrValue={card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null}
                                         issueDate={fmtDate(card.issued_at)}
                                         expiryDate={fmtDate(card.expires_at)}
                                     />

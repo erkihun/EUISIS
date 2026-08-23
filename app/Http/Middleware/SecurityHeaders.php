@@ -58,12 +58,25 @@ class SecurityHeaders
         // nonce-based CSP using Laravel's Vite::useCspNonce() integration.
         $isLocal = app()->environment('local');
 
+        // Include the host the request actually arrived on, so a device on the
+        // LAN testing against http://<ip>:8000 can still reach the Vite dev
+        // server. A fixed localhost list only works when the browser and the
+        // server are the same machine — a phone scanning a QR is not.
+        $devHosts = ['localhost', '127.0.0.1', '[::1]'];
+
+        if ($isLocal && ! in_array($request->getHost(), $devHosts, true)) {
+            $devHosts[] = $request->getHost();
+        }
+
+        $viteHttp = implode(' ', array_map(static fn (string $host): string => "http://{$host}:5173", $devHosts));
+        $viteWs = implode(' ', array_map(static fn (string $host): string => "ws://{$host}:5173", $devHosts));
+
         $scriptSrc = $isLocal
-            ? "script-src 'self' 'unsafe-inline' http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173"
+            ? "script-src 'self' 'unsafe-inline' {$viteHttp}"
             : "script-src 'self' 'unsafe-inline'";
 
         $connectSrc = $isLocal
-            ? "connect-src 'self' ws: wss: ws://localhost:5173 ws://127.0.0.1:5173 ws://[::1]:5173 http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173"
+            ? "connect-src 'self' ws: wss: {$viteWs} {$viteHttp}"
             : "connect-src 'self' ws: wss:";
 
         $response->headers->set('Content-Security-Policy', implode('; ', [

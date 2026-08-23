@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Settings;
 
+use App\Enums\IdCardTemplate;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,6 +20,7 @@ class UpdateIdCardSettingsRequest extends FormRequest
         $hex = ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'];
 
         return [
+            'template' => ['required', Rule::enum(IdCardTemplate::class)],
             'front_bg_from' => $hex,
             'front_bg_to' => $hex,
             'front_text_primary' => $hex,

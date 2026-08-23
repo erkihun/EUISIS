@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\SystemSettings;
 
+use App\Enums\IdCardTemplate;
+
 class SystemSettingsRegistry
 {
     public const GROUP_GENERAL = 'general';
@@ -466,6 +468,19 @@ class SystemSettingsRegistry
             ],
 
             self::GROUP_ID_CARDS => [
+                'template' => self::field(
+                    type: 'select',
+                    default: IdCardTemplate::Classic->value,
+                    labelEn: 'ID Card Template',
+                    labelAm: 'የመታወቂያ ካርድ ንድፍ',
+                    descriptionEn: 'Choose the layout used for card previews, printing, and exports.',
+                    descriptionAm: 'ለካርድ ቅድመ እይታ፣ ህትመት እና ወደ ፋይል ማውጣት የሚያገለግለውን ንድፍ ይምረጡ።',
+                    isPublic: true,
+                    isRequired: true,
+                    options: IdCardTemplate::values(),
+                    validationRules: ['required', 'in:'.implode(',', IdCardTemplate::values())],
+                    sortOrder: 1,
+                ),
                 // Front card — background
                 'front_bg_from' => self::field(
                     type: 'color',
@@ -776,6 +791,7 @@ class SystemSettingsRegistry
             'security.maintenance_banner_message_en',
             'security.maintenance_banner_message_am',
             // ID Cards
+            'id_cards.template',
             'id_cards.front_bg_from',
             'id_cards.front_bg_to',
             'id_cards.front_text_primary',

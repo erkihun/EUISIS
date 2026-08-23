@@ -25,6 +25,8 @@ import amEntitlementRules from '@/i18n/am/entitlementRules';
 import amHome from '@/i18n/am/home';
 import amHierarchyVersions from '@/i18n/am/hierarchyVersions';
 import amNavigation from '@/i18n/am/navigation';
+import amApiManagement from '@/i18n/am/apiManagement';
+import amIdChecker from '@/i18n/am/idChecker';
 import amOrganizations from '@/i18n/am/organizations';
 import amPositions from '@/i18n/am/positions';
 import amProfile from '@/i18n/am/profile';
@@ -69,6 +71,8 @@ import enNavigation from '@/i18n/en/navigation';
 import enOrganizationUnits from '@/i18n/en/organizationUnits';
 import enOrganizationUnitTypes from '@/i18n/en/organizationUnitTypes';
 import enOrganizationStructureImport from '@/i18n/en/organizationStructureImport';
+import enApiManagement from '@/i18n/en/apiManagement';
+import enIdChecker from '@/i18n/en/idChecker';
 import enOrganizations from '@/i18n/en/organizations';
 import enPermissions from '@/i18n/en/permissions';
 import enPositions from '@/i18n/en/positions';
@@ -104,6 +108,8 @@ const translations: Record<Locale, TranslationTree> = {
         idCards: { ...((en.idCards as TranslationTree | undefined) ?? {}), ...enIdCards },
         isicActivities: enIsicActivities,
         occupations: enOccupations,
+        apiManagement: enApiManagement,
+        idChecker: enIdChecker,
         organizations: { ...((en.organizations as TranslationTree | undefined) ?? {}), ...enOrganizations },
         organizationTypes: enOrganizationTypes,
         organizationUnits: enOrganizationUnits,
@@ -148,6 +154,8 @@ const translations: Record<Locale, TranslationTree> = {
         idCards: { ...(((am as { idCards?: TranslationTree }).idCards) ?? {}), ...amIdCards },
         isicActivities: amIsicActivities,
         occupations: amOccupations,
+        apiManagement: amApiManagement,
+        idChecker: amIdChecker,
         organizations: { ...(((am as { organizations?: TranslationTree }).organizations) ?? {}), ...amOrganizations },
         organizationTypes: amOrganizationTypes,
         organizationUnits: amOrganizationUnits,

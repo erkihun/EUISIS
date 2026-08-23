@@ -3,6 +3,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import enDict from '@/i18n/en';
 import amDict from '@/i18n/am';
+import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 
 // The card face is bilingual by design (labels show both languages at once),
 // so labels are read from both dictionaries instead of the active locale.
@@ -73,6 +74,7 @@ export default function IdCardFront({
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
 
+    const template   = resolveIdCardTemplate(getString('id_cards.template', 'classic'));
     const frontFrom  = getString('id_cards.front_bg_from', '#1D4ED8');
     const frontTo    = getString('id_cards.front_bg_to', '#1E3A8A');
     const textPri    = getString('id_cards.front_text_primary', '#FFFFFF');
@@ -108,29 +110,42 @@ export default function IdCardFront({
 
     const watermarkText = status ? WATERMARK_STATUSES[status] : null;
     const genderAm = gender === 'male' ? 'ወንድ' : gender === 'female' ? 'ሴት' : gender;
+    const background = template === 'modern'
+        ? `linear-gradient(110deg, ${frontFrom} 0%, ${frontFrom} 62%, ${frontTo} 62%, ${frontTo} 100%)`
+        : template === 'minimal'
+            ? `linear-gradient(180deg, ${frontFrom} 0%, ${frontFrom} 88%, ${frontTo} 88%, ${frontTo} 100%)`
+            : `linear-gradient(135deg, ${frontFrom} 0%, ${frontTo} 100%)`;
 
     return (
         <div
-            className="relative overflow-hidden rounded-xl shadow-xl"
+            data-card-template={template}
+            className={[
+                'relative overflow-hidden shadow-xl',
+                template === 'modern' ? 'rounded-[1.25rem] ring-1 ring-white/20' : '',
+                template === 'minimal' ? 'rounded-lg ring-1 ring-white/25' : '',
+                template === 'classic' ? 'rounded-xl' : '',
+            ].join(' ')}
             style={{
                 aspectRatio: '85.6/54',
                 width: '100%',
                 maxWidth: 400,
-                background: `linear-gradient(135deg, ${frontFrom} 0%, ${frontTo} 100%)`,
+                background,
                 ...rootStyle,
             }}
         >
             {/* Security dot pattern overlay */}
-            <div
+            {template !== 'minimal' && <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)`,
-                    backgroundSize: '12px 12px',
+                    backgroundImage: template === 'modern'
+                        ? 'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 12px)'
+                        : 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
+                    backgroundSize: template === 'modern' ? undefined : '12px 12px',
                 }}
-            />
+            />}
 
             {/* "EMPLOYEE ID" watermark text in background */}
-            <div
+            {template !== 'minimal' && <div
                 className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
                 aria-hidden
             >
@@ -143,9 +158,9 @@ export default function IdCardFront({
                         userSelect: 'none',
                     }}
                 >
-                    EMPLOYEE ID
+                    {template === 'modern' ? 'CITY ID' : 'EMPLOYEE ID'}
                 </span>
-            </div>
+            </div>}
 
             {/* Status watermark (EXPIRED / REVOKED / LOST / SUSPENDED) */}
             {watermarkText && (
@@ -170,7 +185,10 @@ export default function IdCardFront({
             )}
 
             {/* Header band: system logo | issuing org name (EN + AM) | org logo */}
-            <div className="absolute inset-x-0 top-0 flex items-center gap-2 bg-white/15 px-3 py-1.5">
+            <div className={[
+                'absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-1.5',
+                template === 'modern' ? 'border-b border-white/20 bg-black/10' : 'bg-white/15',
+            ].join(' ')}>
                 {/* Logo 1 — system / city logo */}
                 {showLogo && resolvedCityLogo ? (
                     <img
@@ -220,19 +238,19 @@ export default function IdCardFront({
                             src={photoUrl}
                             alt={t('employees.photo')}
                             crossOrigin="anonymous"
-                            className="rounded-lg object-cover"
+                            className={`${template === 'modern' ? 'rounded-full' : template === 'minimal' ? 'rounded-sm' : 'rounded-lg'} object-cover`}
                             style={{
-                                width: '4.5rem',
-                                height: '6rem',
-                                border: '1px solid rgba(255,255,255,0.2)',
+                                width: template === 'modern' ? '5rem' : '4.5rem',
+                                height: template === 'modern' ? '5rem' : '6rem',
+                                border: template === 'modern' ? '3px solid rgba(255,255,255,0.35)' : '1px solid rgba(255,255,255,0.2)',
                             }}
                         />
                     ) : (
                         <div
-                            className="rounded-lg bg-white/15 flex items-center justify-center text-[7px] text-center leading-tight"
+                            className={`${template === 'modern' ? 'rounded-full' : template === 'minimal' ? 'rounded-sm' : 'rounded-lg'} bg-white/15 flex items-center justify-center text-[7px] text-center leading-tight`}
                             style={{
-                                width: '4.5rem',
-                                height: '6rem',
+                                width: template === 'modern' ? '5rem' : '4.5rem',
+                                height: template === 'modern' ? '5rem' : '6rem',
                                 color: textSec,
                                 border: '1px solid rgba(255,255,255,0.15)',
                             }}
@@ -324,8 +342,11 @@ export default function IdCardFront({
             </div>
 
             {/* Decorative diagonal accent (right edge) */}
-            <div className="absolute -right-4 top-0 bottom-0 w-12 bg-white/5 -skew-x-12 pointer-events-none" />
-            <div className="absolute -right-8 top-0 bottom-0 w-8 bg-white/3 -skew-x-12 pointer-events-none" />
+            {template === 'classic' && <>
+                <div className="absolute -right-4 top-0 bottom-0 w-12 bg-white/5 -skew-x-12 pointer-events-none" />
+                <div className="absolute -right-8 top-0 bottom-0 w-8 bg-white/3 -skew-x-12 pointer-events-none" />
+            </>}
+            {template === 'modern' && <div className="absolute -right-7 -top-7 h-24 w-24 rounded-full border-[14px] border-white/10 pointer-events-none" />}
         </div>
     );
 }

@@ -5,6 +5,7 @@ import SettingsCard from '@/Components/settings/SettingsCard';
 import SettingsSection from '@/Components/settings/SettingsSection';
 import SettingsTabs from '@/Components/settings/SettingsTabs';
 import TestChannelButton from '@/Components/settings/TestChannelButton';
+import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import type { SettingsField, SettingsGroupPayload } from '@/lib/settings';
@@ -25,6 +26,8 @@ type SettingsCan = {
     manageIdCards: boolean;
     clearCache: boolean;
     testChannels: boolean;
+    /** Whether the API Management module is reachable for this user. */
+    apiManagement?: boolean;
 };
 
 type RoleOption = {
@@ -255,8 +258,20 @@ function IdCardPreview({ data }: { data: FormShape }) {
         ? String(data.return_address_am ?? data.return_address_en ?? '')
         : String(data.return_address_en ?? '');
     const showMagStripe = data.show_magnetic_stripe !== false;
+    const template = resolveIdCardTemplate(data.template);
     const padding = String(data.card_padding ?? 'normal');
     const padCls  = padding === 'compact' ? 'px-3 pb-2' : padding === 'spacious' ? 'px-5 pb-5' : 'px-4 pb-3';
+    const frontBackground = template === 'modern'
+        ? `linear-gradient(110deg, ${frontFrom} 0%, ${frontFrom} 62%, ${frontTo} 62%, ${frontTo} 100%)`
+        : template === 'minimal'
+            ? `linear-gradient(180deg, ${frontFrom} 0%, ${frontFrom} 88%, ${frontTo} 88%, ${frontTo} 100%)`
+            : `linear-gradient(to bottom right, ${frontFrom}, ${frontTo})`;
+    const backBackground = template === 'modern'
+        ? `linear-gradient(110deg, ${backFrom} 0%, ${backFrom} 62%, ${backTo} 62%, ${backTo} 100%)`
+        : template === 'minimal'
+            ? `linear-gradient(180deg, ${backFrom} 0%, ${backFrom} 94%, ${backTo} 94%, ${backTo} 100%)`
+            : `linear-gradient(to bottom right, ${backFrom}, ${backTo})`;
+    const cardRadius = template === 'modern' ? '1.25rem' : template === 'minimal' ? '0.5rem' : '0.75rem';
 
     return (
         <div className="flex flex-col gap-5 sticky top-4">
@@ -264,16 +279,31 @@ function IdCardPreview({ data }: { data: FormShape }) {
                 <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
                     {t('settings.groups.idCardPreview')}
                 </p>
+                <p className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    {t(`settings.idCardTemplates.${template}.name`)}
+                </p>
 
                 {/* Front card */}
                 <div
                     className="relative overflow-hidden rounded-xl shadow-lg mb-3"
                     style={{
                         aspectRatio: '85.6/54',
-                        background: `linear-gradient(to bottom right, ${frontFrom}, ${frontTo})`,
+                        borderRadius: cardRadius,
+                        background: frontBackground,
                     }}
                 >
-                    <div className="absolute inset-x-0 top-0 flex items-center gap-2 bg-white/10 px-3 py-1.5">
+                    {template !== 'minimal' && (
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                backgroundImage: template === 'modern'
+                                    ? 'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 12px)'
+                                    : 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
+                                backgroundSize: template === 'classic' ? '12px 12px' : undefined,
+                            }}
+                        />
+                    )}
+                    <div className={`absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-1.5 ${template === 'modern' ? 'border-b border-white/20 bg-black/10' : 'bg-white/10'}`}>
                         <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center text-[9px] font-bold" style={{ color: textPri }}>
                             AA
                         </div>
@@ -283,7 +313,7 @@ function IdCardPreview({ data }: { data: FormShape }) {
                         </div>
                     </div>
                     <div className={`absolute inset-x-0 top-10 bottom-0 flex gap-2 ${padCls}`}>
-                        <div className="h-14 w-11 rounded-md bg-white/20 border border-white/30 flex items-center justify-center">
+                        <div className={`${template === 'modern' ? 'h-12 w-12 rounded-full border-2' : 'h-14 w-11 rounded-md border'} bg-white/20 border-white/30 flex items-center justify-center`}>
                             <span className="text-[7px]" style={{ color: textSec }}>Photo</span>
                         </div>
                         <div className="flex-1 min-w-0 flex flex-col justify-between">
@@ -297,7 +327,8 @@ function IdCardPreview({ data }: { data: FormShape }) {
                             </div>
                         </div>
                     </div>
-                    <div className="absolute -right-4 top-0 bottom-0 w-12 bg-white/5 -skew-x-12 pointer-events-none" />
+                    {template === 'classic' && <div className="absolute -right-4 top-0 bottom-0 w-12 bg-white/5 -skew-x-12 pointer-events-none" />}
+                    {template === 'modern' && <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full border-[10px] border-white/10 pointer-events-none" />}
                 </div>
 
                 {/* Back card */}
@@ -305,11 +336,17 @@ function IdCardPreview({ data }: { data: FormShape }) {
                     className="relative overflow-hidden rounded-xl shadow-lg"
                     style={{
                         aspectRatio: '85.6/54',
-                        background: `linear-gradient(to bottom right, ${backFrom}, ${backTo})`,
+                        borderRadius: cardRadius,
+                        background: backBackground,
                     }}
                 >
                     {showMagStripe && (
-                        <div className="absolute inset-x-0 top-3 h-5 bg-black/40 pointer-events-none" />
+                        <div className={[
+                            'absolute bg-black/40 pointer-events-none',
+                            template === 'modern' ? 'left-[34%] right-0 top-4 h-4 rounded-l-full' : '',
+                            template === 'minimal' ? 'inset-x-0 top-3 h-2' : '',
+                            template === 'classic' ? 'inset-x-0 top-3 h-5' : '',
+                        ].join(' ')} />
                     )}
                     <div className={`absolute inset-0 flex items-center justify-center gap-3 ${padCls} pt-9`}>
                         <div className="h-20 w-20 rounded bg-white p-1 flex items-center justify-center">
@@ -575,7 +612,32 @@ export default function SystemSettingsIndex({ settingGroups, roles, can }: Props
     const { t } = useLocale();
     const [activeTab, setActiveTab] = useState<string>('general');
 
+    // Field-group tabs — these drive the editable panels below.
     const availableTabs = tabs.filter((tab) => settingGroups[tab.id] !== undefined);
+
+    // Display list adds API Management as a link tab beside Security. It is a
+    // separate CRUD module rather than a settings field group, so it navigates
+    // instead of switching the panel, and only appears when permitted.
+    const displayTabs: { id: string; labelKey: string; href?: string }[] = (() => {
+        const list: { id: string; labelKey: string; href?: string }[] = availableTabs.map((tab) => ({
+            id: tab.id,
+            labelKey: tab.labelKey,
+        }));
+
+        if (!can.apiManagement) {
+            return list;
+        }
+
+        const securityIndex = list.findIndex((tab) => tab.id === 'security');
+
+        list.splice(securityIndex >= 0 ? securityIndex + 1 : list.length, 0, {
+            id: 'api_management',
+            labelKey: 'settings.tabs.api_management',
+            href: route('api-management.index'),
+        });
+
+        return list;
+    })();
 
     const clearCache = () => {
         router.post(route('system-settings.clear-cache'), {}, { preserveScroll: true });
@@ -598,7 +660,7 @@ export default function SystemSettingsIndex({ settingGroups, roles, can }: Props
             <Head title={t('settings.title')} />
 
             <div className="space-y-0 rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
-                <SettingsTabs tabs={availableTabs} activeTab={activeTab} onSelect={setActiveTab} />
+                <SettingsTabs tabs={displayTabs} activeTab={activeTab} onSelect={setActiveTab} />
 
                 <div className="p-5 bg-gray-50 dark:bg-slate-950 min-h-[400px]">
                     {availableTabs.map((tab) => {

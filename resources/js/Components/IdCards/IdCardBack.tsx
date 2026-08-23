@@ -4,6 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import enDict from '@/i18n/en';
 import amDict from '@/i18n/am';
+import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 
 // The card face is bilingual by design — labels come from both dictionaries.
 const biLabel = (key: 'issueDate' | 'expLabel' | 'signatureLabel'): string =>
@@ -25,6 +26,7 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
 
+    const template      = resolveIdCardTemplate(getString('id_cards.template', 'classic'));
     const backFrom      = getString('id_cards.back_bg_from', '#1E293B');
     const backTo        = getString('id_cards.back_bg_to', '#0F172A');
     const textColor     = getString('id_cards.back_text_color', '#94A3B8');
@@ -48,30 +50,48 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
     const sealUrl = getString('general.seal_url', '');
 
     const padCls = padding === 'compact' ? 'px-3' : padding === 'spacious' ? 'px-5' : 'px-4';
+    const background = template === 'modern'
+        ? `linear-gradient(110deg, ${backFrom} 0%, ${backFrom} 62%, ${backTo} 62%, ${backTo} 100%)`
+        : template === 'minimal'
+            ? `linear-gradient(180deg, ${backFrom} 0%, ${backFrom} 94%, ${backTo} 94%, ${backTo} 100%)`
+            : `linear-gradient(135deg, ${backFrom} 0%, ${backTo} 100%)`;
 
     return (
         <div
-            className="relative overflow-hidden rounded-xl shadow-xl"
+            data-card-template={template}
+            className={[
+                'relative overflow-hidden shadow-xl',
+                template === 'modern' ? 'rounded-[1.25rem] ring-1 ring-white/20' : '',
+                template === 'minimal' ? 'rounded-lg ring-1 ring-white/25' : '',
+                template === 'classic' ? 'rounded-xl' : '',
+            ].join(' ')}
             style={{
                 aspectRatio: '85.6/54',
                 width: '100%',
                 maxWidth: 400,
-                background: `linear-gradient(135deg, ${backFrom} 0%, ${backTo} 100%)`,
+                background,
                 ...rootStyle,
             }}
         >
             {/* Security dot pattern */}
-            <div
+            {template !== 'minimal' && <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)`,
-                    backgroundSize: '10px 10px',
+                    backgroundImage: template === 'modern'
+                        ? 'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 12px)'
+                        : 'radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)',
+                    backgroundSize: template === 'modern' ? undefined : '10px 10px',
                 }}
-            />
+            />}
 
             {/* Magnetic stripe simulation */}
             {showMagStripe && (
-                <div className="absolute inset-x-0 top-3 h-6 bg-black/50 pointer-events-none" />
+                <div className={[
+                    'absolute bg-black/50 pointer-events-none',
+                    template === 'modern' ? 'left-[34%] right-0 top-4 h-4 rounded-l-full' : '',
+                    template === 'minimal' ? 'inset-x-0 top-3 h-2' : '',
+                    template === 'classic' ? 'inset-x-0 top-3 h-6' : '',
+                ].join(' ')} />
             )}
 
             {/* Main content area */}
@@ -140,11 +160,11 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
 
                     <div className="space-y-0.5 mt-auto">
                         {sealUrl && (
-                            <div className="flex justify-center pb-0.5">
+                            <div className="flex min-h-0 flex-1 items-center justify-center py-1">
                                 <img
                                     src={sealUrl}
                                     alt=""
-                                    className="h-16 w-16 object-contain"
+                                    className="h-24 w-24 max-h-full max-w-full object-contain drop-shadow-md"
                                 />
                             </div>
                         )}

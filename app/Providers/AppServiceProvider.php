@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\SmsGateway;
 use App\Models\AuditLog;
 use App\Models\CafeteriaDayRule;
 use App\Models\CafeteriaProvider;
@@ -36,8 +37,8 @@ use App\Models\PositionEstablishment;
 use App\Models\PublicHoliday;
 use App\Models\Role;
 use App\Models\ServiceProvider as ServiceProviderModel;
-use App\Models\ServiceTransaction;
-use App\Models\ServiceType; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\ServiceTransaction; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\ServiceType;
 use App\Models\SystemSetting;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
@@ -91,6 +92,7 @@ use App\Policies\VacancyApplicationPolicy;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
+use App\Services\Sms\LogSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -112,6 +114,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);
+
+        // No SMS provider is integrated yet; LogSmsGateway records the attempt
+        // and reports failure. Swap this binding when a real gateway lands.
+        $this->app->bind(SmsGateway::class, LogSmsGateway::class);
     }
 
     /**
@@ -166,6 +172,21 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(EmployeeCafeteriaExclusion::class, EmployeeCafeteriaExclusionPolicy::class);
 
         Gate::before(static fn ($user, string $_ability) => $user instanceof User && $user->hasRole('Super Admin') ? true : null);
+
+        /*
+         * Public ID Checker. Keyed on card + IP so one abusive client cannot
+         * spend another card's budget, and so a single card cannot be used to
+         * spam its holder with codes from many addresses.
+         */
+        RateLimiter::for('id-checker-send-otp', fn (Request $request): array => [
+            Limit::perMinutes(10, 3)->by('pic-send:'.$request->route('cardUuid').'|'.$request->ip()),
+            // Second ceiling: one IP may not farm codes across many cards.
+            Limit::perMinutes(10, 10)->by('pic-send-ip:'.$request->ip()),
+        ]);
+
+        RateLimiter::for('id-checker-verify-otp', fn (Request $request): array => [
+            Limit::perMinute(5)->by('pic-verify:'.$request->route('cardUuid').'|'.$request->ip()),
+        ]);
 
         RateLimiter::for('api', function (Request $request): array {
             $perMinute = 120;

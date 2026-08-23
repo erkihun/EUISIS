@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 
 type Props = {
     cardNumber: string;
@@ -17,6 +18,7 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
 
+    const template        = resolveIdCardTemplate(getString('id_cards.template', 'classic'));
     const backFrom        = getString('id_cards.back_bg_from', '#1E293B');
     const backTo          = getString('id_cards.back_bg_to',   '#0F172A');
     const textColor       = getString('id_cards.back_text_color', '#94A3B8');
@@ -35,30 +37,48 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
         : getString('id_cards.return_address_en', 'Addis Ababa City Administration, Public Service & HRD Bureau');
 
     const scanLabel = locale === 'am' ? 'ለማረጋገጥ ስካን ያድርጉ' : t('idCards.scanToVerify');
+    const background = template === 'modern'
+        ? `linear-gradient(160deg, ${backFrom} 0%, ${backFrom} 62%, ${backTo} 62%, ${backTo} 100%)`
+        : template === 'minimal'
+            ? `linear-gradient(180deg, ${backFrom} 0%, ${backFrom} 97%, ${backTo} 97%, ${backTo} 100%)`
+            : `linear-gradient(160deg, ${backFrom} 0%, ${backTo} 100%)`;
 
     return (
         <div
-            className="relative flex flex-col overflow-hidden rounded-2xl shadow-xl"
+            data-card-template={template}
+            className={[
+                'relative flex flex-col overflow-hidden shadow-xl',
+                template === 'modern' ? 'rounded-[1.5rem] ring-1 ring-white/20' : '',
+                template === 'minimal' ? 'rounded-lg ring-1 ring-white/25' : '',
+                template === 'classic' ? 'rounded-2xl' : '',
+            ].join(' ')}
             style={{
                 aspectRatio: '54 / 85.6',
                 width: '100%',
                 maxWidth: 260,
-                background: `linear-gradient(160deg, ${backFrom} 0%, ${backTo} 100%)`,
+                background,
                 ...rootStyle,
             }}
         >
             {/* Security dot pattern */}
-            <div
+            {template !== 'minimal' && <div
                 className="pointer-events-none absolute inset-0"
                 style={{
-                    backgroundImage: `radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)`,
-                    backgroundSize: '10px 10px',
+                    backgroundImage: template === 'modern'
+                        ? 'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 12px)'
+                        : 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)',
+                    backgroundSize: template === 'classic' ? '10px 10px' : undefined,
                 }}
-            />
+            />}
 
             {/* Magnetic stripe */}
             {showMagStripe && (
-                <div className="pointer-events-none absolute inset-x-0 top-3 h-8 bg-black/50" />
+                <div className={[
+                    'pointer-events-none absolute bg-black/50',
+                    template === 'modern' ? 'left-[28%] right-0 top-4 h-5 rounded-l-full' : '',
+                    template === 'minimal' ? 'inset-x-0 top-3 h-2' : '',
+                    template === 'classic' ? 'inset-x-0 top-3 h-8' : '',
+                ].join(' ')} />
             )}
 
             {/* ── Body ─────────────────────────────────────────────── */}
@@ -75,7 +95,7 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
                         <img
                             src={sealUrl}
                             alt=""
-                            className="h-11 w-11 shrink-0 object-contain"
+                            className="h-24 w-24 shrink-0 object-contain drop-shadow-md"
                         />
                     )}
                 </div>

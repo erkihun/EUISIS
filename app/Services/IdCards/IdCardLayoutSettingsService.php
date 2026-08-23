@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\IdCards;
 
+use App\Enums\IdCardTemplate;
 use App\Services\SystemSettings\SystemSettingsService;
 
 /**
@@ -17,6 +18,10 @@ final readonly class IdCardLayoutSettingsService
     public function get(): IdCardLayoutSettings
     {
         return new IdCardLayoutSettings(
+            template: IdCardTemplate::tryFrom(
+                (string) $this->settings->get('id_cards', 'template', IdCardTemplate::Classic->value),
+            ) ?? IdCardTemplate::Classic,
+
             frontBgFrom: $this->hex('id_cards', 'front_bg_from', '#1D4ED8'),
             frontBgTo: $this->hex('id_cards', 'front_bg_to', '#1E3A8A'),
             frontTextPrimary: $this->hex('id_cards', 'front_text_primary', '#FFFFFF'),

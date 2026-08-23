@@ -24,6 +24,7 @@ const settings = {
         security: 'ደህንነት',
         appearance: 'ገጽታ',
         id_cards: 'መታወቂያ ካርዶች',
+        api_management: 'የኤፒአይ አስተዳደር',
     },
     descriptions: {
         general: 'ዋና የመተግበሪያ መለያ፣ የድጋፍ መረጃ እና የመግቢያ ገጽ ብራንዲንግ።',
@@ -41,6 +42,20 @@ const settings = {
         appearancePreview: 'የገጽታ ቅድመ እይታ',
         securityWarning: 'የደህንነት ማስጠንቀቂያ',
         idCardPreview: 'የካርድ ቅድመ እይታ',
+    },
+    idCardTemplates: {
+        classic: {
+            name: 'ክላሲክ',
+            description: 'ባህላዊ የመታወቂያ ካርድ አቀማመጥ ያለው ሚዛናዊ የቀለም ቅልቅል።',
+        },
+        modern: {
+            name: 'ዘመናዊ',
+            description: 'የተከፈለ ደማቅ ቀለም፣ ክብ ፎቶ እና ጂኦሜትሪያዊ ማስዋቢያ ያለው ንድፍ።',
+        },
+        minimal: {
+            name: 'ቀላል',
+            description: 'አነስተኛ የማስዋቢያ ክፍሎች ያሉት ንጹህና የተረጋጋ አቀማመጥ።',
+        },
     },
     messages: {
         general_updated: 'አጠቃላይ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',

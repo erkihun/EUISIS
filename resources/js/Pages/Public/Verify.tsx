@@ -23,7 +23,7 @@ export default function PublicVerify() {
         e.preventDefault();
         const trimmed = value.trim();
         if (!trimmed) return;
-        router.get(route('id-cards.verify.public', { publicCardUuid: trimmed }));
+        router.get(route('id-checker.show', { cardUuid: trimmed }));
     };
 
     return (

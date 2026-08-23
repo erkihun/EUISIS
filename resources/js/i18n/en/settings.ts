@@ -24,6 +24,7 @@ const settings = {
         security: 'Security',
         appearance: 'Appearance',
         id_cards: 'ID Cards',
+        api_management: 'API Management',
     },
     descriptions: {
         general: 'Core application identity, public contact details, and login branding.',
@@ -41,6 +42,20 @@ const settings = {
         appearancePreview: 'Appearance Preview',
         securityWarning: 'Security Warning',
         idCardPreview: 'Card Preview',
+    },
+    idCardTemplates: {
+        classic: {
+            name: 'Classic',
+            description: 'Balanced gradient layout with traditional ID-card structure.',
+        },
+        modern: {
+            name: 'Modern',
+            description: 'Bold split-color layout with a circular portrait and geometric accents.',
+        },
+        minimal: {
+            name: 'Minimal',
+            description: 'Clean, restrained layout with fewer decorative security elements.',
+        },
     },
     messages: {
         general_updated: 'General settings updated successfully.',

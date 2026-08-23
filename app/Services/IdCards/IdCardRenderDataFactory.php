@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\IdCards;
 
 use App\Models\IdCard;
+use App\Services\SystemSettings\SystemSettingsService;
 
 /**
  * Assembles an IdCardRenderData DTO from a fully-loaded IdCard model.
@@ -21,6 +22,7 @@ final readonly class IdCardRenderDataFactory
         private IdCardLayoutSettingsService $layoutService,
         private IdCardAssetResolver $assetResolver,
         private CardQrPayloadService $qrPayloadService,
+        private SystemSettingsService $systemSettings,
     ) {}
 
     public function make(IdCard $card): IdCardRenderData
@@ -31,6 +33,7 @@ final readonly class IdCardRenderDataFactory
         $unit = $assignment?->organizationUnit;
         $position = $assignment?->position;
         $layout = $this->layoutService->get();
+        $sealPath = $this->systemSettings->get('general', 'seal');
 
         return new IdCardRenderData(
             cardId: $card->id,
@@ -58,6 +61,9 @@ final readonly class IdCardRenderDataFactory
             // Resolve files to base64 data URIs — never expose raw paths
             photoDataUri: $this->assetResolver->resolvePhotoPath($employee?->photo_path),
             logoDataUri: $this->assetResolver->resolveLogoPath($org?->logo_path),
+            sealDataUri: $this->assetResolver->resolveStoragePath(
+                is_string($sealPath) ? $sealPath : null,
+            ),
 
             // Stable service-gateway QR URL — printed once, never changes on service updates.
             qrVerificationUrl: $this->qrPayloadService->buildStableQrUrl($card),

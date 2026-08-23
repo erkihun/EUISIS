@@ -121,6 +121,8 @@ const common = {
     lost: 'የጠፋ',
     damaged: 'የተበላሸ',
     replaced: 'የተተካ',
+    copy: 'ቅዳ',
+    copied: 'ተቀድቷል',
 } as const;
 
 export default common;

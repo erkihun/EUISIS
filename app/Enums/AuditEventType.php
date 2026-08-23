@@ -284,4 +284,16 @@ enum AuditEventType: string
     case GrievanceTribunalReferred = 'grievance.tribunal_referred';
     case GrievanceDecisionLetterGenerated = 'grievance.decision_letter_generated';
     case GrievanceDecisionLetterDownloaded = 'grievance.decision_letter_downloaded';
+
+    /*
+     * Public Global ID Checker — anonymous, so these are the only record that
+     * a card was looked up. Every step is logged, including failures, because
+     * repeated OTP failures against one card are the signal that matters.
+     */
+    case PublicIdCheckScanned = 'public_id_check.scanned';
+    case PublicIdCheckBlocked = 'public_id_check.blocked';
+    case PublicIdCheckOtpSent = 'public_id_check.otp_sent';
+    case PublicIdCheckOtpFailed = 'public_id_check.otp_failed';
+    case PublicIdCheckOtpVerified = 'public_id_check.otp_verified';
+    case PublicIdCheckInfoDisplayed = 'public_id_check.info_displayed';
 }

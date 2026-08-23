@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnsureAdminAccess;
+use App\Http\Middleware\EnsureApiScope;
 use App\Http\Middleware\EnsureCafeteriaPortalUser;
 use App\Http\Middleware\EnsureCafeteriaProviderAssigned;
 use App\Http\Middleware\EnsureMfaNotRequired;
@@ -8,6 +10,7 @@ use App\Http\Middleware\EnsureProviderHasActiveAssignment;
 use App\Http\Middleware\EnsureProviderPortalUser;
 use App\Http\Middleware\EnsureProviderServiceEnabled;
 use App\Http\Middleware\EnsureProviderServiceScope;
+use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
@@ -49,6 +52,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
+            'api.scope' => EnsureApiScope::class,
+            'api.external' => ExternalApplicationGate::class,
+            'api.idempotency' => EnforceIdempotencyKey::class,
             'provider.scope' => EnsureProviderServiceScope::class,
             'provider.portal' => EnsureProviderPortalUser::class,
             'provider.service' => EnsureProviderServiceEnabled::class,

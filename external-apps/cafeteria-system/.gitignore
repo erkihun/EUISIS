@@ -1,0 +1,12 @@
+/vendor
+/node_modules
+/public/build
+/public/hot
+/storage/*.key
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/database/*.sqlite
+.env
+.phpunit.result.cache

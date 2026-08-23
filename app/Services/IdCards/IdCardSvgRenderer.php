@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\IdCards;
 
+use App\Enums\IdCardTemplate;
+
 /**
  * Produces SVG strings for the front and back of an ID card.
  *
@@ -48,7 +50,7 @@ final class IdCardSvgRenderer
         $photoX = $padH;
         $photoY = 52;
         $photoW = 72;
-        $photoH = 96;
+        $photoH = $l->template === IdCardTemplate::Modern ? 72 : 96;
         $textX = $photoX + $photoW + 12;
         $textW = self::W - $padH - $textX;
 
@@ -57,8 +59,8 @@ final class IdCardSvgRenderer
 
         $watermark = self::WATERMARKS[strtolower($data->status)] ?? null;
 
-        $svg = $this->openSvg();
-        $svg .= $this->defs($l->frontBgFrom, $l->frontBgTo, 'frontBg');
+        $svg = $this->openSvg($l->template);
+        $svg .= $this->defs($l->frontBgFrom, $l->frontBgTo, 'frontBg', $l->template);
         $svg .= $this->cardClip();
 
         $svg .= '<g clip-path="url(#cardClip)">';
@@ -71,22 +73,30 @@ final class IdCardSvgRenderer
         );
 
         // Security dot pattern
-        $svg .= $this->dotPattern('frontDots', 'rgba(255,255,255,0.06)');
-        $svg .= sprintf(
-            '<rect width="%d" height="%d" fill="url(#frontDots)"/>',
-            self::W,
-            self::H,
-        );
+        if ($l->template !== IdCardTemplate::Minimal) {
+            $svg .= $l->template === IdCardTemplate::Modern
+                ? $this->linePattern('frontLines', 'rgba(255,255,255,0.05)')
+                : $this->dotPattern('frontDots', 'rgba(255,255,255,0.06)');
+            $svg .= sprintf(
+                '<rect width="%d" height="%d" fill="url(#%s)"/>',
+                self::W,
+                self::H,
+                $l->template === IdCardTemplate::Modern ? 'frontLines' : 'frontDots',
+            );
+        }
 
         // "EMPLOYEE ID" ghost watermark
-        $svg .= sprintf(
-            '<text x="%d" y="%d" text-anchor="middle" font-family="%s" font-size="80"'
-            .' font-weight="900" fill="rgba(255,255,255,0.04)"'
-            .' transform="rotate(-20,%d,%d)" letter-spacing="12">EMPLOYEE ID</text>',
-            self::W / 2, self::H / 2,
-            self::FONT,
-            self::W / 2, self::H / 2,
-        );
+        if ($l->template !== IdCardTemplate::Minimal) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" text-anchor="middle" font-family="%s" font-size="80"'
+                .' font-weight="900" fill="rgba(255,255,255,0.04)"'
+                .' transform="rotate(-20,%d,%d)" letter-spacing="12">%s</text>',
+                self::W / 2, self::H / 2,
+                self::FONT,
+                self::W / 2, self::H / 2,
+                $l->template === IdCardTemplate::Modern ? 'CITY ID' : 'EMPLOYEE ID',
+            );
+        }
 
         // Status watermark
         if ($watermark !== null) {
@@ -102,7 +112,13 @@ final class IdCardSvgRenderer
         }
 
         // ── Header band ─────────────────────────────────────────────────
-        $svg .= '<rect x="0" y="0" width="856" height="40" fill="rgba(255,255,255,0.15)"/>';
+        $headerFill = $l->template === IdCardTemplate::Modern
+            ? 'rgba(0,0,0,0.10)'
+            : 'rgba(255,255,255,0.15)';
+        $svg .= sprintf('<rect x="0" y="0" width="856" height="40" fill="%s"/>', $headerFill);
+        if ($l->template === IdCardTemplate::Modern) {
+            $svg .= '<line x1="0" y1="40" x2="856" y2="40" stroke="rgba(255,255,255,0.20)" stroke-width="1"/>';
+        }
 
         // Logo / placeholder
         if ($l->showOrganizationLogo && $data->logoDataUri !== null) {
@@ -151,22 +167,26 @@ final class IdCardSvgRenderer
         if ($l->showPhoto && $data->photoDataUri !== null) {
             $svg .= sprintf(
                 '<clipPath id="photoClip">'
-                .'<rect x="%d" y="%d" width="%d" height="%d" rx="6" ry="6"/>'
+                .'<rect x="%d" y="%d" width="%d" height="%d" rx="%d" ry="%d"/>'
                 .'</clipPath>'
                 .'<image x="%d" y="%d" width="%d" height="%d" href="%s"'
                 .' clip-path="url(#photoClip)" preserveAspectRatio="xMidYMid slice"'
                 .' style="outline:1px solid rgba(255,255,255,0.2)"/>',
                 $photoX, $photoY, $photoW, $photoH,
+                $l->template === IdCardTemplate::Modern ? 36 : 6,
+                $l->template === IdCardTemplate::Modern ? 36 : 6,
                 $photoX, $photoY, $photoW, $photoH,
                 $data->photoDataUri,
             );
         } elseif ($l->showPhoto) {
             $svg .= sprintf(
-                '<rect x="%d" y="%d" width="%d" height="%d" rx="6" ry="6"'
+                '<rect x="%d" y="%d" width="%d" height="%d" rx="%d" ry="%d"'
                 .' fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>'
                 .'<text x="%d" y="%d" text-anchor="middle" font-family="%s" font-size="7"'
                 .' fill="%s">Photo</text>',
                 $photoX, $photoY, $photoW, $photoH,
+                $l->template === IdCardTemplate::Modern ? 36 : 6,
+                $l->template === IdCardTemplate::Modern ? 36 : 6,
                 $photoX + $photoW / 2, $photoY + $photoH / 2,
                 self::FONT,
                 $this->e($l->frontTextSecondary),
@@ -320,7 +340,11 @@ final class IdCardSvgRenderer
         );
 
         // Right-edge decorative accent
-        $svg .= '<polygon points="812,0 856,0 856,540 824,540" fill="rgba(255,255,255,0.05)"/>';
+        if ($l->template === IdCardTemplate::Classic) {
+            $svg .= '<polygon points="812,0 856,0 856,540 824,540" fill="rgba(255,255,255,0.05)"/>';
+        } elseif ($l->template === IdCardTemplate::Modern) {
+            $svg .= '<circle cx="842" cy="14" r="78" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="14"/>';
+        }
 
         $svg .= '</g>';
         $svg .= '</svg>';
@@ -359,8 +383,8 @@ final class IdCardSvgRenderer
         $textX = $qrBoxX + $qrBoxW + 12;
         $textW = self::W - $padH - $textX;
 
-        $svg = $this->openSvg();
-        $svg .= $this->defs($l->backBgFrom, $l->backBgTo, 'backBg');
+        $svg = $this->openSvg($l->template);
+        $svg .= $this->defs($l->backBgFrom, $l->backBgTo, 'backBg', $l->template);
         $svg .= $this->cardClip();
 
         $svg .= '<g clip-path="url(#cardClip)">';
@@ -373,12 +397,17 @@ final class IdCardSvgRenderer
         );
 
         // Dot security pattern
-        $svg .= $this->dotPattern('backDots', 'rgba(255,255,255,0.04)');
-        $svg .= sprintf(
-            '<rect width="%d" height="%d" fill="url(#backDots)"/>',
-            self::W,
-            self::H,
-        );
+        if ($l->template !== IdCardTemplate::Minimal) {
+            $svg .= $l->template === IdCardTemplate::Modern
+                ? $this->linePattern('backLines', 'rgba(255,255,255,0.04)')
+                : $this->dotPattern('backDots', 'rgba(255,255,255,0.04)');
+            $svg .= sprintf(
+                '<rect width="%d" height="%d" fill="url(#%s)"/>',
+                self::W,
+                self::H,
+                $l->template === IdCardTemplate::Modern ? 'backLines' : 'backDots',
+            );
+        }
 
         // Status watermark
         if ($watermark !== null) {
@@ -395,7 +424,11 @@ final class IdCardSvgRenderer
 
         // Magnetic stripe
         if ($l->showMagneticStripe) {
-            $svg .= '<rect x="0" y="12" width="856" height="24" fill="rgba(0,0,0,0.5)"/>';
+            $svg .= match ($l->template) {
+                IdCardTemplate::Modern => '<rect x="290" y="16" width="566" height="16" rx="8" fill="rgba(0,0,0,0.5)"/>',
+                IdCardTemplate::Minimal => '<rect x="0" y="12" width="856" height="8" fill="rgba(0,0,0,0.5)"/>',
+                default => '<rect x="0" y="12" width="856" height="24" fill="rgba(0,0,0,0.5)"/>',
+            };
         }
 
         // ── QR block ─────────────────────────────────────────────────────
@@ -469,6 +502,21 @@ final class IdCardSvgRenderer
             );
         }
 
+        // Official seal — maximized within the open center of the text column.
+        if ($data->sealDataUri !== null) {
+            $sealSize = 192;
+            $sealX = $textX + (int) (($textW - $sealSize) / 2);
+            $sealY = $contentTop + (int) (($contentH - $sealSize) / 2);
+            $svg .= sprintf(
+                '<image id="officialSeal" x="%d" y="%d" width="%d" height="%d" href="%s" preserveAspectRatio="xMidYMid meet"/>',
+                $sealX,
+                $sealY,
+                $sealSize,
+                $sealSize,
+                $data->sealDataUri,
+            );
+        }
+
         // Bottom text block: card number, support contact, return address
         $bottomY = self::H - 8 - 38; // leave room for 3 lines
 
@@ -519,27 +567,37 @@ final class IdCardSvgRenderer
 
     // ── Private helpers ────────────────────────────────────────────────
 
-    private function openSvg(): string
+    private function openSvg(IdCardTemplate $template): string
     {
         return sprintf(
             '<?xml version="1.0" encoding="UTF-8"?>'
             .'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"'
-            .' viewBox="0 0 %d %d" width="%d" height="%d">',
-            self::W, self::H, self::W, self::H,
+            .' viewBox="0 0 %d %d" width="%d" height="%d" data-card-template="%s">',
+            self::W, self::H, self::W, self::H, $template->value,
         );
     }
 
-    private function defs(string $from, string $to, string $id): string
+    private function defs(string $from, string $to, string $id, IdCardTemplate $template): string
     {
+        [$x2, $y2, $firstOffset, $lastOffset] = match ($template) {
+            IdCardTemplate::Modern => ['100%', '0%', '62%', '62%'],
+            IdCardTemplate::Minimal => ['0%', '100%', '88%', '88%'],
+            default => ['100%', '100%', '0%', '100%'],
+        };
+
         return sprintf(
             '<defs>'
-            .'<linearGradient id="%s" x1="0%%" y1="0%%" x2="100%%" y2="100%%">'
-            .'<stop offset="0%%" stop-color="%s"/>'
-            .'<stop offset="100%%" stop-color="%s"/>'
+            .'<linearGradient id="%s" x1="0%%" y1="0%%" x2="%s" y2="%s">'
+            .'<stop offset="%s" stop-color="%s"/>'
+            .'<stop offset="%s" stop-color="%s"/>'
             .'</linearGradient>'
             .'</defs>',
             $this->e($id),
+            $x2,
+            $y2,
+            $firstOffset,
             $this->e($from),
+            $lastOffset,
             $this->e($to),
         );
     }
@@ -563,6 +621,19 @@ final class IdCardSvgRenderer
             .'</defs>',
             $id,
             $fill,
+        );
+    }
+
+    private function linePattern(string $id, string $stroke): string
+    {
+        return sprintf(
+            '<defs>'
+            .'<pattern id="%s" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+            .'<line x1="0" y1="0" x2="0" y2="12" stroke="%s" stroke-width="1"/>'
+            .'</pattern>'
+            .'</defs>',
+            $this->e($id),
+            $stroke,
         );
     }
 

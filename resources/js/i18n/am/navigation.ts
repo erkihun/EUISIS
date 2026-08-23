@@ -42,6 +42,7 @@ const navigation = {
     roles: 'ሚናዎች',
     permissions: 'ፈቃዶች',
     systemSettings: 'የስርዓት ቅንብሮች',
+    apiManagement: 'የኤፒአይ አስተዳደር',
     admin: 'አስተዳደር',
     adminAccess: 'የመዳረሻ ቁጥጥር',
     adminSystem: 'ስርዓት',

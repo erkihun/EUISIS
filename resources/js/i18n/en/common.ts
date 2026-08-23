@@ -121,6 +121,8 @@ const common = {
     lost: 'Lost',
     damaged: 'Damaged',
     replaced: 'Replaced',
+    copy: 'Copy',
+    copied: 'Copied',
 } as const;
 
 export default common;

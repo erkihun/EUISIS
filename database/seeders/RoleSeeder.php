@@ -89,9 +89,22 @@ class RoleSeeder extends Seeder
             'reports.view', 'audit.view',
         ];
 
+        // Dedicated integration role: manages external API access and nothing
+        // else, so API administration does not require a full superuser.
+        $apiManagerPerms = [
+            'dashboard.view',
+            'api_management.view', 'api_management.create', 'api_management.update',
+            'api_management.delete', 'api_management.tokens.create',
+            'api_management.tokens.revoke', 'api_management.logs.view',
+            'api_management.docs.view',
+            'api_management.endpoints.view', 'api_management.endpoints.sync',
+            'api_management.endpoints.update',
+        ];
+
         $roleMap = [
             'Super Admin' => $allPermissions,
             'System Admin' => $allPermissions,
+            'API Manager' => $apiManagerPerms,
             'Public Service Bureau Admin' => $allPermissions,
             'City Admin' => $allPermissions,
             'Organizational Admin' => $organizationalAdminPerms,

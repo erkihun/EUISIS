@@ -42,6 +42,7 @@ const navigation = {
     roles: 'Roles',
     permissions: 'Permissions',
     systemSettings: 'System Settings',
+    apiManagement: 'API Management',
     admin: 'Administration',
     adminAccess: 'Access Control',
     adminSystem: 'System',
