@@ -50,6 +50,20 @@ readonly class UpdateUserAction
 
             if (isset($attributes['password']) && $attributes['password'] !== '') {
                 $attributes['password'] = Hash::make($attributes['password']);
+
+                /*
+                 * An administrator resetting someone's password puts the
+                 * account back into the shared-credential state, so the holder
+                 * must choose a new one at their next login.
+                 *
+                 * A user changing their OWN password does not come through
+                 * here — that is PasswordController / the forced-change flow —
+                 * so this never re-locks someone who just set their password.
+                 */
+                if ($actor->getKey() !== $user->getKey()) {
+                    $attributes['must_change_password'] = true;
+                    $attributes['password_changed_at'] = null;
+                }
             } else {
                 unset($attributes['password']);
             }

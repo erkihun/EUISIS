@@ -64,6 +64,15 @@ const auth = {
     mfaContinue: 'ቀጥል',
     mfaConfirmSetup: 'ቅንብር አረጋግጥ',
     mfaDisable: 'MFA አሰናክል',
+
+    // Forced password change on first login
+    forcedPasswordTitle: 'የይለፍ ቃል ይቀይሩ',
+    forcedPasswordNotice: 'ለደህንነትዎ ሲባል ከመቀጠልዎ በፊት የይለፍ ቃልዎን ይቀይሩ።',
+    currentPassword: 'የአሁኑ የይለፍ ቃል',
+    newPassword: 'አዲስ የይለፍ ቃል',
+    confirmNewPassword: 'አዲሱን የይለፍ ቃል ያረጋግጡ',
+    changePasswordAction: 'የይለፍ ቃል ይቀይሩ',
+    changingPassword: 'በመቀየር ላይ…',
 } as const;
 
 export default auth;

@@ -19,4 +19,9 @@ return [
     'employee_not_found' => 'በዚህ የሠራተኛ ቁጥር ምንም ሠራተኛ አልተገኘም።',
     'employee_no_email' => 'ለዚህ ሠራተኛ የኢሜይል አድራሻ አልተመዘገበም። እባክዎ የሰው ሀብት ክፍልን ያነጋግሩ።',
     'employee_already_registered' => 'ለዚህ ሠራተኛ መለያ ቀደም ሲል ተፈጥሯል። እባክዎ ይግቡ።',
+
+    // Forced password change on first login
+    'must_change_password' => 'ከመቀጠልዎ በፊት የይለፍ ቃልዎን መቀየር አለብዎት።',
+    'password_must_differ' => 'አዲሱ የይለፍ ቃል ካሁኑ የይለፍ ቃል ጋር አንድ መሆን አይችልም።',
+    'password_changed' => 'የይለፍ ቃል በተሳካ ሁኔታ ተቀይሯል።',
 ];

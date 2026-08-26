@@ -64,6 +64,15 @@ const auth = {
     mfaContinue: 'Continue',
     mfaConfirmSetup: 'Confirm setup',
     mfaDisable: 'Disable MFA',
+
+    // Forced password change on first login
+    forcedPasswordTitle: 'Change Password',
+    forcedPasswordNotice: 'For your security, please change your password before continuing.',
+    currentPassword: 'Current Password',
+    newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
+    changePasswordAction: 'Change Password',
+    changingPassword: 'Changing…',
 } as const;
 
 export default auth;

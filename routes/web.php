@@ -259,7 +259,7 @@ Route::get('/announcements/transfer/{announcement}', [PublicTransferAnnouncement
     ->name('public.transfer-announcements.show');
 
 // Employee portal + apply routes — auth required, no MFA/verification gate
-Route::middleware(['auth', 'admin.access'])->group(function (): void {
+Route::middleware(['auth', 'force.password', 'admin.access'])->group(function (): void {
     Route::get('/my-portal', [EmployeePortalController::class, 'index'])
         ->name('employee.portal');
 
@@ -347,7 +347,7 @@ Route::get('/verify/card/{publicCardUuid}', fn (string $publicCardUuid) => redir
     ->name('id-cards.verify.public')
     ->middleware('throttle:30,1');
 
-Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (): void {
+Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     // Organizations
@@ -904,7 +904,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
 });
 
 // ── Grievance Module ───────────────────────────────────────────────────────────
-Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (): void {
+Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
     // My Grievances (any authenticated user)
     /*
      * Client Service Feedback — administrative review.
@@ -987,7 +987,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
     Route::patch('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'update'])->name('tribunal-cases.update');
 });
 
-Route::middleware(['auth', 'admin.access'])->group(function () {
+Route::middleware(['auth', 'force.password', 'admin.access'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

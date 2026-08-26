@@ -251,6 +251,14 @@ test('organizational admin sees HR Officer as scoped and creates it with role an
         'actor_user_id' => $admin->id,
     ]);
 
+    /*
+     * An admin-created account must change its password at first login, which
+     * would otherwise redirect every request below. This test is about
+     * organization scope, so the gate is satisfied first to keep the two
+     * concerns from being tested through one another.
+     */
+    $hrOfficer->markPasswordChanged();
+
     $this->actingAs($hrOfficer)->get(route('employees.show', $insideEmployee))->assertOk();
     $this->actingAs($hrOfficer)->get(route('employees.show', $outsideEmployee))->assertForbidden();
 });

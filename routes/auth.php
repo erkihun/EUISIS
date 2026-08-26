@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\ForcedPasswordChangeController;
 use App\Http\Controllers\Auth\MfaController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
@@ -60,6 +61,20 @@ Route::middleware('auth')->group(function () {
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+
+    /*
+     * Forced password change on first login.
+     *
+     * Deliberately NOT behind `force.password`: it is the one screen a user in
+     * that state must be able to reach, and the middleware allow-lists it by
+     * name. The controller redirects away when no change is pending.
+     */
+    Route::get('change-password', [ForcedPasswordChangeController::class, 'create'])
+        ->name('password.forced');
+
+    Route::post('change-password', [ForcedPasswordChangeController::class, 'update'])
+        ->middleware('throttle:6,1')
+        ->name('password.forced.update');
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');

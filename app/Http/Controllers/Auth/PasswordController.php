@@ -20,9 +20,19 @@ class PasswordController extends Controller
             'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $request->user()->update([
+        $user = $request->user();
+
+        $user->update([
             'password' => Hash::make($validated['password']),
         ]);
+
+        /*
+         * A voluntary change satisfies a pending forced change too: the holder
+         * has now chosen their own password, which is the whole point of the
+         * flag. Without this they would be sent back to the forced screen
+         * immediately after changing it here.
+         */
+        $user->markPasswordChanged();
 
         return back();
     }

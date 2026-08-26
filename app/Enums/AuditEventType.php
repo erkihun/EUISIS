@@ -61,6 +61,13 @@ enum AuditEventType: string
     case UserCreated = 'user_created';
     case UserUpdated = 'user_updated';
     case UserPhotoUpdated = 'user_photo_updated';
+    /*
+     * Password lifecycle. `PasswordChangeRequired` records an administrator
+     * putting an account back into the forced-change state, which is a
+     * privileged act worth attributing.
+     */
+    case UserPasswordChanged = 'user_password_changed';
+    case UserPasswordChangeRequired = 'user_password_change_required';
     case UserDeactivated = 'user_deactivated';
     case UserRestored = 'user_restored';
     case ProfileUpdated = 'profile_updated';

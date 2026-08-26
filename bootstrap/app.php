@@ -11,6 +11,7 @@ use App\Http\Middleware\EnsureProviderPortalUser;
 use App\Http\Middleware\EnsureProviderServiceEnabled;
 use App\Http\Middleware\EnsureProviderServiceScope;
 use App\Http\Middleware\ExternalApplicationGate;
+use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
@@ -65,6 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'cafeteria.portal.context' => SetCafeteriaPortalContext::class,
             'admin.access' => EnsureAdminAccess::class,
             'mfa' => RequireMfa::class,
+            'force.password' => ForcePasswordChange::class,
             'mfa.setup' => EnsureMfaNotRequired::class,
         ]);
     })

@@ -41,6 +41,14 @@ readonly class CreateUserAction
             $attributes['password'] = Hash::make($attributes['password']);
             $attributes['status'] = $attributes['status'] ?? 'active';
 
+            /*
+             * The administrator creating this account knows its password, so
+             * the credential is shared until the holder replaces it. They are
+             * held on the change-password screen at first login.
+             */
+            $attributes['must_change_password'] = $attributes['must_change_password'] ?? true;
+            $attributes['password_changed_at'] = null;
+
             $user = User::query()->create($attributes);
 
             if (! empty($roles)) {

@@ -20,4 +20,9 @@ return [
     'employee_not_found' => 'No employee record was found with that employee number.',
     'employee_no_email' => 'This employee record has no email address on file. Please contact HR.',
     'employee_already_registered' => 'An account already exists for this employee. Please sign in instead.',
+
+    // Forced password change on first login
+    'must_change_password' => 'You must change your password before continuing.',
+    'password_must_differ' => 'The new password cannot be the same as your current password.',
+    'password_changed' => 'Password changed successfully.',
 ];

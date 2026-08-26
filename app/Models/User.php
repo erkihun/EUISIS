@@ -40,6 +40,9 @@ class User extends Authenticatable
         'user_type',
         'status',
         'last_login_at',
+        'must_change_password',
+        'password_changed_at',
+        'first_login_at',
         'is_demo',
         'profile_photo_path',
         'national_id',
@@ -67,6 +70,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'must_change_password' => 'bool',
+            'password_changed_at' => 'datetime',
+            'first_login_at' => 'datetime',
             'provider_portal_activated_at' => 'datetime',
             'password' => 'hashed',
             'is_demo' => 'bool',
@@ -279,5 +285,41 @@ class User extends Authenticatable
         }
 
         return false;
+    }
+
+    /**
+     * Must this user replace their password before using the system?
+     *
+     * True for an account whose password was set by an administrator and not
+     * yet changed by the holder: until then the credential is known to someone
+     * other than its owner.
+     */
+    public function mustChangePassword(): bool
+    {
+        return (bool) $this->must_change_password;
+    }
+
+    /**
+     * Record that the holder has chosen their own password.
+     *
+     * `first_login_at` is stamped only once — it marks the moment the account
+     * genuinely became the holder's, and must not move on later changes.
+     */
+    public function markPasswordChanged(): void
+    {
+        $this->forceFill([
+            'must_change_password' => false,
+            'password_changed_at' => now(),
+            'first_login_at' => $this->first_login_at ?? now(),
+        ])->save();
+    }
+
+    /** Require this user to choose a new password at their next login. */
+    public function requirePasswordChange(): void
+    {
+        $this->forceFill([
+            'must_change_password' => true,
+            'password_changed_at' => null,
+        ])->save();
     }
 }
