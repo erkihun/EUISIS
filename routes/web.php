@@ -59,6 +59,7 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
+use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EntitlementController;
 use App\Http\Controllers\Web\EntitlementRuleController;
 use App\Http\Controllers\Web\GradeLevelController;
@@ -428,6 +429,18 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
     Route::get('/api/organization-unit-types/options', [OrganizationUnitTypeController::class, 'options'])->name('organization-unit-types.options');
 
     // Employees
+    /*
+     * Employee CSV import.
+     *
+     * Declared before /employees/{employee} so the literal `import` segment is
+     * not captured as an employee key.
+     */
+    Route::get('/employees/import', [EmployeeImportController::class, 'create'])->name('employees.import.create');
+    Route::post('/employees/import', [EmployeeImportController::class, 'store'])->name('employees.import.store');
+    Route::get('/employees/import/template', [EmployeeImportController::class, 'template'])->name('employees.import.template');
+    Route::post('/employees/import/cancel', [EmployeeImportController::class, 'cancel'])->name('employees.import.cancel');
+    Route::post('/employees/import/{batch}/confirm', [EmployeeImportController::class, 'confirm'])->name('employees.import.confirm');
+
     Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
     Route::get('/employees/create', [EmployeeController::class, 'create'])->name('employees.create');
     Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');

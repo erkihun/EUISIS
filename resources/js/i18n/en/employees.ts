@@ -52,6 +52,24 @@ const employees = {
     assignmentReason: 'Assignment Reason',
     assignmentHistory: 'Assignment History',
 
+    // CSV import (labels used by Pages/Employees/ImportCsv.tsx)
+    import: {
+        title: 'Upload Employees CSV',
+        downloadTemplate: 'Download CSV Template',
+        validate: 'Validate CSV',
+        preview: 'Import Preview',
+        confirm: 'Confirm Import',
+        cancel: 'Cancel Import',
+        result: 'Import Result',
+        validRows: 'Valid Rows',
+        invalidRows: 'Invalid Rows',
+        totalRows: 'Total Rows',
+        chooseFile: 'Choose a CSV file',
+        allowedOrganizations: 'Organizations you may import into',
+        notImportable: 'Every row must be valid before this file can be imported.',
+        rowValid: 'Valid',
+    },
+
     // Employee QR codes (detail page)
     qrSectionTitle: 'Employee QR Codes',
     qrSectionHint: 'These codes contain a web address only — no personal information.',

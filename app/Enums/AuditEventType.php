@@ -315,5 +315,13 @@ enum AuditEventType: string
     case ServiceFeedbackQrRevoked = 'service_feedback.qr_revoked';
     case ServiceFeedbackQrSuspended = 'service_feedback.qr_suspended';
     case ServiceFeedbackQrExported = 'service_feedback.qr_exported';
+
+    /*
+     * Employee CSV import. Validation is logged as well as completion, so an
+     * upload that was previewed and abandoned still leaves a trace of who
+     * attempted to load which file.
+     */
+    case EmployeeImportValidated = 'employee_import.validated';
+    case EmployeeImportCompleted = 'employee_import.completed';
     case ServiceFeedbackSettingsUpdated = 'service_feedback.settings_updated';
 }

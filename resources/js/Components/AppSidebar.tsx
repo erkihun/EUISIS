@@ -121,6 +121,7 @@ const navGroups: NavGroup[] = [
         icon: Users,
         items: [
             { routeName: 'employees.index',                      labelKey: 'nav.employees',             icon: Users,              permission: 'employees.view' },
+            { routeName: 'employees.import.create',              labelKey: 'nav.employeeImport',        icon: ClipboardListIcon,  permission: 'employees.import.view' },
             { routeName: 'vacancy-announcements.index',          labelKey: 'nav.vacancyAnnouncements',  icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
             { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',        icon: Inbox },
             { routeName: 'transfers.dashboard',                  labelKey: 'nav.transferDashboard',     icon: ArrowLeftRightIcon, permission: 'transfers.view' },

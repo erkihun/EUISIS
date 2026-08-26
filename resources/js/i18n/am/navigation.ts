@@ -20,6 +20,7 @@ const navigation = {
     institutionOffices: 'የተቋም ቢሮዎች',
     hierarchyVersions: 'የመዋቅር ስሪቶች',
     employees: 'ሰራተኞች',
+    employeeImport: 'የሠራተኞች CSV ይጫኑ',
     employeeTransfers: 'የሰራተኛ ዝውውሮች',
     transferManagement: 'የዝውውር አስተዳደር',
     transferDashboard: 'ዳሽቦርድ',

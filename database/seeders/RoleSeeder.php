@@ -48,6 +48,9 @@ class RoleSeeder extends Seeder
 
             // Employees & assignments
             'employees.viewAny', 'employees.view', 'employees.viewPii', 'employees.manage',
+            // CSV import is confined to the admin's own organizations by
+            // EmployeeCsvImportService, which re-checks every row.
+            'employees.import.view', 'employees.import.upload', 'employees.import.confirm',
 
             // ID cards
             'id-cards.viewAny', 'id-cards.view', 'id-cards.create', 'id-cards.update',

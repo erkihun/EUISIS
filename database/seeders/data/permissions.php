@@ -1498,4 +1498,18 @@ return [
         'label_en' => 'Change Service ID After Feedback', 'label_am' => 'ግብረመልስ ካለ በኋላ የአገልግሎት መለያ ይቀይሩ',
         'description_en' => 'Allows renumbering a position service that already has client feedback recorded against it.',
         'description_am' => 'አስቀድሞ የደንበኛ ግብረመልስ የተመዘገበበትን የአገልግሎት መለያ ቁጥር መቀየር ያስችላል።'],
+
+    // Employee CSV import
+    ['name' => 'employees.import.view', 'group' => 'employees', 'sort_order' => 200, 'is_system' => true,
+        'label_en' => 'View Employee Import', 'label_am' => 'የሠራተኛ ማስመጣት ይመልከቱ',
+        'description_en' => 'Allows opening the employee CSV upload screen.',
+        'description_am' => 'የሠራተኛ CSV መጫኛ ገጽ መክፈት ያስችላል።'],
+    ['name' => 'employees.import.upload', 'group' => 'employees', 'sort_order' => 210, 'is_system' => true,
+        'label_en' => 'Upload Employee CSV', 'label_am' => 'የሠራተኛ CSV ይጫኑ',
+        'description_en' => 'Allows uploading and validating an employee CSV file.',
+        'description_am' => 'የሠራተኛ CSV ፋይል መጫንና ማረጋገጥ ያስችላል።'],
+    ['name' => 'employees.import.confirm', 'group' => 'employees', 'sort_order' => 220, 'is_system' => true,
+        'label_en' => 'Confirm Employee Import', 'label_am' => 'የሠራተኛ ማስመጣት ያረጋግጡ',
+        'description_en' => 'Allows committing a validated employee import to the database.',
+        'description_am' => 'የተረጋገጠ የሠራተኛ ማስመጣት ወደ ዳታቤዝ ማስገባት ያስችላል።'],
 ];

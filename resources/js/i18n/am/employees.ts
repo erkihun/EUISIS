@@ -52,6 +52,24 @@ const employees = {
     assignmentReason: 'የምደባ ምክንያት',
     assignmentHistory: 'የምደባ ታሪክ',
 
+    // CSV import (labels used by Pages/Employees/ImportCsv.tsx)
+    import: {
+        title: 'የሠራተኞች CSV ይጫኑ',
+        downloadTemplate: 'የCSV አብነት ያውርዱ',
+        validate: 'CSV ያረጋግጡ',
+        preview: 'የማስመጣት ቅድመ እይታ',
+        confirm: 'ማስመጣት ያረጋግጡ',
+        cancel: 'ማስመጣት ይሰርዙ',
+        result: 'የማስመጣት ውጤት',
+        validRows: 'ትክክለኛ ረድፎች',
+        invalidRows: 'ስህተት ያለባቸው ረድፎች',
+        totalRows: 'ጠቅላላ ረድፎች',
+        chooseFile: 'የCSV ፋይል ይምረጡ',
+        allowedOrganizations: 'ማስመጣት የሚችሉባቸው ድርጅቶች',
+        notImportable: 'ይህ ፋይል ከመግባቱ በፊት ሁሉም ረድፎች ትክክለኛ መሆን አለባቸው።',
+        rowValid: 'ትክክለኛ',
+    },
+
     // Employee QR codes (detail page)
     qrSectionTitle: 'የሠራተኛ QR ኮዶች',
     qrSectionHint: 'እነዚህ ኮዶች የድረ-ገጽ አድራሻ ብቻ ይይዛሉ — ምንም የግል መረጃ የለም።',

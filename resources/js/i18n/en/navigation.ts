@@ -20,6 +20,7 @@ const navigation = {
     institutionOffices: 'Institution Offices',
     hierarchyVersions: 'Hierarchy Versions',
     employees: 'Employees',
+    employeeImport: 'Upload Employees CSV',
     employeeTransfers: 'Employee Transfers',
     transferManagement: 'Transfer Management',
     transferDashboard: 'Dashboard',
