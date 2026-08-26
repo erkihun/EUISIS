@@ -40,7 +40,7 @@ export default function SettingField({ field, locale, value, error, disabled = f
         );
     }
 
-    if (field.is_encrypted) {
+    if (field.is_encrypted || field.type === 'password') {
         return (
             <SecretSettingField
                 label={label}

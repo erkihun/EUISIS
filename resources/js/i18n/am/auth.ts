@@ -67,7 +67,7 @@ const auth = {
 
     // Forced password change on first login
     forcedPasswordTitle: 'የይለፍ ቃል ይቀይሩ',
-    forcedPasswordNotice: 'ለደህንነትዎ ሲባል ከመቀጠልዎ በፊት የይለፍ ቃልዎን ይቀይሩ።',
+    forcedPasswordNotice: 'ከመቀጠልዎ በፊት ነባሪ የይለፍ ቃልዎን መቀየር አለብዎት።',
     currentPassword: 'የአሁኑ የይለፍ ቃል',
     newPassword: 'አዲስ የይለፍ ቃል',
     confirmNewPassword: 'አዲሱን የይለፍ ቃል ያረጋግጡ',

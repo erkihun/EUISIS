@@ -1,22 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\User;
+use App\Services\Security\DefaultPasswordPolicyService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
+    public function __construct(private readonly DefaultPasswordPolicyService $defaultPasswordPolicy) {}
+
     /**
      * Display the registration view, or redirect to /login when public
      * self-service registration is disabled.
@@ -45,8 +49,14 @@ class RegisteredUserController extends Controller
 
         $request->validate([
             'employee_number' => ['required', 'string', 'max:255'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', $this->defaultPasswordPolicy->rule()],
         ]);
+
+        if ($this->defaultPasswordPolicy->matches((string) $request->password)) {
+            throw ValidationException::withMessages([
+                'password' => __('auth.password_cannot_be_default'),
+            ]);
+        }
 
         // Find the employee by employee_number
         $employee = Employee::query()
@@ -77,6 +87,9 @@ class RegisteredUserController extends Controller
             'email' => $employee->email,
             'password' => Hash::make($request->password),
             'employee_reference' => $employee->employee_number,
+            'password_changed_at' => now(),
+            'first_login_at' => now(),
+            'last_login_at' => now(),
         ]);
 
         event(new Registered($user));

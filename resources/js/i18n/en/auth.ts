@@ -67,7 +67,7 @@ const auth = {
 
     // Forced password change on first login
     forcedPasswordTitle: 'Change Password',
-    forcedPasswordNotice: 'For your security, please change your password before continuing.',
+    forcedPasswordNotice: 'You must change your default password before continuing.',
     currentPassword: 'Current Password',
     newPassword: 'New Password',
     confirmNewPassword: 'Confirm New Password',

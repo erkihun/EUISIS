@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\Security\DefaultPasswordPolicyService;
 use App\Services\Users\AssignableUserRoleService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -32,11 +33,12 @@ class UserUpdateRequest extends FormRequest
     public function rules(): array
     {
         $userId = $this->route('user')?->id;
+        $passwordPolicy = app(DefaultPasswordPolicyService::class);
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'password' => ['nullable', 'string', 'confirmed', $passwordPolicy->rule()],
             'status' => ['in:active,inactive'],
             'roles' => ['array'],
             'roles.*' => ['string', 'exists:roles,name'],
@@ -58,6 +60,18 @@ class UserUpdateRequest extends FormRequest
                 $actor = $this->user();
                 $target = $this->route('user');
                 $roleNames = $this->input('roles');
+                $password = $this->input('password');
+
+                if (
+                    $actor !== null
+                    && $target instanceof User
+                    && $actor->is($target)
+                    && is_string($password)
+                    && $password !== ''
+                    && app(DefaultPasswordPolicyService::class)->matches($password)
+                ) {
+                    $validator->errors()->add('password', __('auth.password_cannot_be_default'));
+                }
 
                 if ($actor === null || ! $target instanceof User || ! is_array($roleNames)) {
                     return;

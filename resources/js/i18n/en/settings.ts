@@ -83,6 +83,13 @@ const settings = {
         requiredForRole: 'MFA is required for your role',
         updated: 'MFA settings updated',
     },
+    defaultPassword: {
+        title: 'Default Password Policy',
+        helper: 'Configure the one-time initial password used when a new user is created without a custom temporary password.',
+        confirm: 'Confirm Default Password',
+        configured: 'Default password configured',
+        notConfigured: 'Default password not configured',
+    },
     fields: {
         sampleCardTitle: 'Sample card',
         sampleCardText: 'Preview how cards, buttons, and badges respond to appearance settings.',

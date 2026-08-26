@@ -44,6 +44,11 @@ type Props = {
 };
 
 const mfaFieldKeys = ['mfa_enabled', 'mfa_required_for_all', 'mfa_required_role_ids'];
+const defaultPasswordFieldKeys = [
+    'default_password_enabled',
+    'default_password_hash',
+    'force_change_default_password',
+];
 
 type FormValue = string | number | boolean | string[] | File | null;
 type FormShape = Record<string, FormValue>;
@@ -389,8 +394,12 @@ function GroupFormPanel({
 
     const isSecurity = groupId === 'security';
     const genericFields = isSecurity
-        ? payload.fields.filter((field) => !mfaFieldKeys.includes(field.key))
+        ? payload.fields.filter((field) => !mfaFieldKeys.includes(field.key) && !defaultPasswordFieldKeys.includes(field.key))
         : payload.fields;
+    const defaultPasswordFields = isSecurity
+        ? payload.fields.filter((field) => defaultPasswordFieldKeys.includes(field.key))
+        : [];
+    const defaultPasswordHashField = defaultPasswordFields.find((field) => field.key === 'default_password_hash');
     const mfaToggleFields = isSecurity
         ? payload.fields.filter((field) => field.key === 'mfa_enabled' || field.key === 'mfa_required_for_all')
         : [];
@@ -418,18 +427,32 @@ function GroupFormPanel({
     const submit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        form.transform((data) => ({
-            _method: 'patch',
-            ...payload.fields.reduce<Record<string, FormValue>>((carry, field) => {
+        form.transform((data) => {
+            const values = payload.fields.reduce<Record<string, FormValue>>((carry, field) => {
                 carry[field.key] = normalizeForSubmit(field, data[field.key]);
                 return carry;
-            }, {}),
-        }));
+            }, {});
+
+            if (isSecurity) {
+                values.default_password_hash_confirmation = data.default_password_hash_confirmation ?? '';
+            }
+
+            return { _method: 'patch', ...values };
+        });
 
         form.post(route(routeName), {
             preserveScroll: true,
             preserveState: true,
             forceFormData: true,
+            onSuccess: () => {
+                if (isSecurity) {
+                    form.setData((data) => ({
+                        ...data,
+                        default_password_hash: '',
+                        default_password_hash_confirmation: '',
+                    }));
+                }
+            },
         });
     };
 
@@ -588,6 +611,65 @@ function GroupFormPanel({
                                 </div>
                             </div>
                         )}
+                    </SettingsCard>
+                )}
+
+                {isSecurity && defaultPasswordFields.length > 0 && (
+                    <SettingsCard
+                        title={t('settings.defaultPassword.title')}
+                        description={t('settings.defaultPassword.helper')}
+                    >
+                        <div className="px-5 pt-4">
+                            <span
+                                className={[
+                                    'inline-flex rounded-full px-2.5 py-1 text-xs font-semibold',
+                                    defaultPasswordHashField?.configured
+                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                        : 'bg-gray-200 text-gray-600 dark:bg-slate-800 dark:text-slate-300',
+                                ].join(' ')}
+                            >
+                                {defaultPasswordHashField?.configured
+                                    ? t('settings.defaultPassword.configured')
+                                    : t('settings.defaultPassword.notConfigured')}
+                            </span>
+                        </div>
+
+                        {defaultPasswordFields.map((field) => (
+                            <SettingField
+                                key={field.key}
+                                field={field}
+                                locale={locale}
+                                value={form.data[field.key]}
+                                error={form.errors[field.key]}
+                                disabled={readOnly}
+                                onChange={(nextValue) => form.setData(field.key, nextValue)}
+                            />
+                        ))}
+
+                        <div className="grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-3 md:items-start">
+                            <label
+                                htmlFor="default_password_hash_confirmation"
+                                className="text-sm font-medium text-gray-900 dark:text-slate-100"
+                            >
+                                {t('settings.defaultPassword.confirm')}
+                            </label>
+                            <div className="space-y-2 md:col-span-2">
+                                <input
+                                    id="default_password_hash_confirmation"
+                                    type="password"
+                                    value={String(form.data.default_password_hash_confirmation ?? '')}
+                                    disabled={readOnly}
+                                    autoComplete="new-password"
+                                    onChange={(event) => form.setData('default_password_hash_confirmation', event.target.value)}
+                                    className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                                />
+                                {form.errors.default_password_hash_confirmation && (
+                                    <p className="text-sm text-red-600 dark:text-red-400">
+                                        {form.errors.default_password_hash_confirmation}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
                     </SettingsCard>
                 )}
 

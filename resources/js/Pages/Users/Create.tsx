@@ -44,11 +44,15 @@ export default function CreateUser({
     statusOptions,
     organizations = [],
     requiresOrganizationScope,
+    defaultPasswordAvailable = false,
+    passwordMinimumLength = 12,
 }: {
     roles: Role[];
     statusOptions: string[];
     organizations?: OrgOption[];
     requiresOrganizationScope: boolean;
+    defaultPasswordAvailable?: boolean;
+    passwordMinimumLength?: number;
 }) {
     const { t } = useLocale();
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -227,11 +231,19 @@ export default function CreateUser({
                                 <input
                                     type="password"
                                     className={inputCls}
-                                    placeholder={t('users.passwordHint')}
+                                    placeholder={defaultPasswordAvailable
+                                        ? t('users.defaultPasswordOptional')
+                                        : `${t('users.passwordMinimum')} ${passwordMinimumLength}`}
                                     value={form.data.password}
                                     onChange={(e) => form.setData('password', e.target.value)}
                                 />
                             </Field>
+
+                            {defaultPasswordAvailable && (
+                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                    {t('users.defaultPasswordWillBeUsed')}
+                                </p>
+                            )}
 
                             <Field label={t('users.confirmPassword')} error={form.errors.password_confirmation}>
                                 <input

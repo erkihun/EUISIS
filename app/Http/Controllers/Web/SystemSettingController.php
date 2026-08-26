@@ -21,11 +21,13 @@ use App\Http\Requests\Settings\UpdateSecuritySettingsRequest;
 use App\Http\Requests\Settings\UpdateSmsSettingsRequest;
 use App\Http\Requests\Settings\UpdateTelegramSettingsRequest;
 use App\Models\SystemSetting;
+use App\Services\Security\DefaultPasswordPolicyService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
@@ -182,6 +184,16 @@ class SystemSettingController extends Controller
     public function updateSecurity(UpdateSecuritySettingsRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $submittedDefaultPassword = $validated['default_password_hash'] ?? null;
+        $wasDefaultPasswordConfigured = app(DefaultPasswordPolicyService::class)->isConfigured();
+
+        unset($validated['default_password_hash_confirmation']);
+
+        if (is_string($submittedDefaultPassword) && $submittedDefaultPassword !== '') {
+            $validated['default_password_hash'] = Hash::make($submittedDefaultPassword);
+        } else {
+            unset($validated['default_password_hash']);
+        }
 
         // Store role ids as strings so json round-trips are type-stable.
         $validated['mfa_required_role_ids'] = array_map(
@@ -200,6 +212,17 @@ class SystemSettingController extends Controller
             $validated,
             $request->user(),
         );
+
+        if (is_string($submittedDefaultPassword) && $submittedDefaultPassword !== '') {
+            $this->writeAuditLogAction->execute(
+                AuditEventType::DefaultPasswordConfigured,
+                $request->user(),
+                reason: $wasDefaultPasswordConfigured
+                    ? 'default_password_updated'
+                    : 'default_password_configured',
+                request: $request,
+            );
+        }
 
         return back()->with('flash', ['message' => __('settings.messages.security_updated'), 'type' => 'success']);
     }

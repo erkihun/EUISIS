@@ -8,10 +8,10 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Services\Dashboard\DashboardDataService;
+use App\Services\Security\DefaultPasswordPolicyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -26,7 +26,10 @@ use Inertia\Response;
  */
 class ForcedPasswordChangeController extends Controller
 {
-    public function __construct(private readonly WriteAuditLogAction $writeAuditLog) {}
+    public function __construct(
+        private readonly WriteAuditLogAction $writeAuditLog,
+        private readonly DefaultPasswordPolicyService $defaultPasswordPolicy,
+    ) {}
 
     public function create(Request $request): Response|RedirectResponse
     {
@@ -50,7 +53,7 @@ class ForcedPasswordChangeController extends Controller
             // The temporary password still has to be proved, so a hijacked
             // session cannot quietly take ownership of the account.
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::defaults()],
+            'password' => ['required', 'confirmed', $this->defaultPasswordPolicy->rule()],
         ]);
 
         /*
@@ -62,6 +65,12 @@ class ForcedPasswordChangeController extends Controller
         if (Hash::check($validated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'password' => __('auth.password_must_differ'),
+            ]);
+        }
+
+        if ($this->defaultPasswordPolicy->matches($validated['password'])) {
+            throw ValidationException::withMessages([
+                'password' => __('auth.password_cannot_be_default'),
             ]);
         }
 

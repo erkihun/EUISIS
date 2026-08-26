@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'title' => 'የሥርዓት ቅንብሮች',
+    'default_password_required' => 'የነባሪ የይለፍ ቃል ፖሊሲውን ከማንቃትዎ በፊት አዲስ ነባሪ የይለፍ ቃል ያዋቅሩ።',
     'messages' => [
         'general_updated' => 'አጠቃላይ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
         'localization_updated' => 'የአካባቢ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',

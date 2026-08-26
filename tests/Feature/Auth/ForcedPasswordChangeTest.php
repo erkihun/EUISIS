@@ -232,7 +232,7 @@ it('does not force a change when a user updates their own record', function (): 
     expect($user->fresh()->must_change_password)->toBeFalse();
 });
 
-it('clears a pending forced change when the profile password form is used', function (): void {
+it('blocks the profile password form while a forced change is pending', function (): void {
     $user = forcedUser();
 
     $this->actingAs($user)
@@ -243,7 +243,7 @@ it('clears a pending forced change when the profile password form is used', func
         ])
         ->assertRedirect();
 
-    expect($user->fresh()->must_change_password)->toBeFalse();
+    expect($user->fresh()->must_change_password)->toBeTrue();
 });
 
 it('leaves existing users untouched by the migration', function (): void {

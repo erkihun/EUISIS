@@ -21,6 +21,8 @@ class WriteAuditLogAction
     private const REDACTED_KEYS = [
         'password',
         'password_confirmation',
+        'default_password_hash',
+        'default_password_hash_confirmation',
         'current_password',
         'national_id',
         'two_factor_secret',

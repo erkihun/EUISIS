@@ -172,8 +172,8 @@ test('organizational admin creates a user only with an allowed organization scop
     $payload = [
         'name' => 'Scoped New User',
         'email' => 'scoped-new@example.test',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'Valid-Password-123!',
+        'password_confirmation' => 'Valid-Password-123!',
         'status' => 'active',
         'roles' => ['Organization Staff'],
         'scope_type' => 'self',
@@ -229,8 +229,8 @@ test('organizational admin sees HR Officer as scoped and creates it with role an
         ->post(route('users.store'), [
             'name' => 'Scoped HR Officer',
             'email' => 'scoped-hr@example.test',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
             'role_ids' => [$hrRole->id],
             'organization_scope_ids' => [$inside->id],
@@ -272,8 +272,8 @@ test('organizational admin role and scope ids are required and authoritative', f
     $base = [
         'name' => 'Invalid Scoped User',
         'email' => 'invalid-ids@example.test',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'Valid-Password-123!',
+        'password_confirmation' => 'Valid-Password-123!',
         'status' => 'active',
         'scope_type' => 'self',
     ];
@@ -307,8 +307,8 @@ test('super admin sees global and scoped roles but scoped role assignment requir
     $this->actingAs($superAdmin)->post(route('users.store'), [
         'name' => 'Global Created User',
         'email' => 'global-created@example.test',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'Valid-Password-123!',
+        'password_confirmation' => 'Valid-Password-123!',
         'status' => 'active',
         'role_ids' => [$hrRole->id],
     ])->assertSessionHasErrors('organization_scope_ids');
@@ -317,8 +317,8 @@ test('super admin sees global and scoped roles but scoped role assignment requir
     $this->actingAs($superAdmin)->post(route('users.store'), [
         'name' => 'Global Created User',
         'email' => 'global-created@example.test',
-        'password' => 'password123',
-        'password_confirmation' => 'password123',
+        'password' => 'Valid-Password-123!',
+        'password_confirmation' => 'Valid-Password-123!',
         'status' => 'active',
         'role_ids' => [$globalRole->id],
     ])->assertSessionHasNoErrors();
@@ -334,8 +334,8 @@ test('organizational admin cannot grant protected or globally privileged roles o
         ->post(route('users.store'), [
             'name' => 'Escalated User',
             'email' => 'escalated-'.str($role)->slug().'@example.test',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
             'roles' => [$role],
             'organization_id' => $organization->id,

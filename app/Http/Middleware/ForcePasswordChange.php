@@ -15,14 +15,13 @@ use Symfony\Component\HttpFoundation\Response;
  * administrator knows. Until the holder replaces it the credential is shared,
  * so no protected route may be reached with it.
  *
- * Three things stay reachable, or the user would be trapped:
+ * Two things stay reachable, or the user would be trapped:
  *  - the forced change screen itself and the route that submits it,
  *  - logout,
- *  - password reset, in case the temporary password was never received.
  *
- * Sits alongside RequireMfa rather than replacing it. A user with both pending
- * completes MFA first (that middleware runs earlier in the stack) and lands
- * here afterwards; neither gate can be skipped by satisfying the other.
+ * This gate is applied only to the primary web guard. MFA enforcement resumes
+ * after the shared password has been replaced; separate provider guards pass
+ * through their existing authentication flows unchanged.
  */
 class ForcePasswordChange
 {
@@ -36,10 +35,7 @@ class ForcePasswordChange
     private const ALLOWED_ROUTES = [
         'password.forced',
         'password.forced.update',
-        'password.*',
         'logout',
-        'verification.*',
-        'mfa.*',
     ];
 
     public function handle(Request $request, Closure $next): Response

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'default_password_unavailable' => 'ጊዜያዊ የይለፍ ቃል ያስገቡ ወይም የሥርዓቱን ነባሪ የይለፍ ቃል ያዋቅሩ እና ያንቁ።',
     'title' => 'ተጠቃሚዎች',
     'user' => 'ተጠቃሚ',
     'create' => 'ተጠቃሚ ፍጠር',

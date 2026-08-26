@@ -23,5 +23,6 @@ return [
     // Forced password change on first login
     'must_change_password' => 'ከመቀጠልዎ በፊት የይለፍ ቃልዎን መቀየር አለብዎት።',
     'password_must_differ' => 'አዲሱ የይለፍ ቃል ካሁኑ የይለፍ ቃል ጋር አንድ መሆን አይችልም።',
+    'password_cannot_be_default' => 'አዲሱ የይለፍ ቃል ከነባሪው የይለፍ ቃል ጋር አንድ መሆን አይችልም።',
     'password_changed' => 'የይለፍ ቃል በተሳካ ሁኔታ ተቀይሯል።',
 ];

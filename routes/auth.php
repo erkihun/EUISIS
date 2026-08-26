@@ -43,7 +43,7 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'force.password'])->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 
@@ -65,9 +65,9 @@ Route::middleware('auth')->group(function () {
     /*
      * Forced password change on first login.
      *
-     * Deliberately NOT behind `force.password`: it is the one screen a user in
-     * that state must be able to reach, and the middleware allow-lists it by
-     * name. The controller redirects away when no change is pending.
+     * These routes remain inside `force.password`; the middleware explicitly
+     * allow-lists them and the controller redirects away when no change is
+     * pending.
      */
     Route::get('change-password', [ForcedPasswordChangeController::class, 'create'])
         ->name('password.forced');

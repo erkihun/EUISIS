@@ -40,6 +40,7 @@ class UpdateSystemSettingsGroupAction
                 }
 
                 $isEncrypted = (bool) ($def['is_encrypted'] ?? false);
+                $isSecret = $isEncrypted || $def['type'] === 'password';
                 $incoming = $data[$key];
 
                 /** @var SystemSetting $row */
@@ -80,7 +81,7 @@ class UpdateSystemSettingsGroupAction
                     $storedValue = Crypt::encryptString($storedValue);
                 }
 
-                if ($isEncrypted) {
+                if ($isSecret) {
                     $oldSnapshot[$key] = $row->value ? 'configured' : 'not_configured';
                     $newSnapshot[$key] = ($storedValue !== null && $storedValue !== '') ? 'configured' : 'not_configured';
                 } else {

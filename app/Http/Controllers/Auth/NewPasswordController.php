@@ -1,21 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Security\DefaultPasswordPolicyService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class NewPasswordController extends Controller
 {
+    public function __construct(private readonly DefaultPasswordPolicyService $defaultPasswordPolicy) {}
+
     /**
      * Display the password reset view.
      */
@@ -37,7 +41,7 @@ class NewPasswordController extends Controller
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', 'confirmed', $this->defaultPasswordPolicy->rule()],
         ]);
 
         // Here we will attempt to reset the user's password. If it is successful we
@@ -46,10 +50,24 @@ class NewPasswordController extends Controller
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
             function ($user) use ($request) {
+                if (Hash::check((string) $request->password, $user->password)) {
+                    throw ValidationException::withMessages([
+                        'password' => __('auth.password_must_differ'),
+                    ]);
+                }
+
+                if ($this->defaultPasswordPolicy->matches((string) $request->password)) {
+                    throw ValidationException::withMessages([
+                        'password' => __('auth.password_cannot_be_default'),
+                    ]);
+                }
+
                 $user->forceFill([
                     'password' => Hash::make($request->password),
                     'remember_token' => Str::random(60),
                 ])->save();
+
+                $user->markPasswordChanged();
 
                 event(new PasswordReset($user));
             }

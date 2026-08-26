@@ -2,6 +2,7 @@
 
 return [
     'title' => 'System Settings',
+    'default_password_required' => 'Configure a new default password before enabling the default password policy.',
     'messages' => [
         'general_updated' => 'General settings updated successfully.',
         'localization_updated' => 'Localization settings updated successfully.',

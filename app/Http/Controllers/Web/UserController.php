@@ -18,6 +18,7 @@ use App\Http\Requests\UserUpdateRequest;
 use App\Models\Organization;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Security\DefaultPasswordPolicyService;
 use App\Services\Users\AssignableUserRoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,6 +32,7 @@ class UserController extends Controller
     public function __construct(
         private readonly OrganizationScopeService $organizationScopeService,
         private readonly AssignableUserRoleService $assignableUserRoleService,
+        private readonly DefaultPasswordPolicyService $defaultPasswordPolicy,
     ) {}
 
     public function index(): Response
@@ -86,6 +88,8 @@ class UserController extends Controller
             'roles' => $this->assignableRoles($actor),
             'statusOptions' => ['active', 'inactive'],
             'requiresOrganizationScope' => $this->organizationScopeService->isScopedOrganizationalAdmin($actor),
+            'defaultPasswordAvailable' => $this->defaultPasswordPolicy->canSupplyInitialPassword(),
+            'passwordMinimumLength' => $this->defaultPasswordPolicy->minimumLength(),
             'organizations' => Organization::query()
                 ->where('status', 'active')
                 // A scoped actor may only place a new user inside their own orgs.

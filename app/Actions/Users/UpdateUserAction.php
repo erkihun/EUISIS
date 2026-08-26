@@ -8,6 +8,7 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Users\Concerns\GuardsSuperAdminAssignment;
 use App\Enums\AuditEventType;
 use App\Models\User;
+use App\Services\Security\DefaultPasswordPolicyService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -16,7 +17,10 @@ readonly class UpdateUserAction
 {
     use GuardsSuperAdminAssignment;
 
-    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+    public function __construct(
+        private WriteAuditLogAction $writeAuditLogAction,
+        private DefaultPasswordPolicyService $defaultPasswordPolicy,
+    ) {}
 
     public function execute(array $attributes, User $user, User $actor): User
     {
@@ -49,6 +53,14 @@ readonly class UpdateUserAction
             }
 
             if (isset($attributes['password']) && $attributes['password'] !== '') {
+                $resetToDefaultPassword = $this->defaultPasswordPolicy->matches($attributes['password']);
+
+                if ($resetToDefaultPassword && $actor->getKey() === $user->getKey()) {
+                    throw ValidationException::withMessages([
+                        'password' => __('auth.password_cannot_be_default'),
+                    ]);
+                }
+
                 $attributes['password'] = Hash::make($attributes['password']);
 
                 /*
@@ -65,10 +77,24 @@ readonly class UpdateUserAction
                     $attributes['password_changed_at'] = null;
                 }
             } else {
+                $resetToDefaultPassword = false;
                 unset($attributes['password']);
             }
 
             $user->update($attributes);
+
+            if (isset($attributes['password']) && $actor->getKey() !== $user->getKey()) {
+                $this->writeAuditLogAction->execute(
+                    AuditEventType::AdminPasswordReset,
+                    $actor,
+                    $user,
+                    newValues: [
+                        'must_change_password' => true,
+                        'used_default_password' => $resetToDefaultPassword,
+                    ],
+                    reason: 'administrator_reset_user_password',
+                );
+            }
 
             if (is_array($roles) && $actor->can('assignRoles', $user)) {
                 $user->syncRoles($roles);

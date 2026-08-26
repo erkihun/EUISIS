@@ -128,8 +128,8 @@ test('super admin can create and assign a global role without organization scope
         ->post(route('users.store'), [
             'name' => 'Global Security User',
             'email' => 'global-security@example.test',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
             'role_ids' => [$role->id],
         ])
@@ -152,8 +152,8 @@ test('assigning a scoped role requires an organization scope', function (): void
         ->post(route('users.store'), [
             'name' => 'Unscoped HR User',
             'email' => 'unscoped-hr@example.test',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
             'role_ids' => [$role->id],
         ])
@@ -174,8 +174,8 @@ test('organizational admin cannot assign a global role', function (): void {
         ->post(route('users.store'), [
             'name' => 'Escalated Global User',
             'email' => 'escalated-global@example.test',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
             'role_ids' => [$role->id],
             'organization_scope_ids' => [$this->scopeOrganization->id],

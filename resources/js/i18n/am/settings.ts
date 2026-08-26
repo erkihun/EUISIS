@@ -83,6 +83,13 @@ const settings = {
         requiredForRole: 'ለሚናዎ MFA ያስፈልጋል',
         updated: 'የMFA ቅንብሮች ተዘምነዋል',
     },
+    defaultPassword: {
+        title: 'ነባሪ የይለፍ ቃል ፖሊሲ',
+        helper: 'አዲስ ተጠቃሚ ያለ ብጁ ጊዜያዊ የይለፍ ቃል ሲፈጠር የሚጠቀምበትን የአንድ ጊዜ መነሻ የይለፍ ቃል ያዋቅሩ።',
+        confirm: 'ነባሪ የይለፍ ቃል ያረጋግጡ',
+        configured: 'ነባሪ የይለፍ ቃል ተዋቅሯል',
+        notConfigured: 'ነባሪ የይለፍ ቃል አልተዋቀረም',
+    },
     fields: {
         sampleCardTitle: 'የምሳሌ ካርድ',
         sampleCardText: 'ካርዶች፣ አዝራሮች እና ምልክቶች በገጽታ ቅንብሮች እንዴት እንደሚቀየሩ ይመልከቱ።',

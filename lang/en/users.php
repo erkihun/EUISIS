@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'default_password_unavailable' => 'Enter a temporary password or configure and enable the system default password.',
     'title' => 'Users',
     'user' => 'User',
     'create' => 'Create User',

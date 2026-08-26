@@ -111,8 +111,8 @@ test('users without create permission cannot store a user', function (): void {
         ->post(route('users.store'), [
             'name' => 'New User',
             'email' => 'new@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
         ])
         ->assertForbidden();
@@ -123,8 +123,8 @@ test('users with create permission can store a user', function (): void {
         ->post(route('users.store'), [
             'name' => 'New User',
             'email' => 'new@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
         ])
         ->assertRedirect(route('users.index'));
@@ -150,8 +150,8 @@ test('users with create permission can store profile fields and photo', function
         ->post(route('users.store'), [
             'name' => 'Profile User',
             'email' => 'profile-user@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
             'national_id' => 'AA-2026-001',
             'phone_number' => '+251911111111',
@@ -184,8 +184,8 @@ test('store user rejects invalid gender', function (): void {
         ->post(route('users.store'), [
             'name' => 'Invalid Gender',
             'email' => 'invalid-gender@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
             'status' => 'active',
             'gender' => 'unknown',
         ])

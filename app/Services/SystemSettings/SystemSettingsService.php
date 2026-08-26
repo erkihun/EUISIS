@@ -100,16 +100,17 @@ class SystemSettingsService
             /** @var SystemSetting|null $row */
             $row = $rows->get($key);
             $isEncrypted = (bool) ($def['is_encrypted'] ?? false);
+            $isSecret = $isEncrypted || $def['type'] === 'password';
 
             $rawValue = null;
             $configured = false;
             if ($row) {
                 $configured = $row->value !== null && $row->value !== '';
-                if (! $isEncrypted) {
+                if (! $isSecret) {
                     $rawValue = $row->typedValue();
                 }
             } else {
-                $rawValue = $isEncrypted ? null : ($def['default'] ?? null);
+                $rawValue = $isSecret ? null : ($def['default'] ?? null);
             }
 
             $fields[] = [

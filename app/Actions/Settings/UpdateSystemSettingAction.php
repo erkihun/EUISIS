@@ -8,6 +8,7 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\SystemSetting;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 readonly class UpdateSystemSettingAction
 {
@@ -16,9 +17,13 @@ readonly class UpdateSystemSettingAction
     public function execute(SystemSetting $setting, string $value, User $actor): SystemSetting
     {
         $oldValue = $setting->value;
+        $isDefaultPassword = $setting->group === 'security' && $setting->key === 'default_password_hash';
+        $storedValue = $isDefaultPassword && Hash::needsRehash($value)
+            ? Hash::make($value)
+            : $value;
 
         $setting->update([
-            'value' => $value,
+            'value' => $storedValue,
             'updated_by' => $actor->id,
         ]);
 
@@ -27,8 +32,8 @@ readonly class UpdateSystemSettingAction
             $actor,
             $setting,
             null,
-            oldValues: ['value' => $oldValue],
-            newValues: ['value' => $value],
+            oldValues: ['value' => $isDefaultPassword ? ($oldValue ? 'configured' : 'not_configured') : $oldValue],
+            newValues: ['value' => $isDefaultPassword ? ($storedValue ? 'configured' : 'not_configured') : $storedValue],
         );
 
         return $setting->fresh();

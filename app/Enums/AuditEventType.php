@@ -68,6 +68,10 @@ enum AuditEventType: string
      */
     case UserPasswordChanged = 'user_password_changed';
     case UserPasswordChangeRequired = 'user_password_change_required';
+    case UserCreatedWithDefaultPassword = 'user_created_with_default_password';
+    case UserLoggedInWithDefaultPassword = 'user_logged_in_with_default_password';
+    case AdminPasswordReset = 'admin_password_reset';
+    case DefaultPasswordConfigured = 'default_password_configured';
     case UserDeactivated = 'user_deactivated';
     case UserRestored = 'user_restored';
     case ProfileUpdated = 'profile_updated';
