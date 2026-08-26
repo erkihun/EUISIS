@@ -51,6 +51,14 @@ const employees = {
     orCreatePosition: 'Create position if missing',
     assignmentReason: 'Assignment Reason',
     assignmentHistory: 'Assignment History',
+
+    // Employee QR codes (detail page)
+    qrSectionTitle: 'Employee QR Codes',
+    qrSectionHint: 'These codes contain a web address only — no personal information.',
+    idVerificationQr: 'ID Verification QR',
+    feedbackSuggestionQr: 'Feedback and Suggestion QR',
+    noActiveIdCard: 'No active ID card found.',
+    noFeedbackQr: 'No active feedback QR for this employee.',
     transferHistory: 'Transfer History',
     noTransfersFound: 'No transfers found',
     documentMetadata: 'Document Metadata',

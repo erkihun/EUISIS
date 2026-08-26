@@ -33,6 +33,7 @@ import amProfile from '@/i18n/am/profile';
 import amProviderPortal from '@/i18n/am/providerPortal';
 import amRecycleBin from '@/i18n/am/recycleBin';
 import amServiceTypes from '@/i18n/am/serviceTypes';
+import amServiceFeedback from '@/i18n/am/serviceFeedback';
 import amSettings from '@/i18n/am/settings';
 import amOrganizationUnits from '@/i18n/am/organizationUnits';
 import amOrganizationUnitTypes from '@/i18n/am/organizationUnitTypes';
@@ -80,6 +81,7 @@ import enProfile from '@/i18n/en/profile';
 import enProviderPortal from '@/i18n/en/providerPortal';
 import enRecycleBin from '@/i18n/en/recycleBin';
 import enServiceTypes from '@/i18n/en/serviceTypes';
+import enServiceFeedback from '@/i18n/en/serviceFeedback';
 import enSettings from '@/i18n/en/settings';
 import enTransfers from '@/i18n/en/transfers';
 import enTransport from '@/i18n/en/transport';
@@ -127,6 +129,7 @@ const translations: Record<Locale, TranslationTree> = {
         providerPortal: enProviderPortal,
         recycleBin: enRecycleBin,
         serviceTypes: enServiceTypes,
+        serviceFeedback: enServiceFeedback,
         entitlementRules: enEntitlementRules,
         cafeteria: { ...((en.cafeteria as TranslationTree | undefined) ?? {}), ...enCafeteria },
         codeRules: enCodeRules,
@@ -173,6 +176,7 @@ const translations: Record<Locale, TranslationTree> = {
         providerPortal: amProviderPortal,
         recycleBin: amRecycleBin,
         serviceTypes: amServiceTypes,
+        serviceFeedback: amServiceFeedback,
         entitlementRules: amEntitlementRules,
         cafeteria: { ...(((am as { cafeteria?: TranslationTree }).cafeteria) ?? {}), ...amCafeteria },
         codeRules: amCodeRules,

@@ -26,7 +26,9 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -402,8 +404,13 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function show(Employee $employee, OrganizationScopeService $organizationScopeService): Response
-    {
+    public function show(
+        Request $request,
+        Employee $employee,
+        OrganizationScopeService $organizationScopeService,
+        EmployeeFeedbackTokenService $feedbackTokenService,
+        IdCardQrCodeRenderer $qrRenderer,
+    ): Response {
         $this->authorize('view', $employee);
 
         $employee->load([
@@ -415,6 +422,7 @@ class EmployeeController extends Controller
             'employeeDuplicateFlags.matchedEmployee',
             'transfers.fromOrganization',
             'transfers.toOrganization',
+            'activeIdCard',
         ]);
 
         return Inertia::render('Employees/Show', [
@@ -423,7 +431,68 @@ class EmployeeController extends Controller
                 ->whereIn('id', $organizationScopeService->accessibleOrganizationIds(request()->user()))
                 ->orderBy('name_en')
                 ->get(['id', 'name_en']),
+            'qrCodes' => $this->qrCodes($request, $employee, $feedbackTokenService, $qrRenderer),
         ]);
+    }
+
+    /**
+     * The two public QR codes for an employee, each gated on its own permission.
+     *
+     * Both payloads are a URL and nothing else — no name, contact detail,
+     * national ID or organization data travels inside the code, so a
+     * photographed QR reveals no more than the page it opens.
+     *
+     * Rendering this section never rotates a token. The feedback token is
+     * provisioned only when one is genuinely missing for an active employee
+     * (see EmployeeFeedbackTokenService::ensureActiveTokenFor), which is a
+     * create-if-absent, never a regenerate. A printed QR therefore survives
+     * every ordinary edit to the employee record.
+     *
+     * @return array<string, mixed>
+     */
+    private function qrCodes(
+        Request $request,
+        Employee $employee,
+        EmployeeFeedbackTokenService $feedbackTokenService,
+        IdCardQrCodeRenderer $qrRenderer,
+    ): array {
+        $user = $request->user();
+
+        $canViewIdQr = $user?->can('cards.view') ?? false;
+        $canManageFeedbackQr = $user?->can('service_feedback.settings.manage') ?? false;
+
+        $idCard = null;
+
+        if ($canViewIdQr && $employee->activeIdCard?->public_card_uuid !== null) {
+            $url = route('id-checker.show', $employee->activeIdCard->public_card_uuid);
+
+            $idCard = [
+                'url' => $url,
+                'qr_svg' => $qrRenderer->asSvgDataUri($url, 200),
+                'card_number' => $employee->activeIdCard->card_number,
+            ];
+        }
+
+        $feedback = null;
+
+        if ($canManageFeedbackQr) {
+            $token = $feedbackTokenService->ensureActiveTokenFor($employee, $user, $request);
+
+            if ($token !== null) {
+                $feedback = [
+                    'url' => $token->publicUrl(),
+                    'qr_svg' => $qrRenderer->asSvgDataUri($token->publicUrl(), 200),
+                    'status' => $token->status->value,
+                ];
+            }
+        }
+
+        return [
+            'canViewIdQr' => $canViewIdQr,
+            'canManageFeedbackQr' => $canManageFeedbackQr,
+            'idCard' => $idCard,
+            'feedback' => $feedback,
+        ];
     }
 
     public function store(

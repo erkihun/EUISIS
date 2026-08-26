@@ -24,7 +24,7 @@ const auth = {
     signingIn: 'በመግባት ላይ…',
     signIn: 'ግባ',
     securePortal: 'ደህንነቱ የተጠበቀ የመንግስት ፖርታል',
-    systemHeadline1: 'የተሰባሰበ የሰራተኛ',
+    systemHeadline1: 'የተቀናጀ የሰራተኛ',
     systemHeadlineHighlight: 'መታወቂያ',
     systemHeadline2: 'አስተዳደር',
     systemDesc1: 'የሰራተኞችን መታወቂያ መዝገቦች፣ ዲጂታል መታወቂያ ካርዶችና የሰው ሃብት መረጃን ለማስተዳደር የሚያገለግል ማዕከላዊ መድረክ።',

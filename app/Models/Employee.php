@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
+use App\Enums\FeedbackTokenStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
@@ -132,6 +133,24 @@ class Employee extends Model
     public function transferApplications(): HasMany
     {
         return $this->hasMany(TransferApplication::class);
+    }
+
+    public function feedbackTokens(): HasMany
+    {
+        return $this->hasMany(EmployeeFeedbackToken::class);
+    }
+
+    /** The token currently printed on this employee's feedback QR, if any. */
+    public function activeFeedbackToken(): HasOne
+    {
+        return $this->hasOne(EmployeeFeedbackToken::class)
+            ->where('status', FeedbackTokenStatus::Active->value)
+            ->latestOfMany();
+    }
+
+    public function serviceFeedback(): HasMany
+    {
+        return $this->hasMany(EmployeeServiceFeedback::class);
     }
 
     public function currentOrganization(): HasManyThrough

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\AuditLog;
 use App\Models\CardRequest;
 use App\Models\CardVerification;
@@ -149,4 +150,58 @@ test('dashboard handles empty data safely', function (): void {
             ->has('workflowQueues')
             ->has('alerts')
         );
+});
+
+/*
+ * Admin navigation visibility.
+ *
+ * `is_employee_user` drives whether the sidebar collapses to employee
+ * self-service links. Staff who administer the system are usually employees
+ * too, so the flag must key on administrative access rather than on the mere
+ * existence of an employee record — otherwise an admin whose email matches an
+ * employee loses the entire admin sidebar while still holding every permission.
+ */
+
+it('keeps an admin out of employee-only mode when linked to an employee record', function (): void {
+    $admin = User::factory()->create(['email' => 'linked.admin@example.test']);
+    $admin->assignRole('Super Admin');
+
+    // The User <-> Employee link is by matching email address.
+    Employee::query()->create([
+        'employee_number' => 'NAV-ADMIN-1',
+        'first_name' => 'Linked',
+        'last_name' => 'Admin',
+        'full_name' => 'Linked Admin',
+        'email' => 'linked.admin@example.test',
+        'status' => 'active',
+    ]);
+
+    expect($admin->employee()->exists())->toBeTrue();
+
+    $this->actingAs($admin)
+        ->get('/dashboard')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('is_employee_user', false));
+});
+
+it('keeps employee self-service mode for a user with no administrative access', function (): void {
+    $employeeUser = User::factory()->create(['email' => 'plain.staff@example.test']);
+
+    Employee::query()->create([
+        'employee_number' => 'NAV-EMP-1',
+        'first_name' => 'Plain',
+        'last_name' => 'Staff',
+        'full_name' => 'Plain Staff',
+        'email' => 'plain.staff@example.test',
+        'status' => 'active',
+    ]);
+
+    expect($employeeUser->employee()->exists())->toBeTrue()
+        ->and($employeeUser->can('dashboard.view'))->toBeFalse();
+
+    $middleware = app(HandleInertiaRequests::class);
+    $resolve = new ReflectionMethod($middleware, 'resolveIsEmployeeUser');
+    $resolve->setAccessible(true);
+
+    expect($resolve->invoke($middleware, $employeeUser))->toBeTrue();
 });

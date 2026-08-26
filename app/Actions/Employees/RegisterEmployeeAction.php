@@ -14,6 +14,7 @@ use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmploymentStatusHistory;
 use App\Models\User;
+use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Facades\DB;
 
 readonly class RegisterEmployeeAction
@@ -22,6 +23,7 @@ readonly class RegisterEmployeeAction
         private DetectDuplicateEmployeeAction $detectDuplicateEmployeeAction,
         private WriteAuditLogAction $writeAuditLogAction,
         private GenerateCodeAction $generateCodeAction,
+        private EmployeeFeedbackTokenService $feedbackTokenService,
     ) {}
 
     public function execute(array $employeeAttributes, array $assignmentAttributes, User $actor): Employee
@@ -56,6 +58,16 @@ readonly class RegisterEmployeeAction
             ]);
 
             $this->detectDuplicateEmployeeAction->execute($employee);
+
+            /*
+             * Provision the public feedback QR up front so every active
+             * employee has a scannable code from day one, rather than an
+             * administrator having to remember to press "Generate" later.
+             *
+             * Inside the same transaction: if registration rolls back, the
+             * token must not survive pointing at an employee that never existed.
+             */
+            $this->feedbackTokenService->ensureActiveTokenFor($employee, $actor);
 
             $this->writeAuditLogAction->execute(
                 AuditEventType::EmployeeCreated,

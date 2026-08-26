@@ -4,6 +4,8 @@ import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useCan } from '@/hooks/useCan';
+import EmployeeQrCards, { type QrCodesProp } from '@/Components/employees/EmployeeQrCards';
 import { localizedName } from '@/utils/localizedName';
 
 type LocalizedOrganization = { id?: string; name_en: string; name_am?: string | null };
@@ -78,8 +80,15 @@ function formatNationalId(raw?: string | null): string {
     return raw.replace(/(.{4})/g, '$1 ').trim();
 }
 
-export default function EmployeesShow({ employee }: { employee: EmployeeDetail }) {
+export default function EmployeesShow({
+    employee,
+    qrCodes,
+}: {
+    employee: EmployeeDetail;
+    qrCodes?: QrCodesProp;
+}) {
     const { t, locale } = useLocale();
+    const { can } = useCan();
 
     const statusLabel = (status: string): string => {
         const employeeKey = `employees.${status}`;
@@ -106,12 +115,27 @@ export default function EmployeesShow({ employee }: { employee: EmployeeDetail }
                     title={employee.full_name}
                     description={employee.employee_number}
                     actions={
-                        <Link
-                            href={route('employees.edit', employee.id)}
-                            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
-                        >
-                            {t('employees.editEmployee')}
-                        </Link>
+                        <div className="flex flex-wrap gap-2">
+                            {/*
+                              * Feedback QR is shown only to users who may manage
+                              * it. The page it links to re-checks the permission
+                              * AND the employee's organization scope server-side.
+                              */}
+                            {can('service_feedback.settings.manage') && (
+                                <Link
+                                    href={route('employees.feedback-qr.show', employee.id)}
+                                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                >
+                                    {t('serviceFeedback.employeeFeedbackQr')}
+                                </Link>
+                            )}
+                            <Link
+                                href={route('employees.edit', employee.id)}
+                                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                            >
+                                {t('employees.editEmployee')}
+                            </Link>
+                        </div>
                     }
                 />
             }
@@ -223,6 +247,9 @@ export default function EmployeesShow({ employee }: { employee: EmployeeDetail }
                         <p className="text-sm text-gray-400 dark:text-slate-500">{t('common.unassigned')}</p>
                     )}
                 </div>
+
+                {/* ── Employee QR codes ────────────────────────────────── */}
+                <EmployeeQrCards employeeId={employee.id} qrCodes={qrCodes} />
 
                 <div className="grid items-start gap-5 lg:grid-cols-2">
                     {/* ── Assignment history ───────────────────────────── */}

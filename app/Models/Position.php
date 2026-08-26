@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -46,6 +47,22 @@ class Position extends Model
             'effective_to' => 'date',
             'metadata' => 'array',
         ];
+    }
+
+    /**
+     * Services this position provides to the public.
+     *
+     * The pivot carries the position-local service number and the flags that
+     * decide whether a service appears on the feedback form and counts toward
+     * performance evaluation.
+     */
+    public function serviceTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(ServiceType::class, 'position_service_type')
+            ->withPivot(['id', 'service_no', 'is_active', 'is_performance_evaluation_enabled', 'sort_order'])
+            ->withTimestamps()
+            ->orderByPivot('sort_order')
+            ->orderByPivot('service_no');
     }
 
     public function organization(): BelongsTo

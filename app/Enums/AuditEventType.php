@@ -296,4 +296,24 @@ enum AuditEventType: string
     case PublicIdCheckOtpFailed = 'public_id_check.otp_failed';
     case PublicIdCheckOtpVerified = 'public_id_check.otp_verified';
     case PublicIdCheckInfoDisplayed = 'public_id_check.info_displayed';
+
+    /*
+     * Client Service Feedback. Submission is anonymous, so the audit row is
+     * the only trace of who submitted what from where; the moderation events
+     * record which administrator suppressed or resolved a comment.
+     */
+    case ServiceFeedbackSubmitted = 'service_feedback.submitted';
+    case ServiceFeedbackBlocked = 'service_feedback.blocked';
+    case ServiceFeedbackReviewed = 'service_feedback.reviewed';
+    case ServiceFeedbackResolved = 'service_feedback.resolved';
+    case ServiceFeedbackHidden = 'service_feedback.hidden';
+    case ServiceFeedbackUnhidden = 'service_feedback.unhidden';
+    case ServiceFeedbackDeleted = 'service_feedback.deleted';
+    case ServiceFeedbackExported = 'service_feedback.exported';
+    case ServiceFeedbackQrGenerated = 'service_feedback.qr_generated';
+    case ServiceFeedbackQrRegenerated = 'service_feedback.qr_regenerated';
+    case ServiceFeedbackQrRevoked = 'service_feedback.qr_revoked';
+    case ServiceFeedbackQrSuspended = 'service_feedback.qr_suspended';
+    case ServiceFeedbackQrExported = 'service_feedback.qr_exported';
+    case ServiceFeedbackSettingsUpdated = 'service_feedback.settings_updated';
 }

@@ -58,6 +58,7 @@ use App\Http\Controllers\Web\CodeRuleController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
+use App\Http\Controllers\Web\EmployeeFeedbackQrController;
 use App\Http\Controllers\Web\EntitlementController;
 use App\Http\Controllers\Web\EntitlementRuleController;
 use App\Http\Controllers\Web\GradeLevelController;
@@ -81,11 +82,14 @@ use App\Http\Controllers\Web\OrganizationUnitTypeController;
 use App\Http\Controllers\Web\PermissionController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
+use App\Http\Controllers\Web\PositionServiceController;
 use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
+use App\Http\Controllers\Web\PublicServiceFeedbackController;
 use App\Http\Controllers\Web\RecycleBinController;
 use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
+use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceProviderUserController;
 use App\Http\Controllers\Web\ServiceTypeController;
@@ -306,6 +310,26 @@ Route::post('/id-checker/{cardUuid}/send-otp', [PublicIdCheckerController::class
 Route::post('/id-checker/{cardUuid}/verify-otp', [PublicIdCheckerController::class, 'verifyOtp'])
     ->middleware('throttle:id-checker-verify-otp')
     ->name('id-checker.verify-otp');
+
+/*
+ * Public Client Service Feedback — anonymous, no login.
+ *
+ * A separate QR from the ID card. Scanning opens a rating form for the service
+ * an employee provided; the page shows the office, unit and role but never the
+ * employee's name or any contact detail, so a leaked QR cannot be used to look
+ * a person up.
+ *
+ * Rate limits: viewing is generous enough for a busy service desk, submitting
+ * is tight and keyed on both token and IP so neither one client nor one desk
+ * can be flooded with fabricated ratings.
+ */
+Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'show'])
+    ->middleware('throttle:30,1')
+    ->name('service-feedback.show');
+
+Route::post('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'store'])
+    ->middleware('throttle:service-feedback-submit')
+    ->name('service-feedback.store');
 
 /*
  * Legacy public card verification.
@@ -869,6 +893,47 @@ Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (
 // ── Grievance Module ───────────────────────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'mfa', 'admin.access'])->group(function (): void {
     // My Grievances (any authenticated user)
+    /*
+     * Client Service Feedback — administrative review.
+     *
+     * Mounted under /feedback-admin, NOT under /service-feedback. The public
+     * QR route is `/service-feedback/{token}` and matches any single segment,
+     * so an admin route sharing that prefix would either be shadowed by the
+     * public page or, if ordered first, swallow real QR scans. A separate
+     * prefix keeps the two URL spaces from ever overlapping.
+     */
+    /*
+     * Feedback services per position.
+     *
+     * Unrelated to /service-types, which manages entitlements. These rows are
+     * the services each POSITION delivers to clients, and they drive the
+     * public feedback dropdown.
+     */
+    Route::get('/position-services', [PositionServiceController::class, 'index'])->name('position-services.index');
+    Route::get('/position-services/create', [PositionServiceController::class, 'create'])->name('position-services.create');
+    Route::get('/position-services/positions', [PositionServiceController::class, 'positionsForOrganization'])->name('position-services.positions');
+    Route::post('/position-services', [PositionServiceController::class, 'store'])->name('position-services.store');
+    Route::get('/position-services/{positionService}/edit', [PositionServiceController::class, 'edit'])->name('position-services.edit');
+    Route::patch('/position-services/{positionService}', [PositionServiceController::class, 'update'])->name('position-services.update');
+    Route::delete('/position-services/{positionService}', [PositionServiceController::class, 'destroy'])->name('position-services.destroy');
+
+    Route::get('/feedback-admin/dashboard', [ServiceFeedbackController::class, 'dashboard'])->name('service-feedback.admin.dashboard');
+    Route::get('/feedback-admin/reports', [ServiceFeedbackController::class, 'reports'])->name('service-feedback.admin.reports');
+    Route::get('/feedback-admin/export', [ServiceFeedbackController::class, 'export'])->name('service-feedback.admin.export');
+    Route::get('/feedback-admin', [ServiceFeedbackController::class, 'index'])->name('service-feedback.admin.index');
+    Route::get('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'show'])->name('service-feedback.admin.show');
+    Route::post('/feedback-admin/{serviceFeedback}/review', [ServiceFeedbackController::class, 'review'])->name('service-feedback.admin.review');
+    Route::post('/feedback-admin/{serviceFeedback}/hide', [ServiceFeedbackController::class, 'hide'])->name('service-feedback.admin.hide');
+    Route::delete('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'destroy'])->name('service-feedback.admin.destroy');
+
+    // Per-employee feedback QR management.
+    Route::get('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'show'])->name('employees.feedback-qr.show');
+    Route::post('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'generate'])->name('employees.feedback-qr.generate');
+    Route::post('/employees/{employee}/feedback-qr/regenerate', [EmployeeFeedbackQrController::class, 'regenerate'])->name('employees.feedback-qr.regenerate');
+    Route::post('/employees/{employee}/feedback-qr/revoke', [EmployeeFeedbackQrController::class, 'revoke'])->name('employees.feedback-qr.revoke');
+    Route::get('/employees/{employee}/feedback-qr/png', [EmployeeFeedbackQrController::class, 'exportPng'])->name('employees.feedback-qr.png');
+    Route::get('/employees/{employee}/feedback-qr/pdf', [EmployeeFeedbackQrController::class, 'exportPdf'])->name('employees.feedback-qr.pdf');
+
     Route::get('/grievances/my', [GrievanceController::class, 'myGrievances'])->name('grievances.my');
     Route::get('/grievances/create', [GrievanceController::class, 'create'])->name('grievances.create');
     Route::post('/grievances', [GrievanceController::class, 'store'])->name('grievances.store');

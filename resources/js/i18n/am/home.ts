@@ -7,7 +7,7 @@ const home = {
     closeMenu: 'ምናሌ ዝጋ',
 
     // Hero
-    heroTitle: 'የተዋሃደ የሠራተኛ መታወቂያ እና አገልግሎት ስርዓት',
+    heroTitle: 'የተቀናጀ የሠራተኛ መታወቂያ እና አገልግሎት ስርዓት',
     heroSubtitle: 'ለአዲስ አበባ ከተማ አስተዳደር ሠራተኞች ደህንነቱ የተጠበቀ ዲጂታል መታወቂያ እና የአገልግሎት ፈቃድ አስተዳደር።',
     heroCtaLogin: 'ወደ ስርዓቱ ይግቡ',
     heroCtaDashboard: 'ወደ ዳሽቦርድ ሂድ',

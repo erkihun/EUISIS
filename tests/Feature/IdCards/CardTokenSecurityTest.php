@@ -17,6 +17,8 @@ use App\Models\OrganizationType;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
+use App\Services\IdCards\CardQrPayloadService;
+use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\Verification\VerifyCardForServiceAction;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -140,4 +142,140 @@ it('denied verification creates audit log', function (): void {
         ->where('result_code', 'invalid_token')
         ->exists()
     )->toBeTrue();
+});
+
+/*
+ * Public card reference stability.
+ *
+ * `public_card_uuid` is printed into the QR on a physical card, which cannot be
+ * patched after issue. Ordinary edits — the holder's name, contact details,
+ * assignment, or the card's own dates — must never rotate it, or every card in
+ * circulation would silently stop verifying.
+ */
+
+it('keeps the public card uuid stable when employee details are updated', function (): void {
+    [$employee, $card] = makeActiveCard();
+
+    app(CardQrPayloadService::class)->ensurePublicReference($card);
+    $before = $card->fresh()->public_card_uuid;
+
+    expect($before)->not->toBeNull();
+
+    $employee->update([
+        'first_name' => 'Renamed',
+        'full_name' => 'Renamed Security',
+        'phone' => '0911777666',
+        'email' => 'renamed@test.local',
+        'photo_path' => 'photos/new.jpg',
+    ]);
+
+    expect($card->fresh()->public_card_uuid)->toBe($before);
+});
+
+it('keeps the public card uuid stable when card details are updated', function (): void {
+    [, $card] = makeActiveCard();
+
+    app(CardQrPayloadService::class)->ensurePublicReference($card);
+    $before = $card->fresh()->public_card_uuid;
+
+    $card->update([
+        'issued_at' => now(),
+        'expires_at' => now()->addYears(3),
+    ]);
+
+    expect($card->fresh()->public_card_uuid)->toBe($before);
+});
+
+it('returns the same qr url however often it is rebuilt', function (): void {
+    [, $card] = makeActiveCard();
+
+    $service = app(CardQrPayloadService::class);
+    $first = $service->buildStableQrUrl($card);
+
+    for ($i = 0; $i < 5; $i++) {
+        expect($service->buildStableQrUrl($card->fresh()))->toBe($first);
+    }
+
+    // The URL a printed card carries: the OTP-gated checker, keyed on the
+    // stable public reference and nothing else.
+    expect($first)->toContain('/id-checker/'.$card->fresh()->public_card_uuid);
+});
+
+it('keeps the card qr url free of employee identifiers', function (): void {
+    [$employee, $card] = makeActiveCard();
+
+    $url = app(CardQrPayloadService::class)->buildStableQrUrl($card);
+
+    expect($url)->not->toContain($employee->id)
+        ->and($url)->not->toContain($employee->employee_number)
+        ->and($url)->not->toContain('John')
+        ->and($url)->not->toContain('Security')
+        ->and($url)->not->toContain('0911000001')
+        ->and($url)->not->toContain('john.security@test.local')
+        ->and($url)->not->toContain($card->card_number);
+});
+
+it('rotates the public card uuid only on an explicit security rotation', function (): void {
+    [, $card] = makeActiveCard();
+
+    $service = app(CardQrPayloadService::class);
+    $service->ensurePublicReference($card);
+    $before = $card->fresh()->public_card_uuid;
+
+    $actor = User::factory()->create();
+    $actor->assignRole('HR Officer');
+
+    $service->rotateQrReference($card->fresh(), $actor, 'Card reported lost');
+
+    expect($card->fresh()->public_card_uuid)->not->toBe($before);
+});
+
+/*
+ * QR image integrity.
+ *
+ * The renderer wraps the library's output in its own <svg>. The library
+ * base64-encodes to a data URI by default, and embedding that inside the
+ * wrapper as plain text produces a blank white box that no scanner can read —
+ * a failure that is invisible until someone tries to scan a printed card.
+ */
+
+it('renders real svg markup rather than a nested data uri', function (): void {
+    $uri = app(IdCardQrCodeRenderer::class)->asSvgDataUri('https://example.test/id-checker/abc', 200);
+
+    expect($uri)->toStartWith('data:image/svg+xml;base64,');
+
+    $decoded = base64_decode(substr($uri, strlen('data:image/svg+xml;base64,')), true);
+
+    expect($decoded)->toStartWith('<svg')
+        // The failure mode: a data: URI sitting inside the wrapper as text.
+        ->and($decoded)->not->toContain('>data:image')
+        // Real module geometry, not an empty container.
+        ->and($decoded)->toContain('<path');
+});
+
+it('keeps the inner qr viewbox so the code is not cropped', function (): void {
+    $uri = app(IdCardQrCodeRenderer::class)->asSvgDataUri('https://example.test/id-checker/abc', 200);
+    $decoded = base64_decode(substr($uri, strlen('data:image/svg+xml;base64,')), true);
+
+    // The module count varies with URL length, so the inner element must keep
+    // its own viewBox; a hardcoded one on the wrapper would crop the code.
+    expect($decoded)->toMatch('/viewBox="0 0 \d+ \d+"/');
+});
+
+it('returns raw markup from the inline svg helper', function (): void {
+    $inline = app(IdCardQrCodeRenderer::class)->asInlineSvgContent('https://example.test/id-checker/abc');
+
+    expect($inline)->toStartWith('<svg')
+        ->and($inline)->not->toStartWith('data:');
+});
+
+it('renders a scannable qr for a real card verification url', function (): void {
+    [, $card] = makeActiveCard();
+
+    $url = app(CardQrPayloadService::class)->buildStableQrUrl($card);
+    $uri = app(IdCardQrCodeRenderer::class)->asSvgDataUri($url, 200);
+    $decoded = base64_decode(substr($uri, strlen('data:image/svg+xml;base64,')), true);
+
+    expect($decoded)->toContain('<path')
+        ->and(strlen($decoded))->toBeGreaterThan(1000);
 });

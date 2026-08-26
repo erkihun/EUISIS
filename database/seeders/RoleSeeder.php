@@ -17,22 +17,6 @@ class RoleSeeder extends Seeder
 
         $allPermissions = Permission::all()->pluck('name')->toArray();
 
-        $institutionAdminPerms = [
-            'dashboard.view',
-            'organizations.view', 'organizations.manage', 'organizations.create', 'organizations.update',
-            'organizations.delete', 'organizations.import', 'organizations.viewAny',
-            'organization-types.viewAny', 'organization-types.view',
-            'hierarchy-versions.viewAny', 'hierarchy-versions.view',
-            'organization-edges.view',
-            'service-types.viewAny', 'service-types.view',
-            'entitlement-rules.viewAny', 'entitlement-rules.view',
-            'code-rules.viewAny', 'code-rules.view', 'code-rules.preview',
-            'employees.view', 'employees.viewAny', 'employees.manage',
-            'cards.view', 'cards.manage',
-            'id-cards.viewAny',
-            'audit.view', 'reports.view',
-        ];
-
         // Organizational Admin — full operational control INSIDE the assigned
         // organization scope (enforced at runtime by OrganizationScopeService /
         // the policies), and no access outside it. Deliberately excludes global
@@ -85,6 +69,12 @@ class RoleSeeder extends Seeder
             'user-organization-scopes.viewAny', 'user-organization-scopes.create',
             'user-organization-scopes.update', 'user-organization-scopes.delete',
 
+            // Client service feedback (confined to own organization by
+            // EmployeeServiceFeedbackPolicy + OrganizationScopeService).
+            'service_feedback.view', 'service_feedback.review',
+            'service_feedback.hide', 'service_feedback.export',
+            'service_feedback.settings.manage',
+
             // Reports
             'reports.view', 'audit.view',
         ];
@@ -108,19 +98,6 @@ class RoleSeeder extends Seeder
             'Public Service Bureau Admin' => $allPermissions,
             'City Admin' => $allPermissions,
             'Organizational Admin' => $organizationalAdminPerms,
-            'Institution Admin' => $institutionAdminPerms,
-            'Sub-city Admin' => [
-                'dashboard.view', 'organizations.view', 'organizations.viewAny',
-                'organization-types.viewAny', 'service-types.viewAny',
-                'entitlement-rules.viewAny', 'employees.view', 'employees.viewAny',
-                'employees.manage', 'cards.view', 'id-cards.viewAny', 'audit.view', 'reports.view',
-            ],
-            'Woreda Admin' => [
-                'dashboard.view', 'organizations.view', 'organizations.viewAny',
-                'organization-types.viewAny', 'service-types.viewAny',
-                'entitlement-rules.viewAny', 'employees.view', 'employees.viewAny',
-                'employees.manage', 'cards.view', 'id-cards.viewAny', 'reports.view',
-            ],
             'HR Officer' => [
                 'dashboard.view',
                 'employees.view', 'employees.manage', 'employees.viewAny',
@@ -150,18 +127,6 @@ class RoleSeeder extends Seeder
                 'id-cards.export', 'id-cards.printAnytime', 'id-cards.exportPng',
                 'id-cards.previewSvg',
             ],
-            'Position Officer' => [
-                'dashboard.view',
-                'positions.viewAny', 'positions.view', 'positions.create', 'positions.update',
-                'grade-levels.viewAny', 'grade-levels.view',
-                'occupations.viewAny', 'occupations.view',
-            ],
-            'Employee Officer' => [
-                'dashboard.view',
-                'employees.viewAny', 'employees.view', 'employees.manage',
-                'positions.viewAny', 'positions.view',
-                'organization-units.viewAny', 'organization-units.view',
-            ],
             'Service Provider User' => [
                 'dashboard.view', 'transactions.manage', 'service-transactions.viewAny',
                 'providers.viewAny', 'service-types.viewAny', 'service-types.view',
@@ -179,7 +144,6 @@ class RoleSeeder extends Seeder
                 'organization-edges.view',
                 'code-rules.viewAny', 'code-rules.view', 'code-rules.preview',
             ],
-            'Report Viewer' => ['dashboard.view', 'reports.view', 'dashboard.reports'],
 
             'Cafeteria Admin' => [
                 'dashboard.view',

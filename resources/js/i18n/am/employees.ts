@@ -51,6 +51,14 @@ const employees = {
     orCreatePosition: 'ከሌለ የስራ መደብ ፍጠር',
     assignmentReason: 'የምደባ ምክንያት',
     assignmentHistory: 'የምደባ ታሪክ',
+
+    // Employee QR codes (detail page)
+    qrSectionTitle: 'የሠራተኛ QR ኮዶች',
+    qrSectionHint: 'እነዚህ ኮዶች የድረ-ገጽ አድራሻ ብቻ ይይዛሉ — ምንም የግል መረጃ የለም።',
+    idVerificationQr: 'የመታወቂያ ማረጋገጫ QR',
+    feedbackSuggestionQr: 'ግብረመልስ እና አስተያየት QR',
+    noActiveIdCard: 'ንቁ የመታወቂያ ካርድ አልተገኘም።',
+    noFeedbackQr: 'ለዚህ ሠራተኛ ንቁ የግብረመልስ QR የለም።',
     transferHistory: 'የዝውውር ታሪክ',
     noTransfersFound: 'ምንም የዝውውር መዝገብ አልተገኘም',
     documentMetadata: 'የሰነድ መረጃ',

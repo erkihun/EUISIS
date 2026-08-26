@@ -32,6 +32,8 @@ import {
     QrCodeIcon,
     UserIcon,
     NetworkIcon,
+    MessageSquareIcon,
+    StarIcon,
 } from '@/Components/Icons';
 import { CSSProperties, SVGProps, useMemo, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
@@ -61,44 +63,79 @@ type NavGroup = {
     items: NavItem[];
 };
 
+/*
+ * Sidebar categories.
+ *
+ * Grouped by what an administrator is trying to DO, not by which table a page
+ * touches: HR reference data (grades, occupations, positions) is separated from
+ * day-to-day employee work, and everything facing an outside party sits
+ * together under Providers.
+ *
+ * Rendering is unchanged. Each item is hidden when the user lacks its
+ * permission, and a group whose items are all hidden disappears with it, so no
+ * empty headers appear. Public pages (/id-checker, /service-feedback) are
+ * deliberately absent: they are for citizens, not administrators.
+ */
 const navGroups: NavGroup[] = [
     {
         key: 'organization',
         labelKey: 'nav.groupOrganization',
         icon: Building2,
         items: [
-            { routeName: 'organizations.index',           labelKey: 'nav.organizations',        icon: Building2,      permission: 'organizations.view' },
-            { routeName: 'organization-types.index',      labelKey: 'nav.organizationTypes',    icon: TagsIcon,       permission: 'organization-types.viewAny' },
-            { routeName: 'organization-units.index',      labelKey: 'nav.organizationUnits',    icon: GitBranchIcon,  permission: 'organization-units.viewAny' },
+            { routeName: 'organizations.index',           labelKey: 'nav.organizations',         icon: Building2,     permission: 'organizations.view' },
+            { routeName: 'organization-types.index',      labelKey: 'nav.organizationTypes',     icon: TagsIcon,      permission: 'organization-types.viewAny' },
+            { routeName: 'organization-units.index',      labelKey: 'nav.organizationUnits',     icon: GitBranchIcon, permission: 'organization-units.viewAny' },
             { routeName: 'organization-unit-types.index', labelKey: 'nav.organizationUnitTypes', icon: BoxesIcon,     permission: 'organization-unit-types.viewAny' },
-            { routeName: 'hierarchy-versions.index',      labelKey: 'nav.hierarchyVersions',    icon: GitForkIcon,    permission: 'hierarchy-versions.viewAny' },
+            { routeName: 'hierarchy-versions.index',      labelKey: 'nav.hierarchyVersions',     icon: GitForkIcon,   permission: 'hierarchy-versions.viewAny' },
+            /*
+             * The controller also accepts `functional-reporting.viewReports`;
+             * only one permission can gate a nav entry, so the broader of the
+             * two is used and the page re-checks both on arrival.
+             */
+            { routeName: 'reporting-lines.index',         labelKey: 'nav.reportingLines',        icon: NetworkIcon,   permission: 'relationships.viewAny' },
+            { routeName: 'code-rules.index',              labelKey: 'nav.codeRules',             icon: HashIcon,      permission: 'code-rules.viewAny' },
         ],
     },
     {
-        key: 'workforce',
-        labelKey: 'nav.groupWorkforce',
+        /*
+         * Reference data that changes rarely and underpins everything else.
+         * Kept apart from Employee Management so daily HR work is not buried
+         * among catalog screens.
+         */
+        key: 'hrMasterData',
+        labelKey: 'nav.groupHrMasterData',
+        icon: Briefcase,
+        items: [
+            { routeName: 'positions.index',               labelKey: 'nav.positions',              icon: Briefcase,          permission: 'positions.viewAny' },
+            { routeName: 'positions.status',              labelKey: 'nav.newJobPositionsStatus',  icon: ClipboardCheckIcon, permission: 'positions.viewAny' },
+            { routeName: 'position-establishments.index', labelKey: 'nav.positionEstablishments', icon: ClipboardListIcon,  permission: 'position-establishments.viewAny' },
+            { routeName: 'position-services.index',       labelKey: 'nav.positionServices',       icon: Layers,             permission: 'service_feedback.settings.manage' },
+            { routeName: 'grade-levels.index',            labelKey: 'nav.gradeLevels',            icon: TrendingUpIcon,     permission: 'grade-levels.viewAny' },
+            { routeName: 'occupations.index',             labelKey: 'nav.occupations',            icon: HardHatIcon,        permission: 'occupations.viewAny' },
+            { routeName: 'isic-activities.index',         labelKey: 'nav.isicActivities',         icon: ActivityIcon,       permission: 'isic-activities.viewAny' },
+        ],
+    },
+    {
+        key: 'employeeManagement',
+        labelKey: 'nav.groupEmployeeManagement',
         icon: Users,
         items: [
-            { routeName: 'employees.index',                labelKey: 'nav.employees',              icon: Users,              permission: 'employees.view' },
-            { routeName: 'position-establishments.index',  labelKey: 'nav.positionEstablishments', icon: ClipboardListIcon,   permission: 'position-establishments.viewAny' },
-            { routeName: 'vacancy-announcements.index',    labelKey: 'nav.vacancyAnnouncements',   icon: MegaphoneIcon,       permission: 'vacancy-announcements.viewAny' },
-            { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',  icon: Inbox },
-            { routeName: 'positions.index',                labelKey: 'nav.positions',              icon: Briefcase,          permission: 'positions.viewAny' },
-            { routeName: 'positions.status',               labelKey: 'nav.newJobPositionsStatus',  icon: ClipboardCheckIcon, permission: 'positions.viewAny' },
-            { routeName: 'grade-levels.index',       labelKey: 'nav.gradeLevels',       icon: TrendingUpIcon,    permission: 'grade-levels.viewAny' },
-            { routeName: 'occupations.index',        labelKey: 'nav.occupations',       icon: HardHatIcon,       permission: 'occupations.viewAny' },
-            { routeName: 'isic-activities.index',    labelKey: 'nav.isicActivities',    icon: ActivityIcon,      permission: 'isic-activities.viewAny' },
+            { routeName: 'employees.index',                      labelKey: 'nav.employees',             icon: Users,              permission: 'employees.view' },
+            { routeName: 'vacancy-announcements.index',          labelKey: 'nav.vacancyAnnouncements',  icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
+            { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',        icon: Inbox },
+            { routeName: 'transfers.dashboard',                  labelKey: 'nav.transferDashboard',     icon: ArrowLeftRightIcon, permission: 'transfers.view' },
+            { routeName: 'transfer-announcements.index',         labelKey: 'nav.transferAnnouncements', icon: MegaphoneIcon,      permission: 'transfers.announcements.view' },
+            { routeName: 'transfer-applications.index',          labelKey: 'nav.transferApplications',  icon: Inbox,              permission: 'transfers.applications.view' },
+            { routeName: 'transfer-settings.show',               labelKey: 'nav.transferSettings',      icon: SettingsIcon,       permission: 'transfers.settings.manage' },
         ],
     },
     {
-        key: 'transfers',
-        labelKey: 'nav.transferManagement',
-        icon: ArrowLeftRightIcon,
+        key: 'identity',
+        labelKey: 'nav.groupIdentity',
+        icon: CreditCard,
         items: [
-            { routeName: 'transfers.dashboard',             labelKey: 'nav.transferDashboard',        icon: LayoutDashboard,   permission: 'transfers.view' },
-            { routeName: 'transfer-announcements.index',  labelKey: 'nav.transferAnnouncements',    icon: MegaphoneIcon,     permission: 'transfers.announcements.view' },
-            { routeName: 'transfer-settings.show',        labelKey: 'nav.transferSettings',          icon: SettingsIcon,      permission: 'transfers.settings.manage' },
-            { routeName: 'transfer-applications.index',   labelKey: 'nav.transferApplications',      icon: Inbox,             permission: 'transfers.applications.view' },
+            { routeName: 'id-cards.index',      labelKey: 'nav.idCards',      icon: CreditCard,         permission: 'cards.view' },
+            { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', icon: ClipboardCheckIcon, permission: 'card-requests.viewAny' },
         ],
     },
     {
@@ -107,31 +144,29 @@ const navGroups: NavGroup[] = [
         icon: ScrollText,
         items: [
             { routeName: 'grievances.index',           labelKey: 'nav.grievances',          icon: ClipboardListIcon, permission: 'grievances.manage' },
-            { routeName: 'grievances.my',              labelKey: 'nav.myGrievances',         icon: Inbox },
-            { routeName: 'grievance-committees.index', labelKey: 'nav.grievanceCommittees',  icon: Users,             permission: 'grievances.manage' },
-            { routeName: 'grievance-categories.index', labelKey: 'nav.grievanceCategories',  icon: TagsIcon,          permission: 'grievances.manage' },
-            { routeName: 'grievance-sla-rules.index',  labelKey: 'nav.grievanceSlaRules',    icon: SettingsIcon,      permission: 'grievances.manage' },
-            { routeName: 'tribunal-cases.index',       labelKey: 'nav.tribunalCases',        icon: ShieldCheck,       permission: 'grievances.tribunal' },
+            { routeName: 'grievances.my',              labelKey: 'nav.myGrievances',        icon: Inbox },
+            { routeName: 'grievance-committees.index', labelKey: 'nav.grievanceCommittees', icon: Users,             permission: 'grievances.manage' },
+            { routeName: 'grievance-categories.index', labelKey: 'nav.grievanceCategories', icon: TagsIcon,          permission: 'grievances.manage' },
+            { routeName: 'grievance-sla-rules.index',  labelKey: 'nav.grievanceSlaRules',   icon: SettingsIcon,      permission: 'grievances.manage' },
+            { routeName: 'tribunal-cases.index',       labelKey: 'nav.tribunalCases',       icon: ShieldCheck,       permission: 'grievances.tribunal' },
         ],
     },
     {
-        key: 'identity',
-        labelKey: 'nav.groupIdentity',
-        icon: CreditCard,
+        /*
+         * Client-facing service delivery: what a position offers, and what
+         * citizens said about it. The entitlements catalog sits here too, as
+         * the other half of what "service" means in this system.
+         */
+        key: 'serviceManagement',
+        labelKey: 'nav.groupServiceManagement',
+        icon: MessageSquareIcon,
         items: [
-            { routeName: 'id-cards.index',      labelKey: 'nav.idCards',      icon: CreditCard,       permission: 'cards.view' },
-            { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', icon: ClipboardCheckIcon, permission: 'card-requests.viewAny' },
-        ],
-    },
-    {
-        key: 'services',
-        labelKey: 'nav.groupServices',
-        icon: Layers,
-        items: [
-            { routeName: 'service-types.index',      labelKey: 'nav.serviceTypes',    icon: Layers,         permission: 'service-types.viewAny' },
-            { routeName: 'service-providers.index',  labelKey: 'nav.providers',       icon: HandshakeIcon },
-            { routeName: 'entitlements.index',       labelKey: 'nav.entitlements',    icon: BadgeCheckIcon },
-            { routeName: 'entitlement-rules.index',  labelKey: 'nav.entitlementRules', icon: ReceiptTextIcon, permission: 'entitlement-rules.viewAny' },
+            { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard,   permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.admin.index',     labelKey: 'nav.serviceFeedbackList',      icon: MessageSquareIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.admin.reports',   labelKey: 'nav.serviceFeedbackReports',   icon: StarIcon,          permission: 'service_feedback.view' },
+            { routeName: 'service-types.index',              labelKey: 'nav.serviceTypes',             icon: Layers,            permission: 'service-types.viewAny' },
+            { routeName: 'entitlements.index',               labelKey: 'nav.entitlements',             icon: BadgeCheckIcon },
+            { routeName: 'entitlement-rules.index',          labelKey: 'nav.entitlementRules',         icon: ReceiptTextIcon,   permission: 'entitlement-rules.viewAny' },
         ],
     },
     {
@@ -139,13 +174,13 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupCafeteria',
         icon: QrCodeIcon,
         items: [
-            { routeName: 'cafeteria.dashboard',           labelKey: 'nav.cafeteriaDashboard',    icon: LayoutDashboard,  permission: 'cafeteria_transactions.viewAny' },
-            { routeName: 'cafeteria.scan',                labelKey: 'nav.cafeteriaScan',         icon: QrCodeIcon,       permission: 'cafeteria_transactions.scan' },
-            { routeName: 'cafeteria.transactions.index',  labelKey: 'nav.cafeteriaTransactions', icon: ReceiptTextIcon,  permission: 'cafeteria_transactions.viewAny' },
-            { routeName: 'cafeteria.ledger.index',        labelKey: 'nav.cafeteriaLedger',       icon: ScrollText,       permission: 'cafeteria_ledger.viewAny' },
-            { routeName: 'cafeteria.reports.index',       labelKey: 'nav.cafeteriaReports',      icon: ActivityIcon,     permission: 'cafeteria_reports.viewAny' },
-{ routeName: 'cafeteria.providers.index',     labelKey: 'nav.cafeteriaProviders',    icon: HandshakeIcon,    permission: 'cafeteria_providers.viewAny' },
-            { routeName: 'cafeteria.settings.index', labelKey: 'nav.cafeteriaSettings', icon: SettingsIcon, permission: 'cafeteria_settings.view' },
+            { routeName: 'cafeteria.dashboard',          labelKey: 'nav.cafeteriaDashboard',    icon: LayoutDashboard, permission: 'cafeteria_transactions.viewAny' },
+            { routeName: 'cafeteria.scan',               labelKey: 'nav.cafeteriaScan',         icon: QrCodeIcon,      permission: 'cafeteria_transactions.scan' },
+            { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', icon: ReceiptTextIcon, permission: 'cafeteria_transactions.viewAny' },
+            { routeName: 'cafeteria.ledger.index',       labelKey: 'nav.cafeteriaLedger',       icon: ScrollText,      permission: 'cafeteria_ledger.viewAny' },
+            { routeName: 'cafeteria.reports.index',      labelKey: 'nav.cafeteriaReports',      icon: ActivityIcon,    permission: 'cafeteria_reports.viewAny' },
+            { routeName: 'cafeteria.providers.index',    labelKey: 'nav.cafeteriaProviders',    icon: HandshakeIcon,   permission: 'cafeteria_providers.viewAny' },
+            { routeName: 'cafeteria.settings.index',     labelKey: 'nav.cafeteriaSettings',     icon: SettingsIcon,    permission: 'cafeteria_settings.view' },
         ],
     },
     {
@@ -153,23 +188,36 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupTransport',
         icon: ActivityIcon,
         items: [
-            { routeName: 'transport.providers.index', labelKey: 'nav.transportProviders', icon: HandshakeIcon, permission: 'transport-providers.viewAny' },
-            { routeName: 'transport.scan', labelKey: 'nav.transportScan', icon: QrCodeIcon, permission: 'transport-passes.viewAny' },
-            { routeName: 'transport.routes.index', labelKey: 'nav.transportRoutes', icon: ScrollText, permission: 'transport-routes.viewAny' },
-            { routeName: 'transport.vehicles.index', labelKey: 'nav.transportVehicles', icon: ActivityIcon, permission: 'transport-vehicles.viewAny' },
-            { routeName: 'transport.drivers.index', labelKey: 'nav.transportDrivers', icon: UserIcon, permission: 'transport-drivers.viewAny' },
-            { routeName: 'transport.passes.index', labelKey: 'nav.transportPasses', icon: BadgeCheckIcon, permission: 'transport-passes.viewAny' },
-            { routeName: 'transport.reports.index', labelKey: 'nav.transportReports', icon: ReceiptTextIcon, permission: 'transport-reports.view' },
-            { routeName: 'transport.settings.index', labelKey: 'nav.transportSettings', icon: SettingsIcon, permission: 'transport-settings.view' },
+            { routeName: 'transport.providers.index', labelKey: 'nav.transportProviders', icon: HandshakeIcon,   permission: 'transport-providers.viewAny' },
+            { routeName: 'transport.scan',            labelKey: 'nav.transportScan',      icon: QrCodeIcon,      permission: 'transport-passes.viewAny' },
+            { routeName: 'transport.routes.index',    labelKey: 'nav.transportRoutes',    icon: ScrollText,      permission: 'transport-routes.viewAny' },
+            { routeName: 'transport.vehicles.index',  labelKey: 'nav.transportVehicles',  icon: ActivityIcon,    permission: 'transport-vehicles.viewAny' },
+            { routeName: 'transport.drivers.index',   labelKey: 'nav.transportDrivers',   icon: UserIcon,        permission: 'transport-drivers.viewAny' },
+            { routeName: 'transport.passes.index',    labelKey: 'nav.transportPasses',    icon: BadgeCheckIcon,  permission: 'transport-passes.viewAny' },
+            { routeName: 'transport.reports.index',   labelKey: 'nav.transportReports',   icon: ReceiptTextIcon, permission: 'transport-reports.view' },
+            { routeName: 'transport.settings.index',  labelKey: 'nav.transportSettings',  icon: SettingsIcon,    permission: 'transport-settings.view' },
         ],
     },
     {
-        key: 'configuration',
-        labelKey: 'nav.groupConfiguration',
-        icon: SettingsIcon,
+        /*
+         * Everything that talks to a party outside the bureau: service
+         * providers, their portal accounts, and the integration API.
+         */
+        key: 'providers',
+        labelKey: 'nav.groupProviders',
+        icon: HandshakeIcon,
         items: [
-            { routeName: 'code-rules.index',  labelKey: 'nav.codeRules', icon: HashIcon,    permission: 'code-rules.viewAny' },
-            { routeName: 'audit-logs.index',  labelKey: 'nav.auditLogs', icon: ScrollText,  permission: 'audit.view' },
+            { routeName: 'service-providers.index', labelKey: 'nav.providers',              icon: HandshakeIcon },
+            { routeName: 'provider-users.index',    labelKey: 'nav.cafeteriaProviderUsers', icon: UserCogIcon, permission: 'cafeteria-provider-users.viewAny' },
+            { routeName: 'api-management.index',    labelKey: 'nav.apiManagement',          icon: NetworkIcon, permission: 'api_management.view' },
+        ],
+    },
+    {
+        key: 'auditMonitoring',
+        labelKey: 'nav.groupAuditMonitoring',
+        icon: ScrollText,
+        items: [
+            { routeName: 'audit-logs.index', labelKey: 'nav.auditLogs', icon: ScrollText, permission: 'audit.view' },
         ],
     },
 ];

@@ -99,17 +99,46 @@ class HandleInertiaRequests extends Middleware
         }
     }
 
+    /**
+     * Whether the UI should present this account in employee self-service mode.
+     *
+     * Being linked to an employee record is NOT sufficient on its own. Staff who
+     * administer the system are usually employees too, and treating them as
+     * employee-only collapsed the sidebar to the self-service items and hid every
+     * administrative section — even though their permissions granted full access.
+     *
+     * So an account that holds any administrative permission stays in admin mode
+     * and keeps its own "My Portal" links; only accounts whose sole relationship
+     * to the system is their employee record get the reduced navigation.
+     */
     private function resolveIsEmployeeUser(User $user): bool
     {
         try {
             return Cache::remember(
-                "user_{$user->id}_is_employee",
+                "user_{$user->id}_is_employee_v2",
                 300, // 5 minutes
-                fn (): bool => $user->employee()->exists(),
+                fn (): bool => $user->employee()->exists() && ! $this->hasAdministrativeAccess($user),
             );
         } catch (Throwable) {
             return false;
         }
+    }
+
+    /**
+     * Does this account administer anything, as opposed to only using its own
+     * employee self-service pages?
+     *
+     * `dashboard.view` is the marker: every administrative role carries it and
+     * it gates the admin landing page, so it is the cheapest accurate signal
+     * that the admin navigation is meaningful for this user.
+     */
+    private function hasAdministrativeAccess(User $user): bool
+    {
+        if ($user->hasRole('Super Admin')) {
+            return true;
+        }
+
+        return $user->can('dashboard.view');
     }
 
     private function publishedAnnouncementCount(): int

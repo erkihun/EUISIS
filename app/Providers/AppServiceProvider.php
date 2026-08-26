@@ -19,6 +19,7 @@ use App\Models\CardRequest;
 use App\Models\CodeRule;
 use App\Models\Employee;
 use App\Models\EmployeeCafeteriaExclusion;
+use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
 use App\Models\Entitlement;
 use App\Models\EntitlementRule;
@@ -34,6 +35,7 @@ use App\Models\OrganizationUnitType;
 use App\Models\Permission;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
+use App\Models\PositionService;
 use App\Models\PublicHoliday;
 use App\Models\Role;
 use App\Models\ServiceProvider as ServiceProviderModel;
@@ -61,6 +63,7 @@ use App\Policies\CardRequestPolicy;
 use App\Policies\CodeRulePolicy;
 use App\Policies\EmployeeCafeteriaExclusionPolicy;
 use App\Policies\EmployeePolicy;
+use App\Policies\EmployeeServiceFeedbackPolicy;
 use App\Policies\EmployeeTransferPolicy;
 use App\Policies\EntitlementPolicy;
 use App\Policies\EntitlementRulePolicy;
@@ -76,6 +79,7 @@ use App\Policies\OrganizationUnitTypePolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\PositionEstablishmentPolicy;
 use App\Policies\PositionPolicy;
+use App\Policies\PositionServicePolicy;
 use App\Policies\PublicHolidayPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\ServiceProviderPolicy;
@@ -131,6 +135,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);
         Gate::policy(Employee::class, EmployeePolicy::class);
+        Gate::policy(EmployeeServiceFeedback::class, EmployeeServiceFeedbackPolicy::class);
+        Gate::policy(PositionService::class, PositionServicePolicy::class);
         Gate::policy(EmployeeTransfer::class, EmployeeTransferPolicy::class);
         Gate::policy(TransferSetting::class, TransferSettingPolicy::class);
         Gate::policy(TransferAnnouncement::class, TransferAnnouncementPolicy::class);
@@ -186,6 +192,20 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('id-checker-verify-otp', fn (Request $request): array => [
             Limit::perMinute(5)->by('pic-verify:'.$request->route('cardUuid').'|'.$request->ip()),
+        ]);
+
+        /*
+         * Public service feedback submission.
+         *
+         * Two ceilings on purpose. The first stops one client hammering a
+         * single employee's QR to bury them in ratings; the second stops one
+         * address spraying fabricated feedback across many employees. Without
+         * the second, a script could rate every desk in a building from one
+         * machine and still stay under a per-token limit.
+         */
+        RateLimiter::for('service-feedback-submit', fn (Request $request): array => [
+            Limit::perMinutes(10, 3)->by('sf-submit:'.$request->route('token').'|'.$request->ip()),
+            Limit::perMinutes(10, 8)->by('sf-submit-ip:'.$request->ip()),
         ]);
 
         RateLimiter::for('api', function (Request $request): array {
