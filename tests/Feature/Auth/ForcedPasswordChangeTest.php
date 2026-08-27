@@ -6,6 +6,7 @@ use App\Actions\Users\CreateUserAction;
 use App\Actions\Users\UpdateUserAction;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Vite;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -71,6 +72,14 @@ it('shows the change password page to a forced user', function (): void {
         ->get(route('password.forced'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('Auth/ForcedPasswordChange'));
+});
+
+it('ships the exact Inertia page requested by the controller', function (): void {
+    expect(is_file(resource_path('js/Pages/Auth/ForcedPasswordChange.tsx')))->toBeTrue();
+});
+
+it('ignores the public Vite hot file outside local development', function (): void {
+    expect(Vite::hotFile())->toBe(storage_path('framework/vite.hot'));
 });
 
 it('lets a forced user log out', function (): void {

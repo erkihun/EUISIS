@@ -129,6 +129,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureViteAssetMode();
         Vite::prefetch(concurrency: 3);
         $this->applyRuntimeSystemSettings();
 
@@ -225,6 +226,17 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perMinute($perMinute)->by($request->user()?->getAuthIdentifier() ?: $request->ip()),
             ];
         });
+    }
+
+    private function configureViteAssetMode(): void
+    {
+        if ($this->app->isLocal() && config('app.debug')) {
+            return;
+        }
+
+        // A stale public/hot file must never point production browsers at a
+        // developer machine. Non-local environments always use built assets.
+        Vite::useHotFile(storage_path('framework/vite.hot'));
     }
 
     private function applyRuntimeSystemSettings(): void

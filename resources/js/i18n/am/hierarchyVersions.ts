@@ -87,7 +87,7 @@ export default {
     readOnlyVersion: 'ለንባብ ብቻ የሆነ ስሪት',
     editableDraftVersion: 'ሊታረም የሚችል ረቂቅ ስሪት',
     relationshipTypes: {
-        reportsTo: 'ለዚህ ይሪፖርታል',
+        reportsTo: 'ለዚህ ሪፖርት ያደርጋል',
         geographicallyUnder: 'በአካባቢ ሥር',
         serviceScope: 'የአገልግሎት ወሰን',
         oversight: 'ቁጥጥር',
