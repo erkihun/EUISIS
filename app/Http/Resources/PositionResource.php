@@ -35,6 +35,7 @@ class PositionResource extends JsonResource
             'organization_unit' => $this->organizationUnit ? [
                 'id' => $this->organizationUnit->id,
                 'name_en' => $this->organizationUnit->name_en,
+                'name_am' => $this->organizationUnit->name_am,
                 'code' => $this->organizationUnit->code,
             ] : null,
             'occupation_id' => $this->occupation_id,
@@ -55,6 +56,7 @@ class PositionResource extends JsonResource
             'can' => [
                 'view' => $user?->can('view', $this->resource) ?? false,
                 'update' => $user?->can('update', $this->resource) ?? false,
+                'move' => $user?->can('move', $this->resource) ?? false,
                 'archive' => $user?->can('archive', $this->resource) ?? false,
                 'restore' => $user?->can('restore', $this->resource) ?? false,
             ],

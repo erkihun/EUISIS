@@ -34,7 +34,7 @@ type PositionRow = {
     effective_from: string | null;
     effective_to: string | null;
     establishment: EstablishmentSummary;
-    can: { view: boolean; update: boolean; archive: boolean; restore: boolean };
+    can: { view: boolean; update: boolean; move: boolean; archive: boolean; restore: boolean };
 };
 
 type UnitSummary = { id: string; name_en: string; name_am: string | null };
@@ -294,6 +294,11 @@ export default function PositionsIndex({
                                                         {/* Row actions */}
                                                         <td className="px-4 py-3">
                                                             <div className="flex justify-end gap-3">
+                                                                {position.can.move && (
+                                                                    <Link href={route('positions.move', position.id)} className="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                                                        {t('positions.move')}
+                                                                    </Link>
+                                                                )}
                                                                 {position.can.update && (
                                                                     <Link href={route('positions.edit', position.id)} className="text-xs font-medium text-blue-600 hover:text-blue-800">
                                                                         {t('common.edit')}

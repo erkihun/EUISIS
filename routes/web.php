@@ -474,6 +474,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/positions/status', [PositionController::class, 'status'])->name('positions.status');
     Route::get('/positions/create', [PositionController::class, 'create'])->name('positions.create');
     Route::post('/positions', [PositionController::class, 'store'])->name('positions.store');
+    Route::get('/positions/{position}/move', [PositionController::class, 'move'])->name('positions.move');
+    Route::post('/positions/{position}/move', [PositionController::class, 'storeMove'])->name('positions.move.store');
     Route::get('/positions/{position}', [PositionController::class, 'show'])->name('positions.show');
     Route::get('/positions/{position}/edit', [PositionController::class, 'edit'])->name('positions.edit');
     Route::patch('/positions/{position}', [PositionController::class, 'update'])->name('positions.update');

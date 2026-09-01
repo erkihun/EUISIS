@@ -77,6 +77,22 @@ const positions = {
     positionsInOrganizationUnit: 'በተቋም ዩኒቱ ያሉ የሥራ መደቦች',
     selectedOrganization: 'የተመረጠ ተቋም',
     selectedOrganizationUnit: 'የተመረጠ የተቋም ዩኒት',
+    move: 'አንቀሳቅስ',
+    movePosition: 'የሥራ መደብ አንቀሳቅስ',
+    position: 'የሥራ መደብ',
+    currentOrganization: 'የአሁኑ ተቋም',
+    currentOrganizationUnit: 'የአሁኑ ተቋም ዩኒት',
+    targetOrganizationUnit: 'የመድረሻ ተቋም ዩኒት',
+    selectTargetOrganizationUnit: 'የመድረሻ ተቋም ዩኒት ይምረጡ',
+    confirmMove: 'ማንቀሳቀሱን አረጋግጥ',
+    moveReason: 'የማንቀሳቀስ ምክንያት',
+    movedSuccessfully: 'የሥራ መደቡ በተሳካ ሁኔታ ተንቀሳቅሷል',
+    occupiedCannotMove: 'ይህ የሥራ መደብ ሠራተኛ ስላለበት ሊንቀሳቀስ አይችልም።',
+    codeRemainsUnchanged: 'የሥራ መደቡ ኮድ በእጅ እስካልተፈጠረ ድረስ ሳይቀየር ይቆያል።',
+    movementHistory: 'የእንቅስቃሴ ታሪክ',
+    noMovementHistory: 'ምንም የሥራ መደብ እንቅስቃሴ አልተመዘገበም።',
+    movedBy: 'ያንቀሳቀሰው',
+    movedAt: 'የተንቀሳቀሰበት ጊዜ',
 } as const;
 
 export default positions;

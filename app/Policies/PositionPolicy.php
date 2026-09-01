@@ -6,8 +6,8 @@ namespace App\Policies;
 
 use App\Models\Position;
 use App\Models\User;
-use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use App\Services\OrganizationScope\OrganizationScopeService;
 
 readonly class PositionPolicy
 {
@@ -37,6 +37,15 @@ readonly class PositionPolicy
     public function update(User $user, Position $position): bool
     {
         return $user->can('positions.update') && $this->view($user, $position);
+    }
+
+    public function move(User $user, Position $position): bool
+    {
+        return $user->can('positions.move')
+            && $position->is_active
+            && $position->organization_id !== null
+            && $position->organization_unit_id !== null
+            && $this->view($user, $position);
     }
 
     public function archive(User $user, Position $position): bool

@@ -42,7 +42,7 @@ class RoleSeeder extends Seeder
 
             // Positions
             'positions.viewAny', 'positions.view', 'positions.create',
-            'positions.update', 'positions.archive', 'positions.restore',
+            'positions.update', 'positions.move', 'positions.archive', 'positions.restore',
             'grade-levels.viewAny', 'grade-levels.view',
             'occupations.viewAny', 'occupations.view',
 

@@ -85,6 +85,11 @@ class Position extends Model
         return $this->hasMany(EmployeeAssignment::class);
     }
 
+    public function movements(): HasMany
+    {
+        return $this->hasMany(PositionMovement::class)->latest('moved_at');
+    }
+
     public function isSelectable(?Carbon $onDate = null): bool
     {
         $onDate ??= now();

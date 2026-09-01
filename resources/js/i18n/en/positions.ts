@@ -77,6 +77,22 @@ const positions = {
     positionsInOrganizationUnit: 'Positions in Organization Unit',
     selectedOrganization: 'Selected Organization',
     selectedOrganizationUnit: 'Selected Organization Unit',
+    move: 'Move',
+    movePosition: 'Move Position',
+    position: 'Position',
+    currentOrganization: 'Current Organization',
+    currentOrganizationUnit: 'Current Organization Unit',
+    targetOrganizationUnit: 'Target Organization Unit',
+    selectTargetOrganizationUnit: 'Select target organization unit',
+    confirmMove: 'Confirm Move',
+    moveReason: 'Move Reason',
+    movedSuccessfully: 'Position moved successfully',
+    occupiedCannotMove: 'This position is occupied and cannot be moved.',
+    codeRemainsUnchanged: 'Position code will remain unchanged unless regenerated manually.',
+    movementHistory: 'Movement History',
+    noMovementHistory: 'No position movements have been recorded.',
+    movedBy: 'Moved By',
+    movedAt: 'Moved At',
 } as const;
 
 export default positions;

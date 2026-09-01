@@ -98,6 +98,7 @@ enum AuditEventType: string
     case PositionUpdated = 'position_updated';
     case PositionArchived = 'position_archived';
     case PositionRestored = 'position_restored';
+    case PositionMoved = 'position_moved';
     case ServiceTypeCreated = 'service_type_created';
     case ServiceTypeUpdated = 'service_type_updated';
     case ServiceTypeArchived = 'service_type_archived';

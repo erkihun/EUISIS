@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Actions\Positions\ArchivePositionAction;
 use App\Actions\Positions\CreatePositionAction;
+use App\Actions\Positions\MovePositionAction;
 use App\Actions\Positions\RestorePositionAction;
 use App\Actions\Positions\UpdatePositionAction;
 use App\Actions\Vacancy\ApprovePositionEstablishmentAction;
@@ -14,6 +15,7 @@ use App\Enums\EstablishmentStatus;
 use App\Enums\HierarchyVersionStatus;
 use App\Enums\OccupancyStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\MovePositionRequest;
 use App\Http\Requests\StorePositionRequest;
 use App\Http\Requests\UpdatePositionRequest;
 use App\Http\Resources\PositionResource;
@@ -538,9 +540,74 @@ class PositionController extends Controller
         $position->load('organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am,code', 'occupation:id,isco_code,name_en,name_am');
         $position->loadCount('assignments');
 
+        $movementHistory = $position->movements()
+            ->with([
+                'fromOrganizationUnit:id,name_en,name_am,code',
+                'toOrganizationUnit:id,name_en,name_am,code',
+                'movedBy:id,name',
+            ])
+            ->get()
+            ->map(fn ($movement): array => [
+                'id' => $movement->id,
+                'from_organization_unit' => $movement->fromOrganizationUnit?->only(['id', 'name_en', 'name_am', 'code']),
+                'to_organization_unit' => $movement->toOrganizationUnit?->only(['id', 'name_en', 'name_am', 'code']),
+                'moved_by' => $movement->movedBy?->only(['id', 'name']),
+                'reason' => $movement->reason,
+                'moved_at' => $movement->moved_at?->toISOString(),
+            ])
+            ->values();
+
         return Inertia::render('Positions/Show', [
             'position' => (new PositionResource($position))->resolve(),
+            'movementHistory' => $movementHistory,
         ]);
+    }
+
+    public function move(Position $position): Response
+    {
+        $this->authorize('move', $position);
+
+        $position->load(
+            'organization:id,name_en,name_am',
+            'organizationUnit:id,name_en,name_am,code',
+        );
+
+        $targetOrganizationUnits = OrganizationUnit::query()
+            ->where('organization_id', $position->organization_id)
+            ->active()
+            ->whereKeyNot($position->organization_unit_id)
+            ->orderBy('name_en')
+            ->get(['id', 'name_en', 'name_am', 'code']);
+
+        $isOccupied = $position->assignments()
+            ->where('assignment_status', AssignmentStatus::Active->value)
+            ->where('is_current', true)
+            ->exists();
+
+        return Inertia::render('Positions/Move', [
+            'position' => (new PositionResource($position))->resolve(),
+            'targetOrganizationUnits' => $targetOrganizationUnits,
+            'isOccupied' => $isOccupied,
+        ]);
+    }
+
+    public function storeMove(
+        MovePositionRequest $request,
+        Position $position,
+        MovePositionAction $action,
+    ): RedirectResponse {
+        $validated = $request->validated();
+
+        $action->execute(
+            $position,
+            $validated['target_organization_unit_id'],
+            $validated['reason'],
+            $request->user(),
+            $request,
+        );
+
+        return to_route('positions.show', $position)
+            ->with('flash', ['message' => __('positions.moved_successfully'), 'type' => 'success']);
     }
 
     public function edit(Position $position, OrganizationScopeService $organizationScopeService): Response
