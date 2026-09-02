@@ -166,6 +166,27 @@ it('still shows every organization to an unrestricted super admin', function ():
         });
 });
 
+it('uses the multi-organization presentation for a restricted user with multiple accessible organizations', function (): void {
+    $multiOrganizationUser = posStructureUser('HR Officer', $this->orgInScope);
+    $multiOrganizationUser->organizationScopes()->create([
+        'organization_id' => $this->orgOutOfScope->id,
+        'scope_type' => 'self',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($multiOrganizationUser->fresh())
+        ->get(route('positions.index'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page): void {
+            $props = $page->toArray()['props'];
+            $codes = collect($props['organizationStructure'])->pluck('code');
+
+            expect($props['isOrganizationScoped'])->toBeFalse()
+                ->and($codes)->toContain('POS-IN')
+                ->and($codes)->toContain('POS-OUT');
+        });
+});
+
 it('rejects a direct request for an organization outside the actor scope', function (): void {
     $scopedAdmin = posStructureUser('Organizational Admin', $this->orgInScope);
 

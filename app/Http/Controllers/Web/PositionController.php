@@ -44,11 +44,12 @@ class PositionController extends Controller
         $this->authorize('viewAny', Position::class);
 
         $user = $request->user();
-        $isOrganizationScoped = ! $organizationScopeService->isUnrestricted($user);
         $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
+        $isAccessRestricted = ! $organizationScopeService->isUnrestricted($user);
+        $isOrganizationScoped = $isAccessRestricted && $accessibleOrganizationIds->count() <= 1;
 
         $baseQuery = Position::query()
-            ->when($isOrganizationScoped, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
             ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
                 $query->where(function ($nested) use ($search): void {
@@ -84,7 +85,7 @@ class PositionController extends Controller
 
         $establishmentsByPosition = PositionEstablishment::query()
             ->where('status', EstablishmentStatus::Approved->value)
-            ->when($isOrganizationScoped, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
             ->withCount([
                 'occupancies as filled_positions' => fn ($query) => $query->where('status', OccupancyStatus::Active->value),
             ])
@@ -123,12 +124,12 @@ class PositionController extends Controller
         $paginatedPositions->getCollection()->each($attachStatus);
 
         $organizations = Organization::query()
-            ->when($isOrganizationScoped, fn ($query) => $query->whereIn('id', $accessibleOrganizationIds))
+            ->when($isAccessRestricted, fn ($query) => $query->whereIn('id', $accessibleOrganizationIds))
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_am']);
 
         $organizationUnits = OrganizationUnit::query()
-            ->when($isOrganizationScoped, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->when($isAccessRestricted, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
             ->when($request->string('organization_id')->toString() !== '', fn ($query) => $query->where('organization_id', $request->string('organization_id')->toString()))
             ->orderBy('name_en')
             ->get(['id', 'organization_id', 'name_en', 'name_am']);
@@ -203,6 +204,8 @@ class PositionController extends Controller
 
         $user = $request->user();
         $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
+        $isAccessRestricted = ! $organizationScopeService->isUnrestricted($user);
+        $isOrganizationScoped = $isAccessRestricted && $accessibleOrganizationIds->count() <= 1;
 
         // Build organization tree
         $orgQuery = Organization::query()
@@ -212,7 +215,7 @@ class PositionController extends Controller
 
         // Fail closed: a scoped actor whose accessible set resolves empty must
         // see nothing. Skipping the constraint would expose every organization.
-        if (! $organizationScopeService->isUnrestricted($user)) {
+        if ($isAccessRestricted) {
             $orgQuery->whereIn('id', $accessibleOrganizationIds);
         }
 
@@ -416,7 +419,7 @@ class PositionController extends Controller
 
         return Inertia::render('Positions/Index', [
             'organizationStructure' => $scopedPositionStructureService->build($user),
-            'isOrganizationScoped' => ! $organizationScopeService->isUnrestricted($user),
+            'isOrganizationScoped' => $isOrganizationScoped,
             'organizationTree' => $organizationTree,
             'hasPublishedHierarchy' => $hasPublishedHierarchy,
             'selectedOrganization' => $selectedOrganization,

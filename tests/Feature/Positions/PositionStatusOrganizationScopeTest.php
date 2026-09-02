@@ -109,6 +109,55 @@ it('keeps the position status page global for an unrestricted administrator', fu
         });
 });
 
+it('shows organization context for a restricted user who can access multiple organizations without leaking others', function (): void {
+    $thirdOrganization = Organization::query()->create([
+        'organization_type_id' => $this->statusOrganizationInScope->organization_type_id,
+        'code' => 'STATUS-THIRD',
+        'name_en' => 'Status Third Organization',
+        'status' => 'active',
+    ]);
+
+    $thirdUnit = OrganizationUnit::query()->create([
+        'organization_id' => $thirdOrganization->id,
+        'code' => 'STATUS-THIRD-UNIT',
+        'name_en' => 'Status Third Unit',
+        'unit_type' => 'department',
+        'status' => 'active',
+    ]);
+
+    Position::query()->create([
+        'organization_id' => $thirdOrganization->id,
+        'organization_unit_id' => $thirdUnit->id,
+        'job_position_code' => 'STATUS-THIRD-POSITION',
+        'title_en' => 'Status Third Position',
+        'is_active' => true,
+    ]);
+
+    $multiOrganizationUser = positionStatusScopeUser('HR Officer', $this->statusOrganizationInScope);
+    $multiOrganizationUser->organizationScopes()->create([
+        'organization_id' => $this->statusOrganizationOutOfScope->id,
+        'scope_type' => 'self',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($multiOrganizationUser->fresh())
+        ->get(route('positions.status'))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use ($thirdOrganization): void {
+            $props = $page->toArray()['props'];
+            $positionCodes = collect($props['positions']['data'])->pluck('job_position_code');
+            $organizationIds = collect($props['organizations'])->pluck('id');
+
+            expect($props['isOrganizationScoped'])->toBeFalse()
+                ->and($positionCodes)->toContain('STATUS-IN-POSITION')
+                ->and($positionCodes)->toContain('STATUS-OUT-POSITION')
+                ->and($positionCodes)->not->toContain('STATUS-THIRD-POSITION')
+                ->and($organizationIds)->toContain($this->statusOrganizationInScope->id)
+                ->and($organizationIds)->toContain($this->statusOrganizationOutOfScope->id)
+                ->and($organizationIds)->not->toContain($thirdOrganization->id);
+        });
+});
+
 it('does not return outside-scope status data when a scoped user tampers with the organization filter', function (): void {
     $scopedUser = positionStatusScopeUser('Organizational Admin', $this->statusOrganizationInScope);
 
