@@ -5,11 +5,13 @@ export default function CodeRulePreviewCard({
     loading = false,
     error = null,
     requiresContext = false,
+    usesRandomToken = false,
 }: {
     preview: string | null;
     loading?: boolean;
     error?: string | null;
     requiresContext?: boolean;
+    usesRandomToken?: boolean;
 }) {
     const { t } = useLocale();
 
@@ -47,6 +49,12 @@ export default function CodeRulePreviewCard({
             <div className="mt-4 rounded-xl border border-blue-200 bg-white px-4 py-3 font-mono text-sm text-blue-700 dark:border-slate-700 dark:bg-slate-950 dark:text-blue-300">
                 {loading ? <span className="text-gray-400 dark:text-slate-600">…</span> : (preview || '—')}
             </div>
+
+            {usesRandomToken && (
+                <p className="mt-3 text-xs text-gray-600 dark:text-slate-400">
+                    {t('codeRules.randomValueStable')}
+                </p>
+            )}
         </div>
     );
 }

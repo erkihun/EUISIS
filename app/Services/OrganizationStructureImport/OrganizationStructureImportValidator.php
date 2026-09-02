@@ -42,6 +42,8 @@ use Throwable;
  */
 class OrganizationStructureImportValidator
 {
+    private const MAX_RANDOM_CODE_ATTEMPTS = 20;
+
     /** Bound on the parent-chain walk when looking for cycles. */
     private const MAX_UNIT_DEPTH = 50;
 
@@ -53,9 +55,14 @@ class OrganizationStructureImportValidator
     /**
      * @param  bool  $autoGenerateCodes  when false, a blank code column is a row
      *                                   error instead of a generation request
+     * @param  array<string, string>  $lockedRandomCodes
      */
-    public function validate(StructureWorkbook $workbook, User $actor, bool $autoGenerateCodes = true): StructureImportPlan
-    {
+    public function validate(
+        StructureWorkbook $workbook,
+        User $actor,
+        bool $autoGenerateCodes = true,
+        array $lockedRandomCodes = [],
+    ): StructureImportPlan {
         $issues = $workbook->structuralIssues();
 
         // A workbook that is missing a required sheet or column cannot be
@@ -83,7 +90,7 @@ class OrganizationStructureImportValidator
 
         // Codes are projected, never reserved: this asks the Code Rule engine
         // what each blank cell *would* get, without consuming a sequence.
-        $projector = $this->codeProjectorFactory->make();
+        $projector = $this->codeProjectorFactory->make($lockedRandomCodes);
 
         // ── Organization sheet ────────────────────────────────────────────
         $organizationCode = $this->str($organizationRow['organization_code'] ?? null);
@@ -428,10 +435,21 @@ class OrganizationStructureImportValidator
             return [[], null];
         }
 
-        try {
-            $generated = $projector->project($entityType, $context);
-        } catch (Throwable) {
-            $generated = null;
+        $rule = $projector->rule($entityType, $context);
+        $usesRandomToken = str_contains((string) $rule?->format, '{RAND_6}');
+        $maximumAttempts = $usesRandomToken ? self::MAX_RANDOM_CODE_ATTEMPTS : 1;
+        $generated = null;
+
+        for ($attempt = 0; $attempt < $maximumAttempts; $attempt++) {
+            try {
+                $generated = $projector->project($entityType, $context, $sheet->value.':'.$rowNumber);
+            } catch (Throwable) {
+                $generated = null;
+            }
+
+            if ($generated === null || ! $isDuplicate($generated)) {
+                break;
+            }
         }
 
         if ($generated === null) {
@@ -444,17 +462,26 @@ class OrganizationStructureImportValidator
         }
 
         if ($isDuplicate($generated)) {
+            $message = $usesRandomToken
+                ? __('code-rules.random_code_duplicate')
+                : __('organization-structure-import.errors.duplicate_generated_code', ['code' => $generated]);
+
             return [[ImportIssue::error(
                 $sheet,
                 $rowNumber,
-                __('organization-structure-import.errors.duplicate_generated_code', ['code' => $generated]),
+                $message,
                 $column,
             )], null];
         }
 
-        $rule = $projector->rule($entityType, $context);
-
-        return [[], CodeAssignment::generated($sheet, $rowNumber, $name, $generated, $rule?->name_en)];
+        return [[], CodeAssignment::generated(
+            $sheet,
+            $rowNumber,
+            $name,
+            $generated,
+            $rule?->name_en,
+            $usesRandomToken,
+        )];
     }
 
     /**

@@ -85,18 +85,48 @@ class OrganizationStructureImportService
     }
 
     /**
+     * Identify a workbook by its parsed business data instead of XLSX archive
+     * metadata, which may differ when the same sheet is uploaded again.
+     */
+    public function fingerprint(UploadedFile $file): string
+    {
+        $workbook = $this->reader->read($file);
+        $content = [];
+
+        foreach (StructureSheet::cases() as $sheet) {
+            $content[$sheet->value] = [
+                'present' => $workbook->hasSheet($sheet),
+                'columns' => $workbook->columns($sheet),
+                'rows' => $workbook->rows($sheet)->values()->all(),
+            ];
+        }
+
+        return hash('sha256', json_encode(
+            $content,
+            JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION,
+        ));
+    }
+
+    /**
      * Re-validate and import. Returns the same preview payload shape, plus a
      * `result` block with the counts actually written.
      *
      * @throws RuntimeException when the file no longer validates cleanly
      */
+    /** @param array<string, string> $lockedRandomCodes */
     public function confirm(
         UploadedFile $file,
         User $actor,
         bool $importEmployees = true,
         bool $autoGenerateCodes = true,
+        array $lockedRandomCodes = [],
     ): array {
-        $plan = $this->validator->validate($this->reader->read($file), $actor, $autoGenerateCodes);
+        $plan = $this->validator->validate(
+            $this->reader->read($file),
+            $actor,
+            $autoGenerateCodes,
+            $lockedRandomCodes,
+        );
 
         if ($plan->hasErrors()) {
             $this->writeAuditLogAction->execute(
@@ -235,12 +265,13 @@ class OrganizationStructureImportService
 
         // Generated for real through the Organization code rule (advancing its
         // sequence), then checked against the code the preview promised.
-        $code = $this->generateCodeAction->execute(
+        $code = $this->generateCodeAction->executeUsingPreviewedCode(
             CodeRuleEntityType::Organization,
             ['organization_type_id' => $attributes['organization_type_id'] ?? null],
             $actor,
             $this->value($row, 'organization_code'),
             'code',
+            expectedGeneratedCode: $plan->organizationCode?->code,
         );
 
         $this->assertMatchesPreview(
@@ -303,7 +334,7 @@ class OrganizationStructureImportService
 
             // Generated for real through the code rule (advancing its sequence),
             // then checked against what the preview promised.
-            $code = $this->generateCodeAction->execute(
+            $code = $this->generateCodeAction->executeUsingPreviewedCode(
                 CodeRuleEntityType::OrganizationUnit,
                 [
                     'organization_id' => $hostOrganizationId,
@@ -312,6 +343,7 @@ class OrganizationStructureImportService
                 $actor,
                 $providedCode,
                 'code',
+                expectedGeneratedCode: $previewedCode,
             );
 
             $this->assertMatchesPreview(
@@ -434,12 +466,13 @@ class OrganizationStructureImportService
             // leave the sequence un-advanced and hand the same code out twice.
             $previewedCode = $this->value($row, '__code');
 
-            $jobPositionCode = $this->generateCodeAction->execute(
+            $jobPositionCode = $this->generateCodeAction->executeUsingPreviewedCode(
                 CodeRuleEntityType::Position,
                 $codeContext,
                 $actor,
                 $manualCode,
                 'job_position_code',
+                expectedGeneratedCode: $previewedCode,
             );
 
             // Another import may have consumed the sequence between preview and
@@ -542,12 +575,13 @@ class OrganizationStructureImportService
             // global employee sequence.
             $previewedNumber = $this->value($row, '__code');
 
-            $employeeNumber = $this->generateCodeAction->execute(
+            $employeeNumber = $this->generateCodeAction->executeUsingPreviewedCode(
                 CodeRuleEntityType::Employee,
                 [],
                 $actor,
                 $this->value($row, 'employee_number'),
                 'employee_number',
+                expectedGeneratedCode: $previewedNumber,
             );
 
             $this->assertMatchesPreview(

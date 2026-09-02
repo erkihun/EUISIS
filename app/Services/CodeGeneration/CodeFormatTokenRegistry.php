@@ -90,6 +90,19 @@ class CodeFormatTokenRegistry
                 'is_active' => true,
                 'supported_entity_types' => null,
             ],
+            'RAND_6' => [
+                'token' => 'RAND_6',
+                'label_en' => '6-digit random number',
+                'label_am' => 'ባለ 6 አሃዝ የዘፈቀደ ቁጥር',
+                'description_en' => 'Generates a cryptographically secure 6-digit random number.',
+                'description_am' => 'ደህንነቱ የተጠበቀ ባለ 6 አሃዝ የዘፈቀደ ቁጥር ያመነጫል።',
+                'category' => 'Core',
+                'requires_context' => false,
+                'context_key' => null,
+                'example' => 'EMP-{RAND_6} → EMP-483920',
+                'is_active' => true,
+                'supported_entity_types' => null,
+            ],
 
             // ── DATE / TIME ───────────────────────────────────────────────────
             'YEAR' => [

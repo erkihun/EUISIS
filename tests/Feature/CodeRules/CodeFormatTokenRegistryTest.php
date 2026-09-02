@@ -100,3 +100,13 @@ it('has sequence and sequence_padded both in core', function (): void {
     expect($all['SEQUENCE']['is_active'])->toBeTrue();
     expect($all['SEQUENCE_PADDED']['is_active'])->toBeTrue();
 });
+
+it('publishes the secure six digit random token to the code rule UI', function (): void {
+    $token = $this->registry->all()['RAND_6'];
+
+    expect($token['category'])->toBe('Core')
+        ->and($token['requires_context'])->toBeFalse()
+        ->and($token['label_en'])->toBe('6-digit random number')
+        ->and($token['example'])->toBe('EMP-{RAND_6} → EMP-483920')
+        ->and($token['is_active'])->toBeTrue();
+});

@@ -69,6 +69,19 @@ class OrganizationStructureImportController extends Controller
                 $request->user(),
                 (bool) $request->validated('auto_generate_codes'),
             );
+
+            $randomCodeLocks = collect($preview['codes'] ?? [])
+                ->filter(static fn (array $assignment): bool => (bool) ($assignment['uses_random_token'] ?? false))
+                ->mapWithKeys(static fn (array $assignment): array => [
+                    $assignment['sheet'].':'.$assignment['row'] => $assignment['generated_code'],
+                ])
+                ->filter()
+                ->all();
+
+            $request->session()->put('organization_structure_import_random_codes', [
+                'file_fingerprint' => $this->importService->fingerprint($request->file('file')),
+                'codes' => $randomCodeLocks,
+            ]);
         } catch (InvalidStructureWorkbookException $exception) {
             return back()->withErrors(['file' => $exception->getMessage()]);
         }
@@ -86,11 +99,18 @@ class OrganizationStructureImportController extends Controller
         $this->authorize('import', Organization::class);
 
         try {
+            $randomCodeLock = (array) $request->session()->pull('organization_structure_import_random_codes', []);
+            $lockedRandomCodes = hash_equals(
+                (string) ($randomCodeLock['file_fingerprint'] ?? ''),
+                $this->importService->fingerprint($request->file('file')),
+            ) ? (array) ($randomCodeLock['codes'] ?? []) : [];
+
             $result = $this->importService->confirm(
                 $request->file('file'),
                 $request->user(),
                 (bool) $request->validated('import_employees'),
                 (bool) $request->validated('auto_generate_codes'),
+                $lockedRandomCodes,
             );
         } catch (InvalidStructureWorkbookException $exception) {
             return back()->withErrors(['file' => $exception->getMessage()]);

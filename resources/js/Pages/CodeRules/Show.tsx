@@ -217,7 +217,10 @@ export default function CodeRulesShow({
                 </section>
 
                 <aside className="space-y-6">
-                    <CodeRulePreviewCard preview={codeRule.preview} />
+                    <CodeRulePreviewCard
+                        preview={codeRule.preview}
+                        usesRandomToken={codeRule.format.includes('{RAND_6}')}
+                    />
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                         <div className="space-y-3 text-sm text-gray-700 dark:text-slate-300">
                             <div className="flex items-center justify-between gap-3">

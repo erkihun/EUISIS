@@ -8,10 +8,11 @@ return [
     'archived' => 'Code rule deleted successfully.',
     'restored' => 'Code rule restored successfully.',
     'invalid_format' => 'Invalid code rule format.',
-    'format_must_contain_sequence' => 'Format must contain the {SEQUENCE} token.',
+    'format_must_contain_sequence' => 'Format must contain {SEQUENCE}, {SEQUENCE_PADDED}, or {RAND_6}.',
     'duplicate_active_rule' => 'A duplicate active code rule already exists for this entity and scope.',
     'manual_override_not_allowed' => 'Manual code override is not allowed for this rule.',
     'generated_code_exists' => 'The generated code already exists.',
+    'random_code_duplicate' => 'Random code duplicate, please try again.',
     'no_active_rule' => 'No active code rule is configured for this entity.',
     'owner_organization_required' => 'An owner organization is required to generate a position code.',
     'owner_organization_inactive' => 'The owner organization is not active, so no new position code can be generated for it.',
@@ -47,13 +48,13 @@ return [
     // Validation
     'validation_format_required' => 'The format field is required.',
     'validation_format_unknown_token' => 'Unknown token :token in format.',
-    'validation_format_needs_sequence' => 'Format must contain {SEQUENCE} or {SEQUENCE_PADDED}.',
+    'validation_format_needs_sequence' => 'Format must contain {SEQUENCE}, {SEQUENCE_PADDED}, or {RAND_6}.',
     'validation_sequence_length_required' => 'Sequence length is required when using {SEQUENCE_PADDED}.',
     // Sequence scope
     'missing_sequence_scope_context' => 'Missing sequence scope context for token: :token',
     'sequence_reset_success' => 'Sequence reset successfully.',
     'sequence_backfill_complete' => 'Sequence backfill completed.',
     'custom_tokens_required' => 'At least one scope token is required when using the Custom Tokens strategy.',
-    'custom_tokens_cannot_include_sequence' => 'SEQUENCE and SEQUENCE_PADDED cannot be used as scope tokens.',
+    'custom_tokens_cannot_include_sequence' => 'SEQUENCE, SEQUENCE_PADDED, and RAND_6 cannot be used as scope tokens.',
     'custom_tokens_must_exist_in_format' => 'Scope token :token must appear in the format string.',
 ];

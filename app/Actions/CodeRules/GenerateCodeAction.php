@@ -8,6 +8,7 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Exceptions\MissingSequenceScopeContextException;
+use App\Exceptions\RandomCodeGenerationException;
 use App\Models\CodeRule;
 use App\Models\User;
 use App\Services\CodeGeneration\CodeGeneratorService;
@@ -30,6 +31,27 @@ class GenerateCodeAction
         string $field = 'code',
         ?string $entityId = null,
         ?CodeRule $resolvedRule = null,
+    ): string {
+        return $this->executeUsingPreviewedCode(
+            $entityType,
+            $context,
+            $actor,
+            $manualCode,
+            $field,
+            $entityId,
+            $resolvedRule,
+        );
+    }
+
+    public function executeUsingPreviewedCode(
+        CodeRuleEntityType|string $entityType,
+        array $context = [],
+        ?User $actor = null,
+        ?string $manualCode = null,
+        string $field = 'code',
+        ?string $entityId = null,
+        ?CodeRule $resolvedRule = null,
+        ?string $expectedGeneratedCode = null,
     ): string {
         $codeRule = $resolvedRule ?? $this->codeRuleResolver->resolve($entityType, $context);
 
@@ -71,10 +93,20 @@ class GenerateCodeAction
         }
 
         try {
-            $generatedCode = $this->codeGeneratorService->generate($codeRule, $context, $actor, $entityId);
+            $generatedCode = $this->codeGeneratorService->generate(
+                $codeRule,
+                $context,
+                $actor,
+                $entityId,
+                $expectedGeneratedCode,
+            );
         } catch (MissingSequenceScopeContextException $exception) {
             throw ValidationException::withMessages([
                 $field => $exception->getMessage(),
+            ]);
+        } catch (RandomCodeGenerationException) {
+            throw ValidationException::withMessages([
+                $field => __('code-rules.random_code_duplicate'),
             ]);
         }
 

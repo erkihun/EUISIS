@@ -8,6 +8,7 @@ const FORMAT_EXAMPLES = [
     '{ORG_TYPE_PREFIX}-{YEAR}-{SEQUENCE_PADDED}',
     '{PREFIX}-{SEQUENCE_PADDED}',
     'EMP-{YEAR}-{SEQUENCE_PADDED}',
+    'EMP-{RAND_6}',
     '{ORG_CODE}-{PREFIX}-{SEQUENCE_PADDED}',
 ];
 
@@ -87,6 +88,7 @@ export default function FormatTokenHelper({
             'month',
             'day',
             'sequence',
+            'randomSix',
             'orgCode',
             'orgTypeCode',
             'orgTypePrefix',

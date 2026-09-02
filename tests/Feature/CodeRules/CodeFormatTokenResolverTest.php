@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Enums\CodeRuleEntityType;
+use App\Enums\CodeRuleResetFrequency;
+use App\Enums\OrganizationStatus;
 use App\Exceptions\MissingTokenContextException;
 use App\Models\CodeRule;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Services\CodeGeneration\CodeFormatTokenResolver;
-use App\Enums\CodeRuleEntityType;
-use App\Enums\CodeRuleResetFrequency;
 use Illuminate\Support\Carbon;
 
 function makeTestRule(array $overrides = []): CodeRule
@@ -79,6 +80,14 @@ it('resolves sequence token with padding', function (): void {
     expect($result)->toBe('0007');
 });
 
+it('resolves rand_6 as a numeric six digit value in range', function (): void {
+    $result = $this->resolver->resolveToken('RAND_6', makeTestRule(), [], $this->now);
+
+    expect($result)->toMatch('/^\d{6}$/')
+        ->and((int) $result)->toBeGreaterThanOrEqual(100000)
+        ->and((int) $result)->toBeLessThanOrEqual(999999);
+});
+
 it('resolves year_short correctly', function (): void {
     $rule = makeTestRule();
     $context = ['_sequence_number' => 1];
@@ -133,7 +142,7 @@ it('resolves org_type_prefix via organization context', function (): void {
         'organization_type_id' => $orgType->id,
         'code' => 'SEC-TEST-01',
         'name_en' => 'Test Sector',
-        'status' => \App\Enums\OrganizationStatus::Active,
+        'status' => OrganizationStatus::Active,
         'effective_from' => now()->toDateString(),
     ]);
 

@@ -76,12 +76,15 @@ export default function CodeRuleForm({
         [form.data.scope_type, options.scope_options],
     );
 
-    const hasSequenceToken =
-        form.data.format.includes('{SEQUENCE}') || form.data.format.includes('{SEQUENCE_PADDED}');
+    const hasRandomToken = form.data.format.includes('{RAND_6}');
+    const hasGenerationToken =
+        form.data.format.includes('{SEQUENCE}') ||
+        form.data.format.includes('{SEQUENCE_PADDED}') ||
+        hasRandomToken;
 
     // Tokens present in the format that are valid scope candidates
     const availableScopeTokens = useMemo(() => {
-        const excluded = new Set(['SEQUENCE', 'SEQUENCE_PADDED', 'PREFIX', 'SUFFIX', 'SEPARATOR']);
+        const excluded = new Set(['SEQUENCE', 'SEQUENCE_PADDED', 'RAND_6', 'PREFIX', 'SUFFIX', 'SEPARATOR']);
         const matches = [...form.data.format.matchAll(/\{([A-Z0-9_]+)\}/g)];
         return [...new Set(matches.map((m) => m[1]).filter((t) => !excluded.has(t)))];
     }, [form.data.format]);
@@ -100,7 +103,7 @@ export default function CodeRuleForm({
     }, [form.data.sequence_scope_strategy, form.data.sequence_scope_tokens, availableScopeTokens, t]);
 
     useEffect(() => {
-        if (!canPreview || form.data.format.trim() === '' || !hasSequenceToken) {
+        if (!canPreview || form.data.format.trim() === '' || !hasGenerationToken) {
             return;
         }
 
@@ -139,7 +142,7 @@ export default function CodeRuleForm({
         return () => window.clearTimeout(timeout);
     }, [
         canPreview,
-        hasSequenceToken,
+        hasGenerationToken,
         form.data.entity_type,
         form.data.scope_type,
         form.data.scope_id,
@@ -388,7 +391,7 @@ export default function CodeRuleForm({
             </form>
 
             <div className="space-y-6">
-                <CodeRulePreviewCard preview={preview} loading={previewLoading} />
+                <CodeRulePreviewCard preview={preview} loading={previewLoading} usesRandomToken={hasRandomToken} />
                 <FormatTokenHelper
                     format={form.data.format}
                     onInsert={handleInsertToken}

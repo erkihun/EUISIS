@@ -7,6 +7,7 @@ namespace App\Services\CodeGeneration;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\CodeRuleResetFrequency;
 use App\Exceptions\MissingSequenceScopeContextException;
+use App\Exceptions\RandomCodeGenerationException;
 use App\Models\CodeGenerationLog;
 use App\Models\CodeRule;
 use App\Models\CodeRuleSequence;
@@ -26,6 +27,10 @@ use RuntimeException;
 
 class CodeGeneratorService
 {
+    private const MAX_RANDOM_CODE_ATTEMPTS = 20;
+
+    private const MAX_SEQUENCE_CODE_ATTEMPTS = 1000;
+
     public function __construct(
         private readonly CodeFormatTokenResolver $resolver,
         private readonly SequenceScopeResolver $scopeResolver,
@@ -44,9 +49,14 @@ class CodeGeneratorService
         return $this->formatCode($rule, $context, $previewNumber);
     }
 
-    public function generate(CodeRule $rule, array $context = [], ?User $actor = null, ?string $entityId = null): string
-    {
-        return DB::transaction(function () use ($rule, $context, $actor, $entityId): string {
+    public function generate(
+        CodeRule $rule,
+        array $context = [],
+        ?User $actor = null,
+        ?string $entityId = null,
+        ?string $expectedGeneratedCode = null,
+    ): string {
+        return DB::transaction(function () use ($rule, $context, $actor, $entityId, $expectedGeneratedCode): string {
             $lockedRule = CodeRule::query()
                 ->whereKey($rule->getKey())
                 ->lockForUpdate()
@@ -80,20 +90,37 @@ class CodeGeneratorService
             $this->resetSequenceIfDue($sequence, $lockedRule);
 
             $sequenceNumber = max(1, $sequence->next_number);
+            $usesRandomToken = str_contains($lockedRule->format, '{RAND_6}');
+            $maximumAttempts = $usesRandomToken
+                ? self::MAX_RANDOM_CODE_ATTEMPTS
+                : self::MAX_SEQUENCE_CODE_ATTEMPTS;
             $attempts = 0;
+            $generatedCode = '';
 
-            do {
-                $generatedCode = $this->formatCode($lockedRule, $context, $sequenceNumber);
+            while ($attempts < $maximumAttempts) {
+                $generatedCode = $usesRandomToken && $expectedGeneratedCode !== null
+                    ? $expectedGeneratedCode
+                    : $this->formatCode($lockedRule, $context, $sequenceNumber);
                 $attempts++;
 
                 if (! $this->codeExists($lockedRule->entity_type, $generatedCode)) {
                     break;
                 }
 
-                $sequenceNumber++;
-            } while ($attempts < 1000);
+                if ($usesRandomToken && $expectedGeneratedCode !== null) {
+                    throw new RandomCodeGenerationException('The previewed random code is no longer available.');
+                }
 
-            if ($attempts >= 1000) {
+                if (! $usesRandomToken) {
+                    $sequenceNumber++;
+                }
+            }
+
+            if ($this->codeExists($lockedRule->entity_type, $generatedCode)) {
+                if ($usesRandomToken) {
+                    throw new RandomCodeGenerationException('Unable to generate a unique random code after 20 attempts.');
+                }
+
                 throw new RuntimeException('Unable to generate a unique code after multiple attempts.');
             }
 
@@ -224,15 +251,15 @@ class CodeGeneratorService
         $entity = $entityType instanceof CodeRuleEntityType ? $entityType : CodeRuleEntityType::from($entityType);
 
         return match ($entity) {
-            CodeRuleEntityType::Organization => Organization::query()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::OrganizationType => OrganizationType::query()->where('code', $generatedCode)->exists(),
+            CodeRuleEntityType::Organization => Organization::withTrashed()->where('code', $generatedCode)->exists(),
+            CodeRuleEntityType::OrganizationType => OrganizationType::withTrashed()->where('code', $generatedCode)->exists(),
             CodeRuleEntityType::Employee => Employee::query()->where('employee_number', $generatedCode)->exists(),
-            CodeRuleEntityType::Position, CodeRuleEntityType::EmployeePosition => Position::query()->where('job_position_code', $generatedCode)->exists(),
+            CodeRuleEntityType::Position, CodeRuleEntityType::EmployeePosition => Position::withTrashed()->where('job_position_code', $generatedCode)->exists(),
             CodeRuleEntityType::IdCard => IdCard::query()->where('card_number', $generatedCode)->exists(),
             CodeRuleEntityType::ServiceProvider => ServiceProvider::query()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::ServiceType => ServiceType::query()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::OrganizationUnit => OrganizationUnit::query()->where('code', $generatedCode)->exists(),
-            CodeRuleEntityType::OrganizationUnitType => OrganizationUnitType::query()->where('code', $generatedCode)->exists(),
+            CodeRuleEntityType::ServiceType => ServiceType::withTrashed()->where('code', $generatedCode)->exists(),
+            CodeRuleEntityType::OrganizationUnit => OrganizationUnit::withTrashed()->where('code', $generatedCode)->exists(),
+            CodeRuleEntityType::OrganizationUnitType => OrganizationUnitType::withTrashed()->where('code', $generatedCode)->exists(),
             default => false,
         };
     }

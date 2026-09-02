@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\CodeRuleEntityType;
 use App\Enums\CodeRuleResetFrequency;
+use App\Models\CodeRule;
 use App\Models\User;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -105,6 +106,18 @@ it('accepts format with sequence (original token)', function (): void {
             'format' => '{PREFIX}-{SEQUENCE}',
         ]))
         ->assertRedirect();
+});
+
+it('accepts a random-only format without a sequence token', function (): void {
+    $user = validationSuperAdmin();
+
+    $this->actingAs($user)
+        ->post(route('code-rules.store'), basePayload([
+            'format' => 'EMP-{RAND_6}',
+        ]))
+        ->assertRedirect();
+
+    expect(CodeRule::query()->where('format', 'EMP-{RAND_6}')->exists())->toBeTrue();
 });
 
 it('accepts all core tokens in format', function (): void {

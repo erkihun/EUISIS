@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Services\Employees;
 
 use App\Actions\Audit\WriteAuditLogAction;
-use App\Actions\CodeRules\GenerateCodeAction;
 use App\Actions\Employees\RegisterEmployeeAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -18,6 +18,8 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Services\CodeGeneration\CodeGeneratorService;
+use App\Services\CodeGeneration\CodeRuleResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -61,10 +63,13 @@ class EmployeeCsvImportService
     /** Guards against a spreadsheet export with a runaway row count. */
     private const MAX_ROWS = 2000;
 
+    private const MAX_RANDOM_CODE_ATTEMPTS = 20;
+
     public function __construct(
         private readonly OrganizationScopeService $scope,
         private readonly RegisterEmployeeAction $registerEmployee,
-        private readonly GenerateCodeAction $generateCode,
+        private readonly CodeRuleResolver $codeRuleResolver,
+        private readonly CodeGeneratorService $codeGeneratorService,
         private readonly WriteAuditLogAction $writeAuditLog,
     ) {}
 
@@ -108,7 +113,6 @@ class EmployeeCsvImportService
         $validCount = 0;
         $failedCount = 0;
         $organizationIds = [];
-
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2; // Header occupies line 1.
             $errors = $this->validateRow($row, $allowedOrganizationIds, $claimedPositions, $claimedNumbers);
@@ -116,12 +120,40 @@ class EmployeeCsvImportService
             $resolved = $errors === [] ? $this->resolveRow($row) : null;
 
             if ($resolved !== null) {
+                $manualNumber = trim((string) ($row['employee_number'] ?? ''));
+                $codeContext = ['organization_id' => $resolved['organization']->id];
+                $rule = $this->codeRuleResolver->resolve(CodeRuleEntityType::Employee, $codeContext);
+
+                if ($manualNumber === '' && str_contains((string) $rule?->format, '{RAND_6}')) {
+                    $generatedNumber = null;
+
+                    for ($attempt = 0; $attempt < self::MAX_RANDOM_CODE_ATTEMPTS; $attempt++) {
+                        $candidate = $this->codeGeneratorService->preview($rule, $codeContext);
+
+                        if (! Employee::query()->where('employee_number', $candidate)->exists()
+                            && ! in_array(mb_strtolower($candidate), $claimedNumbers, true)) {
+                            $generatedNumber = $candidate;
+
+                            break;
+                        }
+                    }
+
+                    if ($generatedNumber === null) {
+                        $errors[] = __('code-rules.random_code_duplicate');
+                        $resolved = null;
+                    } else {
+                        $row['_generated_employee_number'] = $generatedNumber;
+                    }
+                }
+            }
+
+            if ($resolved !== null && $errors === []) {
                 $claimedPositions[] = $resolved['position']->id;
                 $organizationIds[] = $resolved['organization']->id;
 
-                $number = trim((string) ($row['employee_number'] ?? ''));
+                $number = $this->employeeNumber($row);
 
-                if ($number !== '') {
+                if ($number !== null) {
                     $claimedNumbers[] = mb_strtolower($number);
                 }
 
@@ -263,7 +295,7 @@ class EmployeeCsvImportService
                         $row['father_name'] ?? null,
                         $row['grandfather_name'] ?? null,
                     ]))),
-                    'employee_number' => trim((string) ($row['employee_number'] ?? '')) ?: null,
+                    'employee_number' => $this->employeeNumber($row),
                     'organization' => $resolved['organization']->name_en ?? ($row['organization_code'] ?? null),
                     'organization_unit' => $resolved['unit']->name_en ?? ($row['organization_unit_code'] ?? null),
                     'position' => $resolved['position']->title_en ?? ($row['position_code'] ?? null),
@@ -442,9 +474,9 @@ class EmployeeCsvImportService
             }
         }
 
-        $number = trim((string) ($row['employee_number'] ?? ''));
+        $number = $this->employeeNumber($row);
 
-        if ($number !== '') {
+        if ($number !== null) {
             if (Employee::query()->where('employee_number', $number)->exists()) {
                 $errors[] = __('employees.import.errors.employeeNumberExists', ['number' => $number]);
             }
@@ -509,6 +541,7 @@ class EmployeeCsvImportService
             // Blank means "generate one" — RegisterEmployeeAction runs the
             // configured Code Rule when no manual number is supplied.
             'employee_number' => trim((string) ($row['employee_number'] ?? '')) ?: null,
+            '_expected_generated_code' => $row['_generated_employee_number'] ?? null,
             'first_name' => trim((string) ($row['first_name'] ?? '')),
             'middle_name' => trim((string) ($row['father_name'] ?? '')) ?: null,
             'last_name' => trim((string) ($row['grandfather_name'] ?? '')) ?: null,
@@ -562,5 +595,19 @@ class EmployeeCsvImportService
             ->where('is_current', true)
             ->where('assignment_status', AssignmentStatus::Active)
             ->exists();
+    }
+
+    /** @param array<string, mixed> $row */
+    private function employeeNumber(array $row): ?string
+    {
+        $number = trim((string) ($row['employee_number'] ?? ''));
+
+        if ($number !== '') {
+            return $number;
+        }
+
+        $generatedNumber = trim((string) ($row['_generated_employee_number'] ?? ''));
+
+        return $generatedNumber !== '' ? $generatedNumber : null;
     }
 }

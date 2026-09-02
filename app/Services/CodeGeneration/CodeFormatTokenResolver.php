@@ -62,6 +62,7 @@ class CodeFormatTokenResolver
             'SEPARATOR' => $rule->separator ?? '',
             'SEQUENCE' => str_pad((string) $sequenceNumber, (int) ($rule->sequence_length ?? 4), '0', STR_PAD_LEFT),
             'SEQUENCE_PADDED' => str_pad((string) $sequenceNumber, (int) ($rule->sequence_length ?? 4), '0', STR_PAD_LEFT),
+            'RAND_6' => (string) random_int(100000, 999999),
 
             // ── DATE / TIME ───────────────────────────────────────────────────
             'YEAR' => $now->format('Y'),
@@ -804,7 +805,7 @@ class CodeFormatTokenResolver
     private function tokenKeys(): array
     {
         return [
-            'PREFIX', 'SUFFIX', 'SEPARATOR', 'SEQUENCE', 'SEQUENCE_PADDED',
+            'PREFIX', 'SUFFIX', 'SEPARATOR', 'SEQUENCE', 'SEQUENCE_PADDED', 'RAND_6',
             'YEAR', 'YEAR_SHORT', 'MONTH', 'MONTH_NAME', 'DAY', 'DATE', 'TIME', 'TIMESTAMP', 'FISCAL_YEAR',
             'ORG_CODE', 'ORG_PREFIX', 'ORG_NAME', 'ORG_TYPE_CODE', 'ORG_TYPE_PREFIX', 'ORG_TYPE_NAME',
             'PARENT_ORG_CODE', 'PARENT_ORG_PREFIX',

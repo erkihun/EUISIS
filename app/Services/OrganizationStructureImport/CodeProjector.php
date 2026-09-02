@@ -37,6 +37,9 @@ class CodeProjector
     /** @var array<string, int> scope hash => codes already projected for it */
     private array $consumed = [];
 
+    /** @var array<string, int> row projection key => reserved sequence offset */
+    private array $rowOffsets = [];
+
     /** @var array<string, CodeRule|null> entity type => resolved rule (null = none configured) */
     private array $ruleCache = [];
 
@@ -44,6 +47,7 @@ class CodeProjector
         private readonly CodeRuleResolver $codeRuleResolver,
         private readonly CodeGeneratorService $codeGeneratorService,
         private readonly SequenceScopeResolver $sequenceScopeResolver,
+        private readonly array $lockedRandomCodes = [],
     ) {}
 
     /**
@@ -69,7 +73,7 @@ class CodeProjector
      * Returns null when no code rule is configured — the caller turns that into
      * a row-level "Code rule is not configured" error rather than throwing.
      */
-    public function project(CodeRuleEntityType $entityType, array $context = []): ?string
+    public function project(CodeRuleEntityType $entityType, array $context = [], ?string $lockKey = null): ?string
     {
         $rule = $this->rule($entityType, $context);
 
@@ -77,11 +81,27 @@ class CodeProjector
             return null;
         }
 
+        if ($lockKey !== null
+            && str_contains($rule->format, '{RAND_6}')
+            && isset($this->lockedRandomCodes[$lockKey])) {
+            return (string) $this->lockedRandomCodes[$lockKey];
+        }
+
         $scope = $this->resolveScope($rule, $context);
         $scopeHash = $rule->getKey().':'.($scope['scope_hash'] ?? 'global');
 
-        $offset = $this->consumed[$scopeHash] ?? 0;
-        $this->consumed[$scopeHash] = $offset + 1;
+        $rowOffsetKey = $lockKey !== null ? $scopeHash.':'.$lockKey : null;
+
+        if ($rowOffsetKey !== null && array_key_exists($rowOffsetKey, $this->rowOffsets)) {
+            $offset = $this->rowOffsets[$rowOffsetKey];
+        } else {
+            $offset = $this->consumed[$scopeHash] ?? 0;
+            $this->consumed[$scopeHash] = $offset + 1;
+
+            if ($rowOffsetKey !== null) {
+                $this->rowOffsets[$rowOffsetKey] = $offset;
+            }
+        }
 
         // The sequence number the next real generate() would use, plus however
         // many codes this file has already claimed in the same scope.

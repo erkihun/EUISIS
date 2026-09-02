@@ -55,6 +55,7 @@ type Props = {
     positions: PaginatedPositions;
     organizations: SelectOption[];
     organizationUnits: SelectOption[];
+    isOrganizationScoped: boolean;
     filters: Record<string, string>;
 };
 
@@ -66,7 +67,7 @@ function metricTone(index: number): string {
     ][index];
 }
 
-export default function PositionStatus({ summary, positions, organizations, organizationUnits, filters }: Props) {
+export default function PositionStatus({ summary, positions, organizations, organizationUnits, isOrganizationScoped, filters }: Props) {
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
 
@@ -132,26 +133,28 @@ export default function PositionStatus({ summary, positions, organizations, orga
                 </section>
 
                 <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <form className="grid gap-3 lg:grid-cols-5" onSubmit={submit}>
+                    <form className={`grid gap-3 ${isOrganizationScoped ? 'lg:grid-cols-4' : 'lg:grid-cols-5'}`} onSubmit={submit}>
                         <input
                             className={`${inputClass} lg:col-span-2`}
                             value={form.data.search}
                             placeholder={t('positions.searchPositions')}
                             onChange={(event) => form.setData('search', event.target.value)}
                         />
-                        <select
-                            className={inputClass}
-                            value={form.data.organization_id}
-                            onChange={(event) => {
-                                form.setData('organization_id', event.target.value);
-                                form.setData('organization_unit_id', '');
-                            }}
-                        >
-                            <option value="">{t('positions.organization')}</option>
-                            {organizations.map((organization) => (
-                                <option key={organization.id} value={organization.id}>{optionLabel(organization)}</option>
-                            ))}
-                        </select>
+                        {!isOrganizationScoped && (
+                            <select
+                                className={inputClass}
+                                value={form.data.organization_id}
+                                onChange={(event) => {
+                                    form.setData('organization_id', event.target.value);
+                                    form.setData('organization_unit_id', '');
+                                }}
+                            >
+                                <option value="">{t('positions.organization')}</option>
+                                {organizations.map((organization) => (
+                                    <option key={organization.id} value={organization.id}>{optionLabel(organization)}</option>
+                                ))}
+                            </select>
+                        )}
                         <select
                             className={inputClass}
                             value={form.data.organization_unit_id}
@@ -172,7 +175,7 @@ export default function PositionStatus({ summary, positions, organizations, orga
                                 {t('common.filter')}
                             </button>
                         </div>
-                        <div className="flex gap-2 lg:col-span-5">
+                        <div className={`flex gap-2 ${isOrganizationScoped ? 'lg:col-span-4' : 'lg:col-span-5'}`}>
                             <input
                                 className={`${inputClass} max-w-xs`}
                                 value={form.data.grade_level}
@@ -198,7 +201,7 @@ export default function PositionStatus({ summary, positions, organizations, orga
                                 <thead className="bg-gray-50 dark:bg-slate-950">
                                     <tr>
                                         {[
-                                            t('positions.organization'),
+                                            ...(isOrganizationScoped ? [] : [t('positions.organization')]),
                                             t('positions.organizationUnit'),
                                             t('positions.jobPositionCode'),
                                             t('positions.positionTitle'),
@@ -220,7 +223,9 @@ export default function PositionStatus({ summary, positions, organizations, orga
 
                                         return (
                                             <tr key={position.id} className="text-gray-700 dark:text-slate-200">
-                                                <td className="whitespace-nowrap px-4 py-3">{organizationName}</td>
+                                                {!isOrganizationScoped && (
+                                                    <td className="whitespace-nowrap px-4 py-3">{organizationName}</td>
+                                                )}
                                                 <td className="whitespace-nowrap px-4 py-3">{departmentName}</td>
                                                 <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">
                                                     <Link href={route('positions.show', position.position_id)} className="text-blue-600 hover:text-blue-800 dark:text-blue-400">

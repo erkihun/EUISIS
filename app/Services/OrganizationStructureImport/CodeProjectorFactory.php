@@ -24,12 +24,14 @@ class CodeProjectorFactory
         private readonly SequenceScopeResolver $sequenceScopeResolver,
     ) {}
 
-    public function make(): CodeProjector
+    /** @param array<string, string> $lockedRandomCodes */
+    public function make(array $lockedRandomCodes = []): CodeProjector
     {
         return new CodeProjector(
             $this->codeRuleResolver,
             $this->codeGeneratorService,
             $this->sequenceScopeResolver,
+            $lockedRandomCodes,
         );
     }
 }

@@ -27,11 +27,12 @@ final readonly class CodeAssignment
         public ?string $code,
         public string $source,
         public ?string $codeRuleName,
+        public bool $usesRandomToken,
     ) {}
 
     public static function provided(StructureSheet $sheet, int $row, string $name, string $code): self
     {
-        return new self($sheet, $row, $name, $code, $code, self::SOURCE_PROVIDED, null);
+        return new self($sheet, $row, $name, $code, $code, self::SOURCE_PROVIDED, null, false);
     }
 
     public static function generated(
@@ -40,8 +41,9 @@ final readonly class CodeAssignment
         string $name,
         ?string $code,
         ?string $codeRuleName,
+        bool $usesRandomToken = false,
     ): self {
-        return new self($sheet, $row, $name, null, $code, self::SOURCE_GENERATED, $codeRuleName);
+        return new self($sheet, $row, $name, null, $code, self::SOURCE_GENERATED, $codeRuleName, $usesRandomToken);
     }
 
     public function isGenerated(): bool
@@ -61,6 +63,7 @@ final readonly class CodeAssignment
             'code' => $this->code,
             'source' => $this->source,
             'code_rule' => $this->codeRuleName,
+            'uses_random_token' => $this->usesRandomToken,
         ];
     }
 }

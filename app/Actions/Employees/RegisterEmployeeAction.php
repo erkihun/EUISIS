@@ -29,7 +29,10 @@ readonly class RegisterEmployeeAction
     public function execute(array $employeeAttributes, array $assignmentAttributes, User $actor): Employee
     {
         return DB::transaction(function () use ($employeeAttributes, $assignmentAttributes, $actor): Employee {
-            $employeeAttributes['employee_number'] = $this->generateCodeAction->execute(
+            $expectedGeneratedCode = $employeeAttributes['_expected_generated_code'] ?? null;
+            unset($employeeAttributes['_expected_generated_code']);
+
+            $employeeAttributes['employee_number'] = $this->generateCodeAction->executeUsingPreviewedCode(
                 CodeRuleEntityType::Employee,
                 [
                     'organization_id' => $assignmentAttributes['organization_id'] ?? null,
@@ -37,6 +40,7 @@ readonly class RegisterEmployeeAction
                 $actor,
                 $employeeAttributes['employee_number'] ?? null,
                 'employee_number',
+                expectedGeneratedCode: is_string($expectedGeneratedCode) ? $expectedGeneratedCode : null,
             );
 
             $employee = Employee::query()->create($employeeAttributes + [

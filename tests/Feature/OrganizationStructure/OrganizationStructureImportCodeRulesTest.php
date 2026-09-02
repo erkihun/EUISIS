@@ -455,6 +455,24 @@ it('imports under exactly the codes the preview displayed', function (): void {
         ->and(Position::query()->firstOrFail()->job_position_code)->toBe($previewed['Positions:2']['generated_code']);
 });
 
+it('locks a random organization code between import preview and confirm', function (): void {
+    useCodeRuleFormat(CodeRuleEntityType::Organization, 'ORG-{RAND_6}');
+
+    $user = structureImporterUser();
+    $sheets = blankCodeSheets();
+    $previewedCode = previewCodes($sheets, $user)['Organization:2']['generated_code'];
+
+    expect($previewedCode)->toMatch('/^ORG-\d{6}$/');
+
+    $this->actingAs($user)
+        ->post(route('organizations.import-structure.confirm'), [
+            'file' => structureWorkbookFile($sheets),
+        ])
+        ->assertRedirect();
+
+    expect(Organization::query()->firstOrFail()->code)->toBe($previewedCode);
+});
+
 it('advances the code rule sequence so a second import does not reuse the codes', function (): void {
     $user = structureImporterUser();
 

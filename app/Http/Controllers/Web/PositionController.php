@@ -44,10 +44,11 @@ class PositionController extends Controller
         $this->authorize('viewAny', Position::class);
 
         $user = $request->user();
+        $isOrganizationScoped = ! $organizationScopeService->isUnrestricted($user);
         $accessibleOrganizationIds = $organizationScopeService->accessibleOrganizationIds($user);
 
         $baseQuery = Position::query()
-            ->when($accessibleOrganizationIds->isNotEmpty(), fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->when($isOrganizationScoped, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
             ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
                 $query->where(function ($nested) use ($search): void {
@@ -83,7 +84,7 @@ class PositionController extends Controller
 
         $establishmentsByPosition = PositionEstablishment::query()
             ->where('status', EstablishmentStatus::Approved->value)
-            ->when($accessibleOrganizationIds->isNotEmpty(), fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->when($isOrganizationScoped, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
             ->withCount([
                 'occupancies as filled_positions' => fn ($query) => $query->where('status', OccupancyStatus::Active->value),
             ])
@@ -122,12 +123,12 @@ class PositionController extends Controller
         $paginatedPositions->getCollection()->each($attachStatus);
 
         $organizations = Organization::query()
-            ->when($accessibleOrganizationIds->isNotEmpty(), fn ($query) => $query->whereIn('id', $accessibleOrganizationIds))
+            ->when($isOrganizationScoped, fn ($query) => $query->whereIn('id', $accessibleOrganizationIds))
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_am']);
 
         $organizationUnits = OrganizationUnit::query()
-            ->when($accessibleOrganizationIds->isNotEmpty(), fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
+            ->when($isOrganizationScoped, fn ($query) => $query->whereIn('organization_id', $accessibleOrganizationIds))
             ->when($request->string('organization_id')->toString() !== '', fn ($query) => $query->where('organization_id', $request->string('organization_id')->toString()))
             ->orderBy('name_en')
             ->get(['id', 'organization_id', 'name_en', 'name_am']);
@@ -188,6 +189,7 @@ class PositionController extends Controller
             'organizations' => $organizations,
             'organizationUnits' => $organizationUnits,
             'jobFamilies' => $jobFamilies,
+            'isOrganizationScoped' => $isOrganizationScoped,
             'filters' => $request->only(['search', 'organization_id', 'organization_unit_id', 'job_family', 'grade_level', 'is_active', 'per_page']),
         ]);
     }

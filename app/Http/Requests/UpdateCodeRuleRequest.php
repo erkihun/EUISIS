@@ -69,7 +69,7 @@ class UpdateCodeRuleRequest extends FormRequest
 
                 $format = $this->string('format')->toString();
 
-                if (! is_string($this->input('format')) || (! str_contains($format, '{SEQUENCE}') && ! str_contains($format, '{SEQUENCE_PADDED}'))) {
+                if (! is_string($this->input('format')) || (! str_contains($format, '{SEQUENCE}') && ! str_contains($format, '{SEQUENCE_PADDED}') && ! str_contains($format, '{RAND_6}'))) {
                     $validator->errors()->add('format', __('code-rules.format_must_contain_sequence'));
                 }
 
@@ -134,7 +134,7 @@ class UpdateCodeRuleRequest extends FormRequest
             return;
         }
 
-        $excluded = ['SEQUENCE', 'SEQUENCE_PADDED'];
+        $excluded = ['SEQUENCE', 'SEQUENCE_PADDED', 'RAND_6'];
 
         foreach ($tokens as $token) {
             if (in_array($token, $excluded, true)) {
