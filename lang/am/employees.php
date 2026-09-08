@@ -12,6 +12,10 @@ return [
     'date_of_birth' => 'የትውልድ ቀን',
     'gender' => 'ፆታ',
     'nationality' => 'ዜግነት',
+    'address' => 'አድራሻ',
+    'emergency_contact_name' => 'የአስቸኳይ ጊዜ ተጠሪ ስም',
+    'emergency_contact_phone' => 'የአስቸኳይ ጊዜ ተጠሪ ስልክ',
+    'additional_information' => 'ተጨማሪ የሠራተኛ መረጃ',
     'organization' => 'ተቋም',
     'position' => 'የሥራ መደብ',
     'department' => 'የተቋም መዋቅራዊ ክፍል',
@@ -25,6 +29,18 @@ return [
     'employment_info' => 'የቅጥር መረጃ',
     'created_successfully' => 'ሠራተኛው በተሳካ ሁኔታ ተመዝግቧል።',
     'updated_successfully' => 'የሠራተኛው መረጃ በተሳካ ሁኔታ ተሻሽሏል።',
+
+    'basic_information' => 'መሠረታዊ መረጃ',
+    'contact_information' => 'የግንኙነት መረጃ',
+    'employment_information' => 'የቅጥር መረጃ',
+    'emergency_contact' => 'የአስቸኳይ ጊዜ ተጠሪ',
+    'system_information' => 'የሥርዓት መረጃ',
+    'update' => 'ሠራተኛ አዘምን',
+    'save_and_view' => 'አስቀምጥ እና እይ',
+    'position_selected' => 'የሥራ መደብ ተመርጧል',
+    'change_position' => 'የሥራ መደብ ቀይር',
+    'select_position' => 'የሥራ መደብ ይምረጡ',
+    'select_vacant_position_first' => 'ሠራተኛ ከመፍጠርዎ በፊት እባክዎ ክፍት የሥራ መደብ ይምረጡ።',
 
     // Employee CSV import
     'import' => [
@@ -51,6 +67,8 @@ return [
             'gender' => 'ጾታ male ወይም female መሆን አለበት።',
             'employmentStatus' => 'የቅጥር ሁኔታው ተቀባይነት ያለው እሴት አይደለም።',
             'email' => 'የኢሜይል አድራሻው ትክክል አይደለም።',
+            'emergencyContactPhone' => 'የአስቸኳይ ጊዜ ተጠሪ ስልክ ቁጥሮችን፣ ክፍተትን፣ +፣ - እና ቅንፎችን ብቻ መያዝ ይችላል።',
+            'tooLong' => 'የ:field አምድ ከ:max ፊደላት መብለጥ የለበትም።',
             'organizationNotFound' => 'ድርጅት :code አልተገኘም።',
             'outsideScope' => 'ድርጅት :code ከእርስዎ የድርጅት ወሰን ውጭ ነው።',
             'unitNotInOrganization' => 'ክፍል :code የዚህ ድርጅት አይደለም።',

@@ -1,4 +1,14 @@
 const employees = {
+    employeeStatus: 'Employee Status',
+    employmentType: 'Employment Type',
+    employmentTypePlaceholder: 'Select employee status',
+    employmentType_permanent: 'Permanent',
+    employmentType_contract: 'Contract',
+    employmentType_temporary: 'Temporary',
+    employmentType_probation: 'Probation',
+    employmentType_daily_labor: 'Daily Labor / Casual',
+    employmentType_intern: 'Intern',
+    employmentType_other: 'Other',
     title: 'Employees',
     employee: 'Employee',
     createEmployee: 'Create Employee',
@@ -19,6 +29,11 @@ const employees = {
     photo: 'Photo',
     dateOfBirth: 'Date of Birth',
     gender: 'Gender',
+    address: 'Address',
+    nationality: 'Nationality',
+    employmentStatus: 'Employment Status',
+    emergencyContactName: 'Emergency Contact Name',
+    emergencyContactPhone: 'Emergency Contact Phone',
     male: 'Male',
     female: 'Female',
     status: 'Status',
@@ -112,6 +127,11 @@ const employees = {
     sectionPlacementHelp: 'Where this employee works and the position they hold.',
     sectionAttachments: 'Attachments',
     sectionAttachmentsHelp: 'Optional employee photo used on the ID card.',
+    sectionAdditional: 'Additional Employee Information',
+    sectionAdditionalHelp: 'Residence, nationality and the contact to reach in an emergency.',
+    addressPlaceholder: 'Sub-city, woreda, house number',
+    nationalityPlaceholder: 'e.g. Ethiopian',
+    selectEmploymentStatus: 'Select Employment Status',
 
     // Create page — dependent selects
     selectOrganization: 'Select Organization',
@@ -131,6 +151,27 @@ const employees = {
     placementFromPositionContext: 'Organization, organization unit, and position are selected from the position context',
     positionOccupiedCannotCreate: 'This position is already occupied. You cannot create an employee for this position.',
     selectVacantPosition: 'Select a vacant position',
+    // Form sections (Create / Edit)
+    sectionBasic: 'Basic Information',
+    sectionBasicHelp: 'Employee number, legal name and identification.',
+    sectionContact: 'Contact Information',
+    sectionContactHelp: 'How this employee is reached day to day.',
+    sectionEmployment: 'Employment Information',
+    sectionEmploymentHelp: 'Placement in the organization structure and employment status.',
+    sectionEmergency: 'Emergency Contact',
+    sectionEmergencyHelp: 'Who to contact in an emergency involving this employee.',
+    sectionSystem: 'System Information',
+    sectionSystemHelp: 'Record status and internal notes.',
+
+    // Actions
+    updateEmployee: 'Update Employee',
+    updateDescription: 'Update the personal, contact and employment details on this record.',
+    saveAndView: 'Save & View',
+    requiredField: 'Required',
+
+    // Position context
+    positionSelected: 'Position Selected',
+    positionContextLocked: 'Organization, organization unit and position come from the selected position and cannot be edited here.',
 } as const;
 
 export default employees;

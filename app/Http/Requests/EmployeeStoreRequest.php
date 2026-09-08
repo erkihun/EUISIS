@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
+use App\Enums\EmploymentType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Models\EmployeeAssignment;
@@ -63,6 +64,11 @@ class EmployeeStoreRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'date_of_birth' => ['nullable', 'date'],
             'gender' => ['nullable', 'string', 'max:32'],
+            'nationality' => ['nullable', 'string', 'max:100'],
+            'employment_type' => ['nullable', Rule::enum(EmploymentType::class)],
+            'address' => ['nullable', 'string', 'max:500'],
+            'emergency_contact_name' => ['nullable', 'string', 'max:255'],
+            'emergency_contact_phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+()\-\s]+$/'],
             'status' => ['required', new Enum(EmployeeStatus::class)],
             'organization_id' => [
                 'required',

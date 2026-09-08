@@ -24,6 +24,11 @@ type EmployeeDetail = {
     status: string;
     date_of_birth?: string | null;
     gender?: string | null;
+    address?: string | null;
+    nationality?: string | null;
+    employment_type_label?: string | null;
+    emergency_contact_name?: string | null;
+    emergency_contact_phone?: string | null;
     photo_url?: string | null;
     data_quality_score?: number | null;
     current_assignment?: {
@@ -204,7 +209,7 @@ export default function EmployeesShow({
                         <dl className="grid gap-x-8 gap-y-5 border-t border-slate-100 pt-6 sm:grid-cols-2 lg:grid-cols-4 dark:border-slate-800">
                             <Field label={t('employees.employeeNumber')} value={employee.employee_number} />
                             <Field label={t('employees.nationalId')} value={formatNationalId(employee.national_id)} />
-                            <Field label={t('common.status')} value={statusLabel(employee.status)} />
+                            <Field label={t('employees.employmentStatus')} value={statusLabel(employee.status)} />
                             <Field label={t('employees.firstName')} value={employee.first_name} />
                             <Field label={t('employees.middleName')} value={employee.middle_name} />
                             <Field label={t('employees.lastName')} value={employee.last_name} />
@@ -220,6 +225,25 @@ export default function EmployeesShow({
                             </div>
                             <Field label={t('employees.dataQualityScore')} value={employee.data_quality_score ?? 0} />
                         </dl>
+
+                        {/*
+                          * Additional employee information. Rendered only on this
+                          * authenticated, organization-scoped detail page — the
+                          * public ID Checker builds its own field list and never
+                          * includes address or emergency contact.
+                          */}
+                        <div className="mt-6 border-t border-slate-100 pt-6 dark:border-slate-800">
+                            <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+                                {t('employees.sectionAdditional')}
+                            </h3>
+                            <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
+                                <Field label={t('employees.address')} value={employee.address} />
+                                <Field label={t('employees.nationality')} value={employee.nationality} />
+                                <Field label={t('employees.employeeStatus')} value={employee.employment_type_label} />
+                                <Field label={t('employees.emergencyContactName')} value={employee.emergency_contact_name} />
+                                <Field label={t('employees.emergencyContactPhone')} value={employee.emergency_contact_phone} />
+                            </dl>
+                        </div>
                     </div>
                 </div>
 

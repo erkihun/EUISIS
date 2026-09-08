@@ -22,6 +22,12 @@ class EmployeeDetailResource extends EmployeeResource
         $data['photo_url'] = $this->photo_url;
         $data['date_of_birth'] = $this->date_of_birth?->toDateString();
         $data['gender'] = $this->gender;
+        $data['nationality'] = $this->nationality;
+        $data['employment_type'] = $this->employment_type?->value;
+        $data['employment_type_label'] = $this->employment_type?->label();
+        $data['address'] = $this->address;
+        $data['emergency_contact_name'] = $this->emergency_contact_name;
+        $data['emergency_contact_phone'] = $this->emergency_contact_phone;
         $data['data_quality_score'] = $this->data_quality_score;
         $data['assignments'] = $this->whenLoaded('assignments', fn (): array => $this->assignments->map(fn ($assignment): array => [
             'id' => $assignment->id,

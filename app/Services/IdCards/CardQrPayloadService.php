@@ -6,7 +6,6 @@ namespace App\Services\IdCards;
 
 use App\Models\IdCard;
 use App\Models\User;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 /**
@@ -22,17 +21,35 @@ use Illuminate\Support\Str;
 final class CardQrPayloadService
 {
     /**
+     * The payload shape newly issued cards are stamped with.
+     *
+     * A card keeps the version it was issued under for life — the QR is already
+     * printed on plastic, so its meaning cannot be changed retroactively.
+     */
+    public function currentPayloadVersion(): int
+    {
+        return (int) config('security.id_card_qr_payload_version', 1);
+    }
+
+    /**
      * Ensure the card has a stable public_card_uuid.
      * Idempotent — does nothing if one already exists.
      */
     public function ensurePublicReference(IdCard $card): void
     {
         if ($card->public_card_uuid !== null) {
+            // Only backfill the version marker for a card issued before this
+            // metadata existed. The reference itself is never re-issued.
+            if ($card->qr_payload_version === null) {
+                $card->update(['qr_payload_version' => 1]);
+            }
+
             return;
         }
 
         $card->update([
             'public_card_uuid' => Str::uuid()->toString(),
+            'qr_payload_version' => $this->currentPayloadVersion(),
             'qr_status' => 'active',
             'qr_issued_at' => now(),
         ]);
@@ -49,7 +66,7 @@ final class CardQrPayloadService
         // Points at the OTP-gated Global ID Checker. The older
         // /verify/card/{uuid} page showed the organization and card number to
         // anyone who scanned, with no consent from the card holder.
-        return URL::route('id-checker.show', $card->public_card_uuid);
+        return rtrim((string) config('app.url'), '/').'/id-checker/'.$card->public_card_uuid;
     }
 
     /**
@@ -58,8 +75,11 @@ final class CardQrPayloadService
      */
     public function rotateQrReference(IdCard $card, User $actor, string $reason): void
     {
+        // Rotation reprints the card, so the new reference carries whatever
+        // payload shape is current.
         $card->update([
             'public_card_uuid' => Str::uuid()->toString(),
+            'qr_payload_version' => $this->currentPayloadVersion(),
             'qr_status' => 'active',
             'qr_issued_at' => now(),
             'qr_rotated_at' => now(),

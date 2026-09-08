@@ -101,6 +101,11 @@ class ApiEndpointDefinition extends Model
     public function documentationGroup(): string
     {
         return match (true) {
+            // The organization-to-employee catalogue groups by the scope an
+            // endpoint requires, which is more stable than its URI shape.
+            in_array($this->required_scope, ['organizations.read', 'organization_units.read', 'positions.read'], true) => 'organization_data_api',
+            in_array($this->required_scope, ['employees.basic_read', 'employee_assignments.read'], true) => 'employee_data_api',
+            $this->required_scope === 'organization_structure.read' => 'organization_structure_api',
             str_contains($this->uri, 'id-cards') || str_contains($this->uri, 'cards/verify') => 'id_card_verification',
             str_contains($this->uri, 'service-eligibility') || str_contains($this->uri, 'authorize') => 'service_eligibility',
             str_contains($this->uri, 'transactions') || str_contains($this->uri, 'offline-sync') => 'service_transactions',

@@ -70,11 +70,15 @@ function registeredApplication(array $scopes, array $endpointIds = []): array
 }
 
 it('lists assignable endpoints on the api management page', function (): void {
+    // Counted from the catalogue rather than hardcoded, so adding an endpoint
+    // to the API does not break this test.
+    $expected = ApiEndpointDefinition::query()->assignable()->count();
+
     $this->actingAs(assignmentManager())
         ->get(route('api-management.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->has('assignableEndpoints', 9)
+            ->has('assignableEndpoints', $expected)
             ->where('assignableEndpoints.0.method', fn (string $method): bool => $method !== '')
         );
 });

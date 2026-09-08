@@ -17,16 +17,19 @@ class UpdateIdCardSettingsRequest extends FormRequest
 
     public function rules(): array
     {
-        $hex = ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'];
+        // Design now belongs to each ID card template, so these fields are no
+        // longer part of the settings form. They stay accepted-if-sent for
+        // legacy clients, and validated when they are.
+        $hex = ['sometimes', 'required', 'regex:/^#[0-9A-Fa-f]{6}$/'];
 
         return [
-            'template' => ['required', Rule::enum(IdCardTemplate::class)],
+            'template' => ['sometimes', 'required', Rule::enum(IdCardTemplate::class)],
             'front_bg_from' => $hex,
             'front_bg_to' => $hex,
             'front_text_primary' => $hex,
             'front_text_secondary' => $hex,
-            'front_name_font_size' => ['required', Rule::in(['xs', 'sm', 'base', 'lg'])],
-            'front_label_font_size' => ['required', Rule::in(['xs', 'sm'])],
+            'front_name_font_size' => ['sometimes', 'required', Rule::in(['xs', 'sm', 'base', 'lg'])],
+            'front_label_font_size' => ['sometimes', 'required', Rule::in(['xs', 'sm'])],
             'city_name_en' => ['required', 'string', 'max:120'],
             'city_name_am' => ['required', 'string', 'max:120'],
             'bureau_name_en' => ['required', 'string', 'max:120'],
@@ -55,7 +58,7 @@ class UpdateIdCardSettingsRequest extends FormRequest
             'return_address_am' => ['required', 'string', 'max:300'],
             'show_magnetic_stripe' => ['required', 'boolean'],
             'qr_size' => ['required', Rule::in(['80', '100', '120'])],
-            'card_padding' => ['required', Rule::in(['compact', 'normal', 'spacious'])],
+            'card_padding' => ['sometimes', 'required', Rule::in(['compact', 'normal', 'spacious'])],
         ];
     }
 }

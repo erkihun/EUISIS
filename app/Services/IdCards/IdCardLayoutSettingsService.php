@@ -13,23 +13,36 @@ use App\Services\SystemSettings\SystemSettingsService;
  */
 final readonly class IdCardLayoutSettingsService
 {
+    /** Neutral card surface used when a template supplies no artwork. */
+    private const SURFACE_FROM = '#FFFFFF';
+
+    private const SURFACE_TO = '#F1F5F9';
+
+    /** Readable ink on that surface, for templates that set no colours. */
+    private const INK = '#0F172A';
+
+    private const INK_MUTED = '#475569';
+
     public function __construct(private SystemSettingsService $settings) {}
 
-    public function get(): IdCardLayoutSettings
+    public function get(bool $frontPng = false, bool $backPng = false): IdCardLayoutSettings
     {
         return new IdCardLayoutSettings(
             template: IdCardTemplate::tryFrom(
                 (string) $this->settings->get('id_cards', 'template', IdCardTemplate::Classic->value),
             ) ?? IdCardTemplate::Classic,
 
-            frontBgFrom: $this->hex('id_cards', 'front_bg_from', '#1D4ED8'),
-            frontBgTo: $this->hex('id_cards', 'front_bg_to', '#1E3A8A'),
-            frontTextPrimary: $this->hex('id_cards', 'front_text_primary', '#FFFFFF'),
-            frontTextSecondary: $this->hex('id_cards', 'front_text_secondary', '#BFDBFE'),
+            // Card colour belongs to the template, not to these legacy
+            // per-install settings. A card without background artwork gets a
+            // clean light surface so the template's own text colours read.
+            frontBgFrom: self::SURFACE_FROM,
+            frontBgTo: self::SURFACE_TO,
+            frontTextPrimary: self::INK,
+            frontTextSecondary: self::INK_MUTED,
 
-            backBgFrom: $this->hex('id_cards', 'back_bg_from', '#1E293B'),
-            backBgTo: $this->hex('id_cards', 'back_bg_to', '#0F172A'),
-            backTextColor: $this->hex('id_cards', 'back_text_color', '#94A3B8'),
+            backBgFrom: self::SURFACE_FROM,
+            backBgTo: self::SURFACE_TO,
+            backTextColor: self::INK_MUTED,
 
             cityNameEn: $this->str('id_cards', 'city_name_en', 'Addis Ababa City Administration'),
             cityNameAm: $this->str('id_cards', 'city_name_am', 'አዲስ አበባ ከተማ አስተዳደር'),

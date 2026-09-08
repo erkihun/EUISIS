@@ -3,6 +3,22 @@
 declare(strict_types=1);
 
 return [
+    ['name' => 'id_card_templates.view', 'group' => 'id_card_templates', 'sort_order' => 10, 'is_system' => true,
+        'label_en' => 'View ID Card Templates', 'label_am' => 'የመታወቂያ ካርድ አብነቶችን ይመልከቱ',
+        'description_en' => 'View ID Card Templates.', 'description_am' => 'የመታወቂያ ካርድ አብነቶችን ይመልከቱ።'],
+    ['name' => 'id_card_templates.create', 'group' => 'id_card_templates', 'sort_order' => 20, 'is_system' => true,
+        'label_en' => 'Create ID Card Templates', 'label_am' => 'የመታወቂያ ካርድ አብነቶችን ይፍጠሩ',
+        'description_en' => 'Create ID Card Templates.', 'description_am' => 'የመታወቂያ ካርድ አብነቶችን ይፍጠሩ።'],
+    ['name' => 'id_card_templates.update', 'group' => 'id_card_templates', 'sort_order' => 30, 'is_system' => true,
+        'label_en' => 'Update ID Card Templates', 'label_am' => 'የመታወቂያ ካርድ አብነቶችን ያዘምኑ',
+        'description_en' => 'Update ID Card Templates.', 'description_am' => 'የመታወቂያ ካርድ አብነቶችን ያዘምኑ።'],
+    ['name' => 'id_card_templates.delete', 'group' => 'id_card_templates', 'sort_order' => 40, 'is_system' => true,
+        'label_en' => 'Delete ID Card Templates', 'label_am' => 'የመታወቂያ ካርድ አብነቶችን ይሰርዙ',
+        'description_en' => 'Delete ID Card Templates.', 'description_am' => 'የመታወቂያ ካርድ አብነቶችን ይሰርዙ።'],
+    ['name' => 'id_card_templates.set_default', 'group' => 'id_card_templates', 'sort_order' => 50, 'is_system' => true,
+        'label_en' => 'Set Default ID Card Template', 'label_am' => 'ነባሪ የመታወቂያ ካርድ አብነት ያዘጋጁ',
+        'description_en' => 'Set Default ID Card Template.', 'description_am' => 'ነባሪ የመታወቂያ ካርድ አብነት ያዘጋጁ።'],
+
     // Dashboard
     ['name' => 'dashboard.view', 'group' => 'dashboard', 'sort_order' => 10, 'is_system' => true,
         'label_en' => 'View Dashboard', 'label_am' => 'ዳሽቦርድ ይመልከቱ',

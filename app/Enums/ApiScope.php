@@ -19,6 +19,12 @@ enum ApiScope: string
     case ServiceEligibilityCheck = 'service_eligibility.check';
     case ServiceTransactionsCreate = 'service_transactions.create';
     case ReportsReadLimited = 'reports.read_limited';
+    case OrganizationStructureRead = 'organization_structure.read';
+    case EmployeesBasicRead = 'employees.basic_read';
+    case OrganizationsRead = 'organizations.read';
+    case OrganizationUnitsRead = 'organization_units.read';
+    case PositionsRead = 'positions.read';
+    case EmployeeAssignmentsRead = 'employee_assignments.read';
 
     /** @return array<int, string> */
     public static function values(): array

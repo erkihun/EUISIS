@@ -252,8 +252,8 @@ html[data-button-style="soft"] a[class*="rounded-2xl"] { border-radius: 0.5rem; 
        of the source pixel size. `print-color-adjust: exact` keeps the
        gradient backgrounds from being dropped by ink-saving heuristics. */
     .id-card-print-card {
-        width: 85.6mm !important;
-        height: 54mm !important;
+        width: var(--id-card-width, 85.6mm) !important;
+        height: var(--id-card-height, 54mm) !important;
         max-width: none !important;
         max-height: none !important;
         break-inside: avoid;
@@ -265,8 +265,8 @@ html[data-button-style="soft"] a[class*="rounded-2xl"] { border-radius: 0.5rem; 
 
     /* Portrait card: 54 × 85.6 mm (rotated ID-1). */
     .id-card-print-card-portrait {
-        width: 54mm !important;
-        height: 85.6mm !important;
+        width: var(--id-card-width, 54mm) !important;
+        height: var(--id-card-height, 85.6mm) !important;
         max-width: none !important;
         max-height: none !important;
         break-inside: avoid;

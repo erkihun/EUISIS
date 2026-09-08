@@ -1,3 +1,5 @@
+import { mapCardEmployee } from '@/Components/IdCards/mapCardEmployee';
+import { useCardDimensions } from '@/Components/IdCards/IdCardTemplateContext';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toPng } from 'html-to-image';
@@ -11,8 +13,6 @@ import type { CardForExport } from '@/Components/IdCards/CardPrintExportModal';
 
 // Portrait card: 54 × 85.6 mm = 540 × 856 px at 10 px/mm.
 // Capture at half size (270 × 428) then pixelRatio:2 → 540 × 856 output.
-const PORTRAIT_W = 270;
-const PORTRAIT_H = 428;
 
 type Tab = 'front' | 'back' | 'both';
 type PrintSide = 'front' | 'back' | 'both' | null;
@@ -29,8 +29,8 @@ async function capturePortrait(el: HTMLElement): Promise<string> {
     return toPng(el, {
         pixelRatio: 2,
         backgroundColor: '#ffffff',
-        width: PORTRAIT_W,
-        height: PORTRAIT_H,
+        width: el.offsetWidth,
+        height: el.offsetHeight,
         skipFonts: true,
         style: { transform: 'none', transformOrigin: 'top left', margin: '0', padding: '0' },
     });
@@ -47,6 +47,7 @@ function downloadDataUrl(dataUrl: string, fileName: string): void {
 
 export default function CardPortraitPrintExportModal({ card, isOpen, onClose, initialAction = 'export_png' }: Props) {
     const { t, locale } = useLocale();
+    const { width: PORTRAIT_W, height: PORTRAIT_H, printStyle } = useCardDimensions('portrait');
     const [tab, setTab]           = useState<Tab>('front');
     const [exporting, setExporting] = useState(false);
     const [printSide, setPrintSide] = useState<PrintSide>(null);
@@ -61,7 +62,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
     const fmtDate = (v?: string | null) =>
         v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : undefined;
 
-    const qrValue = card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null;
+    const qrValue = card.qr_verification_url ?? null;
     const canPrint  = card.can.printAnytime === true;
     const canExport = card.can.exportPng    === true;
 
@@ -115,9 +116,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
     // Same card data as the landscape export modal — the printed portrait card
     // must carry identical, locale-aware employee information.
     const frontProps = {
-        cardNumber: card.card_number,
-        fullName: card.employee?.name_en ?? card.employee?.metadata?.name_en ?? card.employee?.full_name,
-        fullNameAm: card.employee?.metadata?.name_am ?? card.employee?.full_name,
+        ...mapCardEmployee(card),
         employeeNumber: card.employee?.employee_number,
         organizationName: card.employee?.current_assignment?.organization?.name_en,
         organizationNameAm: card.employee?.current_assignment?.organization?.name_am,
@@ -127,9 +126,6 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
         positionTitleAm: card.employee?.current_assignment?.position?.title_am,
         positionCode: card.employee?.current_assignment?.position?.job_position_code,
         jobGrade: card.employee?.current_assignment?.position?.grade_level,
-        employmentStatus: card.employee?.status,
-        gender: card.employee?.gender,
-        photoUrl: card.employee?.photo_url,
         issueDate: fmtDate(card.issued_at),
         expiryDate: fmtDate(card.expires_at),
         status: card.status,
@@ -167,7 +163,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
             {createPortal(
                 <div className="id-card-print-area" aria-hidden={printSide === null}>
                     {(printSide === 'front' || printSide === 'both') && (
-                        <div className="id-card-print-card-portrait" style={{ borderRadius: 0 }}>
+                        <div className="id-card-print-card-portrait" style={{ borderRadius: 0, ...printStyle }}>
                             <div ref={printFrontRef} style={{ width: '100%', height: '100%' }}>
                                 <IdCardPortraitFront {...frontProps} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                             </div>
@@ -175,7 +171,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                     )}
                     {printSide === 'both' && <div className="id-card-print-spacer" />}
                     {(printSide === 'back' || printSide === 'both') && (
-                        <div className="id-card-print-card-portrait" style={{ borderRadius: 0 }}>
+                        <div className="id-card-print-card-portrait" style={{ borderRadius: 0, ...printStyle }}>
                             <div ref={printBackRef} style={{ width: '100%', height: '100%' }}>
                                 <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                             </div>

@@ -11,4 +11,10 @@ return [
     'no_scopes_assigned' => 'Assign at least one API scope before generating a token.',
     'endpoints_synced' => 'Endpoint catalog synced: :created added, :updated updated, :deprecated deprecated.',
     'endpoint_updated' => 'Endpoint updated.',
+
+    // Organization-to-employee data API
+    'organization_data_api' => 'Organization Data API',
+    'employee_data_api' => 'Employee Data API',
+    'organization_structure_api' => 'Organization Structure API',
+    'endpoint_not_allowed' => 'Endpoint not allowed for this application',
 ];

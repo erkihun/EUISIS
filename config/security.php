@@ -84,4 +84,21 @@ return [
 
     'mfa_recovery_code_count' => 8,
 
+    /*
+    |--------------------------------------------------------------------------
+    | ID card: QR payload format version
+    |--------------------------------------------------------------------------
+    |
+    | Records which payload shape a card's QR was issued under. Version 1 is
+    | the OTP-gated checker link, config('app.url')."/id-checker/{card_uuid}".
+    |
+    | This is metadata only. Raising it marks newly issued cards as carrying the
+    | new format; it never rewrites an existing card, because the printed QR on
+    | a physical card cannot change. public_card_uuid, the card token and the
+    | card number are untouched by this value.
+    |
+    */
+
+    'id_card_qr_payload_version' => (int) env('ID_CARD_QR_PAYLOAD_VERSION', 1),
+
 ];

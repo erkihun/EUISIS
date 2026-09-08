@@ -97,6 +97,13 @@ class SystemSettingsService
 
         $fields = [];
         foreach ($definitions as $key => $def) {
+            // Template-managed design settings stay in the database as the
+            // fallback for templates that override nothing, but are not offered
+            // in System Settings - ID Card Templates own them now.
+            if ($def['template_managed'] ?? false) {
+                continue;
+            }
+
             /** @var SystemSetting|null $row */
             $row = $rows->get($key);
             $isEncrypted = (bool) ($def['is_encrypted'] ?? false);

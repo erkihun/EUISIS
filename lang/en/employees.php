@@ -10,6 +10,10 @@ return [
     'date_of_birth' => 'Date of Birth',
     'gender' => 'Gender',
     'nationality' => 'Nationality',
+    'address' => 'Address',
+    'emergency_contact_name' => 'Emergency Contact Name',
+    'emergency_contact_phone' => 'Emergency Contact Phone',
+    'additional_information' => 'Additional Employee Information',
     'organization' => 'Organization',
     'position' => 'Position',
     'department' => 'Department',
@@ -23,6 +27,18 @@ return [
     'employment_info' => 'Employment Information',
     'created_successfully' => 'Employee registered successfully.',
     'updated_successfully' => 'Employee updated successfully.',
+
+    'basic_information' => 'Basic Information',
+    'contact_information' => 'Contact Information',
+    'employment_information' => 'Employment Information',
+    'emergency_contact' => 'Emergency Contact',
+    'system_information' => 'System Information',
+    'update' => 'Update Employee',
+    'save_and_view' => 'Save & View',
+    'position_selected' => 'Position Selected',
+    'change_position' => 'Change Position',
+    'select_position' => 'Select Position',
+    'select_vacant_position_first' => 'Please select a vacant position before creating an employee.',
 
     // Employee CSV import
     'import' => [
@@ -49,6 +65,8 @@ return [
             'gender' => 'Gender must be male or female.',
             'employmentStatus' => 'Employment status is not a recognised value.',
             'email' => 'Email address is not valid.',
+            'emergencyContactPhone' => 'Emergency contact phone may contain digits, spaces, +, - and brackets only.',
+            'tooLong' => 'The :field column may not be longer than :max characters.',
             'organizationNotFound' => 'Organization :code was not found.',
             'outsideScope' => 'Organization :code is outside your organization scope.',
             'unitNotInOrganization' => 'Unit :code does not belong to this organization.',

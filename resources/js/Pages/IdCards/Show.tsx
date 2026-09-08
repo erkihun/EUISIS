@@ -1,3 +1,5 @@
+import { mapCardEmployee } from '@/Components/IdCards/mapCardEmployee';
+import { useIdCardTemplate } from '@/Components/IdCards/IdCardTemplateContext';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
@@ -27,11 +29,18 @@ type CardData = {
     notes?: string | null;
     qr_payload?: string | null;
     public_card_uuid?: string | null;
+    qr_verification_url?: string | null;
     employee?: {
         full_name: string;
         metadata?: { name_en?: string | null; name_am?: string | null } | null;
         name_en?: string | null;
         gender?: string | null;
+        date_of_birth?: string | null;
+        employment_type?: string | null;
+        nationality?: string | null;
+        phone?: string | null;
+        emergency_contact_name?: string | null;
+        emergency_contact_phone?: string | null;
         employee_number: string;
         status: string;
         photo_path?: string | null;
@@ -256,7 +265,8 @@ export default function IdCardShow({ card, can }: PageProps) {
     const calendarSystem = useCalendarSystem();
     const { errors } = usePage().props as { errors: Record<string, string> };
     const [modal, setModal] = useState<string | null>(null);
-    const [cardDesign, setCardDesign] = useState<'landscape' | 'portrait'>('landscape');
+    const selectedTemplate = useIdCardTemplate();
+    const [cardDesign, setCardDesign] = useState<'landscape' | 'portrait'>(selectedTemplate?.orientation ?? 'landscape');
     const [portraitModal, setPortraitModal] = useState<{ open: boolean; action: 'print' | 'export_png' }>({
         open: false, action: 'export_png',
     });
@@ -394,9 +404,7 @@ export default function IdCardShow({ card, can }: PageProps) {
                         {cardDesign === 'landscape' ? (
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <IdCardFront
-                                    cardNumber={card.card_number}
-                                    fullName={card.employee?.name_en ?? card.employee?.metadata?.name_en ?? card.employee?.full_name}
-                                    fullNameAm={card.employee?.metadata?.name_am ?? card.employee?.full_name}
+                                    {...mapCardEmployee(card)}
                                     employeeNumber={card.employee?.employee_number}
                                     organizationName={card.employee?.current_assignment?.organization?.name_en}
                                     organizationNameAm={card.employee?.current_assignment?.organization?.name_am}
@@ -406,27 +414,24 @@ export default function IdCardShow({ card, can }: PageProps) {
                                     positionTitleAm={card.employee?.current_assignment?.position?.title_am}
                                     positionCode={card.employee?.current_assignment?.position?.job_position_code}
                                     jobGrade={card.employee?.current_assignment?.position?.grade_level}
-                                    employmentStatus={card.employee?.status}
-                                    gender={card.employee?.gender}
-                                    photoUrl={card.employee?.photo_url}
                                     issueDate={fmtDate(card.issued_at)}
                                     expiryDate={fmtDate(card.expires_at)}
                                     status={card.status}
                                 />
                                 <IdCardBack
                                     cardNumber={card.card_number}
-                                    qrValue={card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null}
+                                    qrValue={card.qr_verification_url ?? null}
                                     issueDate={fmtDate(card.issued_at)}
                                     expiryDate={fmtDate(card.expires_at)}
+                                    emergencyContactName={card.employee?.emergency_contact_name}
+                                    emergencyContactPhone={card.employee?.emergency_contact_phone}
                                 />
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 <div className="flex flex-wrap justify-center gap-6">
                                     <IdCardPortraitFront
-                                        cardNumber={card.card_number}
-                                        fullName={card.employee?.name_en ?? card.employee?.metadata?.name_en ?? card.employee?.full_name}
-                                        fullNameAm={card.employee?.metadata?.name_am ?? card.employee?.full_name}
+                                        {...mapCardEmployee(card)}
                                         employeeNumber={card.employee?.employee_number}
                                         organizationName={card.employee?.current_assignment?.organization?.name_en}
                                         organizationNameAm={card.employee?.current_assignment?.organization?.name_am}
@@ -436,16 +441,13 @@ export default function IdCardShow({ card, can }: PageProps) {
                                         positionTitleAm={card.employee?.current_assignment?.position?.title_am}
                                         positionCode={card.employee?.current_assignment?.position?.job_position_code}
                                         jobGrade={card.employee?.current_assignment?.position?.grade_level}
-                                        employmentStatus={card.employee?.status}
-                                        gender={card.employee?.gender}
-                                        photoUrl={card.employee?.photo_url}
                                         issueDate={fmtDate(card.issued_at)}
                                         expiryDate={fmtDate(card.expires_at)}
                                         status={card.status}
                                     />
                                     <IdCardPortraitBack
                                         cardNumber={card.card_number}
-                                        qrValue={card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null}
+                                        qrValue={card.qr_verification_url ?? null}
                                         issueDate={fmtDate(card.issued_at)}
                                         expiryDate={fmtDate(card.expires_at)}
                                     />
@@ -848,32 +850,11 @@ export default function IdCardShow({ card, can }: PageProps) {
 
             <CardPortraitPrintExportModal
                 card={{
-                    id: card.id,
-                    card_number: card.card_number,
-                    status: card.status,
-                    issued_at: card.issued_at,
-                    expires_at: card.expires_at,
-                    public_card_uuid: card.public_card_uuid,
+                    ...card,
                     can: {
                         printAnytime: can.printAnytime,
                         exportPng: can.exportPng,
                     },
-                    employee: card.employee ? {
-                        full_name: card.employee.full_name,
-                        metadata: card.employee.metadata,
-                        gender: card.employee.gender,
-                        status: card.employee.status,
-                        employee_number: card.employee.employee_number,
-                        photo_url: card.employee.photo_url,
-                        current_assignment: card.employee.current_assignment ? {
-                            organization: card.employee.current_assignment.organization
-                                ? { name_en: card.employee.current_assignment.organization.name_en, logo_url: card.employee.current_assignment.organization.logo_url }
-                                : null,
-                            position: card.employee.current_assignment.position
-                                ? { title_en: card.employee.current_assignment.position.title_en }
-                                : null,
-                        } : null,
-                    } : null,
                 }}
                 isOpen={portraitModal.open}
                 initialAction={portraitModal.action}

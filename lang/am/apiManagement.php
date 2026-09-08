@@ -11,4 +11,10 @@ return [
     'no_scopes_assigned' => 'ቶከን ከማመንጨትዎ በፊት ቢያንስ አንድ የኤፒአይ ስኮፕ ይመድቡ።',
     'endpoints_synced' => 'የኢንድፖይንት ካታሎግ ተመሳስሏል፦ :created ተጨምረዋል፣ :updated ተሻሽለዋል፣ :deprecated ጊዜ ያለፈባቸው ሆነዋል።',
     'endpoint_updated' => 'ኢንድፖይንቱ ተሻሽሏል።',
+
+    // Organization-to-employee data API
+    'organization_data_api' => 'የድርጅት ዳታ ኤፒአይ',
+    'employee_data_api' => 'የሠራተኛ ዳታ ኤፒአይ',
+    'organization_structure_api' => 'የድርጅት መዋቅር ኤፒአይ',
+    'endpoint_not_allowed' => 'ይህ መተግበሪያ ይህን ኢንድፖይንት እንዲጠቀም አልተፈቀደም',
 ];

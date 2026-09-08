@@ -41,7 +41,7 @@ final class IdCardPngExporter
         // RSVG reads from a file more reliably than from a blob on Windows.
         // Strip the XML declaration which some RSVG versions reject.
         $svgData = preg_replace('/^<\?xml[^?]*\?>\s*/s', '', $svg) ?? $svg;
-        $tmpSvg = tempnam(sys_get_temp_dir(), 'idcard_').'.svg';
+        $tmpSvg = tempnam(sys_get_temp_dir(), 'idcard_');
         file_put_contents($tmpSvg, $svgData);
 
         try {
@@ -50,7 +50,11 @@ final class IdCardPngExporter
             $im->setResolution(144, 144); // 72dpi x2 for print quality
             $im->readImage('svg:'.$tmpSvg);
             $im->setImageFormat('png');
-            $im->resizeImage(self::EXPORT_W, self::EXPORT_H, \Imagick::FILTER_LANCZOS, 1);
+            $document = new \DOMDocument;
+            $document->loadXML($svgData, LIBXML_NONET);
+            $width = (int) ($document->documentElement?->getAttribute('width') ?: self::EXPORT_W / 2) * 2;
+            $height = (int) ($document->documentElement?->getAttribute('height') ?: self::EXPORT_H / 2) * 2;
+            $im->resizeImage($width, $height, \Imagick::FILTER_LANCZOS, 1);
             $im->flattenImages();
             $im->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
 

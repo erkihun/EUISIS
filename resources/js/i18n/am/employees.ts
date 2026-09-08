@@ -1,4 +1,14 @@
 const employees = {
+    employeeStatus: 'የሠራተኛ ሁኔታ',
+    employmentType: 'የቅጥር ዓይነት',
+    employmentTypePlaceholder: 'የሠራተኛ ሁኔታ ይምረጡ',
+    employmentType_permanent: 'ቋሚ',
+    employmentType_contract: 'ኮንትራት',
+    employmentType_temporary: 'ጊዜያዊ',
+    employmentType_probation: 'የሙከራ ጊዜ',
+    employmentType_daily_labor: 'የቀን ሰራተኛ',
+    employmentType_intern: 'ተለማማጅ',
+    employmentType_other: 'ሌላ',
     title: 'ሠራተኞች',
     employee: 'ሠራተኛ',
     createEmployee: 'ሠራተኛ ፍጠር',
@@ -19,6 +29,11 @@ const employees = {
     photo: 'ፎቶ',
     dateOfBirth: 'የትውልድ ቀን',
     gender: 'ጾታ',
+    address: 'አድራሻ',
+    nationality: 'ዜግነት',
+    employmentStatus: 'የቅጥር ሁኔታ',
+    emergencyContactName: 'የአስቸኳይ ጊዜ ተጠሪ ስም',
+    emergencyContactPhone: 'የአስቸኳይ ጊዜ ተጠሪ ስልክ',
     male: 'ወንድ',
     female: 'ሴት',
     status: 'ሁኔታ',
@@ -112,6 +127,11 @@ const employees = {
     sectionPlacementHelp: 'ሰራተኛው የሚሠራበት ቦታ እና የያዘው የስራ መደብ።',
     sectionAttachments: 'አባሪዎች',
     sectionAttachmentsHelp: 'በመታወቂያ ካርድ ላይ የሚውል አማራጭ የሰራተኛ ፎቶ።',
+    sectionAdditional: 'ተጨማሪ የሠራተኛ መረጃ',
+    sectionAdditionalHelp: 'የመኖሪያ አድራሻ፣ ዜግነት እና በአስቸኳይ ጊዜ የሚገኝ ተጠሪ።',
+    addressPlaceholder: 'ክፍለ ከተማ፣ ወረዳ፣ የቤት ቁጥር',
+    nationalityPlaceholder: 'ምሳሌ፦ ኢትዮጵያዊ',
+    selectEmploymentStatus: 'የቅጥር ሁኔታ ይምረጡ',
 
     // Create page — dependent selects
     selectOrganization: 'ተቋም ይምረጡ',
@@ -131,6 +151,27 @@ const employees = {
     placementFromPositionContext: 'ተቋሙ፣ የተቋም ዩኒቱና የሥራ መደቡ ከሥራ መደቡ አውድ ተመርጠዋል',
     positionOccupiedCannotCreate: 'ይህ የሥራ መደብ ቀድሞ ተይዟል። ለዚህ የሥራ መደብ ሠራተኛ መፍጠር አይችሉም።',
     selectVacantPosition: 'ክፍት የሥራ መደብ ይምረጡ',
+    // Form sections (Create / Edit)
+    sectionBasic: 'መሠረታዊ መረጃ',
+    sectionBasicHelp: 'የሠራተኛ ቁጥር፣ ሕጋዊ ስም እና መለያ።',
+    sectionContact: 'የግንኙነት መረጃ',
+    sectionContactHelp: 'ሠራተኛው በዕለት ተዕለት የሚገኝበት መንገድ።',
+    sectionEmployment: 'የቅጥር መረጃ',
+    sectionEmploymentHelp: 'በተቋሙ መዋቅር ውስጥ ያለው ምደባና የቅጥር ሁኔታ።',
+    sectionEmergency: 'የአስቸኳይ ጊዜ ተጠሪ',
+    sectionEmergencyHelp: 'በአስቸኳይ ጊዜ ስለ ሠራተኛው የሚገኝ ሰው።',
+    sectionSystem: 'የሥርዓት መረጃ',
+    sectionSystemHelp: 'የመዝገቡ ሁኔታና ውስጣዊ ማስታወሻዎች።',
+
+    // Actions
+    updateEmployee: 'ሠራተኛ አዘምን',
+    updateDescription: 'የዚህን ሠራተኛ የግል፣ የግንኙነት እና የቅጥር መረጃ ያዘምኑ።',
+    saveAndView: 'አስቀምጥ እና እይ',
+    requiredField: 'ያስፈልጋል',
+
+    // Position context
+    positionSelected: 'የሥራ መደብ ተመርጧል',
+    positionContextLocked: 'ተቋሙ፣ የተቋም ዩኒቱና የሥራ መደቡ ከተመረጠው የሥራ መደብ የመጡ ናቸው፤ እዚህ ማስተካከል አይቻልም።',
 } as const;
 
 export default employees;

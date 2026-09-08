@@ -510,6 +510,7 @@ class SystemSettingsRegistry
                     options: IdCardTemplate::values(),
                     validationRules: ['required', 'in:'.implode(',', IdCardTemplate::values())],
                     sortOrder: 1,
+                    templateManaged: true,
                 ),
                 // Front card — background
                 'front_bg_from' => self::field(
@@ -522,6 +523,7 @@ class SystemSettingsRegistry
                     isPublic: true,
                     validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                     sortOrder: 10,
+                    templateManaged: true,
                 ),
                 'front_bg_to' => self::field(
                     type: 'color',
@@ -533,6 +535,7 @@ class SystemSettingsRegistry
                     isPublic: true,
                     validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                     sortOrder: 20,
+                    templateManaged: true,
                 ),
                 // Front card — typography
                 'front_text_primary' => self::field(
@@ -545,6 +548,7 @@ class SystemSettingsRegistry
                     isPublic: true,
                     validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                     sortOrder: 30,
+                    templateManaged: true,
                 ),
                 'front_text_secondary' => self::field(
                     type: 'color',
@@ -556,6 +560,7 @@ class SystemSettingsRegistry
                     isPublic: true,
                     validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                     sortOrder: 40,
+                    templateManaged: true,
                 ),
                 'front_name_font_size' => self::field(
                     type: 'select',
@@ -568,6 +573,7 @@ class SystemSettingsRegistry
                     options: ['xs', 'sm', 'base', 'lg'],
                     validationRules: ['required', 'in:xs,sm,base,lg'],
                     sortOrder: 50,
+                    templateManaged: true,
                 ),
                 'front_label_font_size' => self::field(
                     type: 'select',
@@ -580,6 +586,7 @@ class SystemSettingsRegistry
                     options: ['xs', 'sm'],
                     validationRules: ['required', 'in:xs,sm'],
                     sortOrder: 60,
+                    templateManaged: true,
                 ),
                 // Front card — header text
                 'city_name_en' => self::field(
@@ -664,6 +671,7 @@ class SystemSettingsRegistry
                     isPublic: true,
                     validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                     sortOrder: 120,
+                    templateManaged: true,
                 ),
                 'back_bg_to' => self::field(
                     type: 'color',
@@ -675,6 +683,7 @@ class SystemSettingsRegistry
                     isPublic: true,
                     validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                     sortOrder: 130,
+                    templateManaged: true,
                 ),
                 'back_text_color' => self::field(
                     type: 'color',
@@ -686,6 +695,7 @@ class SystemSettingsRegistry
                     isPublic: true,
                     validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
                     sortOrder: 140,
+                    templateManaged: true,
                 ),
                 // Back card — return address
                 'return_address_en' => self::field(
@@ -745,6 +755,7 @@ class SystemSettingsRegistry
                     options: ['compact', 'normal', 'spacious'],
                     validationRules: ['required', 'in:compact,normal,spacious'],
                     sortOrder: 190,
+                    templateManaged: true,
                 ),
             ],
         ];
@@ -894,6 +905,7 @@ class SystemSettingsRegistry
         ?array $options = null,
         array $validationRules = [],
         int $sortOrder = 0,
+        bool $templateManaged = false,
     ): array {
         return [
             'type' => $type,
@@ -908,6 +920,10 @@ class SystemSettingsRegistry
             'options' => $options,
             'validation_rules' => $validationRules,
             'sort_order' => $sortOrder,
+            // Design now lives on each ID card template. These stay readable as
+            // the fallback for templates that override nothing, but are hidden
+            // from System Settings so the two places cannot disagree.
+            'template_managed' => $templateManaged,
         ];
     }
 }

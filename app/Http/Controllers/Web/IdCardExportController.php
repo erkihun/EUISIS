@@ -43,7 +43,7 @@ class IdCardExportController extends Controller
 
         $this->writeAudit($request, $card, AuditEventType::CardPreviewedSvg, 'front');
 
-        $svg = $this->svgRenderer->renderFront($this->dataFactory->make($card));
+        $svg = $this->svgRenderer->renderFront($this->dataFactory->make($card, $request->validate(['orientation' => ['sometimes', 'in:portrait,landscape']])['orientation'] ?? null));
 
         return response($svg, 200, [
             'Content-Type' => 'image/svg+xml; charset=UTF-8',
@@ -60,7 +60,7 @@ class IdCardExportController extends Controller
 
         $this->writeAudit($request, $card, AuditEventType::CardPreviewedSvg, 'back');
 
-        $svg = $this->svgRenderer->renderBack($this->dataFactory->make($card));
+        $svg = $this->svgRenderer->renderBack($this->dataFactory->make($card, $request->validate(['orientation' => ['sometimes', 'in:portrait,landscape']])['orientation'] ?? null));
 
         return response($svg, 200, [
             'Content-Type' => 'image/svg+xml; charset=UTF-8',
@@ -80,7 +80,7 @@ class IdCardExportController extends Controller
         $this->writeAudit($request, $card, AuditEventType::CardExportedPngServer, 'front');
 
         return $this->pngResponse(
-            $this->svgRenderer->renderFront($this->dataFactory->make($card)),
+            $this->svgRenderer->renderFront($this->dataFactory->make($card, $request->validate(['orientation' => ['sometimes', 'in:portrait,landscape']])['orientation'] ?? null)),
             "id-card-{$card->card_number}-front.png",
         );
     }
@@ -94,7 +94,7 @@ class IdCardExportController extends Controller
         $this->writeAudit($request, $card, AuditEventType::CardExportedPngServer, 'back');
 
         return $this->pngResponse(
-            $this->svgRenderer->renderBack($this->dataFactory->make($card)),
+            $this->svgRenderer->renderBack($this->dataFactory->make($card, $request->validate(['orientation' => ['sometimes', 'in:portrait,landscape']])['orientation'] ?? null)),
             "id-card-{$card->card_number}-back.png",
         );
     }
@@ -109,7 +109,7 @@ class IdCardExportController extends Controller
 
         // For "both": return front PNG; the UI opens the back separately via exportBackPng.
         // A zip or combined image requires additional dependencies — keep it simple for now.
-        $data = $this->dataFactory->make($card);
+        $data = $this->dataFactory->make($card, $request->validate(['orientation' => ['sometimes', 'in:portrait,landscape']])['orientation'] ?? null);
 
         return $this->pngResponse(
             $this->svgRenderer->renderFront($data),

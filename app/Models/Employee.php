@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
+use App\Enums\EmploymentType;
 use App\Enums\FeedbackTokenStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -31,8 +32,13 @@ class Employee extends Model
         'national_id_hash',
         'date_of_birth',
         'gender',
+        'nationality',
+        'employment_type',
         'phone',
         'email',
+        'address',
+        'emergency_contact_name',
+        'emergency_contact_phone',
         'photo_path',
         'signature_path',
         'status',
@@ -53,6 +59,7 @@ class Employee extends Model
         return [
             'date_of_birth' => 'date',
             'status' => EmployeeStatus::class,
+            'employment_type' => EmploymentType::class,
             'data_quality_score' => 'float',
             'metadata' => 'array',
             'is_demo' => 'bool',

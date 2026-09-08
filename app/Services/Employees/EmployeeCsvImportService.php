@@ -10,6 +10,7 @@ use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\EmployeeStatus;
+use App\Enums\EmploymentType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeImportBatch;
@@ -58,6 +59,8 @@ class EmployeeCsvImportService
         'position_code',
         'employment_status',
         'assignment_start_date',
+        'nationality',
+        'employment_type',
     ];
 
     /** Guards against a spreadsheet export with a runaway row count. */
@@ -328,6 +331,21 @@ class EmployeeCsvImportService
      *
      * @return array<int, array<string, string>>
      */
+    /**
+     * How the employee is engaged, from `employment_type`.
+     *
+     * `employment_status` is deliberately not read here: in this file it has
+     * always meant the record lifecycle (active, suspended), and existing
+     * import files rely on that. A file may still use `employee_status` as an
+     * alias for the new column.
+     */
+    private function employmentType(array $row): ?string
+    {
+        $value = mb_strtolower(trim((string) ($row['employment_type'] ?? $row['employee_status'] ?? '')));
+
+        return EmploymentType::tryFrom($value)?->value;
+    }
+
     private function readRows(UploadedFile $file): array
     {
         $handle = fopen($file->getRealPath(), 'rb');
@@ -551,6 +569,8 @@ class EmployeeCsvImportService
             'email' => trim((string) ($row['email'] ?? '')) ?: null,
             'status' => EmployeeStatus::tryFrom(mb_strtolower(trim((string) ($row['employment_status'] ?? ''))))
                 ?? EmployeeStatus::Active,
+            'nationality' => trim((string) ($row['nationality'] ?? '')) ?: null,
+            'employment_type' => $this->employmentType($row),
         ];
 
         $startDate = trim((string) ($row['assignment_start_date'] ?? ''));

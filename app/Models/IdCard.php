@@ -37,6 +37,7 @@ class IdCard extends Model
         'notes',
         'is_current',
         'qr_payload',
+        'qr_payload_version',
         'public_card_uuid',
         'qr_status',
         'qr_issued_at',
@@ -57,6 +58,7 @@ class IdCard extends Model
             'display_snapshot' => 'array',
             'is_current'  => 'bool',
             'qr_payload'  => 'encrypted',
+            'qr_payload_version' => 'integer',
             'qr_issued_at'  => 'datetime',
             'qr_rotated_at' => 'datetime',
         ];

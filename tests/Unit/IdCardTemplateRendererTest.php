@@ -118,8 +118,10 @@ it('maximizes the official seal on every ID card back render path', function ():
     expect($back)
         ->toContain('id="officialSeal"')
         ->toContain('width="192" height="192"')
+        // The landscape seal fills its own layout box, so it is sized by that
+        // box rather than by a fixed class. Portrait still uses a fixed size.
         ->and(file_get_contents(__DIR__.'/../../resources/js/Components/IdCards/IdCardBack.tsx'))
-        ->toContain('h-24 w-24')
+        ->toContain('h-full w-full object-contain')
         ->and(file_get_contents(__DIR__.'/../../resources/js/Components/IdCards/IdCardPortraitBack.tsx'))
         ->toContain('h-24 w-24');
 });

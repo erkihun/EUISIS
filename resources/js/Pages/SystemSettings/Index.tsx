@@ -9,7 +9,7 @@ import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import type { SettingsField, SettingsGroupPayload } from '@/lib/settings';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useMemo, useState, type FormEvent } from 'react';
 
 type SettingsCan = {
@@ -24,6 +24,7 @@ type SettingsCan = {
     manageSecurity: boolean;
     manageAppearance: boolean;
     manageIdCards: boolean;
+    viewIdCardTemplates?: boolean;
     clearCache: boolean;
     testChannels: boolean;
     /** Whether the API Management module is reachable for this user. */
@@ -243,130 +244,30 @@ function BrandingPreview({ data }: { data: FormShape }) {
 
 // ── ID Card preview panel ──────────────────────────────────────────────────────
 
-function IdCardPreview({ data }: { data: FormShape }) {
-    const { t, locale } = useLocale();
-
-    const frontFrom = String(data.front_bg_from ?? '#1D4ED8');
-    const frontTo   = String(data.front_bg_to   ?? '#1E3A8A');
-    const textPri   = String(data.front_text_primary   ?? '#FFFFFF');
-    const textSec   = String(data.front_text_secondary ?? '#BFDBFE');
-    const backFrom  = String(data.back_bg_from  ?? '#1E293B');
-    const backTo    = String(data.back_bg_to    ?? '#0F172A');
-    const backText  = String(data.back_text_color ?? '#94A3B8');
-    const cityName  = locale === 'am'
-        ? String(data.city_name_am ?? data.city_name_en ?? 'Addis Ababa City Administration')
-        : String(data.city_name_en ?? 'Addis Ababa City Administration');
-    const bureauName = locale === 'am'
-        ? String(data.bureau_name_am ?? data.bureau_name_en ?? 'Public Service & HRD Bureau')
-        : String(data.bureau_name_en ?? 'Public Service & HRD Bureau');
-    const returnAddress = locale === 'am'
-        ? String(data.return_address_am ?? data.return_address_en ?? '')
-        : String(data.return_address_en ?? '');
-    const showMagStripe = data.show_magnetic_stripe !== false;
-    const template = resolveIdCardTemplate(data.template);
-    const padding = String(data.card_padding ?? 'normal');
-    const padCls  = padding === 'compact' ? 'px-3 pb-2' : padding === 'spacious' ? 'px-5 pb-5' : 'px-4 pb-3';
-    const frontBackground = template === 'modern'
-        ? `linear-gradient(110deg, ${frontFrom} 0%, ${frontFrom} 62%, ${frontTo} 62%, ${frontTo} 100%)`
-        : template === 'minimal'
-            ? `linear-gradient(180deg, ${frontFrom} 0%, ${frontFrom} 88%, ${frontTo} 88%, ${frontTo} 100%)`
-            : `linear-gradient(to bottom right, ${frontFrom}, ${frontTo})`;
-    const backBackground = template === 'modern'
-        ? `linear-gradient(110deg, ${backFrom} 0%, ${backFrom} 62%, ${backTo} 62%, ${backTo} 100%)`
-        : template === 'minimal'
-            ? `linear-gradient(180deg, ${backFrom} 0%, ${backFrom} 94%, ${backTo} 94%, ${backTo} 100%)`
-            : `linear-gradient(to bottom right, ${backFrom}, ${backTo})`;
-    const cardRadius = template === 'modern' ? '1.25rem' : template === 'minimal' ? '0.5rem' : '0.75rem';
+/**
+ * Card design (background PNG, colours, fonts, layout) belongs to each ID card
+ * template, so this panel points there instead of previewing a sample card
+ * built from settings that no longer drive the real card.
+ */
+function IdCardTemplatesPanel({ canManage }: { canManage: boolean }) {
+    const { t } = useLocale();
 
     return (
-        <div className="flex flex-col gap-5 sticky top-4">
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
-                    {t('settings.groups.idCardPreview')}
-                </p>
-                <p className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
-                    {t(`settings.idCardTemplates.${template}.name`)}
-                </p>
-
-                {/* Front card */}
-                <div
-                    className="relative overflow-hidden rounded-xl shadow-lg mb-3"
-                    style={{
-                        aspectRatio: '85.6/54',
-                        borderRadius: cardRadius,
-                        background: frontBackground,
-                    }}
+        <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <h3 className="font-semibold text-gray-900 dark:text-slate-100">
+                {t('settings.templateManager.title')}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-slate-400">
+                {t('settings.idCardDesignMovedNotice')}
+            </p>
+            {canManage && (
+                <Link
+                    href={route('id-card-templates.index')}
+                    className="inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
-                    {template !== 'minimal' && (
-                        <div
-                            className="absolute inset-0 pointer-events-none"
-                            style={{
-                                backgroundImage: template === 'modern'
-                                    ? 'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 12px)'
-                                    : 'radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px)',
-                                backgroundSize: template === 'classic' ? '12px 12px' : undefined,
-                            }}
-                        />
-                    )}
-                    <div className={`absolute inset-x-0 top-0 flex items-center gap-2 px-3 py-1.5 ${template === 'modern' ? 'border-b border-white/20 bg-black/10' : 'bg-white/10'}`}>
-                        <div className="h-6 w-6 rounded-full bg-white/20 flex items-center justify-center text-[9px] font-bold" style={{ color: textPri }}>
-                            AA
-                        </div>
-                        <div className="min-w-0">
-                            <p className="truncate text-[9px] font-semibold leading-tight" style={{ color: textPri }}>{cityName}</p>
-                            <p className="truncate text-[8px] leading-tight" style={{ color: textSec }}>{bureauName}</p>
-                        </div>
-                    </div>
-                    <div className={`absolute inset-x-0 top-10 bottom-0 flex gap-2 ${padCls}`}>
-                        <div className={`${template === 'modern' ? 'h-12 w-12 rounded-full border-2' : 'h-14 w-11 rounded-md border'} bg-white/20 border-white/30 flex items-center justify-center`}>
-                            <span className="text-[7px]" style={{ color: textSec }}>Photo</span>
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-between">
-                            <div>
-                                <p className="text-[10px] font-bold leading-tight" style={{ color: textPri }}>Sample Employee</p>
-                                <p className="text-[8px] leading-tight mt-0.5" style={{ color: textSec }}>Position Title</p>
-                            </div>
-                            <div className="space-y-0.5">
-                                <p className="text-[8px] font-mono" style={{ color: textPri }}>ID: EMP-00001</p>
-                                <p className="text-[7px]" style={{ color: textSec }}>Exp: 2027-01</p>
-                            </div>
-                        </div>
-                    </div>
-                    {template === 'classic' && <div className="absolute -right-4 top-0 bottom-0 w-12 bg-white/5 -skew-x-12 pointer-events-none" />}
-                    {template === 'modern' && <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full border-[10px] border-white/10 pointer-events-none" />}
-                </div>
-
-                {/* Back card */}
-                <div
-                    className="relative overflow-hidden rounded-xl shadow-lg"
-                    style={{
-                        aspectRatio: '85.6/54',
-                        borderRadius: cardRadius,
-                        background: backBackground,
-                    }}
-                >
-                    {showMagStripe && (
-                        <div className={[
-                            'absolute bg-black/40 pointer-events-none',
-                            template === 'modern' ? 'left-[34%] right-0 top-4 h-4 rounded-l-full' : '',
-                            template === 'minimal' ? 'inset-x-0 top-3 h-2' : '',
-                            template === 'classic' ? 'inset-x-0 top-3 h-5' : '',
-                        ].join(' ')} />
-                    )}
-                    <div className={`absolute inset-0 flex items-center justify-center gap-3 ${padCls} pt-9`}>
-                        <div className="h-20 w-20 rounded bg-white p-1 flex items-center justify-center">
-                            <div className="h-full w-full rounded-sm" style={{ background: backFrom, opacity: 0.6 }} />
-                        </div>
-                        <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch pt-1">
-                            <p className="text-[7px] uppercase tracking-wide" style={{ color: backText }}>Official Card</p>
-                            <div>
-                                <p className="font-mono text-[7px]" style={{ color: backText }}>CARD-000001</p>
-                                <p className="text-[6px] leading-tight truncate mt-0.5" style={{ color: backText, opacity: 0.7 }}>{returnAddress}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    {t('settings.manageIdCardTemplates')}
+                </Link>
+            )}
         </div>
     );
 }
@@ -380,6 +281,7 @@ function GroupFormPanel({
     readOnly,
     canTest,
     roles,
+    canViewTemplates,
 }: {
     groupId: string;
     payload: SettingsGroupPayload;
@@ -387,6 +289,7 @@ function GroupFormPanel({
     readOnly: boolean;
     canTest: boolean;
     roles: RoleOption[];
+    canViewTemplates: boolean;
 }) {
     const { locale, t } = useLocale();
     const initial = useMemo(() => buildInitialData(payload.fields), [payload.fields]);
@@ -537,7 +440,7 @@ function GroupFormPanel({
                 ) : groupId === 'id_cards' ? (
                     <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
                         <div>{mainCard}</div>
-                        <IdCardPreview data={form.data} />
+                        <IdCardTemplatesPanel canManage={canViewTemplates} />
                     </div>
                 ) : (
                     mainCard
@@ -692,7 +595,7 @@ function GroupFormPanel({
 
 export default function SystemSettingsIndex({ settingGroups, roles, can }: Props) {
     const { t } = useLocale();
-    const [activeTab, setActiveTab] = useState<string>('general');
+    const [activeTab, setActiveTab] = useState<string>(() => new URLSearchParams(window.location.search).get('tab') ?? 'general');
 
     // Field-group tabs — these drive the editable panels below.
     const availableTabs = tabs.filter((tab) => settingGroups[tab.id] !== undefined);
@@ -764,6 +667,7 @@ export default function SystemSettingsIndex({ settingGroups, roles, can }: Props
                                 readOnly={!can[tab.canKey]}
                                 canTest={can.testChannels && ['email', 'sms', 'telegram'].includes(tab.id)}
                                 roles={roles ?? []}
+                                canViewTemplates={can.viewIdCardTemplates === true}
                             />
                         );
                     })}

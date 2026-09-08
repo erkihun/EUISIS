@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\EmployeeStatus;
+use App\Enums\EmploymentType;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -43,6 +44,11 @@ class EmployeeUpdateRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255', "unique:employees,email,{$employeeId},id"],
             'date_of_birth' => ['nullable', 'date'],
             'gender' => ['nullable', 'string', 'max:32'],
+            'nationality' => ['nullable', 'string', 'max:100'],
+            'employment_type' => ['nullable', new Enum(EmploymentType::class)],
+            'address' => ['nullable', 'string', 'max:500'],
+            'emergency_contact_name' => ['nullable', 'string', 'max:255'],
+            'emergency_contact_phone' => ['nullable', 'string', 'max:50', 'regex:/^[0-9+()\-\s]+$/'],
             'status' => ['required', new Enum(EmployeeStatus::class)],
             'national_id' => ['nullable', 'string', 'size:16', 'regex:/^[0-9]{16}$/'],
             'national_id_hash' => [

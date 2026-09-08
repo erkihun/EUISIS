@@ -70,6 +70,7 @@ use App\Http\Controllers\Web\GrievanceSlaRuleController;
 use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCardController;
 use App\Http\Controllers\Web\IdCardExportController;
+use App\Http\Controllers\Web\IdCardTemplateController;
 use App\Http\Controllers\Web\InstitutionOfficeController;
 use App\Http\Controllers\Web\IsicActivityController;
 use App\Http\Controllers\Web\OccupationController;
@@ -706,6 +707,12 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::delete('/system-settings/api-management/{externalApplication}/tokens/{tokenId}', [ApiManagementController::class, 'destroyToken'])->name('api-management.tokens.destroy');
 
     // Admin: System Settings
+    Route::get('/system-settings/id-card-templates', [IdCardTemplateController::class, 'index'])->name('id-card-templates.index');
+    Route::post('/system-settings/id-card-templates', [IdCardTemplateController::class, 'store'])->name('id-card-templates.store');
+    Route::patch('/system-settings/id-card-templates/{template}', [IdCardTemplateController::class, 'update'])->name('id-card-templates.update');
+    Route::delete('/system-settings/id-card-templates/{template}', [IdCardTemplateController::class, 'destroy'])->name('id-card-templates.destroy');
+    Route::post('/system-settings/id-card-templates/{template}/default', [IdCardTemplateController::class, 'setDefault'])->name('id-card-templates.set-default');
+    Route::get('/system-settings/id-card-templates/{template}/background/{side}', [IdCardTemplateController::class, 'background'])->whereIn('side', ['front', 'back'])->name('id-card-templates.background');
     Route::get('/system-settings', [SystemSettingController::class, 'index'])->name('system-settings.index');
     Route::patch('/system-settings/general', [SystemSettingController::class, 'updateGeneral'])->name('system-settings.general.update');
     Route::patch('/system-settings/localization', [SystemSettingController::class, 'updateLocalization'])->name('system-settings.localization.update');

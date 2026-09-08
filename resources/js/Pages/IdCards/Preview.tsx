@@ -1,7 +1,11 @@
+import { mapCardEmployee } from '@/Components/IdCards/mapCardEmployee';
+import { useIdCardTemplate } from '@/Components/IdCards/IdCardTemplateContext';
+import PortraitFront from '@/Components/IdCards/IdCardPortraitFront';
+import PortraitBack from '@/Components/IdCards/IdCardPortraitBack';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import IdCardFront from '@/Components/IdCards/IdCardFront';
-import IdCardBack from '@/Components/IdCards/IdCardBack';
+import LandscapeFront from '@/Components/IdCards/IdCardFront';
+import LandscapeBack from '@/Components/IdCards/IdCardBack';
 import CardDataChecklist from '@/Components/IdCards/CardDataChecklist';
 import CardStatusBadge from '@/Components/IdCards/CardStatusBadge';
 import { formatDateDisplay } from '@/lib/calendar/dateFormat';
@@ -17,12 +21,19 @@ type CardData = {
     expires_at?: string | null;
     qr_payload?: string | null;
     public_card_uuid?: string | null;
+    qr_verification_url?: string | null;
     employee?: {
         employee_number: string;
         full_name: string;
         metadata?: { name_en?: string | null; name_am?: string | null } | null;
         name_en?: string | null;
         gender?: string | null;
+        date_of_birth?: string | null;
+        employment_type?: string | null;
+        nationality?: string | null;
+        phone?: string | null;
+        emergency_contact_name?: string | null;
+        emergency_contact_phone?: string | null;
         status: string;
         photo_path?: string | null;
         photo_url?: string | null;
@@ -43,6 +54,9 @@ type PageProps = {
 export default function IdCardPreview({ card, can }: PageProps) {
     const { t, locale } = useLocale();
     const calendarSystem = useCalendarSystem();
+    const portrait = useIdCardTemplate()?.orientation === 'portrait';
+    const IdCardFront = portrait ? PortraitFront : LandscapeFront;
+    const IdCardBack = portrait ? PortraitBack : LandscapeBack;
 
     return (
         <AuthenticatedLayout
@@ -64,9 +78,7 @@ export default function IdCardPreview({ card, can }: PageProps) {
                         </div>
                         <div className="max-w-sm">
                             <IdCardFront
-                                cardNumber={card.card_number}
-                                fullName={card.employee?.name_en ?? card.employee?.metadata?.name_en ?? card.employee?.full_name}
-                                fullNameAm={card.employee?.metadata?.name_am ?? card.employee?.full_name}
+                                {...mapCardEmployee(card)}
                                 employeeNumber={card.employee?.employee_number}
                                 organizationName={card.employee?.current_assignment?.organization?.name_en}
                                 organizationNameAm={card.employee?.current_assignment?.organization?.name_am}
@@ -76,9 +88,6 @@ export default function IdCardPreview({ card, can }: PageProps) {
                                 positionTitleAm={card.employee?.current_assignment?.position?.title_am}
                                 positionCode={card.employee?.current_assignment?.position?.job_position_code}
                                 jobGrade={card.employee?.current_assignment?.position?.grade_level}
-                                employmentStatus={card.employee?.status}
-                                gender={card.employee?.gender}
-                                photoUrl={card.employee?.photo_url}
                                 issueDate={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), calendarSystem, locale) || card.issued_at.slice(0, 10)) : undefined}
                                 expiryDate={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), calendarSystem, locale) || card.expires_at.slice(0, 10)) : undefined}
                             />
@@ -89,9 +98,11 @@ export default function IdCardPreview({ card, can }: PageProps) {
                         <div className="max-w-sm">
                             <IdCardBack
                                 cardNumber={card.card_number}
-                                qrValue={card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null}
+                                qrValue={card.qr_verification_url ?? null}
                                 issueDate={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), calendarSystem, locale) || card.issued_at.slice(0, 10)) : undefined}
                                 expiryDate={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), calendarSystem, locale) || card.expires_at.slice(0, 10)) : undefined}
+                                emergencyContactName={card.employee?.emergency_contact_name}
+                                emergencyContactPhone={card.employee?.emergency_contact_phone}
                             />
                         </div>
                     </div>

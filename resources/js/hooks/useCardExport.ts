@@ -26,8 +26,8 @@ async function captureElement(
     // Ethiopic text are missing from the capture.
     await waitForCardAssets(el);
 
-    const targetW = opts?.width ?? CARD_W;
-    const targetH = opts?.height ?? CARD_H;
+    const targetW = opts?.width ?? el.offsetWidth;
+    const targetH = opts?.height ?? el.offsetHeight;
 
     if (import.meta.env.DEV) {
         const rect = el.getBoundingClientRect();

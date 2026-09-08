@@ -13,7 +13,7 @@ export async function waitForImages(container: HTMLElement): Promise<void> {
         images.map(
             (img) =>
                 new Promise<void>((resolve) => {
-                    if (img.complete && img.naturalWidth > 0) {
+                    if (img.complete) {
                         resolve();
                         return;
                     }

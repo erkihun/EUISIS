@@ -134,7 +134,7 @@ class IdCardController extends Controller
         $card->makeVisible('qr_payload');
 
         return Inertia::render('IdCards/Show', [
-            'card' => $card,
+            'card' => [...$card->toArray(), 'qr_verification_url' => $qrPayloadService->buildStableQrUrl($card)],
             'can' => [
                 'view' => $user?->can('view', $card),
                 'update' => $user?->can('update', $card),
@@ -169,7 +169,7 @@ class IdCardController extends Controller
         $card->makeVisible('qr_payload');
 
         return Inertia::render('IdCards/Preview', [
-            'card' => $card,
+            'card' => [...$card->toArray(), 'qr_verification_url' => $qrPayloadService->buildStableQrUrl($card)],
             'can' => [
                 'print' => $user?->can('print', $card),
             ],

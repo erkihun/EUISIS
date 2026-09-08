@@ -1,3 +1,5 @@
+import { mapCardEmployee } from '@/Components/IdCards/mapCardEmployee';
+import { useCardDimensions } from '@/Components/IdCards/IdCardTemplateContext';
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import IdCardFront from '@/Components/IdCards/IdCardFront';
@@ -14,6 +16,7 @@ export type CardForExport = {
     expires_at?: string | null;
     qr_payload?: string | null;
     public_card_uuid?: string | null;
+    qr_verification_url?: string | null;
     can: {
         printAnytime?: boolean;
         exportPng?: boolean;
@@ -24,6 +27,12 @@ export type CardForExport = {
         metadata?: { name_en?: string | null; name_am?: string | null } | null;
         name_en?: string | null;
         gender?: string | null;
+        date_of_birth?: string | null;
+        employment_type?: string | null;
+        nationality?: string | null;
+        phone?: string | null;
+        emergency_contact_name?: string | null;
+        emergency_contact_phone?: string | null;
         status?: string | null;
         employee_number?: string | null;
         photo_url?: string | null;
@@ -48,11 +57,10 @@ type Props = {
 // Capture element rendered at half the output size so the card layout
 // (designed for ~400 px wide) looks correct. pixelRatio:2 in useCardExport
 // doubles it to produce a 856×540 px PNG.
-const CARD_W = CARD_CANVAS_WIDTH / 2;   // 428 px
-const CARD_H = CARD_CANVAS_HEIGHT / 2;  // 270 px
 
 export default function CardPrintExportModal({ card, isOpen, onClose, initialAction = 'export_png' }: Props) {
     const { t, locale } = useLocale();
+    const { width: CARD_W, height: CARD_H, printStyle } = useCardDimensions('landscape');
     const [tab, setTab] = useState<Tab>('front');
 
     const {
@@ -73,15 +81,15 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
     const fmtDate = (v?: string | null) =>
         v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : undefined;
 
-    const qrValue = card.public_card_uuid ? route('id-checker.show', card.public_card_uuid) : null;
+    const qrValue = card.qr_verification_url ?? null;
 
     const canPrint      = card.can.printAnytime === true;
     const canExport     = card.can.exportPng    === true;
     const canPreviewSvg = card.can.previewSvg   === true;
 
     // Server-rendered SVG preview URLs — browser sends session cookie automatically.
-    const svgFrontUrl = canPreviewSvg ? route('id-cards.preview.svg.front', card.id) : null;
-    const svgBackUrl  = canPreviewSvg ? route('id-cards.preview.svg.back',  card.id) : null;
+    const svgFrontUrl = canPreviewSvg ? route('id-cards.preview.svg.front', { card: card.id, orientation: 'landscape' }) : null;
+    const svgBackUrl  = canPreviewSvg ? route('id-cards.preview.svg.back', { card: card.id, orientation: 'landscape' }) : null;
 
     async function handleExport() {
         if (tab === 'front')     await exportFront();
@@ -95,9 +103,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
 
     // Shared card props used by the offscreen capture portal and print portal.
     const frontProps = {
-        cardNumber: card.card_number,
-        fullName: card.employee?.name_en ?? card.employee?.metadata?.name_en ?? card.employee?.full_name,
-        fullNameAm: card.employee?.metadata?.name_am ?? card.employee?.full_name,
+        ...mapCardEmployee(card),
         employeeNumber: card.employee?.employee_number,
         organizationName: card.employee?.current_assignment?.organization?.name_en,
         organizationNameAm: card.employee?.current_assignment?.organization?.name_am,
@@ -107,9 +113,6 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
         positionTitleAm: card.employee?.current_assignment?.position?.title_am,
         positionCode: card.employee?.current_assignment?.position?.job_position_code,
         jobGrade: card.employee?.current_assignment?.position?.grade_level,
-        employmentStatus: card.employee?.status,
-        gender: card.employee?.gender,
-        photoUrl: card.employee?.photo_url,
         issueDate: fmtDate(card.issued_at),
         expiryDate: fmtDate(card.expires_at),
         status: card.status,
@@ -154,7 +157,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                     </div>
                     <div style={{ height: 32 }} />
                     <div ref={backRef} style={{ width: CARD_W, height: CARD_H }}>
-                        <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
+                        <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                     </div>
                 </div>,
                 document.body,
@@ -170,7 +173,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
             {createPortal(
                 <div className="id-card-print-area" aria-hidden={printSide === null}>
                     {(printSide === 'front' || printSide === 'both') && (
-                        <div className="id-card-print-card" style={{ borderRadius: 0 }}>
+                        <div className="id-card-print-card" style={{ borderRadius: 0, ...printStyle }}>
                             <div ref={printFrontRef} style={{ width: '100%', height: '100%' }}>
                                 <IdCardFront {...frontProps} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                             </div>
@@ -178,9 +181,9 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                     )}
                     {printSide === 'both' && <div className="id-card-print-spacer" />}
                     {(printSide === 'back' || printSide === 'both') && (
-                        <div className="id-card-print-card" style={{ borderRadius: 0 }}>
+                        <div className="id-card-print-card" style={{ borderRadius: 0, ...printStyle }}>
                             <div ref={printBackRef} style={{ width: '100%', height: '100%' }}>
-                                <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
+                                <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                             </div>
                         </div>
                     )}
@@ -266,7 +269,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                                     <IdCardFront {...frontProps} />
                                 )}
                                 {(tab === 'back' || tab === 'both') && (
-                                    <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} />
+                                    <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} />
                                 )}
                             </>
                         )}

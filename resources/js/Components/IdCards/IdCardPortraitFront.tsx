@@ -1,7 +1,9 @@
+import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE } from '@/Components/IdCards/IdCardTemplateContext';
 import type { CSSProperties } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
+import IdCardBilingualField, { buildBilingualFields } from '@/Components/IdCards/IdCardBilingualField';
 
 type Props = {
     cardNumber: string;
@@ -18,6 +20,13 @@ type Props = {
     jobGrade?: string | null;
     employmentStatus?: string | null;
     gender?: string | null;
+    /** Pre-formatted for the active locale — never a raw ISO date. */
+    dateOfBirth?: string | null;
+    /** Ethiopian-calendar date shown on the Amharic row. */
+    dateOfBirthAm?: string | null;
+    nationality?: string | null;
+    nationalityAm?: string | null;
+    phoneNumber?: string | null;
     photoUrl?: string | null;
     issueDate?: string | null;
     expiryDate?: string | null;
@@ -41,15 +50,14 @@ export default function IdCardPortraitFront({
     fullNameAm,
     employeeNumber,
     organizationName,
-    organizationNameAm,
-    organizationUnitName,
     organizationLogoUrl,
-    positionTitle,
-    positionTitleAm,
-    positionCode,
-    jobGrade,
     employmentStatus,
     gender,
+    dateOfBirth,
+    dateOfBirthAm,
+    nationality,
+    nationalityAm,
+    phoneNumber,
     photoUrl,
     issueDate,
     expiryDate,
@@ -59,24 +67,19 @@ export default function IdCardPortraitFront({
 }: Props) {
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
+    const cardTemplate = useIdCardTemplate();
+    const backgroundUrl = cardTemplate?.front_background_url;
+    const dimensions = useCardDimensions('portrait');
 
     const template  = resolveIdCardTemplate(getString('id_cards.template', 'classic'));
-    const frontFrom = getString('id_cards.front_bg_from', '#1D4ED8');
-    const frontTo   = getString('id_cards.front_bg_to',   '#1E3A8A');
-    const textPri   = getString('id_cards.front_text_primary',   '#FFFFFF');
-    const textSec   = getString('id_cards.front_text_secondary', '#BFDBFE');
+    const frontFrom = CARD_SURFACE.from;
+    const frontTo   = CARD_SURFACE.to;
+    const textPri   = CARD_SURFACE.ink;
+    const textSec   = CARD_SURFACE.inkMuted;
     const showLogo         = getBoolean('id_cards.show_organization_logo', true);
     // Same field-visibility settings as the landscape card (IdCardFront) so
     // both orientations always show the same information.
     const showPhoto        = getBoolean('id_cards.show_photo', true);
-    const showFullNameEn   = getBoolean('id_cards.show_full_name_en', true);
-    const showFullNameAm   = getBoolean('id_cards.show_full_name_am', true);
-    const showEmployeeNo   = getBoolean('id_cards.show_employee_number', true);
-    const showCardNo       = getBoolean('id_cards.show_card_number', true);
-    const showOrganization = getBoolean('id_cards.show_organization', true);
-    const showUnit         = getBoolean('id_cards.show_organization_unit', true);
-    const showPosition     = getBoolean('id_cards.show_position', true);
-    const showJobGrade     = getBoolean('id_cards.show_job_grade', true);
     const showEmployment   = getBoolean('id_cards.show_employment_status', true);
     const portraitLogoUrl = organizationLogoUrl;
 
@@ -89,8 +92,13 @@ export default function IdCardPortraitFront({
 
     const headerCityNameAm = getString('id_cards.city_name_am', '');
     const headerCityNameEn = getString('id_cards.city_name_en', 'Addis Ababa City Administration');
+    // Per-template typography; falls back to the card's own colours.
+    const headerStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'header'), textPri);
+    const footerStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'footer'), textSec);
+    const labelStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'label'), textSec);
+    const contentStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'value'), textPri);
+
     const watermarkText = status ? WATERMARK_STATUSES[status] : null;
-    const genderAm = gender === 'male' ? 'ወንድ' : gender === 'female' ? 'ሴት' : gender;
     const background = template === 'modern'
         ? `linear-gradient(160deg, ${frontFrom} 0%, ${frontFrom} 62%, ${frontTo} 62%, ${frontTo} 100%)`
         : template === 'minimal'
@@ -98,6 +106,7 @@ export default function IdCardPortraitFront({
             : `linear-gradient(160deg, ${frontFrom} 0%, ${frontTo} 100%)`;
 
     return (
+        <div style={{ containerType: 'inline-size', width: rootStyle?.width ?? '100%', maxWidth: rootStyle?.maxWidth ?? 260, height: rootStyle?.height }}>
         <div
             data-card-template={template}
             className={[
@@ -107,33 +116,37 @@ export default function IdCardPortraitFront({
                 template === 'classic' ? 'rounded-2xl' : '',
             ].join(' ')}
             style={{
-                aspectRatio: '54 / 85.6',
+                aspectRatio: `${dimensions.widthMm} / ${dimensions.heightMm}`,
                 width: '100%',
                 maxWidth: 260,
                 background,
+                isolation: 'isolate',
+                // Text is sized in `em`; this scales it with the card.
+                fontSize: '100cqw',
                 ...rootStyle,
             }}
         >
+            {backgroundUrl && <img data-card-background="front" src={backgroundUrl} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" style={{ zIndex: -1 }} />}
             {/* Security dot pattern */}
-            {template !== 'minimal' && <div
+            {!backgroundUrl && template !== 'minimal' && <div
                 className="pointer-events-none absolute inset-0"
                 style={{
                     backgroundImage: template === 'modern'
-                        ? 'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 12px)'
-                        : 'radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px)',
+                        ? 'repeating-linear-gradient(135deg, rgba(15,23,42,0.04) 0 1px, transparent 1px 12px)'
+                        : 'radial-gradient(circle, rgba(15,23,42,0.055) 1px, transparent 1px)',
                     backgroundSize: template === 'classic' ? '10px 10px' : undefined,
                 }}
             />}
 
             {/* Diagonal decorative accent strips */}
-            {template === 'classic' && <>
+            {!backgroundUrl && template === 'classic' && <>
                 <div className="pointer-events-none absolute -right-3 bottom-0 top-0 w-10 -skew-x-6 bg-white/[0.04]" />
                 <div className="pointer-events-none absolute -right-6 bottom-0 top-0 w-7 -skew-x-6 bg-white/[0.025]" />
             </>}
-            {template === 'modern' && <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full border-[16px] border-white/10" />}
+            {!backgroundUrl && template === 'modern' && <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full border-[16px] border-slate-900/10" />}
 
             {/* Background "EMPLOYEE ID" watermark */}
-            {template !== 'minimal' && <div
+            {!backgroundUrl && template !== 'minimal' && <div
                 className="pointer-events-none absolute inset-0 flex select-none items-center justify-center overflow-hidden"
                 aria-hidden
             >
@@ -161,7 +174,7 @@ export default function IdCardPortraitFront({
             )}
 
             {/* ── Header ───────────────────────────────────────────── */}
-            <div className={`flex shrink-0 items-center gap-2 px-3 py-2 ${template === 'modern' ? 'border-b border-white/20 bg-black/10' : 'bg-white/15'}`}>
+            <div className={`flex shrink-0 items-center gap-2 px-3 py-2 ${template === 'modern' ? 'border-b border-slate-200 bg-slate-900/[0.03]' : 'bg-slate-900/[0.04]'}`}>
                 {showLogo && portraitLogoUrl ? (
                     <img
                         src={portraitLogoUrl}
@@ -172,24 +185,18 @@ export default function IdCardPortraitFront({
                 ) : (
                     <div
                         className="flex h-9 w-9 shrink-0 items-center justify-center text-[8px] font-bold"
-                        style={{ color: textPri }}
+                        style={headerStyle}
                     >
                         AA
                     </div>
                 )}
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-[8px] font-bold leading-tight" style={{ color: textPri }}>{headerCityNameAm}</p>
-                    {organizationNameAm && (
-                        <p className="truncate text-[7px] leading-tight" style={{ color: textSec }}>{organizationNameAm}</p>
-                    )}
-                    <p className="truncate text-[8px] font-bold leading-tight" style={{ color: textPri }}>{headerCityNameEn}</p>
-                    {organizationName && (
-                        <p className="truncate text-[7px] leading-tight" style={{ color: textSec }}>{organizationName}</p>
-                    )}
+                    <p className="truncate font-bold leading-tight text-[8px]" style={headerStyle}>{headerCityNameAm}</p>
+                    <p className="truncate font-bold leading-tight text-[8px]" style={headerStyle}>{headerCityNameEn}</p>
                 </div>
                 <span
-                    className="shrink-0 rounded border border-white/20 bg-white/20 px-1.5 py-0.5 text-[7px] font-mono uppercase tracking-wide"
-                    style={{ color: textPri }}
+                    className="shrink-0 rounded border border-slate-200 bg-slate-900/[0.05] px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-wide"
+                    style={headerStyle}
                 >
                     {t('idCards.officialIdBadge')}
                 </span>
@@ -209,18 +216,18 @@ export default function IdCardPortraitFront({
                             style={{
                                 width: '6rem',
                                 height: template === 'modern' ? '6rem' : '7.5rem',
-                                border: template === 'modern' ? '3px solid rgba(255,255,255,0.35)' : '2px solid rgba(255,255,255,0.25)',
+                                border: template === 'modern' ? '3px solid rgba(15,23,42,0.35)' : '2px solid rgba(15,23,42,0.25)',
                                 boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
                             }}
                         />
                     ) : (
                         <div
-                            className={`flex items-center justify-center ${template === 'modern' ? 'rounded-full' : template === 'minimal' ? 'rounded-sm' : 'rounded-xl'} bg-white/15 text-center text-[7px] leading-tight`}
+                            className={`flex items-center justify-center ${template === 'modern' ? 'rounded-full' : template === 'minimal' ? 'rounded-sm' : 'rounded-xl'} border border-dashed border-slate-300 bg-slate-100 text-center text-[7px] leading-tight`}
                             style={{
                                 width: '6rem',
                                 height: template === 'modern' ? '6rem' : '7.5rem',
                                 color: textSec,
-                                border: '2px solid rgba(255,255,255,0.15)',
+                                border: '2px solid rgba(15,23,42,0.15)',
                             }}
                         >
                             {t('idCards.photoPlaceholder')}
@@ -228,65 +235,35 @@ export default function IdCardPortraitFront({
                     )}
                 </div>}
 
-                {/* Name / Position / Org — same fields as the landscape card */}
-                <div className="w-full space-y-0.5 text-center">
-                    {showFullNameAm && fullNameAm && fullNameAm !== fullName && (
-                        <p className="text-[10px] font-semibold leading-tight" style={{ color: textSec }}>
-                            {fullNameAm}
-                        </p>
-                    )}
-                    {showEmployment && gender && (
-                        <p className="text-[8px] leading-tight" style={{ color: textSec }}>ፆታ፡ {genderAm}</p>
-                    )}
-                    {showOrganization && organizationNameAm && (
-                        <p className="truncate text-[8px] leading-tight" style={{ color: textSec, opacity: 0.8 }}>
-                            {organizationNameAm}
-                        </p>
-                    )}
-                    {showPosition && positionTitleAm && (
-                        <p className="truncate text-[8px] leading-tight" style={{ color: textSec }}>{positionTitleAm}</p>
-                    )}
-                    {showFullNameEn && <p className="pt-0.5 text-[12px] font-bold leading-snug" style={{ color: textPri }}>
-                        {fullName ?? '—'}
-                    </p>}
-                    {showEmployment && gender && (
-                        <p className="text-[8px] leading-tight" style={{ color: textSec }}>Sex: {gender}</p>
-                    )}
-                    {showOrganization && organizationName && (
-                        <p className="truncate text-[8px] leading-tight" style={{ color: textSec, opacity: 0.8 }}>
-                            {organizationName}
-                        </p>
-                    )}
-                    {showPosition && positionTitle && (
-                        <p className="truncate text-[9px] leading-tight" style={{ color: textSec }}>
-                            {positionTitle}
-                        </p>
-                    )}
+                {/* Identity fields — organization and position live on the back face. */}
+                <div className="w-full space-y-0.5 text-left">
+                    {(() => {
+                        const [nameField, ...gridFields] = buildBilingualFields({
+                            fullName, fullNameAm, gender, dateOfBirth, dateOfBirthAm,
+                            nationality, nationalityAm,
+                            employmentStatus: showEmployment ? employmentStatus : null,
+                            phoneNumber, cardNumber,
+                        });
+                        return (
+                            <>
+                                <IdCardBilingualField {...nameField} labelStyle={labelStyle} valueStyle={contentStyle} />
+                                <div className="grid grid-cols-2 gap-x-2 gap-y-[2px] pt-0.5">
+                                    {gridFields.map(({ key, ...field }) => (
+                                        <IdCardBilingualField
+                                            key={key}
+                                            {...field}
+                                            labelStyle={labelStyle}
+                                            valueStyle={contentStyle}
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        );
+                    })()}
                 </div>
 
                 {/* Thin divider */}
-                <div className="w-full h-px" style={{ background: 'rgba(255,255,255,0.15)' }} />
-
-                {/* Employee ID + Card Number */}
-                {(showEmployeeNo || showCardNo) && <div className="flex w-full justify-around gap-2">
-                    {showEmployeeNo && <div className="text-center">
-                        <span className="block text-[7px] uppercase tracking-wider" style={{ color: textSec }}>
-                            {t('idCards.idLabel')}
-                        </span>
-                        <span className="block text-[9px] font-mono font-semibold" style={{ color: textPri }}>
-                            {employeeNumber ?? '—'}
-                        </span>
-                    </div>}
-                    {showEmployeeNo && showCardNo && <div className="w-px" style={{ background: 'rgba(255,255,255,0.12)' }} />}
-                    {showCardNo && <div className="text-center">
-                        <span className="block text-[7px] tracking-wider" style={{ color: textSec }}>
-                            Pos.No/የመ.መ.ቁ
-                        </span>
-                        <span className="block text-[9px] font-mono" style={{ color: textPri }}>
-                            {positionCode ?? '—'}
-                        </span>
-                    </div>}
-                </div>}
+                <div className="w-full h-px" style={{ background: 'rgba(15,23,42,0.15)' }} />
 
                 {/* Issue / expiry dates are rendered on the card back (IdCardPortraitBack). */}
             </div>
@@ -295,14 +272,15 @@ export default function IdCardPortraitFront({
             <div
                 className="flex h-5 shrink-0 items-center px-4"
                 style={{
-                    background: `linear-gradient(to right, rgba(255,255,255,0.12), rgba(255,255,255,0.06))`,
-                    borderTop: '1px solid rgba(255,255,255,0.1)',
+                    background: `linear-gradient(to right, rgba(15,23,42,0.12), rgba(15,23,42,0.06))`,
+                    borderTop: '1px solid rgba(15,23,42,0.1)',
                 }}
             >
-                <span className="text-[6px] font-mono uppercase tracking-widest" style={{ color: textSec, opacity: 0.7 }}>
+                <span className="font-mono text-[6px] uppercase tracking-widest" style={{ ...footerStyle, opacity: 0.7 }}>
                     {t('idCards.authorizedLabel')}
                 </span>
             </div>
+        </div>
         </div>
     );
 }

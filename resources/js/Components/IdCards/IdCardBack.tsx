@@ -1,3 +1,4 @@
+import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle } from '@/Components/IdCards/IdCardTemplateContext';
 import type { CSSProperties } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLocale } from '@/hooks/useLocale';
@@ -7,7 +8,7 @@ import amDict from '@/i18n/am';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 
 // The card face is bilingual by design — labels come from both dictionaries.
-const biLabel = (key: 'issueDate' | 'expLabel' | 'signatureLabel'): string =>
+const biLabel = (key: 'issueDate' | 'expLabel' | 'signatureLabel' | 'emergencyContact'): string =>
     `${enDict.idCards[key]}/${amDict.idCards[key]}`;
 
 type IdCardBackProps = {
@@ -18,18 +19,27 @@ type IdCardBackProps = {
     issueDate?: string | null;
     /** Card expiry date (already formatted for display). */
     expiryDate?: string | null;
+    /** Who to contact in an emergency — printed on the back. */
+    emergencyContactName?: string | null;
+    emergencyContactPhone?: string | null;
     /** Extra styles merged onto the root div — use to force explicit height for html-to-image export */
     rootStyle?: CSSProperties;
 };
 
-export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate, rootStyle }: IdCardBackProps) {
+export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate, emergencyContactName, emergencyContactPhone, rootStyle }: IdCardBackProps) {
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
+    const cardTemplate = useIdCardTemplate();
+    const backgroundUrl = cardTemplate?.back_background_url;
+    const dimensions = useCardDimensions('landscape');
 
     const template      = resolveIdCardTemplate(getString('id_cards.template', 'classic'));
-    const backFrom      = getString('id_cards.back_bg_from', '#1E293B');
-    const backTo        = getString('id_cards.back_bg_to', '#0F172A');
-    const textColor     = getString('id_cards.back_text_color', '#94A3B8');
+    const backFrom      = CARD_SURFACE.from;
+    const backTo        = CARD_SURFACE.to;
+    const textColor     = CARD_SURFACE.inkMuted;
+    // Per-template typography; falls back to the card's own back colour.
+    const labelStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'label'), textColor);
+    const contentStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'value'), textColor);
     const showMagStripe = getBoolean('id_cards.show_magnetic_stripe', true);
     const showQr = getBoolean('id_cards.show_qr', true);
     const showReturnNotice = getBoolean('id_cards.show_return_notice', true);
@@ -66,20 +76,22 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                 template === 'classic' ? 'rounded-xl' : '',
             ].join(' ')}
             style={{
-                aspectRatio: '85.6/54',
+                aspectRatio: `${dimensions.widthMm} / ${dimensions.heightMm}`,
                 width: '100%',
                 maxWidth: 400,
                 background,
+                isolation: 'isolate',
                 ...rootStyle,
             }}
         >
+            {backgroundUrl && <img data-card-background="back" src={backgroundUrl} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" style={{ zIndex: -1 }} />}
             {/* Security dot pattern */}
-            {template !== 'minimal' && <div
+            {!backgroundUrl && template !== 'minimal' && <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
                     backgroundImage: template === 'modern'
-                        ? 'repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 12px)'
-                        : 'radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px)',
+                        ? 'repeating-linear-gradient(135deg, rgba(15,23,42,0.04) 0 1px, transparent 1px 12px)'
+                        : 'radial-gradient(circle, rgba(15,23,42,0.04) 1px, transparent 1px)',
                     backgroundSize: template === 'modern' ? undefined : '10px 10px',
                 }}
             />}
@@ -95,17 +107,9 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
             )}
 
             {/* Main content area */}
-            <div className={`absolute inset-x-0 bottom-0 flex flex-col ${padCls} pt-0 pb-2`} style={{ top: showMagStripe ? '2.5rem' : '0.75rem' }}>
-            <div className="flex min-h-0 flex-1 gap-3">
-
-                {/* QR code block — maximised, centered vertically */}
-                {showQr && <div className="flex shrink-0 flex-col items-center justify-center gap-1">
-                    <span className="text-[7px] font-semibold uppercase tracking-widest text-center" style={{ color: textColor }}>
-                        {enDict.idCards.scanToVerify}
-                    </span>
-                    <span className="text-[7px] text-center mb-0.5" style={{ color: textColor, opacity: 0.8 }}>
-                        {amDict.idCards.scanToVerify}
-                    </span>
+            <>
+                {/* QR code block — positioned by the template. */}
+                {showQr && <div className="flex flex-col items-center justify-center gap-1" style={layoutStyle(cardTemplate, 'qr', 'back')}>
                     {qrValue ? (
                         <div
                             className="rounded-md bg-white shadow-md"
@@ -121,7 +125,7 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                         </div>
                     ) : (
                         <div
-                            className="flex items-center justify-center rounded-md border-2 border-dashed border-white/20 bg-white/5"
+                            className="flex items-center justify-center rounded-md border-2 border-dashed border-slate-300 bg-slate-100"
                             style={{ width: qrSize + 8, height: qrSize + 8 }}
                         >
                             <span className="text-center text-[7px] leading-tight text-white/40 px-1">
@@ -129,15 +133,12 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                             </span>
                         </div>
                     )}
-                    <span className="text-[6px] text-center leading-tight mt-0.5 max-w-[80px]" style={{ color: textColor, opacity: 0.55 }}>
-                        {t('idCards.qrNoPersonalInfo')}
-                    </span>
                 </div>}
 
-                {/* Text column */}
-                <div className="flex min-w-0 flex-1 flex-col justify-between self-stretch">
+                {/* Notes and details column — positioned by the template. */}
+                <div className="flex min-w-0 flex-col justify-between" style={layoutStyle(cardTemplate, 'notes', 'back')}>
                     <div className="space-y-1">
-                        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: textColor }}>
+                        <p className="text-[9px] font-bold uppercase tracking-wider" style={labelStyle}>
                             {t('idCards.officialCard')}
                         </p>
                         {/* Return notice in both languages */}
@@ -158,27 +159,35 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                         )}
                     </div>
 
-                    <div className="space-y-0.5 mt-auto">
-                        {sealUrl && (
-                            <div className="flex min-h-0 flex-1 items-center justify-center py-1">
-                                <img
-                                    src={sealUrl}
-                                    alt=""
-                                    className="h-24 w-24 max-h-full max-w-full object-contain drop-shadow-md"
-                                />
-                            </div>
-                        )}
+                </div>
+
+                {/* Seal — positioned against the card so it can be moved freely. */}
+                {sealUrl && (
+                    <div
+                        className="flex items-center justify-center"
+                        style={layoutStyle(cardTemplate, 'seal', 'back')}
+                    >
+                        <img
+                            src={sealUrl}
+                            alt=""
+                            className="h-full w-full object-contain drop-shadow-md"
+                        />
+                    </div>
+                )}
+
+                {/* Signature, card number and addresses — their own movable block. */}
+                <div className="space-y-0.5" style={layoutStyle(cardTemplate, 'details', 'back')}>
                         {/* Signature line */}
                         <div className="mb-1 flex items-end gap-1.5">
-                            <span className="shrink-0 text-[7px]" style={{ color: textColor, opacity: 0.7 }}>
+                            <span className="shrink-0 text-[7px]" style={{ ...labelStyle, opacity: 0.7 }}>
                                 {biLabel('signatureLabel')}
                             </span>
                             <span
                                 className="mb-0.5 flex-1"
-                                style={{ borderBottom: '1px dotted rgba(255,255,255,0.3)', minHeight: 10 }}
+                                style={{ borderBottom: '1px dotted rgba(15,23,42,0.3)', minHeight: 10 }}
                             />
                         </div>
-                        {showCardNumber && <p className="font-mono text-[8px] font-semibold tracking-wider" style={{ color: textColor }}>
+                        {showCardNumber && <p className="font-mono text-[8px] font-semibold tracking-wider" style={contentStyle}>
                             Card NO: {cardNumber}
                         </p>}
                         {showEmergencyContact && supportContact && (
@@ -189,13 +198,30 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                         <p className="text-[7px] leading-tight truncate" style={{ color: textColor, opacity: 0.45 }}>
                             {returnAddress}
                         </p>
-                    </div>
                 </div>
-            </div>
+
+            {/* Emergency contact — who to call if the holder needs help. */}
+            {(emergencyContactName || emergencyContactPhone) && (
+                <div className="min-w-0" style={layoutStyle(cardTemplate, 'emergency', 'back')}>
+                    <p className="truncate text-[7px] font-semibold leading-tight" style={labelStyle}>
+                        {biLabel('emergencyContact')}
+                    </p>
+                    {emergencyContactName && (
+                        <p className="truncate text-[8px] leading-tight" style={contentStyle}>
+                            {emergencyContactName}
+                        </p>
+                    )}
+                    {emergencyContactPhone && (
+                        <p className="truncate text-[8px] leading-tight" style={contentStyle}>
+                            {emergencyContactPhone}
+                        </p>
+                    )}
+                </div>
+            )}
 
             {/* Bottom row — issue / expiry dates with bilingual labels */}
             {(showIssueDate || showExpiryDate) && (
-                <div className="mt-1 flex gap-3 border-t pt-1" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                <div className="flex gap-3" style={layoutStyle(cardTemplate, 'dates', 'back')}>
                     {showIssueDate && (
                         <div className="min-w-0 flex-1">
                             <p className="truncate text-[7px] leading-tight" style={{ color: textColor, opacity: 0.7 }}>
@@ -203,7 +229,7 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                             </p>
                             <p
                                 className="font-mono text-[8px] font-semibold leading-tight"
-                                style={{ color: textColor, borderBottom: '1px dotted rgba(255,255,255,0.25)' }}
+                                style={{ color: textColor, borderBottom: '1px dotted rgba(15,23,42,0.25)' }}
                             >
                                 {issueDate ?? ' '}
                             </p>
@@ -216,7 +242,7 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                             </p>
                             <p
                                 className="font-mono text-[8px] font-semibold leading-tight"
-                                style={{ color: textColor, borderBottom: '1px dotted rgba(255,255,255,0.25)' }}
+                                style={{ color: textColor, borderBottom: '1px dotted rgba(15,23,42,0.25)' }}
                             >
                                 {expiryDate ?? ' '}
                             </p>
@@ -224,12 +250,12 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                     )}
                 </div>
             )}
-            </div>
+            </>
 
             {/* Bottom thin accent */}
             <div
                 className="absolute inset-x-0 bottom-0 h-1 pointer-events-none"
-                style={{ background: `linear-gradient(to right, rgba(255,255,255,0.08), rgba(255,255,255,0.03))` }}
+                style={{ background: `linear-gradient(to right, rgba(15,23,42,0.08), rgba(15,23,42,0.03))` }}
             />
         </div>
     );

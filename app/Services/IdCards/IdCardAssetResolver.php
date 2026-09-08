@@ -25,7 +25,7 @@ final class IdCardAssetResolver
      * Resolve a public-disk storage path (e.g. "photos/abc.jpg") to a data URI.
      * The path must not be absolute; it is relative to storage/app/public.
      */
-    public function resolveStoragePath(?string $relativePath): ?string
+    public function resolveStoragePath(?string $relativePath, int $maxBytes = self::MAX_BYTES): ?string
     {
         if ($relativePath === null || $relativePath === '') {
             return null;
@@ -43,7 +43,7 @@ final class IdCardAssetResolver
             }
 
             $size = Storage::disk('public')->size($path);
-            if ($size > self::MAX_BYTES) {
+            if ($size > $maxBytes) {
                 return null;
             }
 
@@ -66,7 +66,8 @@ final class IdCardAssetResolver
      */
     public function resolvePhotoPath(?string $photoPath): ?string
     {
-        return $this->resolveStoragePath($photoPath);
+        // Employee create/update accepts photos up to 4096 KB.
+        return $this->resolveStoragePath($photoPath, 4 * 1024 * 1024);
     }
 
     public function resolveLogoPath(?string $logoPath): ?string

@@ -10,6 +10,7 @@ use App\Models\TransferAnnouncement;
 use App\Models\User;
 use App\Services\Calendar\CalendarService;
 use App\Services\SystemSettings\SystemSettingsService;
+use App\Services\IdCards\IdCardTemplateService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -62,6 +63,15 @@ class HandleInertiaRequests extends Middleware
                 'mode' => $calendarMode,
             ],
             'settings' => $settings,
+            'idCardTemplate' => function () use ($user): ?array {
+                if ($user === null) {
+                    return null;
+                }
+                $templates = app(IdCardTemplateService::class);
+                $template = $templates->active();
+
+                return $template ? $templates->presentation($template) : null;
+            },
             'registration_enabled' => (bool) config('security.registration_enabled', false),
             'announcement_count' => $this->publishedAnnouncementCount(),
             'is_employee_user' => $user !== null && $this->resolveIsEmployeeUser($user),
