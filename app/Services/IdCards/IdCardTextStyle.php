@@ -36,13 +36,11 @@ final readonly class IdCardTextStyle
             'header' => ['size' => '9px', 'weight' => '700', 'color' => 'primary'],
             'label' => ['size' => '7px', 'weight' => '400', 'color' => 'secondary'],
             'value' => ['size' => '10px', 'weight' => '600', 'color' => 'primary'],
-            'footer' => ['size' => '7px', 'weight' => '400', 'color' => 'secondary'],
         ],
+        // The back has no heading of its own; its notes lead the text column.
         'back' => [
-            'header' => ['size' => '9px', 'weight' => '700', 'color' => 'back'],
             'label' => ['size' => '7px', 'weight' => '400', 'color' => 'back'],
             'value' => ['size' => '8px', 'weight' => '600', 'color' => 'back'],
-            'qr_instruction' => ['size' => '9px', 'weight' => '500', 'color' => 'back'],
             'footer' => ['size' => '7px', 'weight' => '400', 'color' => 'back'],
         ],
     ];

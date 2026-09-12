@@ -287,10 +287,9 @@ it('saves a style for every text role on both sides', function (): void {
             'header' => ['color' => '#101010', 'font_size' => '12px', 'font_weight' => '700'],
             'label' => ['color' => '#112233', 'font_size' => '9px', 'font_weight' => '600'],
             'value' => ['color' => '#445566', 'font_size' => '10px', 'font_weight' => '500'],
-            'footer' => ['color' => '#334455', 'font_size' => '7px', 'font_weight' => '400'],
         ],
+        // The back has no heading role; its notes lead the text column.
         'back' => [
-            'header' => ['color' => '#556677', 'font_size' => '12px', 'font_weight' => '700'],
             'label' => ['color' => '#778899', 'font_size' => '8px', 'font_weight' => '600'],
             'value' => ['color' => '#AABBCC', 'font_size' => '13px', 'font_weight' => '400'],
             'footer' => ['color' => '#CCDDEE', 'font_size' => '7px', 'font_weight' => '400'],
@@ -328,7 +327,6 @@ it('applies saved template styles to the exported card without touching the QR t
                 'label' => ['color' => '#AA0011', 'font_size' => '11px', 'font_weight' => '700'],
                 'value' => ['color' => '#00BB22', 'font_size' => '14px', 'font_weight' => '500'],
                 'header' => ['color' => '#CC3344', 'font_size' => '12px', 'font_weight' => '800'],
-                'footer' => ['color' => '#556677', 'font_size' => '8px', 'font_weight' => '400'],
             ],
             'back' => [
                 'value' => ['color' => '#123456', 'font_size' => '9px', 'font_weight' => '600'],
@@ -341,7 +339,7 @@ it('applies saved template styles to the exported card without touching the QR t
     $back = app(IdCardSvgRenderer::class)->renderBack($data);
 
     // Card coordinates are twice the millimetre size, so px values are doubled.
-    expect($front)->toContain('#AA0011')->toContain('#00BB22')->toContain('#CC3344')->toContain('#556677')
+    expect($front)->toContain('#AA0011')->toContain('#00BB22')->toContain('#CC3344')
         ->toContain('font-size="22"')->toContain('font-size="28"')
         ->toContain('font-weight="700"')->toContain('font-weight="500"')->toContain('font-weight="800"');
     expect($back)->toContain('#123456')->toContain('font-size="18"');
@@ -361,4 +359,285 @@ it('keeps rendering templates saved before per-template typography', function ()
 
     // Falls back to the neutral card surface ink, not the retired dark theme.
     expect($svg)->toContain('ስም')->toContain('Name')->toContain('#0F172A')->toContain('#475569');
+});
+
+it('overrides the header text per template and inherits every blank field', function (): void {
+    $card = templateCard();
+    SystemSetting::query()->updateOrCreate(
+        ['group' => 'id_cards', 'key' => 'city_name_am'],
+        ['type' => 'string', 'value' => 'የስርዓቱ ከተማ'],
+    );
+    app(SystemSettingsService::class)->clearCache();
+
+    $this->post(route('id-card-templates.store'), templatePayload([
+        // Only the English city is overridden; the Amharic one must inherit.
+        'header_config' => ['city_name_en' => 'Template City'],
+    ]))->assertSessionHasNoErrors();
+
+    $svg = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    expect($svg)->toContain('Template City')->toContain('የስርዓቱ ከተማ');
+});
+
+it('keeps the bureau names off the header band', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'header_config' => [
+            'city_name_am' => 'የከተማ ስም', 'city_name_en' => 'City Name',
+            'bureau_name_am' => 'የቢሮ ስም', 'bureau_name_en' => 'Bureau Name',
+        ],
+    ]))->assertSessionHasNoErrors();
+
+    $svg = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    // The header carries the city name only, in both languages.
+    expect($svg)->toContain('የከተማ ስም')->toContain('City Name')
+        ->not->toContain('የቢሮ ስም')->not->toContain('Bureau Name');
+});
+
+it('renders identically to the global settings when a template stores no header', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload())->assertSessionHasNoErrors();
+    $template = IdCardTemplate::query()->sole();
+
+    $inherited = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    // An explicit empty override must read the same as storing nothing at all.
+    $template->forceFill(['header_config' => ['city_name_en' => '', 'bureau_name_en' => '']])->save();
+    $blank = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    expect($blank)->toBe($inherited);
+});
+
+it('stores each header logo slot and serves it through the asset route', function (string $slot): void {
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'logo_'.$slot => UploadedFile::fake()->image('logo.png', 200, 200),
+    ]))->assertSessionHasNoErrors();
+
+    $template = IdCardTemplate::query()->sole();
+    $path = $template->{'logo_'.$slot.'_path'};
+    expect($path)->toStartWith('id-card-templates/')
+        ->and(Storage::disk('local')->exists($path))->toBeTrue();
+
+    $this->get(route('id-card-templates.background', [$template, 'logo-'.$slot]))->assertOk();
+})->with(['primary', 'secondary']);
+
+it('keeps the two header logo slots independent', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'logo_primary' => UploadedFile::fake()->image('left.png', 200, 200),
+        'logo_secondary' => UploadedFile::fake()->image('right.png', 200, 200),
+    ]))->assertSessionHasNoErrors();
+
+    $template = IdCardTemplate::query()->sole();
+    expect($template->logo_primary_path)->not->toBe($template->logo_secondary_path);
+
+    // Both marks are drawn, each with its own clip path.
+    $svg = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+    expect($svg)->toContain('id="logoClip"')->toContain('id="logoClipSecondary"');
+});
+
+it('rejects a header logo that is not a real png', function (string $slot): void {
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'logo_'.$slot => UploadedFile::fake()->image('logo.jpg', 200, 200),
+    ]))->assertSessionHasErrors('logo_'.$slot);
+
+    expect(IdCardTemplate::query()->count())->toBe(0)
+        ->and(Storage::disk('local')->allFiles())->toBe([]);
+})->with(['primary', 'secondary']);
+
+it('never exposes a stored logo path to the client', function (): void {
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'logo_primary' => UploadedFile::fake()->image('left.png', 200, 200),
+        'logo_secondary' => UploadedFile::fake()->image('right.png', 200, 200),
+    ]))->assertSessionHasNoErrors();
+
+    $template = IdCardTemplate::query()->sole();
+    $payload = app(IdCardTemplateService::class)->managementData($this->admin, 10);
+    $encoded = json_encode($payload);
+
+    foreach (['logo_primary_path', 'logo_secondary_path'] as $column) {
+        expect($encoded)->not->toContain($template->{$column})
+            ->and($payload['templates'][0])->not->toHaveKey($column);
+    }
+});
+
+it('hides each header logo slot on its own', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'logo_primary' => UploadedFile::fake()->image('left.png', 200, 200),
+        'logo_secondary' => UploadedFile::fake()->image('right.png', 200, 200),
+        // Only the right mark is hidden; the left one must survive.
+        'header_config' => ['show_secondary_logo' => false],
+    ]))->assertSessionHasNoErrors();
+
+    $svg = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    expect($svg)->toContain('id="logoClip"')->not->toContain('id="logoClipSecondary"');
+});
+
+it('draws no placeholder when a header logo slot is turned off', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'header_config' => ['show_logo' => false, 'show_secondary_logo' => false],
+    ]))->assertSessionHasNoErrors();
+
+    $svg = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    // Neither the image nor the initials placeholder is drawn.
+    expect($svg)->not->toContain('logoClip')->not->toContain('>AA<');
+});
+
+it('does not rotate the QR reference when header content changes', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload())->assertSessionHasNoErrors();
+    $template = IdCardTemplate::query()->sole();
+    $before = $card->fresh()->getRawOriginal();
+    $qrBefore = app(CardQrPayloadService::class)->buildStableQrUrl($card->fresh());
+
+    $this->post(route('id-card-templates.update', $template), templatePayload([
+        'header_config' => ['city_name_en' => 'Renamed City'],
+        'logo_primary' => UploadedFile::fake()->image('logo.png', 200, 200),
+    ]))->assertSessionHasNoErrors();
+
+    expect($card->refresh()->getRawOriginal())->toBe($before)
+        ->and(app(CardQrPayloadService::class)->buildStableQrUrl($card->fresh()))->toBe($qrBefore);
+});
+
+it('prints the header city name in both languages beside one logo', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'header_config' => ['city_name_am' => 'የከተማ ስም', 'city_name_en' => 'City Name'],
+    ]))->assertSessionHasNoErrors();
+
+    $svg = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    // Both lines print, and they share one text column at the same x.
+    preg_match_all('/<text x="(\d+)" y="(\d+)"[^>]*>([^<]*)</u', $svg, $matches, PREG_SET_ORDER);
+    $lines = array_values(array_filter($matches, fn (array $m): bool => in_array(
+        trim($m[3]), ['የከተማ ስም', 'City Name'], true,
+    )));
+
+    expect($lines)->toHaveCount(2)
+        ->and(array_unique(array_column($lines, 1)))->toHaveCount(1);
+});
+
+it('keeps the whole header inside its own band', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'header_config' => ['city_name_am' => 'የከተማ ስም', 'city_name_en' => 'City Name'],
+    ]))->assertSessionHasNoErrors();
+
+    $svg = app(IdCardSvgRenderer::class)->renderFront(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    // The band is the first header rect; no header line may fall past it.
+    preg_match('/height="(\d+)" fill="rgba\(15,23,42,0\.15\)"/', $svg, $band);
+    preg_match_all('/<text x="\d+" y="(\d+)"[^>]*>([^<]*)</u', $svg, $matches, PREG_SET_ORDER);
+    $headerYs = array_map(
+        fn (array $m): int => (int) $m[1],
+        array_filter($matches, fn (array $m): bool => in_array(
+            trim($m[2]), ['የከተማ ስም', 'City Name'], true,
+        )),
+    );
+
+    expect($headerYs)->not->toBeEmpty()
+        ->and(max($headerYs))->toBeLessThanOrEqual((int) $band[1]);
+});
+
+it('accepts a header logo at any size or aspect ratio', function (int $width, int $height): void {
+    // The renderer scales a logo into its layout box, so the file's own
+    // dimensions are not constrained the way card artwork's are.
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'logo_primary' => UploadedFile::fake()->image('left.png', $width, $height),
+        'logo_secondary' => UploadedFile::fake()->image('right.png', $width, $height),
+    ]))->assertSessionHasNoErrors();
+
+    $template = IdCardTemplate::query()->sole();
+    expect($template->logo_primary_path)->not->toBeNull()
+        ->and($template->logo_secondary_path)->not->toBeNull();
+})->with([
+    'tiny square' => [8, 8],
+    'small square' => [32, 32],
+    'large square' => [2000, 2000],
+    'wide banner' => [1200, 60],
+    'tall strip' => [60, 1200],
+]);
+
+it('keeps the 100px floor on background artwork', function (): void {
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'front_background' => UploadedFile::fake()->image('front.png', 32, 32),
+    ]))->assertSessionHasErrors('front_background');
+});
+
+it('keeps the back photo off until a template turns it on', function (): void {
+    $card = templateCard();
+    $card->employee->forceFill(['photo_path' => 'employee-photos/sample.png'])->save();
+    $this->post(route('id-card-templates.store'), templatePayload())->assertSessionHasNoErrors();
+
+    $svg = app(IdCardSvgRenderer::class)->renderBack(
+        app(IdCardRenderDataFactory::class)->make($card->fresh()),
+    );
+
+    expect($svg)->not->toContain('backPhoto');
+});
+
+it('draws the back photo with the opacity, contrast and fit a template stores', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'back_photo_config' => [
+            'show' => true, 'opacity' => 25, 'contrast' => 140,
+            'fit' => 'contain', 'background_color' => '#EEF2FF',
+        ],
+    ]))->assertSessionHasNoErrors();
+
+    $stored = IdCardTemplate::query()->sole()->back_photo_config;
+    expect((int) $stored['opacity'])->toBe(25)
+        ->and((int) $stored['contrast'])->toBe(140)
+        ->and($stored['fit'])->toBe('contain');
+});
+
+it('rejects a back photo setting outside its allowed range', function (array $config, string $key): void {
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'back_photo_config' => $config,
+    ]))->assertSessionHasErrors('back_photo_config.'.$key);
+})->with([
+    'opacity over 100' => [['show' => true, 'opacity' => 150], 'opacity'],
+    'negative opacity' => [['show' => true, 'opacity' => -10], 'opacity'],
+    'contrast over 300' => [['show' => true, 'contrast' => 400], 'contrast'],
+    'unknown fit' => [['show' => true, 'fit' => 'tile'], 'fit'],
+    'unsafe colour' => [['show' => true, 'background_color' => 'red; --x:1'], 'background_color'],
+]);
+
+it('clamps a back photo setting written straight to the database', function (): void {
+    $card = templateCard();
+    IdCardTemplate::query()->create([
+        'name' => 'Corrupt photo', 'code' => 'corrupt-photo', 'orientation' => 'landscape',
+        'status' => 'active', 'is_default' => true,
+        // Bypasses validation, so the renderer must not trust it.
+        'back_photo_config' => ['show' => true, 'opacity' => 900, 'contrast' => -50, 'fit' => 'tile'],
+    ]);
+
+    $photo = app(IdCardTemplateService::class)->backPhoto(IdCardTemplate::query()->sole());
+
+    expect($photo->opacity)->toBe(100)
+        ->and($photo->contrast)->toBe(0)
+        ->and($photo->fit)->toBe('cover');
 });

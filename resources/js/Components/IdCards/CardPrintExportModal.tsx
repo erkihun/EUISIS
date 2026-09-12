@@ -7,6 +7,7 @@ import IdCardBack from '@/Components/IdCards/IdCardBack';
 import { CARD_CANVAS_HEIGHT, CARD_CANVAS_WIDTH } from '@/Components/IdCards/IdCardCanvas';
 import { useLocale } from '@/hooks/useLocale';
 import { useCardExport } from '@/hooks/useCardExport';
+import { formatDateDisplay } from '@/lib/calendar/dateFormat';
 
 export type CardForExport = {
     id: string;
@@ -81,6 +82,10 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
     const fmtDate = (v?: string | null) =>
         v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : undefined;
 
+    // The card prints both calendars, so the Ethiopian date is built alongside.
+    const fmtEthiopian = (v?: string | null) =>
+        v ? (formatDateDisplay(v.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined;
+
     const qrValue = card.qr_verification_url ?? null;
 
     const canPrint      = card.can.printAnytime === true;
@@ -115,8 +120,11 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
         jobGrade: card.employee?.current_assignment?.position?.grade_level,
         issueDate: fmtDate(card.issued_at),
         expiryDate: fmtDate(card.expires_at),
+        issueDateAm: fmtEthiopian(card.issued_at),
+        expiryDateAm: fmtEthiopian(card.expires_at),
         status: card.status,
     };
+
 
     const exportLabel =
         tab === 'front' ? t('idCards.exportFront')
@@ -157,7 +165,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                     </div>
                     <div style={{ height: 32 }} />
                     <div ref={backRef} style={{ width: CARD_W, height: CARD_H }}>
-                        <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
+                        <IdCardBack cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} rootStyle={{ width: "100%", height: "100%", maxWidth: "none" }} />
                     </div>
                 </div>,
                 document.body,
@@ -183,7 +191,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                     {(printSide === 'back' || printSide === 'both') && (
                         <div className="id-card-print-card" style={{ borderRadius: 0, ...printStyle }}>
                             <div ref={printBackRef} style={{ width: '100%', height: '100%' }}>
-                                <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
+                                <IdCardBack cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} rootStyle={{ width: "100%", height: "100%", maxWidth: "none" }} />
                             </div>
                         </div>
                     )}
@@ -269,7 +277,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                                     <IdCardFront {...frontProps} />
                                 )}
                                 {(tab === 'back' || tab === 'both') && (
-                                    <IdCardBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} />
+                                    <IdCardBack cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} />
                                 )}
                             </>
                         )}

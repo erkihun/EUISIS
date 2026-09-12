@@ -81,20 +81,27 @@ export default function IdCardPortraitFront({
     // both orientations always show the same information.
     const showPhoto        = getBoolean('id_cards.show_photo', true);
     const showEmployment   = getBoolean('id_cards.show_employment_status', true);
-    const portraitLogoUrl = organizationLogoUrl;
+    // Header content is per template, resolved server-side against the system
+    // settings, so a template that overrides nothing reads the same as before.
+    const header = cardTemplate?.header_config ?? null;
+    const portraitLogoUrl = (header?.show_logo ?? true)
+        ? cardTemplate?.logo_primary_url ?? organizationLogoUrl
+        : null;
+    const portraitSecondaryLogoUrl = (header?.show_secondary_logo ?? true)
+        ? cardTemplate?.logo_secondary_url ?? null
+        : null;
 
     const cityName = locale === 'am'
-        ? getString('id_cards.city_name_am', 'አዲስ አበባ ከተማ አስተዳደር')
-        : getString('id_cards.city_name_en', 'Addis Ababa City Administration');
+        ? header?.city_name_am || getString('id_cards.city_name_am', 'አዲስ አበባ ከተማ አስተዳደር')
+        : header?.city_name_en || getString('id_cards.city_name_en', 'Addis Ababa City Administration');
     const bureauName = locale === 'am'
-        ? getString('id_cards.bureau_name_am', 'የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ')
-        : getString('id_cards.bureau_name_en', 'Public Service & HRD Bureau');
+        ? header?.bureau_name_am || getString('id_cards.bureau_name_am', 'የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ')
+        : header?.bureau_name_en || getString('id_cards.bureau_name_en', 'Public Service & HRD Bureau');
 
-    const headerCityNameAm = getString('id_cards.city_name_am', '');
-    const headerCityNameEn = getString('id_cards.city_name_en', 'Addis Ababa City Administration');
+    const headerCityNameAm = header?.city_name_am || getString('id_cards.city_name_am', '');
+    const headerCityNameEn = header?.city_name_en || getString('id_cards.city_name_en', 'Addis Ababa City Administration');
     // Per-template typography; falls back to the card's own colours.
     const headerStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'header'), textPri);
-    const footerStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'footer'), textSec);
     const labelStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'label'), textSec);
     const contentStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'value'), textPri);
 
@@ -182,18 +189,33 @@ export default function IdCardPortraitFront({
                         className="h-9 w-9 shrink-0 object-contain"
                         crossOrigin="anonymous"
                     />
-                ) : (
+                ) : showLogo && (header?.show_logo ?? true) ? (
                     <div
                         className="flex h-9 w-9 shrink-0 items-center justify-center text-[8px] font-bold"
                         style={headerStyle}
                     >
                         AA
                     </div>
-                )}
+                ) : null}
                 <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold leading-tight text-[8px]" style={headerStyle}>{headerCityNameAm}</p>
-                    <p className="truncate font-bold leading-tight text-[8px]" style={headerStyle}>{headerCityNameEn}</p>
+                    {/* Deduplicated: an install whose English setting holds the
+                        Amharic text would otherwise print the same name twice. */}
+                    {[...new Set([headerCityNameAm, headerCityNameEn]
+                        .map((line) => line?.trim())
+                        .filter((line): line is string => Boolean(line)))].map((line, row) => (
+                        <p key={row} className="truncate font-bold leading-tight text-[8px]" style={headerStyle}>
+                            {line}
+                        </p>
+                    ))}
                 </div>
+                {showLogo && portraitSecondaryLogoUrl && (
+                    <img
+                        src={portraitSecondaryLogoUrl}
+                        alt=""
+                        className="h-9 w-9 shrink-0 object-contain"
+                        crossOrigin="anonymous"
+                    />
+                )}
                 <span
                     className="shrink-0 rounded border border-slate-200 bg-slate-900/[0.05] px-1.5 py-0.5 font-mono text-[7px] uppercase tracking-wide"
                     style={headerStyle}
@@ -242,7 +264,7 @@ export default function IdCardPortraitFront({
                             fullName, fullNameAm, gender, dateOfBirth, dateOfBirthAm,
                             nationality, nationalityAm,
                             employmentStatus: showEmployment ? employmentStatus : null,
-                            phoneNumber, cardNumber,
+                            phoneNumber, cardNumber, employeeNumber,
                         });
                         return (
                             <>
@@ -252,6 +274,7 @@ export default function IdCardPortraitFront({
                                         <IdCardBilingualField
                                             key={key}
                                             {...field}
+                                            fieldKey={key}
                                             labelStyle={labelStyle}
                                             valueStyle={contentStyle}
                                         />
@@ -265,21 +288,12 @@ export default function IdCardPortraitFront({
                 {/* Thin divider */}
                 <div className="w-full h-px" style={{ background: 'rgba(15,23,42,0.15)' }} />
 
-                {/* Issue / expiry dates are rendered on the card back (IdCardPortraitBack). */}
+                {/* Issue / expiry dates print on this front face, so the card's
+                    validity reads without turning it over. */}
             </div>
 
-            {/* ── Bottom accent bar ─────────────────────────────────── */}
-            <div
-                className="flex h-5 shrink-0 items-center px-4"
-                style={{
-                    background: `linear-gradient(to right, rgba(15,23,42,0.12), rgba(15,23,42,0.06))`,
-                    borderTop: '1px solid rgba(15,23,42,0.1)',
-                }}
-            >
-                <span className="font-mono text-[6px] uppercase tracking-widest" style={{ ...footerStyle, opacity: 0.7 }}>
-                    {t('idCards.authorizedLabel')}
-                </span>
-            </div>
+            {/* The front carries no authorisation footer; the dates close the
+                card face, matching the landscape front. */}
         </div>
         </div>
     );

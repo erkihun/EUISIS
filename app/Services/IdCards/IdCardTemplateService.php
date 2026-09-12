@@ -34,6 +34,28 @@ final class IdCardTemplateService
         return $path !== null && preg_match('#^id-card-templates/[a-zA-Z0-9-]+\\.png$#D', $path) === 1;
     }
 
+    /**
+     * Front-header content, with each blank field falling back to the global
+     * setting and the logo falling back to the organization's own.
+     */
+    public function header(?IdCardTemplate $template, IdCardLayoutSettings $layout, ?string $orgLogoDataUri = null): IdCardHeaderContent
+    {
+        return IdCardHeaderContent::fromArray(
+            $template?->header_config,
+            [
+                'city_name_en' => $layout->cityNameEn,
+                'city_name_am' => $layout->cityNameAm,
+                'bureau_name_en' => $layout->bureauNameEn,
+                'bureau_name_am' => $layout->bureauNameAm,
+            ],
+            $layout->showOrganizationLogo,
+            // Each slot prefers the template's own upload; the organization
+            // logo remains the fallback for the secondary mark only.
+            $this->dataUri($template?->logo_primary_path),
+            $this->dataUri($template?->logo_secondary_path) ?? $orgLogoDataUri,
+        );
+    }
+
     public function dataUri(?string $path): ?string
     {
         if (! $this->safePath($path) || ! Storage::disk('local')->exists($path)) {
@@ -56,7 +78,32 @@ final class IdCardTemplateService
             'back_background_url' => $this->url($template, 'back'),
             'text_style_config' => $this->resolvedStyles($template),
             'layout_config' => $this->resolvedLayout($template),
+            // Resolved so the editor previews what the card will actually show,
+            // and raw so a blank override stays blank in the form.
+            'header_config' => $this->header($template, $this->layoutSettings->get())->toArray(),
+            'header_overrides' => $this->headerOverrides($template),
+            'logo_primary_url' => $this->logoUrl($template, 'primary'),
+            'logo_secondary_url' => $this->logoUrl($template, 'secondary'),
+            'back_photo_config' => $this->backPhoto($template)->toArray(),
         ];
+    }
+
+    /**
+     * What the template itself stores, so the editor shows an empty box for a
+     * field that is inheriting rather than the inherited text.
+     *
+     * @return array<string, string>
+     */
+    public function headerOverrides(?IdCardTemplate $template): array
+    {
+        $stored = $template?->header_config ?? [];
+        $overrides = [];
+        foreach (array_keys(IdCardHeaderContent::FIELDS) as $field) {
+            $overrides[$field] = trim((string) ($stored[$field] ?? ''));
+        }
+        $overrides['show_logo'] = ! isset($stored['show_logo']) || (bool) $stored['show_logo'];
+
+        return $overrides;
     }
 
     /**
@@ -162,10 +209,27 @@ final class IdCardTemplateService
         return $resolved;
     }
 
+    /** How the back face draws the employee photo, if at all. */
+    public function backPhoto(?IdCardTemplate $template): IdCardBackPhoto
+    {
+        return IdCardBackPhoto::fromArray($template?->back_photo_config);
+    }
+
+    /** One header logo slot, or null when the template has not uploaded it. */
+    public function logoUrl(?IdCardTemplate $template, string $slot): ?string
+    {
+        return $template === null
+            ? null
+            : $this->assetUrl($template, 'logo-'.$slot, $template->{'logo_'.$slot.'_path'});
+    }
+
     private function url(IdCardTemplate $template, string $side): ?string
     {
-        $path = $template->{$side.'_background_path'};
+        return $this->assetUrl($template, $side, $template->{$side.'_background_path'});
+    }
 
+    private function assetUrl(IdCardTemplate $template, string $side, ?string $path): ?string
+    {
         return $this->safePath($path) && Storage::disk('local')->exists($path)
             ? route('id-card-templates.background', [$template, $side, 'v' => hash('sha256', $path)])
             : null;

@@ -416,15 +416,16 @@ export default function IdCardShow({ card, can }: PageProps) {
                                     jobGrade={card.employee?.current_assignment?.position?.grade_level}
                                     issueDate={fmtDate(card.issued_at)}
                                     expiryDate={fmtDate(card.expires_at)}
+                                    issueDateAm={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined}
+                                    expiryDateAm={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined}
                                     status={card.status}
                                 />
                                 <IdCardBack
                                     cardNumber={card.card_number}
                                     qrValue={card.qr_verification_url ?? null}
-                                    issueDate={fmtDate(card.issued_at)}
-                                    expiryDate={fmtDate(card.expires_at)}
                                     emergencyContactName={card.employee?.emergency_contact_name}
                                     emergencyContactPhone={card.employee?.emergency_contact_phone}
+                                    photoUrl={card.employee?.photo_url}
                                 />
                             </div>
                         ) : (
@@ -448,8 +449,6 @@ export default function IdCardShow({ card, can }: PageProps) {
                                     <IdCardPortraitBack
                                         cardNumber={card.card_number}
                                         qrValue={card.qr_verification_url ?? null}
-                                        issueDate={fmtDate(card.issued_at)}
-                                        expiryDate={fmtDate(card.expires_at)}
                                     />
                                 </div>
                                 {/* Portrait print / export actions */}

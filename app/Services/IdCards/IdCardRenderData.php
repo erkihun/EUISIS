@@ -71,20 +71,34 @@ final readonly class IdCardRenderData
         public ?string $phone = null,
 
         /**
-         * Front-face rows as [amharic label, amharic value, english label, english value].
+         * Front-face rows as [amharic label, amharic value, english label,
+         * english value, key]. The key identifies the row for layout decisions;
+         * labels are translatable display text and must never be matched on.
          *
-         * @var array<int, array{0: string, 1: ?string, 2: string, 3: ?string}>
+         * @var array<int, array{0: string, 1: ?string, 2: string, 3: ?string, 4: string}>
          */
         public array $bilingualFields = [],
-
-        /** Authorisation line printed at the foot of the front face. */
-        public string $frontFooterText = '',
 
         // Emergency contact, printed on the back face
         public ?string $emergencyContactName = null,
         public ?string $emergencyContactPhone = null,
-        /** Translated caption for the emergency contact block. */
-        public string $emergencyContactLabel = '',
+        /**
+         * Emergency contact rows as [amharic label, amharic value, english
+         * label, english value], matching the front face's stacked shape.
+         *
+         * @var array<int, array{0: string, 1: ?string, 2: string, 3: ?string}>
+         */
+        public array $emergencyContactFields = [],
+
+        /** Bilingual captions for the card number and signature sections. */
+        public string $cardNumberLabel = '',
+        public string $signatureLabel = '',
+
+        // Issue / expiry shown in both calendars, like the front-face dates.
+        public string $issueDateLabel = '',
+        public string $expiryDateLabel = '',
+        public ?string $issueDateFormattedAm = null,
+        public ?string $expiryDateFormattedAm = null,
 
         /**
          * Element positions, keyed by side then element.
@@ -99,5 +113,14 @@ final readonly class IdCardRenderData
          * @var array<string, array<string, IdCardTextStyle>>
          */
         public array $textStyles = [],
+
+        /**
+         * Front-header content for this template, already resolved against the
+         * global settings and the organization logo.
+         */
+        public ?IdCardHeaderContent $header = null,
+
+        /** How the back face draws the employee photo, if at all. */
+        public ?IdCardBackPhoto $backPhoto = null,
     ) {}
 }

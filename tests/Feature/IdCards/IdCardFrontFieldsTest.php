@@ -109,15 +109,34 @@ it('shows an amharic row above an english row for every field', function (string
     'date of birth' => ['የትውልድ ቀን', 'መጋቢት 6, 1982', 'Date of Birth', '15 Mar 1990'],
     'nationality' => ['ዜግነት', 'ኢትዮጵያዊ', 'Nationality', 'Ethiopian'],
     'employment status' => ['የቅጥር ሁኔታ', 'ቋሚ', 'Employment Status', 'Permanent'],
-    'phone number' => ['ስልክ ቁጥር', '+251911223344', 'Phone Number', '+251911223344'],
-    'id number' => ['መታወቂያ ቁጥር', 'CARD-FRONT-1', 'ID Number', 'CARD-FRONT-1'],
 ]);
+
+it('joins the labels and writes the value once when both languages share it', function (string $joinedLabel, string $value): void {
+    $svg = renderFrontSvg(frontCard());
+
+    // An ID or phone number reads the same in either language, so the row is
+    // collapsed: one joined label, one value, no duplicated line.
+    expect($svg)->toContain($joinedLabel)
+        ->and(substr_count($svg, '>'.$joinedLabel.'<'))->toBe(1)
+        ->and(substr_count($svg, '>'.$value.'<'))->toBe(1);
+})->with([
+    'phone number' => ['ስ.ቁ / Phone No.', '+251911223344'],
+    'id number' => ['መ.ቁ / ID.No', 'EMP-FRONT-1'],
+]);
+
+it('abbreviates the id and phone labels rather than spelling them out', function (string $orientation): void {
+    $svg = renderFrontSvg(frontCard(), $orientation);
+
+    foreach (['መታወቂያ ቁጥር', 'ID Number', 'ስልክ ቁጥር', 'Phone Number'] as $spelledOut) {
+        expect($svg)->not->toContain($spelledOut);
+    }
+})->with(['landscape', 'portrait']);
 
 it('never joins the two languages with a pipe separator', function (string $orientation): void {
     $svg = renderFrontSvg(frontCard(), $orientation);
 
     foreach (['ስም | Name', 'ጾታ | Sex', 'የትውልድ ቀን | Date of Birth', 'ዜግነት | Nationality',
-        'የቅጥር ሁኔታ | Employment Status', 'ስልክ ቁጥር | Phone Number', 'መታወቂያ ቁጥር | ID Number'] as $old) {
+        'የቅጥር ሁኔታ | Employment Status', 'ስ.ቁ | Phone No.', 'መ.ቁ | ID.No'] as $old) {
         expect($svg)->not->toContain($old);
     }
 })->with(['landscape', 'portrait']);
@@ -183,32 +202,28 @@ it('lays the identity fields out in two columns above an emphasised bottom band'
         return null;
     };
 
-    // Body fields sit in two columns over three rows.
+    // Body fields sit in two columns; phone is one of them, under nationality.
     $body = [];
-    foreach (['ስም', 'ጾታ', 'የትውልድ ቀን', 'ዜግነት', 'የቅጥር ሁኔታ'] as $label) {
+    foreach (['ስም', 'ጾታ', 'የትውልድ ቀን', 'ዜግነት', 'የቅጥር ሁኔታ', 'ስ.ቁ / Phone No.'] as $label) {
         $body[] = $find($label);
     }
-    expect(array_filter($body))->toHaveCount(5)
+    expect(array_filter($body))->toHaveCount(6)
         ->and(array_unique(array_column($body, 'x')))->toHaveCount(2);
 
-    // ID number sits lower-left, phone number to its right, both below the body.
-    $idNumber = $find('መታወቂያ ቁጥር');
-    $phone = $find('ስልክ ቁጥር');
-    $lastBodyRow = max(array_column($body, 'y'));
-    expect($idNumber['y'])->toBeGreaterThan($lastBodyRow)
-        ->and($phone['y'])->toBe($idNumber['y'])
-        ->and($phone['x'])->toBeGreaterThan($idNumber['x']);
+    // Phone follows nationality in the same column.
+    $nationality = $find('ዜግነት');
+    $phone = $find('ስ.ቁ / Phone No.');
+    expect($phone['x'])->toBe($nationality['x'])
+        ->and($phone['y'])->toBeGreaterThan($nationality['y']);
 
-    // Footer is centred beneath everything.
-    $footer = null;
+    // Only the ID number is emphasised, below every body field.
+    $idNumber = $find('መ.ቁ / ID.No');
+    expect($idNumber['y'])->toBeGreaterThan(max(array_column($body, 'y')));
+
+    // The front carries no authorisation footer; the dates close the face.
     foreach ($matches as $match) {
-        if (str_contains($match[3], 'Authorized') || str_contains($match[3], 'መታወቂያ ካርድ') || str_contains($match[3], 'ይፋዊ')) {
-            $footer = ['x' => (int) $match[1], 'y' => (int) $match[2]];
-        }
+        expect($match[3])->not->toContain('Authorized');
     }
-    expect($footer)->not->toBeNull()
-        ->and($footer['y'])->toBeGreaterThan($idNumber['y'])
-        ->and($footer['x'])->toBe(428); // half of the 856-wide canvas
 });
 
 it('falls back to a dash for missing field values', function (): void {
@@ -218,14 +233,16 @@ it('falls back to a dash for missing field values', function (): void {
     $svg = renderFrontSvg($card);
 
     // Labels stay put so the grid keeps its shape; only the values degrade.
-    expect($svg)->toContain('ዜግነት')->and($svg)->toContain('ስልክ ቁጥር')
-        ->and(substr_count($svg, '>-<'))->toBe(6); // Both language rows keep their own value.
+    // Nationality and date of birth print a dash on each language row; the
+    // phone row joins its labels, so its single missing value dashes once.
+    expect($svg)->toContain('ዜግነት')->and($svg)->toContain('ስ.ቁ')
+        ->and(substr_count($svg, '>-<'))->toBe(5);
 });
 
 it('renders amharic labels without mangling the encoding', function (): void {
     $svg = renderFrontSvg(frontCard());
 
-    expect($svg)->toContain('ጾታ')->and($svg)->toContain('የትውልድ ቀን')->and($svg)->toContain('መታወቂያ ቁጥር')
+    expect($svg)->toContain('ጾታ')->and($svg)->toContain('የትውልድ ቀን')->and($svg)->toContain('መ.ቁ')
         ->and(mb_check_encoding($svg, 'UTF-8'))->toBeTrue()
         ->and($svg)->toContain('Noto Sans Ethiopic');
 });
@@ -235,19 +252,19 @@ it('shows every bilingual label in full, never clipped', function (string $orien
 
     // A wrapped label splits at the separator, so both halves must survive intact.
     foreach (['ጾታ', 'Sex', 'የትውልድ ቀን', 'Date of Birth', 'ዜግነት', 'Nationality',
-        'የቅጥር ሁኔታ', 'Employment Status', 'ስልክ ቁጥር', 'Phone Number', 'መታወቂያ ቁጥር', 'ID Number'] as $label) {
+        'የቅጥር ሁኔታ', 'Employment Status', 'ስ.ቁ / Phone No.', 'መ.ቁ / ID.No'] as $label) {
         expect($svg)->toContain($label);
     }
     expect($svg)->not->toContain('…');
 })->with(['landscape', 'portrait']);
 
-it('applies the configured header and footer colours to the front face', function (): void {
+it('applies the configured header and label colours to the front face', function (): void {
     IdCardTemplate::query()->create([
         'name' => 'Header styled', 'code' => 'header-styled', 'orientation' => 'landscape',
         'status' => 'active', 'is_default' => true,
         'text_style_config' => ['front' => [
             'header' => ['color' => '#FF7700', 'font_size' => '12px', 'font_weight' => '800'],
-            'footer' => ['color' => '#00FF77', 'font_size' => '8px', 'font_weight' => '400'],
+            'label' => ['color' => '#00FF77', 'font_size' => '8px', 'font_weight' => '400'],
         ]],
     ]);
 
@@ -256,18 +273,18 @@ it('applies the configured header and footer colours to the front face', functio
     expect($svg)->toContain('#FF7700')->and($svg)->toContain('#00FF77');
 });
 
-it('prints a value on each language row even when both read the same', function (string $orientation): void {
+it('prints a value on each language row when the two languages differ', function (string $orientation): void {
     $svg = renderFrontSvg(frontCard(), $orientation);
 
-    // Phone repeats in no other block, so its count is the field's own output.
-    expect(substr_count($svg, '>+251911223344<'))->toBe(2);
-
-    // Both labels still appear, so the row stays bilingual.
-    expect($svg)->toContain('ስልክ ቁጥር')->and($svg)->toContain('Phone Number')
-        ->and($svg)->toContain('መታወቂያ ቁጥር')->and($svg)->toContain('ID Number');
-
-    // Values that genuinely differ per language are still printed twice.
+    // Values that genuinely differ per language are printed twice.
     expect($svg)->toContain('ወንድ')->and($svg)->toContain('Male');
+
+    // The ID and phone rows are the exception: their labels join on one line
+    // and the value is written once, because it reads the same either way.
+    expect(substr_count($svg, '>+251911223344<'))->toBe(1)
+        ->and(substr_count($svg, '>EMP-FRONT-1<'))->toBe(1)
+        ->and($svg)->toContain('ስ.ቁ / Phone No.')
+        ->and($svg)->toContain('መ.ቁ / ID.No');
 })->with(['landscape', 'portrait']);
 
 it('takes structure from the reference without copying its artwork or sample data', function (string $orientation): void {
@@ -279,7 +296,7 @@ it('takes structure from the reference without copying its artwork or sample dat
     }
 
     // Real card data is what renders instead.
-    expect($svg)->toContain('CARD-FRONT-1')->and($svg)->toContain('+251911223344');
+    expect($svg)->toContain('EMP-FRONT-1')->and($svg)->toContain('+251911223344');
 })->with(['landscape', 'portrait']);
 
 it('keeps the whole front face inside the card bounds', function (string $orientation): void {
@@ -290,3 +307,16 @@ it('keeps the whole front face inside the card bounds', function (string $orient
     expect(max(array_map(fn (array $m): int => (int) $m[1], $matches)))->toBeLessThan($width)
         ->and(max(array_map(fn (array $m): int => (int) $m[2], $matches)))->toBeLessThan($height);
 })->with(['landscape', 'portrait']);
+
+it('prints nationality in each row language however it was typed', function (string $stored): void {
+    $card = frontCard();
+    $card->employee->forceFill(['nationality' => $stored])->save();
+
+    $data = app(IdCardRenderDataFactory::class)->make($card->fresh());
+    [, $valueAm, , $valueEn] = collect($data->bilingualFields)
+        ->first(fn (array $field): bool => $field[4] === 'nationality');
+
+    // A record holding the Amharic spelling must still print English on the
+    // English row, and the reverse.
+    expect($valueAm)->toBe('ኢትዮጵያዊ')->and($valueEn)->toBe('Ethiopian');
+})->with(['Ethiopian', 'ethiopian', 'ኢትዮጵያዊ']);

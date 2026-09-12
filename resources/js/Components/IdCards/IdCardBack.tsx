@@ -1,4 +1,4 @@
-import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle } from '@/Components/IdCards/IdCardTemplateContext';
+import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle, BACK_PHOTO_DEFAULTS } from '@/Components/IdCards/IdCardTemplateContext';
 import type { CSSProperties } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLocale } from '@/hooks/useLocale';
@@ -6,27 +6,26 @@ import { useSystemSettings } from '@/hooks/useSystemSettings';
 import enDict from '@/i18n/en';
 import amDict from '@/i18n/am';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
+import IdCardBilingualField from '@/Components/IdCards/IdCardBilingualField';
 
 // The card face is bilingual by design — labels come from both dictionaries.
-const biLabel = (key: 'issueDate' | 'expLabel' | 'signatureLabel' | 'emergencyContact'): string =>
+const biLabel = (key: 'signatureLabel' | 'emergencyContact' | 'cardNoLabel'): string =>
     `${enDict.idCards[key]}/${amDict.idCards[key]}`;
 
 type IdCardBackProps = {
     cardNumber: string;
     /** Verification URL or payload to encode in the QR. No PII — UUID ref only. */
     qrValue?: string | null;
-    /** Card issue date (already formatted for display). */
-    issueDate?: string | null;
-    /** Card expiry date (already formatted for display). */
-    expiryDate?: string | null;
     /** Who to contact in an emergency — printed on the back. */
     emergencyContactName?: string | null;
     emergencyContactPhone?: string | null;
+    /** Employee photo, drawn as a watermark when the template enables it. */
+    photoUrl?: string | null;
     /** Extra styles merged onto the root div — use to force explicit height for html-to-image export */
     rootStyle?: CSSProperties;
 };
 
-export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate, emergencyContactName, emergencyContactPhone, rootStyle }: IdCardBackProps) {
+export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, emergencyContactPhone, photoUrl, rootStyle }: IdCardBackProps) {
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
     const cardTemplate = useIdCardTemplate();
@@ -40,24 +39,24 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
     // Per-template typography; falls back to the card's own back colour.
     const labelStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'label'), textColor);
     const contentStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'value'), textColor);
+    const footerStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'footer'), textColor);
     const showMagStripe = getBoolean('id_cards.show_magnetic_stripe', true);
     const showQr = getBoolean('id_cards.show_qr', true);
     const showReturnNotice = getBoolean('id_cards.show_return_notice', true);
     const showEmergencyContact = getBoolean('id_cards.show_emergency_contact', true);
     const showCardNumber = getBoolean('id_cards.show_card_number', true);
-    const showIssueDate  = getBoolean('id_cards.show_issue_date', true);
-    const showExpiryDate = getBoolean('id_cards.show_expiry_date', true);
     const qrSizeRaw     = getString('id_cards.qr_size', '96');
     const qrSize        = parseInt(qrSizeRaw, 10) || 96;
     const padding       = getString('id_cards.card_padding', 'normal');
 
-    const returnAddress = locale === 'am'
-        ? getString('id_cards.return_address_am', 'አዲስ አበባ ከተማ አስተዳደር፣ የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ')
-        : getString('id_cards.return_address_en', 'Addis Ababa City Administration, Public Service & HRD Bureau');
-
-    const supportContact = getString('id_cards.support_contact', '');
     const verificationUrl = getString('id_cards.verification_url', '');
     const sealUrl = getString('general.seal_url', '');
+
+    // The back photo is a watermark, off unless the template turns it on.
+    // Mirrors IdCardBackPhoto on the server, including the fit mapping.
+    const backPhoto = cardTemplate?.back_photo_config ?? BACK_PHOTO_DEFAULTS;
+    const backPhotoFit = backPhoto.fit === 'contain' ? 'contain' : backPhoto.fit === 'stretch' ? 'fill' : 'cover';
+    const backPhotoBox = layoutStyle(cardTemplate, 'photo', 'back');
 
     const padCls = padding === 'compact' ? 'px-3' : padding === 'spacious' ? 'px-5' : 'px-4';
     const background = template === 'modern'
@@ -67,6 +66,7 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
             : `linear-gradient(135deg, ${backFrom} 0%, ${backTo} 100%)`;
 
     return (
+        <div style={{ containerType: 'inline-size', width: rootStyle?.width ?? '100%', maxWidth: rootStyle?.maxWidth ?? 400, height: rootStyle?.height }}>
         <div
             data-card-template={template}
             className={[
@@ -81,6 +81,8 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                 maxWidth: 400,
                 background,
                 isolation: 'isolate',
+                // Text is sized in `em`; this scales it with the card.
+                fontSize: '100cqw',
                 ...rootStyle,
             }}
         >
@@ -95,6 +97,30 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                     backgroundSize: template === 'modern' ? undefined : '10px 10px',
                 }}
             />}
+
+            {/* Employee photo as a security watermark. Drawn before the card's
+                content so it sits behind it, matching the SVG export. */}
+            {backPhoto.show && photoUrl && (
+                <div className="pointer-events-none absolute" style={backPhotoBox}>
+                    {backPhoto.background_color && (
+                        <div
+                            className="absolute inset-0"
+                            style={{ backgroundColor: backPhoto.background_color, opacity: backPhoto.opacity / 100 }}
+                        />
+                    )}
+                    <img
+                        src={photoUrl}
+                        alt=""
+                        className="absolute inset-0 h-full w-full"
+                        style={{
+                            objectFit: backPhotoFit,
+                            opacity: backPhoto.opacity / 100,
+                            filter: `contrast(${backPhoto.contrast}%)`,
+                        }}
+                        crossOrigin="anonymous"
+                    />
+                </div>
+            )}
 
             {/* Magnetic stripe simulation */}
             {showMagStripe && (
@@ -118,7 +144,7 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                             <QRCodeSVG
                                 value={qrValue}
                                 size={qrSize}
-                                level="M"
+                                level="Q"
                                 bgColor="#FFFFFF"
                                 fgColor="#0F172A"
                             />
@@ -138,22 +164,19 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                 {/* Notes and details column — positioned by the template. */}
                 <div className="flex min-w-0 flex-col justify-between" style={layoutStyle(cardTemplate, 'notes', 'back')}>
                     <div className="space-y-1">
-                        <p className="text-[9px] font-bold uppercase tracking-wider" style={labelStyle}>
-                            {t('idCards.officialCard')}
-                        </p>
                         {/* Return notice in both languages */}
                         {showReturnNotice && (
                             <>
-                                <p className="text-[7px] leading-relaxed" style={{ color: textColor, opacity: 0.65 }}>
+                                <p className="leading-relaxed" style={{ ...footerStyle, opacity: 0.65 }}>
                                     {enDict.idCards.propertyNotice}
                                 </p>
-                                <p className="text-[7px] leading-relaxed" style={{ color: textColor, opacity: 0.65 }}>
+                                <p className="leading-relaxed" style={{ ...footerStyle, opacity: 0.65 }}>
                                     {amDict.idCards.propertyNotice}
                                 </p>
                             </>
                         )}
                         {verificationUrl && (
-                            <p className="text-[7px] font-mono break-all leading-tight" style={{ color: textColor, opacity: 0.5 }}>
+                            <p className="break-all font-mono leading-tight" style={{ ...footerStyle, opacity: 0.5 }}>
                                 {verificationUrl}
                             </p>
                         )}
@@ -175,81 +198,52 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                     </div>
                 )}
 
-                {/* Signature, card number and addresses — their own movable block. */}
-                <div className="space-y-0.5" style={layoutStyle(cardTemplate, 'details', 'back')}>
-                        {/* Signature line */}
-                        <div className="mb-1 flex items-end gap-1.5">
-                            <span className="shrink-0 text-[7px]" style={{ ...labelStyle, opacity: 0.7 }}>
-                                {biLabel('signatureLabel')}
-                            </span>
-                            <span
-                                className="mb-0.5 flex-1"
-                                style={{ borderBottom: '1px dotted rgba(15,23,42,0.3)', minHeight: 10 }}
-                            />
-                        </div>
-                        {showCardNumber && <p className="font-mono text-[8px] font-semibold tracking-wider" style={contentStyle}>
-                            Card NO: {cardNumber}
-                        </p>}
-                        {showEmergencyContact && supportContact && (
-                            <p className="text-[7px] leading-tight" style={{ color: textColor, opacity: 0.55 }}>
-                                {supportContact}
-                            </p>
-                        )}
-                        <p className="text-[7px] leading-tight truncate" style={{ color: textColor, opacity: 0.45 }}>
-                            {returnAddress}
+                {/* Card number — its own movable section. */}
+                {showCardNumber && (
+                    <div className="min-w-0" style={layoutStyle(cardTemplate, 'card_number', 'back')}>
+                        <p className="leading-tight" style={{ ...labelStyle, opacity: 0.7 }}>
+                            {biLabel('cardNoLabel')}
                         </p>
+                        <p className="break-words font-mono tracking-wider" style={contentStyle}>
+                            {cardNumber}
+                        </p>
+                    </div>
+                )}
+
+                {/* Signature — its own movable section. */}
+                <div className="flex min-w-0 flex-col justify-end" style={layoutStyle(cardTemplate, 'signature', 'back')}>
+                    <span style={{ ...labelStyle, opacity: 0.7 }}>{biLabel('signatureLabel')}</span>
+                    <span
+                        className="mt-0.5 w-full"
+                        style={{ borderBottom: '1px dotted rgba(15,23,42,0.3)', minHeight: 6 }}
+                    />
                 </div>
 
             {/* Emergency contact — who to call if the holder needs help. */}
             {(emergencyContactName || emergencyContactPhone) && (
-                <div className="min-w-0" style={layoutStyle(cardTemplate, 'emergency', 'back')}>
-                    <p className="truncate text-[7px] font-semibold leading-tight" style={labelStyle}>
-                        {biLabel('emergencyContact')}
-                    </p>
-                    {emergencyContactName && (
-                        <p className="truncate text-[8px] leading-tight" style={contentStyle}>
-                            {emergencyContactName}
-                        </p>
-                    )}
-                    {emergencyContactPhone && (
-                        <p className="truncate text-[8px] leading-tight" style={contentStyle}>
-                            {emergencyContactPhone}
-                        </p>
-                    )}
+                <div className="min-w-0 space-y-[2px]" style={layoutStyle(cardTemplate, 'emergency', 'back')}>
+                    {/* Same stacked amharic-then-english shape as the front face. */}
+                    <IdCardBilingualField
+                        labelAm={amDict.idCards.emergencyContactNameLabel}
+                        valueAm={emergencyContactName}
+                        labelEn={enDict.idCards.emergencyContactNameLabel}
+                        valueEn={emergencyContactName}
+                        labelStyle={labelStyle}
+                        valueStyle={contentStyle}
+                    />
+                    <IdCardBilingualField
+                        labelAm={amDict.idCards.emergencyContactPhoneLabel}
+                        valueAm={emergencyContactPhone}
+                        labelEn={enDict.idCards.emergencyContactPhoneLabel}
+                        valueEn={emergencyContactPhone}
+                        labelStyle={labelStyle}
+                        valueStyle={contentStyle}
+                    />
                 </div>
             )}
 
-            {/* Bottom row — issue / expiry dates with bilingual labels */}
-            {(showIssueDate || showExpiryDate) && (
-                <div className="flex gap-3" style={layoutStyle(cardTemplate, 'dates', 'back')}>
-                    {showIssueDate && (
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate text-[7px] leading-tight" style={{ color: textColor, opacity: 0.7 }}>
-                                {biLabel('issueDate')}
-                            </p>
-                            <p
-                                className="font-mono text-[8px] font-semibold leading-tight"
-                                style={{ color: textColor, borderBottom: '1px dotted rgba(15,23,42,0.25)' }}
-                            >
-                                {issueDate ?? ' '}
-                            </p>
-                        </div>
-                    )}
-                    {showExpiryDate && (
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate text-[7px] leading-tight" style={{ color: textColor, opacity: 0.7 }}>
-                                {biLabel('expLabel')}
-                            </p>
-                            <p
-                                className="font-mono text-[8px] font-semibold leading-tight"
-                                style={{ color: textColor, borderBottom: '1px dotted rgba(15,23,42,0.25)' }}
-                            >
-                                {expiryDate ?? ' '}
-                            </p>
-                        </div>
-                    )}
-                </div>
-            )}
+            {/* Issue / expiry dates now print on the front, so the card's
+                validity reads without turning it over. */}
             </>
 
             {/* Bottom thin accent */}
@@ -257,6 +251,7 @@ export default function IdCardBack({ cardNumber, qrValue, issueDate, expiryDate,
                 className="absolute inset-x-0 bottom-0 h-1 pointer-events-none"
                 style={{ background: `linear-gradient(to right, rgba(15,23,42,0.08), rgba(15,23,42,0.03))` }}
             />
+        </div>
         </div>
     );
 }

@@ -34,6 +34,24 @@ final class IdCardSvgRenderer
     /** The SVG canvas is twice the card's millimetre size. */
     private const SCALE = 2;
 
+    /**
+     * Fields whose two language labels print on one line, above a single value.
+     * These carry an abbreviated label ("መ.ቁ / ID.No") for a value that reads
+     * the same in either language, so a second row would only repeat it.
+     *
+     * Mirrored in IdCardBilingualField.tsx.
+     */
+    private const JOINED_LABEL_FIELDS = ['idNumber', 'phone'];
+
+    /**
+     * Fields that always print their value on the line below the label, however
+     * much room the column has. The ID number reads as a heading with the
+     * number beneath it rather than as one long line.
+     *
+     * Mirrored in IdCardBilingualField.tsx.
+     */
+    private const STACKED_VALUE_FIELDS = ['idNumber'];
+
     // Status watermark map (matches React WATERMARK_STATUSES)
     private const WATERMARKS = [
         'expired' => 'EXPIRED',
@@ -146,42 +164,78 @@ final class IdCardSvgRenderer
             );
         }
 
-        // Logo / placeholder
-        if ($l->showOrganizationLogo && $data->logoDataUri !== null) {
-            $svg .= sprintf(
-                '<clipPath id="logoClip"><circle cx="26" cy="20" r="14"/></clipPath>'
-                .'<image x="12" y="6" width="28" height="28" href="%s"'
-                .' clip-path="url(#logoClip)" preserveAspectRatio="xMidYMid slice"/>',
-                $data->logoDataUri,
-            );
-        } else {
-            $svg .= sprintf(
-                '<circle cx="26" cy="20" r="14" fill="rgba(15,23,42,0.2)"/>'
-                .'<text x="26" y="25" text-anchor="middle" font-family="%s" font-size="9"'
-                .' font-weight="700" fill="%s">AA</text>',
-                self::FONT,
-                $this->e($l->frontTextPrimary),
-            );
-        }
+        // Logo / placeholder. The template supplies both whether a logo shows
+        // and which image it is; the organization's is the fallback.
+        $header = $data->header;
+        $showLogo = $l->showOrganizationLogo && ($header?->showLogo ?? true);
+        // Each mark has its own positionable box, so one can be moved or resized
+        // without disturbing the other or the band they sit in.
+        $showSecondary = $showLogo && ($header?->showSecondaryLogo ?? true);
+        $primaryBox = $data->box('front', 'logo_primary');
+        $secondaryBox = $data->box('front', 'logo_secondary');
+        $primaryR = (int) round(min($primaryBox?->wIn(self::W) ?? 56, $primaryBox?->hIn(self::H) ?? 36) / 2);
+        $secondaryR = (int) round(min($secondaryBox?->wIn(self::W) ?? 56, $secondaryBox?->hIn(self::H) ?? 36) / 2);
+        $primaryCx = ($primaryBox?->xIn(self::W) ?? $headerX + 12) + $primaryR;
+        $primaryCy = ($primaryBox?->yIn(self::H) ?? $headerY + 6) + $primaryR;
+        $secondaryCx = ($secondaryBox?->xIn(self::W) ?? $headerX + $headerW - 12 - $secondaryR * 2) + $secondaryR;
+        $secondaryCy = ($secondaryBox?->yIn(self::H) ?? $headerY + 6) + $secondaryR;
+        $svg .= $this->headerLogo(
+            'logoClip', $primaryCx, $primaryCy, $primaryR,
+            $showLogo, $data->logoDataUri, $l->frontTextPrimary,
+        );
+        $svg .= $this->headerLogo(
+            'logoClipSecondary', $secondaryCx, $secondaryCy, $secondaryR,
+            $showSecondary, $header?->secondaryLogoDataUri, $l->frontTextPrimary,
+        );
 
-        // City name & bureau name
+        // City name, from the template's header content.
         $headerStyle = $data->textStyle('front', 'header');
-        // Text sits inside the header band, so it travels with it.
-        $headerTextX = $headerX + 48;
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
-            $headerTextX, $headerY + 21,
-            self::FONT,
-            $this->styleAttrs($headerStyle, 10, '700', $l->frontTextPrimary),
-            $this->e($this->trunc($l->cityNameEn, 52)),
-        );
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
-            $headerTextX, $headerY + 33,
-            self::FONT,
-            $this->styleAttrs($headerStyle, 8, '400', $l->frontTextSecondary),
-            $this->e($this->trunc($l->bureauNameEn, 60)),
-        );
+        // The text starts after the primary mark and stops before the secondary
+        // one, so moving either logo reflows the text rather than colliding.
+        $headerTextX = $showLogo ? max($headerX + 12, $primaryCx + $primaryR + 6) : $headerX + 12;
+        $textRight = $showSecondary
+            ? min($headerX + $headerW - 12, $secondaryCx - $secondaryR - 6)
+            : $headerX + $headerW - 12;
+        $headerTextW = max(40, $textRight - $headerTextX);
+        // The budget has to use the size actually rendered, which the template
+        // may override — not the fallback passed to styleAttrs().
+        $cityPx = $headerStyle ? $headerStyle->fontSizePx() * self::SCALE : 10;
+        // The header carries the city name only, in both languages. Bureau
+        // names belong to the card body, not the header band.
+        $headerLines = [
+            [$header?->cityNameAm ?? $l->cityNameAm, $cityPx, 10, '700', $l->frontTextPrimary],
+            [$header?->cityNameEn ?? $l->cityNameEn, $cityPx, 10, '700', $l->frontTextPrimary],
+        ];
+        // Duplicate lines are dropped: an install whose English setting holds
+        // Amharic text would otherwise print the same name twice.
+        $seen = [];
+        $headerLines = array_values(array_filter(
+            $headerLines,
+            static function (array $row) use (&$seen): bool {
+                $line = trim((string) $row[0]);
+                if ($line === '' || isset($seen[$line])) {
+                    return false;
+                }
+                $seen[$line] = true;
+
+                return true;
+            },
+        ));
+
+        // The lines share the band's height rather than running past it.
+        $count = max(1, count($headerLines));
+        $step = (int) max(9, min(14, ($headerH - 8) / $count));
+        $lineY = $headerY + $step;
+        foreach ($headerLines as [$line, $px, $fallbackPx, $weight, $color]) {
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
+                $headerTextX, $lineY,
+                self::FONT,
+                $this->styleAttrs($headerStyle, min($px, $step - 1), $weight, $color),
+                $this->e($this->trunc($line, $this->charBudget($headerTextW, min($px, $step - 1)))),
+            );
+            $lineY += $step;
+        }
 
         // ── Photo ────────────────────────────────────────────────────────
         if ($l->showPhoto && $data->photoDataUri !== null) {
@@ -221,14 +275,15 @@ final class IdCardSvgRenderer
         $valueStyle = $data->textStyle('front', 'value');
         $colW = (int) (($textW - 12) / 2);
 
-        // Name leads the body; ID number and phone number are emphasised on
-        // their own row near the footer, matching the card artwork.
-        $emphasised = ['ID Number', 'Phone Number'];
+        // Name leads the body and phone sits with the other identity fields;
+        // only the ID number is emphasised on its own row near the footer.
+        // Keyed, not label-matched — the labels are translatable display text.
+        $emphasised = ['idNumber'];
         $identity = [];
         $bottom = [];
         foreach ($data->bilingualFields as $field) {
-            if (in_array($field[2], $emphasised, true)) {
-                $bottom[$field[2]] = $field;
+            if (in_array($field[4] ?? '', $emphasised, true)) {
+                $bottom[$field[4]] = $field;
             } else {
                 $identity[] = $field;
             }
@@ -241,41 +296,45 @@ final class IdCardSvgRenderer
             $svg .= $this->bilingualField($x, $y, $field, $colW, $l, $labelStyle, $valueStyle);
         }
 
-        // Lower band: ID number on the left, phone number to its right.
+        // Lower band: the emphasised ID number.
         $emphasisBox = $data->box('front', 'emphasis');
         $bottomX = $emphasisBox?->xIn(self::W) ?? $padH;
         $bottomW = $emphasisBox?->wIn(self::W) ?? (self::W - 2 * $padH);
         $bottomY = $emphasisBox?->yIn(self::H) ?? 430;
-        foreach (array_values(array_filter([$bottom['ID Number'] ?? null, $bottom['Phone Number'] ?? null])) as $index => $field) {
+        // The ID number is the only field in this band, so it gets the whole
+        // width; halving it here truncated the value.
+        if ($idField = $bottom['idNumber'] ?? null) {
             $svg .= $this->bilingualField(
-                (int) ($bottomX + $index * ($bottomW / 2 + 6)), $bottomY, $field,
-                (int) ($bottomW / 2 - 6), $l, $labelStyle, $valueStyle,
+                $bottomX, $bottomY, $idField, $bottomW, $l, $labelStyle, $valueStyle,
             );
         }
 
-        // ── Bottom accent bar ─────────────────────────────────────────────
-        $svg .= '<defs><linearGradient id="footerGrad" x1="0%" y1="0%" x2="100%" y2="0%">'
-            .'<stop offset="0%" stop-color="rgba(15,23,42,0.12)"/>'
-            .'<stop offset="100%" stop-color="rgba(15,23,42,0.06)"/>'
-            .'</linearGradient></defs>';
-        $footerBox = $data->box('front', 'footer');
-        $footerX = $footerBox?->xIn(self::W) ?? 0;
-        $footerY = $footerBox?->yIn(self::H) ?? 520;
-        $footerW = $footerBox?->wIn(self::W) ?? self::W;
-        $footerH = $footerBox?->hIn(self::H) ?? 20;
-        $svg .= sprintf(
-            '<rect x="%d" y="%d" width="%d" height="%d" fill="url(#footerGrad)"/>'
-            .'<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="rgba(15,23,42,0.1)" stroke-width="1"/>',
-            $footerX, $footerY, $footerW, $footerH,
-            $footerX, $footerY, $footerX + $footerW, $footerY,
-        );
-        $svg .= sprintf(
-            '<text x="%d" y="%d" text-anchor="middle" font-family="%s" %s letter-spacing="1">%s</text>',
-            (int) ($footerX + $footerW / 2), $footerY + 14,
-            self::FONT,
-            $this->styleAttrs($data->textStyle('front', 'footer'), 7, '400', $l->frontTextSecondary),
-            $this->e($this->trunc($data->frontFooterText !== '' ? $data->frontFooterText : $l->cityNameEn, 90)),
-        );
+        // Issue / expiry dates — their own movable block on the front, so a
+        // card's validity reads without turning it over.
+        $datesBox = $data->box('front', 'dates');
+        $datesX = $datesBox?->xIn(self::W) ?? $padH;
+        $datesY = $datesBox?->yIn(self::H) ?? 470;
+        $datesW = $datesBox?->wIn(self::W) ?? (self::W - 2 * $padH);
+        $dateStyle = $this->styleAttrs($data->textStyle('front', 'value'), 8, '600', $l->frontTextPrimary);
+        $dateLabelStyle = $this->styleAttrs($data->textStyle('front', 'label'), 7, '400', $l->frontTextSecondary);
+        foreach (array_values(array_filter([
+            $l->showIssueDate ? [$data->issueDateLabel, $data->issueDateFormattedAm, $data->issueDateFormatted] : null,
+            $l->showExpiryDate ? [$data->expiryDateLabel, $data->expiryDateFormattedAm, $data->expiryDateFormatted] : null,
+        ], fn (?array $row): bool => $row !== null && (filled($row[1]) || filled($row[2])))) as $index => [$caption, $amValue, $enValue]) {
+            $x = (int) ($datesX + $index * ($datesW / 2));
+            // Caption, then the Ethiopian date above the Gregorian one.
+            $svg .= sprintf(
+                '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>',
+                $x, $datesY, self::FONT, $dateLabelStyle, $this->e($caption),
+            );
+            foreach (array_values(array_filter([$amValue, $enValue], 'filled')) as $line => $value) {
+                $svg .= sprintf(
+                    '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
+                    $x, $datesY + 13 + $line * 13, self::FONT, $dateStyle,
+                    $this->e($this->trunc((string) $value, 24)),
+                );
+            }
+        }
 
         // Right-edge decorative accent
         if ($data->frontBackgroundDataUri === null && $l->template === IdCardTemplate::Classic) {
@@ -386,7 +445,7 @@ final class IdCardSvgRenderer
 
         // QR code image
         if ($l->showQr && $data->qrVerificationUrl !== '') {
-            $qrDataUri = $this->qrRenderer->asSvgDataUri($data->qrVerificationUrl, $qrSize);
+            $qrDataUri = $this->qrRenderer->idCardSvgDataUri($data->qrVerificationUrl, $qrSize);
             if ($qrDataUri !== '') {
                 $svg .= sprintf(
                     '<image x="%d" y="%d" width="%d" height="%d" href="%s"/>',
@@ -399,20 +458,11 @@ final class IdCardSvgRenderer
         // ── Text column ───────────────────────────────────────────────────
         $topTextY = $contentTop + 18;
 
-        // "OFFICIAL IDENTIFICATION CARD"
-        $svg .= sprintf(
-            '<text x="%d" y="%d" font-family="%s" %s'
-            .' letter-spacing="1">OFFICIAL IDENTIFICATION CARD</text>',
-            $textX, $topTextY,
-            self::FONT,
-            $this->styleAttrs($data->textStyle('back', 'header'), 9, '700', $l->backTextColor),
-        );
-
-        // Property notice
+        // Property notice leads the notes block.
         if ($l->showReturnNotice) {
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" %s opacity="0.65">%s</text>',
-                $textX, $topTextY + 14,
+                $textX, $topTextY,
                 self::FONT,
                 $this->styleAttrs($data->textStyle('back', 'footer'), 7, '400', $l->backTextColor),
                 $this->e($this->trunc('If found, please return to the issuing bureau.', 55)),
@@ -423,12 +473,16 @@ final class IdCardSvgRenderer
         if ($l->verificationUrl !== '') {
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" %s opacity="0.5">%s</text>',
-                $textX, $topTextY + 28,
+                $textX, $topTextY + 14,
                 self::FONT,
                 $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
                 $this->e($this->trunc($l->verificationUrl, 50)),
             );
         }
+
+        // Employee photo as a security watermark. Drawn before the seal and the
+        // signature so it sits behind them rather than over them.
+        $svg .= $this->backPhoto($data);
 
         // Official seal — placed by the template, or centred in the text column.
         if ($data->sealDataUri !== null) {
@@ -448,84 +502,58 @@ final class IdCardSvgRenderer
             );
         }
 
-        // Bottom text block: card number, support contact, return address
-        $detailsBox = $data->box('back', 'details');
-        $detailsX = $detailsBox?->xIn(self::W) ?? $textX;
-        $bottomY = $detailsBox?->yIn(self::H) ?? (self::H - 8 - 38); // room for 3 lines
-
+        // Card number — its own movable section.
         if ($l->showCardNumber) {
+            $numberBox = $data->box('back', 'card_number');
+            $numberX = $numberBox?->xIn(self::W) ?? $textX;
+            $numberY = $numberBox?->yIn(self::H) ?? (self::H - 72);
             $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="%s" %s letter-spacing="1">%s</text>',
-                $detailsX, $bottomY,
-                self::FONT,
+                '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>'
+                .'<text x="%d" y="%d" font-family="%s" %s letter-spacing="1">%s</text>',
+                $numberX, $numberY, self::FONT,
+                $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
+                $this->e($data->cardNumberLabel !== '' ? $data->cardNumberLabel : 'Card No'),
+                $numberX, $numberY + 15, self::FONT,
                 $this->styleAttrs($data->textStyle('back', 'value'), 8, '600', $l->backTextColor),
                 $this->e($data->cardNumber),
             );
         }
 
-        if ($l->showEmergencyContact && $l->supportContact !== '') {
+        // Signature — its own movable section.
+        $signatureBox = $data->box('back', 'signature');
+        if ($signatureBox !== null) {
+            $sigX = $signatureBox->xIn(self::W);
+            $sigY = $signatureBox->yIn(self::H);
+            $sigW = $signatureBox->wIn(self::W);
             $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="%s" %s opacity="0.55">%s</text>',
-                $detailsX, $bottomY + 13,
-                self::FONT,
-                $this->styleAttrs($data->textStyle('back', 'footer'), 7, '400', $l->backTextColor),
-                $this->e($this->trunc($l->supportContact, 50)),
-            );
-        }
-
-        $returnAddr = $l->returnAddressEn;
-        if ($l->showReturnNotice) {
-            $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="%s" %s opacity="0.45">%s</text>',
-                $detailsX, $bottomY + ($l->supportContact !== '' ? 26 : 13),
-                self::FONT,
-                $this->styleAttrs($data->textStyle('back', 'footer'), 7, '400', $l->backTextColor),
-                $this->e($this->trunc($returnAddr, 58)),
+                '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>'
+                .'<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="rgba(15,23,42,0.3)"'
+                .' stroke-width="1" stroke-dasharray="2 2"/>',
+                $sigX, $sigY, self::FONT,
+                $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
+                $this->e($data->signatureLabel !== '' ? $data->signatureLabel : 'Signature'),
+                $sigX, $sigY + 18, $sigX + $sigW, $sigY + 18,
             );
         }
 
         // Emergency contact — who to call if the holder needs help.
         $emergencyBox = $data->box('back', 'emergency');
-        if (filled($data->emergencyContactName) || filled($data->emergencyContactPhone)) {
+        if ($data->emergencyContactFields !== []) {
             $emergencyX = $emergencyBox?->xIn(self::W) ?? $padH;
             $emergencyY = $emergencyBox?->yIn(self::H) ?? (self::H - 60);
             $emergencyW = $emergencyBox?->wIn(self::W) ?? 200;
-            $line = 0;
-            foreach (array_filter([
-                $data->emergencyContactLabel,
-                $data->emergencyContactName,
-                $data->emergencyContactPhone,
-            ], 'filled') as $text) {
-                $svg .= sprintf(
-                    '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
-                    $emergencyX, $emergencyY + $line * 13, self::FONT,
-                    $line === 0
-                        ? $this->styleAttrs($data->textStyle('back', 'label'), 7, '600', $l->backTextColor)
-                        : $this->styleAttrs($data->textStyle('back', 'value'), 8, '400', $l->backTextColor),
-                    $this->e($this->trunc((string) $text, $this->charBudget($emergencyW, 16))),
+            $emergencyH = $emergencyBox?->hIn(self::H) ?? 97;
+            // Same stacked amharic-then-english rows as the front face. The
+            // fields share the box's height so the block cannot run off the
+            // card, however many contacts there are.
+            $rows = max(1, count($data->emergencyContactFields));
+            $step = (int) max(40, min(92, $emergencyH / $rows));
+            foreach ($data->emergencyContactFields as $index => $field) {
+                $svg .= $this->bilingualField(
+                    $emergencyX, $emergencyY + $index * $step, $field, $emergencyW, $l,
+                    $data->textStyle('back', 'label'), $data->textStyle('back', 'value'),
                 );
-                $line++;
             }
-        }
-
-        // Issue / expiry dates — their own movable block, matching the preview.
-        $datesBox = $data->box('back', 'dates');
-        $datesX = $datesBox?->xIn(self::W) ?? $detailsX;
-        $datesY = $datesBox?->yIn(self::H) ?? (self::H - 24);
-        $datesW = $datesBox?->wIn(self::W) ?? ($textW ?? 300);
-        $dateStyle = $this->styleAttrs($data->textStyle('back', 'value'), 8, '600', $l->backTextColor);
-        $dateLabelStyle = $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor);
-        foreach (array_values(array_filter([
-            $l->showIssueDate ? ['ISSUE DATE', $data->issueDateFormatted] : null,
-            $l->showExpiryDate ? ['EXP', $data->expiryDateFormatted] : null,
-        ], fn (?array $pair): bool => $pair !== null && filled($pair[1]))) as $index => [$caption, $value]) {
-            $x = (int) ($datesX + $index * ($datesW / 2));
-            $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>'
-                .'<text x="%d" y="%d" font-family="%s" %s>%s</text>',
-                $x, $datesY, self::FONT, $dateLabelStyle, $this->e($caption),
-                $x, $datesY + 13, self::FONT, $dateStyle, $this->e($this->trunc((string) $value, 24)),
-            );
         }
 
         // Bottom thin accent
@@ -573,9 +601,16 @@ final class IdCardSvgRenderer
             $y, self::FONT, $size, $this->e($color), $this->e($this->trunc($value, 55)),
         );
         if ($front) {
-            $svg .= $text($l->cityNameAm, 32).$text($l->cityNameEn, 58);
-            if ($l->showOrganizationLogo && $data->logoDataUri) {
+            // Header content is per template, falling back to the global setting.
+            $header = $data->header;
+            $svg .= $text($header?->cityNameAm ?? $l->cityNameAm, 32)
+                .$text($header?->cityNameEn ?? $l->cityNameEn, 58);
+            // Primary mark on the left, secondary mirrored on the right.
+            if ($l->showOrganizationLogo && ($header?->showLogo ?? true) && $data->logoDataUri) {
                 $svg .= '<image x="24" y="20" width="44" height="44" href="'.$this->e($data->logoDataUri).'"/>';
+            }
+            if ($l->showOrganizationLogo && ($header?->showSecondaryLogo ?? true) && $header?->secondaryLogoDataUri) {
+                $svg .= '<image x="472" y="20" width="44" height="44" href="'.$this->e($header->secondaryLogoDataUri).'"/>';
             }
             if ($l->showPhoto) {
                 $svg .= '<rect x="190" y="128" width="160" height="200" rx="12" fill="rgba(15,23,42,0.15)"/>';
@@ -615,12 +650,11 @@ final class IdCardSvgRenderer
             if ($l->showMagneticStripe) {
                 $svg .= '<rect y="24" width="540" height="48" fill="rgba(0,0,0,0.5)"/>';
             }
-            $svg .= $text('OFFICIAL ID / ይፋዊ መታወቂያ', 112);
             if ($data->sealDataUri) {
                 $svg .= '<image id="officialSeal" x="174" y="130" width="192" height="192" href="'.$this->e($data->sealDataUri).'" preserveAspectRatio="xMidYMid meet"/>';
             }
             if ($l->showQr && $data->qrVerificationUrl !== '') {
-                $qr = $this->qrRenderer->asSvgDataUri($data->qrVerificationUrl, 224);
+                $qr = $this->qrRenderer->idCardSvgDataUri($data->qrVerificationUrl, 224);
                 $svg .= '<rect x="146" y="348" width="248" height="248" fill="#FFFFFF"/>';
                 $svg .= '<image x="158" y="360" width="224" height="224" href="'.$this->e($qr).'"/>';
             }
@@ -630,9 +664,8 @@ final class IdCardSvgRenderer
             if ($l->showCardNumber) {
                 $svg .= $text($data->cardNumber, 696);
             }
-            if ($l->showIssueDate && $data->issueDateFormatted) {
-                $svg .= $text($data->issueDateFormatted, 724, 14);
-            }
+            // Issue and expiry print on the front, so the back does not repeat
+            // the issue date — matching the landscape face.
             if ($l->showEmergencyContact && $l->supportContact !== '') {
                 $svg .= $text($l->supportContact, 756, 14);
             }
@@ -792,9 +825,104 @@ final class IdCardSvgRenderer
      *
      * @param  array{0: string, 1: ?string, 2: string, 3: ?string}  $field
      */
+    /**
+     * The employee photo on the back face, as a security watermark.
+     *
+     * Off unless the template turns it on, so an existing card is unchanged.
+     * Opacity and contrast are clamped on the way in by IdCardBackPhoto, which
+     * matters because both are inlined into the SVG.
+     */
+    private function backPhoto(IdCardRenderData $data): string
+    {
+        $photo = $data->backPhoto;
+        if ($photo === null || ! $photo->show || $data->photoDataUri === null) {
+            return '';
+        }
+
+        $box = $data->box('back', 'photo');
+        if ($box === null) {
+            return '';
+        }
+
+        [$x, $y, $w, $h] = [$box->xIn(self::W), $box->yIn(self::H), $box->wIn(self::W), $box->hIn(self::H)];
+        $svg = '';
+
+        // A backing colour shows through a transparent PNG, and fills the gaps
+        // a "contain" fit leaves at the edges.
+        if ($photo->backgroundColor !== null) {
+            $svg .= sprintf(
+                '<rect x="%d" y="%d" width="%d" height="%d" fill="%s" opacity="%s"/>',
+                $x, $y, $w, $h, $this->e($photo->backgroundColor), $this->num($photo->opacity / 100),
+            );
+        }
+
+        return $svg.sprintf(
+            '<image id="backPhoto" x="%d" y="%d" width="%d" height="%d" href="%s"'
+            .' preserveAspectRatio="%s" opacity="%s" style="filter:contrast(%s%%)"/>',
+            $x, $y, $w, $h,
+            $data->photoDataUri,
+            $photo->preserveAspectRatio(),
+            $this->num($photo->opacity / 100),
+            $photo->contrast,
+        );
+    }
+
+    /**
+     * One circular header logo, or the initials placeholder when the slot is
+     * shown but has no image. A hidden slot draws nothing at all, so the header
+     * text can use the space.
+     *
+     * The clip path id must be unique per slot, or the second logo reuses the
+     * first one's circle and lands in the wrong place.
+     */
+    private function headerLogo(
+        string $clipId,
+        int $cx,
+        int $cy,
+        int $r,
+        bool $show,
+        ?string $dataUri,
+        string $placeholderColor,
+    ): string {
+        if (! $show) {
+            return '';
+        }
+
+        if ($dataUri !== null) {
+            return sprintf(
+                '<clipPath id="%s"><circle cx="%d" cy="%d" r="%d"/></clipPath>'
+                .'<image x="%d" y="%d" width="%d" height="%d" href="%s"'
+                .' clip-path="url(#%s)" preserveAspectRatio="xMidYMid slice"/>',
+                $clipId, $cx, $cy, $r,
+                $cx - $r, $cy - $r, $r * 2, $r * 2,
+                $dataUri, $clipId,
+            );
+        }
+
+        return sprintf(
+            '<circle cx="%d" cy="%d" r="%d" fill="rgba(15,23,42,0.2)"/>'
+            .'<text x="%d" y="%d" text-anchor="middle" font-family="%s" font-size="9"'
+            .' font-weight="700" fill="%s">%s</text>',
+            $cx, $cy, $r,
+            $cx, $cy + 5,
+            self::FONT,
+            $this->e($placeholderColor),
+            $this->e(IdCardHeaderContent::FALLBACK_INITIALS),
+        );
+    }
+
     private function bilingualField(int $x, int $y, array $field, int $width, IdCardLayoutSettings $l, ?IdCardTextStyle $labelStyle, ?IdCardTextStyle $valueStyle): string
     {
         [$labelAm, $valueAm, $labelEn, $valueEn] = $field;
+
+        // The ID and phone labels are abbreviations of a value that reads the
+        // same in either language, so they share one line rather than printing
+        // an identical value twice. Keyed, not inferred from the values, so a
+        // name that happens to match in both languages still gets two rows.
+        $joins = in_array($field[4] ?? '', self::JOINED_LABEL_FIELDS, true);
+        if ($joins) {
+            $labelAm = $labelAm.' / '.$labelEn;
+        }
 
         $labelSize = $labelStyle ? $labelStyle->fontSizePx() * self::SCALE : 9;
         $valueSize = $valueStyle ? $valueStyle->fontSizePx() * self::SCALE : 14;
@@ -804,9 +932,18 @@ final class IdCardSvgRenderer
         // Values sit beside the label when the column is wide enough for the
         // longest one; narrow columns put the value on its own line instead, so
         // a label is never clipped.
-        $longest = max(mb_strlen($labelAm), mb_strlen($labelEn));
+        // A joined label occupies one row on its own, so it only sits inline
+        // when it still leaves the value room; otherwise the value drops to the
+        // next line rather than being truncated to fit beside it.
+        // The ID number always stacks, so the emphasised band reads as a label
+        // with the number beneath it rather than a long single line.
+        $longest = $joins ? mb_strlen($labelAm) : max(mb_strlen($labelAm), mb_strlen($labelEn));
         $labelW = (int) ($longest * $labelSize * 0.55 + 6);
-        $inline = $labelW <= $width * 0.55;
+        $inline = match (true) {
+            in_array($field[4] ?? '', self::STACKED_VALUE_FIELDS, true) => false,
+            $joins => $labelW + (int) (mb_strlen((string) $valueAm) * $valueSize * 0.55) <= $width,
+            default => $labelW <= $width * 0.55,
+        };
         $lineGap = (int) max($labelSize + 2, 12);
         $rowGap = $inline ? (int) max($valueSize + 4, 18) : (int) max($valueSize + $lineGap + 4, 30);
 
@@ -822,7 +959,8 @@ final class IdCardSvgRenderer
         );
 
         $svg = '';
-        foreach ([[$labelAm, $valueAm], [$labelEn, $valueEn]] as $row => [$rowLabel, $rowValue]) {
+        $rows = $joins ? [[$labelAm, $valueAm]] : [[$labelAm, $valueAm], [$labelEn, $valueEn]];
+        foreach ($rows as $row => [$rowLabel, $rowValue]) {
             $rowYPos = $y + $row * $rowGap;
             $svg .= $label($rowLabel, $rowYPos)
                 .$value($render($rowValue), $inline ? $rowYPos : $rowYPos + $lineGap);
@@ -855,6 +993,40 @@ final class IdCardSvgRenderer
     private function charBudget(int $width, float $fontSize): int
     {
         return max(12, (int) floor($width / max(1.0, $fontSize * 0.55)));
+    }
+
+    /**
+     * Splits text into lines of at most $perLine characters, breaking on words
+     * so an address wraps instead of being clipped mid-word.
+     *
+     * @return array<int, string>
+     */
+    private function wrapText(string $text, int $perLine): array
+    {
+        $text = trim($text);
+        if ($text === '' || $perLine < 1) {
+            return [];
+        }
+
+        $lines = [];
+        $current = '';
+        foreach (preg_split('/\s+/u', $text) ?: [] as $word) {
+            $candidate = $current === '' ? $word : $current.' '.$word;
+            if (mb_strlen($candidate) <= $perLine) {
+                $current = $candidate;
+
+                continue;
+            }
+            if ($current !== '') {
+                $lines[] = $current;
+            }
+            $current = mb_strlen($word) > $perLine ? $this->trunc($word, $perLine) : $word;
+        }
+        if ($current !== '') {
+            $lines[] = $current;
+        }
+
+        return $lines;
     }
 
     /** Trims a float to a compact SVG-safe number. */

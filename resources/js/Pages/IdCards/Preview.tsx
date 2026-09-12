@@ -90,6 +90,8 @@ export default function IdCardPreview({ card, can }: PageProps) {
                                 jobGrade={card.employee?.current_assignment?.position?.grade_level}
                                 issueDate={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), calendarSystem, locale) || card.issued_at.slice(0, 10)) : undefined}
                                 expiryDate={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), calendarSystem, locale) || card.expires_at.slice(0, 10)) : undefined}
+                                issueDateAm={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined}
+                                expiryDateAm={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), 'ethiopian', 'am') || undefined) : undefined}
                             />
                         </div>
                     </div>
@@ -99,10 +101,9 @@ export default function IdCardPreview({ card, can }: PageProps) {
                             <IdCardBack
                                 cardNumber={card.card_number}
                                 qrValue={card.qr_verification_url ?? null}
-                                issueDate={card.issued_at ? (formatDateDisplay(card.issued_at.slice(0, 10), calendarSystem, locale) || card.issued_at.slice(0, 10)) : undefined}
-                                expiryDate={card.expires_at ? (formatDateDisplay(card.expires_at.slice(0, 10), calendarSystem, locale) || card.expires_at.slice(0, 10)) : undefined}
                                 emergencyContactName={card.employee?.emergency_contact_name}
                                 emergencyContactPhone={card.employee?.emergency_contact_phone}
+                                photoUrl={card.employee?.photo_url}
                             />
                         </div>
                     </div>

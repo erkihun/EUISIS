@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Requests\IdCards;
 
 use App\Models\IdCardTemplate;
+use App\Services\IdCards\IdCardBackPhoto;
+use App\Services\IdCards\IdCardHeaderContent;
 use App\Services\IdCards\IdCardLayoutElement;
 use App\Services\IdCards\IdCardTextStyle;
 use App\Services\SystemSettings\SystemSettingsService;
@@ -24,8 +26,13 @@ class SaveIdCardTemplateRequest extends FormRequest
     public function rules(): array
     {
         $limit = max(1, (int) app(SystemSettingsService::class)->get('security', 'max_upload_size_mb', 10)) * 1024;
-        $png = ['bail', 'nullable', 'file', 'image', 'mimes:png', 'mimetypes:image/png', 'extensions:png', 'max:'.$limit,
-            'dimensions:min_width=100,min_height=100,max_width=6000,max_height=6000'];
+        $pngBase = ['bail', 'nullable', 'file', 'image', 'mimes:png', 'mimetypes:image/png', 'extensions:png', 'max:'.$limit];
+        // Background artwork covers the whole card, so it needs real resolution.
+        $png = [...$pngBase, 'dimensions:min_width=100,min_height=100,max_width=6000,max_height=6000'];
+        // A header logo takes any size or aspect ratio: the renderer scales it
+        // into its own layout box, so the file's own dimensions do not matter.
+        // Content is still verified as a real PNG and capped by the size limit.
+        $logoPng = $pngBase;
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -38,11 +45,58 @@ class SaveIdCardTemplateRequest extends FormRequest
             'is_default' => ['required', 'boolean'],
             'front_background' => $png,
             'back_background' => $png,
+            'logo_primary' => $logoPng,
+            'logo_secondary' => $logoPng,
             'remove_front_background' => ['sometimes', 'boolean'],
             'remove_back_background' => ['sometimes', 'boolean'],
+            'remove_logo_primary' => ['sometimes', 'boolean'],
+            'remove_logo_secondary' => ['sometimes', 'boolean'],
             ...$this->styleRules(),
             ...$this->layoutRules(),
+            ...$this->headerRules(),
+            ...$this->backPhotoRules(),
         ];
+    }
+
+    /**
+     * The back-face photo watermark. Every value is optional; the renderer
+     * inlines opacity and contrast into the SVG, so both are range-checked here
+     * as well as clamped on read.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private function backPhotoRules(): array
+    {
+        return [
+            'back_photo_config' => ['nullable', 'array:show,opacity,contrast,fit,background_color'],
+            'back_photo_config.show' => ['sometimes', 'boolean'],
+            'back_photo_config.opacity' => ['sometimes', 'numeric', 'between:'.IdCardBackPhoto::MIN_OPACITY.','.IdCardBackPhoto::MAX_OPACITY],
+            'back_photo_config.contrast' => ['sometimes', 'numeric', 'between:'.IdCardBackPhoto::MIN_CONTRAST.','.IdCardBackPhoto::MAX_CONTRAST],
+            'back_photo_config.fit' => ['sometimes', Rule::in(IdCardBackPhoto::FITS)],
+            'back_photo_config.background_color' => ['nullable', 'string', 'regex:/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/D'],
+        ];
+    }
+
+    /**
+     * Front-header content. Every text field is an optional override, so an
+     * empty string is valid and means "inherit the system setting".
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private function headerRules(): array
+    {
+        $rules = [
+            'header_config' => ['nullable', 'array:'.implode(',', [
+                ...array_keys(IdCardHeaderContent::FIELDS), 'show_logo', 'show_secondary_logo',
+            ])],
+            'header_config.show_logo' => ['sometimes', 'boolean'],
+            'header_config.show_secondary_logo' => ['sometimes', 'boolean'],
+        ];
+        foreach (IdCardHeaderContent::FIELDS as $field => $meta) {
+            $rules['header_config.'.$field] = ['nullable', 'string', 'max:'.$meta['max']];
+        }
+
+        return $rules;
     }
 
     /**
@@ -138,7 +192,7 @@ class SaveIdCardTemplateRequest extends FormRequest
     public function messages(): array
     {
         $messages = [];
-        foreach (['front_background', 'back_background'] as $field) {
+        foreach (['front_background', 'back_background', 'logo_primary', 'logo_secondary'] as $field) {
             foreach (['image', 'mimes', 'mimetypes', 'extensions'] as $rule) {
                 $messages[$field.'.'.$rule] = __('id-card-templates.png_only');
             }

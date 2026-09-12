@@ -8,14 +8,10 @@ import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 type Props = {
     cardNumber: string;
     qrValue?: string | null;
-    /** Card issue date (already formatted for display). */
-    issueDate?: string | null;
-    /** Card expiry date (already formatted for display). */
-    expiryDate?: string | null;
     rootStyle?: CSSProperties;
 };
 
-export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, rootStyle }: Props) {
+export default function IdCardPortraitBack({ cardNumber, qrValue, rootStyle }: Props) {
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
     const cardTemplate = useIdCardTemplate();
@@ -27,14 +23,13 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
     const backTo          = CARD_SURFACE.to;
     const textColor       = CARD_SURFACE.inkMuted;
     // Per-template typography; falls back to the card's own back colour.
-    const labelStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'label'), textColor);
     const contentStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'value'), textColor);
+    const footerStyle = textStyleCss(roleStyle(cardTemplate, 'back', 'footer'), textColor);
     const showMagStripe   = getBoolean('id_cards.show_magnetic_stripe', true);
     // Same visibility settings as the landscape back (IdCardBack).
     const showQr               = getBoolean('id_cards.show_qr', true);
     const showEmergencyContact = getBoolean('id_cards.show_emergency_contact', true);
     const showCardNumber       = getBoolean('id_cards.show_card_number', true);
-    const showIssueDate        = getBoolean('id_cards.show_issue_date', true);
     const verificationUrl = getString('id_cards.verification_url', '');
     const supportContact  = getString('id_cards.support_contact', '');
     const sealUrl = getString('general.seal_url', '');
@@ -49,6 +44,7 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
             : `linear-gradient(160deg, ${backFrom} 0%, ${backTo} 100%)`;
 
     return (
+        <div style={{ containerType: 'inline-size', width: rootStyle?.width ?? '100%', maxWidth: rootStyle?.maxWidth ?? 260, height: rootStyle?.height }}>
         <div
             data-card-template={template}
             className={[
@@ -63,6 +59,8 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
                 maxWidth: 260,
                 background,
                 isolation: 'isolate',
+                // Text is sized in `em`; this scales it with the card.
+                fontSize: '100cqw',
                 ...rootStyle,
             }}
         >
@@ -93,11 +91,8 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
                 className="flex flex-1 flex-col items-center justify-between px-4 pb-4"
                 style={{ paddingTop: showMagStripe ? '4rem' : '1rem' }}
             >
-                {/* Official header */}
-                <div className="flex w-full items-center justify-between gap-2">
-                    <p className="text-[9px] font-bold uppercase tracking-wider" style={labelStyle}>
-                        {t('idCards.officialCard')}
-                    </p>
+                {/* The seal stays right-aligned now that the heading is gone. */}
+                <div className="flex w-full items-center justify-end gap-2">
                     {sealUrl && (
                         <img
                             src={sealUrl}
@@ -114,7 +109,7 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
                             <QRCodeSVG
                                 value={qrValue}
                                 size={110}
-                                level="M"
+                                level="Q"
                                 bgColor="#FFFFFF"
                                 fgColor="#0F172A"
                             />
@@ -133,24 +128,13 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
                 </div>}
 
                 {verificationUrl && (
-                    <p className="break-all text-center text-[6px] font-mono leading-tight" style={{ color: textColor, opacity: 0.45 }}>
+                    <p className="break-all text-center font-mono leading-tight" style={{ ...footerStyle, opacity: 0.45 }}>
                         {verificationUrl}
                     </p>
                 )}
 
-                {/* Issue date pill */}
-                {showIssueDate && issueDate && (
-                    <div className="flex w-full gap-2">
-                        <div className="flex-1 rounded-lg border border-slate-200 bg-slate-900/[0.04] px-2 py-1.5 text-center">
-                            <p className="mb-0.5 text-[6px] uppercase leading-none" style={{ color: textColor, opacity: 0.7 }}>
-                                {t('idCards.issueDate')}
-                            </p>
-                            <p className="font-mono text-[8px] font-semibold leading-none" style={{ color: textColor }}>
-                                {issueDate}
-                            </p>
-                        </div>
-                    </div>
-                )}
+                {/* Issue and expiry print on the front, so the back does not
+                    repeat them — matching the landscape face. */}
 
                 {/* Card number + contact */}
                 <div className="flex w-full flex-col items-center gap-0.5">
@@ -159,11 +143,11 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
                         Card NO: {cardNumber}
                     </p>}
                     {showEmergencyContact && supportContact && (
-                        <p className="text-center text-[6px] leading-tight" style={{ color: textColor, opacity: 0.55 }}>
+                        <p className="text-center leading-tight" style={{ ...footerStyle, opacity: 0.55 }}>
                             {supportContact}
                         </p>
                     )}
-                    <p className="text-center text-[6px] leading-tight" style={{ color: textColor, opacity: 0.4 }}>
+                    <p className="text-center leading-tight" style={{ ...footerStyle, opacity: 0.4 }}>
                         {returnAddress}
                     </p>
                 </div>
@@ -174,6 +158,7 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, issueDate, roo
                 className="pointer-events-none absolute inset-x-0 bottom-0 h-1"
                 style={{ background: `linear-gradient(to right, rgba(15,23,42,0.08), rgba(15,23,42,0.03))` }}
             />
+        </div>
         </div>
     );
 }

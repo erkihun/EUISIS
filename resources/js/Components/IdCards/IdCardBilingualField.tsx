@@ -7,11 +7,26 @@ import amEmployees from '@/i18n/am/employees';
 /** Shown when a card field has no value. */
 const DASH = '-';
 
+/**
+ * Fields whose two language labels print on one line, above a single value.
+ * Mirrored in IdCardSvgRenderer::JOINED_LABEL_FIELDS.
+ */
+const JOINED_LABEL_FIELDS = ['idNumber', 'phone'];
+
+/**
+ * Fields that always print their value on the line below the label, however
+ * much room the column has.
+ * Mirrored in IdCardSvgRenderer::STACKED_VALUE_FIELDS.
+ */
+const STACKED_VALUE_FIELDS = ['idNumber'];
+
 type Props = {
     labelAm: string;
     valueAm?: string | null;
     labelEn: string;
     valueEn?: string | null;
+    /** Identifies the field; decides whether the two labels share a line. */
+    fieldKey?: string;
     /** Template typography for the label row. */
     labelStyle: CSSProperties;
     /** Template typography for the value; the name field passes its own style. */
@@ -28,9 +43,22 @@ export default function IdCardBilingualField({
     valueAm,
     labelEn,
     valueEn,
+    fieldKey,
     labelStyle,
     valueStyle,
 }: Props) {
+    // The ID and phone labels are abbreviations of a value that reads the same
+    // in either language, so they share one line rather than printing an
+    // identical value twice. Keyed, not inferred from the values, so a name
+    // that happens to match in both languages still gets two rows.
+    const joins = fieldKey !== undefined && JOINED_LABEL_FIELDS.includes(fieldKey);
+    const rows: ReadonlyArray<readonly [string, string | null | undefined]> = joins
+        ? [[`${labelAm} / ${labelEn}`, valueAm]]
+        : [
+              [labelAm, valueAm],
+              [labelEn, valueEn],
+          ];
+
     // Label and value share a two-track grid so every value in a column starts
     // at the same x. Without a reserved label track the rows drift apart and
     // long labels push their value off the card.
@@ -39,8 +67,12 @@ export default function IdCardBilingualField({
     // squeezing the value to nothing, so those wrap onto their own line. The
     // threshold is in characters because the em-based font size means the label
     // always occupies the same fraction of the column whatever the card width.
-    const longest = Math.max(labelAm.length, labelEn.length);
-    const stacked = longest > 12;
+    // A joined label is longer than either half, so it stacks on narrow cards.
+    // The ID number stacks unconditionally, so the emphasised band reads as a
+    // label with the number beneath it.
+    const longest = Math.max(...rows.map(([label]) => label.length));
+    const stacked =
+        longest > 12 || (fieldKey !== undefined && STACKED_VALUE_FIELDS.includes(fieldKey));
     const rowClass = stacked
         ? 'leading-tight'
         : 'grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] items-baseline gap-x-1 leading-tight';
@@ -49,10 +81,7 @@ export default function IdCardBilingualField({
 
     return (
         <div className="min-w-0">
-            {([
-                [labelAm, valueAm],
-                [labelEn, valueEn],
-            ] as const).map(([label, value], row) => (
+            {rows.map(([label, value], row) => (
                 <div key={row} className={`${rowClass} min-w-0`}>
                     <span className={labelClass} style={labelStyle}>
                         {label}
@@ -77,6 +106,8 @@ type FieldSource = {
     employmentStatus?: string | null;
     phoneNumber?: string | null;
     cardNumber: string;
+    /** Shown as the ID Number on the card face. */
+    employeeNumber?: string | null;
 };
 
 /** A label/value pair resolved in both languages. */
@@ -135,8 +166,8 @@ export function buildBilingualFields(source: FieldSource): BilingualField[] {
         },
         {
             key: 'idNumber',
-            labelAm: amDict.idCards.idNumberLabel, valueAm: source.cardNumber,
-            labelEn: enDict.idCards.idNumberLabel, valueEn: source.cardNumber,
+            labelAm: amDict.idCards.idNumberLabel, valueAm: source.employeeNumber,
+            labelEn: enDict.idCards.idNumberLabel, valueEn: source.employeeNumber,
         },
     ];
 }

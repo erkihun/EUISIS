@@ -17,9 +17,15 @@ class IdCardTemplate extends Model
         'width_mm', 'height_mm', 'orientation', 'is_default', 'status', 'created_by', 'updated_by',
         'text_style_config',
         'layout_config',
+        'header_config',
+        'back_photo_config',
     ];
 
-    protected $hidden = ['front_background_path', 'back_background_path'];
+    // Storage paths never reach the client; assets are served through a route.
+    protected $hidden = [
+        'front_background_path', 'back_background_path',
+        'logo_primary_path', 'logo_secondary_path',
+    ];
 
     protected function casts(): array
     {
@@ -27,6 +33,8 @@ class IdCardTemplate extends Model
             'is_default' => 'boolean', 'width_mm' => 'float', 'height_mm' => 'float',
             'text_style_config' => 'array',
             'layout_config' => 'array',
+            'header_config' => 'array',
+            'back_photo_config' => 'array',
         ];
     }
 }

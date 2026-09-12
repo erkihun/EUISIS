@@ -8,10 +8,16 @@ return [
     'date_of_birth' => 'የትውልድ ቀን',
     'nationality' => 'ዜግነት',
     'employment_status' => 'የቅጥር ሁኔታ',
-    'phone_number' => 'ስልክ ቁጥር',
+    'phone_number' => 'ስ.ቁ',
+    'issue_date' => 'የስጦታ ቀን',
+    'expiry_date' => 'ያልቃ',
+    'card_no' => 'የካርድ ቁጥር',
+    'signature' => 'ፊርማ',
+    'emergency_contact_name' => 'የአስቸኳይ ጊዜ ተጠሪ ስም',
+    'emergency_contact_phone' => 'የአስቸኳይ ጊዜ ተጠሪ ስልክ',
     'emergency_contact' => 'የአስቸኳይ ጊዜ ተጠሪ',
     'authorized_footer' => 'የተፈቀደ ይፋዊ የሠራተኛ መታወቂያ',
-    'id_number' => 'መታወቂያ ቁጥር',
+    'id_number' => 'መ.ቁ',
 
     'gender' => [
         'male' => 'ወንድ',

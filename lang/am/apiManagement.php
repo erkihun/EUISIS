@@ -13,8 +13,8 @@ return [
     'endpoint_updated' => 'ኢንድፖይንቱ ተሻሽሏል።',
 
     // Organization-to-employee data API
-    'organization_data_api' => 'የድርጅት ዳታ ኤፒአይ',
+    'organization_data_api' => 'የተቋም ዳታ ኤፒአይ',
     'employee_data_api' => 'የሠራተኛ ዳታ ኤፒአይ',
-    'organization_structure_api' => 'የድርጅት መዋቅር ኤፒአይ',
+    'organization_structure_api' => 'የተቋም መዋቅር ኤፒአይ',
     'endpoint_not_allowed' => 'ይህ መተግበሪያ ይህን ኢንድፖይንት እንዲጠቀም አልተፈቀደም',
 ];

@@ -61,8 +61,10 @@ class IdCardTemplateController extends Controller
     {
         // Active artwork is available to authenticated card consumers; drafts require template access.
         abort_unless(($template->is_default && $template->status === 'active') || $request->user()->can('id_card_templates.view'), 403);
-        abort_unless(in_array($side, ['front', 'back'], true), 404);
-        $path = $template->{$side.'_background_path'};
+        abort_unless(in_array($side, ['front', 'back', 'logo-primary', 'logo-secondary'], true), 404);
+        $path = str_starts_with($side, 'logo-')
+            ? $template->{'logo_'.substr($side, 5).'_path'}
+            : $template->{$side.'_background_path'};
         abort_unless($templates->safePath($path) && Storage::disk('local')->exists($path), 404);
 
         return Storage::disk('local')->response($path, $side.'.png', [

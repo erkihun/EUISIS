@@ -66,7 +66,33 @@ final class CardQrPayloadService
         // Points at the OTP-gated Global ID Checker. The older
         // /verify/card/{uuid} page showed the organization and card number to
         // anyone who scanned, with no consent from the card holder.
-        return rtrim((string) config('app.url'), '/').'/id-checker/'.$card->public_card_uuid;
+        //
+        // A dedicated short domain can be configured to keep the payload small,
+        // which keeps the printed symbol's version low. Unset, this is exactly
+        // the app URL and /id-checker path the cards already carry.
+        return $this->qrBaseUrl().'/'.$card->public_card_uuid;
+    }
+
+    /**
+     * The verification origin and path the QR points at, without a trailing
+     * slash. Falls back to the app URL so nothing changes until a short domain
+     * is deliberately configured.
+     */
+    public function qrBaseUrl(): string
+    {
+        $configured = trim((string) config('id_cards.qr.base_url', ''));
+
+        if ($configured !== '') {
+            $base = rtrim($configured, '/');
+
+            // A short domain is paired with a short path, so the saving is not
+            // given straight back by a long one.
+            return config('id_cards.qr.short_url_enabled', false)
+                ? $base.'/'.trim((string) config('id_cards.qr.short_path', 'c'), '/')
+                : $base;
+        }
+
+        return rtrim((string) config('app.url'), '/').'/id-checker';
     }
 
     /**
@@ -87,6 +113,33 @@ final class CardQrPayloadService
     }
 
     /**
+     * Record which QR symbol a card was last rendered with.
+     *
+     * Metadata only: it never participates in resolving a scan, and the card's
+     * identity columns are not in the update. A card whose symbol has not
+     * changed is left alone so a render does not touch the row.
+     *
+     * @param  array{version: int, ecc: string, model: int, capacity_bits: int, required_bits: int}  $symbol
+     */
+    public function recordRenderedSymbol(IdCard $card, array $symbol, string $payload): void
+    {
+        $hash = hash('sha256', $payload);
+
+        if ($card->qr_version === $symbol['version']
+            && $card->qr_error_correction === $symbol['ecc']
+            && $card->qr_payload_hash === $hash) {
+            return;
+        }
+
+        $card->update([
+            'qr_model' => $symbol['model'],
+            'qr_version' => $symbol['version'],
+            'qr_error_correction' => $symbol['ecc'],
+            'qr_payload_hash' => $hash,
+        ]);
+    }
+
+    /**
      * Revoke the QR reference (card revoked / lost / replaced).
      * The card's qr_status is set to 'revoked' so scans fail immediately.
      */
@@ -97,28 +150,13 @@ final class CardQrPayloadService
 
     /**
      * Resolve a card from a raw QR scan value.
-     * Accepts:
-     *   - Full stable URL: https://domain/verify/card/{uuid}
-     *   - Raw public UUID
-     *   - Legacy URL: https://domain/id-cards/{card_primary_id}
-     *   - Legacy token format: {card_id}|{raw_token}
      *
-     * Returns null if the format is unrecognisable.
+     * Delegates to QrPayloadParser so every terminal — cafeteria, transport,
+     * provider — recognises exactly the same set of payload shapes, including
+     * the /id-checker/{uuid} URL the cards actually print.
      */
     public function resolvePublicUuidFromScanValue(string $scanValue): ?string
     {
-        $scanValue = trim($scanValue);
-
-        // Stable URL: .../verify/card/{uuid}
-        if (preg_match('#/verify/card/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})#i', $scanValue, $m)) {
-            return $m[1];
-        }
-
-        // Raw UUID alone
-        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $scanValue)) {
-            return $scanValue;
-        }
-
-        return null;
+        return app(QrPayloadParser::class)->parse($scanValue);
     }
 }

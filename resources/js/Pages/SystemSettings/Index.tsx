@@ -268,6 +268,31 @@ function IdCardTemplatesPanel({ canManage }: { canManage: boolean }) {
                     {t('settings.manageIdCardTemplates')}
                 </Link>
             )}
+
+            {/* The QR symbol the card prints. Shown rather than edited: lowering
+                the error correction or the version floor would weaken every card
+                issued, so it is a deployment decision in config/id_cards.php. */}
+            <div className="border-t border-gray-200 pt-3 dark:border-slate-800">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    {t('settings.qrSpec.title')}
+                </h4>
+                <dl className="mt-2 space-y-1 text-xs">
+                    {([
+                        ['model', 'Model 2'],
+                        ['minimumVersion', '6'],
+                        ['errorCorrection', 'Q'],
+                        ['autoUpgrade', t('settings.qrSpec.enabled')],
+                    ] as const).map(([key, value]) => (
+                        <div key={key} className="flex justify-between gap-2">
+                            <dt className="text-gray-500 dark:text-slate-400">{t(`settings.qrSpec.${key}`)}</dt>
+                            <dd className="font-medium text-gray-900 dark:text-slate-100">{value}</dd>
+                        </div>
+                    ))}
+                </dl>
+                <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-slate-400">
+                    {t('settings.qrSpec.helper')}
+                </p>
+            </div>
         </div>
     );
 }

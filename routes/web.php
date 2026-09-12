@@ -712,7 +712,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/system-settings/id-card-templates/{template}', [IdCardTemplateController::class, 'update'])->name('id-card-templates.update');
     Route::delete('/system-settings/id-card-templates/{template}', [IdCardTemplateController::class, 'destroy'])->name('id-card-templates.destroy');
     Route::post('/system-settings/id-card-templates/{template}/default', [IdCardTemplateController::class, 'setDefault'])->name('id-card-templates.set-default');
-    Route::get('/system-settings/id-card-templates/{template}/background/{side}', [IdCardTemplateController::class, 'background'])->whereIn('side', ['front', 'back'])->name('id-card-templates.background');
+    Route::get('/system-settings/id-card-templates/{template}/background/{side}', [IdCardTemplateController::class, 'background'])->whereIn('side', ['front', 'back', 'logo-primary', 'logo-secondary'])->name('id-card-templates.background');
     Route::get('/system-settings', [SystemSettingController::class, 'index'])->name('system-settings.index');
     Route::patch('/system-settings/general', [SystemSettingController::class, 'updateGeneral'])->name('system-settings.general.update');
     Route::patch('/system-settings/localization', [SystemSettingController::class, 'updateLocalization'])->name('system-settings.localization.update');

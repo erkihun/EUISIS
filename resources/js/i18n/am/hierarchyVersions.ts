@@ -72,7 +72,7 @@ export default {
     noPermissionEditTree: 'ይህን አደረጃጀት ለማረም ፈቃድ የለዎትም።',
     noPermissionRemoveRelation: 'ይህን ግንኙነት ለማስወገድ ፈቃድ የለዎትም።',
     confirmRemoveRelation: 'ግንኙነቱን ማስወገድ ያረጋግጡ',
-    removeRelationWarning: 'ይህን ግንኙነት ማስወገድ ድርጅቱን አይሰርዝም።',
+    removeRelationWarning: 'ይህን ግንኙነት ማስወገድ ተቋሙን አይሰርዝም።',
     totalOrganizations: 'ጠቅላላ ተቋማት',
     totalRelations: 'ጠቅላላ ግንኙነቶች',
     rootOrganizations: 'ሥር ተቋማት',

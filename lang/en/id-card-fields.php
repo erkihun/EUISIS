@@ -12,10 +12,16 @@ return [
     'date_of_birth' => 'Date of Birth',
     'nationality' => 'Nationality',
     'employment_status' => 'Employment Status',
-    'phone_number' => 'Phone Number',
+    'phone_number' => 'Phone No.',
+    'issue_date' => 'Issue Date',
+    'expiry_date' => 'Exp',
+    'card_no' => 'Card No',
+    'signature' => 'Signature',
+    'emergency_contact_name' => 'Emergency Contact Name',
+    'emergency_contact_phone' => 'Emergency Contact Phone',
     'emergency_contact' => 'Emergency Contact',
     'authorized_footer' => 'Employee Authorized Official ID',
-    'id_number' => 'ID Number',
+    'id_number' => 'ID.No',
 
     'gender' => [
         'male' => 'Male',

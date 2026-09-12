@@ -2,10 +2,8 @@ import type { BackRole, TemplatePresentation, TextStyle } from './IdCardTemplate
 import { CARD_SURFACE } from './IdCardTemplateContext';
 
 export const BACK_STYLE_DEFAULTS: Record<BackRole, TextStyle> = {
-    header: { color: CARD_SURFACE.inkMuted, font_size: '9px', font_weight: '700' },
     label: { color: CARD_SURFACE.inkMuted, font_size: '7px', font_weight: '400' },
     value: { color: CARD_SURFACE.inkMuted, font_size: '8px', font_weight: '600' },
-    qr_instruction: { color: CARD_SURFACE.inkMuted, font_size: '9px', font_weight: '500' },
     footer: { color: CARD_SURFACE.inkMuted, font_size: '7px', font_weight: '400' },
 };
 

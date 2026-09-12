@@ -23,6 +23,8 @@ import {
     type TextStyleConfig,
 } from '@/Components/IdCards/IdCardTemplateContext';
 import { useLocale } from '@/hooks/useLocale';
+import enSettings from '@/i18n/en/settings';
+import amSettings from '@/i18n/am/settings';
 import TemplateEditorSection from '@/Components/IdCards/TemplateEditorSection';
 import TemplateWizardSteps from '@/Components/IdCards/TemplateWizardSteps';
 
@@ -33,9 +35,36 @@ type Template = TemplatePresentation & {
     description: string | null;
     status: 'active' | 'inactive';
     is_default: boolean;
+    /**
+     * What the template itself stores, as opposed to header_config which is
+     * already resolved against the system settings. The editor edits these so a
+     * field left blank stays blank rather than freezing the inherited text.
+     */
+    header_overrides?: {
+        city_name_en: string;
+        city_name_am: string;
+        bureau_name_en: string;
+        bureau_name_am: string;
+        show_logo: boolean;
+        show_secondary_logo: boolean;
+    } | null;
 };
 type Can = { create: boolean; update: boolean; delete: boolean; set_default: boolean };
 type Props = { templates: Template[]; can: Can; uploadLimitMb: number };
+
+/**
+ * Stand-in portrait for the live preview: a neutral silhouette, inlined as a
+ * data URI so the editor makes no request and shows no real person.
+ */
+const SAMPLE_PHOTO =
+    'data:image/svg+xml;utf8,' +
+    encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130">' +
+        '<rect width="100" height="130" fill="#CBD5E1"/>' +
+        '<circle cx="50" cy="45" r="22" fill="#94A3B8"/>' +
+        '<path d="M8 130c0-25 19-42 42-42s42 17 42 42z" fill="#94A3B8"/>' +
+        '</svg>',
+    );
 
 const FONT_SIZES = ['7px', '8px', '9px', '10px', '11px', '12px', '13px', '14px', '15px', '16px', '18px', '20px'] as const;
 const FONT_WEIGHTS = ['400', '500', '600', '700', '800'] as const;
@@ -116,8 +145,29 @@ function TemplateForm({
         is_default: template?.is_default ?? false,
         front_background: null as File | null,
         back_background: null as File | null,
+        logo_primary: null as File | null,
+        logo_secondary: null as File | null,
         remove_front_background: false,
         remove_back_background: false,
+        remove_logo_primary: false,
+        remove_logo_secondary: false,
+        // Blank means "inherit the system setting", so the stored overrides are
+        // what the form edits — never the resolved text.
+        header_config: {
+            city_name_en: template?.header_overrides?.city_name_en ?? '',
+            city_name_am: template?.header_overrides?.city_name_am ?? '',
+            bureau_name_en: template?.header_overrides?.bureau_name_en ?? '',
+            bureau_name_am: template?.header_overrides?.bureau_name_am ?? '',
+            show_logo: template?.header_overrides?.show_logo ?? true,
+            show_secondary_logo: template?.header_overrides?.show_secondary_logo ?? true,
+        },
+        back_photo_config: {
+            show: template?.back_photo_config?.show ?? false,
+            opacity: template?.back_photo_config?.opacity ?? 15,
+            contrast: template?.back_photo_config?.contrast ?? 100,
+            fit: template?.back_photo_config?.fit ?? ('cover' as 'cover' | 'contain' | 'stretch'),
+            background_color: template?.back_photo_config?.background_color ?? '',
+        },
         text_style_config: withDefaults(template?.text_style_config),
         layout_config: {
             front: Object.fromEntries(
@@ -135,7 +185,7 @@ function TemplateForm({
         },
     });
     // Creating walks the steps in order; editing opens them all at once.
-    const stepKeys = ['stepDetails', 'stepSize', 'stepBackground', 'stepDesign', 'stepReview'] as const;
+    const stepKeys = ['stepDetails', 'stepSize', 'stepBackground', 'stepLogos', 'stepDesign', 'stepReview'] as const;
     const [step, setStep] = useState(0);
     const [furthest, setFurthest] = useState(template ? stepKeys.length - 1 : 0);
     const goTo = (next: number) => {
@@ -153,6 +203,16 @@ function TemplateForm({
         template?.back_background_url ?? null,
         form.data.remove_back_background,
     );
+    const logoPrimaryUrl = useBackgroundPreview(
+        form.data.logo_primary,
+        template?.logo_primary_url ?? null,
+        form.data.remove_logo_primary,
+    );
+    const logoSecondaryUrl = useBackgroundPreview(
+        form.data.logo_secondary,
+        template?.logo_secondary_url ?? null,
+        form.data.remove_logo_secondary,
+    );
     const presentation: TemplatePresentation = {
         orientation: form.data.orientation,
         width_mm: form.data.width_mm || 85.6,
@@ -161,7 +221,51 @@ function TemplateForm({
         back_background_url: backUrl,
         text_style_config: form.data.text_style_config,
         layout_config: form.data.layout_config,
+        // A blank override falls back to what the card already resolved, so the
+        // preview shows the inherited text rather than an empty header.
+        header_config: {
+            city_name_en: form.data.header_config.city_name_en || template?.header_config?.city_name_en || '',
+            city_name_am: form.data.header_config.city_name_am || template?.header_config?.city_name_am || '',
+            bureau_name_en: form.data.header_config.bureau_name_en || template?.header_config?.bureau_name_en || '',
+            bureau_name_am: form.data.header_config.bureau_name_am || template?.header_config?.bureau_name_am || '',
+            show_logo: form.data.header_config.show_logo,
+            show_secondary_logo: form.data.header_config.show_secondary_logo,
+        },
+        logo_primary_url: logoPrimaryUrl,
+        logo_secondary_url: logoSecondaryUrl,
+        back_photo_config: {
+            ...form.data.back_photo_config,
+            // The form keeps a blank string so the colour input stays cleared;
+            // the card treats "no colour" as null.
+            background_color: form.data.back_photo_config.background_color || null,
+        },
     };
+    // Stand-in employee so every field on the card has something to show while
+    // the admin is styling it. Values are translated, never real personal data.
+    const sampleCard = {
+        cardNumber: 'CARD-0001',
+        employeeNumber: 'EMP-0001',
+        fullName: enSettings.templateManager.sample_employee,
+        fullNameAm: amSettings.templateManager.sample_employee,
+        gender: 'male',
+        dateOfBirth: enSettings.templateManager.sample_dob,
+        dateOfBirthAm: amSettings.templateManager.sample_dob,
+        nationality: enSettings.templateManager.sample_nationality,
+        nationalityAm: amSettings.templateManager.sample_nationality,
+        employmentStatus: enSettings.templateManager.sample_employment_type,
+        phoneNumber: '+251 911 000 000',
+        emergencyContactName: enSettings.templateManager.sample_emergency_name,
+        issueDate: enSettings.templateManager.sample_issue_date,
+        expiryDate: enSettings.templateManager.sample_expiry_date,
+        // The front prints both calendars, so the preview carries both.
+        issueDateAm: amSettings.templateManager.sample_issue_date,
+        expiryDateAm: amSettings.templateManager.sample_expiry_date,
+        status: 'active',
+        // A neutral silhouette, inlined so the preview makes no request and
+        // shows no real person. Lets the back-photo controls be judged by eye.
+        photoUrl: SAMPLE_PHOTO,
+    };
+
     const portrait = form.data.orientation === 'portrait';
     const Front = portrait ? IdCardPortraitFront : IdCardFront;
     const Back = portrait ? IdCardPortraitBack : IdCardBack;
@@ -173,6 +277,76 @@ function TemplateForm({
                 {form.errors[field]}
             </p>
         );
+
+    /**
+     * One PNG upload with its preview, replace and remove controls. Shared by
+     * the background artwork and by each header logo, so a logo is managed
+     * where it lives rather than in a separate step.
+     *
+     * Called as a function rather than rendered as <AssetUpload/>: a component
+     * declared inside the render would be a new type each pass, remounting the
+     * file input mid-interaction.
+     */
+    const assetUpload = (
+        field: 'front_background' | 'back_background' | 'logo_primary' | 'logo_secondary',
+        remove: 'remove_front_background' | 'remove_back_background' | 'remove_logo_primary' | 'remove_logo_secondary',
+        url: string | null,
+    ) => (
+        <div
+            key={field}
+            className="space-y-2 rounded-lg border border-dashed border-gray-300 p-3 dark:border-slate-700"
+        >
+            <p className="text-sm font-semibold">{label(field)}</p>
+            {url && (
+                <img
+                    src={url}
+                    alt={label('background_preview')}
+                    className="h-24 w-full rounded object-contain"
+                />
+            )}
+            <label className="inline-flex cursor-pointer items-center rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-slate-800">
+                {label(url ? 'replace_background' : 'browse_png')}
+                <input
+                    type="file"
+                    accept=".png,image/png"
+                    className="sr-only"
+                    disabled={!editable || form.processing}
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = '';
+                        if (!file) return;
+                        if (file.type !== 'image/png' || !/\.png$/i.test(file.name)) {
+                            form.setError(field, label('png_only'));
+                            return;
+                        }
+                        if (file.size > uploadLimitMb * 1024 * 1024) {
+                            form.setError(field, label('upload_help').replace(':max', String(uploadLimitMb)));
+                            return;
+                        }
+                        form.clearErrors(field);
+                        form.setData((data) => ({ ...data, [field]: file, [remove]: false }));
+                    }}
+                />
+            </label>
+            {url && (
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="ml-2"
+                    onClick={() => form.setData((data) => ({ ...data, [field]: null, [remove]: true }))}
+                >
+                    {label('remove_background')}
+                </Button>
+            )}
+            {form.data[field] && (
+                <p className="break-all text-xs">
+                    {form.data[field]?.name} — {label('upload_background')}
+                </p>
+            )}
+            {error(field)}
+        </div>
+    );
 
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -266,73 +440,176 @@ function TemplateForm({
 
                 {step === 2 && <TemplateEditorSection title={label('backgroundsSection')} description={label('backgroundsSectionHelp')}>
                 <p className="text-xs text-gray-500">{label('upload_help').replace(':max', String(uploadLimitMb))}</p>
-                {(['front', 'back'] as const).map((side) => {
-                    const field = `${side}_background` as const;
-                    const remove = `remove_${side}_background` as const;
-                    const url = side === 'front' ? frontUrl : backUrl;
-                    return (
-                        <div
-                            key={side}
-                            className="space-y-2 rounded-lg border border-dashed border-gray-300 p-3 dark:border-slate-700"
-                        >
-                            <p className="text-sm font-semibold">{label(field)}</p>
-                            {url && (
-                                <img
-                                    src={url}
-                                    alt={label('background_preview')}
-                                    className="h-24 w-full rounded object-contain"
-                                />
-                            )}
-                            <label className="inline-flex cursor-pointer items-center rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-slate-800">
-                                {label(url ? 'replace_background' : 'browse_png')}
-                                <input
-                                    type="file"
-                                    accept=".png,image/png"
-                                    className="sr-only"
-                                    disabled={!editable || form.processing}
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        e.target.value = '';
-                                        if (!file) return;
-                                        if (file.type !== 'image/png' || !/\.png$/i.test(file.name)) {
-                                            form.setError(field, label('png_only'));
-                                            return;
-                                        }
-                                        if (file.size > uploadLimitMb * 1024 * 1024) {
-                                            form.setError(
-                                                field,
-                                                label('upload_help').replace(':max', String(uploadLimitMb)),
-                                            );
-                                            return;
-                                        }
-                                        form.clearErrors(field);
-                                        form.setData((data) => ({ ...data, [field]: file, [remove]: false }));
-                                    }}
-                                />
-                            </label>
-                            {url && (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    className="ml-2"
-                                    onClick={() => form.setData((data) => ({ ...data, [field]: null, [remove]: true }))}
-                                >
-                                    {label('remove_background')}
-                                </Button>
-                            )}
-                            {form.data[field] && (
-                                <p className="break-all text-xs">
-                                    {form.data[field]?.name} — {label('upload_background')}
-                                </p>
-                            )}
-                            {error(field)}
-                        </div>
-                    );
-                })}
+                {([
+                    { field: 'front_background', remove: 'remove_front_background', url: frontUrl },
+                    { field: 'back_background', remove: 'remove_back_background', url: backUrl },
+                ] as const).map(({ field, remove, url }) => assetUpload(field, remove, url))}
                 </TemplateEditorSection>}
 
-                {step === 3 && <>{/* Text Style Management — every text role on both card sides. */}
+                {/* Header logos — each slot is its own panel, side by side so the
+                    left/right split on screen matches the card itself. */}
+                {step === 3 && <>
+                <div className="grid gap-4 md:grid-cols-2">
+                {([
+                    { slot: 'left', show: 'show_logo', field: 'logo_primary', remove: 'remove_logo_primary', url: logoPrimaryUrl },
+                    { slot: 'right', show: 'show_secondary_logo', field: 'logo_secondary', remove: 'remove_logo_secondary', url: logoSecondaryUrl },
+                ] as const).map(({ slot, show, field, remove, url }) => (
+                    <TemplateEditorSection
+                        key={slot}
+                        title={label(`headerLogo_${slot}`)}
+                        description={label(`headerLogo_${slot}Help`)}
+                    >
+                        <label className="flex items-center gap-2 text-sm">
+                            <input
+                                type="checkbox"
+                                className="rounded border-gray-300"
+                                checked={form.data.header_config[show]}
+                                disabled={!editable || form.processing}
+                                onChange={(e) =>
+                                    form.setData('header_config', {
+                                        ...form.data.header_config,
+                                        [show]: e.target.checked,
+                                    })
+                                }
+                            />
+                            {label(`headerLogo_${slot}Show`)}
+                        </label>
+                        {assetUpload(field, remove, url)}
+                    </TemplateEditorSection>
+                ))}
+                </div>
+
+                {/* Institution text — shown beside the left logo only. */}
+                <TemplateEditorSection
+                    title={label('headerSection')}
+                    description={label('headerSectionHelp')}
+                >
+                    {([
+                        'city_name_am', 'city_name_en', 'bureau_name_am', 'bureau_name_en',
+                    ] as const).map((field) => (
+                        <label key={field} className="block text-xs font-medium">
+                            {label(`header_${field}`)}
+                            <input
+                                type="text"
+                                className="mt-1 w-full rounded-lg border-gray-300 text-sm dark:border-slate-700 dark:bg-slate-900"
+                                value={form.data.header_config[field]}
+                                disabled={!editable || form.processing}
+                                // Blank inherits, so the system value is the placeholder.
+                                placeholder={template?.header_config?.[field] ?? ''}
+                                onChange={(e) =>
+                                    form.setData('header_config', {
+                                        ...form.data.header_config,
+                                        [field]: e.target.value,
+                                    })
+                                }
+                            />
+                            {form.errors[`header_config.${field}` as keyof typeof form.errors] && (
+                                <p className="mt-1 text-sm text-red-600" role="alert">
+                                    {form.errors[`header_config.${field}` as keyof typeof form.errors]}
+                                </p>
+                            )}
+                        </label>
+                    ))}
+                    <p className="text-xs text-gray-500">{label('header_inherit_help')}</p>
+                </TemplateEditorSection>
+                </>}
+
+                {step === 4 && <>{/* Back photo — the employee photo as a security watermark. */}
+                <TemplateEditorSection
+                    title={label('backPhotoSection')}
+                    description={label('backPhotoSectionHelp')}
+                    defaultOpen={false}
+                >
+                    <label className="flex items-center gap-2 text-sm">
+                        <input
+                            type="checkbox"
+                            className="rounded border-gray-300"
+                            checked={form.data.back_photo_config.show}
+                            disabled={!editable || form.processing}
+                            onChange={(e) =>
+                                form.setData('back_photo_config', {
+                                    ...form.data.back_photo_config,
+                                    show: e.target.checked,
+                                })
+                            }
+                        />
+                        {label('back_photo_show')}
+                    </label>
+                    {([
+                        ['opacity', 0, 100] as const,
+                        ['contrast', 0, 300] as const,
+                    ]).map(([key, min, max]) => (
+                        <label key={key} className="block text-xs font-medium">
+                            {label(`back_photo_${key}`)} — {form.data.back_photo_config[key]}%
+                            <input
+                                type="range"
+                                className="mt-1 w-full"
+                                min={min}
+                                max={max}
+                                value={form.data.back_photo_config[key]}
+                                disabled={!editable || form.processing}
+                                onChange={(e) =>
+                                    form.setData('back_photo_config', {
+                                        ...form.data.back_photo_config,
+                                        [key]: Number(e.target.value),
+                                    })
+                                }
+                            />
+                        </label>
+                    ))}
+                    <label className="block text-xs font-medium">
+                        {label('back_photo_fit')}
+                        <select
+                            className={inputClass}
+                            value={form.data.back_photo_config.fit}
+                            disabled={!editable || form.processing}
+                            onChange={(e) =>
+                                form.setData('back_photo_config', {
+                                    ...form.data.back_photo_config,
+                                    fit: e.target.value as 'cover' | 'contain' | 'stretch',
+                                })
+                            }
+                        >
+                            {(['cover', 'contain', 'stretch'] as const).map((fit) => (
+                                <option key={fit} value={fit}>{label(`back_photo_fit_${fit}`)}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <div className="flex items-end gap-2">
+                        <label className="flex-1 text-xs font-medium">
+                            {label('back_photo_background')}
+                            <input
+                                type="color"
+                                className="mt-1 h-9 w-full rounded border border-gray-300 dark:border-slate-700"
+                                value={form.data.back_photo_config.background_color || '#FFFFFF'}
+                                disabled={!editable || form.processing}
+                                onChange={(e) =>
+                                    form.setData('back_photo_config', {
+                                        ...form.data.back_photo_config,
+                                        background_color: e.target.value,
+                                    })
+                                }
+                            />
+                        </label>
+                        {form.data.back_photo_config.background_color && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                    form.setData('back_photo_config', {
+                                        ...form.data.back_photo_config,
+                                        background_color: '',
+                                    })
+                                }
+                            >
+                                {label('back_photo_background_clear')}
+                            </Button>
+                        )}
+                    </div>
+                </TemplateEditorSection>
+
+                {/* Text Style Management — every text role on both card sides. */}
                 <TemplateEditorSection
                     title={label('text_style_management')}
                     description={label('text_styling_help')}
@@ -400,7 +677,7 @@ function TemplateForm({
                     })}
                 </TemplateEditorSection></>}
 
-                {step === 4 && <TemplateEditorSection title={label('publishingSection')} description={label('publishingSectionHelp')}>
+                {step === 5 && <TemplateEditorSection title={label('publishingSection')} description={label('publishingSectionHelp')}>
                 <label className="block text-sm font-medium">
                     {label('status')}
                     <select
@@ -466,14 +743,7 @@ function TemplateForm({
                         {/* The designer overlays the real preview, so the box an
                             admin drags is the region that prints. */}
                         <div className="relative" style={{ width: '100%', maxWidth: portrait ? 260 : 400 }}>
-                            <Front
-                                cardNumber="CARD-0001"
-                                employeeNumber="EMP-0001"
-                                fullName={label('sample_employee')}
-                                fullNameAm="ምሳሌ ሰራተኛ"
-                                organizationName={label('sample_organization')}
-                                status="active"
-                            />
+                            <Front {...sampleCard} />
                             {!portrait && (
                                 <TemplateLayoutDesigner
                                     side="front"
@@ -496,7 +766,13 @@ function TemplateForm({
                             )}
                         </div>
                         <div className="relative" style={{ width: '100%', maxWidth: portrait ? 260 : 400 }}>
-                            <Back cardNumber="CARD-0001" qrValue="https://example.invalid/id-card-preview" />
+                            <Back
+                                cardNumber={sampleCard.cardNumber}
+                                qrValue="https://example.invalid/id-card-preview"
+                                emergencyContactName={sampleCard.emergencyContactName}
+                                emergencyContactPhone={sampleCard.phoneNumber}
+                                photoUrl={sampleCard.photoUrl}
+                            />
                             {!portrait && (
                                 <TemplateLayoutDesigner
                                     side="back"

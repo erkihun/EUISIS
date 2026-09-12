@@ -153,7 +153,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                     </div>
                     <div style={{ height: 32 }} />
                     <div ref={backRef} style={{ width: PORTRAIT_W, height: PORTRAIT_H }}>
-                        <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
+                        <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                     </div>
                 </div>,
                 document.body,
@@ -173,7 +173,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                     {(printSide === 'back' || printSide === 'both') && (
                         <div className="id-card-print-card-portrait" style={{ borderRadius: 0, ...printStyle }}>
                             <div ref={printBackRef} style={{ width: '100%', height: '100%' }}>
-                                <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
+                                <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                             </div>
                         </div>
                     )}
@@ -238,7 +238,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                             <IdCardPortraitFront {...frontProps} />
                         )}
                         {(tab === 'back' || tab === 'both') && (
-                            <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} issueDate={fmtDate(card.issued_at)} expiryDate={fmtDate(card.expires_at)} />
+                            <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} />
                         )}
                     </div>
 

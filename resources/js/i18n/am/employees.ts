@@ -80,7 +80,7 @@ const employees = {
         invalidRows: 'ስህተት ያለባቸው ረድፎች',
         totalRows: 'ጠቅላላ ረድፎች',
         chooseFile: 'የCSV ፋይል ይምረጡ',
-        allowedOrganizations: 'ማስመጣት የሚችሉባቸው ድርጅቶች',
+        allowedOrganizations: 'ማስመጣት የሚችሉባቸው ተቋማት',
         notImportable: 'ይህ ፋይል ከመግባቱ በፊት ሁሉም ረድፎች ትክክለኛ መሆን አለባቸው።',
         rowValid: 'ትክክለኛ',
     },

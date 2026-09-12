@@ -84,8 +84,8 @@ const organizationUnits = {
     noHierarchyVersionFoundFlatList: 'ምንም የተዋረድ ስሪት አልተገኘም። ተቋማትን እንደ ዝርዝር እናሳያለን።',
     noOrganizationsFound: 'ተቋማት አልተገኙም',
     childOrganizations: 'ንዑስ ተቋማት',
-    expandOrganization: 'ድርጅቱን ዘርጋ',
-    collapseOrganization: 'ድርጅቱን ጨምቅ',
+    expandOrganization: 'ተቋሙን ዘርጋ',
+    collapseOrganization: 'ተቋሙን ጨምቅ',
     viewUnitsTooltip: 'ለዚህ ተቋም ዩኒቶችን ይመልከቱ',
     helpText: 'የተቋም ዩኒቶች በተቋም ስር ያሉ ቢሮዎች፣ ክፍሎች፣ ዳይሬክቶሬቶች እና ቡድኖች ናቸው',
     doNotCreateOfficesAsUnits: 'የተቋም ቢሮዎች በመዋቅራዊ ተቋም ስር እንደ የተቋም ዩኒት ይፈጠራሉ',
@@ -104,9 +104,9 @@ const organizationUnits = {
     structureCopied: 'የተቋም ዩኒት መዋቅር ተቅድሷል',
     previewUnits: 'የሚቀዱ ዩኒቶች',
     allUnitsWillBeCopied: 'ሁሉም የምንጭ ተቋም ዋና ዩኒቶች ይቀዳሉ',
-    ownerOrganization: 'የባለቤት ድርጅት',
-    operatingOrganization: 'የሚሠራበት ድርጅት',
-    hostedUnitHelp: 'ይህ ክፍል በተግባር የባለቤት ድርጅቱ ነው፤ ነገር ግን በተመረጠው አስተናጋጅ ድርጅት ውስጥ ይሰራል። የዚህ ክፍል የስራ መደብ ኮዶች ሁለቱንም የድርጅት ኮዶች ያካትታሉ።',
+    ownerOrganization: 'የባለቤት ተቋም',
+    operatingOrganization: 'የሚሠራበት ተቋም',
+    hostedUnitHelp: 'ይህ ክፍል በተግባር የባለቤት ተቋሙ ነው፤ ነገር ግን በተመረጠው አስተናጋጅ ተቋም ውስጥ ይሰራል። የዚህ ክፍል የስራ መደብ ኮዶች ሁለቱንም የተቋም ኮዶች ያካትታሉ።',
 } as const;
 
 export default organizationUnits;

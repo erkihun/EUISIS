@@ -7,13 +7,15 @@ use App\Services\IdCards\IdCardLayoutSettings;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\IdCards\IdCardRenderData;
 use App\Services\IdCards\IdCardSvgRenderer;
+use App\Services\IdCards\QrCodeVersionResolver;
+use App\Services\IdCards\QrPayloadSecurityValidator;
 
 it('renders distinct SVG treatments for every ID card template', function (
     IdCardTemplate $template,
     string $frontMarker,
     string $backMarker,
 ): void {
-    $renderer = new IdCardSvgRenderer(new IdCardQrCodeRenderer);
+    $renderer = new IdCardSvgRenderer(new IdCardQrCodeRenderer(new QrCodeVersionResolver(new QrPayloadSecurityValidator)));
     $data = templateRenderData(templateLayout($template));
 
     $front = $renderer->renderFront($data);
@@ -35,9 +37,6 @@ it('renders distinct SVG treatments for every ID card template', function (
     'minimal' => [IdCardTemplate::Minimal, 'offset="88%"', 'height="8"'],
 ]);
 
-/**
- * @return IdCardLayoutSettings
- */
 function templateLayout(IdCardTemplate $template): IdCardLayoutSettings
 {
     return new IdCardLayoutSettings(
@@ -112,7 +111,7 @@ function templateRenderData(IdCardLayoutSettings $layout): IdCardRenderData
 }
 
 it('maximizes the official seal on every ID card back render path', function (): void {
-    $renderer = new IdCardSvgRenderer(new IdCardQrCodeRenderer);
+    $renderer = new IdCardSvgRenderer(new IdCardQrCodeRenderer(new QrCodeVersionResolver(new QrPayloadSecurityValidator)));
     $back = $renderer->renderBack(templateRenderData(templateLayout(IdCardTemplate::Classic)));
 
     expect($back)

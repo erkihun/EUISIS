@@ -22,8 +22,10 @@ export const CARD_SURFACE = {
 } as const;
 
 /** Text roles that can be styled per card side. */
-export const FRONT_ROLES = ['header', 'label', 'value', 'footer'] as const;
-export const BACK_ROLES = ['header', 'label', 'value', 'qr_instruction', 'footer'] as const;
+// The front has no footer of its own; the dates close the card face.
+export const FRONT_ROLES = ['header', 'label', 'value'] as const;
+// The back has no heading of its own; its notes lead the text column.
+export const BACK_ROLES = ['label', 'value', 'footer'] as const;
 export type FrontRole = (typeof FRONT_ROLES)[number];
 export type BackRole = (typeof BACK_ROLES)[number];
 
@@ -33,8 +35,8 @@ export type TextStyleConfig = {
 };
 
 /** Elements an admin can move, in the order the designer lists them. */
-export const LAYOUT_ELEMENTS = ['header', 'photo', 'fields', 'emphasis', 'footer'] as const;
-export const BACK_LAYOUT_ELEMENTS = ['qr', 'notes', 'seal', 'details', 'dates', 'emergency'] as const;
+export const LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'fields', 'emphasis', 'dates'] as const;
+export const BACK_LAYOUT_ELEMENTS = ['qr', 'notes', 'seal', 'emergency', 'card_number', 'signature', 'photo'] as const;
 export type LayoutElement = (typeof LAYOUT_ELEMENTS)[number];
 export type BackLayoutElement = (typeof BACK_LAYOUT_ELEMENTS)[number];
 export type AnyLayoutElement = LayoutElement | BackLayoutElement;
@@ -50,20 +52,39 @@ export type LayoutConfig = {
 
 /** Mirrors IdCardLayoutElement::ELEMENTS — the built-in arrangement. */
 export const LAYOUT_DEFAULTS: Record<LayoutElement, LayoutBox> = {
-    header: { x: 0, y: 0, w: 100, h: 9 },
-    photo: { x: 1.9, y: 9.6, w: 8.4, h: 17.8 },
-    fields: { x: 11.7, y: 9.6, w: 86, h: 60 },
-    emphasis: { x: 1.9, y: 76, w: 96, h: 12 },
-    footer: { x: 0, y: 94, w: 100, h: 6 },
+    // The band and its text. Each logo is positioned separately so an admin can
+    // move one mark without disturbing the other.
+    header: { x: 0, y: 0, w: 85, h: 16 },
+    logo_primary: { x: 1.5, y: 2.5, w: 10.5, h: 14 },
+    logo_secondary: { x: 72, y: 0, w: 27, h: 15.5 },
+    // Both clear the header band rather than starting underneath it.
+    photo: { x: 2, y: 22, w: 25, h: 49 },
+    fields: { x: 28, y: 22, w: 72, h: 68 },
+    emphasis: { x: 2.5, y: 74.5, w: 96, h: 12 },
+    // Issue and expiry sit on the front, between the emphasised ID number and
+    // the footer, so validity reads without turning the card.
+    dates: { x: 2.5, y: 86.5, w: 96, h: 6 },
 };
 
 export const BACK_LAYOUT_DEFAULTS: Record<BackLayoutElement, LayoutBox> = {
-    qr: { x: 1.9, y: 30, w: 22, h: 45 },
-    notes: { x: 27, y: 5, w: 71, h: 25 },
-    seal: { x: 55, y: 32, w: 22.4, h: 35.6 },
-    details: { x: 27, y: 73, w: 71, h: 20 },
-    dates: { x: 27, y: 88, w: 71, h: 10 },
-    emergency: { x: 1.9, y: 78, w: 23, h: 18 },
+    qr: { x: 0, y: 4.5, w: 38.5, h: 57 },
+    notes: { x: 2.5, y: 83, w: 70.5, h: 15.5 },
+    seal: { x: 76.5, y: 66.5, w: 15, h: 26 },
+    // Two contacts, each a four-line bilingual field.
+    emergency: { x: 41.5, y: 6, w: 58.5, h: 43.5 },
+    card_number: { x: 7, y: 62, w: 35, h: 7 },
+    signature: { x: 55, y: 78.5, w: 34, h: 7 },
+    // The employee photo as a watermark; off unless a template enables it.
+    photo: { x: 60, y: 20, w: 25, h: 45 },
+};
+
+/** Mirrors IdCardBackPhoto — the back photo is off until a template enables it. */
+export const BACK_PHOTO_DEFAULTS: BackPhotoConfig = {
+    show: false,
+    opacity: 15,
+    contrast: 100,
+    fit: 'cover',
+    background_color: null,
 };
 
 /** Defaults for either side, so callers stay side-agnostic. */
@@ -99,6 +120,31 @@ export function layoutStyle(
     };
 }
 
+/**
+ * Front-header content, already resolved server-side: every field carries the
+ * template's own text, or the global setting it inherits.
+ */
+export type HeaderConfig = {
+    city_name_en: string;
+    city_name_am: string;
+    bureau_name_en: string;
+    bureau_name_am: string;
+    show_logo: boolean;
+    show_secondary_logo: boolean;
+};
+
+/** How the back face draws the employee photo, if at all. */
+export type BackPhotoConfig = {
+    show: boolean;
+    /** Percent, 0-100. */
+    opacity: number;
+    /** Percent, 0-300, applied as a CSS contrast filter. */
+    contrast: number;
+    fit: 'cover' | 'contain' | 'stretch';
+    /** Painted behind the photo; null leaves the card surface showing. */
+    background_color: string | null;
+};
+
 export type TemplatePresentation = {
     id?: string;
     orientation: 'portrait' | 'landscape';
@@ -108,6 +154,14 @@ export type TemplatePresentation = {
     back_background_url: string | null;
     text_style_config?: TextStyleConfig | null;
     layout_config?: LayoutConfig | null;
+    header_config?: HeaderConfig | null;
+    /**
+     * The header's two logo slots. Null means the template uploaded none, so
+     * the slot falls back to whatever the card already supplies.
+     */
+    logo_primary_url?: string | null;
+    logo_secondary_url?: string | null;
+    back_photo_config?: BackPhotoConfig | null;
 };
 
 /**

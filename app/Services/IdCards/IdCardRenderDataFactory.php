@@ -48,6 +48,10 @@ final readonly class IdCardRenderDataFactory
         $orientation ??= $template?->orientation ?? 'landscape';
         $long = max($presentation['width_mm'] ?? 85.6, $presentation['height_mm'] ?? 54);
         $short = min($presentation['width_mm'] ?? 85.6, $presentation['height_mm'] ?? 54);
+        // The template's own logo wins; otherwise the organization's is used.
+        $header = $this->templates->header(
+            $template, $layout, $this->assetResolver->resolveLogoPath($org?->logo_path),
+        );
 
         return new IdCardRenderData(
             cardId: $card->id,
@@ -64,7 +68,26 @@ final readonly class IdCardRenderDataFactory
             phone: $employee?->phone,
             emergencyContactName: $employee?->emergency_contact_name,
             emergencyContactPhone: $employee?->emergency_contact_phone,
-            emergencyContactLabel: (string) $this->line(app()->getLocale(), 'emergency_contact', 'Emergency Contact'),
+            emergencyContactFields: array_values(array_filter([
+                [
+                    (string) $this->line('am', 'emergency_contact_name', 'Emergency Contact Name'),
+                    $employee?->emergency_contact_name,
+                    (string) $this->line('en', 'emergency_contact_name', 'Emergency Contact Name'),
+                    $employee?->emergency_contact_name,
+                ],
+                [
+                    (string) $this->line('am', 'emergency_contact_phone', 'Emergency Contact Phone'),
+                    $employee?->emergency_contact_phone,
+                    (string) $this->line('en', 'emergency_contact_phone', 'Emergency Contact Phone'),
+                    $employee?->emergency_contact_phone,
+                ],
+            ], fn (array $row): bool => filled($row[1]))),
+            cardNumberLabel: $this->bilingualCaption('card_no'),
+            signatureLabel: $this->bilingualCaption('signature'),
+            issueDateLabel: $this->bilingualCaption('issue_date'),
+            expiryDateLabel: $this->bilingualCaption('expiry_date'),
+            issueDateFormattedAm: $this->formatCardDate($card->issued_at, 'am'),
+            expiryDateFormattedAm: $this->formatCardDate($card->expires_at, 'am'),
 
             organizationNameEn: $org?->name_en,
             organizationNameAm: $org?->name_am,
@@ -75,12 +98,12 @@ final readonly class IdCardRenderDataFactory
             positionCode: $position?->job_position_code ?? $position?->code,
             jobGrade: $position?->grade_level,
 
-            issueDateFormatted: $this->formatCardDate($card->issued_at),
-            expiryDateFormatted: $this->formatCardDate($card->expires_at),
+            issueDateFormatted: $this->formatCardDate($card->issued_at, 'en'),
+            expiryDateFormatted: $this->formatCardDate($card->expires_at, 'en'),
 
             // Resolve files to base64 data URIs — never expose raw paths
             photoDataUri: $this->assetResolver->resolvePhotoPath($employee?->photo_path),
-            logoDataUri: $this->assetResolver->resolveLogoPath($org?->logo_path),
+            logoDataUri: $header->logoDataUri,
             sealDataUri: $this->assetResolver->resolveStoragePath(
                 is_string($sealPath) ? $sealPath : null,
             ),
@@ -97,7 +120,8 @@ final readonly class IdCardRenderDataFactory
             textStyles: $this->templates->styleObjects($template, $layout),
             boxes: $this->templates->layoutBoxes($template),
             bilingualFields: $this->bilingualFields($card, $employee),
-            frontFooterText: trim($layout->cityNameEn.' '.(string) $this->line(app()->getLocale(), 'authorized_footer', '')),
+            header: $header,
+            backPhoto: $this->templates->backPhoto($template),
         );
     }
 
@@ -105,7 +129,10 @@ final readonly class IdCardRenderDataFactory
      * Front-face rows, Amharic first then English. Each side falls back to the
      * other language when a translation is missing, so a row never renders blank.
      *
-     * @return array<int, array{0: string, 1: ?string, 2: string, 3: ?string}>
+     * The trailing key lets the renderer pick a row out without matching on the
+     * label, which is translatable display text and free to change.
+     *
+     * @return array<int, array{0: string, 1: ?string, 2: string, 3: ?string, 4: string}>
      */
     private function bilingualFields(IdCard $card, ?Employee $employee): array
     {
@@ -117,18 +144,57 @@ final readonly class IdCardRenderDataFactory
         $gender = $employee?->gender;
         $employmentType = $employee?->employment_type;
         $nationality = $employee?->nationality;
-        $nationalityKey = 'nationality_values.'.Str::snake((string) $nationality);
+        $nationalityKey = 'nationality_values.'.$this->nationalityKey($nationality);
         $phone = $employee?->phone;
 
         return [
-            [$am('name'), $nameAm, $en('name'), $nameEn],
-            [$am('sex'), $gender ? $am('gender.'.$gender, $gender) : null, $en('sex'), $gender ? $en('gender.'.$gender, $gender) : null],
-            [$am('date_of_birth'), $this->formatCardDate($employee?->date_of_birth, 'am'), $en('date_of_birth'), $this->formatCardDate($employee?->date_of_birth, 'en')],
-            [$am('nationality'), $nationality ? $am($nationalityKey, $nationality) : null, $en('nationality'), $nationality ? $en($nationalityKey, $nationality) : null],
-            [$am('employment_status'), $employmentType?->label('am'), $en('employment_status'), $employmentType?->label('en')],
-            [$am('phone_number'), $phone, $en('phone_number'), $phone],
-            [$am('id_number'), $card->card_number, $en('id_number'), $card->card_number],
+            [$am('name'), $nameAm, $en('name'), $nameEn, 'name'],
+            [$am('sex'), $gender ? $am('gender.'.$gender, $gender) : null, $en('sex'), $gender ? $en('gender.'.$gender, $gender) : null, 'sex'],
+            [$am('date_of_birth'), $this->formatCardDate($employee?->date_of_birth, 'am'), $en('date_of_birth'), $this->formatCardDate($employee?->date_of_birth, 'en'), 'dob'],
+            [$am('nationality'), $nationality ? $am($nationalityKey, $nationality) : null, $en('nationality'), $nationality ? $en($nationalityKey, $nationality) : null, 'nationality'],
+            [$am('employment_status'), $employmentType?->label('am'), $en('employment_status'), $employmentType?->label('en'), 'employment'],
+            [$am('phone_number'), $phone, $en('phone_number'), $phone, 'phone'],
+            // The card number identifies the plastic; the employee number
+            // identifies the person, which is what the card face shows.
+            [$am('id_number'), $employee?->employee_number, $en('id_number'), $employee?->employee_number, 'idNumber'],
         ];
+    }
+
+    /**
+     * Canonical key for a nationality, whichever language it was typed in.
+     *
+     * An employee record may hold "Ethiopian" or "ኢትዮጵያዊ"; both must resolve to
+     * the same key so each row of the card prints in its own language.
+     */
+    private function nationalityKey(?string $nationality): string
+    {
+        $value = trim((string) $nationality);
+        if ($value === '') {
+            return '';
+        }
+
+        foreach (['en', 'am'] as $locale) {
+            $values = __('id-card-fields.nationality_values', [], $locale);
+            if (! is_array($values)) {
+                continue;
+            }
+            foreach ($values as $key => $translated) {
+                if (mb_strtolower((string) $translated) === mb_strtolower($value)) {
+                    return (string) $key;
+                }
+            }
+        }
+
+        return Str::snake($value);
+    }
+
+    /** A caption showing both languages at once, as the card face does. */
+    private function bilingualCaption(string $key): string
+    {
+        $am = (string) $this->line('am', $key, '');
+        $en = (string) $this->line('en', $key, '');
+
+        return trim($am !== '' && $en !== '' ? $am.'/'.$en : $am.$en);
     }
 
     /** One translated card string, falling back when the key is untranslated. */

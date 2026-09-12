@@ -737,11 +737,13 @@ class SystemSettingsRegistry
                     default: '100',
                     labelEn: 'QR Code Size',
                     labelAm: 'የQR ኮድ መጠን',
-                    descriptionEn: 'Pixel size of the QR code on the back of the card.',
-                    descriptionAm: 'በካርዱ ኋላ ላይ የQR ኮድ ፒክሰል መጠን።',
+                    descriptionEn: 'Pixel size of the QR code on the back of the card. Larger codes scan more reliably; 200 is the maximum the card can hold.',
+                    descriptionAm: 'በካርዱ ኋላ ላይ የQR ኮድ ፒክሰል መጠን። ትልቅ ኮድ በቀላሉ ይነበባል፤ 200 ካርዱ የሚይዘው ከፍተኛው መጠን ነው።',
                     isPublic: true,
-                    options: ['80', '100', '120'],
-                    validationRules: ['required', 'in:80,100,120'],
+                    // Capped at 200 to match the clamp in IdCardLayoutSettingsService,
+                    // which is the largest the QR box can hold without overflowing.
+                    options: ['80', '100', '120', '140', '160', '180', '200'],
+                    validationRules: ['required', 'in:80,100,120,140,160,180,200'],
                     sortOrder: 180,
                 ),
                 'card_padding' => self::field(

@@ -41,22 +41,37 @@ final readonly class SaveIdCardTemplateAction
                     } else {
                         unset($data['text_style_config']);
                     }
+                    // Likewise for the header: a partial edit keeps the fields
+                    // this request did not send.
+                    if (is_array($data['header_config'] ?? null)) {
+                        $data['header_config'] = array_replace(
+                            $record->header_config ?? [], $data['header_config'],
+                        );
+                    } else {
+                        unset($data['header_config']);
+                    }
                     $record->fill(Arr::only($data, [
                         'name', 'code', 'description', 'orientation', 'width_mm', 'height_mm', 'status', 'is_default',
-                        'text_style_config', 'layout_config',
+                        'text_style_config', 'layout_config', 'header_config', 'back_photo_config',
                     ]));
-                    foreach (['front', 'back'] as $side) {
-                        $file = $data[$side.'_background'] ?? null;
-                        $column = $side.'_background_path';
+                    // Both header logos are stored like the backgrounds, each
+                    // input name mapping to its own column.
+                    foreach ([
+                        'front_background' => 'front_background_path',
+                        'back_background' => 'back_background_path',
+                        'logo_primary' => 'logo_primary_path',
+                        'logo_secondary' => 'logo_secondary_path',
+                    ] as $input => $column) {
+                        $file = $data[$input] ?? null;
                         if ($file instanceof UploadedFile) {
                             $path = 'id-card-templates/'.Str::uuid7().'.png';
                             $newPaths[] = $path;
                             if (! Storage::disk('local')->putFileAs('id-card-templates', $file, basename($path))) {
-                                throw ValidationException::withMessages([$side.'_background' => __('id-card-templates.upload_failed')]);
+                                throw ValidationException::withMessages([$input => __('id-card-templates.upload_failed')]);
                             }
                             $oldPaths[] = $record->{$column};
                             $record->{$column} = $path;
-                        } elseif ($data['remove_'.$side.'_background'] ?? false) {
+                        } elseif ($data['remove_'.$input] ?? false) {
                             $oldPaths[] = $record->{$column};
                             $record->{$column} = null;
                         }

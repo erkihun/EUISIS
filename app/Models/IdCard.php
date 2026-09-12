@@ -42,6 +42,12 @@ class IdCard extends Model
         'qr_status',
         'qr_issued_at',
         'qr_rotated_at',
+        // Which QR symbol the card was last rendered with. Metadata only —
+        // never used to resolve a scan.
+        'qr_model',
+        'qr_version',
+        'qr_error_correction',
+        'qr_payload_hash',
     ];
 
     protected function casts(): array
@@ -56,11 +62,13 @@ class IdCard extends Model
             'expires_at' => 'datetime',
             'revoked_at' => 'datetime',
             'display_snapshot' => 'array',
-            'is_current'  => 'bool',
-            'qr_payload'  => 'encrypted',
+            'is_current' => 'bool',
+            'qr_payload' => 'encrypted',
             'qr_payload_version' => 'integer',
-            'qr_issued_at'  => 'datetime',
+            'qr_issued_at' => 'datetime',
             'qr_rotated_at' => 'datetime',
+            'qr_model' => 'integer',
+            'qr_version' => 'integer',
         ];
     }
 

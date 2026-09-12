@@ -1,9 +1,15 @@
-import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle } from '@/Components/IdCards/IdCardTemplateContext';
+import { useIdCardTemplate, useCardDimensions, textStyleCss, roleStyle, CARD_SURFACE, layoutStyle, layoutBox } from '@/Components/IdCards/IdCardTemplateContext';
 import type { CSSProperties } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import IdCardBilingualField, { buildBilingualFields } from '@/Components/IdCards/IdCardBilingualField';
+import enDict from '@/i18n/en';
+import amDict from '@/i18n/am';
+
+// The card face is bilingual by design — captions come from both dictionaries.
+const dateCaption = (key: 'issueDate' | 'expLabel'): string =>
+    `${enDict.idCards[key]}/${amDict.idCards[key]}`;
 
 type IdCardFrontProps = {
     cardNumber: string;
@@ -34,6 +40,9 @@ type IdCardFrontProps = {
     photoUrl?: string | null;
     issueDate?: string | null;
     expiryDate?: string | null;
+    /** Ethiopian-calendar variants, shown above the Gregorian dates. */
+    issueDateAm?: string | null;
+    expiryDateAm?: string | null;
     /** When supplied and not 'active', a diagonal watermark is shown */
     status?: string | null;
     /** Show the city/system logo in header */
@@ -68,6 +77,8 @@ export default function IdCardFront({
     photoUrl,
     issueDate,
     expiryDate,
+    issueDateAm,
+    expiryDateAm,
     status,
     cityLogoUrl,
     rootStyle,
@@ -88,20 +99,57 @@ export default function IdCardFront({
     const showLogo          = getBoolean('id_cards.show_organization_logo', true);
     const showPhoto         = getBoolean('id_cards.show_photo', true);
     const showEmployment    = getBoolean('id_cards.show_employment_status', true);
+    const showIssueDate     = getBoolean('id_cards.show_issue_date', true);
+    const showExpiryDate    = getBoolean('id_cards.show_expiry_date', true);
     const padding           = getString('id_cards.card_padding', 'normal');
     // Fall back to the system identity logo when no cityLogoUrl is passed as a prop
     const systemLogoUrl     = getString('general.identity_system_logo_url', '');
     const resolvedCityLogo  = cityLogoUrl || (systemLogoUrl || null);
 
     // The header shows the issuing organization name in both languages at once.
-    const cityNameEn = getString('id_cards.city_name_en', 'Addis Ababa City Administration');
-    const cityNameAm = getString('id_cards.city_name_am', 'አዲስ አበባ ከተማ አስተዳደር');
-    // The card artwork carries two institution blocks; both read from settings.
-    const bureauNameAm = getString('id_cards.bureau_name_am', '');
-    const bureauNameEn = getString('id_cards.bureau_name_en', '');
-    const footerText = locale === 'am'
-        ? `${cityNameAm} ${t('idCards.authorizedLabel')}`
-        : `${cityNameEn} ${t('idCards.authorizedLabel')}`;
+    // Header content is per template; the server resolves each field against the
+    // system setting, so a template that overrides nothing reads the same as before.
+    const header = cardTemplate?.header_config ?? null;
+    const cityNameEn = header?.city_name_en || getString('id_cards.city_name_en', 'Addis Ababa City Administration');
+    const cityNameAm = header?.city_name_am || getString('id_cards.city_name_am', 'አዲስ አበባ ከተማ አስተዳደር');
+    // The header's two logo slots are managed independently: each prefers the
+    // template's own upload and falls back to the card's existing source.
+    // Hiding a slot removes its placeholder too, so the text gets the space.
+    const primaryLogoUrl = cardTemplate?.logo_primary_url ?? resolvedCityLogo;
+    const secondaryLogoUrl = cardTemplate?.logo_secondary_url ?? organizationLogoUrl;
+    const showsPrimaryLogo = showLogo && (header?.show_logo ?? true);
+    const showsSecondaryLogo = showLogo && (header?.show_secondary_logo ?? true);
+    // The header carries the city name only, in both languages. Bureau names
+    // belong to the card body, not the header band.
+    //
+    // Duplicate lines are dropped: an install whose English setting holds the
+    // Amharic text would otherwise print the same name twice. Mirrors the rule
+    // in IdCardSvgRenderer::renderFront().
+    const headerLines = [...new Set(
+        [cityNameAm, cityNameEn]
+            .map((line) => line?.trim())
+            .filter((line): line is string => Boolean(line)),
+    )];
+    // The band's text starts after the primary mark and ends before the
+    // secondary one, so moving either logo reflows the text rather than letting
+    // it run underneath. Mirrors the same inset in IdCardSvgRenderer.
+    const headerBox = layoutBox(cardTemplate, 'header');
+    const primaryBox = layoutBox(cardTemplate, 'logo_primary');
+    const secondaryBox = layoutBox(cardTemplate, 'logo_secondary');
+    const textLeft = showsPrimaryLogo
+        ? Math.max(headerBox.x, primaryBox.x + primaryBox.w + 0.7)
+        : headerBox.x;
+    const textRight = showsSecondaryLogo
+        ? Math.min(headerBox.x + headerBox.w, secondaryBox.x - 0.7)
+        : headerBox.x + headerBox.w;
+    const headerTextBox: CSSProperties = {
+        position: 'absolute',
+        left: `${textLeft}%`,
+        top: `${headerBox.y}%`,
+        width: `${Math.max(5, textRight - textLeft)}%`,
+        height: `${headerBox.h}%`,
+    };
+
 
 
     const nameSizeMap: Record<string, string> = { xs: 'text-xs', sm: 'text-sm', base: 'text-base', lg: 'text-lg' };
@@ -113,7 +161,6 @@ export default function IdCardFront({
 
     // Per-template typography; falls back to the card's own colours.
     const headerStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'header'), textPri);
-    const footerStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'footer'), textSec);
     const labelStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'label'), textSec);
     const contentStyle = textStyleCss(roleStyle(cardTemplate, 'front', 'value'), textPri);
 
@@ -123,10 +170,12 @@ export default function IdCardFront({
         fullName, fullNameAm, gender, dateOfBirth, dateOfBirthAm,
         nationality, nationalityAm,
         employmentStatus: showEmployment ? employmentStatus : null,
-        phoneNumber, cardNumber,
+        phoneNumber, cardNumber, employeeNumber,
     });
-    const identityFields = allFields.filter((field) => !['phone', 'idNumber'].includes(field.key));
-    const emphasisFields = allFields.filter((field) => ['idNumber', 'phone'].includes(field.key));
+    // Phone sits with the other identity fields; only the ID number is
+    // emphasised in its own band near the footer.
+    const identityFields = allFields.filter((field) => field.key !== 'idNumber');
+    const emphasisFields = allFields.filter((field) => field.key === 'idNumber');
 
     const watermarkText = status ? WATERMARK_STATUSES[status] : null;
     const background = template === 'modern'
@@ -211,33 +260,45 @@ export default function IdCardFront({
                 </div>
             )}
 
-            {/* Header: two logo + institution-text groups, mirroring the card artwork. */}
-            <div className="flex items-start gap-2 px-3 pt-2" style={layoutStyle(cardTemplate, 'header')}>
-                {([
-                    { logo: resolvedCityLogo, lines: [cityNameAm, bureauNameAm], align: 'text-left' as const },
-                    { logo: organizationLogoUrl, lines: [cityNameEn, bureauNameEn], align: 'text-left' as const },
-                ]).map((group, index) => (
-                    <div key={index} className="flex min-w-0 flex-1 items-start gap-1.5">
-                        {showLogo && group.logo ? (
-                            <img
-                                src={group.logo}
-                                alt=""
-                                className="h-8 w-8 shrink-0 rounded-full object-contain"
-                                crossOrigin="anonymous"
-                            />
-                        ) : (
-                            <div className="h-8 w-8 shrink-0 rounded-full border border-slate-300 bg-slate-100" aria-hidden="true" />
-                        )}
-                        <div className={`min-w-0 flex-1 ${group.align}`}>
-                            {group.lines.filter(Boolean).map((line, row) => (
-                                <p key={row} className="break-words leading-tight text-[7px]" style={headerStyle}>
-                                    {line}
-                                </p>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+            {/* Header band: the city name only. Each logo is positioned against
+                the card by its own layout box, so an admin can move one mark
+                without disturbing the other or the text between them. The band
+                clips its content so text never spills past the element. */}
+            <div
+                className="flex items-center overflow-hidden px-3 py-1"
+                style={headerTextBox}
+            >
+                <div className="flex min-w-0 flex-1 flex-col justify-center overflow-hidden text-left">
+                    {headerLines.map((line, row) => (
+                        <p
+                            key={row}
+                            className="truncate"
+                            style={{ ...headerStyle, lineHeight: `${Math.min(1.3, 2.6 / headerLines.length)}` }}
+                        >
+                            {line}
+                        </p>
+                    ))}
+                </div>
             </div>
+
+            {showsPrimaryLogo && primaryLogoUrl && (
+                <img
+                    src={primaryLogoUrl}
+                    alt=""
+                    className="rounded-full object-contain"
+                    style={layoutStyle(cardTemplate, 'logo_primary')}
+                    crossOrigin="anonymous"
+                />
+            )}
+            {showsSecondaryLogo && secondaryLogoUrl && (
+                <img
+                    src={secondaryLogoUrl}
+                    alt=""
+                    className="rounded-full object-contain"
+                    style={layoutStyle(cardTemplate, 'logo_secondary')}
+                    crossOrigin="anonymous"
+                />
+            )}
 
             {/* Body: photo on the left, identity fields to its right. */}
             {/* Photo is positioned against the card so it can be moved freely. */}
@@ -269,6 +330,7 @@ export default function IdCardFront({
                         <IdCardBilingualField
                             key={key}
                             {...field}
+                            fieldKey={key}
                             labelStyle={labelStyle}
                             valueStyle={contentStyle}
                         />
@@ -282,18 +344,38 @@ export default function IdCardFront({
                     <IdCardBilingualField
                         key={key}
                         {...field}
+                        fieldKey={key}
                         labelStyle={labelStyle}
                         valueStyle={contentStyle}
                     />
                 ))}
             </div>
 
-            {/* Footer: authorisation line, centred. */}
-            <div className="flex flex-col justify-center px-3 text-center" style={layoutStyle(cardTemplate, 'footer')}>
-                <span className="text-[7px] leading-tight" style={footerStyle}>
-                    {footerText}
-                </span>
-            </div>
+            {/* Issue / expiry dates — moved from the back so a card's validity
+                reads without turning it over. */}
+            {(showIssueDate || showExpiryDate) && (
+                <div className={`flex gap-3 ${padCls}`} style={layoutStyle(cardTemplate, 'dates')}>
+                    {([
+                        ['issueDate', issueDate, issueDateAm] as const,
+                        ['expLabel', expiryDate, expiryDateAm] as const,
+                    ]).filter(([key]) => (key === 'issueDate' ? showIssueDate : showExpiryDate))
+                        .map(([key, gregorian, ethiopian]) => (
+                            <div key={key} className="min-w-0 flex-1">
+                                <p className="truncate leading-tight" style={{ ...labelStyle, opacity: 0.7 }}>
+                                    {dateCaption(key)}
+                                </p>
+                                {ethiopian && (
+                                    <p className="truncate font-mono leading-tight" style={contentStyle}>
+                                        {ethiopian}
+                                    </p>
+                                )}
+                                <p className="truncate font-mono leading-tight" style={contentStyle}>
+                                    {gregorian ?? ' '}
+                                </p>
+                            </div>
+                        ))}
+                </div>
+            )}
 
             {/* Decorative diagonal accent (right edge) */}
             {!backgroundUrl && template === 'classic' && <>

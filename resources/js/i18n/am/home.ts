@@ -93,7 +93,7 @@ const home = {
     supportEmailLabel: 'የድጋፍ ኢሜይል',
     supportPhoneLabel: 'የድጋፍ ስልክ',
     supportHelpCenterLabel: 'የእገዛ ማዕከል',
-    supportNoContact: 'ለድጋፍ፣ እባክዎ የድርጅቱን አስተዳዳሪ ያነጋግሩ።',
+    supportNoContact: 'ለድጋፍ፣ እባክዎ የተቋሙን አስተዳዳሪ ያነጋግሩ።',
     registrationDisabled: 'ራስን ማስመዝገብ በአሁኑ ጊዜ ተዘግቷል።',
 } as const;
 

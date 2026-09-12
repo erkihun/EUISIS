@@ -93,12 +93,14 @@ it('renders each employment type and both real names in both front orientations'
         $data = app(IdCardRenderDataFactory::class)->make($this->card->fresh(), $orientation);
         $svg = app(IdCardSvgRenderer::class)->renderFront($data);
         expect($data->fullNameAm)->toBe('ሰላም ታደሰ')
-            ->and($data->bilingualFields[0])->toBe(['ስም', 'ሰላም ታደሰ', 'Name', 'Selam Tadesse'])
+            ->and($data->bilingualFields[0])->toBe(['ስም', 'ሰላም ታደሰ', 'Name', 'Selam Tadesse', 'name'])
             ->and($data->bilingualFields[4][1])->toBe($type->label('am'))
             ->and($data->bilingualFields[4][3])->toBe($type->label('en'))
             // Existing card layouts abbreviate long values to fit the field.
-            ->and($svg)->toContain('ሰላም ታደሰ', 'Selam Tadesse', 'Ethiopian', 'PUBLIC-CARD-23', $type === EmploymentType::DailyLabor ? 'Daily Labor' : $type->label('en'))
-            ->and($svg)->not->toContain('>Active<', 'INTERNAL-EMP-23', 'SECRET-NATIONAL-ID', 'private@example.test', 'Mapping Organization');
+            // The front's ID Number is the employee number; the card number
+            // identifies the plastic and lives on the back.
+            ->and($svg)->toContain('ሰላም ታደሰ', 'Selam Tadesse', 'Ethiopian', 'INTERNAL-EMP-23', $type === EmploymentType::DailyLabor ? 'Daily Labor' : $type->label('en'))
+            ->and($svg)->not->toContain('>Active<', 'SECRET-NATIONAL-ID', 'private@example.test', 'Mapping Organization');
     }
 })->with(EmploymentType::cases());
 
