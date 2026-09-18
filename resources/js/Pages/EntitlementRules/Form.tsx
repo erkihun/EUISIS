@@ -29,7 +29,7 @@ export default function EntitlementRuleForm({
 }) {
     const { t, locale } = useLocale();
     const inputClassName =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function renderError(field: 'service_type_id' | 'name' | 'rule_definition.quota_limit' | 'rule_definition.period_days' | 'rule_definition.notes' | 'is_active') {
         const message = form.errors[field];
@@ -43,7 +43,7 @@ export default function EntitlementRuleForm({
 
     return (
         <form
-            className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+            className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
             onSubmit={onSubmit}
         >
             <div className="grid gap-4 md:grid-cols-2">
@@ -142,7 +142,7 @@ export default function EntitlementRuleForm({
             <div className="flex gap-3">
                 <button
                     type="submit"
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={form.processing}
                 >
                     {submitLabel}

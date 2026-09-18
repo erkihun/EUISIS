@@ -79,7 +79,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
         }
     };
 
-    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
+    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
     const labelCls = 'block text-xs font-medium text-gray-500 dark:text-slate-400';
 
     const isFinal = ['withdrawn', 'rejected', 'transferred'].includes(application.status);
@@ -105,7 +105,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                                 </button>
                             )}
                             {can.shortlist && (
-                                <button type="button" onClick={() => router.post(route('vacancy-applications.shortlist', application.id))} className="rounded-lg border border-blue-300 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400">
+                                <button type="button" onClick={() => router.post(route('vacancy-applications.shortlist', application.id))} className="rounded-lg border border-blue-300 px-3 py-1.5 text-sm font-medium text-[color:var(--color-primary)] hover:bg-blue-50 dark:border-blue-700 dark:text-[color:var(--color-primary)]">
                                     {t('vacancies.shortlistApplication')}
                                 </button>
                             )}
@@ -120,7 +120,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                                 </button>
                             )}
                             {can.initiateTransfer && application.status === 'selected' && (
-                                <button type="button" onClick={() => setShowTransferForm(v => !v)} className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
+                                <button type="button" onClick={() => setShowTransferForm(v => !v)} className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     {t('vacancies.initiateTransfer')}
                                 </button>
                             )}
@@ -134,17 +134,17 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
             <div className="mx-auto max-w-2xl space-y-6">
                 {/* Pipeline stepper */}
                 {!isFinal ? (
-                    <div className="flex items-center overflow-x-auto rounded-xl border border-gray-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="flex items-center overflow-x-auto rounded-card border border-gray-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900">
                         {PIPELINE.map((step, index) => {
                             const done = pipelineIndex > index;
                             const active = pipelineIndex === index;
                             return (
                                 <div key={step} className="flex flex-1 items-center">
                                     <div className="flex shrink-0 flex-col items-center gap-1.5">
-                                        <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : active ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                                        <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : active ? 'bg-[color:var(--color-primary)] text-white' : 'bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-slate-400'}`}>
                                             {done ? '✓' : index + 1}
                                         </div>
-                                        <span className={`whitespace-nowrap text-xs ${active ? 'font-semibold text-blue-600 dark:text-blue-400' : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                                        <span className={`whitespace-nowrap text-xs ${active ? 'font-semibold text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]' : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 dark:text-slate-500'}`}>
                                             {t(`vacancies.appStatus${step.charAt(0).toUpperCase()}${step.slice(1)}` as never)}
                                         </span>
                                     </div>
@@ -162,7 +162,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 )}
 
                 {/* Details */}
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <dl className="grid grid-cols-2 gap-4 text-sm">
                         {[
                             { label: t('employees.employee'), value: application.employee?.name_en ?? '—' },
@@ -195,7 +195,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 </section>
 
                 {showScreenForm && (
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">{t('vacancies.screenApplication')}</h3>
                         <form onSubmit={submitScreen} className="space-y-4">
                             <div>
@@ -208,7 +208,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                                 <textarea rows={3} className={inputCls} value={screenForm.data.screening_notes} onChange={e => screenForm.setData('screening_notes', e.target.value)} />
                             </div>
                             <div className="flex gap-2">
-                                <button type="submit" disabled={screenForm.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                                <button type="submit" disabled={screenForm.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                                     {t('common.save')}
                                 </button>
                                 <button type="button" onClick={() => setShowScreenForm(false)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">
@@ -220,7 +220,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 )}
 
                 {showRejectForm && (
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">{t('vacancies.rejectApplication')}</h3>
                         <form onSubmit={submitReject} className="space-y-4">
                             <div>
@@ -241,7 +241,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                 )}
 
                 {showTransferForm && (
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">{t('vacancies.initiateTransfer')}</h3>
                         <form onSubmit={submitTransfer} className="space-y-4">
                             <div>
@@ -250,7 +250,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                                 {transferForm.errors.effective_date && <p className="mt-1 text-xs text-red-500">{transferForm.errors.effective_date}</p>}
                             </div>
                             <div className="flex gap-2">
-                                <button type="submit" disabled={transferForm.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                                <button type="submit" disabled={transferForm.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                                     {t('vacancies.initiateTransfer')}
                                 </button>
                                 <button type="button" onClick={() => setShowTransferForm(false)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">

@@ -30,7 +30,7 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
 
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     return (
         <AuthenticatedLayout
@@ -58,7 +58,7 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
                     </select>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>
@@ -71,7 +71,7 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
                             {applications.data.map((app) => (
                                 <tr key={app.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                                     <td className="px-4 py-3">
-                                        <Link href={route('transfer-applications.show', app.id)} className="text-blue-600 hover:underline dark:text-blue-400">
+                                        <Link href={route('transfer-applications.show', app.id)} className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                             {(useAmharic ? app.announcement?.position?.title_am : null) ?? app.announcement?.position?.title_en ?? '-'}
                                         </Link>
                                     </td>

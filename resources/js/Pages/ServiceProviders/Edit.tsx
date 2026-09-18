@@ -37,7 +37,7 @@ export default function ServiceProvidersEdit({
     });
 
     const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     const labelCls = 'mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400';
 
@@ -53,7 +53,7 @@ export default function ServiceProvidersEdit({
             <Head title={t('providers.editProvider')} />
 
             <div className="mx-auto max-w-xl">
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <form onSubmit={submit} className="space-y-4">
                         {/* Name */}
                         <div>
@@ -133,7 +133,7 @@ export default function ServiceProvidersEdit({
                         <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
                             <input
                                 type="checkbox"
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                className="rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                                 checked={form.data.is_demo}
                                 onChange={(e) => form.setData('is_demo', e.target.checked)}
                             />
@@ -144,7 +144,7 @@ export default function ServiceProvidersEdit({
                             <button
                                 type="submit"
                                 disabled={form.processing}
-                                className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] disabled:opacity-60"
                             >
                                 {form.processing ? t('providers.saving') : t('providers.save')}
                             </button>

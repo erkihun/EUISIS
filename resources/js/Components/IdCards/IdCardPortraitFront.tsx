@@ -120,7 +120,7 @@ export default function IdCardPortraitFront({
                 'relative flex flex-col overflow-hidden shadow-xl',
                 template === 'modern' ? 'rounded-[1.5rem] ring-1 ring-white/20' : '',
                 template === 'minimal' ? 'rounded-lg ring-1 ring-white/25' : '',
-                template === 'classic' ? 'rounded-2xl' : '',
+                template === 'classic' ? 'rounded-panel' : '',
             ].join(' ')}
             style={{
                 aspectRatio: `${dimensions.widthMm} / ${dimensions.heightMm}`,
@@ -234,7 +234,7 @@ export default function IdCardPortraitFront({
                             src={photoUrl}
                             alt={t('employees.photo')}
                             crossOrigin="anonymous"
-                            className={`${template === 'modern' ? 'rounded-full' : template === 'minimal' ? 'rounded-sm' : 'rounded-xl'} object-cover`}
+                            className={`${template === 'modern' ? 'rounded-full' : template === 'minimal' ? 'rounded-sm' : 'rounded-card'} object-cover`}
                             style={{
                                 width: '6rem',
                                 height: template === 'modern' ? '6rem' : '7.5rem',
@@ -244,7 +244,7 @@ export default function IdCardPortraitFront({
                         />
                     ) : (
                         <div
-                            className={`flex items-center justify-center ${template === 'modern' ? 'rounded-full' : template === 'minimal' ? 'rounded-sm' : 'rounded-xl'} border border-dashed border-slate-300 bg-slate-100 text-center text-[7px] leading-tight`}
+                            className={`flex items-center justify-center ${template === 'modern' ? 'rounded-full' : template === 'minimal' ? 'rounded-sm' : 'rounded-card'} border border-dashed border-slate-300 bg-slate-100 text-center text-[7px] leading-tight`}
                             style={{
                                 width: '6rem',
                                 height: template === 'modern' ? '6rem' : '7.5rem',

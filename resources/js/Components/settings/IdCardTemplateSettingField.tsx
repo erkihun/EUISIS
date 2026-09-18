@@ -47,9 +47,9 @@ export default function IdCardTemplateSettingField({
                             aria-pressed={isSelected}
                             onClick={() => onChange(template)}
                             className={[
-                                'rounded-xl border p-3 text-left transition',
+                                'rounded-card border p-3 text-left transition',
                                 isSelected
-                                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500/20 dark:bg-blue-950/30'
+                                    ? 'border-[color:var(--color-primary)] bg-blue-50 ring-2 ring-[color:var(--color-primary)]/20 dark:bg-blue-950/30'
                                     : 'border-gray-200 bg-white hover:border-blue-300 dark:border-slate-700 dark:bg-slate-950',
                                 disabled ? 'cursor-not-allowed opacity-60' : '',
                             ].join(' ')}
@@ -82,7 +82,7 @@ function TemplateThumbnail({ template }: { template: IdCardTemplate }) {
         <span
             className={[
                 'relative block aspect-[85.6/54] overflow-hidden shadow-sm',
-                template === 'modern' ? 'rounded-xl' : template === 'minimal' ? 'rounded-md' : 'rounded-lg',
+                template === 'modern' ? 'rounded-card' : template === 'minimal' ? 'rounded-md' : 'rounded-lg',
             ].join(' ')}
             style={{ background }}
             aria-hidden="true"

@@ -455,7 +455,7 @@ export default function EmployeesEdit({
                           * history and the position-occupancy rules intact.
                           */}
                         <div className="md:col-span-2">
-                            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
+                            <div className="rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
                                 <dl className="grid gap-4 sm:grid-cols-3">
                                     <ReadOnlyValue
                                         label={t('employees.currentOrganization')}

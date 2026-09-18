@@ -77,6 +77,11 @@ class IdCard extends Model
         return $this->belongsTo(Employee::class);
     }
 
+    public function nfcCredentials(): HasMany
+    {
+        return $this->hasMany(NfcCredential::class);
+    }
+
     public function cardRequest(): BelongsTo
     {
         return $this->belongsTo(CardRequest::class);

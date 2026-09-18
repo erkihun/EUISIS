@@ -32,9 +32,9 @@ type StyleEntry = { badge: string; dot: string };
 
 const batchStatusStyle: Record<BatchStatus, StyleEntry> = {
     draft:      { badge: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:ring-amber-700/40', dot: 'bg-amber-400' },
-    printing:   { badge: 'bg-blue-50 text-blue-800 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-700/40',       dot: 'bg-blue-400' },
+    printing:   { badge: 'bg-blue-50 text-blue-800 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-700/40', dot: 'bg-blue-400' },
     completed:  { badge: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:ring-emerald-700/40', dot: 'bg-emerald-400' },
-    cancelled:  { badge: 'bg-red-50 text-red-800 ring-1 ring-red-200 dark:bg-red-900/20 dark:text-red-300 dark:ring-red-700/40',             dot: 'bg-red-400' },
+    cancelled:  { badge: 'bg-red-50 text-red-800 ring-1 ring-red-200 dark:bg-red-900/20 dark:text-red-300 dark:ring-red-700/40', dot: 'bg-red-400' },
 };
 
 const fallbackStyle: StyleEntry = {
@@ -67,7 +67,7 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                         can?.create && (
                             <Link
                                 href={route('print-batches.create')}
-                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] transition-colors"
                             >
                                 {t('idCards.createPrintBatch')}
                             </Link>
@@ -78,7 +78,7 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
         >
             <Head title={t('idCards.printBatches')} />
 
-            <div className="rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 {batches.data.length === 0 ? (
                     <div className="p-8">
                         <EmptyState
@@ -88,7 +88,7 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                                 can?.create ? (
                                     <Link
                                         href={route('print-batches.create')}
-                                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                     >
                                         {t('idCards.createPrintBatch')}
                                     </Link>
@@ -101,22 +101,22 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('idCards.batchNumber')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('idCards.batchStatus')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('idCards.cardsInBatch')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('idCards.printedAt')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('common.createdAt')}
                                     </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('common.actions')}
                                     </th>
                                 </tr>
@@ -167,7 +167,7 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                                         <td className="px-4 py-3 text-right">
                                             <Link
                                                 href={route('print-batches.show', batch.id)}
-                                                className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                                             >
                                                 {t('common.view')}
                                             </Link>

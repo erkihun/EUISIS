@@ -88,9 +88,9 @@ export default function TransactionShow({
             <div className="mx-auto max-w-3xl space-y-5">
 
                 {/* ── Hero status banner ── */}
-                <div className={`flex items-center justify-between rounded-2xl p-5 ${cfg.cls} ${cfg.glow}`}>
+                <div className={`flex items-center justify-between rounded-panel p-5 ${cfg.cls} ${cfg.glow}`}>
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-widest text-white/70">Transaction Status</p>
+                        <p className="text-xs font-semibold text-white/70">Transaction Status</p>
                         <div className="mt-1 flex items-center gap-2">
                             <span className="text-2xl font-bold text-white">{cfg.label}</span>
                             {transaction.is_extra_scan && (
@@ -99,7 +99,7 @@ export default function TransactionShow({
                         </div>
                         <p className="mt-1 font-mono text-sm text-white/80">{transaction.transaction_number}</p>
                     </div>
-                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-3xl font-bold text-white">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-panel bg-white/20 text-3xl font-bold text-white">
                         {cfg.icon}
                     </div>
                 </div>
@@ -107,9 +107,9 @@ export default function TransactionShow({
                 <div className="grid gap-5 lg:grid-cols-3">
 
                     {/* ── Employee card ── */}
-                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="border-b border-gray-100 px-5 py-3.5 dark:border-slate-800">
-                            <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-600">Employee</p>
+                            <p className="text-[11px] font-bold text-gray-400 dark:text-slate-600">Employee</p>
                         </div>
                         <div className="flex flex-col items-center px-5 py-6 text-center">
                             {transaction.employee?.photo_url ? (
@@ -149,15 +149,15 @@ export default function TransactionShow({
 
                         {/* Amounts */}
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800/40 dark:bg-emerald-950/20">
-                                <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-500">Subsidy Applied</p>
+                            <div className="rounded-card border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-800/40 dark:bg-emerald-950/20">
+                                <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-500">Subsidy Applied</p>
                                 <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
                                     {money(transaction.subsidy_amount_applied)}
                                 </p>
                                 <p className="mt-0.5 text-[11px] text-emerald-600/70 dark:text-emerald-500/70">ETB</p>
                             </div>
-                            <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 dark:border-orange-800/40 dark:bg-orange-950/20">
-                                <p className="text-[11px] font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-500">Employee Pays</p>
+                            <div className="rounded-card border border-orange-200 bg-orange-50 p-4 dark:border-orange-800/40 dark:bg-orange-950/20">
+                                <p className="text-[11px] font-semibold text-orange-600 dark:text-orange-500">Employee Pays</p>
                                 <p className="mt-1 text-2xl font-bold tabular-nums text-orange-700 dark:text-orange-400">
                                     {money(transaction.employee_payable_amount)}
                                 </p>
@@ -166,9 +166,9 @@ export default function TransactionShow({
                         </div>
 
                         {/* Details */}
-                        <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                             <div className="border-b border-gray-100 px-5 py-3.5 dark:border-slate-800">
-                                <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-600">Details</p>
+                                <p className="text-[11px] font-bold text-gray-400 dark:text-slate-600">Details</p>
                             </div>
                             <div className="px-5">
                                 <Row label="Scan Time">

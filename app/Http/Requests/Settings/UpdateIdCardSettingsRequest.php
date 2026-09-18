@@ -51,6 +51,7 @@ class UpdateIdCardSettingsRequest extends FormRequest
             'show_qr' => ['required', 'boolean'],
             'show_return_notice' => ['required', 'boolean'],
             'show_emergency_contact' => ['required', 'boolean'],
+            'verification_url' => ['nullable', 'url', 'max:255'],
             'back_bg_from' => $hex,
             'back_bg_to' => $hex,
             'back_text_color' => $hex,

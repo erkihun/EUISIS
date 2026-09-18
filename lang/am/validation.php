@@ -56,6 +56,6 @@ return [
         'status' => 'ሁኔታ',
         'sort_order' => 'ቅደም ተከተል',
     ],
-    'position_already_occupied' => 'ይህ ስራ መደብ ቀድሞ ለሌላ ሰራተኛ ተመድቧል።',
+    'position_already_occupied' => 'ይህ የስራ መደብ ከእንግዲህ ክፍት አይደለም። እባክዎ ሌላ የስራ መደብ ይምረጡ።',
     'organization_scope_denied' => 'ከተቋምዎ ወሰን ውጭ መዳረሻ ተከልክሏል።',
 ];

@@ -91,7 +91,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
             <PublicLayout title={t('serviceFeedback.publicTitle')}>
                 <Head title={t('serviceFeedback.publicTitle')} />
                 <div className="mx-auto max-w-md px-4 py-12">
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                    <div className="rounded-card border border-slate-200 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-900">
                         <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                             {t('serviceFeedback.linkUnavailable')}
                         </h1>
@@ -109,7 +109,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
             <PublicLayout title={t('serviceFeedback.publicTitle')}>
                 <Head title={t('serviceFeedback.publicTitle')} />
                 <div className="mx-auto max-w-md px-4 py-12">
-                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-6 text-center shadow-sm dark:border-emerald-900 dark:bg-emerald-950/40">
+                    <div className="rounded-card border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-900 dark:bg-emerald-950/40">
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900">
                             <svg viewBox="0 0 24 24" className="h-6 w-6 text-emerald-700 dark:text-emerald-300" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
                                 <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
@@ -135,7 +135,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
 
             <div className="mx-auto max-w-md px-4 py-8">
                 {/* Service point context — office and role only, never a person. */}
-                <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <div className="rounded-card border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
                     <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         {context?.display_name}
                     </h1>
@@ -165,7 +165,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                     </dl>
                 </div>
 
-                <form onSubmit={submit} className="mt-4 space-y-5 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                <form onSubmit={submit} className="mt-4 space-y-5 rounded-card border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
                     {/* Service type */}
                     <div>
                         <label htmlFor="position_service_id" className="block text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -180,7 +180,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                             id="position_service_id"
                             value={data.position_service_id}
                             onChange={(e) => setData('position_service_id', e.target.value)}
-                            className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                            className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                         >
                             <option value="">{t('serviceFeedback.serviceTypePlaceholder')}</option>
                             {serviceTypes.map((type) => (
@@ -238,7 +238,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                             value={data.comment}
                             onChange={(e) => setData('comment', e.target.value)}
                             placeholder={t('serviceFeedback.commentPlaceholder')}
-                            className="mt-1.5 block w-full rounded-lg border-slate-300 text-base shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                            className="mt-1.5 block w-full rounded-lg border-slate-300 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                         />
                         {errors.comment && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.comment}</p>}
                     </div>
@@ -256,7 +256,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                                 maxLength={120}
                                 value={data.client_name}
                                 onChange={(e) => setData('client_name', e.target.value)}
-                                className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                                className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                             />
                             {errors.client_name && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.client_name}</p>}
                         </div>
@@ -272,7 +272,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                                 maxLength={120}
                                 value={data.client_contact}
                                 onChange={(e) => setData('client_contact', e.target.value)}
-                                className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                                className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
                             />
                             {errors.client_contact && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.client_contact}</p>}
                         </div>

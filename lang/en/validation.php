@@ -56,6 +56,6 @@ return [
         'status' => 'status',
         'sort_order' => 'sort order',
     ],
-    'position_already_occupied' => 'This position is already assigned to another employee.',
+    'position_already_occupied' => 'This position is no longer available. Please select another position.',
     'organization_scope_denied' => 'Access denied outside your organization scope.',
 ];

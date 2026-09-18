@@ -632,3 +632,57 @@ export function StarIcon(p: IconProps) {
         </svg>
     );
 }
+
+/** NFC — contactless credential waves */
+export function NfcIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M6 8.32a7.43 7.43 0 010 7.36" />
+            <path d="M9.46 6.21a11.76 11.76 0 010 11.58" />
+            <path d="M12.91 4.1a15.91 15.91 0 01.01 15.8" />
+            <path d="M16.37 2a20.16 20.16 0 010 20" />
+        </svg>
+    );
+}
+
+/** Router — registered reader terminals */
+export function RouterIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <rect x="2" y="14" width="20" height="8" rx="2" />
+            <path d="M6.01 18H6M10.01 18H10M15 10v4" />
+            <path d="M17.84 7.17a4 4 0 00-5.66 0" />
+            <path d="M20.66 4.34a8 8 0 00-11.31 0" />
+        </svg>
+    );
+}
+
+/** Horizontal ellipsis — row action menus. */
+export function MoreHorizontal(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="19" cy="12" r="1" />
+            <circle cx="5" cy="12" r="1" />
+        </svg>
+    );
+}
+
+/** Trend down — paired with TrendingUpIcon on metric deltas. */
+export function TrendingDownIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
+            <polyline points="16 17 22 17 22 11" />
+        </svg>
+    );
+}
+
+/** Minus — a flat, unchanged trend. */
+export function MinusIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M5 12h14" />
+        </svg>
+    );
+}

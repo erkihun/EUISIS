@@ -33,10 +33,10 @@ export default function ResetPassword({ token, email }: { token: string; email: 
         );
 
     const inputCls = (hasError: boolean) =>
-        `w-full rounded-xl border py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+        `w-full rounded-card border py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
             hasError
                 ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
-                : 'border-gray-300 bg-white focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800'
+                : 'border-gray-300 bg-white focus:border-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-800'
         }`;
 
     return (
@@ -55,7 +55,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                     }}
                 />
 
-                <div className="pointer-events-none absolute -top-48 -left-48 h-[600px] w-[600px] rounded-full bg-blue-600/25 blur-[130px]" />
+                <div className="pointer-events-none absolute -top-48 -left-48 h-[600px] w-[600px] rounded-full bg-[color:var(--color-primary)]/25 blur-[130px]" />
                 <div className="pointer-events-none absolute -bottom-32 right-0 h-[400px] w-[400px] rounded-full bg-orange-600/15 blur-[100px]" />
 
                 <div className="pointer-events-none absolute -right-28 top-1/2 -translate-y-1/2">
@@ -130,11 +130,11 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                 <div className="flex flex-1 items-center justify-center px-6 py-10">
                     <div className="w-full max-w-[400px]">
 
-                        <div className="rounded-2xl border border-gray-200 bg-white px-8 py-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white px-8 py-8 dark:border-slate-800 dark:bg-slate-900">
 
                             {/* Heading */}
                             <div className="mb-7">
-                                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-md shadow-blue-600/30">
+                                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-[color:var(--color-primary)] shadow-md shadow-blue-600/30">
                                     <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                                     </svg>
@@ -264,7 +264,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-all hover:bg-blue-700 hover:shadow-blue-600/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                                    className="flex w-full items-center justify-center gap-2 rounded-card bg-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-all hover:bg-[color:var(--color-primary-hover)] hover:shadow-blue-600/30 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                                 >
                                     {processing ? (
                                         <>

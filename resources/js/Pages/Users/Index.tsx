@@ -59,7 +59,7 @@ export default function UsersIndex({
                         can.create ? (
                             <Link
                                 href={route('users.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {t('users.createUser')}
@@ -77,7 +77,7 @@ export default function UsersIndex({
                 </div>
             )}
 
-            <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 {users.length === 0 ? (
                     <div className="p-6">
                         <EmptyState title={t('users.noUsers')} description="" />
@@ -96,7 +96,7 @@ export default function UsersIndex({
                                     ].map((h) => (
                                         <th
                                             key={h}
-                                            className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
+                                            className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
                                         >
                                             {h}
                                         </th>
@@ -151,7 +151,7 @@ export default function UsersIndex({
                                                 {u.can.update && (
                                                     <Link
                                                         href={route('users.edit', u.id)}
-                                                        className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                                                     >
                                                         {t('common.edit')}
                                                     </Link>

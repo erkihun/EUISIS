@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Web\NfcAdminController;
+use App\Http\Controllers\Web\NfcManagementController;
+use App\Http\Controllers\Web\NfcTerminalController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
 use App\Http\Controllers\ProviderPortal\ProviderDashboardController;
 use App\Http\Controllers\ProviderPortal\ProviderFoodOrderController;
@@ -576,6 +579,24 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/id-cards/{card}/export/png/front', [IdCardExportController::class, 'exportFrontPng'])->name('id-cards.export.png.front');
     Route::get('/id-cards/{card}/export/png/back', [IdCardExportController::class, 'exportBackPng'])->name('id-cards.export.png.back');
     Route::get('/id-cards/{card}/export/png/both', [IdCardExportController::class, 'exportBothPng'])->name('id-cards.export.png.both');
+
+    // NFC credentials — same admin gate as the ID cards they belong to.
+    Route::get('/id-cards/{card}/nfc/provision', [NfcManagementController::class, 'provisionForm'])->name('nfc.provision.create');
+    Route::post('/id-cards/{card}/nfc', [NfcManagementController::class, 'provision'])->name('nfc.provision');
+    Route::post('/id-cards/{card}/nfc/{credential}/{action}', [NfcManagementController::class, 'transition'])->name('nfc.transition');
+
+    // NFC Management
+    Route::get('/nfc-management', [NfcAdminController::class, 'dashboard'])->name('nfc-management.dashboard');
+    Route::get('/nfc-management/credentials', [NfcAdminController::class, 'credentials'])->name('nfc-management.credentials.index');
+    Route::get('/nfc-management/credentials/{credential}', [NfcAdminController::class, 'credential'])->name('nfc-management.credentials.show');
+    Route::get('/nfc-management/logs', [NfcAdminController::class, 'logs'])->name('nfc-management.logs.index');
+    Route::get('/nfc-management/terminals', [NfcTerminalController::class, 'index'])->name('nfc-management.terminals.index');
+    Route::get('/nfc-management/terminals/create', [NfcTerminalController::class, 'create'])->name('nfc-management.terminals.create');
+    Route::post('/nfc-management/terminals', [NfcTerminalController::class, 'store'])->name('nfc-management.terminals.store');
+    Route::get('/nfc-management/terminals/{terminal}', [NfcTerminalController::class, 'show'])->name('nfc-management.terminals.show');
+    Route::get('/nfc-management/terminals/{terminal}/edit', [NfcTerminalController::class, 'edit'])->name('nfc-management.terminals.edit');
+    Route::put('/nfc-management/terminals/{terminal}', [NfcTerminalController::class, 'update'])->name('nfc-management.terminals.update');
+    Route::delete('/nfc-management/terminals/{terminal}', [NfcTerminalController::class, 'destroy'])->name('nfc-management.terminals.destroy');
 
     // Card Requests
     Route::get('/card-requests', [CardRequestController::class, 'index'])->name('card-requests.index');

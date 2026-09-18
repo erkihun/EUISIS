@@ -19,7 +19,7 @@ type Props = {
     statuses: string[];
 };
 
-const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
 export default function MyGrievances({ grievances, filters, statuses }: Props): JSX.Element {
     const { locale, t } = useLocale();
@@ -31,7 +31,7 @@ export default function MyGrievances({ grievances, filters, statuses }: Props): 
                 <PageHeader
                     title={t('grievances.myGrievances')}
                     actions={
-                        <Link href={route('grievances.create')} className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        <Link href={route('grievances.create')} className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                             {t('grievances.submitGrievance')}
                         </Link>
                     }
@@ -50,7 +50,7 @@ export default function MyGrievances({ grievances, filters, statuses }: Props): 
                     </select>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>
@@ -63,7 +63,7 @@ export default function MyGrievances({ grievances, filters, statuses }: Props): 
                             {grievances.data.map(g => (
                                 <tr key={g.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                                     <td className="px-4 py-3">
-                                        <Link href={route('grievances.show', g.id)} className="font-mono text-blue-600 hover:underline dark:text-blue-400">{g.reference_number}</Link>
+                                        <Link href={route('grievances.show', g.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{g.reference_number}</Link>
                                     </td>
                                     <td className="px-4 py-3 max-w-xs truncate text-gray-700 dark:text-slate-200">{g.subject}</td>
                                     <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{(am ? g.category?.name_am : null) ?? g.category?.name_en ?? '-'}</td>

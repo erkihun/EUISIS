@@ -12,12 +12,12 @@ export default function CodeGenerationLogsTable({ logs }: { logs: CodeGeneration
     const { t } = useLocale();
 
     return (
-        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-x-auto rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             <table className="min-w-full text-left text-sm">
                 <thead className="bg-gray-50 dark:bg-slate-950">
                     <tr>
                         {[t('codeRules.previewCode'), t('codeRules.sequenceNumber'), t('codeRules.generatedBy'), t('codeRules.generatedAt')].map((heading) => (
-                            <th key={heading} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                            <th key={heading} className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">
                                 {heading}
                             </th>
                         ))}

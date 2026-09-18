@@ -50,7 +50,7 @@ export default function RemoveRelationDialog({
                     {t('hierarchyVersions.removeRelationWarning')}
                 </p>
                 {relation && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200">
+                    <div className="rounded-panel border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200">
                         <div>{relation.parent_organization?.name_en ?? '-'}</div>
                         <div className="mt-1">{relation.child_organization?.name_en ?? '-'}</div>
                     </div>
@@ -61,7 +61,7 @@ export default function RemoveRelationDialog({
                 <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className="rounded-card border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                 >
                     {t('common.cancel')}
                 </button>
@@ -69,7 +69,7 @@ export default function RemoveRelationDialog({
                     type="button"
                     onClick={confirmRemove}
                     disabled={form.processing}
-                    className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+                    className="rounded-card bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
                 >
                     {form.processing ? t('common.saving') : t('hierarchyVersions.removeRelation')}
                 </button>

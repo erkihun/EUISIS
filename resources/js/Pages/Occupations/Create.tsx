@@ -24,7 +24,7 @@ export default function OccupationsCreate() {
     });
 
     const inputClassName =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -36,7 +36,7 @@ export default function OccupationsCreate() {
             <Head title={t('occupations.createOccupation')} />
 
             <form
-                className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                className="overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900"
                 onSubmit={submit}
             >
                 <div className="border-b border-gray-200 px-6 py-4 dark:border-slate-800">
@@ -105,7 +105,7 @@ export default function OccupationsCreate() {
                         {t('common.cancel')}
                     </Link>
                     <button
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         type="submit"
                         disabled={form.processing}
                     >

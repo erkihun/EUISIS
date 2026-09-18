@@ -68,7 +68,7 @@ export default function EditHierarchyVersionTree({
                         <div className="flex flex-wrap items-center gap-2">
                             <Link
                                 href={route('hierarchy-versions.tree', { hierarchyVersion: version.id })}
-                                className="rounded-xl border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                className="rounded-card border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                             >
                                 {t('hierarchyVersions.viewTree')}
                             </Link>
@@ -76,7 +76,7 @@ export default function EditHierarchyVersionTree({
                                 <button
                                     type="button"
                                     onClick={() => setRelationModal({ mode: 'create', relationId: null, parentId: '' })}
-                                    className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="rounded-card bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     {t('hierarchyVersions.addRelation')}
                                 </button>
@@ -101,7 +101,7 @@ export default function EditHierarchyVersionTree({
                 />
 
                 <section className="space-y-4">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="mb-4 flex items-center justify-between gap-3">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">

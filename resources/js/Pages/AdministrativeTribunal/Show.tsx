@@ -20,7 +20,7 @@ type TribunalCase = {
 
 type Props = { case: TribunalCase; can: { update: boolean } };
 
-const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
 
 export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
@@ -39,7 +39,7 @@ export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
             <Head title={tc.case_number} />
 
             <div className="space-y-6">
-                <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                         <div>
                             <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('grievances.caseNumber')}</dt>
@@ -57,7 +57,7 @@ export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
                 </div>
 
                 {tc.grievance && (
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="mb-4 text-sm font-semibold uppercase text-gray-500 dark:text-slate-400">{t('grievances.grievance')}</h3>
                         <p className="font-mono text-xs text-gray-400 mb-1">{tc.grievance.reference_number}</p>
                         <p className="text-sm font-medium text-gray-900 dark:text-slate-100 mb-2">{tc.grievance.subject}</p>
@@ -66,7 +66,7 @@ export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
                 )}
 
                 {can.update && (
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-slate-300">{t('common.update')}</h3>
                         <form onSubmit={e => { e.preventDefault(); patch(route('tribunal-cases.update', tc.id)); }} className="space-y-4">
                             <div>
@@ -92,7 +92,7 @@ export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
                                 <textarea rows={4} className={inputCls} value={data.decision_summary} onChange={e => setData('decision_summary', e.target.value)} />
                             </div>
                             <div className="flex justify-end">
-                                <button type="submit" disabled={processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                                <button type="submit" disabled={processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50">
                                     {t('common.save')}
                                 </button>
                             </div>

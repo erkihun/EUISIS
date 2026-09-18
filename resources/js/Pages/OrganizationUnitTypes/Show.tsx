@@ -32,7 +32,7 @@ export default function OrganizationUnitTypesShow({ type }: { type: OrgUnitType 
                         type.can.update ? (
                             <Link
                                 href={route('organization-unit-types.edit', type.id)}
-                                className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                                className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('common.edit')}
                             </Link>
@@ -44,7 +44,7 @@ export default function OrganizationUnitTypesShow({ type }: { type: OrgUnitType 
             <Head title={type.name_en} />
 
             <div className="mx-auto max-w-2xl space-y-6">
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <dl className="grid grid-cols-2 gap-4 text-sm">
                         <div>
                             <dt className="font-medium text-gray-500 dark:text-slate-400">{t('common.code')}</dt>

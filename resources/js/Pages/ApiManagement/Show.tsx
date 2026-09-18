@@ -79,7 +79,7 @@ export default function ApiManagementShow({
     });
 
     const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function toggleScope(scope: string) {
         form.setData(
@@ -130,7 +130,7 @@ export default function ApiManagementShow({
 
             {/* The plaintext token exists only in this one response. */}
             {flash?.generated_token && (
-                <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40">
+                <div className="mb-4 rounded-card border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40">
                     <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">{t('apiManagement.copyTokenNow')}</p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                         <code className="min-w-0 flex-1 break-all rounded-lg bg-white px-3 py-2 font-mono text-xs text-gray-900 dark:bg-slate-950 dark:text-slate-100">
@@ -155,12 +155,12 @@ export default function ApiManagementShow({
             )}
 
             <div className="mb-4">
-                <Link href={route('api-management.index')} className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                     &larr; {t('apiManagement.title')}
                 </Link>
             </div>
 
-            <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
                     {can.update && (
                         <button
@@ -240,7 +240,7 @@ export default function ApiManagementShow({
 
                         <p className="text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.scopeChangeHint')}</p>
 
-                        <button type="submit" disabled={form.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                        <button type="submit" disabled={form.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                             {t('common.save')}
                         </button>
                     </form>
@@ -283,7 +283,7 @@ export default function ApiManagementShow({
                 )}
             </section>
 
-            <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="mb-1 font-semibold text-gray-900 dark:text-slate-100">
                     {t('apiManagement.assignedEndpoints')}
                 </h3>
@@ -332,21 +332,21 @@ export default function ApiManagementShow({
                 )}
             </section>
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.apiTokens')}</h3>
                     {can.createTokens && (
                         <button
                             type="button"
                             onClick={() => router.post(route('api-management.tokens.store', application.id), { name: application.code })}
-                            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                         >
                             {t('apiManagement.generateToken')}
                         </button>
                     )}
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-gray-100 dark:border-slate-800">
+                <div className="overflow-x-auto rounded-card border border-gray-100 dark:border-slate-800">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>

@@ -51,7 +51,7 @@ export default function HierarchyTree({
 
     if (filteredNodes.length === 0) {
         return (
-            <div className="rounded-xl border border-dashed border-gray-300 px-6 py-10 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
+            <div className="rounded-card border border-dashed border-gray-300 px-6 py-10 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
                 {query.trim().length > 0
                     ? t('hierarchyVersions.noMatchingOrganizationsFound')
                     : t('hierarchyVersions.noRelationsFound')}

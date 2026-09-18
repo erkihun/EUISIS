@@ -192,7 +192,7 @@ export default function IdCardFront({
                 'relative overflow-hidden shadow-xl',
                 template === 'modern' ? 'rounded-[1.25rem] ring-1 ring-white/20' : '',
                 template === 'minimal' ? 'rounded-lg ring-1 ring-white/25' : '',
-                template === 'classic' ? 'rounded-xl' : '',
+                template === 'classic' ? 'rounded-card' : '',
             ].join(' ')}
             style={{
                 aspectRatio: `${dimensions.widthMm} / ${dimensions.heightMm}`,

@@ -154,7 +154,7 @@ export default function OrganizationTreePreview({
     }
 
     return (
-        <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex h-full flex-col rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-slate-800">
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
@@ -198,7 +198,7 @@ export default function OrganizationTreePreview({
             {availableVersions.length > 1 && onVersionChange && (
                 <div className="px-3 pt-2">
                     <select
-                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 px-2 text-xs text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 px-2 text-xs text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                         value={selectedVersion?.id ?? ''}
                         onChange={(e) => onVersionChange(e.target.value)}
                         aria-label={t('hierarchyVersions.selectedHierarchyVersion')}
@@ -219,7 +219,7 @@ export default function OrganizationTreePreview({
                     <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
                     <input
                         type="text"
-                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
+                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
                         placeholder={t('organizationUnits.searchOrganizations')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}

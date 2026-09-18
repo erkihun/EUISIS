@@ -68,7 +68,7 @@ export default function OrganizationTreeRow({ node, expanded, onToggle, can, del
                             onClick={() => onToggle(node.id)}
                             aria-expanded={expanded}
                             aria-label={expanded ? 'Collapse organization' : 'Expand organization'}
-                            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:bg-slate-800 dark:hover:text-blue-300"
+                            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-blue-300 hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:border-slate-700 dark:text-slate-300 dark:hover:border-[color:var(--color-primary)] dark:hover:bg-slate-800 dark:hover:text-[color:var(--color-primary-hover)]"
                         >
                             {expanded ? (
                                 <ChevronDown className="h-3.5 w-3.5" />
@@ -85,7 +85,7 @@ export default function OrganizationTreeRow({ node, expanded, onToggle, can, del
                     )}
                     <Link
                         href={route('organizations.show', node.id)}
-                        className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                     >
                         {node.code}
                     </Link>

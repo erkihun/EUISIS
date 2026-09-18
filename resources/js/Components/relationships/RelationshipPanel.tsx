@@ -136,7 +136,7 @@ export default function RelationshipPanel({
     const selectCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     return (
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('relationships.title')}</h3>
@@ -148,7 +148,7 @@ export default function RelationshipPanel({
                 </div>
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800">
+            <div className="mt-4 overflow-hidden rounded-card border border-gray-100 dark:border-slate-800">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-slate-950">
                         <tr>
@@ -198,7 +198,7 @@ export default function RelationshipPanel({
                                                 <button
                                                     type="button"
                                                     onClick={() => editingId === row.id ? cancelEdit() : startEdit(row)}
-                                                    className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                                    className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                                 >
                                                     {editingId === row.id ? t('common.cancel') : t('common.edit')}
                                                 </button>
@@ -311,7 +311,7 @@ export default function RelationshipPanel({
                         <button
                             type="submit"
                             disabled={form.processing || (!isEditing && form.data.target_id === '')}
-                            className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                            className="inline-flex items-center justify-center rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         >
                             {isEditing ? t('common.update') : t('relationships.addRelationship')}
                         </button>

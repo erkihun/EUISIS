@@ -11,6 +11,7 @@ import amConfirmations from '@/i18n/am/confirmations';
 import amEntitlements from '@/i18n/am/entitlements';
 import amGradeLevels from '@/i18n/am/gradeLevels';
 import amIdCards from '@/i18n/am/idCards';
+import amNfc from '@/i18n/am/nfc';
 import amIsicActivities from '@/i18n/am/isicActivities';
 import amOccupations from '@/i18n/am/occupations';
 import amOrganizationTypes from '@/i18n/am/organizationTypes';
@@ -55,6 +56,7 @@ import enConfirmations from '@/i18n/en/confirmations';
 import enEntitlements from '@/i18n/en/entitlements';
 import enGradeLevels from '@/i18n/en/gradeLevels';
 import enIdCards from '@/i18n/en/idCards';
+import enNfc from '@/i18n/en/nfc';
 import enIsicActivities from '@/i18n/en/isicActivities';
 import enOccupations from '@/i18n/en/occupations';
 import enOrganizationTypes from '@/i18n/en/organizationTypes';
@@ -108,6 +110,7 @@ const translations: Record<Locale, TranslationTree> = {
         entitlements: enEntitlements,
         gradeLevels: enGradeLevels,
         idCards: { ...((en.idCards as TranslationTree | undefined) ?? {}), ...enIdCards },
+        nfc: enNfc,
         isicActivities: enIsicActivities,
         occupations: enOccupations,
         apiManagement: enApiManagement,
@@ -155,6 +158,7 @@ const translations: Record<Locale, TranslationTree> = {
         entitlements: amEntitlements,
         gradeLevels: amGradeLevels,
         idCards: { ...(((am as { idCards?: TranslationTree }).idCards) ?? {}), ...amIdCards },
+        nfc: amNfc,
         isicActivities: amIsicActivities,
         occupations: amOccupations,
         apiManagement: amApiManagement,

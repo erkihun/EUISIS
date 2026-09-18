@@ -11,6 +11,7 @@ use App\Actions\Transfers\RequestEmployeeTransferAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
+use App\Enums\EmploymentType;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Http\Controllers\Controller;
@@ -65,6 +66,7 @@ class EmployeeController extends Controller
         $selectedPosition = null;
         $selectedOrganizationId = $request->string('organization_id')->toString()
             ?: ($isOrganizationScoped ? $organizations->first()?->id : null);
+        $selectedOrganizationUnitId = $request->string('organization_unit_id')->toString() ?: null;
         $selectedPositionId = $request->string('position_id')->toString() ?: null;
 
         if ($selectedOrganizationId !== null) {
@@ -98,6 +100,48 @@ class EmployeeController extends Controller
             }
         }
 
+        if ($selectedPositionId !== null && $selectedPosition === null) {
+            $selectedPositionQuery = Position::query()
+                ->where('is_active', true)
+                ->whereKey($selectedPositionId);
+            $organizationScopeService->applyOrganizationScope($selectedPositionQuery, $user);
+            $selectedPosition = $selectedPositionQuery->first([
+                'id', 'job_position_code', 'title_en', 'title_am', 'organization_id', 'organization_unit_id',
+            ]);
+
+            if ($selectedPosition === null) {
+                abort(403);
+            }
+        }
+
+        if ($selectedOrganizationUnitId !== null) {
+            $unitOrganizationId = OrganizationUnit::query()
+                ->whereKey($selectedOrganizationUnitId)
+                ->value('organization_id');
+
+            if ($unitOrganizationId === null || ! $organizationScopeService->canAccess($user, $unitOrganizationId)) {
+                abort(403);
+            }
+        }
+
+        $organizationUnitOptionsQuery = OrganizationUnit::query()
+            ->where('status', OrganizationUnitStatus::Active->value)
+            ->whereNull('deleted_at')
+            ->when($selectedOrganizationId !== null, fn ($query) => $query->where('organization_id', $selectedOrganizationId))
+            ->orderBy('name_en');
+        $organizationScopeService->applyOrganizationScope($organizationUnitOptionsQuery, $user);
+
+        $positionOptionsQuery = Position::query()
+            ->where('is_active', true)
+            ->whereNull('deleted_at')
+            ->when($selectedOrganizationId !== null, fn ($query) => $query->where('organization_id', $selectedOrganizationId))
+            ->when($selectedOrganizationUnitId !== null, fn ($query) => $query->where('organization_unit_id', $selectedOrganizationUnitId))
+            ->orderBy('title_en');
+        $organizationScopeService->applyOrganizationScope($positionOptionsQuery, $user);
+
+        $employmentType = $request->string('employment_type')->toString();
+        $status = $request->string('status')->toString();
+
         $employeesPaginated = Employee::query()
             ->with(['currentAssignment.organization', 'currentAssignment.organizationUnit', 'currentAssignment.position'])
             ->withCount('employeeDuplicateFlags')
@@ -108,6 +152,10 @@ class EmployeeController extends Controller
             ->when(
                 $selectedOrganizationId !== null,
                 fn ($query) => $query->whereHas('currentAssignment', fn ($assignmentQuery) => $assignmentQuery->where('organization_id', $selectedOrganizationId))
+            )
+            ->when(
+                $selectedOrganizationUnitId !== null,
+                fn ($query) => $query->whereHas('currentAssignment', fn ($assignmentQuery) => $assignmentQuery->where('organization_unit_id', $selectedOrganizationUnitId))
             )
             ->when(
                 $selectedPosition !== null,
@@ -121,7 +169,8 @@ class EmployeeController extends Controller
                         ->orWhere('phone', ci_like_operator(), "%{$search}%");
                 });
             })
-            ->when($request->string('status')->toString() !== '', fn ($query) => $query->where('status', $request->string('status')->toString()))
+            ->when(in_array($employmentType, EmploymentType::values(), true), fn ($query) => $query->where('employment_type', $employmentType))
+            ->when($status !== '', fn ($query) => $query->where('status', $status))
             ->orderBy('full_name')
             ->paginate(50)
             ->withQueryString();
@@ -140,6 +189,32 @@ class EmployeeController extends Controller
                 // route re-checks this regardless of what the client does.
                 'occupancy_status' => $this->positionIsOccupied($selectedPosition->id) ? 'occupied' : 'vacant',
             ] : null,
+            'organizations' => $organizations->map(fn (Organization $organization): array => [
+                'id' => $organization->id,
+                'code' => $organization->code,
+                'name_en' => $organization->name_en,
+                'name_am' => $organization->name_am,
+            ])->values(),
+            'organizationUnits' => $organizationUnitOptionsQuery
+                ->get(['id', 'organization_id', 'code', 'name_en', 'name_am'])
+                ->map(fn (OrganizationUnit $unit): array => [
+                    'id' => $unit->id,
+                    'organization_id' => $unit->organization_id,
+                    'code' => $unit->code,
+                    'name_en' => $unit->name_en,
+                    'name_am' => $unit->name_am,
+                ]),
+            'positions' => $positionOptionsQuery
+                ->get(['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am'])
+                ->map(fn (Position $position): array => [
+                    'id' => $position->id,
+                    'organization_id' => $position->organization_id,
+                    'organization_unit_id' => $position->organization_unit_id,
+                    'job_position_code' => $position->job_position_code,
+                    'title_en' => $position->title_en,
+                    'title_am' => $position->title_am,
+                ]),
+            'showOrganizationColumn' => $organizations->count() > 1,
             'employees' => EmployeeResource::collection($employeesPaginated->getCollection())->resolve(),
             'employees_pagination' => [
                 'current_page' => $employeesPaginated->currentPage(),
@@ -147,7 +222,7 @@ class EmployeeController extends Controller
                 'per_page' => $employeesPaginated->perPage(),
                 'total' => $employeesPaginated->total(),
             ],
-            'filters' => $request->only(['search', 'status', 'organization_id', 'position_id']),
+            'filters' => $request->only(['search', 'status', 'organization_id', 'organization_unit_id', 'position_id', 'employment_type']),
             'can' => [
                 'create' => $user?->can('create', Employee::class) ?? false,
             ],
@@ -220,6 +295,14 @@ class EmployeeController extends Controller
 
         $organizationScopeService->applyOrganizationScope($organizationQuery, $user, 'id');
 
+        $availableOrganizations = $organizationQuery->get(['id', 'name_en', 'name_am']);
+
+        if ($selectedOrganizationId === null && $availableOrganizations->count() === 1) {
+            $selectedOrganizationId = $availableOrganizations->first()?->id;
+        }
+
+        $organizationLocked = $selectedOrganizationId !== null && $availableOrganizations->count() === 1;
+
         $organizationUnitQuery = OrganizationUnit::query()
             ->where('status', OrganizationUnitStatus::Active->value)
             ->whereNull('deleted_at')
@@ -238,8 +321,7 @@ class EmployeeController extends Controller
         $organizationScopeService->applyOrganizationScope($positionQuery, $user);
 
         return Inertia::render('Employees/Create', [
-            'organizations' => $organizationQuery
-                ->get(['id', 'name_en']),
+            'organizations' => $availableOrganizations,
             'organizationUnits' => $organizationUnitQuery
                 ->get(['id', 'organization_id', 'name_en', 'name_am', 'code']),
             'hierarchyVersions' => HierarchyVersion::query()->orderByDesc('effective_from')->get(['id', 'version_name', 'status']),
@@ -248,6 +330,7 @@ class EmployeeController extends Controller
             'selectedOrganizationId' => $selectedOrganizationId,
             'selectedOrganizationUnitId' => $selectedOrganizationUnitId,
             'selectedPositionId' => $selectedPositionId,
+            'organizationLocked' => $organizationLocked,
             // Resolved names for the read-only placement summary. Built server
             // side so the display never depends on the record happening to be
             // present in the selectable option lists.

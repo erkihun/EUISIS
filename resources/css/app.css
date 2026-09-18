@@ -19,26 +19,134 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design tokens ─────────────────────────────────────────── */
+/* ── Design tokens ─────────────────────────────────────────────
+ *
+ * Brand: #122170 (institutional navy) and #D12908 (signal red).
+ *
+ * These were previously Tailwind's stock blue-600/orange-600, which is the
+ * single strongest "generic dashboard template" tell in the whole app. The
+ * navy is the identity colour; the red is a SIGNAL, not a decoration — it
+ * marks the one thing on a screen that needs attention (the accent rail on
+ * the header, a destructive confirmation, an overdue queue), and nothing
+ * else. If red appears twice on a page, one of them is wrong.
+ *
+ * `appearance.*` settings can override primary/secondary/accent at runtime
+ * (see AuthenticatedLayout); the values below are the shipped defaults and
+ * must stay in sync with the defaults declared there.
+ */
 :root {
-    --color-primary:       #2563eb;
-    --color-primary-hover: #1d4ed8;
-    --color-primary-light: #dbeafe;
-    --color-accent:        #ea580c;
-    --color-accent-hover:  #c2410c;
-    --color-accent-light:  #ffedd5;
-    --color-success:       #16a34a;
-    --color-warning:       #d97706;
-    --color-danger:        #dc2626;
-    --app-background:      #f9fafb;
+    /* Navy scale — 700 is the brand value. */
+    --color-primary-50:    #eef1fa;
+    --color-primary-100:   #dde3f5;
+    --color-primary-200:   #bcc7eb;
+    --color-primary-300:   #8f9fd8;
+    --color-primary-400:   #5d72bf;
+    --color-primary-500:   #33499f;
+    --color-primary-600:   #1d3084;
+    --color-primary-700:   #122170;
+    --color-primary-800:   #0f1c5c;
+    --color-primary-900:   #0d1749;
+    --color-primary-950:   #070d2c;
+
+    /*
+     * `--color-primary-strong` / `--color-primary-soft` are the two theme
+     * variants; `--color-primary` just picks one. AuthenticatedLayout writes
+     * the two variants (derived from the admin-configurable brand colour) and
+     * deliberately never writes `--color-primary` itself — an inline value
+     * there would outrank the `.dark` rule below and strand dark mode on the
+     * light-theme colour.
+     */
+    --color-primary-strong: #122170;
+    --color-primary-soft:   #5d72bf;
+    --color-primary:        var(--color-primary-strong);
+    /* Navy is already near-black, so hover LIGHTENS rather than darkens —
+       darkening reads as "disabled" against a white surface. */
+    --color-primary-hover:  #1d3084;
+    --color-primary-light:  #dde3f5;
+
+    --color-accent-strong:  #d12908;
+    --color-accent-soft:    #f76b3c;
+    --color-accent:         var(--color-accent-strong);
+    --color-accent-hover:   #ae2108;
+    --color-accent-light:   #fee2d6;
+
+    --color-success:       #15803d;
+    --color-warning:       #b45309;
+    --color-danger:        #b91c1c;
+
+    /* ── Surfaces ──────────────────────────────────────────────
+       Four levels, used consistently: the page sits one step below the
+       cards on it, so borders stay thin and shadows stay unnecessary. */
+    --app-background:      #f6f7f9;
     --app-foreground:      #0f172a;
+    --app-surface:         #ffffff;
+    --app-surface-muted:   #f1f3f6;
+    --app-border:          #e2e5ea;
+    --app-border-strong:   #cbd2dc;
+    --app-muted-foreground:#5b6472;
+
+    /* ── Sidebar ───────────────────────────────────────────────
+     *
+     * Driven by the `appearance.sidebar_color` setting. Only the background
+     * and foreground are supplied by AuthenticatedLayout (per theme); the
+     * border, muted text and hover wash are mixed from those two here, so an
+     * administrator configures one colour and the rest of the sidebar stays
+     * in proportion to it whatever they pick.
+     *
+     * The literals in the `var()` fallbacks are what renders before the layout
+     * effect runs, and on any page that does not set them.
+     */
+    --sidebar-bg:      var(--sidebar-bg-light, #ffffff);
+    --sidebar-fg:      var(--sidebar-fg-light, #1f2937);
+    --sidebar-border:  color-mix(in srgb, var(--sidebar-fg) 14%, var(--sidebar-bg));
+    --sidebar-muted:   color-mix(in srgb, var(--sidebar-fg) 58%, var(--sidebar-bg));
+    --sidebar-hover:   color-mix(in srgb, var(--sidebar-fg) 8%,  var(--sidebar-bg));
+    /* Selected item. Normally the brand colour; falls back to the sidebar
+       foreground when the sidebar is set to the brand colour itself. */
+    --sidebar-accent:  var(--sidebar-accent-light, var(--color-primary));
+    --sidebar-accent-wash: color-mix(in srgb, var(--sidebar-accent) 12%, var(--sidebar-bg));
+
+    /* ── Radius ────────────────────────────────────────────────
+       One scale, 6–10px. `--radius-card` is the only value a card should
+       use; controls use `--radius-control`. */
+    --radius-control:      6px;
+    --radius-card:         8px;
+    --radius-panel:        10px;
+
+    /* ── Control heights ───────────────────────────────────────
+       Inputs and buttons share these so a filter row lines up without
+       per-page nudging. */
+    --control-h-sm:        30px;
+    --control-h-md:        36px;
+    --control-h-lg:        40px;
+
     /* Ordered by coverage: Windows, Android/Linux, macOS/iOS, then generic. */
     --font-ethiopic: 'Abyssinica SIL', 'Nyala', 'Noto Sans Ethiopic', 'Kefa', system-ui, sans-serif;
 }
 
 .dark {
-    --app-background: #020617;
-    --app-foreground: #f8fafc;
+    --app-background:      #0b1020;
+    --app-foreground:      #f8fafc;
+    --app-surface:         #111827;
+    --app-surface-muted:   #171f31;
+    --app-border:          #1f2937;
+    --app-border-strong:   #334155;
+    --app-muted-foreground:#94a3b8;
+
+    /* On a dark surface the 700 navy has too little contrast to read as an
+       action colour, so the interactive primary steps up the scale. */
+    --color-primary:       var(--color-primary-soft);
+    --color-primary-hover: #8f9fd8;
+    --color-primary-light: #1d3084;
+    --color-accent:        var(--color-accent-soft);
+    --color-accent-hover:  #fb9770;
+
+    /* A light sidebar colour is not carried into dark mode — the layout
+       substitutes the dark surface instead, so the two themes stay coherent
+       whatever is configured. */
+    --sidebar-bg: var(--sidebar-bg-dark, #0b1020);
+    --sidebar-fg: var(--sidebar-fg-dark, #f1f5f9);
+    --sidebar-accent: var(--sidebar-accent-dark, var(--color-primary));
 }
 
 html,
@@ -107,49 +215,33 @@ html[data-table-density="spacious"] th {
     padding-bottom: 1rem !important;
 }
 
-/* ── Card radius (controlled by setting) ────────────────────── */
-html[data-card-radius="sm"] .rounded-2xl,
-html[data-card-radius="sm"] .rounded-xl,
-html[data-card-radius="sm"] .rounded-lg { border-radius: 0.25rem; }
+/* ── Card radius (controlled by setting) ──────────────────────
+ *
+ * This used to be ~30 lines of `!important` overrides matching on Tailwind's
+ * own radius classes, duplicated once without `!important` and again with it.
+ * Because it keyed on `.rounded-lg`, it also resized every button, input and
+ * badge that happened to share that class — the setting was never only about
+ * cards.
+ *
+ * Now it moves the two radius tokens instead. Anything built on
+ * `rounded-card` / `rounded-panel` follows; controls keep their own
+ * `--radius-control` and stay put, which is what "card radius" should mean.
+ */
+html[data-card-radius="sm"]  { --radius-card: 2px;  --radius-panel: 3px;  }
+html[data-card-radius="md"]  { --radius-card: 4px;  --radius-panel: 6px;  }
+html[data-card-radius="lg"]  { --radius-card: 6px;  --radius-panel: 8px;  }
+/* xl is the shipped default — declared for completeness, not as an override. */
+html[data-card-radius="xl"]  { --radius-card: 8px;  --radius-panel: 10px; }
+html[data-card-radius="2xl"] { --radius-card: 12px; --radius-panel: 16px; }
 
-html[data-card-radius="md"] .rounded-2xl,
-html[data-card-radius="md"] .rounded-xl { border-radius: 0.5rem; }
-
-html[data-card-radius="lg"] .rounded-2xl { border-radius: 0.75rem; }
-
-/* xl is the default — no override needed */
-
-html[data-card-radius="2xl"] .rounded-xl { border-radius: 1rem; }
-
-html[data-card-radius="sm"] .rounded-2xl,
-html[data-card-radius="sm"] .rounded-xl,
-html[data-card-radius="sm"] .rounded-lg { border-radius: 0.25rem !important; }
-
-html[data-card-radius="md"] .rounded-2xl,
-html[data-card-radius="md"] .rounded-xl,
-html[data-card-radius="md"] .rounded-lg { border-radius: 0.5rem !important; }
-
-html[data-card-radius="lg"] .rounded-2xl,
-html[data-card-radius="lg"] .rounded-xl,
-html[data-card-radius="lg"] .rounded-lg { border-radius: 0.75rem !important; }
-
-html[data-card-radius="xl"] .rounded-2xl,
-html[data-card-radius="xl"] .rounded-xl,
-html[data-card-radius="xl"] .rounded-lg { border-radius: 1rem !important; }
-
-html[data-card-radius="2xl"] .rounded-2xl,
-html[data-card-radius="2xl"] .rounded-xl,
-html[data-card-radius="2xl"] .rounded-lg { border-radius: 1.5rem !important; }
-
-/* ── Button style (controlled by setting) ───────────────────── */
-html[data-button-style="square"] button,
-html[data-button-style="square"] a[class*="rounded"],
-html[data-button-style="square"] [role="button"] { border-radius: 0 !important; }
-
-html[data-button-style="soft"] button,
-html[data-button-style="soft"] a[class*="rounded-lg"],
-html[data-button-style="soft"] a[class*="rounded-xl"],
-html[data-button-style="soft"] a[class*="rounded-2xl"] { border-radius: 0.5rem; }
+/* ── Button style (controlled by setting) ─────────────────────
+ *
+ * Likewise scoped to the control token rather than blanket-matching every
+ * `button` and `a[class*="rounded"]` on the page, which previously squared off
+ * avatars and pill toggles along with the buttons.
+ */
+html[data-button-style="square"]  { --radius-control: 0; }
+html[data-button-style="soft"]    { --radius-control: 8px; }
 
 /* ── Focus ring ─────────────────────────────────────────────── */
 @layer base {

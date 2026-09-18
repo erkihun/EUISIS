@@ -31,7 +31,7 @@ export default function AlertPanel({ alerts, t }: Props) {
                 <a
                     key={alert.key}
                     href={alert.href}
-                    className={`block rounded-2xl border px-4 py-3 transition hover:shadow-sm ${severityStyles[alert.severity]}`}
+                    className={`block rounded-panel border px-4 py-3 transition hover: ${severityStyles[alert.severity]}`}
                 >
                     <div className="flex items-start justify-between gap-4">
                         <div>

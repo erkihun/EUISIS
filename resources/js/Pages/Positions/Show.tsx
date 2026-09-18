@@ -28,7 +28,7 @@ export default function PositionsShow({ position, movementHistory }: { position:
                     actions={
                         <div className="flex gap-3">
                             {position.can?.move && <Link href={route('positions.move', position.id)} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">{t('positions.move')}</Link>}
-                            {position.can?.update && <Link href={route('positions.edit', position.id)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">{t('common.edit')}</Link>}
+                            {position.can?.update && <Link href={route('positions.edit', position.id)} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.edit')}</Link>}
                             {position.can?.archive && position.is_active && <button type="button" onClick={() => router.delete(route('positions.archive', position.id))} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">{t('positions.archivePosition')}</button>}
                             {position.can?.restore && !position.is_active && <button type="button" onClick={() => router.post(route('positions.restore', position.id))} className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">{t('positions.restorePosition')}</button>}
                         </div>
@@ -38,7 +38,7 @@ export default function PositionsShow({ position, movementHistory }: { position:
         >
             <Head title={standardName} />
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
                     <div className="grid gap-4 md:grid-cols-2 text-sm">
                         <div><div className="text-xs text-gray-500 dark:text-slate-400">{t('positions.jobPositionCode')}</div><div className="mt-1 font-mono">{position.job_position_code}</div></div>
                         <div><div className="text-xs text-gray-500 dark:text-slate-400">{t('positions.oldCode')}</div><div className="mt-1 font-mono">{position.old_code ?? '—'}</div></div>
@@ -53,13 +53,13 @@ export default function PositionsShow({ position, movementHistory }: { position:
                         <div><div className="text-xs text-gray-500 dark:text-slate-400">{t('positions.updatedAt')}</div><div className="mt-1"><LocalizedDateDisplay value={position.updated_at} withTime /></div></div>
                     </div>
                 </section>
-                <aside className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <aside className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="text-xs text-gray-500 dark:text-slate-400">{t('common.count')}</div>
                     <div className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">{position.assignments_count ?? 0}</div>
                 </aside>
             </div>
 
-            <section className="mt-6 rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <section className="mt-6 rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <div className="border-b border-gray-200 px-5 py-4 dark:border-slate-800">
                     <h2 className="font-semibold text-gray-900 dark:text-slate-100">{t('positions.movementHistory')}</h2>
                 </div>

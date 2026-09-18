@@ -58,10 +58,10 @@ function DashboardCard({
     );
 
     const className =
-        'block rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900';
+        'block rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900';
 
     return href ? (
-        <Link href={href} className={`${className} transition hover:border-blue-400 hover:shadow-sm`}>
+        <Link href={href} className={`${className} transition hover:border-blue-400 hover:`}>
             {body}
         </Link>
     ) : (
@@ -108,7 +108,7 @@ export default function ApiManagementIndex({
     }, [assignableEndpoints, form.data.endpoint_ids, form.data.allowed_scopes]);
 
     const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function toggleScope(scope: string) {
         form.setData(
@@ -130,7 +130,7 @@ export default function ApiManagementIndex({
 
             {/* Shown exactly once, immediately after generation. */}
             {flash?.generated_token && (
-                <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40">
+                <div className="mb-4 rounded-card border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40">
                     <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">{t('apiManagement.copyTokenNow')}</p>
                     <code className="mt-2 block break-all rounded-lg bg-white px-3 py-2 font-mono text-xs text-gray-900 dark:bg-slate-950 dark:text-slate-100">
                         {flash.generated_token}
@@ -139,7 +139,7 @@ export default function ApiManagementIndex({
             )}
 
             <div className="mb-4">
-                <Link href={route('system-settings.index')} className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                <Link href={route('system-settings.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                     &larr; {t('settings.title')}
                 </Link>
             </div>
@@ -227,7 +227,7 @@ export default function ApiManagementIndex({
                     <button
                         type="button"
                         onClick={() => setShowForm((value) => !value)}
-                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                     >
                         {t('apiManagement.newApplication')}
                     </button>
@@ -235,7 +235,7 @@ export default function ApiManagementIndex({
             </div>
 
             {showForm && can.create && (
-                <form onSubmit={submit} className="mb-6 space-y-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <form onSubmit={submit} className="mb-6 space-y-4 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         <input className={inputCls} placeholder={t('apiManagement.name')} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                         <input className={inputCls} placeholder={t('apiManagement.code')} value={form.data.code} onChange={(e) => form.setData('code', e.target.value)} />
@@ -293,13 +293,13 @@ export default function ApiManagementIndex({
                         <p className="text-xs text-red-600">{Object.values(form.errors).join(' ')}</p>
                     )}
 
-                    <button type="submit" disabled={form.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                    <button type="submit" disabled={form.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                         {t('common.save')}
                     </button>
                 </form>
             )}
 
-            <section className="overflow-x-auto rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <section className="overflow-x-auto rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-slate-950">
                         <tr>
@@ -320,7 +320,7 @@ export default function ApiManagementIndex({
                         ) : applications.map((application) => (
                             <tr key={application.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
                                 <td className="px-4 py-2">
-                                    <Link href={route('api-management.show', application.id)} className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                    <Link href={route('api-management.show', application.id)} className="font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                         {application.name}
                                     </Link>
                                     <span className="ml-2 font-mono text-[11px] text-gray-400">{application.code}</span>

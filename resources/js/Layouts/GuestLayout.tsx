@@ -24,7 +24,7 @@ export default function GuestLayout({ children }: PropsWithChildren) {
                 </span>
             </Link>
 
-            <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white px-8 py-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="w-full max-w-sm rounded-panel border border-gray-200 bg-white px-8 py-8 dark:border-slate-800 dark:bg-slate-900">
                 {children}
             </div>
 

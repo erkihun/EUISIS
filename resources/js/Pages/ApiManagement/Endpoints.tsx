@@ -82,7 +82,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
             <Head title={t('apiManagement.endpointCatalog')} />
 
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <Link href={route('api-management.index')} className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                     &larr; {t('apiManagement.title')}
                 </Link>
 
@@ -91,7 +91,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                         type="button"
                         onClick={sync}
                         disabled={syncing}
-                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                     >
                         {syncing ? t('common.loading') : t('apiManagement.syncEndpoints')}
                     </button>
@@ -125,7 +125,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                 </select>
             </div>
 
-            <section className="overflow-x-auto rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <section className="overflow-x-auto rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-slate-800/60">
                         <tr>
@@ -162,7 +162,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                     <td className="px-3 py-2">
                                         <Link
                                             href={route('api-management.endpoints.show', endpoint.id)}
-                                            className="font-mono text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                            className="font-mono text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                         >
                                             {endpoint.uri}
                                         </Link>

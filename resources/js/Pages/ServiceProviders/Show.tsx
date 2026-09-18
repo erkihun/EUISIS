@@ -69,7 +69,7 @@ export default function ServiceProvidersShow({
         >
             <Head title={provider.name} />
             <div className="grid gap-6 xl:grid-cols-[1fr_1.5fr]">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-start justify-between gap-4">
                         <p className="font-mono text-sm font-medium text-gray-900 dark:text-slate-100">
                             {provider.code}
@@ -102,7 +102,7 @@ export default function ServiceProvidersShow({
                     </dl>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('providers.recentProviderTransactions')}
                     </h3>
@@ -113,7 +113,7 @@ export default function ServiceProvidersShow({
                             transactions.map((transaction) => (
                                 <div
                                     key={transaction.id}
-                                    className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950"
+                                    className="rounded-card border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950"
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <p className="text-sm font-medium text-gray-800 dark:text-slate-200">

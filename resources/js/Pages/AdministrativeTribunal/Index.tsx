@@ -22,7 +22,7 @@ type Props = {
     statuses: string[];
 };
 
-const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
 export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.Element {
     const { locale, t } = useLocale();
@@ -42,7 +42,7 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
                     </select>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>
@@ -55,7 +55,7 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
                             {cases.data.map(c => (
                                 <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                                     <td className="px-4 py-3">
-                                        <Link href={route('tribunal-cases.show', c.id)} className="font-mono text-blue-600 hover:underline dark:text-blue-400">{c.case_number}</Link>
+                                        <Link href={route('tribunal-cases.show', c.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{c.case_number}</Link>
                                     </td>
                                     <td className="px-4 py-3 text-gray-700 dark:text-slate-200 max-w-xs truncate">
                                         {c.grievance?.subject ?? '-'}

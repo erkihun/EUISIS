@@ -41,7 +41,7 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                 <PageHeader
                     title={t('cafeteria.specialDays')}
                     actions={can.create ? (
-                        <Link href={route('cafeteria.special-days.create')} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        <Link href={route('cafeteria.special-days.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                             + {t('cafeteria.addSpecialDay')}
                         </Link>
                     ) : undefined}
@@ -53,10 +53,10 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                 <form className="flex gap-3" onSubmit={submit}>
                     <input name="search" defaultValue={filters.search ?? ''} placeholder={t('common.search')} className={inputCls} />
                     <input name="year" type="number" defaultValue={filters.year ?? ''} placeholder="Year" className={`${inputCls} w-24`} />
-                    <button type="submit" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">{t('common.filter')}</button>
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.filter')}</button>
                 </form>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {days.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
@@ -86,16 +86,16 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${d.is_subsidy_day ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${d.is_subsidy_day ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-400'}`}>
                                                     {d.is_subsidy_day ? t('cafeteria.isSubsidyDay') : t('common.no')}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex justify-end gap-2">
                                                     {d.deleted_at
-                                                        ? d.can.restore && <button onClick={() => handleRestore(d.id)} className="text-sm text-blue-600 hover:underline dark:text-blue-400">{t('common.restore')}</button>
+                                                        ? d.can.restore && <button onClick={() => handleRestore(d.id)} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.restore')}</button>
                                                         : <>
-                                                            {d.can.update && <Link href={route('cafeteria.special-days.edit', d.id)} className="text-sm text-blue-600 hover:underline dark:text-blue-400">{t('common.edit')}</Link>}
+                                                            {d.can.update && <Link href={route('cafeteria.special-days.edit', d.id)} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.edit')}</Link>}
                                                             {d.can.archive && <button onClick={() => handleArchive(d.id)} className="text-sm text-red-500 hover:underline">{t('common.delete')}</button>}
                                                         </>
                                                     }

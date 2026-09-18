@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import StatusBadge from '@/Components/StatusBadge';
 import UserAvatar from '@/Components/UserAvatar';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import { Head, Link, router, useForm } from '@inertiajs/react';
@@ -10,19 +11,19 @@ import type { PageProps } from '@/types';
 
 const COUNTRY_CODES = [
     { code: '+251', label: '🇪🇹 +251' },
-    { code: '+1',   label: '🇺🇸 +1'   },
-    { code: '+44',  label: '🇬🇧 +44'  },
+    { code: '+1', label: '🇺🇸 +1'   },
+    { code: '+44', label: '🇬🇧 +44'  },
     { code: '+971', label: '🇦🇪 +971' },
     { code: '+966', label: '🇸🇦 +966' },
     { code: '+254', label: '🇰🇪 +254' },
     { code: '+255', label: '🇹🇿 +255' },
     { code: '+256', label: '🇺🇬 +256' },
-    { code: '+20',  label: '🇪🇬 +20'  },
-    { code: '+27',  label: '🇿🇦 +27'  },
-    { code: '+49',  label: '🇩🇪 +49'  },
-    { code: '+33',  label: '🇫🇷 +33'  },
-    { code: '+86',  label: '🇨🇳 +86'  },
-    { code: '+91',  label: '🇮🇳 +91'  },
+    { code: '+20', label: '🇪🇬 +20'  },
+    { code: '+27', label: '🇿🇦 +27'  },
+    { code: '+49', label: '🇩🇪 +49'  },
+    { code: '+33', label: '🇫🇷 +33'  },
+    { code: '+86', label: '🇨🇳 +86'  },
+    { code: '+91', label: '🇮🇳 +91'  },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -52,12 +53,12 @@ type Profile = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputCls = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-800';
+const inputCls = 'w-full rounded-card border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-800';
 
 function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: React.ReactNode }) {
     return (
         <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+            <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400">
                 {label}
             </label>
             {children}
@@ -70,7 +71,7 @@ function Field({ label, error, hint, children }: { label: string; error?: string
 function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title: string; subtitle?: string }) {
     return (
         <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-card bg-blue-50 text-[color:var(--color-primary)] dark:bg-blue-950/40 dark:text-[color:var(--color-primary)]">
                 {icon}
             </div>
             <div>
@@ -151,19 +152,15 @@ export default function Edit({
         <AuthenticatedLayout>
             <Head title={t('profile.title')} />
 
-            {/* ── Hero banner ───────────────────────────────────────────── */}
-            <div className="relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 shadow-lg dark:from-blue-700 dark:via-blue-800 dark:to-indigo-900">
-                {/* decorative circles */}
-                <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/5" />
-                <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-white/5" />
-
-                <div className="relative flex flex-col items-center gap-5 px-6 py-10 sm:flex-row sm:items-end sm:py-8">
+            {/* ── Identity header ───────────────────────────────────────── */}
+            <div className="mb-6 overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex flex-col items-center gap-5 px-6 py-6 sm:flex-row sm:items-center">
                     {/* Avatar with camera button */}
                     <div className="group relative shrink-0">
-                        <div className="h-24 w-24 overflow-hidden rounded-2xl ring-4 ring-white/30 sm:h-28 sm:w-28">
+                        <div className="h-20 w-20 overflow-hidden rounded-card ring-1 ring-gray-200 sm:h-24 sm:w-24 dark:ring-slate-700">
                             <UserAvatar src={currentPhoto} name={form.data.name || profile.name} size={112} />
                         </div>
-                        <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-2xl bg-black/0 transition group-hover:bg-black/40">
+                        <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-card bg-black/0 transition group-hover:bg-black/40">
                             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/0 text-white opacity-0 transition group-hover:bg-white/20 group-hover:opacity-100">
                                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -188,28 +185,28 @@ export default function Edit({
 
                     {/* Name / email / roles */}
                     <div className="flex-1 text-center sm:text-left">
-                        <h1 className="text-2xl font-bold text-white">{profile.name}</h1>
-                        <p className="mt-0.5 text-sm text-blue-100">{profile.email}</p>
-                        <div className="mt-3 flex flex-wrap justify-center gap-1.5 sm:justify-start">
+                        <h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">{profile.name}</h1>
+                        <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">{profile.email}</p>
+                        <div className="mt-2.5 flex flex-wrap justify-center gap-1.5 sm:justify-start">
                             {profile.roles.map((role) => (
-                                <span key={role} className="rounded-full bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                                <span
+                                    key={role}
+                                    className="rounded-control bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                >
                                     {role}
                                 </span>
                             ))}
                         </div>
                     </div>
 
-                    {/* Status badge */}
+                    {/* Account status — same badge vocabulary as everywhere else. */}
                     <div className="shrink-0">
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${isActive ? 'bg-green-400/20 text-green-100' : 'bg-red-400/20 text-red-100'}`}>
-                            <span className={`h-2 w-2 rounded-full ${isActive ? 'bg-green-400' : 'bg-red-400'}`} />
-                            {profile.status}
-                        </span>
+                        <StatusBadge status={isActive ? 'active' : 'inactive'} label={profile.status} />
                     </div>
                 </div>
 
                 {form.errors.profile_photo && (
-                    <p className="px-6 pb-3 text-xs text-red-300">{form.errors.profile_photo}</p>
+                    <p className="px-6 pb-3 text-xs text-red-600 dark:text-red-400">{form.errors.profile_photo}</p>
                 )}
             </div>
 
@@ -219,8 +216,8 @@ export default function Edit({
                 {/* ── Sidebar ─────────────────────────────────────────── */}
                 <div className="space-y-4">
                     {/* Account info */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                        <h3 className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <h3 className="mb-4 text-xs font-semibold text-gray-500 dark:text-slate-400">
                             {t('profile.accountSummary')}
                         </h3>
                         <ul className="space-y-3">
@@ -231,9 +228,7 @@ export default function Edit({
                                     </svg>
                                     {t('profile.status')}
                                 </span>
-                                <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isActive ? 'bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-400'}`}>
-                                    {profile.status}
-                                </span>
+                                <StatusBadge status={isActive ? 'active' : 'inactive'} label={profile.status} />
                             </li>
                             <li className="flex items-start justify-between gap-3 text-sm">
                                 <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
@@ -250,7 +245,7 @@ export default function Edit({
                     </div>
 
                     {/* Security notice */}
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
+                    <div className="rounded-panel border border-amber-200 bg-amber-50 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
                         <div className="flex gap-2.5">
                             <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
@@ -267,7 +262,7 @@ export default function Edit({
                 <div className="space-y-6">
 
                     {/* Personal information form */}
-                    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="border-b border-gray-100 px-6 py-5 dark:border-slate-800">
                             <SectionHeader
                                 icon={
@@ -305,7 +300,7 @@ export default function Edit({
                                 </Field>
 
                                 <Field label={t('profile.phoneNumber')} error={form.errors.phone_number}>
-                                    <div className="flex overflow-hidden rounded-xl border border-gray-200 bg-gray-50 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-800/60">
+                                    <div className="flex overflow-hidden rounded-card border border-gray-200 bg-gray-50 focus-within:border-[color:var(--color-primary)] focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-800/60">
                                         <select
                                             className="border-0 bg-transparent py-2.5 pl-3 pr-1 text-sm text-gray-700 focus:outline-none dark:text-slate-300"
                                             value={phoneCountry}
@@ -368,7 +363,7 @@ export default function Edit({
                             </div>
 
                             {mustVerifyEmail && status === 'verification-link-sent' && (
-                                <div className="mt-4 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-950/30 dark:text-green-400">
+                                <div className="mt-4 rounded-card bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-950/30 dark:text-green-400">
                                     {t('profile.verificationLinkSent')}
                                 </div>
                             )}
@@ -376,14 +371,14 @@ export default function Edit({
                             <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
                                 <Link
                                     href={route('dashboard')}
-                                    className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    className="rounded-card border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
                                 >
                                     {t('common.cancel')}
                                 </Link>
                                 <button
                                     type="submit"
                                     disabled={form.processing}
-                                    className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60"
+                                    className="inline-flex items-center gap-2 rounded-card bg-[color:var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                                 >
                                     {form.processing && (
                                         <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -398,7 +393,7 @@ export default function Edit({
                     </div>
 
                     {/* Change password */}
-                    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="border-b border-gray-100 px-6 py-5 dark:border-slate-800">
                             <SectionHeader
                                 icon={

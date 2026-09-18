@@ -131,7 +131,7 @@ export default function OrganizationActionsMenu({ organizationId, can, deletionB
             {open && menuPosition && createPortal(
                 <div
                     ref={menuRef}
-                    className="fixed z-[1000] w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
+                    className="fixed z-[1000] w-48 rounded-card border border-gray-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800"
                     style={{ top: menuPosition.top, left: menuPosition.left }}
                 >
                     {can.createChild && (

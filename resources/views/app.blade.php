@@ -37,17 +37,17 @@
                 border: 3px solid transparent;
             }
             .app-loader-ring::before {
-                border-color: #dbeafe;
+                border-color: #dde3f5;
             }
             html.dark .app-loader-ring::before {
                 border-color: #1e293b;
             }
             .app-loader-ring::after {
-                border-top-color: #2563eb;
+                border-top-color: #122170;
                 animation: app-spin 0.75s linear infinite;
             }
             html.dark .app-loader-ring::after {
-                border-top-color: #60a5fa;
+                border-top-color: #8f9fd8;
             }
             .app-loader-name {
                 font-family: Figtree, ui-sans-serif, system-ui, sans-serif;

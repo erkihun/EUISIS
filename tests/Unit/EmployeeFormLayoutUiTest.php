@@ -111,11 +111,11 @@ test('position context renders read-only values with a Position Selected badge',
     expect($source)
         ->toContain('placementContext ? (')
         ->toContain('<ReadOnlyValue')
-        // The badge is shown in the Employment card header only with context.
+        // The badge is shown in the placement card header only with context.
         ->toContain('aside={placementContext ? <PositionSelectedBadge /> : undefined}')
-        // The three placement selects are suppressed while a position is locked.
-        ->toContain('{!positionLocked && (')
-        ->toContain('disabled={orgLocked}');
+        // The editable placement controls are suppressed while a position is locked.
+        ->toContain('disabled={organizationLocked}')
+        ->toContain('const positionLocked = selectedPositionId !== null');
 });
 
 test('position context offers a Change Position escape hatch and no direct edit', function (): void {
@@ -177,19 +177,20 @@ test('required fields are marked visibly and for screen readers', function (): v
 
 // ── Action bar ────────────────────────────────────────────────────────────
 
-test('both pages expose Save, Save and View, and Cancel in a sticky bar', function (): void {
+test('both pages expose Save and Cancel in a sticky bar', function (): void {
     $layout = employeeFormLayoutSource();
 
     expect($layout)
         ->toContain('sticky bottom-0')
-        ->toContain("t('employees.saveAndView')")
         ->toContain("t('common.cancel')");
 
-    foreach (['Create', 'Edit'] as $page) {
-        expect(employeeFormSource($page))
-            ->toContain('<FormActions')
-            ->toContain('onSaveAndView={saveAndView}');
-    }
+    expect(employeeFormSource('Create'))
+        ->toContain('<FormActions')
+        ->not->toContain('onSaveAndView={saveAndView}');
+
+    expect(employeeFormSource('Edit'))
+        ->toContain('<FormActions')
+        ->toContain('onSaveAndView={saveAndView}');
 });
 
 test('submitting is blocked while a save is in flight', function (): void {

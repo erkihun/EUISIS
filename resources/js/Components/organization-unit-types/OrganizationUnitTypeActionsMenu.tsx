@@ -28,7 +28,7 @@ export default function OrganizationUnitTypeActionsMenu({ type }: Props) {
             {type.can.update && !type.deleted_at && (
                 <Link
                     href={route('organization-unit-types.edit', type.id)}
-                    className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                 >
                     {t('common.edit')}
                 </Link>

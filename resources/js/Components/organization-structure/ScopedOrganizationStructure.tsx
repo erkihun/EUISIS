@@ -144,7 +144,7 @@ function UnitNode({
             {isExpanded && (
                 <div role="group">
                     <p
-                        className="py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400"
+                        className="py-1 text-[10px] font-semibold text-gray-400"
                         style={{ paddingLeft: `${48 + depth * 16}px` }}
                     >
                         {t('organizationUnits.positions')}
@@ -229,13 +229,13 @@ export default function ScopedOrganizationStructure({
     }
 
     return (
-        <div className="flex h-full flex-col rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex h-full flex-col rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-slate-800">
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                     {isScoped ? t('organizationUnits.yourOrganizationStructure') : t('organizations.organizationStructure')}
                 </h2>
                 {selectedPositionId && (
-                    <button type="button" onClick={onClearPosition} className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                    <button type="button" onClick={onClearPosition} className="text-xs text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                         {t('common.clear')}
                     </button>
                 )}
@@ -248,7 +248,7 @@ export default function ScopedOrganizationStructure({
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder={t('organizations.searchStructure')}
-                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     />
                 </div>
             </div>
@@ -277,7 +277,7 @@ export default function ScopedOrganizationStructure({
                             </div>
                             {isExpanded && (
                                 <div role="group">
-                                    <p className="px-10 pt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{t('organizationUnits.organizationUnits')}</p>
+                                    <p className="px-10 pt-2 text-[10px] font-semibold text-gray-400">{t('organizationUnits.organizationUnits')}</p>
                                     {organization.units.length === 0 ? (
                                         <p className="px-10 py-3 text-xs text-gray-400">{t('organizationUnits.noOrganizationUnitsFound')}</p>
                                     ) : organization.units.map((unit) => (

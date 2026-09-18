@@ -143,15 +143,15 @@ function AppearancePreview({ data }: { data: FormShape }) {
 
     return (
         <div className="flex flex-col gap-5 sticky top-4">
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+            <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <p className="mb-4 text-xs font-semibold text-gray-400 dark:text-slate-500">
                     {t('settings.groups.appearancePreview')}
                 </p>
 
                 {/* Color swatches */}
                 <div className="flex flex-wrap gap-2 mb-4">
                     {(['primary_color', 'secondary_color', 'accent_color'] as const).map((key) => (
-                        <div key={key} className="flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 dark:border-slate-700">
+                        <div key={key} className="flex items-center gap-2 rounded-card border border-gray-200 px-3 py-2 dark:border-slate-700">
                             <span
                                 className="h-5 w-5 rounded-full border border-black/10"
                                 style={{ backgroundColor: String(data[key] ?? '#2563EB') }}
@@ -162,7 +162,7 @@ function AppearancePreview({ data }: { data: FormShape }) {
                 </div>
 
                 {/* Sample card */}
-                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950">
+                <div className="rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950">
                     <div className="flex items-start justify-between gap-2">
                         <div>
                             <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('settings.fields.sampleCardTitle')}</p>
@@ -178,14 +178,14 @@ function AppearancePreview({ data }: { data: FormShape }) {
                     <div className="mt-4 flex flex-wrap gap-2">
                         <button
                             type="button"
-                            className="rounded-xl px-4 py-2 text-sm font-medium text-white"
+                            className="rounded-card px-4 py-2 text-sm font-medium text-white"
                             style={{ backgroundColor: String(data.primary_color ?? '#2563EB') }}
                         >
                             {t('common.save')}
                         </button>
                         <button
                             type="button"
-                            className="rounded-xl border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200"
+                            className="rounded-card border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200"
                         >
                             {t('common.cancel')}
                         </button>
@@ -194,11 +194,11 @@ function AppearancePreview({ data }: { data: FormShape }) {
 
                 {/* Theme/density preview */}
                 <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
+                    <div className="rounded-card border border-gray-100 bg-gray-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
                         <p className="text-gray-400 dark:text-slate-500">Theme</p>
                         <p className="font-medium text-gray-800 dark:text-slate-200 capitalize">{String(data.default_theme ?? 'system')}</p>
                     </div>
-                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
+                    <div className="rounded-card border border-gray-100 bg-gray-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-950">
                         <p className="text-gray-400 dark:text-slate-500">Density</p>
                         <p className="font-medium text-gray-800 dark:text-slate-200 capitalize">{String(data.table_density ?? 'comfortable')}</p>
                     </div>
@@ -214,25 +214,25 @@ function BrandingPreview({ data }: { data: FormShape }) {
     const { t } = useLocale();
 
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sticky top-4">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sticky top-4">
+            <p className="mb-4 text-xs font-semibold text-gray-400 dark:text-slate-500">
                 {t('settings.groups.brandingPreview')}
             </p>
             <div className="space-y-3">
-                <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
-                    <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500">{t('settings.tabs.general')}</p>
+                <div className="rounded-card border border-gray-100 bg-gray-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500">{t('settings.tabs.general')}</p>
                     <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">
                         {(data.application_name as string) || 'Application Name'}
                     </p>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
-                    <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500">Short name</p>
+                <div className="rounded-card border border-gray-100 bg-gray-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500">Short name</p>
                     <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">
                         {(data.application_short_name as string) || 'Short Name'}
                     </p>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
-                    <p className="text-[10px] uppercase tracking-wider text-gray-400 dark:text-slate-500">{t('settings.organizationName')}</p>
+                <div className="rounded-card border border-gray-100 bg-gray-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500">{t('settings.organizationName')}</p>
                     <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">
                         {(data.organization_name as string) || 'Organization'}
                     </p>
@@ -253,7 +253,7 @@ function IdCardTemplatesPanel({ canManage }: { canManage: boolean }) {
     const { t } = useLocale();
 
     return (
-        <div className="space-y-3 rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="space-y-3 rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                 {t('settings.templateManager.title')}
             </h3>
@@ -263,7 +263,7 @@ function IdCardTemplatesPanel({ canManage }: { canManage: boolean }) {
             {canManage && (
                 <Link
                     href={route('id-card-templates.index')}
-                    className="inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                    className="inline-flex rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)]"
                 >
                     {t('settings.manageIdCardTemplates')}
                 </Link>
@@ -506,7 +506,7 @@ function GroupFormPanel({
                                             <label
                                                 key={role.id}
                                                 className={[
-                                                    'flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 dark:border-slate-700',
+                                                    'flex items-center gap-2 rounded-card border border-gray-200 px-3 py-2 dark:border-slate-700',
                                                     mfaRolesDisabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
                                                 ].join(' ')}
                                             >
@@ -515,7 +515,7 @@ function GroupFormPanel({
                                                     checked={selectedMfaRoleIds.includes(role.id)}
                                                     disabled={mfaRolesDisabled}
                                                     onChange={() => toggleMfaRole(role.id)}
-                                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600"
+                                                    className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
                                                 />
                                                 <span className="min-w-0 flex-1 truncate text-sm text-gray-800 dark:text-slate-200">
                                                     {role.name}
@@ -589,7 +589,7 @@ function GroupFormPanel({
                                     disabled={readOnly}
                                     autoComplete="new-password"
                                     onChange={(event) => form.setData('default_password_hash_confirmation', event.target.value)}
-                                    className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                                    className="w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                                 />
                                 {form.errors.default_password_hash_confirmation && (
                                     <p className="text-sm text-red-600 dark:text-red-400">
@@ -669,7 +669,7 @@ export default function SystemSettingsIndex({ settingGroups, roles, can }: Props
         >
             <Head title={t('settings.title')} />
 
-            <div className="space-y-0 rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
+            <div className="space-y-0 rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
                 <SettingsTabs tabs={displayTabs} activeTab={activeTab} onSelect={setActiveTab} />
 
                 <div className="p-5 bg-gray-50 dark:bg-slate-950 min-h-[400px]">

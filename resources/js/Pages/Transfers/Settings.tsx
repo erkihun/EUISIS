@@ -31,25 +31,25 @@ export default function TransferSettings({ settings }: Props) {
     const [saving, setSaving] = useState(false);
 
     const cardReprintOptions = [
-        { value: 'no_reprint',      label: t('transfers.cardReprintNoReprint') },
+        { value: 'no_reprint', label: t('transfers.cardReprintNoReprint') },
         { value: 'request_reprint', label: t('transfers.cardReprintRequestReprint') },
-        { value: 'auto_reprint',    label: t('transfers.cardReprintAutoReprint') },
+        { value: 'auto_reprint', label: t('transfers.cardReprintAutoReprint') },
     ];
 
     const serviceRecalcOptions = [
-        { value: 'no_recalculation',               label: t('transfers.serviceRecalcNone') },
-        { value: 'recalculate_from_transfer',       label: t('transfers.serviceRecalcFromTransfer') },
+        { value: 'no_recalculation', label: t('transfers.serviceRecalcNone') },
+        { value: 'recalculate_from_transfer', label: t('transfers.serviceRecalcFromTransfer') },
         { value: 'recalculate_from_effective_date', label: t('transfers.serviceRecalcFromEffective') },
     ];
 
-    const sectionCls = 'rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-5';
+    const sectionCls = 'rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 space-y-5';
     const inputCls   = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-60';
     const labelCls   = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
 
     const tabBarCls = (active: boolean) =>
         `whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             active
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'
                 : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
         }`;
 
@@ -67,10 +67,10 @@ export default function TransferSettings({ settings }: Props) {
     }
 
     const tabDefs: { key: Tab; label: string }[] = [
-        { key: 'rules',         label: t('transfers.tabRules') },
-        { key: 'approval',      label: t('transfers.tabApproval') },
-        { key: 'documents',     label: t('transfers.tabDocuments') },
-        { key: 'override',      label: t('transfers.tabOverride') },
+        { key: 'rules', label: t('transfers.tabRules') },
+        { key: 'approval', label: t('transfers.tabApproval') },
+        { key: 'documents', label: t('transfers.tabDocuments') },
+        { key: 'override', label: t('transfers.tabOverride') },
         { key: 'post_transfer', label: t('transfers.tabPostTransfer') },
     ];
 
@@ -183,7 +183,7 @@ export default function TransferSettings({ settings }: Props) {
                                 <button
                                     type="button"
                                     onClick={() => set('required_documents', [...(form.required_documents ?? []), ''])}
-                                    className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                    className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                 >
                                     + {t('transfers.addDocument')}
                                 </button>
@@ -237,7 +237,7 @@ export default function TransferSettings({ settings }: Props) {
                                         <button
                                             type="button"
                                             onClick={() => set('override_approver_roles', [...(form.override_approver_roles ?? []), ''])}
-                                            className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                            className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                         >
                                             + {t('transfers.addRole')}
                                         </button>
@@ -302,7 +302,7 @@ export default function TransferSettings({ settings }: Props) {
                         <button
                             type="submit"
                             disabled={saving}
-                            className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         >
                             {saving ? t('common.saving') : t('common.save')}
                         </button>

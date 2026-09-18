@@ -37,7 +37,7 @@ export default function LanguageSwitcher() {
                     className={[
                         'rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
                         locale === opt.value
-                            ? 'bg-blue-600 text-white'
+                            ? 'bg-[color:var(--color-primary)] text-white'
                             : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-100',
                     ].join(' ')}
                     aria-pressed={locale === opt.value}

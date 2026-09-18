@@ -67,7 +67,7 @@ export default function Login({
                 />
 
                 {/* Glow orbs */}
-                <div className="pointer-events-none absolute -top-48 -left-48 h-[600px] w-[600px] rounded-full bg-blue-600/25 blur-[130px]" />
+                <div className="pointer-events-none absolute -top-48 -left-48 h-[600px] w-[600px] rounded-full bg-[color:var(--color-primary)]/25 blur-[130px]" />
                 <div className="pointer-events-none absolute -bottom-32 right-0 h-[400px] w-[400px] rounded-full bg-orange-600/15 blur-[100px]" />
                 <div className="pointer-events-none absolute top-1/2 left-1/4 h-64 w-64 -translate-y-1/2 rounded-full bg-blue-400/10 blur-[80px]" />
 
@@ -170,11 +170,11 @@ export default function Login({
                     <div className="w-full max-w-[400px]">
 
                         {/* Form card */}
-                        <div className="rounded-2xl border border-gray-200 bg-white px-8 py-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white px-8 py-8 dark:border-slate-800 dark:bg-slate-900">
 
                             {/* Heading */}
                             <div className="mb-7">
-                                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-600 shadow-md shadow-orange-600/30">
+                                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-orange-600 shadow-md shadow-orange-600/30">
                                     <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                                     </svg>
@@ -187,7 +187,7 @@ export default function Login({
 
                             {/* Status */}
                             {status && (
-                                <div className="mb-5 flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-900/20 dark:text-emerald-400">
+                                <div className="mb-5 flex items-center gap-2.5 rounded-card border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-900/20 dark:text-emerald-400">
                                     <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                                     </svg>
@@ -217,10 +217,10 @@ export default function Login({
                                             autoFocus
                                             onChange={(e) => setData('email', e.target.value)}
                                             placeholder="you@example.com"
-                                            className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+                                            className={`w-full rounded-card border py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
                                                 errors.email
                                                     ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
-                                                    : 'border-gray-300 bg-white focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800'
+                                                    : 'border-gray-300 bg-white focus:border-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-800'
                                             }`}
                                         />
                                     </div>
@@ -263,10 +263,10 @@ export default function Login({
                                             autoComplete="current-password"
                                             onChange={(e) => setData('password', e.target.value)}
                                             placeholder="••••••••"
-                                            className={`w-full rounded-xl border py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+                                            className={`w-full rounded-card border py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
                                                 errors.password
                                                     ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
-                                                    : 'border-gray-300 bg-white focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800'
+                                                    : 'border-gray-300 bg-white focus:border-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-800'
                                             }`}
                                         />
                                         <button
@@ -305,7 +305,7 @@ export default function Login({
                                         name="remember"
                                         checked={data.remember}
                                         onChange={(e) => setData('remember', e.target.checked as false)}
-                                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800"
+                                        className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800"
                                     />
                                     <span className="text-sm text-gray-600 dark:text-slate-400">{t('auth.keepSignedIn')}</span>
                                 </label>
@@ -314,7 +314,7 @@ export default function Login({
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-all hover:bg-blue-700 hover:shadow-blue-600/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                                    className="flex w-full items-center justify-center gap-2 rounded-card bg-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-all hover:bg-[color:var(--color-primary-hover)] hover:shadow-blue-600/30 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                                 >
                                     {processing ? (
                                         <>

@@ -234,11 +234,11 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
     }
 
     function dayCls(m: ReturnType<typeof meta>): string {
-        if (m.isConsumed)  return 'bg-emerald-500 text-white rounded-xl font-bold shadow-sm';
-        if (m.isToday)     return 'ring-2 ring-[var(--color-primary,#2563eb)] ring-offset-1 dark:ring-offset-slate-900 font-bold text-[var(--color-primary,#2563eb)] rounded-xl';
-        if (m.isHoliday)   return 'bg-amber-50 text-amber-500 dark:bg-amber-950/30 dark:text-amber-400 rounded-xl';
+        if (m.isConsumed)  return 'bg-emerald-500 text-white rounded-card font-bold shadow-sm';
+        if (m.isToday)     return 'ring-2 ring-[var(--color-primary)] ring-offset-1 dark:ring-offset-slate-900 font-bold text-[var(--color-primary)] rounded-card';
+        if (m.isHoliday)   return 'bg-amber-50 text-amber-500 dark:bg-amber-950/30 dark:text-amber-400 rounded-card';
         if (m.isWeekend)   return 'text-gray-300 dark:text-slate-700';
-        if (m.isAvailable) return 'bg-blue-50 text-blue-600 dark:bg-blue-950/30 dark:text-blue-400 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-950/50';
+        if (m.isAvailable) return 'bg-blue-50 text-[color:var(--color-primary)] dark:bg-blue-950/30 dark:text-[color:var(--color-primary)] rounded-card hover:bg-blue-100 dark:hover:bg-blue-950/50';
         if (m.isPast)      return 'text-gray-300 dark:text-slate-700';
         return 'text-gray-500 dark:text-slate-400';
     }
@@ -297,14 +297,14 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
             </div>
 
             {/* Day-name header */}
-            <div className="grid grid-cols-7 overflow-hidden rounded-t-xl border border-b-0 border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/60">
+            <div className="grid grid-cols-7 overflow-hidden rounded-t-card border border-b-0 border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/60">
                 {dayLabels.map(n => (
-                    <div key={n} className="py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">{n}</div>
+                    <div key={n} className="py-2.5 text-center text-[10px] font-bold text-gray-400 dark:text-slate-500">{n}</div>
                 ))}
             </div>
 
             {/* Week rows */}
-            <div className="overflow-hidden rounded-b-xl border border-gray-100 dark:border-slate-800">
+            <div className="overflow-hidden rounded-b-card border border-gray-100 dark:border-slate-800">
                 {weeks.map((week, wi) => (
                     <div key={wi} className="grid grid-cols-7 divide-x divide-gray-50 dark:divide-slate-800/50 [&:not(:first-child)]:border-t [&:not(:first-child)]:border-gray-50 dark:[&:not(:first-child)]:border-slate-800/50">
                         {Array.from({ length: 7 }).map((_, di) => {
@@ -335,7 +335,7 @@ function CafeteriaCalendar({ a }: { a: CafeteriaActivity }) {
                 <span className="flex items-center gap-1.5"><span className="flex h-4 w-4 items-center justify-center rounded-sm bg-emerald-500"><Ic.Check className="h-2.5 w-2.5 text-white"/></span>{t('cafeteria.legendUsed')}</span>
                 <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-sm bg-blue-50 dark:bg-blue-950/40 ring-[0.5px] ring-blue-200 dark:ring-blue-800"/>{t('cafeteria.legendAvailable')}</span>
                 <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-sm bg-amber-50 dark:bg-amber-950/30"/>{t('cafeteria.legendHoliday')}</span>
-                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-sm ring-2 ring-[var(--color-primary,#2563eb)]"/>{t('cafeteria.legendToday')}</span>
+                <span className="flex items-center gap-1.5"><span className="h-4 w-4 rounded-sm ring-2 ring-[var(--color-primary)]"/>{t('cafeteria.legendToday')}</span>
             </div>
         </div>
     );
@@ -348,11 +348,11 @@ function StatCard({ icon: I, period, primary, secondary, badge, colorKey }: {
 }) {
     const bg:   Record<string,string> = { emerald:'bg-emerald-50 border-emerald-100 dark:bg-emerald-950/30 dark:border-emerald-900/50', gray:'bg-gray-50 border-gray-100 dark:bg-slate-800/60 dark:border-slate-800', blue:'bg-blue-50 border-blue-100 dark:bg-blue-950/30 dark:border-blue-900/50', purple:'bg-purple-50 border-purple-100 dark:bg-purple-950/30 dark:border-purple-900/50', orange:'bg-orange-50 border-orange-100 dark:bg-orange-950/30 dark:border-orange-900/50' };
     const tx:   Record<string,string> = { emerald:'text-emerald-700 dark:text-emerald-300', gray:'text-gray-500 dark:text-slate-400', blue:'text-blue-700 dark:text-blue-300', purple:'text-purple-700 dark:text-purple-300', orange:'text-orange-700 dark:text-orange-300' };
-    const ic:   Record<string,string> = { emerald:'text-emerald-600 dark:text-emerald-400', gray:'text-gray-400 dark:text-slate-500', blue:'text-blue-600 dark:text-blue-400', purple:'text-purple-600 dark:text-purple-400', orange:'text-orange-600 dark:text-orange-400' };
+    const ic:   Record<string,string> = { emerald:'text-emerald-600 dark:text-emerald-400', gray:'text-gray-400 dark:text-slate-500', blue:'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]', purple:'text-purple-600 dark:text-purple-400', orange:'text-orange-600 dark:text-orange-400' };
     return (
-        <div className={`rounded-2xl border p-4 ${bg[colorKey] ?? bg.gray}`}>
+        <div className={`rounded-panel border p-4 ${bg[colorKey] ?? bg.gray}`}>
             <div className="mb-2 flex items-center justify-between">
-                <span className={`flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest ${ic[colorKey]}`}>
+                <span className={`flex items-center gap-1.5 text-[10px] font-semibold ${ic[colorKey]}`}>
                     <I className={`h-3.5 w-3.5 ${ic[colorKey]}`}/>{period}
                 </span>
                 <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${bg[colorKey]} ${tx[colorKey]}`}>{badge}</span>
@@ -399,20 +399,20 @@ function CafeteriaDetail({ a }: { a: CafeteriaActivity }) {
 
             {/* Balance strip */}
             <div className="flex flex-wrap gap-3">
-                <div className={`flex items-center gap-2 rounded-xl border px-4 py-2 ${a.weekly.balance < 0 ? 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/20'}`}>
+                <div className={`flex items-center gap-2 rounded-card border px-4 py-2 ${a.weekly.balance < 0 ? 'border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900/50 dark:bg-emerald-950/20'}`}>
                     <span className={`text-xs font-medium ${a.weekly.balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-300'}`}>
                         {t('cafeteria.balanceLabel')}: <strong>{fmt(a.weekly.balance)} ETB</strong>
                     </span>
                 </div>
                 {a.weekly.subsidy_remaining != null && (
-                    <div className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-900/50 dark:bg-blue-950/20">
+                    <div className="flex items-center gap-2 rounded-card border border-blue-200 bg-blue-50 px-4 py-2 dark:border-blue-900/50 dark:bg-blue-950/20">
                         <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
                             {t('cafeteria.thisWeek')}: <strong>{fmt(a.weekly.subsidy_remaining)} ETB</strong> {t('cafeteria.remainingLabel')}
                         </span>
                     </div>
                 )}
                 {a.weekly.daily_rate != null && (
-                    <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/60">
+                    <div className="flex items-center gap-2 rounded-card border border-gray-200 bg-gray-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-800/60">
                         <span className="text-xs font-medium text-gray-600 dark:text-slate-300">
                             {t('cafeteria.rateLabel')}: <strong>{fmt(a.weekly.daily_rate)} {t('cafeteria.ratePerDay')}</strong>
                         </span>
@@ -424,12 +424,12 @@ function CafeteriaDetail({ a }: { a: CafeteriaActivity }) {
             <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
 
                 {/* Calendar panel */}
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <CafeteriaCalendar a={a} />
                 </div>
 
                 {/* Transactions panel */}
-                <div className="rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3.5 dark:border-slate-800">
                         <Ic.Receipt className="h-4 w-4 text-gray-400"/>
                         <div className="min-w-0">
@@ -479,7 +479,7 @@ function ServiceDetail({ a }: { a: ServiceActivity }) {
     if (!a.transactions.length)
         return <p className="py-8 text-center text-sm text-gray-400 dark:text-slate-500">{t('cafeteria.noTransactionsYet')}</p>;
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             <div className="divide-y divide-gray-50 dark:divide-slate-800">
                 {a.transactions.map((tx, i) => (
                     <div key={i} className="flex items-center justify-between px-4 py-3 text-sm">
@@ -505,16 +505,16 @@ function SideItem({ e, selected, onClick, useAmharic }: { e: Entitlement; select
     const name     = (useAmharic ? e.service_am : null) ?? e.service ?? e.service_code ?? '—';
     return (
         <button type="button" onClick={isActive ? onClick : undefined}
-            className={['flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-all',
+            className={['flex w-full items-center gap-3 rounded-card px-3 py-3 text-left transition-all',
                 isActive ? 'cursor-pointer' : 'cursor-default opacity-55',
-                selected ? 'bg-[var(--color-primary,#2563eb)]/10 ring-1 ring-[var(--color-primary,#2563eb)]/30' : isActive ? 'hover:bg-gray-50 dark:hover:bg-slate-800' : '',
+                selected ? 'bg-[var(--color-primary)]/10 ring-1 ring-[var(--color-primary)]/30' : isActive ? 'hover:bg-gray-50 dark:hover:bg-slate-800' : '',
             ].join(' ')}
         >
-            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${isCafe ? 'bg-orange-100 dark:bg-orange-950/40' : 'bg-blue-100 dark:bg-blue-950/40'}`}>
-                {isCafe ? <Ic.Utensils className={`h-4 w-4 ${selected ? 'text-orange-600' : 'text-orange-500'}`}/> : <Ic.Layers className={`h-4 w-4 ${selected ? 'text-blue-600' : 'text-blue-500'}`}/>}
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-card ${isCafe ? 'bg-orange-100 dark:bg-orange-950/40' : 'bg-blue-100 dark:bg-blue-950/40'}`}>
+                {isCafe ? <Ic.Utensils className={`h-4 w-4 ${selected ? 'text-orange-600' : 'text-orange-500'}`}/> : <Ic.Layers className={`h-4 w-4 ${selected ? 'text-[color:var(--color-primary)]' : 'text-blue-500'}`}/>}
             </div>
             <div className="min-w-0 flex-1">
-                <p className={`truncate text-sm font-medium ${selected ? 'text-[var(--color-primary,#2563eb)]' : 'text-gray-900 dark:text-slate-100'}`}>{name}</p>
+                <p className={`truncate text-sm font-medium ${selected ? 'text-[var(--color-primary)]' : 'text-gray-900 dark:text-slate-100'}`}>{name}</p>
                 {e.provider && <p className="truncate text-xs text-gray-400">{e.provider}</p>}
             </div>
             <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize ${STATUS_STYLE[e.status] ?? STATUS_STYLE.expired}`}>{e.status}</span>
@@ -537,26 +537,26 @@ export default function MyEntitlements({ entitlements, has_employee }: Props) {
             <Head title={t('nav.myEntitlements') || 'My Entitlements'} />
 
             {!has_employee ? (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
+                <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
                     <p className="font-medium text-amber-800 dark:text-amber-300">{t('transfers.noEmployeeProfile')}</p>
                 </div>
             ) : entitlements.length === 0 ? (
-                <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
                     <p className="text-sm text-gray-400">{t('entitlements.noEntitlements')}</p>
                 </div>
             ) : (
                 <div className="flex gap-5 lg:items-start">
 
                     {/* Sidebar */}
-                    <div className="w-60 shrink-0 rounded-2xl border border-gray-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900 lg:sticky lg:top-6">
-                        <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400">{t('entitlements.title')}</p>
+                    <div className="w-60 shrink-0 rounded-panel border border-gray-200 bg-white p-2 dark:border-slate-800 dark:bg-slate-900 lg:sticky lg:top-6">
+                        <p className="mb-1.5 px-2 text-[10px] font-semibold text-gray-400">{t('entitlements.title')}</p>
                         {active.map(e => (
                             <SideItem key={e.id} e={e} selected={selectedId === e.id} onClick={() => setSelectedId(e.id)} useAmharic={useAmharic} />
                         ))}
                         {inactive.length > 0 && (
                             <>
                                 <div className="my-2 h-px bg-gray-100 dark:bg-slate-800" />
-                                <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-gray-300 dark:text-slate-600">Inactive</p>
+                                <p className="mb-1.5 px-2 text-[10px] font-semibold text-gray-300 dark:text-slate-600">Inactive</p>
                                 {inactive.map(e => (
                                     <SideItem key={e.id} e={e} selected={false} onClick={() => {}} useAmharic={useAmharic} />
                                 ))}
@@ -570,10 +570,10 @@ export default function MyEntitlements({ entitlements, has_employee }: Props) {
                             <>
                                 {/* Header */}
                                 <div className="mb-5 flex items-center gap-3">
-                                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${selected.service_code === 'cafeteria' ? 'bg-orange-100 dark:bg-orange-950/40' : 'bg-blue-100 dark:bg-blue-950/40'}`}>
+                                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-card ${selected.service_code === 'cafeteria' ? 'bg-orange-100 dark:bg-orange-950/40' : 'bg-blue-100 dark:bg-blue-950/40'}`}>
                                         {selected.service_code === 'cafeteria'
                                             ? <Ic.Utensils className="h-5 w-5 text-orange-600"/>
-                                            : <Ic.Layers className="h-5 w-5 text-blue-600"/>
+                                            : <Ic.Layers className="h-5 w-5 text-[color:var(--color-primary)]"/>
                                         }
                                     </div>
                                     <div>
@@ -594,13 +594,13 @@ export default function MyEntitlements({ entitlements, has_employee }: Props) {
                                     ? selected.activity.type === 'cafeteria'
                                         ? <CafeteriaDetail a={selected.activity as CafeteriaActivity} />
                                         : <ServiceDetail a={selected.activity as ServiceActivity} />
-                                    : <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
+                                    : <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
                                         <p className="text-sm text-gray-400">{t('cafeteria.activityUnavailable')}</p>
                                       </div>
                                 }
                             </>
                         ) : (
-                            <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
+                            <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
                                 <p className="text-sm text-gray-400">{t('cafeteria.selectEntitlement')}</p>
                             </div>
                         )}

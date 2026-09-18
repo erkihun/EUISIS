@@ -49,7 +49,7 @@ export default function MyTransferApplications({ applications, has_employee }: P
                     actions={
                         <Link
                             href={route('public.transfer-announcements')}
-                            className="rounded-lg bg-[var(--color-primary,#2563eb)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+                            className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
                         >
                             Browse Announcements
                         </Link>
@@ -60,13 +60,13 @@ export default function MyTransferApplications({ applications, has_employee }: P
             <Head title={t('transfers.myApplications')} />
 
             {!has_employee ? (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
+                <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
                     <p className="font-medium text-amber-800 dark:text-amber-300">{t('transfers.noEmployeeProfile')}</p>
                 </div>
             ) : applications.length === 0 ? (
-                <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
                     <p className="text-sm text-gray-400 dark:text-slate-500">{t('transfers.noApplications')}</p>
-                    <Link href={route('public.transfer-announcements')} className="mt-4 inline-block text-sm font-medium text-[var(--color-primary,#2563eb)] hover:underline">
+                    <Link href={route('public.transfer-announcements')} className="mt-4 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline">
                         Browse open announcements →
                     </Link>
                 </div>
@@ -75,12 +75,12 @@ export default function MyTransferApplications({ applications, has_employee }: P
                     {applications.map(app => {
                         const statusCls = STATUS_COLOR[app.status] ?? 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400';
                         return (
-                            <div key={app.id} className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                            <div key={app.id} className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                         <Link
                                             href={route('public.transfer-announcements.show', { announcement: app.announcement_id })}
-                                            className="font-semibold text-gray-900 hover:text-[var(--color-primary,#2563eb)] dark:text-slate-100"
+                                            className="font-semibold text-gray-900 hover:text-[var(--color-primary)] dark:text-slate-100"
                                         >
                                             {app.position_title ?? '—'}
                                         </Link>

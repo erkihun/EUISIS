@@ -80,7 +80,7 @@ export default function OrganizationFlatTable({ rows, emptyText }: { rows: OrgRo
                         {headers.map((h, i) => (
                             <th
                                 key={i}
-                                className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
+                                className="whitespace-nowrap px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
                             >
                                 {h}
                             </th>
@@ -96,7 +96,7 @@ export default function OrganizationFlatTable({ rows, emptyText }: { rows: OrgRo
                             <td className="px-4 py-2.5 pl-5">
                                 <Link
                                     href={route('organizations.show', org.id)}
-                                    className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                    className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                                 >
                                     {org.code}
                                 </Link>

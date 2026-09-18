@@ -31,6 +31,13 @@ class UpdateLocalizationSettingsRequest extends FormRequest
             'number_format' => ['nullable', 'string', 'max:32'],
             'organization_name_display' => ['nullable', 'string', Rule::in(['english', 'amharic', 'both'])],
             'employee_name_display' => ['nullable', 'string', Rule::in(['full_name', 'first_last'])],
+            /*
+             * Drives which calendar the whole application renders — read by
+             * HandleInertiaRequests on every request. It was registered and
+             * shown in the form but had no rule here, so `validated()` dropped
+             * it and an administrator could never actually leave `locale_based`.
+             */
+            'calendar_system_mode' => ['required', Rule::in(['locale_based', 'gregorian_only', 'ethiopian_only'])],
         ];
     }
 

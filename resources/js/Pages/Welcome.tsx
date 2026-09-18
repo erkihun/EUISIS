@@ -146,7 +146,7 @@ export default function Welcome() {
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="grid items-center gap-12 lg:grid-cols-2">
                         <div className="text-center lg:text-left">
-                            <span className="inline-block rounded-full bg-orange-500/20 border border-orange-400/30 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-orange-200 animate-fade-up">
+                            <span className="inline-block rounded-full bg-orange-500/20 border border-orange-400/30 px-3 py-1 text-xs font-semibold text-orange-200 animate-fade-up">
                                 {t('home.headerTagline')}
                             </span>
                             <h1
@@ -163,7 +163,7 @@ export default function Welcome() {
                                 {isAuthenticated ? (
                                     <Link
                                         href={route('dashboard')}
-                                        className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                        className="inline-flex items-center gap-2 rounded-card bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                                     >
                                         <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                                         {t('home.heroCtaDashboard')}
@@ -171,7 +171,7 @@ export default function Welcome() {
                                 ) : (
                                     <Link
                                         href={route('login')}
-                                        className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                        className="inline-flex items-center gap-2 rounded-card bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                                     >
                                         {t('home.heroCtaLogin')}
                                         <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
@@ -179,7 +179,7 @@ export default function Welcome() {
                                 )}
                                 <Link
                                     href="/announcements"
-                                    className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                                    className="inline-flex items-center gap-2 rounded-card border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                                 >
                                     {t('nav.announcements')}
                                     <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
@@ -193,15 +193,15 @@ export default function Welcome() {
                             aria-label={t('home.platformOverview')}
                             style={{ animation: 'fade-in-right 0.7s ease-out 0.2s both, float-y 5s ease-in-out 0.9s infinite' }}
                         >
-                            <div className="rounded-2xl border border-white/20 bg-white/10 p-5 shadow-2xl backdrop-blur-sm">
-                                <p className="mb-4 text-center text-xs font-semibold uppercase tracking-widest text-blue-200">
+                            <div className="rounded-panel border border-white/20 bg-white/10 p-5 shadow-2xl backdrop-blur-sm">
+                                <p className="mb-4 text-center text-xs font-semibold text-blue-200">
                                     {t('home.platformOverview')}
                                 </p>
                                 <div className="grid grid-cols-4 gap-3">
                                     {MODULE_KEY_LIST.map((key, idx) => {
                                         const Icon = MODULE_ICON_MAP[idx];
                                         return (
-                                            <div key={key} className="flex flex-col items-center gap-1.5 rounded-xl bg-white/10 p-3 text-center">
+                                            <div key={key} className="flex flex-col items-center gap-1.5 rounded-card bg-white/10 p-3 text-center">
                                                 <Icon className="h-6 w-6 text-white/90" aria-hidden="true" />
                                                 <span className="text-[9px] font-medium leading-tight text-blue-100">{t(`home.${key}Title`)}</span>
                                             </div>
@@ -249,7 +249,7 @@ export default function Welcome() {
                             return (
                                 <div
                                     key={key}
-                                    className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.65)] dark:border-slate-800/80 dark:bg-slate-900/95 dark:hover:border-slate-700"
+                                    className="group relative overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.65)] dark:border-slate-800/80 dark:bg-slate-900/95 dark:hover:border-slate-700"
                                     style={trustInView ? { animation: `fade-up 0.6s ease-out ${0.15 + idx * 0.1}s both` } : { opacity: 0 }}
                                 >
                                     <div className="absolute left-0 top-0 h-1 w-1/2 bg-gradient-to-r from-[var(--color-primary)] via-[color:var(--color-primary)]/45 to-transparent" style={{ borderTopLeftRadius: 'inherit' }} />
@@ -259,7 +259,7 @@ export default function Welcome() {
                                             <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{t(`home.${key}Title`)}</p>
                                             <p className="mt-3 text-xs leading-relaxed text-gray-600 dark:text-slate-300">{t(`home.${key}Desc`)}</p>
                                         </div>
-                                        <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[tone]}`}>
+                                        <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[tone]}`}>
                                             <Icon className="h-5 w-5" aria-hidden="true" />
                                         </div>
                                     </div>
@@ -295,7 +295,7 @@ export default function Welcome() {
                             return (
                                 <div
                                     key={key}
-                                    className="group relative overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.65)] dark:border-slate-800/80 dark:bg-slate-900/95 dark:hover:border-slate-700"
+                                    className="group relative overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.65)] dark:border-slate-800/80 dark:bg-slate-900/95 dark:hover:border-slate-700"
                                     style={modulesInView ? { animation: `fade-up 0.6s ease-out ${0.1 + idx * 0.08}s both` } : { opacity: 0 }}
                                 >
                                     <div className="absolute left-0 top-0 h-1 w-1/2 bg-gradient-to-r from-[var(--color-primary)] via-[color:var(--color-primary)]/45 to-transparent" style={{ borderTopLeftRadius: 'inherit' }} />
@@ -305,7 +305,7 @@ export default function Welcome() {
                                             <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t(`home.${key}Title`)}</p>
                                             <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{t(`home.${key}Desc`)}</p>
                                         </div>
-                                        <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[tone]}`}>
+                                        <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[tone]}`}>
                                             <Icon className="h-5 w-5" aria-hidden="true" />
                                         </div>
                                     </div>
@@ -345,7 +345,7 @@ export default function Welcome() {
                                 {steps.map((stepNum) => (
                                     <li key={stepNum} className="flex flex-col items-center text-center">
                                         <div
-                                            className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-blue-600 bg-white font-bold text-blue-600 text-sm dark:border-blue-400 dark:bg-slate-900 dark:text-blue-400"
+                                            className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--color-primary)] bg-white font-bold text-[color:var(--color-primary)] text-sm dark:border-blue-400 dark:bg-slate-900 dark:text-[color:var(--color-primary)]"
                                             style={stepsInView ? { animation: `pop-in 0.4s ease-out ${0.2 + stepNum * 0.12}s both` } : { opacity: 0 }}
                                         >
                                             {stepNum}
@@ -373,10 +373,10 @@ export default function Welcome() {
                         {steps.map((stepNum, idx) => (
                             <li
                                 key={stepNum}
-                                className="flex gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800"
+                                className="flex gap-4 rounded-card border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800"
                                 style={stepsInView ? { animation: `fade-up 0.5s ease-out ${idx * 0.07}s both` } : { opacity: 0 }}
                             >
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white dark:bg-blue-500">
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-sm font-bold text-white dark:bg-blue-500">
                                     {stepNum}
                                 </div>
                                 <div className="min-w-0">
@@ -394,7 +394,7 @@ export default function Welcome() {
                         {isAuthenticated ? (
                             <Link
                                 href={route('dashboard')}
-                                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                className="inline-flex items-center gap-2 rounded-card bg-[color:var(--color-primary)] px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-[color:var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                                 {t('home.heroCtaDashboard')}
@@ -402,7 +402,7 @@ export default function Welcome() {
                         ) : (
                             <Link
                                 href={route('login')}
-                                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                className="inline-flex items-center gap-2 rounded-card bg-[color:var(--color-primary)] px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-[color:var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('home.heroCtaLogin')}
                                 <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />

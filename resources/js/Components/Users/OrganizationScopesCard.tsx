@@ -47,7 +47,7 @@ const emptyForm = (): FormState => ({
 });
 
 const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
 
 export default function OrganizationScopesCard({ userId, scopes, organizations, canManage }: Props) {
@@ -153,7 +153,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
     }
 
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-panel border border-gray-200 bg-white p-6 xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
             <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                     {t('users.userOrganizationScopes.title')}
@@ -162,7 +162,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                     <button
                         type="button"
                         onClick={openAdd}
-                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-slate-900"
                     >
                         {t('users.userOrganizationScopes.addScope')}
                     </button>
@@ -228,7 +228,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                             <button
                                                 type="button"
                                                 onClick={() => openEdit(scope)}
-                                                className="mr-2 text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                                className="mr-2 text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                             >
                                                 {t('common.edit')}
                                             </button>
@@ -357,7 +357,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                                                     </span>
                                                                 </span>
                                                                 {selected && (
-                                                                    <span className="shrink-0 text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                                                    <span className="shrink-0 text-xs font-semibold text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">
                                                                         ✓
                                                                     </span>
                                                                 )}
@@ -405,7 +405,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                             <input
                                 type="checkbox"
                                 id="scope-is-active"
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600"
+                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
                                 checked={form.is_active}
                                 onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
                             />
@@ -427,7 +427,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                             type="button"
                             onClick={submitForm}
                             disabled={form.scope_type !== 'citywide' && form.organization_id === ''}
-                            className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                         >
                             {t('users.userOrganizationScopes.save')}
                         </button>

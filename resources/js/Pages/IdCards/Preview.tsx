@@ -71,7 +71,7 @@ export default function IdCardPreview({ card, can }: PageProps) {
 
             <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
                 <div className="space-y-6">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="mb-4 flex items-center gap-3">
                             <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('idCards.cardFront')}</h3>
                             <CardStatusBadge status={card.status} />
@@ -95,7 +95,7 @@ export default function IdCardPreview({ card, can }: PageProps) {
                             />
                         </div>
                     </div>
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">{t('idCards.cardBack')}</h3>
                         <div className="max-w-sm">
                             <IdCardBack
@@ -115,10 +115,10 @@ export default function IdCardPreview({ card, can }: PageProps) {
                     )}
 
                     {can?.print && card.status === 'pending_print' && (
-                        <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                             <a
                                 href={route('print-batches.create')}
-                                className="block w-full rounded-lg bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-blue-700"
+                                className="block w-full rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-center text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('idCards.createPrintBatch')}
                             </a>

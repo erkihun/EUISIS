@@ -46,7 +46,7 @@ export default function ShowPermission({
                         permission.can?.update ? (
                             <Link
                                 href={route('permissions.edit', permission.id)}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                             >
                                 {t('permissions.editPermission')}
                             </Link>
@@ -58,7 +58,7 @@ export default function ShowPermission({
             <Head title={label} />
 
             <div className="mx-auto max-w-2xl space-y-5">
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
                         {t('permissions.basicInformation')}
                     </h2>
@@ -129,7 +129,7 @@ export default function ShowPermission({
                 </div>
 
                 {roles.length > 0 && (
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                         <h2 className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {t('permissions.usedByRoles')} ({roles.length})
                         </h2>
@@ -138,7 +138,7 @@ export default function ShowPermission({
                                 <li key={r.id}>
                                     <Link
                                         href={route('roles.edit', r.id)}
-                                        className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                                        className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)] dark:hover:bg-blue-900/50"
                                     >
                                         {r.name}
                                     </Link>

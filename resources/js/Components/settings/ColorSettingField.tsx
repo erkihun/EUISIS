@@ -40,9 +40,9 @@ export default function ColorSettingField({
                         value={value}
                         disabled={disabled}
                         onChange={(event) => onChange(event.target.value.toUpperCase())}
-                        className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        className="w-full rounded-card border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     />
-                    <div className="h-10 w-10 rounded-xl border border-gray-200 dark:border-slate-700" style={{ backgroundColor: value }} />
+                    <div className="h-10 w-10 rounded-card border border-gray-200 dark:border-slate-700" style={{ backgroundColor: value }} />
                 </div>
                 <InputError message={error} />
             </div>

@@ -79,10 +79,49 @@ class AuthenticatedSessionController extends Controller
         }
 
         $defaultRoute = $user !== null && $dashboardService->canViewDashboard($user)
-            ? route('dashboard', absolute: false)
+            ? $this->configuredLandingRoute($user)
             : route('employee.portal', absolute: false);
 
         return redirect()->intended($defaultRoute);
+    }
+
+    /**
+     * Where an administrator lands after signing in.
+     *
+     * Honours `general.default_dashboard_route`, which was configurable but
+     * read by nothing — every user was sent to the dashboard regardless. An
+     * office whose staff live in the employee register can now start there.
+     *
+     * Falls back to the dashboard whenever the configured route does not
+     * exist or the user may not open it, so a stale or over-ambitious setting
+     * can never lock somebody out of their own landing page.
+     */
+    private function configuredLandingRoute(User $user): string
+    {
+        $dashboard = route('dashboard', absolute: false);
+
+        $configured = (string) (app(PublicSettingsService::class)
+            ->shareableSettings()['general.default_dashboard_route'] ?? 'dashboard');
+
+        if ($configured === '' || $configured === 'dashboard' || ! Route::has($configured)) {
+            return $dashboard;
+        }
+
+        /*
+         * The setting names a route, not a permission, so the gate is checked
+         * against the permission that route's controller enforces.
+         */
+        $permission = match ($configured) {
+            'employees.index' => 'employees.view',
+            'organizations.index' => 'organizations.view',
+            default => null,
+        };
+
+        if ($permission !== null && ! $user->can($permission)) {
+            return $dashboard;
+        }
+
+        return route($configured, absolute: false);
     }
 
     /**

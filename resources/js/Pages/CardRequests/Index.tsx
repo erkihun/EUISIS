@@ -66,8 +66,8 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
         router.get(route('card-requests.index'), {}, { preserveState: false, replace: true });
     }
 
-    const selectCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200';
-    const inputCls  = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500';
+    const selectCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200';
+    const inputCls  = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500';
 
     return (
         <AuthenticatedLayout
@@ -79,7 +79,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                         can?.create && (
                             <Link
                                 href={route('card-requests.create')}
-                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] transition-colors"
                             >
                                 {t('idCards.newRequest')}
                             </Link>
@@ -91,7 +91,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
             <Head title={t('idCards.cardRequests')} />
 
             {/* Filter bar */}
-            <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-4 rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex flex-wrap gap-3 items-end">
                     <div className="flex-1 min-w-[180px]">
                         <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
@@ -135,7 +135,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                         <button
                             type="button"
                             onClick={applyFilters}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] transition-colors"
                         >
                             {t('common.filter')}
                         </button>
@@ -150,7 +150,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 {cardRequests.data.length === 0 ? (
                     <div className="p-8">
                         <EmptyState
@@ -160,7 +160,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                 can?.create ? (
                                     <Link
                                         href={route('card-requests.create')}
-                                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                     >
                                         {t('idCards.newRequest')}
                                     </Link>
@@ -173,22 +173,22 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('employees.employeeNumber')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('organizations.organization')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('idCards.requestType')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('common.status')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('common.createdAt')}
                                     </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">
                                         {t('common.actions')}
                                     </th>
                                 </tr>
@@ -227,7 +227,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                             {req.can?.view !== false && (
                                                 <Link
                                                     href={route('card-requests.show', req.id)}
-                                                    className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                    className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                                                 >
                                                     {t('common.view')}
                                                 </Link>

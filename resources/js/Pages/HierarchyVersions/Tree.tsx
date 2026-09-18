@@ -96,14 +96,14 @@ export default function HierarchyVersionTree({ version, tree, edges, summary, ca
                         <div className="flex flex-wrap items-center gap-2">
                             <Link
                                 href={route('hierarchy-versions.show', { hierarchyVersion: version.id })}
-                                className="rounded-xl border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                className="rounded-card border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                             >
                                 {t('common.details')}
                             </Link>
                             {can.manageTree && (
                                 <Link
                                     href={route('hierarchy-versions.tree.edit', { hierarchyVersion: version.id })}
-                                    className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="rounded-card bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     {t('hierarchyVersions.editTree')}
                                 </Link>
@@ -127,7 +127,7 @@ export default function HierarchyVersionTree({ version, tree, edges, summary, ca
                     canAddRelation={can.createEdge}
                 />
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+                <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-5">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">

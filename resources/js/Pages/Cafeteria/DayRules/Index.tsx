@@ -59,7 +59,7 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
     const timeCls = 'rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-50';
 
     return (
-        <div className={`flex flex-wrap items-center gap-4 rounded-xl border border-gray-200 p-4 dark:border-slate-700 ${DAY_COLORS[rule.day_of_week]}`}>
+        <div className={`flex flex-wrap items-center gap-4 rounded-card border border-gray-200 p-4 dark:border-slate-700 ${DAY_COLORS[rule.day_of_week]}`}>
             <div className="w-28 font-semibold text-gray-800 dark:text-slate-100">{localizedDayName(rule.day_of_week, locale)}</div>
 
             <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
@@ -85,12 +85,12 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
                     {isOpen ? t('cafeteria.openDay') : t('cafeteria.closedDay')}
                 </span>
                 {isOpen && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
                         {isSubsidy ? t('cafeteria.isSubsidyDay') : t('common.no')}
                     </span>
                 )}
                 {canUpdate && (
-                    <button onClick={save} disabled={saving} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                    <button onClick={save} disabled={saving} className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                         {saving ? '…' : t('common.save')}
                     </button>
                 )}
@@ -113,7 +113,7 @@ export default function DayRulesIndex({ rules, can }: { rules: DayRule[]; can: {
                     <DayRuleRow key={r.id} rule={r} canUpdate={can.update} />
                 ))}
                 {rules.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-gray-300 p-10 text-center text-sm text-gray-400 dark:border-slate-700">
+                    <div className="rounded-card border border-dashed border-gray-300 p-10 text-center text-sm text-gray-400 dark:border-slate-700">
                         {t('common.noResults')}
                     </div>
                 )}

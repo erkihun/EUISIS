@@ -28,7 +28,7 @@ type Organization = {
 };
 
 const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 
 const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
 const helpCls = 'mt-1 text-xs text-gray-400 dark:text-slate-500';
@@ -147,10 +147,10 @@ export default function EditOrganization({
             <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full rounded-panel border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
                 >
                     {errorMessages.length > 0 && (
-                        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
+                        <div className="mb-6 rounded-card border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
                             <p className="text-sm font-medium text-red-700 dark:text-red-300">{t('common.error')}</p>
                             <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700 dark:text-red-300">
                                 {errorMessages.map((message, index) => <li key={`${message}-${index}`}>{message}</li>)}
@@ -297,7 +297,7 @@ export default function EditOrganization({
                                                     className="h-14 w-14 rounded-lg border border-blue-200 object-contain p-1 dark:border-blue-700"
                                                 />
                                                 <div className="flex flex-col gap-1">
-                                                    <span className="text-xs text-blue-600 dark:text-blue-400">
+                                                    <span className="text-xs text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">
                                                         {t('organizations.newLogoSelected')}
                                                     </span>
                                                     <button
@@ -375,10 +375,10 @@ export default function EditOrganization({
                                         >
                                             <div className="flex gap-1.5">
                                                 {primary && (
-                                                    <span className="h-4 w-4 rounded-full border border-white shadow-sm" style={{ backgroundColor: primary }} />
+                                                    <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: primary }} />
                                                 )}
                                                 {secondary && (
-                                                    <span className="h-4 w-4 rounded-full border border-white shadow-sm" style={{ backgroundColor: secondary }} />
+                                                    <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: secondary }} />
                                                 )}
                                             </div>
                                             <span className="text-xs text-gray-500 dark:text-slate-400">
@@ -402,7 +402,7 @@ export default function EditOrganization({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                         >
                             {form.processing ? t('common.saving') : t('organizations.saveChanges')}
                         </button>

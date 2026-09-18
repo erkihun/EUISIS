@@ -74,19 +74,19 @@ export default function OrganizationSearchSelect({
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-slate-300">
                 {label}
             </label>
-            <div className="space-y-2 rounded-2xl border border-gray-300 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-950/50">
+            <div className="space-y-2 rounded-panel border border-gray-300 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-950/50">
                 <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     disabled={disabled}
                     placeholder={t('hierarchyVersions.searchOrganization')}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
                 <select
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
                     disabled={disabled}
-                    className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 >
                     <option value="">{placeholder}</option>
                     {options.map((option) => (

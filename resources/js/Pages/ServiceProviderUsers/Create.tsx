@@ -11,7 +11,7 @@ type ServiceType = {
     name_en: string;
 };
 
-const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
+const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
 const sectionCls = 'border-b border-gray-200 px-6 py-5 dark:border-slate-800';
 
 export default function CreateProviderUser({
@@ -47,7 +47,7 @@ export default function CreateProviderUser({
         >
             <Head title="Assign Provider User" />
 
-            <form onSubmit={submit} className="mx-auto max-w-2xl overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <form onSubmit={submit} className="mx-auto max-w-2xl overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <div className={sectionCls}>
                     <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-slate-300">Service type</h3>
                     <div>
@@ -158,7 +158,7 @@ export default function CreateProviderUser({
                         <label className="flex items-center gap-2 pt-6 text-sm text-gray-700 dark:text-slate-300">
                             <input
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)]"
                                 checked={form.data.portal_enabled}
                                 onChange={(e) => form.setData('portal_enabled', e.target.checked)}
                             />
@@ -168,7 +168,7 @@ export default function CreateProviderUser({
                         <label className="flex items-center gap-2 pt-6 text-sm text-gray-700 dark:text-slate-300">
                             <input
                                 type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)]"
                                 checked={form.data.must_change_password}
                                 onChange={(e) => form.setData('must_change_password', e.target.checked)}
                             />
@@ -187,7 +187,7 @@ export default function CreateProviderUser({
                     <button
                         type="submit"
                         disabled={form.processing || serviceTypes.length === 0}
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                     >
                         {form.processing ? 'Saving...' : 'Save'}
                     </button>

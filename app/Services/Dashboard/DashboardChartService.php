@@ -35,6 +35,7 @@ class DashboardChartService
             'positionsByGradeLevel' => ($can['positions'] ?? false) ? $this->positionsByGradeLevel($scope) : [],
             'positionsByJobFamily' => ($can['positions'] ?? false) ? $this->positionsByJobFamily($scope) : [],
             'positionsByOrganization' => ($can['positions'] ?? false) ? $this->positionsByOrganization($scope) : [],
+            'positionsByOccupancy' => ($can['positions'] ?? false) ? $this->positionsByOccupancy($scope) : [],
             'cardsByStatus' => $can['cards'] ? $this->cardsByStatus($scope) : [],
             'cardRequestsByStatus' => $can['cards'] ? $this->cardRequestsByStatus($scope) : [],
             'cardLifecycleFunnel' => $can['cards'] ? $this->cardLifecycleFunnel($scope) : [],
@@ -155,37 +156,49 @@ class DashboardChartService
             ->all();
     }
 
+    private function positionsByOccupancy(array $scope): array
+    {
+        return collect($this->metrics->positionOccupancyCounts($scope))
+            ->map(fn (int $value, string $key): array => ['key' => $key, 'value' => $value])
+            ->values()
+            ->all();
+    }
+
     private function cardsByStatus(array $scope): array
     {
-        return $this->metrics->cardQuery($scope)
-            ->selectRaw('id_cards.status as "key", COUNT(*) as "value"')
-            ->groupBy('id_cards.status')
-            ->orderBy('id_cards.status')
-            ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+        $counts = $this->metrics->cardStatusCounts($scope);
+        ksort($counts);
+
+        return collect($counts)
+            ->map(fn (int $value, string $key): array => ['key' => $key, 'value' => $value])
+            ->values()
             ->all();
     }
 
     private function cardRequestsByStatus(array $scope): array
     {
-        return $this->metrics->cardRequestQuery($scope)
-            ->selectRaw('card_requests.status as "key", COUNT(*) as "value"')
-            ->groupBy('card_requests.status')
-            ->orderBy('card_requests.status')
-            ->get()
-            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+        $counts = $this->metrics->cardRequestStatusCounts($scope);
+        ksort($counts);
+
+        return collect($counts)
+            ->map(fn (int $value, string $key): array => ['key' => $key, 'value' => $value])
+            ->values()
             ->all();
     }
 
     private function cardLifecycleFunnel(array $scope): array
     {
+        // Reads from the memoised status maps: six buckets, no extra queries.
+        $requests = $this->metrics->cardRequestStatusCounts($scope);
+        $cards = $this->metrics->cardStatusCounts($scope);
+
         return [
-            ['key' => 'requested', 'value' => $this->metrics->cardRequestQuery($scope)->count()],
-            ['key' => 'verified', 'value' => $this->metrics->cardRequestQuery($scope)->where('card_requests.status', 'verified')->count()],
-            ['key' => 'approved', 'value' => $this->metrics->cardRequestQuery($scope)->where('card_requests.status', 'approved')->count()],
-            ['key' => 'printed', 'value' => $this->metrics->cardQuery($scope)->where('id_cards.status', 'printed')->count()],
-            ['key' => 'issued', 'value' => $this->metrics->cardQuery($scope)->where('id_cards.status', 'issued')->count()],
-            ['key' => 'active', 'value' => $this->metrics->cardQuery($scope)->where('id_cards.status', 'active')->count()],
+            ['key' => 'requested', 'value' => array_sum($requests)],
+            ['key' => 'verified', 'value' => $requests['verified'] ?? 0],
+            ['key' => 'approved', 'value' => $requests['approved'] ?? 0],
+            ['key' => 'printed', 'value' => $cards['printed'] ?? 0],
+            ['key' => 'issued', 'value' => $cards['issued'] ?? 0],
+            ['key' => 'active', 'value' => $cards['active'] ?? 0],
         ];
     }
 

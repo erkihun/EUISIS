@@ -35,19 +35,19 @@ export default function VacancyApplicationsMyApplications({ applications }: Prop
             <Head title={t('vacancies.myApplications')} />
 
             {applications.data.length === 0 ? (
-                <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
                     <p className="text-sm text-gray-400 dark:text-slate-500">{t('vacancies.noApplications')}</p>
-                    <Link href={route('vacancy-announcements.index')} className="mt-4 inline-block text-sm text-blue-600 hover:underline dark:text-blue-400">
+                    <Link href={route('vacancy-announcements.index')} className="mt-4 inline-block text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                         {t('vacancies.announcements')}
                     </Link>
                 </div>
             ) : (
                 <div className="space-y-3">
                     {applications.data.map(app => (
-                        <div key={app.id} className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <div key={app.id} className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
-                                    <Link href={route('vacancy-applications.show', app.id)} className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                                    <Link href={route('vacancy-applications.show', app.id)} className="font-semibold text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                         {app.announcement?.title_en ?? app.application_number}
                                     </Link>
                                     <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">

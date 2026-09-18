@@ -58,7 +58,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                     </span>
                     <Link
                         href={route('institution-offices.show', node.id)}
-                        className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                        className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                     >
                         {node.name_en ?? node.office_code}
                     </Link>
@@ -76,7 +76,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                 <div className="flex items-center gap-1.5">
                     <Link
                         href={route('institution-offices.show', node.id)}
-                        className="text-xs text-gray-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
+                        className="text-xs text-gray-500 hover:text-[color:var(--color-primary)] dark:text-slate-400 dark:hover:text-blue-400"
                     >
                         {t('common.view')}
                     </Link>
@@ -113,7 +113,7 @@ export default function InstitutionOfficesTree({ institution, tree, can }: Props
                         can.create ? (
                             <Link
                                 href={`${route('institution-offices.create')}?institution_id=${institution.id}`}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 + {t('institutionOffices.addOffice')}
                             </Link>
@@ -124,7 +124,7 @@ export default function InstitutionOfficesTree({ institution, tree, can }: Props
         >
             <Head title={`${t('institutionOffices.treeView')} — ${institution.name_en}`} />
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 {tree.length === 0 ? (
                     <p className="py-8 text-center text-sm text-gray-400 dark:text-slate-500">
                         {t('institutionOffices.noOffices')}

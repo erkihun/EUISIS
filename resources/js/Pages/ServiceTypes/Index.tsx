@@ -36,7 +36,7 @@ export default function ServiceTypesIndex({
         is_active: filters.is_active ?? '',
     });
     const inputClassName =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -51,7 +51,7 @@ export default function ServiceTypesIndex({
                     actions={can.create ? (
                         <Link
                             href={route('service-types.create')}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                         >
                             <Plus className="h-3.5 w-3.5" />
                             {t('serviceTypes.createTitle')}
@@ -63,7 +63,7 @@ export default function ServiceTypesIndex({
             <Head title={t('serviceTypes.title')} />
 
             <div className="space-y-6">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <form className="grid gap-3 md:grid-cols-[1fr_220px_auto]" onSubmit={submit}>
                         <input
                             className={inputClassName}
@@ -80,13 +80,13 @@ export default function ServiceTypesIndex({
                             <option value="1">{t('serviceTypes.activeOnly')}</option>
                             <option value="0">{t('serviceTypes.inactiveOnly')}</option>
                         </select>
-                        <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700" type="submit">
+                        <button className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]" type="submit">
                             {t('common.filter')}
                         </button>
                     </form>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {serviceTypes.length === 0 ? (
                         <div className="p-6">
                             <EmptyState title={t('serviceTypes.noServiceTypes')} />
@@ -105,7 +105,7 @@ export default function ServiceTypesIndex({
                                             t('common.status'),
                                             '',
                                         ].map((heading) => (
-                                            <th key={heading} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                            <th key={heading} className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">
                                                 {heading}
                                             </th>
                                         ))}
@@ -117,7 +117,7 @@ export default function ServiceTypesIndex({
                                             <td className="px-4 py-3 font-mono text-xs">{serviceType.code}</td>
                                             <td className="px-4 py-3">
                                                 {serviceType.can.view ? (
-                                                    <Link href={route('service-types.show', serviceType.id)} className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                                                    <Link href={route('service-types.show', serviceType.id)} className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                                                         {serviceType.name_en}
                                                     </Link>
                                                 ) : (
@@ -133,7 +133,7 @@ export default function ServiceTypesIndex({
                                             <td className="px-4 py-3">
                                                 <div className="flex justify-end gap-3">
                                                     {serviceType.can.update && (
-                                                        <Link href={route('service-types.edit', serviceType.id)} className="text-xs font-medium text-blue-600 hover:text-blue-800">
+                                                        <Link href={route('service-types.edit', serviceType.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]">
                                                             {t('common.edit')}
                                                         </Link>
                                                     )}

@@ -13,9 +13,11 @@ use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmploymentStatusHistory;
+use App\Models\Position;
 use App\Models\User;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 readonly class RegisterEmployeeAction
 {
@@ -29,6 +31,27 @@ readonly class RegisterEmployeeAction
     public function execute(array $employeeAttributes, array $assignmentAttributes, User $actor): Employee
     {
         return DB::transaction(function () use ($employeeAttributes, $assignmentAttributes, $actor): Employee {
+            $positionId = $assignmentAttributes['position_id'] ?? null;
+
+            if ($positionId !== null && $positionId !== '') {
+                Position::query()
+                    ->whereKey($positionId)
+                    ->lockForUpdate()
+                    ->first();
+
+                $occupied = EmployeeAssignment::query()
+                    ->where('position_id', $positionId)
+                    ->where('is_current', true)
+                    ->where('assignment_status', AssignmentStatus::Active)
+                    ->exists();
+
+                if ($occupied) {
+                    throw ValidationException::withMessages([
+                        'position_id' => __('validation.position_already_occupied'),
+                    ]);
+                }
+            }
+
             $expectedGeneratedCode = $employeeAttributes['_expected_generated_code'] ?? null;
             unset($employeeAttributes['_expected_generated_code']);
 

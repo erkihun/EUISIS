@@ -69,12 +69,32 @@ class CafeteriaQrScanService
      * }
      */
     public function process(
-        string $qrToken,
+        string|IdCard $qrToken,
         CafeteriaProvider $provider,
         Carbon $scannedAt,
         ?User $actor = null,
         array $options = [],
         ?Request $request = null,
+        bool $dryRun = false,
+    ): array {
+        return DB::transaction(function () use ($qrToken, $provider, $scannedAt, $actor, $options, $request, $dryRun): array {
+            $resolved = $qrToken instanceof IdCard ? $qrToken : $this->resolveCard($qrToken);
+            if ($resolved !== null) {
+                IdCard::whereKey($resolved->id)->lockForUpdate()->first();
+                Employee::whereKey($resolved->employee_id)->lockForUpdate()->first();
+            }
+            return $this->processResolvedInput($qrToken, $provider, $scannedAt, $actor, $options, $request, $dryRun);
+        });
+    }
+
+    private function processResolvedInput(
+        string|IdCard $qrToken,
+        CafeteriaProvider $provider,
+        Carbon $scannedAt,
+        ?User $actor = null,
+        array $options = [],
+        ?Request $request = null,
+        bool $dryRun = false,
     ): array {
         $scanNonce = (string) ($options['scan_nonce'] ?? '');
 
@@ -91,7 +111,8 @@ class CafeteriaQrScanService
 
         // ── Step 1: Resolve card ─────────────────────────────────────────────
 
-        $card = $this->resolveCard($qrToken);
+        // An IdCard may only be supplied by a server-side credential verifier.
+        $card = $qrToken instanceof IdCard ? $qrToken : $this->resolveCard($qrToken);
         if ($card === null) {
             return $this->deny('invalid_token_format');
         }
@@ -201,7 +222,7 @@ class CafeteriaQrScanService
 
         $usageModeRaw = $options['usage_mode'] ?? CafeteriaUsageMode::SingleDay->value;
         $usageMode = CafeteriaUsageMode::tryFrom($usageModeRaw) ?? CafeteriaUsageMode::SingleDay;
-        $scanRequestHash = $this->scanRequestHash($qrToken, $provider, $scannedAt, $usageMode->value);
+        $scanRequestHash = $this->scanRequestHash($qrToken instanceof IdCard ? 'nfc:'.$card->id : $qrToken, $provider, $scannedAt, $usageMode->value);
 
         $existingByRequestHash = CafeteriaTransaction::query()
             ->with(['employee.currentAssignment.organization', 'employee.currentAssignment.position', 'idCard', 'consumedDays'])
@@ -250,7 +271,9 @@ class CafeteriaQrScanService
         $dateStr = $transactionDate->toDateString();
         $scanSequence = CafeteriaTransaction::query()
             ->where('employee_id', $employee->id)
-            ->where('transaction_date', $dateStr)
+            // whereDate keeps the guard engine-portable: a datetime-serialised
+            // value never matches a bare date string on SQLite.
+            ->whereDate('transaction_date', $dateStr)
             ->where('status', CafeteriaTransactionStatus::Accepted)
             ->count() + 1;
 
@@ -262,6 +285,10 @@ class CafeteriaQrScanService
         }
 
         // ── Step 14: Persist transaction + ledger ────────────────────────────
+
+        if ($dryRun) {
+            return ['allowed' => true, 'result_code' => 'eligible', 'transaction' => null, 'duplicate' => false];
+        }
 
         $transaction = DB::transaction(function () use (
             $employee, $card, $provider,

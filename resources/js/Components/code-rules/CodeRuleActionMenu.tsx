@@ -15,12 +15,12 @@ export default function CodeRuleActionMenu({ rule }: { rule: RuleRow }) {
     return (
         <div className="flex justify-end gap-3 text-xs font-medium">
             {rule.can.view && (
-                <Link href={route('code-rules.show', rule.id)} className="text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                <Link href={route('code-rules.show', rule.id)} className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                     {t('codeRules.actions.view')}
                 </Link>
             )}
             {rule.can.update && (
-                <Link href={route('code-rules.edit', rule.id)} className="text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                <Link href={route('code-rules.edit', rule.id)} className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                     {t('common.edit')}
                 </Link>
             )}

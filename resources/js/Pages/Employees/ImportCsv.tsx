@@ -98,7 +98,7 @@ export default function ImportCsv({ batch, preview, columns, allowedOrganization
                 {can.upload && (
                     <form
                         onSubmit={submit}
-                        className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+                        className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
                     >
                         <label htmlFor="file" className="block text-sm font-medium text-gray-900 dark:text-slate-100">
                             {t('employees.import.chooseFile')}
@@ -108,7 +108,7 @@ export default function ImportCsv({ batch, preview, columns, allowedOrganization
                             type="file"
                             accept=".csv,text/csv"
                             onChange={(e) => setData('file', e.target.files?.[0] ?? null)}
-                            className="mt-2 block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700 dark:text-slate-300"
+                            className="mt-2 block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-[color:var(--color-primary)] file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[color:var(--color-primary-hover)] dark:text-slate-300"
                         />
                         {errors.file && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.file}</p>}
 
@@ -116,7 +116,7 @@ export default function ImportCsv({ batch, preview, columns, allowedOrganization
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                             >
                                 {t('employees.import.validate')}
                             </button>
@@ -140,7 +140,7 @@ export default function ImportCsv({ batch, preview, columns, allowedOrganization
 
                 {/* Preview */}
                 {batch !== null && (
-                    <div className="rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-slate-800">
                             <div>
                                 <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
@@ -252,7 +252,7 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: str
 
 function Th({ children }: { children?: React.ReactNode }): JSX.Element {
     return (
-        <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
             {children}
         </th>
     );

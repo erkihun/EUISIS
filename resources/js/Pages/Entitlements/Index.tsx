@@ -72,7 +72,7 @@ export default function EntitlementsIndex({
     });
 
     const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     return (
         <AuthenticatedLayout
@@ -81,7 +81,7 @@ export default function EntitlementsIndex({
             <Head title={t('entitlements.title')} />
 
             {/* Cafeteria Providers */}
-            <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                     {t('entitlements.cafeteriaProviders')}
                 </h3>
@@ -95,7 +95,7 @@ export default function EntitlementsIndex({
                             {cafeteriaProviders.map((cp) => (
                                 <div
                                     key={cp.id}
-                                    className="flex items-start justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950"
+                                    className="flex items-start justify-between gap-3 rounded-card border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950"
                                 >
                                     <div className="min-w-0">
                                         <p className="truncate font-medium text-gray-900 dark:text-slate-100">
@@ -132,7 +132,7 @@ export default function EntitlementsIndex({
             </section>
 
             <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('entitlements.activeEntitlements')}
                     </h3>
@@ -148,7 +148,7 @@ export default function EntitlementsIndex({
                                 return (
                                     <div
                                         key={ent.id}
-                                        className={`rounded-xl border p-4 ${
+                                        className={`rounded-card border p-4 ${
                                             isWarn
                                                 ? 'border-orange-200 bg-orange-50 dark:border-orange-900/40 dark:bg-orange-900/10'
                                                 : 'border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-950'
@@ -183,7 +183,7 @@ export default function EntitlementsIndex({
                     </div>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('entitlements.grantEntitlement')}
                     </h3>
@@ -254,7 +254,7 @@ export default function EntitlementsIndex({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] disabled:opacity-60"
                         >
                             {form.processing ? t('common.saving') : t('entitlements.grant')}
                         </button>

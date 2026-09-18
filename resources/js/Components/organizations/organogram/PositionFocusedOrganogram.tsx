@@ -28,7 +28,7 @@ export default function PositionFocusedOrganogram({ tree }: { tree: OrganogramTr
                 <div className="w-full max-w-5xl space-y-5">
                     {hasDirect && (
                         <section>
-                            <h3 className="mb-2 border-b border-gray-200 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-slate-700 dark:text-slate-400">
+                            <h3 className="mb-2 border-b border-gray-200 pb-1 text-xs font-semibold text-gray-500 dark:border-slate-700 dark:text-slate-400">
                                 {t('organizations.positions')}
                             </h3>
                             <div className="flex flex-wrap gap-4">
@@ -46,7 +46,7 @@ export default function PositionFocusedOrganogram({ tree }: { tree: OrganogramTr
                         <section key={unit.id}>
                             {/* Unit is a heading, not a box — positions carry the emphasis. */}
                             <h3
-                                className="mb-2 border-b border-gray-200 pb-1 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-slate-700 dark:text-slate-400"
+                                className="mb-2 border-b border-gray-200 pb-1 text-xs font-semibold text-gray-500 dark:border-slate-700 dark:text-slate-400"
                                 style={{ paddingLeft: `${depth * 12}px` }}
                             >
                                 {unit.code && <span className="font-mono normal-case">{unit.code} · </span>}

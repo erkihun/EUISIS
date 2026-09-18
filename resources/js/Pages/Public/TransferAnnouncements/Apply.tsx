@@ -52,7 +52,7 @@ interface Props extends PageProps {
     show_url: string;
 }
 
-const inputCls = 'w-full rounded-xl border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500';
+const inputCls = 'w-full rounded-card border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)]';
 const labelCls = 'mb-1.5 block text-xs font-medium text-slate-400';
 
 export default function TransferAnnouncementApply({ announcement: a, show_url }: Props) {
@@ -109,7 +109,7 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
                 </Link>
 
                 {/* Announcement summary */}
-                <div className="mb-6 rounded-2xl border border-slate-700 bg-slate-900 p-5">
+                <div className="mb-6 rounded-panel border border-slate-700 bg-slate-900 p-5">
                     <p className="text-xs font-medium text-slate-400">{orgName}</p>
                     <p className="mt-0.5 text-lg font-bold text-slate-100">{posTitle}</p>
                     <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
@@ -128,7 +128,7 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
 
                 {/* Required documents info */}
                 {a.required_documents && a.required_documents.length > 0 && (
-                    <div className="mb-6 rounded-xl border border-orange-900/40 bg-orange-950/30 px-4 py-3">
+                    <div className="mb-6 rounded-card border border-orange-900/40 bg-orange-950/30 px-4 py-3">
                         <p className="text-xs font-semibold text-orange-300">{t('transfers.requiredDocuments')}:</p>
                         <ul className="mt-1 list-inside list-disc space-y-0.5 text-xs text-orange-200/80">
                             {a.required_documents.map((d, i) => <li key={i}>{d}</li>)}
@@ -139,13 +139,13 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
                 {/* Form */}
                 <form
                     onSubmit={submit}
-                    className="rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-xl"
+                    className="rounded-panel border border-slate-700 bg-slate-900 p-6 shadow-xl"
                 >
                     <h1 className="mb-6 text-lg font-bold text-slate-100">{t('transfers.applyForTransfer')}</h1>
 
                     {/* Global error */}
                     {(form.errors as Record<string, string | undefined>).application && (
-                        <div className="mb-4 rounded-xl border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-300">
+                        <div className="mb-4 rounded-card border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-300">
                             {(form.errors as Record<string, string | undefined>).application}
                         </div>
                     )}
@@ -180,7 +180,7 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-700 bg-slate-800/60 px-4 py-5 text-sm text-slate-400 transition hover:border-slate-500 hover:text-slate-200"
+                            className="flex w-full items-center justify-center gap-2 rounded-card border-2 border-dashed border-slate-700 bg-slate-800/60 px-4 py-5 text-sm text-slate-400 transition hover:border-slate-500 hover:text-slate-200"
                         >
                             <UploadIcon className="h-5 w-5" />
                             {t('transfers.clickToUpload')}
@@ -223,13 +223,13 @@ export default function TransferAnnouncementApply({ announcement: a, show_url }:
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-60"
+                            className="inline-flex items-center justify-center rounded-card bg-[color:var(--color-primary)] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] disabled:opacity-60"
                         >
                             {form.processing ? t('transfers.submitting') : t('transfers.submitApplication')}
                         </button>
                         <Link
                             href={show_url}
-                            className="rounded-xl border border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
+                            className="rounded-card border border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800"
                         >
                             {t('common.cancel')}
                         </Link>

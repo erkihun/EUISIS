@@ -9,6 +9,7 @@ import { Building2, CheckCircle, Layers, Plus, SearchIcon, Upload, XCircle } fro
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
+import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
 type OrganizationRow = {
     id: string;
@@ -35,7 +36,7 @@ type HierarchyVersion = { id: string; version_name: string; status: string; appr
 type Filters = { search: string; type: string; status: string; category: string };
 
 const filterInputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
 export default function OrganizationsIndex({
     organizations,
@@ -59,13 +60,14 @@ export default function OrganizationsIndex({
     can: { create: boolean; manageHierarchy: boolean };
 }) {
     const { locale, t } = useLocale();
+    const { organizationName } = useDisplayFormat();
     const { can: hasPermission } = useCan();
     const [values, setValues] = useState(filters);
 
     const rows: OrgRow[] = organizations.data.map((organization) => ({
         ...organization,
         parent_label: organization.parent
-            ? `${organization.parent.code} — ${localizedName(organization.parent.name_en, organization.parent.name_am, locale)}`
+            ? `${organization.parent.code} — ${organizationName(organization.parent.name_en, organization.parent.name_am)}`
             : null,
     }));
 
@@ -107,7 +109,7 @@ export default function OrganizationsIndex({
                                 </Link>
                             )}
                             {can.create && (
-                                <Link href={route('organizations.create')} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                <Link href={route('organizations.create')} className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3.5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     <Plus className="h-4 w-4" aria-hidden="true" />
                                     {t('organizations.createOrganization')}
                                 </Link>
@@ -126,7 +128,7 @@ export default function OrganizationsIndex({
                 <StatCard label={t('organizations.kpiTypes')} value={stats.types} tone="neutral" icon={<Layers className="h-4 w-4" />} />
             </div>
 
-            <form onSubmit={submit} className="mt-4 rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <form onSubmit={submit} className="mt-4 rounded-card border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                     <div className="relative min-w-0 flex-1">
                         <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
@@ -146,12 +148,12 @@ export default function OrganizationsIndex({
                             {filterOptions.categories.map((category) => <option key={category} value={category}>{t(`organizations.categories.${category}`)}</option>)}
                         </select>
                     )}
-                    <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">{t('common.search')}</button>
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.search')}</button>
                     {filtersActive && <button type="button" onClick={resetFilters} className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 dark:border-slate-700 dark:text-slate-300">{t('common.reset')}</button>}
                 </div>
             </form>
 
-            <section className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <section className="mt-4 overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between gap-3 px-5 py-4">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('organizations.registeredOrganizations')}</h3>
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-slate-800 dark:text-slate-400">{organizations.total}</span>
@@ -169,14 +171,14 @@ export default function OrganizationsIndex({
             </section>
 
             {hierarchyVersions.length > 0 && (
-                <section className="mt-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="mt-4 rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-center justify-between gap-3">
                         <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('organizations.hierarchyVersion')}</h3>
-                        <Link href={route('hierarchy-versions.index')} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-blue-600 dark:border-slate-700 dark:text-blue-400">{t('organizations.viewAllHierarchyVersions')}</Link>
+                        <Link href={route('hierarchy-versions.index')} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-[color:var(--color-primary)] dark:border-slate-700 dark:text-[color:var(--color-primary)]">{t('organizations.viewAllHierarchyVersions')}</Link>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-3">
                         {hierarchyVersions.map((version) => (
-                            <Link key={version.id} href={route('hierarchy-versions.show', { hierarchyVersion: version.id })} className="flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:border-blue-400 dark:border-slate-700 dark:text-slate-300">
+                            <Link key={version.id} href={route('hierarchy-versions.show', { hierarchyVersion: version.id })} className="flex items-center gap-2 rounded-card border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:border-blue-400 dark:border-slate-700 dark:text-slate-300">
                                 <span className="font-medium">{version.version_name}</span>
                                 <StatusBadge status={version.status} />
                             </Link>

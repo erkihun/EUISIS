@@ -44,7 +44,7 @@ function ValuesDetail({
             <button
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                 aria-expanded={open}
             >
                 {open ? '▲' : '▼'} {open ? t('auditLogs.hide') : t('auditLogs.show')}
@@ -95,7 +95,7 @@ export default function AuditLogsIndex({
     });
 
     const inputCls =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 
     function submitFilters(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -136,7 +136,7 @@ export default function AuditLogsIndex({
             <div className="space-y-4">
                 {/* Filters */}
                 <form
-                    className="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                    className="flex flex-wrap items-end gap-3 rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
                     onSubmit={submitFilters}
                 >
                     <div>
@@ -184,7 +184,7 @@ export default function AuditLogsIndex({
                     <div className="flex items-center gap-2">
                         <button
                             type="submit"
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
                         >
                             {t('common.filter')}
                         </button>
@@ -201,7 +201,7 @@ export default function AuditLogsIndex({
                 </form>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {auditLogs.length === 0 ? (
                         <div className="p-6">
                             <EmptyState title={t('auditLogs.noLogs')} />
@@ -220,7 +220,7 @@ export default function AuditLogsIndex({
                                         ].map((h) => (
                                             <th
                                                 key={h}
-                                                className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400"
+                                                className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400"
                                             >
                                                 {h}
                                             </th>
@@ -290,7 +290,7 @@ export default function AuditLogsIndex({
                                     onClick={() => goToPage(page)}
                                     className={`min-w-[2rem] rounded px-2 py-1 font-medium ${
                                         page === meta.current_page
-                                            ? 'bg-blue-600 text-white'
+                                            ? 'bg-[color:var(--color-primary)] text-white'
                                             : 'hover:bg-gray-100 dark:hover:bg-slate-800'
                                     }`}
                                     aria-current={page === meta.current_page ? 'page' : undefined}

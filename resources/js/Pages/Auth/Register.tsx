@@ -30,7 +30,7 @@ export default function Register() {
                     className="pointer-events-none absolute inset-0 opacity-[0.035]"
                     style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '28px 28px' }}
                 />
-                <div className="pointer-events-none absolute -top-48 -left-48 h-[600px] w-[600px] rounded-full bg-blue-600/25 blur-[130px]" />
+                <div className="pointer-events-none absolute -top-48 -left-48 h-[600px] w-[600px] rounded-full bg-[color:var(--color-primary)]/25 blur-[130px]" />
                 <div className="pointer-events-none absolute -bottom-32 right-0 h-[400px] w-[400px] rounded-full bg-orange-600/15 blur-[100px]" />
                 <div className="pointer-events-none absolute -right-28 top-1/2 -translate-y-1/2">
                     <div className="h-[520px] w-[520px] rounded-full border border-white/[0.06]" />
@@ -74,7 +74,7 @@ export default function Register() {
                                 { step: '3', text: 'Sign in to browse announcements and manage your applications.' },
                             ].map(({ step, text }) => (
                                 <div key={step} className="flex items-start gap-3">
-                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600/40 text-[11px] font-bold text-blue-300">
+                                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary)]/40 text-[11px] font-bold text-blue-300">
                                         {step}
                                     </span>
                                     <p className="text-[13px] leading-relaxed text-slate-400">{text}</p>
@@ -103,11 +103,11 @@ export default function Register() {
                 <div className="flex flex-1 items-center justify-center px-6 py-10">
                     <div className="w-full max-w-[400px]">
 
-                        <div className="rounded-2xl border border-gray-200 bg-white px-8 py-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white px-8 py-8 dark:border-slate-800 dark:bg-slate-900">
 
                             {/* Heading */}
                             <div className="mb-7">
-                                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-md shadow-blue-600/30">
+                                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-panel bg-[color:var(--color-primary)] shadow-md shadow-blue-600/30">
                                     <svg className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3M13.5 19.5l-.397-1.191A4.5 4.5 0 0 0 9 15H4.5a2.25 2.25 0 0 1-2.25-2.25v-9A2.25 2.25 0 0 1 4.5 1.5h15a2.25 2.25 0 0 1 2.25 2.25v3.75" />
                                     </svg>
@@ -140,10 +140,10 @@ export default function Register() {
                                             autoComplete="off"
                                             onChange={(e) => setData('employee_number', e.target.value)}
                                             placeholder="e.g. EMP-001234"
-                                            className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+                                            className={`w-full rounded-card border py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-0 dark:text-slate-100 dark:placeholder:text-slate-500 ${
                                                 errors.employee_number
                                                     ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
-                                                    : 'border-gray-300 bg-white focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800'
+                                                    : 'border-gray-300 bg-white focus:border-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-800'
                                             }`}
                                         />
                                     </div>
@@ -179,10 +179,10 @@ export default function Register() {
                                             autoComplete="new-password"
                                             onChange={(e) => setData('password', e.target.value)}
                                             placeholder="Min. 8 characters"
-                                            className={`w-full rounded-xl border py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+                                            className={`w-full rounded-card border py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:text-slate-100 dark:placeholder:text-slate-500 ${
                                                 errors.password
                                                     ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
-                                                    : 'border-gray-300 bg-white focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800'
+                                                    : 'border-gray-300 bg-white focus:border-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-800'
                                             }`}
                                         />
                                         <button type="button" tabIndex={-1} onClick={() => setShowPassword(v => !v)}
@@ -220,10 +220,10 @@ export default function Register() {
                                             autoComplete="new-password"
                                             onChange={(e) => setData('password_confirmation', e.target.value)}
                                             placeholder="Repeat password"
-                                            className={`w-full rounded-xl border py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+                                            className={`w-full rounded-card border py-2.5 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:text-slate-100 dark:placeholder:text-slate-500 ${
                                                 errors.password_confirmation
                                                     ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
-                                                    : 'border-gray-300 bg-white focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800'
+                                                    : 'border-gray-300 bg-white focus:border-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-800'
                                             }`}
                                         />
                                         <button type="button" tabIndex={-1} onClick={() => setShowConfirm(v => !v)}
@@ -246,7 +246,7 @@ export default function Register() {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-all hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                                    className="flex w-full items-center justify-center gap-2 rounded-card bg-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-blue-600/25 transition-all hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                                 >
                                     {processing ? (
                                         <>
@@ -270,7 +270,7 @@ export default function Register() {
 
                         <p className="mt-5 text-center text-sm text-gray-500 dark:text-slate-400">
                             Already have an account?{' '}
-                            <Link href={route('login')} className="font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">
+                            <Link href={route('login')} className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                                 Sign in
                             </Link>
                         </p>

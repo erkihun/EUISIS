@@ -34,6 +34,8 @@ import {
     NetworkIcon,
     MessageSquareIcon,
     StarIcon,
+    NfcIcon,
+    RouterIcon,
 } from '@/Components/Icons';
 import { CSSProperties, SVGProps, useMemo, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
@@ -82,18 +84,18 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupOrganization',
         icon: Building2,
         items: [
-            { routeName: 'organizations.index',           labelKey: 'nav.organizations',         icon: Building2,     permission: 'organizations.view' },
-            { routeName: 'organization-types.index',      labelKey: 'nav.organizationTypes',     icon: TagsIcon,      permission: 'organization-types.viewAny' },
-            { routeName: 'organization-units.index',      labelKey: 'nav.organizationUnits',     icon: GitBranchIcon, permission: 'organization-units.viewAny' },
-            { routeName: 'organization-unit-types.index', labelKey: 'nav.organizationUnitTypes', icon: BoxesIcon,     permission: 'organization-unit-types.viewAny' },
-            { routeName: 'hierarchy-versions.index',      labelKey: 'nav.hierarchyVersions',     icon: GitForkIcon,   permission: 'hierarchy-versions.viewAny' },
+            { routeName: 'organizations.index', labelKey: 'nav.organizations', icon: Building2,     permission: 'organizations.view' },
+            { routeName: 'organization-types.index', labelKey: 'nav.organizationTypes', icon: TagsIcon,      permission: 'organization-types.viewAny' },
+            { routeName: 'organization-units.index', labelKey: 'nav.organizationUnits', icon: GitBranchIcon, permission: 'organization-units.viewAny' },
+            { routeName: 'organization-unit-types.index', labelKey: 'nav.organizationUnitTypes', icon: BoxesIcon, permission: 'organization-unit-types.viewAny' },
+            { routeName: 'hierarchy-versions.index', labelKey: 'nav.hierarchyVersions', icon: GitForkIcon,   permission: 'hierarchy-versions.viewAny' },
             /*
              * The controller also accepts `functional-reporting.viewReports`;
              * only one permission can gate a nav entry, so the broader of the
              * two is used and the page re-checks both on arrival.
              */
-            { routeName: 'reporting-lines.index',         labelKey: 'nav.reportingLines',        icon: NetworkIcon,   permission: 'relationships.viewAny' },
-            { routeName: 'code-rules.index',              labelKey: 'nav.codeRules',             icon: HashIcon,      permission: 'code-rules.viewAny' },
+            { routeName: 'reporting-lines.index', labelKey: 'nav.reportingLines', icon: NetworkIcon,   permission: 'relationships.viewAny' },
+            { routeName: 'code-rules.index', labelKey: 'nav.codeRules', icon: HashIcon,      permission: 'code-rules.viewAny' },
         ],
     },
     {
@@ -106,13 +108,13 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupHrMasterData',
         icon: Briefcase,
         items: [
-            { routeName: 'positions.index',               labelKey: 'nav.positions',              icon: Briefcase,          permission: 'positions.viewAny' },
-            { routeName: 'positions.status',              labelKey: 'nav.newJobPositionsStatus',  icon: ClipboardCheckIcon, permission: 'positions.viewAny' },
-            { routeName: 'position-establishments.index', labelKey: 'nav.positionEstablishments', icon: ClipboardListIcon,  permission: 'position-establishments.viewAny' },
-            { routeName: 'position-services.index',       labelKey: 'nav.positionServices',       icon: Layers,             permission: 'service_feedback.settings.manage' },
-            { routeName: 'grade-levels.index',            labelKey: 'nav.gradeLevels',            icon: TrendingUpIcon,     permission: 'grade-levels.viewAny' },
-            { routeName: 'occupations.index',             labelKey: 'nav.occupations',            icon: HardHatIcon,        permission: 'occupations.viewAny' },
-            { routeName: 'isic-activities.index',         labelKey: 'nav.isicActivities',         icon: ActivityIcon,       permission: 'isic-activities.viewAny' },
+            { routeName: 'positions.index', labelKey: 'nav.positions', icon: Briefcase,          permission: 'positions.viewAny' },
+            { routeName: 'positions.status', labelKey: 'nav.newJobPositionsStatus', icon: ClipboardCheckIcon, permission: 'positions.viewAny' },
+            { routeName: 'position-establishments.index', labelKey: 'nav.positionEstablishments', icon: ClipboardListIcon, permission: 'position-establishments.viewAny' },
+            { routeName: 'position-services.index', labelKey: 'nav.positionServices', icon: Layers,             permission: 'service_feedback.settings.manage' },
+            { routeName: 'grade-levels.index', labelKey: 'nav.gradeLevels', icon: TrendingUpIcon,     permission: 'grade-levels.viewAny' },
+            { routeName: 'occupations.index', labelKey: 'nav.occupations', icon: HardHatIcon,        permission: 'occupations.viewAny' },
+            { routeName: 'isic-activities.index', labelKey: 'nav.isicActivities', icon: ActivityIcon,       permission: 'isic-activities.viewAny' },
         ],
     },
     {
@@ -120,14 +122,14 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupEmployeeManagement',
         icon: Users,
         items: [
-            { routeName: 'employees.index',                      labelKey: 'nav.employees',             icon: Users,              permission: 'employees.view' },
-            { routeName: 'employees.import.create',              labelKey: 'nav.employeeImport',        icon: ClipboardListIcon,  permission: 'employees.import.view' },
-            { routeName: 'vacancy-announcements.index',          labelKey: 'nav.vacancyAnnouncements',  icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
+            { routeName: 'employees.index', labelKey: 'nav.employees', icon: Users,              permission: 'employees.view' },
+            { routeName: 'employees.import.create', labelKey: 'nav.employeeImport', icon: ClipboardListIcon,  permission: 'employees.import.view' },
+            { routeName: 'vacancy-announcements.index', labelKey: 'nav.vacancyAnnouncements', icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
             { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',        icon: Inbox },
-            { routeName: 'transfers.dashboard',                  labelKey: 'nav.transferDashboard',     icon: ArrowLeftRightIcon, permission: 'transfers.view' },
-            { routeName: 'transfer-announcements.index',         labelKey: 'nav.transferAnnouncements', icon: MegaphoneIcon,      permission: 'transfers.announcements.view' },
-            { routeName: 'transfer-applications.index',          labelKey: 'nav.transferApplications',  icon: Inbox,              permission: 'transfers.applications.view' },
-            { routeName: 'transfer-settings.show',               labelKey: 'nav.transferSettings',      icon: SettingsIcon,       permission: 'transfers.settings.manage' },
+            { routeName: 'transfers.dashboard', labelKey: 'nav.transferDashboard', icon: ArrowLeftRightIcon, permission: 'transfers.view' },
+            { routeName: 'transfer-announcements.index', labelKey: 'nav.transferAnnouncements', icon: MegaphoneIcon, permission: 'transfers.announcements.view' },
+            { routeName: 'transfer-applications.index', labelKey: 'nav.transferApplications', icon: Inbox,              permission: 'transfers.applications.view' },
+            { routeName: 'transfer-settings.show', labelKey: 'nav.transferSettings', icon: SettingsIcon,       permission: 'transfers.settings.manage' },
         ],
     },
     {
@@ -135,8 +137,11 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupIdentity',
         icon: CreditCard,
         items: [
-            { routeName: 'id-cards.index',      labelKey: 'nav.idCards',      icon: CreditCard,         permission: 'cards.view' },
+            { routeName: 'id-cards.index', labelKey: 'nav.idCards', icon: CreditCard,         permission: 'cards.view' },
             { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', icon: ClipboardCheckIcon, permission: 'card-requests.viewAny' },
+            { routeName: 'nfc-management.dashboard', labelKey: 'nav.nfcManagement', icon: NfcIcon,       permission: 'nfc_credentials.view' },
+            { routeName: 'nfc-management.terminals.index', labelKey: 'nav.nfcTerminals', icon: RouterIcon,     permission: 'nfc_terminals.view' },
+            { routeName: 'nfc-management.logs.index', labelKey: 'nav.nfcVerificationLogs', icon: ScrollText,     permission: 'nfc_logs.view' },
         ],
     },
     {
@@ -144,12 +149,12 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupGrievances',
         icon: ScrollText,
         items: [
-            { routeName: 'grievances.index',           labelKey: 'nav.grievances',          icon: ClipboardListIcon, permission: 'grievances.manage' },
-            { routeName: 'grievances.my',              labelKey: 'nav.myGrievances',        icon: Inbox },
-            { routeName: 'grievance-committees.index', labelKey: 'nav.grievanceCommittees', icon: Users,             permission: 'grievances.manage' },
-            { routeName: 'grievance-categories.index', labelKey: 'nav.grievanceCategories', icon: TagsIcon,          permission: 'grievances.manage' },
-            { routeName: 'grievance-sla-rules.index',  labelKey: 'nav.grievanceSlaRules',   icon: SettingsIcon,      permission: 'grievances.manage' },
-            { routeName: 'tribunal-cases.index',       labelKey: 'nav.tribunalCases',       icon: ShieldCheck,       permission: 'grievances.tribunal' },
+            { routeName: 'grievances.index', labelKey: 'nav.grievances', icon: ClipboardListIcon, permission: 'grievances.manage' },
+            { routeName: 'grievances.my', labelKey: 'nav.myGrievances',        icon: Inbox },
+            { routeName: 'grievance-committees.index', labelKey: 'nav.grievanceCommittees', icon: Users, permission: 'grievances.manage' },
+            { routeName: 'grievance-categories.index', labelKey: 'nav.grievanceCategories', icon: TagsIcon, permission: 'grievances.manage' },
+            { routeName: 'grievance-sla-rules.index', labelKey: 'nav.grievanceSlaRules', icon: SettingsIcon,      permission: 'grievances.manage' },
+            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: ShieldCheck,       permission: 'grievances.tribunal' },
         ],
     },
     {
@@ -162,12 +167,12 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupServiceManagement',
         icon: MessageSquareIcon,
         items: [
-            { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard,   permission: 'service_feedback.view' },
-            { routeName: 'service-feedback.admin.index',     labelKey: 'nav.serviceFeedbackList',      icon: MessageSquareIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-feedback.admin.reports',   labelKey: 'nav.serviceFeedbackReports',   icon: StarIcon,          permission: 'service_feedback.view' },
-            { routeName: 'service-types.index',              labelKey: 'nav.serviceTypes',             icon: Layers,            permission: 'service-types.viewAny' },
-            { routeName: 'entitlements.index',               labelKey: 'nav.entitlements',             icon: BadgeCheckIcon },
-            { routeName: 'entitlement-rules.index',          labelKey: 'nav.entitlementRules',         icon: ReceiptTextIcon,   permission: 'entitlement-rules.viewAny' },
+            { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: MessageSquareIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: StarIcon,          permission: 'service_feedback.view' },
+            { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', icon: Layers,            permission: 'service-types.viewAny' },
+            { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: BadgeCheckIcon },
+            { routeName: 'entitlement-rules.index', labelKey: 'nav.entitlementRules', icon: ReceiptTextIcon,   permission: 'entitlement-rules.viewAny' },
         ],
     },
     {
@@ -175,13 +180,13 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupCafeteria',
         icon: QrCodeIcon,
         items: [
-            { routeName: 'cafeteria.dashboard',          labelKey: 'nav.cafeteriaDashboard',    icon: LayoutDashboard, permission: 'cafeteria_transactions.viewAny' },
-            { routeName: 'cafeteria.scan',               labelKey: 'nav.cafeteriaScan',         icon: QrCodeIcon,      permission: 'cafeteria_transactions.scan' },
+            { routeName: 'cafeteria.dashboard', labelKey: 'nav.cafeteriaDashboard', icon: LayoutDashboard, permission: 'cafeteria_transactions.viewAny' },
+            { routeName: 'cafeteria.scan', labelKey: 'nav.cafeteriaScan', icon: QrCodeIcon,      permission: 'cafeteria_transactions.scan' },
             { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', icon: ReceiptTextIcon, permission: 'cafeteria_transactions.viewAny' },
-            { routeName: 'cafeteria.ledger.index',       labelKey: 'nav.cafeteriaLedger',       icon: ScrollText,      permission: 'cafeteria_ledger.viewAny' },
-            { routeName: 'cafeteria.reports.index',      labelKey: 'nav.cafeteriaReports',      icon: ActivityIcon,    permission: 'cafeteria_reports.viewAny' },
-            { routeName: 'cafeteria.providers.index',    labelKey: 'nav.cafeteriaProviders',    icon: HandshakeIcon,   permission: 'cafeteria_providers.viewAny' },
-            { routeName: 'cafeteria.settings.index',     labelKey: 'nav.cafeteriaSettings',     icon: SettingsIcon,    permission: 'cafeteria_settings.view' },
+            { routeName: 'cafeteria.ledger.index', labelKey: 'nav.cafeteriaLedger', icon: ScrollText,      permission: 'cafeteria_ledger.viewAny' },
+            { routeName: 'cafeteria.reports.index', labelKey: 'nav.cafeteriaReports', icon: ActivityIcon,    permission: 'cafeteria_reports.viewAny' },
+            { routeName: 'cafeteria.providers.index', labelKey: 'nav.cafeteriaProviders', icon: HandshakeIcon,   permission: 'cafeteria_providers.viewAny' },
+            { routeName: 'cafeteria.settings.index', labelKey: 'nav.cafeteriaSettings', icon: SettingsIcon,    permission: 'cafeteria_settings.view' },
         ],
     },
     {
@@ -189,14 +194,14 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupTransport',
         icon: ActivityIcon,
         items: [
-            { routeName: 'transport.providers.index', labelKey: 'nav.transportProviders', icon: HandshakeIcon,   permission: 'transport-providers.viewAny' },
-            { routeName: 'transport.scan',            labelKey: 'nav.transportScan',      icon: QrCodeIcon,      permission: 'transport-passes.viewAny' },
-            { routeName: 'transport.routes.index',    labelKey: 'nav.transportRoutes',    icon: ScrollText,      permission: 'transport-routes.viewAny' },
-            { routeName: 'transport.vehicles.index',  labelKey: 'nav.transportVehicles',  icon: ActivityIcon,    permission: 'transport-vehicles.viewAny' },
-            { routeName: 'transport.drivers.index',   labelKey: 'nav.transportDrivers',   icon: UserIcon,        permission: 'transport-drivers.viewAny' },
-            { routeName: 'transport.passes.index',    labelKey: 'nav.transportPasses',    icon: BadgeCheckIcon,  permission: 'transport-passes.viewAny' },
-            { routeName: 'transport.reports.index',   labelKey: 'nav.transportReports',   icon: ReceiptTextIcon, permission: 'transport-reports.view' },
-            { routeName: 'transport.settings.index',  labelKey: 'nav.transportSettings',  icon: SettingsIcon,    permission: 'transport-settings.view' },
+            { routeName: 'transport.providers.index', labelKey: 'nav.transportProviders', icon: HandshakeIcon, permission: 'transport-providers.viewAny' },
+            { routeName: 'transport.scan', labelKey: 'nav.transportScan', icon: QrCodeIcon,      permission: 'transport-passes.viewAny' },
+            { routeName: 'transport.routes.index', labelKey: 'nav.transportRoutes', icon: ScrollText,      permission: 'transport-routes.viewAny' },
+            { routeName: 'transport.vehicles.index', labelKey: 'nav.transportVehicles', icon: ActivityIcon,    permission: 'transport-vehicles.viewAny' },
+            { routeName: 'transport.drivers.index', labelKey: 'nav.transportDrivers', icon: UserIcon,        permission: 'transport-drivers.viewAny' },
+            { routeName: 'transport.passes.index', labelKey: 'nav.transportPasses', icon: BadgeCheckIcon,  permission: 'transport-passes.viewAny' },
+            { routeName: 'transport.reports.index', labelKey: 'nav.transportReports', icon: ReceiptTextIcon, permission: 'transport-reports.view' },
+            { routeName: 'transport.settings.index', labelKey: 'nav.transportSettings', icon: SettingsIcon,    permission: 'transport-settings.view' },
         ],
     },
     {
@@ -209,8 +214,8 @@ const navGroups: NavGroup[] = [
         icon: HandshakeIcon,
         items: [
             { routeName: 'service-providers.index', labelKey: 'nav.providers',              icon: HandshakeIcon },
-            { routeName: 'provider-users.index',    labelKey: 'nav.cafeteriaProviderUsers', icon: UserCogIcon, permission: 'cafeteria-provider-users.viewAny' },
-            { routeName: 'api-management.index',    labelKey: 'nav.apiManagement',          icon: NetworkIcon, permission: 'api_management.view' },
+            { routeName: 'provider-users.index', labelKey: 'nav.cafeteriaProviderUsers', icon: UserCogIcon, permission: 'cafeteria-provider-users.viewAny' },
+            { routeName: 'api-management.index', labelKey: 'nav.apiManagement', icon: NetworkIcon, permission: 'api_management.view' },
         ],
     },
     {
@@ -230,8 +235,8 @@ const dashboardNav: NavItem = {
 };
 
 const employeeNav: NavItem[] = [
-    { routeName: 'employee.portal',               labelKey: 'nav.myPortal',             icon: UserIcon },
-    { routeName: 'employee.entitlements',         labelKey: 'nav.myEntitlements',       icon: BadgeCheckIcon },
+    { routeName: 'employee.portal', labelKey: 'nav.myPortal',             icon: UserIcon },
+    { routeName: 'employee.entitlements', labelKey: 'nav.myEntitlements',       icon: BadgeCheckIcon },
     { routeName: 'employee.transfer-applications', labelKey: 'nav.transferApplications', icon: Inbox },
     { routeName: 'public.transfer-announcements', labelKey: 'nav.announcements',         icon: MegaphoneIcon },
 ];
@@ -241,16 +246,16 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
     {
         labelKey: 'nav.adminAccess',
         items: [
-            { routeName: 'users.index',          labelKey: 'nav.users',                  icon: UserCogIcon,   permission: 'users.viewAny' },
+            { routeName: 'users.index', labelKey: 'nav.users', icon: UserCogIcon,   permission: 'users.viewAny' },
             { routeName: 'provider-users.index', labelKey: 'nav.cafeteriaProviderUsers', icon: HandshakeIcon, permission: 'cafeteria-provider-users.viewAny' },
-            { routeName: 'roles.index',          labelKey: 'nav.roles',                  icon: ShieldCheck,   permission: 'roles.viewAny' },
-            { routeName: 'permissions.index',    labelKey: 'nav.permissions',            icon: KeyIcon,       permission: 'permissions.viewAny' },
+            { routeName: 'roles.index', labelKey: 'nav.roles', icon: ShieldCheck,   permission: 'roles.viewAny' },
+            { routeName: 'permissions.index', labelKey: 'nav.permissions', icon: KeyIcon,       permission: 'permissions.viewAny' },
         ],
     },
     {
         labelKey: 'nav.adminSystem',
         items: [
-            { routeName: 'recycle-bin.index',     labelKey: 'nav.recycleBin',     icon: TrashIcon,    permission: 'recycle-bin.view' },
+            { routeName: 'recycle-bin.index', labelKey: 'nav.recycleBin', icon: TrashIcon,    permission: 'recycle-bin.view' },
             // API Management lives as a tab inside System Settings, beside
             // Security — not as a separate sidebar entry.
             { routeName: 'system-settings.index', labelKey: 'nav.systemSettings', icon: SettingsIcon, permission: 'system-settings.view' },
@@ -307,10 +312,10 @@ function NavLink({ item, collapsed, isAdmin = false, index = 0 }: { item: NavIte
     const Icon = item.icon;
     const label = t(item.labelKey);
 
-    const activeBar = 'border-[var(--color-primary)] bg-[color:var(--color-primary)]/10';
-    const activeText = 'text-[color:var(--color-primary)]';
+    const activeBar = 'border-[color:var(--sidebar-accent)] bg-[color:var(--sidebar-accent-wash)]';
+    const activeText = 'text-[color:var(--sidebar-accent)]';
     const activeIcon  = activeText;
-    const hoverBg = 'hover:bg-[color:var(--color-primary)]/10 hover:text-gray-900 dark:hover:text-slate-100';
+    const hoverBg = 'hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)]';
 
     if (collapsed) {
         return (
@@ -322,17 +327,17 @@ function NavLink({ item, collapsed, isAdmin = false, index = 0 }: { item: NavIte
                     aria-current={isActive ? 'page' : undefined}
                     className={[
                         'sidebar-press group relative mx-2 flex h-10 w-10 items-center justify-center rounded-lg',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
                         'hover:scale-[1.06]',
                         isActive
                             ? `${activeBar} ${activeText}`
-                            : `text-gray-500 dark:text-slate-500 ${hoverBg}`,
+                            : `text-[color:var(--sidebar-muted)] ${hoverBg}`,
                     ].join(' ')}
                 >
                     <Icon
                         className={[
                             'h-5 w-5 shrink-0 transition-colors',
-                            isActive ? activeIcon : 'text-gray-500 group-hover:text-gray-800 dark:text-slate-500 dark:group-hover:text-slate-300',
+                            isActive ? activeIcon : 'text-[color:var(--sidebar-muted)] group-hover:text-[color:var(--sidebar-fg)]',
                         ].join(' ')}
                         aria-hidden="true"
                     />
@@ -348,22 +353,22 @@ function NavLink({ item, collapsed, isAdmin = false, index = 0 }: { item: NavIte
                 aria-current={isActive ? 'page' : undefined}
                 className={[
                     'sidebar-press group relative flex items-center gap-3 overflow-hidden rounded-lg py-2.5 pl-3 pr-3 text-[15px] font-normal',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
                     isActive
                         ? `${activeBar} ${activeText}`
-                        : `text-gray-600 dark:text-slate-400 ${hoverBg}`,
+                        : `text-[color:var(--sidebar-muted)] ${hoverBg}`,
                 ].join(' ')}
             >
                 {isActive && (
                     <span
                         aria-hidden="true"
-                        className="sidebar-active-bar absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--color-primary)]"
+                        className="sidebar-active-bar absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]"
                     />
                 )}
                 <Icon
                     className={[
                         'h-[19px] w-[19px] shrink-0 transition-all duration-200 group-hover:scale-110',
-                        isActive ? activeIcon : 'text-gray-500 group-hover:text-gray-800 dark:text-slate-500 dark:group-hover:text-slate-300',
+                        isActive ? activeIcon : 'text-[color:var(--sidebar-muted)] group-hover:text-[color:var(--sidebar-fg)]',
                     ].join(' ')}
                     aria-hidden="true"
                 />
@@ -392,9 +397,9 @@ function NavItemDropdown({
     const anyChildActive = visibleChildren.some((c) => route().current(c.routeName));
     const [open, setOpen] = useState(anyChildActive);
 
-    const activeBar  = 'border-[var(--color-primary)] bg-[color:var(--color-primary)]/10';
-    const activeText = 'text-[color:var(--color-primary)]';
-    const hoverBg    = 'hover:bg-[color:var(--color-primary)]/10 hover:text-gray-900 dark:hover:text-slate-100';
+    const activeBar  = 'border-[color:var(--sidebar-accent)] bg-[color:var(--sidebar-accent-wash)]';
+    const activeText = 'text-[color:var(--sidebar-accent)]';
+    const hoverBg    = 'hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)]';
     const Icon       = item.icon;
     const label      = t(item.labelKey);
 
@@ -410,10 +415,10 @@ function NavItemDropdown({
                     onClick={() => setOpen((o) => !o)}
                     className={[
                         'sidebar-press group relative mx-2 flex h-10 w-10 items-center justify-center rounded-lg hover:scale-[1.06]',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
                         anyChildActive
                             ? `${activeBar} ${activeText}`
-                            : `text-gray-500 dark:text-slate-500 ${hoverBg}`,
+                            : `text-[color:var(--sidebar-muted)] ${hoverBg}`,
                     ].join(' ')}
                 >
                     <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -430,16 +435,16 @@ function NavItemDropdown({
                 aria-expanded={open}
                 className={[
                     'sidebar-press group relative flex w-full items-center gap-3 overflow-hidden rounded-lg py-2.5 pl-3 pr-3 text-[15px] font-normal',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
                     anyChildActive
                         ? `${activeBar} ${activeText}`
-                        : `text-gray-600 dark:text-slate-400 ${hoverBg}`,
+                        : `text-[color:var(--sidebar-muted)] ${hoverBg}`,
                 ].join(' ')}
             >
                 {anyChildActive && (
                     <span
                         aria-hidden="true"
-                        className="sidebar-active-bar absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[var(--color-primary)]"
+                        className="sidebar-active-bar absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]"
                     />
                 )}
                 <Icon
@@ -447,7 +452,7 @@ function NavItemDropdown({
                         'h-[19px] w-[19px] shrink-0 transition-all duration-200 group-hover:scale-110',
                         anyChildActive
                             ? activeText
-                            : 'text-gray-500 group-hover:text-gray-800 dark:text-slate-500 dark:group-hover:text-slate-300',
+                            : 'text-[color:var(--sidebar-muted)] group-hover:text-[color:var(--sidebar-fg)]',
                     ].join(' ')}
                     aria-hidden="true"
                 />
@@ -459,7 +464,7 @@ function NavItemDropdown({
 
             <div className="sidebar-collapsible" data-open={open}>
                 <div className="sidebar-collapsible-inner">
-                    <ul role="list" className="mt-0.5 mb-1 space-y-0.5 pl-5 border-l border-gray-200 ml-5 dark:border-slate-700">
+                    <ul role="list" className="mt-0.5 mb-1 space-y-0.5 pl-5 border-l border-[color:var(--sidebar-border)] ml-5">
                         {visibleChildren.map((child, i) => (
                             <NavLink key={child.routeName} item={child} collapsed={false} index={i} />
                         ))}
@@ -476,11 +481,14 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const { getString } = useSystemSettings();
     const isEmployeeUser = (usePage().props as any).is_employee_user === true;
 
-    const appName        = getString('app.short_name',              'AA Employee ID');
+    const appName        = getString('app.short_name', 'AA Employee ID');
     const orgName        = locale === 'am'
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
     const environmentLabel = getString('general.system_environment_label');
+    /* Only meaningful in the expanded sidebar — the collapsed rail is a single
+       centred icon either way. */
+    const logoCentered = getString('appearance.logo_position', 'start') === 'center';
     const sidebarStyle: CSSProperties | undefined = locale === 'am'
         ? { fontFamily: 'var(--font-ethiopic)' }
         : undefined;
@@ -555,9 +563,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             );
         }
 
-        const headerActive  = 'text-[color:var(--color-primary)]';
-        const headerDefault = 'text-gray-500 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-300';
-        const iconActive    = 'text-[color:var(--color-primary)]';
+        const headerActive  = 'text-[color:var(--sidebar-accent)]';
+        const headerDefault = 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]';
+        const iconActive    = 'text-[color:var(--sidebar-accent)]';
 
         return (
             <div key={group.key}>
@@ -567,12 +575,12 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     aria-expanded={isOpen}
                     className={[
                         'sidebar-press flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
                         isActive ? headerActive : headerDefault,
                     ].join(' ')}
                 >
                     <GroupIcon
-                        className={['h-4 w-4 shrink-0', isActive ? iconActive : 'text-gray-400 dark:text-slate-600'].join(' ')}
+                        className={['h-4 w-4 shrink-0', isActive ? iconActive : 'text-[color:var(--sidebar-muted)]'].join(' ')}
                         aria-hidden="true"
                     />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium">
@@ -603,9 +611,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         const isActive = activeGroupKeys.has('admin');
         const isOpen   = openGroups.admin ?? isActive;
 
-        const headerActive  = 'text-[color:var(--color-primary)]';
-        const headerDefault = 'text-gray-500 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-300';
-        const iconActive    = 'text-[color:var(--color-primary)]';
+        const headerActive  = 'text-[color:var(--sidebar-accent)]';
+        const headerDefault = 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]';
+        const iconActive    = 'text-[color:var(--sidebar-accent)]';
 
         return (
             <div>
@@ -615,12 +623,12 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     aria-expanded={isOpen}
                     className={[
                         'sidebar-press flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]',
+                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
                         isActive ? headerActive : headerDefault,
                     ].join(' ')}
                 >
                     <ShieldCheck
-                        className={['h-4 w-4 shrink-0', isActive ? iconActive : 'text-gray-400 dark:text-slate-600'].join(' ')}
+                        className={['h-4 w-4 shrink-0', isActive ? iconActive : 'text-[color:var(--sidebar-muted)]'].join(' ')}
                         aria-hidden="true"
                     />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium">{t('nav.admin')}</span>
@@ -637,7 +645,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                                 const offset = visibleAdminGroups.slice(0, gi).reduce((n, g) => n + g.items.length, 0);
                                 return (
                                     <div key={sub.labelKey}>
-                                        <p className="sidebar-item px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-slate-600"
+                                        <p className="sidebar-item px-3 py-1 text-[11px] font-medium text-[color:var(--sidebar-muted)]"
                                            style={{ '--i': offset } as CSSProperties}>
                                             {t(sub.labelKey)}
                                         </p>
@@ -658,7 +666,16 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
 
     return (
         <div
-            className="flex h-full w-full flex-col border-r border-gray-200 bg-white text-gray-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+            /*
+             * Surface and text come from the `appearance.sidebar_color`
+             * setting via the `--sidebar-*` tokens, not from fixed Tailwind
+             * colours, so an administrator can brand the navigation without a
+             * code change. The border, muted text and hover wash are mixed
+             * from the same two values in app.css, which is why only the
+             * background is configurable — everything else stays in contrast
+             * with it by construction.
+             */
+            className="flex h-full w-full flex-col border-r border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]"
             style={sidebarStyle}
             data-sidebar
         >
@@ -672,7 +689,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                             onClick={onToggleCollapse}
                             title="Expand sidebar"
                             aria-label="Expand sidebar"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] dark:text-slate-500 dark:hover:bg-white/8 dark:hover:text-slate-200"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)] transition-colors hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]"
                         >
                             <ChevronRight className="h-3.5 w-3.5" />
                         </button>
@@ -680,7 +697,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     <Link
                         href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
                         title={appName}
-                        className="flex h-8 w-8 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                        className="flex h-8 w-8 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]"
                     >
                         <ApplicationLogo className="h-full w-full fill-slate-900 object-contain dark:fill-white" />
                     </Link>
@@ -689,18 +706,30 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                 <div className="flex h-[60px] shrink-0 items-center gap-2.5 px-4">
                     <Link
                         href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
-                        className="flex min-w-0 flex-1 items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] rounded-lg"
+                        /*
+                         * `appearance.logo_position`: `center` stacks the mark
+                         * over the name, which suits an institutional crest;
+                         * `start` keeps the compact inline lockup.
+                         */
+                        className={[
+                            'flex min-w-0 flex-1 gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
+                            logoCentered
+                                ? 'flex-col items-center justify-center gap-1 text-center'
+                                : 'items-center',
+                        ].join(' ')}
                     >
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center">
                             <ApplicationLogo className="h-full w-full fill-slate-900 object-contain dark:fill-white" />
                         </div>
                         <div className="min-w-0">
-                            <p className="truncate text-[15px] font-medium leading-tight text-gray-950 dark:text-white">
+                            <p className="truncate text-[15px] font-medium leading-tight text-[color:var(--sidebar-fg)]">
                                 {appName}
                             </p>
-                            <p className="truncate text-xs leading-tight text-gray-500 dark:text-slate-500">
-                                {orgName}
-                            </p>
+                            {!logoCentered && (
+                                <p className="truncate text-xs leading-tight text-[color:var(--sidebar-muted)]">
+                                    {orgName}
+                                </p>
+                            )}
                         </div>
                     </Link>
 
@@ -709,7 +738,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                             type="button"
                             onClick={onClose}
                             aria-label="Close sidebar"
-                            className="shrink-0 rounded-md p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] dark:text-slate-500 dark:hover:bg-white/8 dark:hover:text-slate-200"
+                            className="shrink-0 rounded-md p-1.5 text-[color:var(--sidebar-muted)] transition-colors hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]"
                         >
                             <X className="h-4 w-4" aria-hidden="true" />
                         </button>
@@ -721,7 +750,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                             onClick={onToggleCollapse}
                             title="Collapse sidebar"
                             aria-label="Collapse sidebar"
-                            className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] dark:text-slate-500 dark:hover:bg-white/8 dark:hover:text-slate-200"
+                            className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)] transition-colors hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]"
                         >
                             <ChevronLeft className="h-3.5 w-3.5" />
                         </button>
@@ -747,14 +776,14 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                                 <NavLink key={item.routeName} item={item} collapsed={collapsed} />
                             ))}
                         </ul>
-                        {!collapsed && <div className="mx-3 mb-2 h-px bg-gray-200 dark:bg-white/5" />}
+                        {!collapsed && <div className="mx-3 mb-2 h-px bg-[color:var(--sidebar-border)]" />}
                     </>
                 )}
 
                 {/* Main groups — admin only */}
                 {!isEmployeeUser && (
                     <>
-                        {!collapsed && <div className="mx-3 mb-2 h-px bg-gray-200 dark:bg-white/5" />}
+                        {!collapsed && <div className="mx-3 mb-2 h-px bg-[color:var(--sidebar-border)]" />}
                         <div className={['space-y-0.5', collapsed ? '' : 'px-3'].join(' ')}>
                             {visibleGroups.map((g) => renderGroup(g, false))}
                         </div>
@@ -766,7 +795,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                 {!isEmployeeUser && visibleAdminNav.length > 0 && (
                     collapsed ? (
                         <>
-                            <div className="mx-auto my-1 h-px w-8 bg-gray-200 dark:bg-white/5" />
+                            <div className="mx-auto my-1 h-px w-8 bg-[color:var(--sidebar-border)]" />
                             <ul role="list" className="space-y-0.5 py-0.5">
                                 {visibleAdminNav.map((item) => (
                                     <NavLink key={item.routeName} item={item} collapsed isAdmin />
@@ -775,7 +804,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         </>
                     ) : (
                         <>
-                            <div className="mx-3 my-2 h-px bg-gray-200 dark:bg-white/5" />
+                            <div className="mx-3 my-2 h-px bg-[color:var(--sidebar-border)]" />
                             <div className="px-3">
                                 {renderAdminGroup()}
                             </div>
@@ -786,9 +815,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
 
             {/* ── Footer ─────────────────────────────────────────────────────── */}
             {!collapsed && (
-                <div className="shrink-0 border-t border-gray-200 px-4 py-3 dark:border-white/5">
+                <div className="shrink-0 border-t border-[color:var(--sidebar-border)] px-4 py-3">
                     <div className="flex items-center justify-between gap-2">
-                        <p className="min-w-0 truncate text-xs text-gray-500 dark:text-slate-500">{orgName}</p>
+                        <p className="min-w-0 truncate text-xs text-[color:var(--sidebar-muted)]">{orgName}</p>
                         {environmentLabel && (
                             <span className="shrink-0 rounded-full bg-[color:var(--color-accent)]/10 px-2 py-0.5 text-[11px] font-medium text-[color:var(--color-accent)]">
                                 {environmentLabel}

@@ -239,29 +239,33 @@ export default function OrganizationShow({
         >
             <Head title={organization.name_en} />
 
-            <section className="relative mb-6 overflow-hidden rounded-3xl border border-blue-100 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 p-6 text-white shadow-sm dark:border-blue-900 dark:from-blue-950 dark:via-slate-900 dark:to-indigo-950 sm:p-8">
-                <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-white/10 blur-2xl" />
-                <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+            <section className="mb-6 overflow-hidden rounded-panel border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+                <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="flex min-w-0 items-center gap-4">
                         {organization.has_logo && organization.logo_url ? (
-                            <img src={organization.logo_url} alt="" className="h-16 w-16 rounded-2xl border border-white/20 bg-white object-contain p-2 shadow-sm" />
+                            <img src={organization.logo_url} alt="" className="h-14 w-14 rounded-card border border-slate-200 bg-white object-contain p-1.5 dark:border-slate-700" />
                         ) : (
-                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-2xl font-bold backdrop-blur">
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card border border-slate-200 bg-slate-50 text-xl font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
                                 {organizationName.charAt(0).toUpperCase()}
                             </div>
                         )}
                         <div className="min-w-0">
-                            <div className="mb-2 flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-white/15 px-2.5 py-1 font-mono text-xs">{organization.code}</span>
+                            <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                                <span className="rounded-control bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-300">{organization.code}</span>
                                 <StatusBadge status={organization.status} label={t(`common.${organization.status}`)} />
                             </div>
-                            <h1 className="truncate text-2xl font-bold tracking-tight sm:text-3xl">{organizationName}</h1>
-                            <p className="mt-1 text-sm text-blue-100">
+                            <h1 className="truncate text-xl font-semibold text-gray-900 dark:text-slate-100">{organizationName}</h1>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                                 {organization.type ? localizedName(organization.type.name_en, organization.type.name_am, locale) : t('organizations.organization')}
                             </p>
                         </div>
                     </div>
-                    <dl className="grid grid-cols-2 gap-2 sm:grid-cols-5 xl:min-w-[620px]">
+                    {/*
+                     * Establishment counts, read straight off the structure
+                     * tree. One bordered strip rather than five separate cards:
+                     * they are facets of the same figure and belong together.
+                     */}
+                    <dl className="grid grid-cols-2 overflow-hidden rounded-card border border-slate-200 sm:grid-cols-5 xl:min-w-[560px] dark:border-slate-700">
                         {[
                             { label: t('organizations.organizationUnits'), value: structureTree.counters.units },
                             { label: t('organizations.positions'), value: structureTree.counters.positions },
@@ -269,9 +273,9 @@ export default function OrganizationShow({
                             { label: t('organizations.vacant'), value: structureTree.counters.vacant_positions },
                             { label: t('organizations.assignedEmployees'), value: structureTree.counters.employees },
                         ].map(({ label, value }) => (
-                            <div key={label} className="rounded-2xl border border-white/15 bg-white/10 px-3 py-3 text-center backdrop-blur-sm">
-                                <dd className="text-xl font-bold tabular-nums">{value}</dd>
-                                <dt className="mt-0.5 text-[11px] leading-tight text-blue-100">{label}</dt>
+                            <div key={label} className="border-b border-r border-slate-200 px-3 py-2.5 text-center last:border-r-0 sm:border-b-0 dark:border-slate-700">
+                                <dd className="text-lg font-semibold tabular-nums text-slate-900 dark:text-slate-100">{value}</dd>
+                                <dt className="mt-0.5 text-xs leading-tight text-slate-500 dark:text-slate-400">{label}</dt>
                             </div>
                         ))}
                     </dl>
@@ -280,7 +284,7 @@ export default function OrganizationShow({
 
             {showDeletionBlockers && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-                    <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-white p-6 shadow-2xl dark:border-amber-800 dark:bg-slate-900">
+                    <div className="w-full max-w-lg rounded-panel border border-amber-200 bg-white p-6 shadow-2xl dark:border-amber-800 dark:bg-slate-900">
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
@@ -299,7 +303,7 @@ export default function OrganizationShow({
                                 ×
                             </button>
                         </div>
-                        <ul className="mt-5 space-y-2 rounded-xl bg-amber-50 p-4 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+                        <ul className="mt-5 space-y-2 rounded-card bg-amber-50 p-4 text-sm text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
                             {deletionBlockers.map((key) => (
                                 <li key={key} className="flex gap-2">
                                     <span aria-hidden="true">•</span>
@@ -322,8 +326,8 @@ export default function OrganizationShow({
 
             <div className="grid gap-6 xl:grid-cols-[1.65fr_1fr]">
                 {/* Basic Information */}
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <p className="text-xs font-semibold text-gray-400 dark:text-slate-500">
                         {t('organizations.basicInformation')}
                     </p>
                     <dl className="mt-3 grid gap-4 sm:grid-cols-2">
@@ -364,7 +368,7 @@ export default function OrganizationShow({
                 {/* Right column: hierarchy + structure */}
                 <div>
                     {/* Hierarchy & Placement */}
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                             {t('organizations.hierarchyAndPlacement')}
                         </h3>
@@ -377,7 +381,7 @@ export default function OrganizationShow({
                                     {parentOrganization ? (
                                         <Link
                                             href={route('organizations.show', parentOrganization.id)}
-                                            className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                                         >
                                             {parentOrganization.code} — {localizedName(parentOrganization.name_en, parentOrganization.name_am, locale)}
                                         </Link>
@@ -404,7 +408,7 @@ export default function OrganizationShow({
 
             {/* Subtree descendants — readable names, not raw UUIDs */}
             {descendants.length > 0 && (
-                <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('organizations.subtreeReach')}
                     </h3>
@@ -415,7 +419,7 @@ export default function OrganizationShow({
                                     <span className="font-mono text-xs text-gray-400 dark:text-slate-500">{d.code ?? '—'}</span>
                                     <Link
                                         href={route('organizations.show', d.descendant_organization_id)}
-                                        className="text-gray-700 hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400"
+                                        className="text-gray-700 hover:text-[color:var(--color-primary)] dark:text-slate-200 dark:hover:text-blue-400"
                                     >
                                         {localizedName(d.name_en, d.name_am, locale) || d.descendant_organization_id}
                                     </Link>
@@ -430,7 +434,7 @@ export default function OrganizationShow({
             )}
 
             {(organization.has_logo || organization.branding_primary_color || organization.branding_secondary_color) && (
-                <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('organizations.branding')}
                     </h3>
@@ -443,7 +447,7 @@ export default function OrganizationShow({
                                 <img
                                     src={organization.logo_url}
                                     alt={`${organization.name_en} logo`}
-                                    className="h-16 w-16 rounded-xl border border-gray-200 object-contain p-1.5 dark:border-slate-700"
+                                    className="h-16 w-16 rounded-card border border-gray-200 object-contain p-1.5 dark:border-slate-700"
                                 />
                             </div>
                         )}
@@ -491,19 +495,19 @@ export default function OrganizationShow({
             )}
 
             {institutionOffices.length > 0 && (
-                <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                             {t('institutionOffices.title')} ({institutionOffices.length})
                         </h3>
                         <Link
                             href={`${route('institution-offices.create')}?institution_id=${organization.id}`}
-                            className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                            className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                         >
                             + {t('institutionOffices.addOffice')}
                         </Link>
                     </div>
-                    <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800">
+                    <div className="mt-4 overflow-hidden rounded-card border border-gray-100 dark:border-slate-800">
                         <table className="min-w-full text-left text-sm">
                             <thead className="bg-gray-50 dark:bg-slate-950">
                                 <tr>
@@ -548,7 +552,7 @@ export default function OrganizationShow({
                                         <td className="px-4 py-2">
                                             <Link
                                                 href={route('institution-offices.show', office.id)}
-                                                className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                             >
                                                 {t('common.view')}
                                             </Link>
@@ -562,7 +566,7 @@ export default function OrganizationShow({
             )}
 
             {statistics && (
-                <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('organizations.statistics')}</h3>
 
                     <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
@@ -581,7 +585,7 @@ export default function OrganizationShow({
                             { label: t('organizations.childOrganizations'), value: statistics.child_organizations },
                             { label: t('organizations.scopedUsers'), value: statistics.scoped_users },
                         ].map(({ label, value }) => (
-                            <div key={label} className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-3 text-center dark:border-slate-800 dark:bg-slate-950">
+                            <div key={label} className="rounded-card border border-gray-100 bg-gray-50 px-3 py-3 text-center dark:border-slate-800 dark:bg-slate-950">
                                 <dd className="text-lg font-bold tabular-nums text-gray-900 dark:text-slate-100">{value}</dd>
                                 <dt className="mt-0.5 text-[11px] leading-tight text-gray-500 dark:text-slate-400">{label}</dt>
                             </div>
@@ -599,7 +603,7 @@ export default function OrganizationShow({
                                 .map(([key, value]) => ({ key, value }));
 
                             return (
-                                <div key={title} className="min-w-0 rounded-xl border border-gray-100 p-4 dark:border-slate-800">
+                                <div key={title} className="min-w-0 rounded-card border border-gray-100 p-4 dark:border-slate-800">
                                     <h4 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h4>
                                     <div className="mt-3">
                                         {series.length === 0 ? (
@@ -621,7 +625,7 @@ export default function OrganizationShow({
                     {statistics.employees_by_unit.length > 0 && (
                         <div className="mt-6">
                             <h4 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('organizations.employeesByUnit')}</h4>
-                            <div className="mt-3 overflow-x-auto rounded-xl border border-gray-100 dark:border-slate-800">
+                            <div className="mt-3 overflow-x-auto rounded-card border border-gray-100 dark:border-slate-800">
                                 <table className="min-w-full text-left text-sm">
                                     <thead className="bg-gray-50 dark:bg-slate-950">
                                         <tr>
@@ -651,9 +655,9 @@ export default function OrganizationShow({
                 <ReportingLinesPanel rows={[...reportingOffices, ...reportingUnits]} />
             </section>
 
-            <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('organizations.nameHistory')}</h3>
-                <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800">
+                <div className="mt-4 overflow-hidden rounded-card border border-gray-100 dark:border-slate-800">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>

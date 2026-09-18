@@ -74,7 +74,7 @@ export default function ForcedPasswordChange(): JSX.Element {
                 <button
                     type="submit"
                     disabled={processing}
-                    className="min-h-[44px] w-full rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60"
+                    className="min-h-[44px] w-full rounded-lg bg-[color:var(--color-primary)] px-4 text-sm font-semibold text-white transition hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-60"
                 >
                     {processing ? t('auth.changingPassword') : t('auth.changePasswordAction')}
                 </button>
@@ -112,7 +112,7 @@ function Field({
                 autoComplete={autoComplete}
                 autoFocus={autoFocus}
                 onChange={(e) => onChange(e.target.value)}
-                className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             />
             {error && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{error}</p>}
         </div>

@@ -90,7 +90,7 @@ function ExportMenu({
             <button
                 type="button"
                 onClick={() => setOpen(o => !o)}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -104,10 +104,10 @@ function ExportMenu({
             {open && (
                 <>
                     <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-                    <div className="absolute right-0 z-20 mt-1.5 w-64 rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                    <div className="absolute right-0 z-20 mt-1.5 w-64 rounded-card border border-gray-200 bg-white p-1.5 shadow-xl dark:border-slate-700 dark:bg-slate-900">
 
                         {/* Transaction exports */}
-                        <p className="px-3 pb-1 pt-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-600">
+                        <p className="px-3 pb-1 pt-1.5 text-[10px] font-bold text-gray-400 dark:text-slate-600">
                             {t('providerPortal.transactions')}
                         </p>
                         {btn(`CSV — ${t('providerPortal.transactions')}`, 'provider.portal.transactions.export.csv')}
@@ -117,7 +117,7 @@ function ExportMenu({
                         <div className="my-1.5 h-px bg-gray-100 dark:bg-slate-800" />
 
                         {/* Payment claim exports */}
-                        <p className="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-600">
+                        <p className="px-3 pb-1 text-[10px] font-bold text-gray-400 dark:text-slate-600">
                             {t('providerPortal.paymentClaim')}
                         </p>
                         {btn(`${t('providerPortal.paymentClaim')} — CSV`, 'provider.portal.transactions.export.payment-claim', 'primary')}
@@ -158,10 +158,10 @@ function SummaryStrip({ summary }: { summary: PaymentSummary }) {
     return (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {cards.map(c => (
-                <div key={c.label} className={`flex items-start gap-3.5 rounded-xl border border-gray-200 p-4 shadow-sm dark:border-slate-800 ${c.cls}`}>
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${c.icon_cls}`}>{c.icon}</span>
+                <div key={c.label} className={`flex items-start gap-3.5 rounded-card border border-gray-200 p-4 dark:border-slate-800 ${c.cls}`}>
+                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-card text-xl ${c.icon_cls}`}>{c.icon}</span>
                     <div className="min-w-0">
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-500">{c.label}</p>
+                        <p className="text-[11px] font-semibold text-gray-500 dark:text-slate-500">{c.label}</p>
                         <p className="mt-0.5 text-xl font-bold tabular-nums text-gray-900 dark:text-slate-100">{c.value}</p>
                         <p className="mt-0.5 truncate text-[11px] text-gray-500 dark:text-slate-500">{c.sub}</p>
                     </div>
@@ -225,7 +225,7 @@ export default function TransactionsIndex({
 
             {/* Export toast */}
             {exportToast && (
-                <div className="fixed left-1/2 top-5 z-50 -translate-x-1/2 flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white shadow-xl dark:bg-slate-700">
+                <div className="fixed left-1/2 top-5 z-50 -translate-x-1/2 flex items-center gap-2 rounded-card bg-gray-900 px-4 py-2.5 text-sm font-medium text-white shadow-xl dark:bg-slate-700">
                     <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -238,7 +238,7 @@ export default function TransactionsIndex({
                 <SummaryStrip summary={paymentSummary} />
 
                 {/* Filter bar */}
-                <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <form onSubmit={submit} className="flex flex-wrap items-end gap-3 p-4">
                         <div>
                             <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">From</label>
@@ -277,7 +277,7 @@ export default function TransactionsIndex({
                 </div>
 
                 {/* Transactions table */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {/* Table toolbar */}
                     <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5 dark:border-slate-800">
                         <div>
@@ -296,12 +296,12 @@ export default function TransactionsIndex({
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-gray-100 bg-gray-50/80 dark:border-slate-800 dark:bg-slate-800/40">
-                                    <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">Txn #</th>
-                                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">Employee</th>
-                                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">Date & Time</th>
-                                    <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">Subsidy</th>
-                                    <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">Emp. Pays</th>
-                                    <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-500">Status</th>
+                                    <th className="px-5 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-slate-500">Txn #</th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-slate-500">Employee</th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-slate-500">Date & Time</th>
+                                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 dark:text-slate-500">Subsidy</th>
+                                    <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 dark:text-slate-500">Emp. Pays</th>
+                                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 dark:text-slate-500">Status</th>
                                     <th className="px-4 py-3 w-16" />
                                 </tr>
                             </thead>

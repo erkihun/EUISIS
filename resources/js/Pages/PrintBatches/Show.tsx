@@ -44,9 +44,9 @@ type StyleEntry = { badge: string; dot: string };
 
 const batchStatusStyle: Record<BatchStatus, StyleEntry> = {
     draft:      { badge: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:ring-amber-700/40', dot: 'bg-amber-400' },
-    printing:   { badge: 'bg-blue-50 text-blue-800 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-700/40',       dot: 'bg-blue-400' },
+    printing:   { badge: 'bg-blue-50 text-blue-800 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-700/40', dot: 'bg-blue-400' },
     completed:  { badge: 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:ring-emerald-700/40', dot: 'bg-emerald-400' },
-    cancelled:  { badge: 'bg-red-50 text-red-800 ring-1 ring-red-200 dark:bg-red-900/20 dark:text-red-300 dark:ring-red-700/40',             dot: 'bg-red-400' },
+    cancelled:  { badge: 'bg-red-50 text-red-800 ring-1 ring-red-200 dark:bg-red-900/20 dark:text-red-300 dark:ring-red-700/40', dot: 'bg-red-400' },
 };
 
 const fallbackStyle: StyleEntry = {
@@ -69,7 +69,7 @@ function BatchStatusBadge({ status }: { status: string }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">{label}</dt>
+            <dt className="text-xs font-medium text-gray-400 dark:text-slate-500">{label}</dt>
             <dd className="mt-1 text-sm text-gray-900 dark:text-slate-100">{children}</dd>
         </div>
     );
@@ -83,7 +83,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
         ? Math.round((batch.printed_count / batch.total_cards) * 100)
         : 0;
 
-    const inputCls = 'rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500';
+    const inputCls = 'rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500';
 
     return (
         <AuthenticatedLayout
@@ -99,7 +99,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
 
             <div className="space-y-5">
                 {/* Summary card */}
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex flex-wrap items-start justify-between gap-6">
                         <div className="flex-1">
                             <div className="flex items-center gap-3 mb-4">
@@ -126,7 +126,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     </span>
                                 </Field>
                                 <Field label={t('idCards.printProgress')}>
-                                    <span className="text-lg font-bold text-blue-600">{printProgress}%</span>
+                                    <span className="text-lg font-bold text-[color:var(--color-primary)]">{printProgress}%</span>
                                 </Field>
                             </dl>
 
@@ -187,7 +187,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     type="button"
                                     disabled={markForm.processing}
                                     onClick={() => markForm.post(route('print-batches.mark-printed', batch.id))}
-                                    className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                                    className="flex items-center justify-center gap-2 rounded-card bg-[color:var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60 transition-colors"
                                 >
                                     <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5z" />
@@ -200,7 +200,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                 </section>
 
                 {/* Cards list */}
-                <section className="rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
                         <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
                             {t('idCards.cardsInBatch')}
@@ -225,7 +225,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                             <>
                                                 <Link
                                                     href={route('id-cards.show', item.card.id)}
-                                                    className="font-mono text-sm font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                                    className="font-mono text-sm font-semibold text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                                                 >
                                                     {item.card.card_number}
                                                 </Link>

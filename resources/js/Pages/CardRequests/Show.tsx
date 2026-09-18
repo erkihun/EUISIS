@@ -57,7 +57,7 @@ type PageProps = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">
+            <dt className="text-xs font-medium text-gray-400 dark:text-slate-500">
                 {label}
             </dt>
             <dd className="mt-1 text-sm text-gray-900 dark:text-slate-100">{children}</dd>
@@ -97,7 +97,7 @@ function ConfirmModal({
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
             onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-700">
+            <div className="w-full max-w-md rounded-panel bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-700">
                 <div className="flex items-start justify-between px-6 pt-5">
                     <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{title}</h3>
                     <button
@@ -114,7 +114,7 @@ function ConfirmModal({
                     <p className="mt-1 px-6 text-sm text-gray-500 dark:text-slate-400">{description}</p>
                 )}
                 {children && <div className="mt-4 px-6 space-y-3">{children}</div>}
-                <div className="mt-5 flex justify-end gap-2 rounded-b-2xl border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
+                <div className="mt-5 flex justify-end gap-2 rounded-b-panel border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
                     <button
                         type="button"
                         onClick={onClose}
@@ -136,7 +136,7 @@ function ConfirmModal({
     );
 }
 
-const inputCls = 'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500';
+const inputCls = 'w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500';
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
@@ -178,7 +178,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                 <div className="space-y-5">
 
                     {/* Header: status + type + meta */}
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex flex-wrap items-center gap-2 mb-4">
                             <CardRequestStatusBadge status={cardRequest.status} />
                             {cardRequest.request_type && (
@@ -232,8 +232,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                 </div>
                             )}
                             {cardRequest.verification_notes && (
-                                <div className="col-span-full rounded-xl border border-indigo-100 bg-indigo-50 px-4 py-3 dark:border-indigo-900/40 dark:bg-indigo-900/10">
-                                    <dt className="text-xs font-medium uppercase tracking-wide text-indigo-500 dark:text-indigo-400">
+                                <div className="col-span-full rounded-card border border-indigo-100 bg-indigo-50 px-4 py-3 dark:border-indigo-900/40 dark:bg-indigo-900/10">
+                                    <dt className="text-xs font-medium text-indigo-500 dark:text-indigo-400">
                                         {t('idCards.verifyRequestData')}
                                     </dt>
                                     <dd className="mt-1 text-sm text-indigo-700 dark:text-indigo-300">
@@ -242,8 +242,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                 </div>
                             )}
                             {cardRequest.rejection_reason && (
-                                <div className="col-span-full rounded-xl border border-red-100 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-900/10">
-                                    <dt className="text-xs font-medium uppercase tracking-wide text-red-500 dark:text-red-400">
+                                <div className="col-span-full rounded-card border border-red-100 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-900/10">
+                                    <dt className="text-xs font-medium text-red-500 dark:text-red-400">
                                         {t('idCards.rejectionReason')}
                                     </dt>
                                     <dd className="mt-1 text-sm text-red-700 dark:text-red-300">
@@ -252,8 +252,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                 </div>
                             )}
                             {cardRequest.cancellation_reason && (
-                                <div className="col-span-full rounded-xl border border-orange-100 bg-orange-50 px-4 py-3 dark:border-orange-900/40 dark:bg-orange-900/10">
-                                    <dt className="text-xs font-medium uppercase tracking-wide text-orange-500 dark:text-orange-400">
+                                <div className="col-span-full rounded-card border border-orange-100 bg-orange-50 px-4 py-3 dark:border-orange-900/40 dark:bg-orange-900/10">
+                                    <dt className="text-xs font-medium text-orange-500 dark:text-orange-400">
                                         {t('idCards.cancellationReason')}
                                     </dt>
                                     <dd className="mt-1 text-sm text-orange-700 dark:text-orange-300">
@@ -266,8 +266,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
 
                     {/* Employee summary */}
                     {cardRequest.employee && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                        <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                            <h3 className="mb-3 text-xs font-semibold text-gray-400 dark:text-slate-500">
                                 {t('employees.title')}
                             </h3>
                             <div className="flex items-center gap-4">
@@ -275,10 +275,10 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     <img
                                         src={cardRequest.employee.photo_url}
                                         alt={cardRequest.employee.full_name}
-                                        className="h-14 w-14 rounded-xl object-cover ring-2 ring-gray-100 dark:ring-slate-700"
+                                        className="h-14 w-14 rounded-card object-cover ring-2 ring-gray-100 dark:ring-slate-700"
                                     />
                                 ) : (
-                                    <div className="h-14 w-14 rounded-xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 dark:text-slate-500 text-lg font-bold shrink-0">
+                                    <div className="h-14 w-14 rounded-card bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 dark:text-slate-500 text-lg font-bold shrink-0">
                                         {cardRequest.employee.full_name?.charAt(0) ?? '?'}
                                     </div>
                                 )}
@@ -299,7 +299,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                 </div>
                                 <Link
                                     href={route('employees.show', cardRequest.employee.id)}
-                                    className="ml-auto shrink-0 text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                    className="ml-auto shrink-0 text-xs text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
                                 >
                                     {t('common.view')}
                                 </Link>
@@ -309,8 +309,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
 
                     {/* Linked cards */}
                     {(cardRequest.cards?.length ?? 0) > 0 && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                        <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                            <h3 className="mb-3 text-xs font-semibold text-gray-400 dark:text-slate-500">
                                 {t('idCards.title')}
                             </h3>
                             <div className="space-y-2">
@@ -318,7 +318,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     <Link
                                         key={card.id}
                                         href={route('id-cards.show', card.id)}
-                                        className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5 hover:bg-gray-100 transition-colors dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
+                                        className="flex items-center justify-between gap-3 rounded-card border border-gray-100 bg-gray-50 px-4 py-2.5 hover:bg-gray-100 transition-colors dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700"
                                     >
                                         <span className="font-mono text-sm font-medium text-gray-900 dark:text-slate-100">
                                             {card.card_number}
@@ -341,8 +341,8 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
 
                     {/* Actions */}
                     {hasAnyAction && !isFinal && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                        <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                            <h4 className="mb-3 text-xs font-semibold text-gray-400 dark:text-slate-500">
                                 {t('common.actions')}
                             </h4>
                             <div className="space-y-2">
@@ -351,7 +351,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                         type="button"
                                         onClick={() => setModal('verify')}
                                         disabled={verifyForm.processing}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-60 transition-colors"
+                                        className="flex w-full items-center justify-center gap-2 rounded-card bg-sky-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-sky-700 disabled:opacity-60 transition-colors"
                                     >
                                         <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
@@ -363,7 +363,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     <button
                                         type="button"
                                         onClick={() => setModal('approve')}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+                                        className="flex w-full items-center justify-center gap-2 rounded-card bg-emerald-600 px-3 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
                                     >
                                         <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -378,7 +378,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     <button
                                         type="button"
                                         onClick={() => setModal('reject')}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20"
+                                        className="flex w-full items-center justify-center gap-2 rounded-card border border-red-200 bg-white px-3 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 transition-colors dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20"
                                     >
                                         <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                             <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
@@ -390,7 +390,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     <button
                                         type="button"
                                         onClick={() => setModal('cancel')}
-                                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors dark:border-slate-600 dark:bg-transparent dark:text-slate-300 dark:hover:bg-slate-800"
+                                        className="flex w-full items-center justify-center gap-2 rounded-card border border-gray-300 bg-white px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors dark:border-slate-600 dark:bg-transparent dark:text-slate-300 dark:hover:bg-slate-800"
                                     >
                                         {t('idCards.cancelRequest')}
                                     </button>
@@ -400,7 +400,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                     )}
 
                     {/* Lifecycle timeline */}
-                    <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                         <CardLifecycleTimeline
                             cardStatus={cardRequest.status}
                             events={timelineEvents}

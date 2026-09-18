@@ -3,6 +3,18 @@
 declare(strict_types=1);
 
 return [
+    ['name' => 'nfc_credentials.view', 'group' => 'nfc_credentials', 'sort_order' => 10, 'is_system' => true, 'label_en' => 'View NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ይመልከቱ', 'description_en' => 'View NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ይመልከቱ።'],
+    ['name' => 'nfc_credentials.provision', 'group' => 'nfc_credentials', 'sort_order' => 20, 'is_system' => true, 'label_en' => 'Provision NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ያዘጋጁ', 'description_en' => 'Provision NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ያዘጋጁ።'],
+    ['name' => 'nfc_credentials.activate', 'group' => 'nfc_credentials', 'sort_order' => 30, 'is_system' => true, 'label_en' => 'Activate NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን አንቁ', 'description_en' => 'Activate NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን አንቁ።'],
+    ['name' => 'nfc_credentials.suspend', 'group' => 'nfc_credentials', 'sort_order' => 40, 'is_system' => true, 'label_en' => 'Suspend NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን አቁሙ', 'description_en' => 'Suspend NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን አቁሙ።'],
+    ['name' => 'nfc_credentials.revoke', 'group' => 'nfc_credentials', 'sort_order' => 50, 'is_system' => true, 'label_en' => 'Revoke NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ሰርዙ', 'description_en' => 'Revoke NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ሰርዙ።'],
+    ['name' => 'nfc_credentials.replace', 'group' => 'nfc_credentials', 'sort_order' => 60, 'is_system' => true, 'label_en' => 'Replace NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ይተኩ', 'description_en' => 'Replace NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ይተኩ።'],
+    ['name' => 'nfc_logs.view', 'group' => 'nfc_logs', 'sort_order' => 10, 'is_system' => true, 'label_en' => 'View NFC logs', 'label_am' => 'የኤንኤፍሲ ምዝግቦችን ይመልከቱ', 'description_en' => 'View NFC logs.', 'description_am' => 'የኤንኤፍሲ ምዝግቦችን ይመልከቱ።'],
+    ['name' => 'nfc_terminals.view', 'group' => 'nfc_terminals', 'sort_order' => 10, 'is_system' => true, 'label_en' => 'View NFC terminals', 'label_am' => 'የኤንኤፍሲ ተርሚናሎችን ይመልከቱ', 'description_en' => 'View NFC terminals.', 'description_am' => 'የኤንኤፍሲ ተርሚናሎችን ይመልከቱ።'],
+    ['name' => 'nfc_terminals.manage', 'group' => 'nfc_terminals', 'sort_order' => 20, 'is_system' => true, 'label_en' => 'Manage NFC terminals', 'label_am' => 'የኤንኤፍሲ ተርሚናሎችን አስተዳድሩ', 'description_en' => 'Manage NFC terminals.', 'description_am' => 'የኤንኤፍሲ ተርሚናሎችን አስተዳድሩ።'],
+    ['name' => 'nfc_terminals.create', 'group' => 'nfc_terminals', 'sort_order' => 30, 'is_system' => true, 'label_en' => 'Create NFC terminals', 'label_am' => 'የኤንኤፍሲ ተርሚናሎችን ይፍጠሩ', 'description_en' => 'Register a new NFC service terminal.', 'description_am' => 'አዲስ የኤንኤፍሲ ተርሚናል ይመዝግቡ።'],
+    ['name' => 'nfc_terminals.update', 'group' => 'nfc_terminals', 'sort_order' => 40, 'is_system' => true, 'label_en' => 'Update NFC terminals', 'label_am' => 'የኤንኤፍሲ ተርሚናሎችን ያሻሽሉ', 'description_en' => 'Update a registered NFC service terminal.', 'description_am' => 'የተመዘገበ የኤንኤፍሲ ተርሚናል ያሻሽሉ።'],
+    ['name' => 'nfc_terminals.delete', 'group' => 'nfc_terminals', 'sort_order' => 50, 'is_system' => true, 'label_en' => 'Delete NFC terminals', 'label_am' => 'የኤንኤፍሲ ተርሚናሎችን ይሰርዙ', 'description_en' => 'Remove a registered NFC service terminal.', 'description_am' => 'የተመዘገበ የኤንኤፍሲ ተርሚናል ያስወግዱ።'],
     ['name' => 'id_card_templates.view', 'group' => 'id_card_templates', 'sort_order' => 10, 'is_system' => true,
         'label_en' => 'View ID Card Templates', 'label_am' => 'የመታወቂያ ካርድ አብነቶችን ይመልከቱ',
         'description_en' => 'View ID Card Templates.', 'description_am' => 'የመታወቂያ ካርድ አብነቶችን ይመልከቱ።'],

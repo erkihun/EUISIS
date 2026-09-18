@@ -16,7 +16,7 @@ export interface ChartColors {
 function readColors(): ChartColors {
     if (typeof window === 'undefined') {
         // SSR-safe defaults mirroring the default theme tokens.
-        return { primary: '#2563eb', accent: '#ea580c', grid: '#cbd5e1', series: [] };
+        return { primary: '#122170', accent: '#d12908', grid: '#cbd5e1', series: [] };
     }
 
     const styles = getComputedStyle(document.documentElement);
@@ -26,8 +26,8 @@ function readColors(): ChartColors {
     };
 
     const isDark = document.documentElement.classList.contains('dark');
-    const primary = read('--color-primary', '#2563eb');
-    const accent = read('--color-accent', '#ea580c');
+    const primary = read('--color-primary', '#122170');
+    const accent = read('--color-accent', '#d12908');
 
     return {
         primary,

@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-test('employees index uses the organization structure instead of a positions column', function (): void {
+test('employees index uses a table instead of the organization structure selector', function (): void {
     $source = file_get_contents(dirname(__DIR__, 2).'/resources/js/Pages/Employees/Index.tsx');
 
     expect($source)
-        ->toContain('<ScopedOrganizationStructure')
+        ->toContain('<table')
+        ->toContain('showOrganizationColumn')
+        ->not->toContain('<ScopedOrganizationStructure')
         ->not->toContain("t('employees.positionsInOrganization')")
         ->not->toContain('<OrganizationTreePreview');
 });

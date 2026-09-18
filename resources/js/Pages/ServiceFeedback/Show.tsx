@@ -81,7 +81,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                 <div className="grid gap-5 lg:grid-cols-3">
                     {/* Rating + comment */}
                     <div className="space-y-5 lg:col-span-2">
-                        <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <div className="flex items-center gap-3">
                                 <RatingStars rating={feedback.rating} size="md" showValue />
                                 <span className="text-sm text-gray-500 dark:text-slate-400">
@@ -90,7 +90,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                             </div>
 
                             <div className="mt-4">
-                                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                <div className="text-xs font-semibold text-gray-500 dark:text-slate-400">
                                     {t('serviceFeedback.comment')}
                                 </div>
                                 <p className="mt-1 whitespace-pre-wrap text-sm text-gray-800 dark:text-slate-200">
@@ -101,7 +101,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
 
                         {/* Moderation */}
                         {(can.review || can.hide || can.delete) && (
-                            <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                            <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                                 <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                                     {t('serviceFeedback.reviewNote')}
                                 </h2>
@@ -113,7 +113,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                                             maxLength={2000}
                                             value={data.review_note}
                                             onChange={(e) => setData('review_note', e.target.value)}
-                                            className="mt-2 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                                            className="mt-2 block w-full rounded-lg border-gray-300 text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                                         />
 
                                         <div className="mt-3 flex flex-wrap gap-2">
@@ -121,7 +121,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                                                 type="button"
                                                 disabled={processing}
                                                 onClick={() => submitReview('reviewed')}
-                                                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                                                className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                                             >
                                                 {t('serviceFeedback.markReviewed')}
                                             </button>
@@ -163,7 +163,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
 
                     {/* Context */}
                     <div className="space-y-5">
-                        <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <dl className="space-y-3 text-sm">
                                 <Row label={t('serviceFeedback.filterEmployee')}>
                                     <div className="text-gray-900 dark:text-slate-100">{feedback.employee?.name ?? '—'}</div>
@@ -182,7 +182,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                         </div>
 
                         {/* Volunteered client details; absent for anonymous submissions. */}
-                        <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <dl className="space-y-3 text-sm">
                                 <Row label={t('serviceFeedback.clientName')}>
                                     {feedback.client_name ?? t('serviceFeedback.anonymousClient')}
@@ -192,7 +192,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                         </div>
 
                         {feedback.reviewed_at && (
-                            <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                            <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                                 <dl className="space-y-3 text-sm">
                                     <Row label={t('serviceFeedback.reviewedBy')}>{feedback.reviewed_by ?? '—'}</Row>
                                     <Row label={t('serviceFeedback.statusReviewed')}>
@@ -214,7 +214,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
 function Row({ label, children }: { label: string; children: ReactNode }): JSX.Element {
     return (
         <div>
-            <dt className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</dt>
+            <dt className="text-xs font-semibold text-gray-500 dark:text-slate-400">{label}</dt>
             <dd className="mt-0.5 text-gray-800 dark:text-slate-200">{children}</dd>
         </div>
     );

@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 return [
+    'nfc.verify' => 'Verify NFC credentials',
+    'nfc.service_eligibility' => 'Check NFC service eligibility',
+    'nfc.service_transactions.create' => 'Record NFC service transactions',
     'id_cards.verify' => 'Verify ID Cards',
     'employees.basic_verify' => 'Basic Employee Verification',
     'service_eligibility.check' => 'Check Service Eligibility',

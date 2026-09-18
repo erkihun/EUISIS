@@ -24,7 +24,7 @@ const CRITICAL = new Set([
 ]);
 
 const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 
 function PermissionGroup({
     group,
@@ -65,11 +65,11 @@ function PermissionGroup({
     }
 
     return (
-        <div className="rounded-xl border border-gray-200 p-4 dark:border-slate-700">
+        <div className="rounded-card border border-gray-200 p-4 dark:border-slate-700">
             <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">
+                <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-400">
                     {group}
-                    <span className="ml-2 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                    <span className="ml-2 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
                         {permissions.filter((p) => selected.includes(p.name)).length}/{permissions.length}
                     </span>
                 </h3>
@@ -77,7 +77,7 @@ function PermissionGroup({
                     type="button"
                     onClick={toggleAll}
                     disabled={disabled}
-                    className="text-xs text-blue-600 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline dark:text-blue-400 dark:disabled:text-slate-600"
+                    className="text-xs text-[color:var(--color-primary)] hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline dark:text-[color:var(--color-primary)] dark:disabled:text-slate-600"
                 >
                     {allSelected ? t('permissions.clearGroup') : t('permissions.selectAllInGroup')}
                 </button>
@@ -91,7 +91,7 @@ function PermissionGroup({
                     >
                         <input
                             type="checkbox"
-                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed dark:border-slate-600"
+                            className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed dark:border-slate-600"
                             checked={selected.includes(perm.name)}
                             disabled={disabled}
                             onChange={() => onToggle(perm.name)}
@@ -185,7 +185,7 @@ export default function EditRole({
 
             <div className="w-full">
                 <form onSubmit={submit} className="space-y-5">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                         <div className="grid max-w-3xl gap-5 md:grid-cols-2">
                             <div>
                             <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">
@@ -226,7 +226,7 @@ export default function EditRole({
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                             <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                                 {t('roles.permissionsSection')}
@@ -239,7 +239,7 @@ export default function EditRole({
                                 placeholder={t('permissions.searchPermissions')}
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-64 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
+                                className="w-64 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
                             />
                         </div>
                         {!can.assignPermissions && (
@@ -278,7 +278,7 @@ export default function EditRole({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                         >
                             {form.processing ? t('common.saving') : t('roles.saveChanges')}
                         </button>

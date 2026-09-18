@@ -79,7 +79,7 @@ export default function HierarchyVersionsIndex({
                         can.create ? (
                             <Link
                                 href={route('hierarchy-versions.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {t('hierarchyVersions.createHierarchyVersion')}
@@ -93,16 +93,16 @@ export default function HierarchyVersionsIndex({
 
             <form
                 onSubmit={submitFilters}
-                className="mb-4 grid gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 md:grid-cols-4"
+                className="mb-4 grid gap-3 rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 md:grid-cols-4"
             >
                 <input
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     placeholder={t('hierarchyVersions.searchHierarchyVersions')}
                     value={filterForm.data.search}
                     onChange={(event) => filterForm.setData('search', event.target.value)}
                 />
                 <select
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     value={filterForm.data.status}
                     onChange={(event) => filterForm.setData('status', event.target.value)}
                 >
@@ -112,7 +112,7 @@ export default function HierarchyVersionsIndex({
                     <option value="archived">{t('hierarchyVersions.archived')}</option>
                 </select>
                 <LocalizedDatePicker
-                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     value={filterForm.data.effective_from}
                     onChange={(iso) => filterForm.setData('effective_from', iso)}
                 />
@@ -133,14 +133,14 @@ export default function HierarchyVersionsIndex({
                     </button>
                     <button
                         type="submit"
-                        className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                     >
                         {t('common.filter')}
                     </button>
                 </div>
             </form>
 
-            <section className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between px-5 py-4">
                     <div className="flex items-center gap-3">
                         <h3 className="font-semibold text-gray-900 dark:text-slate-100">
@@ -160,7 +160,7 @@ export default function HierarchyVersionsIndex({
                             action={can.create ? (
                                 <Link
                                     href={route('hierarchy-versions.create')}
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                     {t('hierarchyVersions.createHierarchyVersion')}
@@ -184,7 +184,7 @@ export default function HierarchyVersionsIndex({
                                     ].map((heading) => (
                                         <th
                                             key={heading}
-                                            className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400"
+                                            className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400"
                                         >
                                             {heading}
                                         </th>
@@ -219,7 +219,7 @@ export default function HierarchyVersionsIndex({
                                             <div className="flex flex-wrap justify-end gap-2">
                                                 <Link
                                                     href={route('hierarchy-versions.show', { hierarchyVersion: version.id })}
-                                                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-blue-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:text-blue-400 dark:hover:border-blue-500 dark:hover:text-blue-300"
+                                                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-[color:var(--color-primary)] hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] dark:border-slate-700 dark:text-[color:var(--color-primary)] dark:hover:border-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                                                 >
                                                     {t('common.view')}
                                                 </Link>
@@ -290,7 +290,7 @@ export default function HierarchyVersionsIndex({
                             <Link
                                 key={`${link.label}-${index}`}
                                 href={link.url ?? '#'}
-                                className={`rounded-lg px-3 py-1.5 text-sm ${link.active ? 'bg-blue-600 text-white' : 'border border-gray-200 text-gray-700 dark:border-slate-700 dark:text-slate-300'} ${link.url ? '' : 'pointer-events-none opacity-50'}`}
+                                className={`rounded-lg px-3 py-1.5 text-sm ${link.active ? 'bg-[color:var(--color-primary)] text-white' : 'border border-gray-200 text-gray-700 dark:border-slate-700 dark:text-slate-300'} ${link.url ? '' : 'pointer-events-none opacity-50'}`}
                             >{paginationLabel(link.label)}</Link>
                         ))}
                     </div>

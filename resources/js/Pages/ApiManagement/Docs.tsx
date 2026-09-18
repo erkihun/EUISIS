@@ -60,12 +60,12 @@ export default function ApiManagementDocs({ markdown, scopes, groups }: Props) {
             <Head title={t('apiManagement.apiDocumentation')} />
 
             <div className="mb-4">
-                <Link href={route('api-management.index')} className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                     &larr; {t('apiManagement.title')}
                 </Link>
             </div>
 
-            <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.apiScopes')}</h3>
                 <ul className="space-y-1">
                     {scopes.map((scope) => (
@@ -79,7 +79,7 @@ export default function ApiManagementDocs({ markdown, scopes, groups }: Props) {
                 </ul>
             </section>
 
-            <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="mb-1 font-semibold text-gray-900 dark:text-slate-100">
                     {t('apiManagement.availableEndpoints')}
                 </h3>
@@ -159,7 +159,7 @@ export default function ApiManagementDocs({ markdown, scopes, groups }: Props) {
                 )}
             </section>
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 {markdown ? (
                     <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed text-gray-800 dark:text-slate-200">
                         {markdown}

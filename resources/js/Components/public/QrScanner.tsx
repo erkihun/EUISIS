@@ -154,7 +154,7 @@ export default function QrScanner({ onDecoded }: Props) {
 
     return (
         <div className="w-full">
-            <div className="relative w-full overflow-hidden rounded-2xl border border-gray-200 bg-slate-950 dark:border-slate-800">
+            <div className="relative w-full overflow-hidden rounded-panel border border-gray-200 bg-slate-950 dark:border-slate-800">
                 <div
                     id={regionId}
                     className="aspect-square w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
@@ -183,7 +183,7 @@ export default function QrScanner({ onDecoded }: Props) {
                     <>
                         {/* Aiming frame — dimmed surround focuses attention. */}
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                            <div className="h-[65%] w-[65%] rounded-2xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]" />
+                            <div className="h-[65%] w-[65%] rounded-panel border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]" />
                         </div>
 
                         {torchSupported && (
@@ -208,7 +208,7 @@ export default function QrScanner({ onDecoded }: Props) {
                     type="button"
                     onClick={active ? stop : start}
                     disabled={starting}
-                    className="min-h-[48px] flex-1 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60"
+                    className="min-h-[48px] flex-1 rounded-card bg-[color:var(--color-primary)] px-4 text-sm font-semibold text-white transition hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-60"
                 >
                     {active
                         ? t('idChecker.stopCamera')

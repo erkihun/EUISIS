@@ -32,8 +32,8 @@ export default function ReportShow({ report }: { report: ReportRun }) {
         monthly: t('cafeteria.monthly'),
     } as Record<string, string>)[s] ?? s;
 
-    const cardCls = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900';
-    const labelCls = 'text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400';
+    const cardCls = 'rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900';
+    const labelCls = 'text-xs font-medium text-gray-500 dark:text-slate-400';
     const valueCls = 'mt-1 text-2xl font-bold text-gray-900 dark:text-white';
 
     return (
@@ -45,7 +45,7 @@ export default function ReportShow({ report }: { report: ReportRun }) {
             <Head title={report.report_number} />
 
             <div className="space-y-6">
-                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         <div>
                             <dt className="text-xs text-gray-500">{t('cafeteria.reportType')}</dt>
@@ -92,7 +92,7 @@ export default function ReportShow({ report }: { report: ReportRun }) {
                         </div>
                         <div className={cardCls}>
                             <p className={labelCls}>{t('cafeteria.governmentPayable')}</p>
-                            <p className={`${valueCls} text-blue-600`}>{(report.totals.total_subsidy ?? 0).toFixed(2)} ETB</p>
+                            <p className={`${valueCls} text-[color:var(--color-primary)]`}>{(report.totals.total_subsidy ?? 0).toFixed(2)} ETB</p>
                         </div>
                     </div>
                 )}

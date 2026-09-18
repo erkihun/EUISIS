@@ -240,7 +240,7 @@ export default function MobileScan({
                     <select
                         value={form.data.provider_id}
                         onChange={(e) => { form.setData('provider_id', e.target.value); void stopCamera(); }}
-                        className="flex-1 rounded-lg border border-white/20 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 rounded-lg border border-white/20 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
                     >
                         {providers.map((p) => (
                             <option key={p.id} value={p.id}>{providerName(p)}</option>
@@ -249,7 +249,7 @@ export default function MobileScan({
                 )}
 
                 {/* Today scan count badge */}
-                <div className="flex items-center gap-1.5 rounded-full bg-blue-600/20 px-3 py-1.5 text-xs font-semibold text-blue-300 ring-1 ring-blue-500/30">
+                <div className="flex items-center gap-1.5 rounded-full bg-[color:var(--color-primary)]/20 px-3 py-1.5 text-xs font-semibold text-blue-300 ring-1 ring-[color:var(--color-primary)]/30">
                     <span>{scanCount}</span>
                     <span className="text-blue-400/70">{t('cafeteria.todayScans')}</span>
                 </div>
@@ -302,7 +302,7 @@ export default function MobileScan({
                                 <button
                                     type="button"
                                     onClick={() => void startCamera()}
-                                    className="rounded-xl bg-blue-600 px-8 py-3 text-base font-semibold text-white active:bg-blue-700"
+                                    className="rounded-card bg-[color:var(--color-primary)] px-8 py-3 text-base font-semibold text-white active:bg-[color:var(--color-primary-hover)]"
                                 >
                                     {t('cafeteria.startCamera')}
                                 </button>
@@ -311,7 +311,7 @@ export default function MobileScan({
                             <button
                                 type="button"
                                 onClick={() => void startCamera()}
-                                className="flex flex-col items-center gap-3 rounded-2xl bg-blue-600 px-10 py-5 text-white active:bg-blue-700"
+                                className="flex flex-col items-center gap-3 rounded-panel bg-[color:var(--color-primary)] px-10 py-5 text-white active:bg-[color:var(--color-primary-hover)]"
                             >
                                 <svg className="h-12 w-12 opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -331,7 +331,7 @@ export default function MobileScan({
 
                 {/* Scan result overlay */}
                 {scan_result && (
-                    <div className={`absolute inset-x-0 bottom-0 rounded-t-2xl px-5 pb-6 pt-5 shadow-2xl ${
+                    <div className={`absolute inset-x-0 bottom-0 rounded-t-panel px-5 pb-6 pt-5 shadow-2xl ${
                         scan_result.allowed
                             ? scan_result.is_extra_scan
                                 ? 'bg-orange-900/95'
@@ -398,7 +398,7 @@ export default function MobileScan({
                     <button
                         type="button"
                         onClick={() => void stopCamera()}
-                        className="mb-2 w-full rounded-xl border border-white/20 py-2.5 text-sm font-medium text-gray-300 active:bg-white/10"
+                        className="mb-2 w-full rounded-card border border-white/20 py-2.5 text-sm font-medium text-gray-300 active:bg-white/10"
                     >
                         {t('cafeteria.stopCamera')}
                     </button>
@@ -419,12 +419,12 @@ export default function MobileScan({
                             value={form.data.qr_token}
                             onChange={(e) => form.setData('qr_token', e.target.value)}
                             placeholder={t('cafeteria.enterQrToken')}
-                            className="flex-1 rounded-lg border border-white/20 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 rounded-lg border border-white/20 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
                         />
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white active:bg-blue-700 disabled:opacity-60"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white active:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         >
                             {t('cafeteria.processScan')}
                         </button>

@@ -57,7 +57,7 @@ export default function AppToaster() {
             duration={5000}
             toastOptions={{
                 classNames: {
-                    toast: 'rounded-xl shadow-lg text-sm',
+                    toast: 'rounded-card shadow-lg text-sm',
                 },
             }}
         />

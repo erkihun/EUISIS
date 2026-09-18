@@ -50,7 +50,7 @@ export default function CodeRulesIndex({
     });
 
     const inputClassName =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -64,7 +64,7 @@ export default function CodeRulesIndex({
                     title={t('codeRules.title')}
                     description={t('codeRules.description')}
                     actions={can.create ? (
-                        <Link href={route('code-rules.create')} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
+                        <Link href={route('code-rules.create')} className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                             <Plus className="h-3.5 w-3.5" />
                             {t('codeRules.createTitle')}
                         </Link>
@@ -75,7 +75,7 @@ export default function CodeRulesIndex({
             <Head title={t('codeRules.title')} />
 
             <div className="space-y-6">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <form className="grid gap-3 xl:grid-cols-5" onSubmit={submit}>
                         <input className={inputClassName} value={form.data.search} placeholder={t('codeRules.searchPlaceholder')} onChange={(event) => form.setData('search', event.target.value)} />
                         <select className={inputClassName} value={form.data.entity_type} onChange={(event) => form.setData('entity_type', event.target.value)}>
@@ -102,14 +102,14 @@ export default function CodeRulesIndex({
                                 <option value="1">{t('codeRules.statusActive')}</option>
                                 <option value="0">{t('codeRules.statusInactive')}</option>
                             </select>
-                            <button className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700" type="submit">
+                            <button className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]" type="submit">
                                 {t('common.filter')}
                             </button>
                         </div>
                     </form>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {codeRules.data.length === 0 ? (
                         <div className="p-6">
                             <EmptyState title={t('codeRules.noRules')} />
@@ -120,7 +120,7 @@ export default function CodeRulesIndex({
                                 <thead className="bg-gray-50 dark:bg-slate-950">
                                     <tr>
                                         {[t('codeRules.name'), t('codeRules.entityType'), t('codeRules.scope'), t('codeRules.prefix'), t('codeRules.format'), t('codeRules.nextNumber'), t('codeRules.resetFrequency'), t('common.status'), t('codeRules.previewCode'), ''].map((heading) => (
-                                            <th key={heading} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                            <th key={heading} className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">
                                                 {heading}
                                             </th>
                                         ))}

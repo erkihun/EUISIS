@@ -43,9 +43,9 @@ type Props = {
 const STATUSES = ['draft', 'published', 'closed', 'cancelled'] as const;
 
 
-const btnBase = 'inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none';
-const btnGray  = `${btnBase} border border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-300`;
-const btnBlue  = `${btnBase} bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600`;
+const btnBase = 'inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] disabled:opacity-50 disabled:pointer-events-none';
+const btnGray  = `${btnBase} border border-gray-200 text-gray-700 hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] dark:border-slate-700 dark:text-slate-300 dark:hover:border-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]`;
+const btnBlue  = `${btnBase} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]`;
 const btnAmber = `${btnBase} border border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950/30`;
 const btnRed   = `${btnBase} border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30`;
 
@@ -55,7 +55,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
     const useAmharic = locale === 'am';
     const [processing, setProcessing] = useState<string | null>(null);
 
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     const applyFilters = useCallback((patch: Record<string, string>) => {
         const next = { ...(filters as Record<string, string>), ...patch };
@@ -137,7 +137,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                         can.create ? (
                             <Link
                                 href={route('transfer-announcements.create')}
-                                className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('transfers.createAnnouncement')}
                             </Link>
@@ -174,7 +174,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                 </div>
 
                 {/* Table */}
-                <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-x-auto rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>
@@ -208,7 +208,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                             </svg>
                                             <p className="text-sm">{t('transfers.noAnnouncements')}</p>
                                             {can.create && (
-                                                <Link href={route('transfer-announcements.create')} className="mt-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                                <Link href={route('transfer-announcements.create')} className="mt-1 text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                                     {t('transfers.createAnnouncement')}
                                                 </Link>
                                             )}
@@ -230,7 +230,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                         <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.closing_date} /></td>
                                         <td className="px-4 py-3 text-center">
                                             {a.applications_count > 0 ? (
-                                                <Link href={route('transfer-applications.index') + `?announcement_id=${a.id}`} className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                                                <Link href={route('transfer-applications.index') + `?announcement_id=${a.id}`} className="font-semibold text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                                     {a.applications_count}
                                                 </Link>
                                             ) : (
@@ -310,8 +310,8 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                 className={[
                                     'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
                                     link.active
-                                        ? 'border-blue-600 bg-blue-600 text-white'
-                                        : 'border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-700 disabled:opacity-40 disabled:pointer-events-none dark:border-slate-700 dark:text-slate-300',
+                                        ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white'
+                                        : 'border-gray-200 text-gray-600 hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] disabled:opacity-40 disabled:pointer-events-none dark:border-slate-700 dark:text-slate-300',
                                 ].join(' ')}
                             >{paginationLabel(link.label)}</button>
                         ))}

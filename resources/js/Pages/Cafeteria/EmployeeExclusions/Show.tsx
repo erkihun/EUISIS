@@ -69,7 +69,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
         >
             <Head title={t('cafeteria.employeeExclusion')} />
             <div className="mx-auto max-w-2xl">
-                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <div className={rowCls}>
                         <span className={keyC}>{t('common.employee')}</span>
                         <div>

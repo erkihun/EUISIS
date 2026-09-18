@@ -121,7 +121,7 @@ export default function OtpInput({ value, onChange, onComplete, disabled = false
                     pattern="\d*"
                     maxLength={1}
                     aria-label={`${label} ${index + 1}`}
-                    className="h-14 w-full min-w-0 rounded-xl border border-gray-300 bg-white text-center text-xl font-semibold text-slate-900 focus:border-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:bg-gray-100 disabled:text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 sm:h-16 sm:text-2xl"
+                    className="h-14 w-full min-w-0 rounded-card border border-gray-300 bg-white text-center text-xl font-semibold text-slate-900 focus:border-[color:var(--color-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] disabled:bg-gray-100 disabled:text-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 sm:h-16 sm:text-2xl"
                 />
             ))}
         </div>

@@ -46,7 +46,7 @@ class ScannerBoundary extends Component<
     render() {
         if (this.state.failed) {
             return (
-                <p role="alert" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                <p role="alert" className="rounded-card bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
                     {this.props.fallbackLabel}
                 </p>
             );
@@ -119,7 +119,7 @@ export default function PublicVerify() {
         <PublicLayout title={t('home.verifyPageTitle')}>
             <div className="mx-auto max-w-lg px-4 py-10 sm:px-6 sm:py-16">
                 <div className="mb-6 flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-emerald-600 text-white">
                         <BadgeCheckIcon className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div>
@@ -129,7 +129,7 @@ export default function PublicVerify() {
                 </div>
 
                 {/* Scanner first: this page exists to point a camera at a code. */}
-                <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+                <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
                     {showScanner ? (
                         <ScannerBoundary
                             onFailure={() => setShowScanner(false)}
@@ -137,7 +137,7 @@ export default function PublicVerify() {
                         >
                             <Suspense
                                 fallback={
-                                    <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-gray-200 bg-slate-950 text-sm text-slate-300 dark:border-slate-800">
+                                    <div className="flex aspect-square w-full items-center justify-center rounded-panel border border-gray-200 bg-slate-950 text-sm text-slate-300 dark:border-slate-800">
                                         {t('idChecker.loadingScanner')}
                                     </div>
                                 }
@@ -155,7 +155,7 @@ export default function PublicVerify() {
                         </ScannerBoundary>
                     ) : (
                         <>
-                            <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 dark:border-slate-700 dark:bg-slate-950">
+                            <div className="flex aspect-square w-full items-center justify-center rounded-panel border border-dashed border-gray-300 bg-gray-50 dark:border-slate-700 dark:bg-slate-950">
                                 <div className="px-6 text-center">
                                     <QrIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-600" aria-hidden="true" />
                                     <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
@@ -167,7 +167,7 @@ export default function PublicVerify() {
                             <button
                                 type="button"
                                 onClick={() => setShowScanner(true)}
-                                className="mt-4 min-h-[48px] w-full rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                                className="mt-4 min-h-[48px] w-full rounded-card bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
                             >
                                 {t('idChecker.startCamera')}
                             </button>
@@ -178,7 +178,7 @@ export default function PublicVerify() {
                         damaged code still has a readable reference printed on it. */}
                     <div className="my-5 flex items-center gap-3">
                         <span className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
-                        <span className="text-xs uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                        <span className="text-xs text-gray-400 dark:text-slate-500">
                             {t('idChecker.or')}
                         </span>
                         <span className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />

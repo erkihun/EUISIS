@@ -16,6 +16,13 @@ use App\Http\Controllers\Api\V1\ServiceAuthorizationController;
 use App\Http\Controllers\Api\V1\ServiceTransactionController;
 use Illuminate\Support\Facades\Route;
 
+Route::middleware(['auth:sanctum', 'throttle:api', App\Http\Middleware\NfcApplicationGate::class, 'api.external'])->prefix('v1/nfc')->name('api.v1.nfc.')->group(function (): void {
+    Route::post('/challenges', [App\Http\Controllers\Api\V1\NfcController::class, 'challenge'])->middleware('api.scope:nfc.verify')->name('challenges');
+    Route::post('/verify', [App\Http\Controllers\Api\V1\NfcController::class, 'verify'])->middleware('api.scope:nfc.verify')->name('verify');
+    Route::post('/service-eligibility', [App\Http\Controllers\Api\V1\NfcController::class, 'eligibility'])->middleware('api.scope:nfc.service_eligibility')->name('eligibility');
+    Route::post('/service-transactions/verify-and-record', [App\Http\Controllers\Api\V1\NfcController::class, 'record'])->middleware('api.scope:nfc.service_transactions.create')->name('record');
+});
+
 Route::middleware(['auth:sanctum', 'throttle:api', 'provider.scope'])->prefix('v1')->group(function (): void {
     Route::post('/cards/verify', CardVerificationController::class)
         ->middleware('api.scope:id_cards.verify')

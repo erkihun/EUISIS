@@ -44,7 +44,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
         router.get(route('vacancy-applications.index'), { ...filters, page }, { preserveState: true, preserveScroll: true });
     }
 
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     return (
         <AuthenticatedLayout
@@ -67,7 +67,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                         ))}
                     </select>
                     {filters.status && (
-                        <button type="button" onClick={() => applyFilter('')} className="text-xs text-blue-600 hover:underline dark:text-blue-400">
+                        <button type="button" onClick={() => applyFilter('')} className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                             {t('common.clear')}
                         </button>
                     )}
@@ -76,7 +76,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                     </span>
                 </div>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>
@@ -97,7 +97,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                             {applications.data.map(a => (
                                 <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
                                     <td className="px-4 py-3">
-                                        <Link href={route('vacancy-applications.show', a.id)} className="font-mono text-blue-600 hover:underline dark:text-blue-400">
+                                        <Link href={route('vacancy-applications.show', a.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                             {a.application_number}
                                         </Link>
                                     </td>

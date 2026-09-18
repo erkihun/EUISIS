@@ -28,7 +28,7 @@ const templateFormId = 'id-card-template-editor';
 const inputClass = 'mt-1 min-h-11 w-full min-w-0 rounded-lg border-gray-300 bg-white text-sm dark:border-slate-700 dark:bg-slate-950';
 
 function Card({ title, helper, children }: { title: string; helper?: string; children: ReactNode }) {
-    return <section className="min-w-0 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5 dark:border-slate-800 dark:bg-slate-900">
+    return <section className="min-w-0 rounded-panel border border-gray-200 bg-white p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-900">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h3>
         {helper && <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{helper}</p>}
         <div className="mt-4 min-w-0 space-y-4">{children}</div>
@@ -152,7 +152,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
             <Card title={label('visibility')} helper={label('visibility_help')}>{renderFields(visibility)}</Card>
             <Card title={label('front_fields')}>{renderFields(front)}</Card>
             <Card title={label('back_fields')}>{renderFields(back)}</Card>
-            <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-3 rounded-xl border bg-white/95 p-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
+            <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-3 rounded-card border bg-white/95 p-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
                 <span role="status" className="mr-auto text-xs text-gray-500">{settings.isDirty ? t('settings.unsavedChanges') : ''}</span>
                 <Button type="button" variant="outline" disabled={readOnly || settings.processing || !settings.isDirty} onClick={() => { settings.reset(); settings.clearErrors(); }}>{label('reset')}</Button>
                 <Button type="submit" loading={settings.processing} disabled={readOnly || !settings.isDirty}>{label('save_fields')}</Button>
@@ -194,7 +194,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
                     return <Card key={side} title={templateLabel(field)} helper={templateLabel('upload_help').replace(':max', String(management.uploadLimitMb))}>
                         {url && <div className="rounded-lg bg-gray-100 p-2 dark:bg-slate-800"><img src={url} alt={label('background_preview')} className="h-28 w-full object-contain" /></div>}
                         <div className="flex flex-wrap gap-2">
-                            <label className={`relative flex min-h-11 max-w-full cursor-pointer items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 focus-within:ring-2 focus-within:ring-blue-500 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200 ${!canEdit ? 'opacity-50' : ''}`}>
+                            <label className={`relative flex min-h-11 max-w-full cursor-pointer items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 focus-within:ring-2 focus-within:ring-[color:var(--color-primary)] dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200 ${!canEdit ? 'opacity-50' : ''}`}>
                                 {templateLabel(url ? 'replace_background' : 'browse_png')}
                                 <input type="file" accept=".png,image/png" aria-label={templateLabel(field)} className="absolute inset-0 w-full cursor-pointer opacity-0" disabled={!canEdit || editor.processing}
                                     onChange={event => {
@@ -217,7 +217,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
                         onChange={event => editor.setData('is_default', event.target.checked)} />{templateLabel('set_default')}</label>{error('is_default')}
                     {selected && !selected.is_default && selected.status === 'active' && management.can.set_default && <Button type="button" variant="outline" disabled={editor.isDirty} onClick={() => router.post(route('id-card-templates.set-default', selected.id), {}, { preserveScroll: true, onSuccess: () => { editor.setData('is_default', true); } })}>{templateLabel('set_default')}</Button>}
                 </Card>
-                <div className="sticky bottom-0 z-10 space-y-2 rounded-xl border bg-white/95 p-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
+                <div className="sticky bottom-0 z-10 space-y-2 rounded-card border bg-white/95 p-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
                     {editor.progress && <progress aria-label={templateLabel('upload_background')} className="w-full" value={editor.progress.percentage} max="100" />}
                     <div className="flex flex-wrap justify-end gap-3">
                         <Button type="button" variant="outline" disabled={!canEdit || editor.processing || !editor.isDirty} onClick={() => { editor.reset(); editor.clearErrors(); }}>{label('reset')}</Button>
@@ -229,7 +229,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
             <Card title={templateLabel('live_preview')} helper={label('preview_help')}>
                 <IdCardTemplateContext.Provider value={preview}>
                     <SystemSettingsPreviewContext.Provider value={previewSettings}>
-                        <div data-card-live-preview className={`min-w-0 space-y-5 ${exportPreview ? 'rounded-xl bg-slate-200 p-3 dark:bg-slate-950' : ''}`}>
+                        <div data-card-live-preview className={`min-w-0 space-y-5 ${exportPreview ? 'rounded-card bg-slate-200 p-3 dark:bg-slate-950' : ''}`}>
                             <div className="min-w-0"><p className="mb-2 text-xs font-medium text-gray-500">{t('idCards.cardFront')}</p>
                                 <Front cardNumber="CARD-0001" employeeNumber="EMP-0001" fullName={templateLabel('sample_employee')} fullNameAm="ምሳሌ ሰራተኛ" organizationName={templateLabel('sample_organization')} status="active" rootStyle={{ maxWidth: preview?.orientation === 'portrait' ? 270 : 428 }} />
                             </div>

@@ -32,7 +32,7 @@ readonly class RecordServiceTransactionAction
         ServiceProvider $provider,
         ?Entitlement $entitlement,
         string $status,
-        User $actor,
+        ?User $actor,
         array $metadata = [],
     ): ServiceTransaction {
         $eligibility = $this->serviceEligibility->check(

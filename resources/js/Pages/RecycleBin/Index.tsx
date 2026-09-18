@@ -48,7 +48,7 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
     });
 
     const inputClassName =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -95,7 +95,7 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
             <Head title={t('recycleBin.title')} />
 
             <div className="space-y-6">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <form className="grid gap-3 lg:grid-cols-5" onSubmit={submit}>
                         <input
                             className={inputClassName}
@@ -113,13 +113,13 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                         </select>
                         <LocalizedDatePicker className={inputClassName} value={form.data.deleted_from} onChange={(iso) => form.setData('deleted_from', iso)} aria-label={t('recycleBin.deletedFrom')} />
                         <LocalizedDatePicker className={inputClassName} value={form.data.deleted_to} onChange={(iso) => form.setData('deleted_to', iso)} aria-label={t('recycleBin.deletedTo')} />
-                        <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                             {t('common.filter')}
                         </button>
                     </form>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {records.data.length === 0 ? (
                         <div className="p-8">
                             <EmptyState title={t('recycleBin.noDeletedRecords')} />
@@ -127,7 +127,7 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-left text-sm">
-                                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-slate-950 dark:text-slate-400">
+                                <thead className="bg-gray-50 text-xs text-gray-500 dark:bg-slate-950 dark:text-slate-400">
                                     <tr>
                                         <th className="px-4 py-3">{t('recycleBin.recordType')}</th>
                                         <th className="px-4 py-3">{t('recycleBin.displayName')}</th>

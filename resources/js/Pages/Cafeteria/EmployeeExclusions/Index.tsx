@@ -52,7 +52,7 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                 <PageHeader
                     title={t('cafeteria.employeeExclusions')}
                     actions={can.create ? (
-                        <Link href={route('cafeteria.employee-exclusions.create')} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        <Link href={route('cafeteria.employee-exclusions.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                             + {t('cafeteria.addExclusion')}
                         </Link>
                     ) : undefined}
@@ -76,10 +76,10 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                         <option value="ended">{t('cafeteria.exclusionStatusEnded')}</option>
                         <option value="cancelled">{t('cafeteria.exclusionStatusCancelled')}</option>
                     </select>
-                    <button type="submit" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">{t('common.filter')}</button>
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.filter')}</button>
                 </form>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {exclusions.length === 0 ? <EmptyState title={t('cafeteria.noExclusionsFound')} /> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
@@ -113,10 +113,10 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex justify-end gap-2">
                                                     {ex.deleted_at
-                                                        ? ex.can.restore && <button onClick={() => router.post(route('cafeteria.employee-exclusions.restore', ex.id))} className="text-sm text-blue-600 hover:underline dark:text-blue-400">{t('common.restore')}</button>
+                                                        ? ex.can.restore && <button onClick={() => router.post(route('cafeteria.employee-exclusions.restore', ex.id))} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.restore')}</button>
                                                         : <>
                                                             <Link href={route('cafeteria.employee-exclusions.show', ex.id)} className="text-sm text-gray-500 hover:underline dark:text-slate-400">{t('common.view')}</Link>
-                                                            {ex.can.update && <Link href={route('cafeteria.employee-exclusions.edit', ex.id)} className="text-sm text-blue-600 hover:underline dark:text-blue-400">{t('common.edit')}</Link>}
+                                                            {ex.can.update && <Link href={route('cafeteria.employee-exclusions.edit', ex.id)} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.edit')}</Link>}
                                                             {ex.can.end && ex.status === 'active' && <button onClick={() => handleEnd(ex.id)} className="text-sm text-amber-600 hover:underline dark:text-amber-400">{t('cafeteria.endExclusion')}</button>}
                                                             {ex.can.archive && <button onClick={() => handleArchive(ex.id)} className="text-sm text-red-500 hover:underline">{t('common.delete')}</button>}
                                                         </>

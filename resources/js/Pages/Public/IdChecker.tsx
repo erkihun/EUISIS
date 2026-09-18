@@ -76,7 +76,7 @@ class ScannerBoundary extends Component<
     render() {
         if (this.state.failed) {
             return (
-                <p role="alert" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                <p role="alert" className="rounded-card bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
                     {this.props.fallbackLabel}
                 </p>
             );
@@ -93,11 +93,11 @@ function extractUuid(value: string): string {
     return match ? match[0] : value.trim();
 }
 
-const cardCls = 'rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-5';
+const cardCls = 'rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-5';
 const primaryBtn =
-    'min-h-[48px] w-full rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60';
+    'min-h-[48px] w-full rounded-card bg-[color:var(--color-primary)] px-4 text-sm font-semibold text-white transition hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-60';
 const secondaryBtn =
-    'min-h-[48px] w-full rounded-xl border border-gray-300 px-4 text-sm font-medium text-slate-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
+    'min-h-[48px] w-full rounded-card border border-gray-300 px-4 text-sm font-medium text-slate-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
 
 export default function IdChecker({ cardUuid, card, autoSend = false }: Props) {
     const { t } = useLocale();
@@ -257,7 +257,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false }: Props) {
                             <ScannerBoundary onFailure={() => setShowScanner(false)} fallbackLabel={t('idChecker.scannerUnavailable')}>
                                 <Suspense
                                     fallback={
-                                        <div className="flex aspect-square w-full items-center justify-center rounded-2xl border border-gray-200 bg-slate-950 text-sm text-slate-300 dark:border-slate-800">
+                                        <div className="flex aspect-square w-full items-center justify-center rounded-panel border border-gray-200 bg-slate-950 text-sm text-slate-300 dark:border-slate-800">
                                             {t('idChecker.loadingScanner')}
                                         </div>
                                     }
@@ -284,7 +284,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false }: Props) {
 
                         <div className="my-4 flex items-center gap-3">
                             <span className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
-                            <span className="text-xs uppercase tracking-wide text-slate-400">{t('idChecker.or')}</span>
+                            <span className="text-xs text-slate-400">{t('idChecker.or')}</span>
                             <span className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
                         </div>
 
@@ -302,7 +302,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false }: Props) {
                                 autoComplete="off"
                                 spellCheck={false}
                                 placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-                                className="min-h-[48px] w-full rounded-xl border border-gray-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                                className="min-h-[48px] w-full rounded-card border border-gray-300 bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 focus:border-[color:var(--color-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                             />
                             <button type="submit" disabled={manualToken.trim() === ''} className={secondaryBtn}>
                                 {t('idChecker.checkCard')}
@@ -313,9 +313,9 @@ export default function IdChecker({ cardUuid, card, autoSend = false }: Props) {
 
                 {/* ── Step 2: card state, with no holder information ── */}
                 {cardUuid && card && (
-                    <section className={`mt-5 rounded-2xl border p-4 sm:p-5 ${STATUS_TONE[card.status_code] ?? STATUS_TONE.invalid}`}>
+                    <section className={`mt-5 rounded-panel border p-4 sm:p-5 ${STATUS_TONE[card.status_code] ?? STATUS_TONE.invalid}`}>
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-xs font-semibold uppercase tracking-wide opacity-70">
+                            <p className="text-xs font-semibold opacity-70">
                                 {t('idChecker.cardStatus')}
                             </p>
                             <span className="rounded-full bg-white/70 px-2.5 py-1 text-xs font-bold dark:bg-black/30">
@@ -405,7 +405,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false }: Props) {
                     {notice && (
                         <p
                             role={notice.tone === 'error' ? 'alert' : 'status'}
-                            className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
+                            className={`mt-4 rounded-card border px-4 py-3 text-sm ${
                                 notice.tone === 'ok'
                                     ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
                                     : 'border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200'
@@ -421,7 +421,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false }: Props) {
                     <section
                         ref={resultRef}
                         tabIndex={-1}
-                        className="mt-4 rounded-2xl border border-emerald-200 bg-white p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-900 dark:bg-slate-900 sm:p-5"
+                        className="mt-4 rounded-panel border border-emerald-200 bg-white p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-900 dark:bg-slate-900 sm:p-5"
                     >
                         <h2 className="mb-4 font-semibold text-slate-900 dark:text-slate-100">
                             {t('idChecker.verifiedDetails')}

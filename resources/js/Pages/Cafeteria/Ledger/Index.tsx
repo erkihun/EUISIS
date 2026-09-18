@@ -61,7 +61,7 @@ export default function LedgerIndex({
     function entryTypeColor(type: string) {
         if (type === 'allocation') return 'text-emerald-600';
         if (type === 'carry_forward_deduction') return 'text-orange-600';
-        if (type === 'reversal') return 'text-blue-600';
+        if (type === 'reversal') return 'text-[color:var(--color-primary)]';
         return 'text-gray-600 dark:text-slate-400';
     }
 
@@ -71,7 +71,7 @@ export default function LedgerIndex({
 
             <div className="space-y-4">
                 {employee && balance !== null && (
-                    <div className={`rounded-xl border p-5 ${balance < 0 ? 'border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/30' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30'}`}>
+                    <div className={`rounded-card border p-5 ${balance < 0 ? 'border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/30' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30'}`}>
                         <p className="text-sm font-medium text-gray-600 dark:text-slate-400">{employee.full_name} — {t('cafeteria.ledgerBalance')}</p>
                         <p className={`mt-1 text-3xl font-bold ${balance < 0 ? 'text-orange-600' : 'text-emerald-600'}`}>
                             {balance.toFixed(2)} ETB
@@ -86,12 +86,12 @@ export default function LedgerIndex({
                     <input name="employee_id" defaultValue={filters.employee_id ?? ''} placeholder={t('employees.employeeId')} className={inputCls} />
                     <LocalizedDatePicker className={inputCls} value={dateFrom} onChange={iso => setDateFrom(iso)} />
                     <LocalizedDatePicker className={inputCls} value={dateTo} onChange={iso => setDateTo(iso)} />
-                    <button type="submit" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                         {t('common.filter')}
                     </button>
                 </form>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {entries.length === 0 ? (
                         <EmptyState title={t('common.noResults')} />
                     ) : (

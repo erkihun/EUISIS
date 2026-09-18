@@ -74,9 +74,9 @@ function localizedDayName(dayOfWeek: number, locale: string): string {
 }
 
 const DAY_COLORS: Record<number, string> = {
-    1: 'bg-blue-50 dark:bg-blue-950/30',  2: 'bg-blue-50 dark:bg-blue-950/30',
-    3: 'bg-blue-50 dark:bg-blue-950/30',  4: 'bg-blue-50 dark:bg-blue-950/30',
-    5: 'bg-blue-50 dark:bg-blue-950/30',  6: 'bg-amber-50 dark:bg-amber-950/30',
+    1: 'bg-blue-50 dark:bg-blue-950/30', 2: 'bg-blue-50 dark:bg-blue-950/30',
+    3: 'bg-blue-50 dark:bg-blue-950/30', 4: 'bg-blue-50 dark:bg-blue-950/30',
+    5: 'bg-blue-50 dark:bg-blue-950/30', 6: 'bg-amber-50 dark:bg-amber-950/30',
     7: 'bg-amber-50 dark:bg-amber-950/30',
 };
 
@@ -100,7 +100,7 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
     const timeCls = 'rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-50';
 
     return (
-        <div className={`flex flex-wrap items-center gap-4 rounded-xl border border-gray-200 p-4 dark:border-slate-700 ${DAY_COLORS[rule.day_of_week]}`}>
+        <div className={`flex flex-wrap items-center gap-4 rounded-card border border-gray-200 p-4 dark:border-slate-700 ${DAY_COLORS[rule.day_of_week]}`}>
             <div className="w-28 font-semibold text-gray-800 dark:text-slate-100">{localizedDayName(rule.day_of_week, locale)}</div>
             <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
                 <input type="checkbox" disabled={!canUpdate} checked={isOpen} onChange={e => { setIsOpen(e.target.checked); if (!e.target.checked) setIsSubsidy(false); }} className="h-4 w-4 rounded" />
@@ -121,12 +121,12 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
                     {isOpen ? t('cafeteria.openDay') : t('cafeteria.closedDay')}
                 </span>
                 {isOpen && (
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${isSubsidy ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
                         {isSubsidy ? t('cafeteria.isSubsidyDay') : t('common.no')}
                     </span>
                 )}
                 {canUpdate && (
-                    <button onClick={save} disabled={saving} className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                    <button onClick={save} disabled={saving} className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                         {saving ? '…' : t('common.save')}
                     </button>
                 )}
@@ -183,8 +183,8 @@ export default function CafeteriaSettingsIndex({
 
     const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-60';
     const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
-    const sectionCls = 'rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-5';
-    const tableCls = 'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
+    const sectionCls = 'rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 space-y-5';
+    const tableCls = 'overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900';
     const thCls = 'px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-slate-400';
     const tdCls = 'px-4 py-3 text-sm text-gray-700 dark:text-slate-300';
 
@@ -294,21 +294,21 @@ export default function CafeteriaSettingsIndex({
     };
 
     const tabDefs: { key: InPageTab; label: string }[] = [
-        { key: 'general',       label: t('cafeteria.generalSettings') },
-        { key: 'subsidy',       label: t('cafeteria.subsidySettings') },
-        { key: 'days',          label: t('cafeteria.daySettings') },
-        { key: 'scan',          label: t('cafeteria.scanSettings') },
-        { key: 'day-rules',     label: t('cafeteria.dayRules') },
-        { key: 'holidays',      label: t('nav.cafeteriaHolidays') },
+        { key: 'general', label: t('cafeteria.generalSettings') },
+        { key: 'subsidy', label: t('cafeteria.subsidySettings') },
+        { key: 'days', label: t('cafeteria.daySettings') },
+        { key: 'scan', label: t('cafeteria.scanSettings') },
+        { key: 'day-rules', label: t('cafeteria.dayRules') },
+        { key: 'holidays', label: t('nav.cafeteriaHolidays') },
         { key: 'subsidy-rules', label: t('nav.cafeteriaSubsidyRules') },
-        { key: 'reports',       label: t('cafeteria.reportSettings') },
+        { key: 'reports', label: t('cafeteria.reportSettings') },
         { key: 'provider-users', label: t('cafeteria.providerUsers') },
     ];
 
     const tabBarCls = (active: boolean) =>
         `whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
             active
-                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'
                 : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200'
         }`;
 
@@ -572,7 +572,7 @@ export default function CafeteriaSettingsIndex({
 
                         {can.update && (
                             <div className="flex justify-end">
-                                <button type="submit" disabled={saving} className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                                <button type="submit" disabled={saving} className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                                     {saving ? t('common.saving') : t('common.save')}
                                 </button>
                             </div>
@@ -597,7 +597,7 @@ export default function CafeteriaSettingsIndex({
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-500 dark:text-slate-400">{holidaysYear}</span>
                             {can.createHoliday && (
-                                <Link href={route('cafeteria.holidays.create')} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                <Link href={route('cafeteria.holidays.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     + {t('cafeteria.addHoliday')}
                                 </Link>
                             )}
@@ -624,7 +624,7 @@ export default function CafeteriaSettingsIndex({
                                                     <td className="px-4 py-3 text-center text-sm">{h.is_recurring ? '✓' : '—'}</td>
                                                     <td className="px-4 py-3 text-right">
                                                         <div className="flex justify-end gap-3">
-                                                            {h.can.update && <Link href={route('cafeteria.holidays.edit', h.id)} className="text-xs text-blue-600 hover:underline">{t('common.edit')}</Link>}
+                                                            {h.can.update && <Link href={route('cafeteria.holidays.edit', h.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}
                                                             {h.can.archive && !h.deleted_at && <button onClick={() => archiveHoliday(h.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
                                                         </div>
                                                     </td>
@@ -643,7 +643,7 @@ export default function CafeteriaSettingsIndex({
                     <div className="space-y-4">
                         <div className="flex justify-end">
                             {can.createSubsidyRule && (
-                                <Link href={route('cafeteria.subsidy-rules.create')} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                <Link href={route('cafeteria.subsidy-rules.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     + {t('cafeteria.addSubsidyRule')}
                                 </Link>
                             )}
@@ -675,7 +675,7 @@ export default function CafeteriaSettingsIndex({
                                                     <td className={tdCls}>{rule.applies_to}</td>
                                                     <td className="px-4 py-3 text-right">
                                                         <div className="flex justify-end gap-3">
-                                                            {rule.can.update && <Link href={route('cafeteria.subsidy-rules.edit', rule.id)} className="text-xs text-blue-600 hover:underline">{t('common.edit')}</Link>}
+                                                            {rule.can.update && <Link href={route('cafeteria.subsidy-rules.edit', rule.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}
                                                             {rule.can.archive && !rule.deleted_at && <button onClick={() => archiveSubsidyRule(rule.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
                                                         </div>
                                                     </td>
@@ -761,7 +761,7 @@ export default function CafeteriaSettingsIndex({
                                     </div>
                                 </div>
                                 <div className="flex justify-end">
-                                    <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                         {t('common.save')}
                                     </button>
                                 </div>
@@ -924,7 +924,7 @@ export default function CafeteriaSettingsIndex({
                                         <button type="button" onClick={() => setEditingAssignment(null)} className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700">
                                             {t('common.cancel')}
                                         </button>
-                                        <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                        <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                             {t('common.save')}
                                         </button>
                                     </div>
@@ -1002,7 +1002,7 @@ export default function CafeteriaSettingsIndex({
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => openEdit(assignment)}
-                                                                        className="rounded px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
+                                                                        className="rounded px-2 py-1 text-xs font-medium text-[color:var(--color-primary)] hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:bg-blue-900/30 dark:hover:text-[color:var(--color-primary-hover)]"
                                                                     >
                                                                         {t('common.edit')}
                                                                     </button>

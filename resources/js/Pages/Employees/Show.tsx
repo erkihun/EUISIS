@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useCan } from '@/hooks/useCan';
 import EmployeeQrCards, { type QrCodesProp } from '@/Components/employees/EmployeeQrCards';
 import { localizedName } from '@/utils/localizedName';
+import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
 type LocalizedOrganization = { id?: string; name_en: string; name_am?: string | null };
 type LocalizedPosition = { title_en: string; title_am?: string | null };
@@ -70,7 +71,7 @@ type EmployeeDetail = {
 function Field({ label, value }: { label: string; value?: string | number | null }) {
     return (
         <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">
+            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">
                 {label}
             </dt>
             <dd className="mt-1 text-sm text-gray-900 dark:text-slate-100">
@@ -94,6 +95,7 @@ export default function EmployeesShow({
 }) {
     const { t, locale } = useLocale();
     const { can } = useCan();
+    const { organizationName: orgDisplayName, employeeName } = useDisplayFormat();
 
     const statusLabel = (status: string): string => {
         const employeeKey = `employees.${status}`;
@@ -107,7 +109,7 @@ export default function EmployeesShow({
     };
 
     const organizationName = (organization?: LocalizedOrganization | null): string | undefined =>
-        organization ? localizedName(organization.name_en, organization.name_am, locale) : undefined;
+        organization ? orgDisplayName(organization.name_en, organization.name_am) : undefined;
 
     const positionName = (position?: LocalizedPosition | null): string | undefined =>
         position ? localizedName(position.title_en, position.title_am, locale) : undefined;
@@ -117,7 +119,7 @@ export default function EmployeesShow({
             header={
                 <PageHeader
                     backHref={route('employees.index')}
-                    title={employee.full_name}
+                    title={employeeName(employee)}
                     description={employee.employee_number}
                     actions={
                         <div className="flex flex-wrap gap-2">
@@ -136,7 +138,7 @@ export default function EmployeesShow({
                             )}
                             <Link
                                 href={route('employees.edit', employee.id)}
-                                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('employees.editEmployee')}
                             </Link>
@@ -150,35 +152,29 @@ export default function EmployeesShow({
             <div className="mx-auto max-w-7xl space-y-5">
 
                 {/* ── Profile card ─────────────────────────────────────── */}
-                <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    {/* Blue header band */}
-                    <div className="relative h-20 overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500">
-                        <div className="absolute -right-16 -top-28 h-64 w-64 rounded-full border-[40px] border-white/10" />
-                        <div className="absolute bottom-0 right-32 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
-                    </div>
-
-                    <div className="px-5 pb-6 pt-5 sm:px-8">
-                        {/* Avatar row */}
+                <div className="overflow-hidden rounded-panel border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                    <div className="px-5 py-5 sm:px-6">
+                        {/* Identity row */}
                         <div className="mb-6 flex flex-col gap-5 lg:flex-row lg:items-center">
                             <div className="flex-shrink-0">
                                 {employee.photo_url ? (
                                     <img
                                         src={employee.photo_url}
                                         alt={employee.full_name}
-                                        className="h-28 w-24 rounded-2xl border-4 border-white object-cover shadow-lg dark:border-slate-900"
+                                        className="h-24 w-20 rounded-card border border-slate-200 object-cover dark:border-slate-700"
                                     />
                                 ) : (
-                                    <div className="flex h-28 w-24 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-blue-100 to-blue-200 shadow-lg dark:border-slate-900 dark:from-slate-700 dark:to-slate-800">
-                                        <svg className="h-10 w-10 text-blue-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <div className="flex h-24 w-20 items-center justify-center rounded-card border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+                                        <svg className="h-9 w-9 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                         </svg>
                                     </div>
                                 )}
                             </div>
-                            <div className="min-w-0 flex-1 pb-1">
+                            <div className="min-w-0 flex-1">
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <h2 className="truncate text-2xl font-bold tracking-tight text-gray-900 dark:text-slate-100">
-                                        {employee.full_name}
+                                    <h2 className="truncate text-xl font-semibold text-gray-900 dark:text-slate-100">
+                                        {employeeName(employee)}
                                     </h2>
                                     <StatusBadge status={employee.status} label={statusLabel(employee.status)} />
                                 </div>
@@ -189,20 +185,25 @@ export default function EmployeesShow({
                                     )}
                                 </p>
                             </div>
-                            <div className="grid w-full grid-cols-3 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 lg:w-auto dark:border-slate-700 dark:bg-slate-950/70">
-                                <div className="px-4 py-3 text-center">
-                                    <div className="text-lg font-bold text-slate-900 dark:text-white">{employee.assignments?.length ?? 0}</div>
-                                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{t('employees.assignmentHistory')}</div>
+                            {/*
+                             * Record counts, not KPIs — they are here because a
+                             * clerk opening a file wants to know at a glance
+                             * whether there is history behind it.
+                             */}
+                            <dl className="grid w-full grid-cols-3 overflow-hidden rounded-card border border-slate-200 lg:w-auto dark:border-slate-700">
+                                <div className="px-4 py-2.5 text-center">
+                                    <dd className="text-base font-semibold tabular-nums text-slate-900 dark:text-slate-100">{employee.assignments?.length ?? 0}</dd>
+                                    <dt className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t('employees.assignmentHistory')}</dt>
                                 </div>
-                                <div className="border-x border-slate-200 px-4 py-3 text-center dark:border-slate-700">
-                                    <div className="text-lg font-bold text-slate-900 dark:text-white">{employee.transfers?.length ?? 0}</div>
-                                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{t('employees.transferHistory')}</div>
+                                <div className="border-x border-slate-200 px-4 py-2.5 text-center dark:border-slate-700">
+                                    <dd className="text-base font-semibold tabular-nums text-slate-900 dark:text-slate-100">{employee.transfers?.length ?? 0}</dd>
+                                    <dt className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t('employees.transferHistory')}</dt>
                                 </div>
-                                <div className="px-4 py-3 text-center">
-                                    <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{employee.data_quality_score ?? 0}%</div>
-                                    <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">{t('employees.dataQualityScore')}</div>
+                                <div className="px-4 py-2.5 text-center">
+                                    <dd className="text-base font-semibold tabular-nums text-slate-900 dark:text-slate-100">{employee.data_quality_score ?? 0}%</dd>
+                                    <dt className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{t('employees.dataQualityScore')}</dt>
                                 </div>
-                            </div>
+                            </dl>
                         </div>
 
                         {/* Identity details grid */}
@@ -220,7 +221,7 @@ export default function EmployeesShow({
                                 value={employee.gender ? t(`employees.${employee.gender}`) : null}
                             />
                             <div>
-                                <dt className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">{t('employees.dateOfBirth')}</dt>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('employees.dateOfBirth')}</dt>
                                 <dd className="mt-1 text-sm text-gray-900 dark:text-slate-100"><LocalizedDateDisplay value={employee.date_of_birth} /></dd>
                             </div>
                             <Field label={t('employees.dataQualityScore')} value={employee.data_quality_score ?? 0} />
@@ -233,7 +234,7 @@ export default function EmployeesShow({
                           * includes address or emergency contact.
                           */}
                         <div className="mt-6 border-t border-slate-100 pt-6 dark:border-slate-800">
-                            <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+                            <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
                                 {t('employees.sectionAdditional')}
                             </h3>
                             <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -248,8 +249,8 @@ export default function EmployeesShow({
                 </div>
 
                 {/* ── Current assignment ───────────────────────────────── */}
-                <div className="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-white p-5 shadow-sm dark:border-blue-500/20 dark:from-blue-950/30 dark:to-slate-900">
-                    <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-400">
+                <div className="rounded-panel border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
                         {t('employees.currentOrganization')}
                     </h3>
                     {employee.current_assignment ? (
@@ -263,7 +264,7 @@ export default function EmployeesShow({
                                 value={positionName(employee.current_assignment.position)}
                             />
                             <div>
-                                <dt className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">{t('common.effectiveFrom')}</dt>
+                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.effectiveFrom')}</dt>
                                 <dd className="mt-1 text-sm text-gray-900 dark:text-slate-100"><LocalizedDateDisplay value={employee.current_assignment.effective_from} /></dd>
                             </div>
                         </dl>
@@ -277,8 +278,8 @@ export default function EmployeesShow({
 
                 <div className="grid items-start gap-5 lg:grid-cols-2">
                     {/* ── Assignment history ───────────────────────────── */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-4">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4">
                             {t('employees.assignmentHistory')}
                         </h3>
                         <div className="space-y-3 text-sm">
@@ -287,7 +288,7 @@ export default function EmployeesShow({
                             ) : (employee.assignments ?? []).map((a) => (
                                 <div
                                     key={a.id}
-                                    className="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950"
+                                    className="rounded-card border border-gray-100 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950"
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="font-medium text-gray-900 dark:text-slate-100">
@@ -314,9 +315,9 @@ export default function EmployeesShow({
                     </div>
 
                     {/* ── Transfers ────────────────────────────────────── */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex items-center justify-between gap-3 mb-4">
-                            <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                                 {t('employees.transferHistory')}
                             </h3>
                             <Link
@@ -333,7 +334,7 @@ export default function EmployeesShow({
                                 <Link
                                     key={tr.id}
                                     href={route('transfers.dashboard')}
-                                    className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 transition hover:border-blue-200 hover:bg-blue-50/50 dark:border-slate-800 dark:bg-slate-950 dark:hover:border-blue-500/30"
+                                    className="flex items-center justify-between gap-3 rounded-card border border-gray-100 bg-gray-50 p-4 transition hover:border-blue-200 hover:bg-blue-50/50 dark:border-slate-800 dark:bg-slate-950 dark:hover:border-[color:var(--color-primary)]/30"
                                 >
                                     <div className="min-w-0">
                                         <div className="font-medium text-gray-900 dark:text-slate-100 truncate">
@@ -357,15 +358,15 @@ export default function EmployeesShow({
                 <div className="grid items-start gap-5 lg:grid-cols-2">
                     {/* ── Duplicate warnings ───────────────────────────── */}
                     {(employee.duplicate_flags?.length ?? 0) > 0 && (
-                        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-500/30 dark:bg-amber-500/5">
-                            <h3 className="text-sm font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400 mb-4">
+                        <div className="rounded-panel border border-amber-200 bg-amber-50 p-5 dark:border-amber-500/30 dark:bg-amber-500/5">
+                            <h3 className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-4">
                                 {t('employees.duplicateWarnings')} ({employee.duplicate_flags?.length})
                             </h3>
                             <div className="space-y-3 text-sm">
                                 {(employee.duplicate_flags ?? []).map((flag) => (
                                     <div
                                         key={flag.id}
-                                        className="rounded-xl border border-amber-200 bg-white p-4 dark:border-amber-500/20 dark:bg-slate-900"
+                                        className="rounded-card border border-amber-200 bg-white p-4 dark:border-amber-500/20 dark:bg-slate-900"
                                     >
                                         <div className="flex items-center justify-between gap-2">
                                             <span className="font-medium text-amber-700 dark:text-amber-300">
@@ -385,8 +386,8 @@ export default function EmployeesShow({
                     )}
 
                     {/* ── Documents ────────────────────────────────────── */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500 mb-4">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4">
                             {t('employees.documentMetadata')}
                         </h3>
                         <div className="space-y-2 text-sm">
@@ -395,7 +396,7 @@ export default function EmployeesShow({
                             ) : (employee.documents ?? []).map((doc) => (
                                 <div
                                     key={doc.id}
-                                    className="flex items-center justify-between gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950"
+                                    className="flex items-center justify-between gap-3 rounded-card border border-gray-100 bg-gray-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950"
                                 >
                                     <div className="min-w-0">
                                         <span className="font-medium text-gray-800 dark:text-slate-200">{doc.document_type}</span>

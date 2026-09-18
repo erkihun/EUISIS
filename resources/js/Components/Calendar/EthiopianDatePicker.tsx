@@ -7,6 +7,7 @@ import {
 } from '@/lib/calendar/ethiopianCalendar';
 import { todayEthiopian } from '@/lib/calendar/dateFormat';
 import { useLocale } from '@/hooks/useLocale';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 
 const MONTHS_AM = ['', 'መስከረም', 'ጥቅምት', 'ኅዳር', 'ታኅሣሥ', 'ጥር', 'የካቲት', 'መጋቢት', 'ሚያዝያ', 'ግንቦት', 'ሰኔ', 'ሐምሌ', 'ነሐሴ', 'ጳጉሜ'];
 const MONTHS_EN = ['', 'Meskerem', 'Tikimt', 'Hidar', 'Tahsas', 'Tir', 'Yekatit', 'Megabit', 'Miyazia', 'Ginbot', 'Sene', 'Hamle', 'Nehase', 'Pagume'];
@@ -37,8 +38,21 @@ export default function EthiopianDatePicker({
     name,
 }: Props) {
     const { locale } = useLocale();
+    const { getString } = useSystemSettings();
     const months = locale === 'am' ? MONTHS_AM : MONTHS_EN;
-    const weekdays = locale === 'am' ? WEEKDAYS_AM : WEEKDAYS_EN;
+    /*
+     * `localization.first_day_of_week` rotates both the weekday header and the
+     * leading blank cells together. The options are Sunday (0), Monday (1) and
+     * Saturday (6); anything else falls back to Sunday, which is how the grid
+     * was hard-coded before the setting was wired up.
+     */
+    const weekStart = (() => {
+        const raw = Number(getString('localization.first_day_of_week', '1'));
+        return [0, 1, 6].includes(raw) ? raw : 0;
+    })();
+
+    const baseWeekdays = locale === 'am' ? WEEKDAYS_AM : WEEKDAYS_EN;
+    const weekdays = [...baseWeekdays.slice(weekStart), ...baseWeekdays.slice(0, weekStart)];
     const todayEth = todayEthiopian();
 
     const selectedEth = value ? gregorianIsoToEthiopian(value) : null;
@@ -113,7 +127,9 @@ export default function EthiopianDatePicker({
     })();
     // JDN mod 7: JDN 0 = Monday, so Sun=6,Mon=0,Tue=1... or use standard: JDN % 7 where 0=Mon
     // Standard: (jdn + 1) % 7 gives Sun=0
-    const firstWeekday = (firstDayJdn + 1) % 7; // 0=Sun, 6=Sat
+    // (jdn + 1) % 7 gives Sun=0; shifting by weekStart re-bases it on the
+    // configured first column so the offset matches the rotated header.
+    const firstWeekday = (((firstDayJdn + 1) % 7) - weekStart + 7) % 7;
 
     const displayValue = selectedEth
         ? `${months[selectedEth.month]} ${selectedEth.day}, ${selectedEth.year}${locale === 'en' ? ' E.C.' : ''}`

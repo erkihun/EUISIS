@@ -93,7 +93,7 @@ export default function InstitutionOfficesEdit({
     });
 
     const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
 
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -112,7 +112,7 @@ export default function InstitutionOfficesEdit({
             <Head title={t('institutionOffices.edit')} />
 
             <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-6">
-                <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">
                         {t('institutionOffices.institution')}
                     </h3>
@@ -173,7 +173,7 @@ export default function InstitutionOfficesEdit({
                     </div>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">
                         {t('institutionOffices.officeName')}
                     </h3>
@@ -221,7 +221,7 @@ export default function InstitutionOfficesEdit({
                     </div>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">
                         {t('institutionOffices.parentOffice')}
                     </h3>
@@ -282,7 +282,7 @@ export default function InstitutionOfficesEdit({
                     </div>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">
                         {t('institutionOffices.status')}
                     </h3>
@@ -341,7 +341,7 @@ export default function InstitutionOfficesEdit({
                     </div>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-4 font-semibold text-gray-900 dark:text-slate-100">
                         {t('institutionOffices.address')}
                     </h3>

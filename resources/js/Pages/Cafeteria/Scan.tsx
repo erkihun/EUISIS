@@ -5,6 +5,7 @@ import { Head, router, useForm } from '@inertiajs/react';
 import { FormEvent, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { CameraDevice, Html5Qrcode, Html5QrcodeCameraScanConfig, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import NfcTapPanel from '@/Components/Cafeteria/NfcTapPanel';
 import { gregorianToEthiopian, ethiopianToGregorianIso, ethiopianToJdn, ethiopianMonthLength } from '@/lib/calendar/ethiopianCalendar';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
 
@@ -214,6 +215,7 @@ export default function CafeteriaScan({
     const submittedTokenRef  = useRef<string | null>(null);
     const prevScanResultRef  = useRef<ScanResult | null | undefined>(undefined);
 
+    const [credentialMethod, setCredentialMethod] = useState<'qr' | 'nfc'>('qr');
     const [cameraActive,     setCameraActive]     = useState(false);
     const [cameraError,      setCameraError]      = useState<string | null>(null);
     const [cameraProcessing, setCameraProcessing] = useState(false);
@@ -265,7 +267,7 @@ export default function CafeteriaScan({
     });
 
     const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     const selectedProvider = providers.find((provider) => provider.id === form.data.provider_id) ?? null;
     const selectedProviderName = selectedProvider
@@ -294,8 +296,8 @@ export default function CafeteriaScan({
         if (!navigator.mediaDevices?.getUserMedia) return t('cafeteria.cameraNotSupported');
         if (error instanceof DOMException) {
             if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') return t('cafeteria.cameraPermissionDenied');
-            if (error.name === 'NotFoundError'   || error.name === 'OverconstrainedError')  return t('cafeteria.noCameraFound');
-            if (error.name === 'NotReadableError' || error.name === 'TrackStartError')       return t('cafeteria.cameraInUse');
+            if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') return t('cafeteria.noCameraFound');
+            if (error.name === 'NotReadableError' || error.name === 'TrackStartError') return t('cafeteria.cameraInUse');
             return error.message || t('cafeteria.cameraUnavailable');
         }
         if (error instanceof Error)               return error.message || t('cafeteria.cameraUnavailable');
@@ -323,6 +325,26 @@ export default function CafeteriaScan({
             scanner.clear();
         } catch { }
     }, []);
+
+    // An NFC reference goes to the same endpoint as a QR token, so the server
+    // applies one identical set of cafeteria rules to both.
+    const submitNfcCredential = useCallback((credential: string) => {
+        router.post(
+            route('cafeteria.scan.process'),
+            {
+                provider_id: form.data.provider_id,
+                nfc_credential: credential,
+                scan_nonce: form.data.scan_nonce,
+                scanned_at: form.data.scanned_at,
+                usage_mode: form.data.usage_mode,
+            },
+            {
+                preserveScroll: true,
+                onFinish: () => form.setData('scan_nonce', newScanNonce()),
+            },
+        );
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [form.data.provider_id, form.data.scan_nonce, form.data.scanned_at, form.data.usage_mode]);
 
     const submitScannedToken = useCallback((qrToken: string) => {
         const token = qrToken.trim();
@@ -539,7 +561,7 @@ export default function CafeteriaScan({
             <div className="mx-auto max-w-7xl">
                 <form
                     onSubmit={submit}
-                    className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                    className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900"
                 >
                     {/* Header */}
                     <div className="border-b border-gray-200 px-6 py-4 dark:border-slate-800">
@@ -584,8 +606,34 @@ export default function CafeteriaScan({
                     {/* Main body: scanner | calendar | employee */}
                     <div className="grid gap-6 p-6 lg:grid-cols-3 lg:items-start">
 
-                        {/* ── LEFT: QR Scanner ── */}
+                        {/* ── LEFT: Credential capture (QR or NFC) ── */}
                         <div className="space-y-4">
+                            {/* Credential method — QR stays the default and is never removed */}
+                            <div className="flex gap-2 rounded-card bg-gray-100 p-1 dark:bg-slate-800">
+                                {(['qr', 'nfc'] as const).map((method) => (
+                                    <button
+                                        key={method}
+                                        type="button"
+                                        onClick={() => setCredentialMethod(method)}
+                                        aria-pressed={credentialMethod === method}
+                                        className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                                            credentialMethod === method
+                                                ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-950 dark:text-slate-100'
+                                                : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200'
+                                        }`}
+                                    >
+                                        {method === 'qr' ? t('nfc.scanMethodQr') : t('nfc.scanMethodNfc')}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {credentialMethod === 'nfc' ? (
+                                <NfcTapPanel
+                                    disabled={!form.data.provider_id}
+                                    onCredential={submitNfcCredential}
+                                />
+                            ) : (
+                              <>
                             {/* Camera viewfinder */}
                             <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-950 dark:border-slate-700">
                                 <div
@@ -611,7 +659,7 @@ export default function CafeteriaScan({
                                     type="button"
                                     onClick={() => void startCamera()}
                                     disabled={cameraStarting || cameraActive || cameraProcessing || form.processing}
-                                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                                    className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                                 >
                                     {cameraStarting || cameraActive ? t('cafeteria.cameraScanning') : t('cafeteria.startCamera')}
                                 </button>
@@ -624,6 +672,8 @@ export default function CafeteriaScan({
                                     {t('cafeteria.stopCamera')}
                                 </button>
                             </div>
+                              </>
+                            )}
 
                             {/* Provider selector */}
                             <div className="space-y-1.5">
@@ -647,7 +697,7 @@ export default function CafeteriaScan({
                                     <p className="text-xs text-red-600">{form.errors.provider_id}</p>
                                 )}
                                 {provider_locked && (
-                                    <p className="text-xs text-blue-600 dark:text-blue-300">
+                                    <p className="text-xs text-[color:var(--color-primary)] dark:text-blue-300">
                                         {t('cafeteria.providerScopedNotice')}
                                     </p>
                                 )}
@@ -712,8 +762,8 @@ export default function CafeteriaScan({
 
                             {/* Week availability summary (shown after a successful scan) */}
                             {scan_result?.allowed && scan_result.week_start && (
-                                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
-                                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                                <div className="rounded-card border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+                                    <p className="mb-2 text-xs font-semibold text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">
                                         {t('cafeteria.weeklyWindowTitle')} — {scan_result.week_start} → {scan_result.week_end}
                                     </p>
                                     <dl className="space-y-1 text-sm">
@@ -742,7 +792,7 @@ export default function CafeteriaScan({
 
                         {/* ── MIDDLE: Scan Calendar + Employee Info ── */}
                         <div className="flex flex-col gap-4">
-                            <div className="shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                            <div className="shrink-0 overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
 
                                 {/* Calendar header */}
                                 <div className="border-b border-gray-100 bg-gray-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40">
@@ -784,7 +834,7 @@ export default function CafeteriaScan({
                                     {/* Day-of-week headers */}
                                     <div className="mb-1 grid grid-cols-7">
                                         {dayLabels.map((d) => (
-                                            <div key={d} className="py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                                            <div key={d} className="py-1.5 text-center text-[11px] font-semibold text-gray-400 dark:text-slate-500">
                                                 {d}
                                             </div>
                                         ))}
@@ -823,7 +873,7 @@ export default function CafeteriaScan({
                                                     key={dateStr || `cell-${idx}`}
                                                     title={dayMeta?.label}
                                                     className={`relative mx-auto my-0.5 flex h-8 w-8 flex-col items-center justify-center rounded-lg text-[13px] transition-colors
-                                                        ${isToday ? 'ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-slate-900' : ''}
+                                                        ${isToday ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-1 dark:ring-offset-slate-900' : ''}
                                                         ${cellCls}
                                                     `}
                                                 >
@@ -871,7 +921,7 @@ export default function CafeteriaScan({
 
                             {/* Employee Info */}
                             {scan_result?.employee ? (
-                                <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-slate-700 dark:bg-slate-950">
+                                <div className="rounded-card border border-gray-200 bg-gray-50 p-5 dark:border-slate-700 dark:bg-slate-950">
                                     {/* Photo or initials */}
                                     <div className="flex flex-col items-center text-center">
                                         {scan_result.employee.photo_url ? (
@@ -934,7 +984,7 @@ export default function CafeteriaScan({
                                 </div>
                             ) : (
                                 /* Placeholder when no scan yet */
-                                <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-slate-700 dark:bg-slate-950">
+                                <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-card border border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-slate-700 dark:bg-slate-950">
                                     <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800">
                                         <UserIcon className="h-7 w-7 text-gray-300 dark:text-slate-600" />
                                     </div>
@@ -947,8 +997,8 @@ export default function CafeteriaScan({
 
                         {/* ── RIGHT: Today's Scans ── */}
                         <div className="flex flex-col self-stretch">
-                            <div className="flex flex-1 flex-col rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950">
-                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                            <div className="flex flex-1 flex-col rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+                                <p className="mb-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
                                     {t('cafeteria.todayScans')} - {todayScans.length}
                                 </p>
                                 {todayScans.length === 0 ? (
@@ -998,7 +1048,7 @@ export default function CafeteriaScan({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         >
                             {t('cafeteria.processScan')}
                         </button>

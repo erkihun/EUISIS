@@ -51,7 +51,7 @@ export default function ProviderShow({
     const rowCls = 'flex justify-between border-b border-gray-100 py-3 text-sm last:border-0 dark:border-slate-800';
     const thCls = 'px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-slate-400';
     const tdCls = 'px-4 py-3 text-sm text-gray-700 dark:text-slate-300';
-    const cardCls = 'rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
+    const cardCls = 'rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900';
 
     async function archiveBranch(branchId: string) {
         const { confirmed } = await confirm({
@@ -107,7 +107,7 @@ export default function ProviderShow({
                         <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {t('cafeteria.branches')}
                             {branches.length > 0 && (
-                                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
                                     {branches.length}
                                 </span>
                             )}
@@ -115,7 +115,7 @@ export default function ProviderShow({
                         {can.update && (
                             <Link
                                 href={route('cafeteria.providers.branches.create', provider.id)}
-                                className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                                className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 + {t('cafeteria.addBranch')}
                             </Link>
@@ -161,7 +161,7 @@ export default function ProviderShow({
                                                     <div className="flex justify-end gap-3">
                                                         <Link
                                                             href={route('cafeteria.providers.branches.edit', { cafeteriaProvider: provider.id, branch: b.id })}
-                                                            className="text-xs text-blue-600 hover:underline"
+                                                            className="text-xs text-[color:var(--color-primary)] hover:underline"
                                                         >
                                                             {t('common.edit')}
                                                         </Link>
@@ -192,7 +192,7 @@ export default function ProviderShow({
                         {can.manageUsers && (
                             <Link
                                 href={route('cafeteria.settings.index') + '?tab=provider-users'}
-                                className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                             >
                                 {t('cafeteria.manageAdminUsers')} →
                             </Link>

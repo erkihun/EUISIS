@@ -63,7 +63,7 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
                 <Link
                     href={route('organizations.show', tree.organization.id)}
-                    className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                    className="text-sm text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
                 >
                     ← {t('organizations.backToOrganization')}
                 </Link>
@@ -81,14 +81,14 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
                         client-side visual capture in the chart toolbar. */}
                     <a
                         href={`${route('organizations.organogram', tree.organization.id)}?format=pdf`}
-                        className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                     >
                         {t('organizations.exportOutlinePdf')}
                     </a>
                 </div>
             </div>
 
-            <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 print:border-0 print:p-0">
+            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 print:border-0 print:p-0">
                 <OrganogramChart tree={tree} captureRef={captureRef} toolbarExtra={exportButtons} />
             </section>
         </AuthenticatedLayout>

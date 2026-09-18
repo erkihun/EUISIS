@@ -13,7 +13,7 @@ type Organization = { id: string; name_en: string; name_am: string | null };
 
 type Props = { rules: Rule[]; organizations: Organization[]; originLevels: string[] };
 
-const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
 
 export default function SlaRulesIndex({ rules, organizations, originLevels }: Props): JSX.Element {
@@ -40,7 +40,7 @@ export default function SlaRulesIndex({ rules, organizations, originLevels }: Pr
 
             <div className="space-y-6">
                 {/* Add new rule */}
-                <div className="rounded-xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-slate-300">+ {t('grievances.slaRule')}</h3>
                     <form onSubmit={e => { e.preventDefault(); post(route('grievance-sla-rules.store'), { onSuccess: () => reset() }); }} className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                         <div>
@@ -70,7 +70,7 @@ export default function SlaRulesIndex({ rules, organizations, originLevels }: Pr
                             <input type="number" min={1} max={30} className={inputCls} value={data.working_days_limit} onChange={e => setData('working_days_limit', Number(e.target.value))} />
                         </div>
                         <div className="flex items-end">
-                            <button type="submit" disabled={!data.origin_level || processing} className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                            <button type="submit" disabled={!data.origin_level || processing} className="w-full rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50">
                                 {t('common.create')}
                             </button>
                         </div>
@@ -78,7 +78,7 @@ export default function SlaRulesIndex({ rules, organizations, originLevels }: Pr
                 </div>
 
                 {/* Rules table */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>

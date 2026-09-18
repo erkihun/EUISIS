@@ -23,8 +23,8 @@ type OrgType = {
 
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
     return (
-        <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-            <dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</dt>
+        <div className="rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
+            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
             <dd className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{value}</dd>
         </div>
     );
@@ -51,7 +51,7 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
                             {type.can.update && (
                                 <Link
                                     href={route('organization-types.edit', type.id)}
-                                    className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     {t('common.edit')}
                                 </Link>
@@ -63,7 +63,7 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
         >
             <Head title={type.name_en} />
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                 <dl className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     <Detail label={t('organizationTypes.code')} value={<span className="font-mono">{type.code}</span>} />
                     <Detail

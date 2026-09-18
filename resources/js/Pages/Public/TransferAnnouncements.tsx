@@ -58,7 +58,7 @@ export default function PublicTransferAnnouncements({ announcements }: Props) {
         <PublicLayout title={t('home.announcementsPageTitle')}>
             <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
                 <div className="mb-8 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-card bg-[color:var(--color-primary)] text-white">
                         <MegaphoneIcon className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div>
@@ -68,7 +68,7 @@ export default function PublicTransferAnnouncements({ announcements }: Props) {
                 </div>
 
                 {announcements.length === 0 ? (
-                    <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
                         <MegaphoneIcon className="mx-auto h-10 w-10 text-gray-300 dark:text-slate-600" aria-hidden="true" />
                         <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">{t('home.noAnnouncements')}</p>
                     </div>
@@ -76,7 +76,7 @@ export default function PublicTransferAnnouncements({ announcements }: Props) {
                     <div className="space-y-8">
                         {open.length > 0 && (
                             <section>
-                                <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                                <h2 className="mb-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                                     {t('transfers.statusPublished')} — {t('transfers.statusOpen')}
                                 </h2>
                                 <div className="space-y-3">
@@ -86,7 +86,7 @@ export default function PublicTransferAnnouncements({ announcements }: Props) {
                         )}
                         {other.length > 0 && (
                             <section>
-                                <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">
+                                <h2 className="mb-3 text-xs font-semibold text-gray-400 dark:text-slate-500">
                                     {t('transfers.statusPublished')}
                                 </h2>
                                 <div className="space-y-3">
@@ -108,9 +108,9 @@ function AnnouncementCard({ a, useAmharic, t }: { a: Announcement; useAmharic: b
     return (
         <Link
             href={route('public.transfer-announcements.show', { announcement: a.id })}
-            className={`group relative block overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-slate-900 ${a.is_open ? 'border-emerald-200 dark:border-emerald-900/60' : 'border-gray-200 dark:border-slate-800'}`}
+            className={`group relative block overflow-hidden rounded-panel border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-slate-900 ${a.is_open ? 'border-emerald-200 dark:border-emerald-900/60' : 'border-gray-200 dark:border-slate-800'}`}
         >
-            {a.is_open && <div className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-emerald-500" aria-hidden="true" />}
+            {a.is_open && <div className="absolute left-0 top-0 h-full w-1 rounded-l-panel bg-emerald-500" aria-hidden="true" />}
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 pl-2">

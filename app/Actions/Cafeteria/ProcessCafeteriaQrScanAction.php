@@ -8,6 +8,7 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaTransaction;
+use App\Models\IdCard;
 use App\Models\User;
 use App\Services\Cafeteria\CafeteriaQrScanService;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ readonly class ProcessCafeteriaQrScanAction
      * @return array{allowed: bool, result_code: string, transaction: CafeteriaTransaction|null, denial_reason: string|null}
      */
     public function execute(
-        string $qrToken,
+        string|IdCard $qrToken,
         CafeteriaProvider $provider,
         ?Carbon $scannedAt = null,
         ?User $actor = null,

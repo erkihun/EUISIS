@@ -20,7 +20,7 @@ type Props = {
 };
 
 const inputClassName =
-    'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    'w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
 export default function SettingField({ field, locale, value, error, disabled = false, onChange }: Props) {
     const { t } = useLocale();
@@ -152,7 +152,7 @@ function renderFieldControl(
                 onClick={() => onChange(! Boolean(value))}
                 className={[
                     'relative inline-flex h-6 w-11 items-center rounded-full transition-colors',
-                    Boolean(value) ? 'bg-blue-600' : 'bg-gray-300 dark:bg-slate-700',
+                    Boolean(value) ? 'bg-[color:var(--color-primary)]' : 'bg-gray-300 dark:bg-slate-700',
                     disabled ? 'cursor-not-allowed opacity-60' : '',
                 ].join(' ')}
             >

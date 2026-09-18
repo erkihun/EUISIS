@@ -58,7 +58,7 @@ export default function PublicVerify({ result }: Props) {
                     </div>
 
                     {/* Result card */}
-                    <div className={`rounded-2xl border p-8 text-center shadow-lg ${bannerClass}`}>
+                    <div className={`rounded-panel border p-8 text-center shadow-lg ${bannerClass}`}>
                         <div className="mb-4 flex justify-center">{IconEl}</div>
 
                         <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">

@@ -63,7 +63,7 @@ export default function OrganizationUnitsCreate({
     });
 
     const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
 
     const noUnitTypes = unitTypes.length === 0;
     const noParentUnits = parentUnits.length === 0 && !!data.organization_id;
@@ -102,7 +102,7 @@ export default function OrganizationUnitsCreate({
                         e.preventDefault();
                         post(route('organization-units.store'));
                     }}
-                    className="w-full space-y-6 rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full space-y-6 rounded-panel border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Organization */}
@@ -180,7 +180,7 @@ export default function OrganizationUnitsCreate({
                                         ))}
                                     </select>
                                     {noParentUnits && (
-                                        <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                                        <p className="mt-1 text-xs text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">
                                             {t('organizationUnits.noParentUnitsYetHint')}
                                         </p>
                                     )}

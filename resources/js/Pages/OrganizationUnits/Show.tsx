@@ -97,10 +97,10 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
 
                 {/* Hosted unit — owner vs. operating organization */}
                 {hostedContext?.host_organization && (
-                    <section className="rounded-2xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                    <section className="rounded-panel border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
                         <div className="grid gap-4 text-sm sm:grid-cols-2">
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                                <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
                                     {t('organizationUnits.ownerOrganization')}
                                 </p>
                                 <p className="mt-1 font-medium text-gray-900 dark:text-slate-100">
@@ -112,7 +112,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                 </p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                                <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
                                     {t('organizationUnits.operatingOrganization')}
                                 </p>
                                 <p className="mt-1 font-medium text-gray-900 dark:text-slate-100">
@@ -129,7 +129,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                 )}
 
                 {/* Details Card */}
-                <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-slate-100">
                         {t('organizationUnits.organizationUnitDetails')}
                     </h2>
@@ -140,7 +140,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                 {unit.organization ? (
                                     <Link
                                         href={route('organizations.show', unit.organization.id)}
-                                        className="text-blue-600 hover:underline dark:text-blue-400"
+                                        className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                     >
                                         {localizedName(unit.organization.name_en, unit.organization.name_am, locale)}
                                     </Link>
@@ -155,7 +155,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                 {unit.parent ? (
                                     <Link
                                         href={route('organization-units.show', unit.parent.id)}
-                                        className="text-blue-600 hover:underline dark:text-blue-400"
+                                        className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                     >
                                         {localizedName(unit.parent.name_en, unit.parent.name_am, locale)}
                                     </Link>
@@ -197,7 +197,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
 
                 {/* Child Units */}
                 {(unit.children && unit.children.length > 0) && (
-                    <section className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                         <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-slate-100">
                             {t('organizationUnits.childUnits')} ({unit.children.length})
                         </h2>
@@ -207,7 +207,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                     <div>
                                         <Link
                                             href={route('organization-units.show', child.id)}
-                                            className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                            className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                         >
                                             {localizedName(child.name_en, child.name_am, locale)}
                                         </Link>

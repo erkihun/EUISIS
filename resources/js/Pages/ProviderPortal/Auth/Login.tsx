@@ -14,7 +14,7 @@ export default function Login() {
         form.post(route('provider.portal.login.store'));
     }
 
-    const inputCls = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-400/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-orange-500 dark:focus:bg-slate-750';
+    const inputCls = 'w-full rounded-card border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 transition focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-400/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-orange-500 dark:focus:bg-slate-750';
 
     return (
         <div className="flex min-h-screen dark:bg-slate-950" style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #fff 50%, #f0fdf4 100%)' }}>
@@ -24,7 +24,7 @@ export default function Login() {
             <div className="hidden lg:flex lg:w-1/2 lg:flex-col lg:items-center lg:justify-center lg:px-12" style={{ background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
                 <div className="max-w-sm text-center">
                     {/* Logo */}
-                    <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-2xl shadow-orange-500/30">
+                    <div className="mx-auto mb-8 flex h-20 w-20 items-center justify-center rounded-panel bg-gradient-to-br from-orange-400 to-orange-600 shadow-2xl shadow-orange-500/30">
                         <svg className="h-10 w-10 text-white" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
@@ -62,7 +62,7 @@ export default function Login() {
                 <div className="w-full max-w-sm">
                     {/* Mobile logo */}
                     <div className="lg:hidden flex justify-center mb-8">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-panel bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg">
                             <svg className="h-7 w-7 text-white" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
@@ -123,7 +123,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="relative w-full overflow-hidden rounded-xl px-4 py-3 text-sm font-semibold text-white transition-all focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 disabled:opacity-60"
+                            className="relative w-full overflow-hidden rounded-card px-4 py-3 text-sm font-semibold text-white transition-all focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 disabled:opacity-60"
                             style={{ background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', boxShadow: '0 4px 15px rgba(249, 115, 22, 0.35)' }}
                         >
                             {form.processing ? (

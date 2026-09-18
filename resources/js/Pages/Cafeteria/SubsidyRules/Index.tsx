@@ -38,7 +38,7 @@ export default function SubsidyRulesIndex({ rules, meta, filters, can }: { rules
                 <PageHeader
                     title={t('cafeteria.subsidyRules')}
                     actions={can.create ? (
-                        <Link href={route('cafeteria.subsidy-rules.create')} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        <Link href={route('cafeteria.subsidy-rules.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                             + {t('cafeteria.addSubsidyRule')}
                         </Link>
                     ) : undefined}
@@ -49,10 +49,10 @@ export default function SubsidyRulesIndex({ rules, meta, filters, can }: { rules
             <div className="space-y-4">
                 <form className="flex gap-3" onSubmit={submit}>
                     <input name="search" defaultValue={filters.search ?? ''} placeholder={t('common.search')} className={inputCls} />
-                    <button type="submit" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">{t('common.filter')}</button>
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.filter')}</button>
                 </form>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {rules.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
@@ -79,7 +79,7 @@ export default function SubsidyRulesIndex({ rules, meta, filters, can }: { rules
                                             <td className="px-4 py-3 text-gray-600 dark:text-slate-400">{rule.applies_to}</td>
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    {rule.can.update && <Link href={route('cafeteria.subsidy-rules.edit', rule.id)} className="text-xs text-blue-600 hover:underline">{t('common.edit')}</Link>}
+                                                    {rule.can.update && <Link href={route('cafeteria.subsidy-rules.edit', rule.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}
                                                     {rule.can.archive && !rule.deleted_at && <button onClick={() => handleArchive(rule.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
                                                 </div>
                                             </td>

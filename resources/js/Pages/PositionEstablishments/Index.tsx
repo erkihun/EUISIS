@@ -30,7 +30,7 @@ export default function PositionEstablishmentsIndex({ establishments, filters }:
         >
             <Head title={t('positionEstablishments.title')} />
 
-            <div className="rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-slate-950">
                         <tr>
@@ -54,7 +54,7 @@ export default function PositionEstablishmentsIndex({ establishments, filters }:
                                 <td className="px-4 py-3">
                                     <Link
                                         href={route('position-establishments.show', e.id)}
-                                        className="font-mono text-blue-600 hover:underline dark:text-blue-400"
+                                        className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                     >
                                         {e.establishment_number}
                                     </Link>

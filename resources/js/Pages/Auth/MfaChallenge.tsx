@@ -37,7 +37,7 @@ export default function MfaChallenge({ user }: Props) {
                     </span>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                         {t('auth.mfaChallenge')}
                     </h1>
@@ -68,7 +68,7 @@ export default function MfaChallenge({ user }: Props) {
                                     maxLength={6}
                                     value={data.code}
                                     onChange={(e) => setData('code', e.target.value)}
-                                    className={`w-full rounded-xl border px-4 py-2.5 text-center font-mono text-lg tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 ${
+                                    className={`w-full rounded-card border px-4 py-2.5 text-center font-mono text-lg tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 ${
                                         errorMessage
                                             ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
                                             : 'border-slate-300 bg-white dark:border-slate-700'
@@ -93,7 +93,7 @@ export default function MfaChallenge({ user }: Props) {
                                     onChange={(e) =>
                                         setData('recovery_code', e.target.value)
                                     }
-                                    className={`w-full rounded-xl border px-4 py-2.5 text-center font-mono text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 ${
+                                    className={`w-full rounded-card border px-4 py-2.5 text-center font-mono text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 ${
                                         errorMessage
                                             ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
                                             : 'border-slate-300 bg-white dark:border-slate-700'
@@ -111,7 +111,7 @@ export default function MfaChallenge({ user }: Props) {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+                            className="flex w-full items-center justify-center rounded-card bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
                         >
                             {processing ? '…' : t('auth.mfaSubmit')}
                         </button>

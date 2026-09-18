@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Actions\Cafeteria\ProcessCafeteriaQrScanAction;
+use App\Services\Nfc\NfcCredentialService;
 use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProcessCafeteriaQrScanRequest;
@@ -180,7 +181,7 @@ class CafeteriaTransactionController extends Controller
         ]);
     }
 
-    public function processScan(ProcessCafeteriaQrScanRequest $request, ProcessCafeteriaQrScanAction $action): RedirectResponse
+    public function processScan(ProcessCafeteriaQrScanRequest $request, ProcessCafeteriaQrScanAction $action, NfcCredentialService $nfcCredentials): RedirectResponse
     {
         $provider = CafeteriaProvider::findOrFail($request->validated('provider_id'));
 
@@ -188,8 +189,32 @@ class CafeteriaTransactionController extends Controller
 
         $scannedAt = $request->filled('scanned_at') ? Carbon::parse($request->validated('scanned_at')) : Carbon::now();
 
+        // An NFC tap resolves to the same ID card a QR scan would produce, and
+        // is then handed to the same action - one set of cafeteria rules for
+        // both credentials. A credential that is not active never reaches the
+        // scan service; it is denied here with its own reason code.
+        $credential = $request->validated('nfc_credential');
+        $scanInput = $request->validated('qr_token');
+
+        if ($credential !== null) {
+            $resolved = $nfcCredentials->resolveForAttendedScan($credential);
+
+            if ($resolved['card'] === null) {
+                return redirect()->route($request->validated('source') === 'mobile' ? 'cafeteria.scan.mobile' : 'cafeteria.scan')
+                    ->with(['scan_result' => [
+                        'allowed' => false,
+                        'is_extra_scan' => false,
+                        'denial_reason' => $resolved['reason'],
+                        'employee' => null,
+                        'credential_method' => 'nfc',
+                    ]]);
+            }
+
+            $scanInput = $resolved['card'];
+        }
+
         $result = $action->execute(
-            $request->validated('qr_token'),
+            $scanInput,
             $provider,
             $scannedAt,
             $request->user(),

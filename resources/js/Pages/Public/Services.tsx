@@ -30,7 +30,7 @@ export default function PublicServices() {
         <PublicLayout title={t('home.servicesPageTitle')}>
             <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
                 <div className="mb-8 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-card bg-violet-600 text-white">
                         <LayersIcon className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div>
@@ -41,7 +41,7 @@ export default function PublicServices() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                     {SERVICE_KEYS.map((key, idx) => (
-                        <div key={key} className={`rounded-2xl border p-5 ${SERVICE_COLORS[idx]}`}>
+                        <div key={key} className={`rounded-panel border p-5 ${SERVICE_COLORS[idx]}`}>
                             <p className="font-semibold">{t(`home.service_${key}_title` as never) || key}</p>
                             <p className="mt-1 text-sm opacity-80">{t(`home.service_${key}_desc` as never) || ''}</p>
                         </div>

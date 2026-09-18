@@ -104,7 +104,7 @@ export default function TimezoneSettingField({
     };
 
     const inputCls =
-        'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     return (
         <div className="grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-3 md:items-start">
@@ -134,7 +134,7 @@ export default function TimezoneSettingField({
 
                 {open && (
                     <div className="relative z-50">
-                        <div className="absolute top-0 left-0 right-0 rounded-xl border border-gray-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
+                        <div className="absolute top-0 left-0 right-0 rounded-card border border-gray-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900">
                             {/* Search input */}
                             <div className="border-b border-gray-100 p-2 dark:border-slate-800">
                                 <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 dark:border-slate-700 dark:bg-slate-950">
@@ -166,13 +166,13 @@ export default function TimezoneSettingField({
                                                 className={[
                                                     'flex w-full items-center px-4 py-2 text-left text-sm transition-colors',
                                                     tz === value
-                                                        ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-400'
+                                                        ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-500/10 dark:text-[color:var(--color-primary)]'
                                                         : 'text-gray-800 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800',
                                                 ].join(' ')}
                                             >
                                                 {tz}
                                                 {tz === value && (
-                                                    <svg className="ml-auto h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <svg className="ml-auto h-4 w-4 text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                                     </svg>
                                                 )}
@@ -182,7 +182,7 @@ export default function TimezoneSettingField({
                                 ) : (
                                     TIMEZONES.map((group) => (
                                         <div key={group.region}>
-                                            <div className="sticky top-0 bg-gray-50 px-4 py-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:bg-slate-800 dark:text-slate-500">
+                                            <div className="sticky top-0 bg-gray-50 px-4 py-1 text-[10px] font-semibold text-gray-400 dark:bg-slate-800 dark:text-slate-500">
                                                 {group.region}
                                             </div>
                                             {group.zones.map((tz) => (
@@ -193,13 +193,13 @@ export default function TimezoneSettingField({
                                                     className={[
                                                         'flex w-full items-center px-4 py-2 text-left text-sm transition-colors',
                                                         tz === value
-                                                            ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-500/10 dark:text-blue-400'
+                                                            ? 'bg-blue-50 font-medium text-blue-700 dark:bg-blue-500/10 dark:text-[color:var(--color-primary)]'
                                                             : 'text-gray-800 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800',
                                                     ].join(' ')}
                                                 >
                                                     {tz}
                                                     {tz === value && (
-                                                        <svg className="ml-auto h-4 w-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <svg className="ml-auto h-4 w-4 text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                                                         </svg>
                                                     )}

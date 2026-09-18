@@ -24,7 +24,7 @@ export default function OrganizationTreePreviewNode({
     const { locale, t } = useLocale();
     const indentPx = node.depth * 20;
     const levelColor = [
-        'bg-blue-600 text-white ring-blue-200 dark:ring-blue-800',
+        'bg-[color:var(--color-primary)] text-white ring-blue-200 dark:ring-blue-800',
         'bg-violet-600 text-white ring-violet-200 dark:ring-violet-800',
         'bg-emerald-600 text-white ring-emerald-200 dark:ring-emerald-800',
         'bg-amber-500 text-white ring-amber-200 dark:ring-amber-800',
@@ -43,7 +43,7 @@ export default function OrganizationTreePreviewNode({
             <div
                 className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 transition-colors ${
                     isSelected
-                        ? 'bg-blue-100 ring-2 ring-blue-400 dark:bg-blue-900/30 dark:ring-blue-500'
+                        ? 'bg-blue-100 ring-2 ring-blue-400 dark:bg-blue-900/30 dark:ring-[color:var(--color-primary)]'
                         : 'hover:bg-gray-50 dark:hover:bg-slate-800/40'
                 }`}
                 style={{ paddingLeft: `${indentPx + 8}px` }}

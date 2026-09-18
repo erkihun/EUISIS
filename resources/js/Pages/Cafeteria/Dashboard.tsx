@@ -38,7 +38,7 @@ export default function CafeteriaDashboard({
     });
 
     const actionPrimaryCls =
-        'inline-flex h-9 items-center justify-center rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition hover:bg-blue-700';
+        'inline-flex h-9 items-center justify-center rounded-lg bg-[color:var(--color-primary)] px-4 text-sm font-medium text-white transition hover:bg-[color:var(--color-primary-hover)]';
     const actionSecondaryCls =
         'inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-slate-700 dark:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800';
 
@@ -107,7 +107,7 @@ export default function CafeteriaDashboard({
                 </DashboardSection>
 
                 <DashboardSection title={t('cafeteria.todayTransactions')}>
-                    <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white/95 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] dark:border-slate-800/80 dark:bg-slate-900/95">
+                    <div className="overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] dark:border-slate-800/80 dark:bg-slate-900/95">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
                                 <thead>

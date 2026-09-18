@@ -132,7 +132,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
     };
 
     const exportLabel = tab === 'front' ? t('idCards.exportFront') : tab === 'back' ? t('idCards.exportBack') : t('idCards.exportBoth');
-    const printLabel  = tab === 'front' ? t('idCards.printFront')  : tab === 'back' ? t('idCards.printBack')  : t('idCards.printBoth');
+    const printLabel  = tab === 'front' ? t('idCards.printFront') : tab === 'back' ? t('idCards.printBack') : t('idCards.printBoth');
 
     return (
         <>
@@ -186,7 +186,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm no-print"
                 onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
             >
-                <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-slate-700">
+                <div className="w-full max-w-lg rounded-panel bg-white shadow-2xl dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-slate-700">
 
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 pt-5 pb-3">
@@ -213,7 +213,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                     </p>
 
                     {/* Tabs */}
-                    <div className="mx-6 mb-4 flex gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-slate-700 dark:bg-slate-800">
+                    <div className="mx-6 mb-4 flex gap-1 rounded-card border border-gray-200 bg-gray-50 p-1 dark:border-slate-700 dark:bg-slate-800">
                         {(['front', 'back', 'both'] as Tab[]).map((value) => (
                             <button
                                 key={value}
@@ -243,7 +243,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-2 rounded-b-2xl border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
+                    <div className="flex justify-end gap-2 rounded-b-panel border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
                         <button
                             type="button"
                             onClick={onClose}

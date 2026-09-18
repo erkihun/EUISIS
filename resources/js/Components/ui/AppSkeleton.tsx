@@ -43,7 +43,7 @@ export function AppMetricCardSkeleton() {
     return (
         <div
             aria-hidden="true"
-            className="overflow-hidden rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+            className="overflow-hidden rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
         >
             <AppSkeleton className="mb-3 h-3 w-24" />
             <AppSkeleton className="h-7 w-16" />

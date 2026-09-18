@@ -13,8 +13,8 @@ const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm d
 
 function KpiCard({ label, value, color, bg }: { label: string; value: string; color: string; bg: string }) {
     return (
-        <div className={`rounded-xl border border-gray-200 p-5 shadow-sm dark:border-slate-800 ${bg}`}>
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</p>
+        <div className={`rounded-card border border-gray-200 p-5 dark:border-slate-800 ${bg}`}>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">{label}</p>
             <p className={`mt-2 text-3xl font-bold tabular-nums ${color}`}>{value}</p>
         </div>
     );
@@ -50,8 +50,8 @@ export default function LedgerIndex({ providers, selected_provider_id, entries, 
                 {/* KPI summary */}
                 <div className="grid gap-4 sm:grid-cols-3">
                     <KpiCard label={t('providerPortal.credit')}  value={totalCredit.toFixed(2)} color="text-emerald-600" bg="bg-emerald-50 dark:bg-emerald-900/20" />
-                    <KpiCard label={t('providerPortal.debit')}   value={totalDebit.toFixed(2)}  color="text-red-600"     bg="bg-red-50 dark:bg-red-900/20" />
-                    <KpiCard label={t('providerPortal.balance')} value={balance.toFixed(2)}     color="text-blue-600"    bg="bg-blue-50 dark:bg-blue-900/20" />
+                    <KpiCard label={t('providerPortal.debit')}   value={totalDebit.toFixed(2)}  color="text-red-600" bg="bg-red-50 dark:bg-red-900/20" />
+                    <KpiCard label={t('providerPortal.balance')} value={balance.toFixed(2)}     color="text-[color:var(--color-primary)]" bg="bg-blue-50 dark:bg-blue-900/20" />
                 </div>
 
                 {/* Filters */}
@@ -70,7 +70,7 @@ export default function LedgerIndex({ providers, selected_provider_id, entries, 
                 </form>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
@@ -93,7 +93,7 @@ export default function LedgerIndex({ providers, selected_provider_id, entries, 
                                         <td className="px-4 py-3 text-gray-900 dark:text-slate-100">{e.description ?? e.entry_type}</td>
                                         <td className="px-4 py-3 text-right font-semibold text-emerald-600">{e.credit > 0 ? e.credit.toFixed(2) : '—'}</td>
                                         <td className="px-4 py-3 text-right font-semibold text-red-600">{e.debit > 0 ? e.debit.toFixed(2) : '—'}</td>
-                                        <td className="px-4 py-3 text-right font-bold text-blue-600">{e.balance_after.toFixed(2)}</td>
+                                        <td className="px-4 py-3 text-right font-bold text-[color:var(--color-primary)]">{e.balance_after.toFixed(2)}</td>
                                     </tr>
                                 ))}
                             </tbody>

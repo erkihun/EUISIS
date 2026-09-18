@@ -35,7 +35,7 @@ type Props = {
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
     return (
-        <div className={`rounded-xl border p-5 ${color}`}>
+        <div className={`rounded-card border p-5 ${color}`}>
             <p className="text-sm font-medium opacity-75">{label}</p>
             <p className="mt-2 text-3xl font-bold">{value.toLocaleString()}</p>
         </div>
@@ -82,7 +82,7 @@ export default function TransferDashboard({ stats, recent_transfers, can }: Prop
 
                 {/* Approval queue shortcuts */}
                 {(can.approve_release || can.approve_receiving || can.approve_final) && (
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {t('transfers.approvalChain')}
                         </h3>
@@ -120,7 +120,7 @@ export default function TransferDashboard({ stats, recent_transfers, can }: Prop
 
                 {/* Recent transfers */}
                 {recent_transfers.length > 0 && (
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {t('transfers.recentTransfers')}
                         </h3>

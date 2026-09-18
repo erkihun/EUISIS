@@ -44,7 +44,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                             {isicActivity.can?.update && (
                                 <Link
                                     href={route('isic-activities.edit', isicActivity.id)}
-                                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     {t('common.edit')}
                                 </Link>
@@ -74,7 +74,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
         >
             <Head title={isicActivity.name_en ?? isicActivity.isic_code} />
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
                     <div className="grid gap-4 md:grid-cols-2 text-sm">
                         <Field label={t('isicActivities.isicCode')} value={isicActivity.isic_code} mono />
                         <Field
@@ -119,7 +119,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                     )}
                 </section>
                 <aside className="space-y-4">
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="text-xs text-gray-500 dark:text-slate-400">{t('common.createdAt')}</div>
                         <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
                             <LocalizedDateDisplay value={isicActivity.created_at} withTime />
@@ -132,7 +132,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                     <div>
                         <Link
                             href={route('isic-activities.index')}
-                            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                            className="text-sm text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
                         >
                             {t('isicActivities.backToList')}
                         </Link>

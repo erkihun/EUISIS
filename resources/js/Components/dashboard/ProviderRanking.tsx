@@ -25,7 +25,7 @@ export default function ProviderRanking({ data }: { data: Item[] }) {
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 dark:bg-slate-800">
                         <div
-                            className="h-2 rounded-full bg-blue-600"
+                            className="h-2 rounded-full bg-[color:var(--color-primary)]"
                             style={{ width: `${Math.round((item.value / max) * 100)}%` }}
                         />
                     </div>

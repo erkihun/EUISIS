@@ -11,10 +11,14 @@ use App\Models\EmployeeAssignment;
 use App\Models\EmployeeTransfer;
 use App\Models\Entitlement;
 use App\Models\IdCard;
+use App\Models\NfcCredential;
 use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\User;
+use App\Services\Dashboard\DashboardMetricService;
+use App\Services\Dashboard\DashboardScopeService;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
@@ -204,4 +208,134 @@ it('keeps employee self-service mode for a user with no administrative access', 
     $resolve->setAccessible(true);
 
     expect($resolve->invoke($middleware, $employeeUser))->toBeTrue();
+});
+
+// ── Header, NFC and integration sections ─────────────────────────────────
+
+test('dashboard header reports scope, refresh time and only permitted actions', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+
+    $response = $this->actingAs($user)->get(route('dashboard'))->assertOk();
+
+    $header = $response->viewData('page')['props']['header'];
+
+    expect($header['generatedAt'])->not->toBeNull()
+        ->and($header['globalAccess'])->toBeTrue()
+        ->and($header['quickActions'])->not->toBeEmpty();
+
+    // Every advertised action must resolve to a real, registered route.
+    foreach ($header['quickActions'] as $action) {
+        expect(Route::has($action['routeName']))->toBeTrue();
+    }
+});
+
+test('a user without nfc or api permission gets neither section', function (): void {
+    $user = User::where('email', 'hr.officer@demo.local')->firstOrFail();
+
+    $response = $this->actingAs($user)->get(route('dashboard'))->assertOk();
+    $props = $response->viewData('page')['props'];
+
+    expect($props['can']['nfc'])->toBeFalse()
+        ->and($props['can']['integration'])->toBeFalse()
+        ->and($props['cards'])->not->toHaveKey('nfc')
+        ->and($props['cards'])->not->toHaveKey('integration');
+});
+
+test('super admin receives nfc and integration metrics', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+
+    $response = $this->actingAs($user)->get(route('dashboard'))->assertOk();
+    $props = $response->viewData('page')['props'];
+
+    expect($props['can']['nfc'])->toBeTrue()
+        ->and($props['can']['integration'])->toBeTrue();
+
+    foreach (['active', 'pending', 'suspended', 'revoked', 'lost', 'activeTerminals', 'inactiveTerminals', 'verificationsToday'] as $key) {
+        expect($props['cards']['nfc'])->toHaveKey($key);
+    }
+
+    foreach (['activeApplications', 'activeTokens', 'activeEndpoints', 'requestsToday', 'failedToday'] as $key) {
+        expect($props['cards']['integration'])->toHaveKey($key);
+    }
+});
+
+test('nfc credential counts honour organization scope', function (): void {
+    $scoped = User::where('email', 'hr.officer@demo.local')->firstOrFail();
+    $scoped->givePermissionTo('nfc_credentials.view');
+
+    $metrics = app(DashboardMetricService::class);
+    $scopeService = app(DashboardScopeService::class);
+    $scope = $scopeService->resolve($scoped, []);
+
+    // Provision a credential for a card OUTSIDE the officer's organizations.
+    $outsideCard = IdCard::query()
+        ->whereHas('employee.currentAssignment', fn ($q) => $q->whereNotIn('organization_id', $scope['organization_ids']))
+        ->first();
+
+    if ($outsideCard === null) {
+        $this->markTestSkipped('Seed data has no ID card outside the scoped officer organizations.');
+    }
+
+    NfcCredential::create([
+        'id_card_id' => $outsideCard->id,
+        'credential_id' => 'nfc_'.str_repeat('a', 64),
+        'credential_type' => 'ndef_reference',
+        'status' => 'active',
+        'issued_at' => now(),
+    ]);
+
+    $scopedCount = $metrics->nfcCredentialQuery($scope)->count();
+    $globalScope = $scopeService->resolve(User::where('email', 'super.admin@demo.local')->firstOrFail(), []);
+
+    expect($scopedCount)->toBe(0)
+        ->and($metrics->nfcCredentialQuery($globalScope)->count())->toBe(1);
+});
+
+test('dashboard never exposes api tokens or secrets', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+
+    $payload = json_encode($this->actingAs($user)->get(route('dashboard'))->viewData('page')['props']);
+
+    foreach (['plainTextToken', 'access_token', 'allowed_scopes', 'token_hash', 'certificate_reference', 'key_reference'] as $secret) {
+        expect($payload)->not->toContain($secret);
+    }
+});
+
+// ── Grouped status counts ────────────────────────────────────────────────
+
+test('grouped status counts match per-status counts exactly', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $metrics = app(DashboardMetricService::class);
+    $scope = app(DashboardScopeService::class)->resolve($user, []);
+
+    foreach (['active', 'printed', 'issued', 'pending_print', 'expired', 'lost', 'revoked', 'replaced'] as $status) {
+        expect($metrics->cardStatusCount($scope, $status))
+            ->toBe($metrics->cardQuery($scope)->where('id_cards.status', $status)->count());
+    }
+
+    foreach (['submitted', 'verified', 'approved'] as $status) {
+        expect($metrics->cardRequestStatusCount($scope, $status))
+            ->toBe($metrics->cardRequestQuery($scope)->where('card_requests.status', $status)->count());
+    }
+
+    // The funnel's first step sums every bucket, so it must equal the total.
+    expect(array_sum($metrics->cardRequestStatusCounts($scope)))
+        ->toBe($metrics->cardRequestQuery($scope)->count());
+
+    expect($metrics->cardRequestStatusCount($scope, 'submitted', 'verified'))
+        ->toBe($metrics->cardRequestQuery($scope)->whereIn('card_requests.status', ['submitted', 'verified'])->count());
+});
+
+test('memoised status counts are keyed by scope and never leak across organizations', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $metrics = app(DashboardMetricService::class);
+    $globalScope = app(DashboardScopeService::class)->resolve($user, []);
+
+    // Warm the cache with the widest scope first — the dangerous ordering.
+    $global = $metrics->cardStatusCounts($globalScope);
+
+    $emptyScope = array_merge($globalScope, ['global_access' => false, 'organization_ids' => []]);
+
+    expect(array_sum($global))->toBeGreaterThan(0)
+        ->and(array_sum($metrics->cardStatusCounts($emptyScope)))->toBe(0);
 });

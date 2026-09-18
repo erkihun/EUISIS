@@ -94,7 +94,7 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
             <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
                 {/* Flash message */}
                 {flash && (
-                    <div className={`mb-6 rounded-xl px-4 py-3 text-sm font-medium ${flash.type === 'success' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300'}`}>
+                    <div className={`mb-6 rounded-card px-4 py-3 text-sm font-medium ${flash.type === 'success' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300'}`}>
                         {flash.message}
                     </div>
                 )}
@@ -109,8 +109,8 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                 </Link>
 
                 {/* Header card */}
-                <div className={`relative overflow-hidden rounded-2xl border bg-white p-6 shadow-sm dark:bg-slate-900 ${a.is_open ? 'border-emerald-200 dark:border-emerald-900/60' : 'border-gray-200 dark:border-slate-800'}`}>
-                    {a.is_open && <div className="absolute left-0 top-0 h-full w-1.5 rounded-l-2xl bg-emerald-500" aria-hidden="true" />}
+                <div className={`relative overflow-hidden rounded-panel border bg-white p-6 shadow-sm dark:bg-slate-900 ${a.is_open ? 'border-emerald-200 dark:border-emerald-900/60' : 'border-gray-200 dark:border-slate-800'}`}>
+                    {a.is_open && <div className="absolute left-0 top-0 h-full w-1.5 rounded-l-panel bg-emerald-500" aria-hidden="true" />}
 
                     <div className="pl-3">
                         {/* Status badge */}
@@ -136,18 +136,18 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                         {/* Key details */}
                         <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
                             {a.grade_level && (
-                                <div className="rounded-xl bg-gray-50 p-3 dark:bg-slate-800">
-                                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">{t('transfers.gradeLevel')}</p>
+                                <div className="rounded-card bg-gray-50 p-3 dark:bg-slate-800">
+                                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('transfers.gradeLevel')}</p>
                                     <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{a.grade_level}</p>
                                 </div>
                             )}
-                            <div className="rounded-xl bg-gray-50 p-3 dark:bg-slate-800">
-                                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">{t('transfers.vacancies')}</p>
+                            <div className="rounded-card bg-gray-50 p-3 dark:bg-slate-800">
+                                <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('transfers.vacancies')}</p>
                                 <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{a.number_of_vacancies}</p>
                             </div>
                             {(a.salary_min || a.salary_max) && (
-                                <div className="rounded-xl bg-gray-50 p-3 dark:bg-slate-800">
-                                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">{t('transfers.salary')}</p>
+                                <div className="rounded-card bg-gray-50 p-3 dark:bg-slate-800">
+                                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('transfers.salary')}</p>
                                     <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">
                                         {a.salary_min && a.salary_max
                                             ? `${a.salary_min} – ${a.salary_max}`
@@ -171,7 +171,7 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
 
                 {/* Eligibility rules */}
                 {a.eligibility_rules && a.eligibility_rules.length > 0 && (
-                    <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-slate-100">
                             <CheckCircleIcon className="h-4 w-4 text-blue-500" />
                             {t('transfers.eligibilityRequirements')}
@@ -189,7 +189,7 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
 
                 {/* Required documents */}
                 {a.required_documents && a.required_documents.length > 0 && (
-                    <div className="mt-4 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="mt-4 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-slate-100">
                             <FileTextIcon className="h-4 w-4 text-orange-500" />
                             {t('transfers.requiredDocuments')}
@@ -208,7 +208,7 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                 {/* Apply button section */}
                 <div className="mt-8">
                     {already_applied ? (
-                        <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-900/50 dark:bg-emerald-950/30">
+                        <div className="flex items-center gap-3 rounded-panel border border-emerald-200 bg-emerald-50 px-5 py-4 dark:border-emerald-900/50 dark:bg-emerald-950/30">
                             <CheckCircleIcon className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
                             <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
                                 {t('transfers.applicationAlreadySubmitted')} — {t('transfers.applicationUnderReview')}
@@ -219,14 +219,14 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                             {is_authenticated ? (
                                 <Link
                                     href={apply_url}
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                    className="inline-flex items-center justify-center gap-2 rounded-card bg-[color:var(--color-primary)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
                                 >
                                     {t('transfers.applyForTransfer')}
                                 </Link>
                             ) : (
                                 <a
                                     href={login_url}
-                                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                                    className="inline-flex items-center justify-center gap-2 rounded-card bg-[color:var(--color-primary)] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
                                 >
                                     {t('transfers.signInToApply')}
                                 </a>
@@ -236,7 +236,7 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                             </p>
                         </div>
                     ) : (
-                        <div className="rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-gray-50 px-5 py-4 dark:border-slate-800 dark:bg-slate-900">
                             <p className="text-sm text-gray-500 dark:text-slate-400">
                                 {t('transfers.notAcceptingApplicationsInfo')}
                             </p>

@@ -19,7 +19,10 @@ class ProcessCafeteriaQrScanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'qr_token' => ['required', 'string', 'min:10'],
+            // Exactly one credential is supplied: a scanned QR token, or an
+            // NFC credential reference read by the attended terminal.
+            'qr_token' => ['required_without:nfc_credential', 'nullable', 'string', 'min:10'],
+            'nfc_credential' => ['required_without:qr_token', 'nullable', 'string', 'regex:/\Anfc_[a-f0-9]{64}\z/'],
             'provider_id' => ['required', 'uuid', 'exists:cafeteria_providers,id'],
             'scan_nonce' => ['required', 'uuid'],
             'scanned_at' => ['nullable', 'date'],

@@ -25,13 +25,19 @@ export default function TemplateEditorSection({
 }: Props) {
     const [open, setOpen] = useState(defaultOpen);
 
+    /*
+     * Flush, not a card. These sit inside the editor panel, so giving each one
+     * its own border and background produced a card inside a card inside the
+     * page — three nested frames around one group of fields. A rule between
+     * sections separates them just as well.
+     */
     return (
-        <section className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+        <section className="border-b border-gray-100 last:border-b-0 dark:border-slate-800">
             <button
                 type="button"
                 onClick={() => setOpen((value) => !value)}
                 aria-expanded={open}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-slate-900"
+                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-slate-900/60"
             >
                 <svg
                     viewBox="0 0 20 20"

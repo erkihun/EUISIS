@@ -97,7 +97,7 @@ export default function FormatTokenHelper({
         ] as const;
 
         return (
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('codeRules.formatTokens')}</h3>
                 <ul className="mt-3 space-y-2 text-sm text-gray-600 dark:text-slate-300">
                     {staticTokenKeys.map((tokenKey) => (
@@ -109,7 +109,7 @@ export default function FormatTokenHelper({
     }
 
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
                 {t('codeRules.formatTokens')}
             </h3>
@@ -120,7 +120,7 @@ export default function FormatTokenHelper({
                 placeholder={t('codeRules.searchTokens')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="mb-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                className="mb-3 w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             />
 
             {/* Used tokens */}

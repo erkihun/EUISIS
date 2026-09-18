@@ -32,7 +32,7 @@ export default function PublicSupport() {
         <PublicLayout title={t('home.supportPageTitle')}>
             <div className="mx-auto max-w-lg px-4 py-12 sm:px-6">
                 <div className="mb-8 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600 text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-card bg-amber-600 text-white">
                         <LifeBuoyIcon className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div>
@@ -41,32 +41,32 @@ export default function PublicSupport() {
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     {!hasContact ? (
                         <p className="text-sm text-gray-500 dark:text-slate-400">{t('home.supportNoContact')}</p>
                     ) : (
                         <dl className="space-y-4">
                             {email && (
                                 <div>
-                                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">{t('home.supportEmailLabel')}</dt>
+                                    <dt className="text-xs font-semibold text-gray-400 dark:text-slate-500">{t('home.supportEmailLabel')}</dt>
                                     <dd className="mt-1">
-                                        <a href={`mailto:${email}`} className="text-sm text-blue-600 hover:underline dark:text-blue-400">{email}</a>
+                                        <a href={`mailto:${email}`} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{email}</a>
                                     </dd>
                                 </div>
                             )}
                             {phone && (
                                 <div>
-                                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">{t('home.supportPhoneLabel')}</dt>
+                                    <dt className="text-xs font-semibold text-gray-400 dark:text-slate-500">{t('home.supportPhoneLabel')}</dt>
                                     <dd className="mt-1">
-                                        <a href={`tel:${phone}`} className="text-sm text-blue-600 hover:underline dark:text-blue-400">{phone}</a>
+                                        <a href={`tel:${phone}`} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{phone}</a>
                                     </dd>
                                 </div>
                             )}
                             {helpUrl && (
                                 <div>
-                                    <dt className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">{t('home.supportHelpCenterLabel')}</dt>
+                                    <dt className="text-xs font-semibold text-gray-400 dark:text-slate-500">{t('home.supportHelpCenterLabel')}</dt>
                                     <dd className="mt-1">
-                                        <a href={helpUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline dark:text-blue-400">{helpUrl}</a>
+                                        <a href={helpUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{helpUrl}</a>
                                     </dd>
                                 </div>
                             )}

@@ -76,7 +76,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                                 </Link>
                             )}
                             {can.publish && announcement.status === 'draft' && (
-                                <button type="button" onClick={() => router.post(route('vacancy-announcements.publish', announcement.id))} className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
+                                <button type="button" onClick={() => router.post(route('vacancy-announcements.publish', announcement.id))} className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     {t('vacancies.publishAnnouncement')}
                                 </button>
                             )}
@@ -95,7 +95,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                 {/* Left: announcement details + positions */}
                 <div className="space-y-6">
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{announcement.title_en}</h3>
@@ -155,7 +155,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                     </section>
 
                     {/* Positions table with apply buttons */}
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">{t('vacancies.includedPositions')}</h4>
                         <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-slate-700">
                             <table className="min-w-full text-left text-sm">
@@ -189,14 +189,14 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                                                 {can.apply && (
                                                     <td className="px-3 py-2.5 text-right">
                                                         {alreadyApplied ? (
-                                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600 dark:bg-blue-950/30 dark:text-blue-400">
+                                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-[color:var(--color-primary)] dark:bg-blue-950/30 dark:text-[color:var(--color-primary)]">
                                                                 {t('vacancies.applied')}
                                                             </span>
                                                         ) : availableSlots > 0 ? (
                                                             <button
                                                                 type="button"
                                                                 onClick={() => apply(position.id)}
-                                                                className="rounded-lg bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                                                                className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                                             >
                                                                 {t('vacancies.applyForPosition')}
                                                             </button>
@@ -215,7 +215,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                 </div>
 
                 {/* Right: applications list */}
-                <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="mb-3 flex items-center justify-between">
                         <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                             {t('vacancies.applications')}
@@ -247,7 +247,7 @@ export default function VacanciesShow({ announcement, can, currentEmployeeId, ap
                         <ul className="space-y-2 text-sm">
                             {announcement.applications.map(application => (
                                 <li key={application.id} className="flex items-center justify-between gap-3">
-                                    <Link href={route('vacancy-applications.show', application.id)} className="truncate text-blue-600 hover:underline dark:text-blue-400">
+                                    <Link href={route('vacancy-applications.show', application.id)} className="truncate text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                         {application.employee?.name_en ?? application.application_number}
                                     </Link>
                                     <StatusBadge status={application.status} />

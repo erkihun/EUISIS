@@ -37,7 +37,7 @@ export default function StatusDistribution({ data, labelFor }: Props) {
             </div>
             <div className="space-y-3">
                 {data.map((item, index) => (
-                    <div key={item.key} className="flex items-center justify-between rounded-xl border border-gray-100 px-3 py-2 dark:border-slate-800">
+                    <div key={item.key} className="flex items-center justify-between rounded-card border border-gray-100 px-3 py-2 dark:border-slate-800">
                         <div className="flex items-center gap-2">
                             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
                             <span className="text-sm text-gray-700 dark:text-slate-200">{labelFor(item.key)}</span>

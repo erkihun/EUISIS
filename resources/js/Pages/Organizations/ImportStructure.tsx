@@ -76,11 +76,11 @@ type ImportPreview = {
 
 const buttonBase =
     'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50';
-const primaryButton = `${buttonBase} bg-blue-600 text-white hover:bg-blue-700`;
+const primaryButton = `${buttonBase} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)]`;
 const secondaryButton = `${buttonBase} border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800`;
 const cellCls = 'px-3 py-2 text-sm text-gray-700 dark:text-slate-300';
 const headCls =
-    'px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400';
+    'px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400';
 
 /** One flat, grouped table of errors or warnings — the wizard's main feedback surface. */
 function IssueTable({
@@ -105,7 +105,7 @@ function IssueTable({
         tone === 'error' ? 'text-red-800 dark:text-red-300' : 'text-amber-800 dark:text-amber-300';
 
     return (
-        <div className={`rounded-xl border ${toneCls} p-4`}>
+        <div className={`rounded-card border ${toneCls} p-4`}>
             <h3 className={`text-sm font-semibold ${titleCls}`}>{title}</h3>
 
             {sheets.map((sheet) => (
@@ -280,7 +280,7 @@ export default function ImportStructure({
                                 type="file"
                                 accept=".xlsx,.xls,.csv"
                                 onChange={(event) => form.setData('file', event.target.files?.[0] ?? null)}
-                                className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-700 dark:text-slate-400"
+                                className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-[color:var(--color-primary)] file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-[color:var(--color-primary-hover)] dark:text-slate-400"
                             />
                             {form.errors.file && (
                                 <p className="mt-2 text-sm text-red-600 dark:text-red-400">{form.errors.file}</p>
@@ -293,7 +293,7 @@ export default function ImportStructure({
                                     type="checkbox"
                                     checked={form.data.auto_generate_codes}
                                     onChange={(event) => form.setData('auto_generate_codes', event.target.checked)}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950"
+                                    className="rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950"
                                 />
                                 {t('organizationStructureImport.autoGenerateCodes')}
                             </label>
@@ -306,7 +306,7 @@ export default function ImportStructure({
                                     type="checkbox"
                                     checked={form.data.import_employees}
                                     onChange={(event) => form.setData('import_employees', event.target.checked)}
-                                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950"
+                                    className="rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950"
                                 />
                                 {t('organizationStructureImport.importEmployees')}
                             </label>
@@ -368,7 +368,7 @@ export default function ImportStructure({
                 {preview && (
                     <>
                         {result && (
-                            <div className="rounded-xl border border-green-200 bg-green-50 p-4 dark:border-green-900/50 dark:bg-green-950/30">
+                            <div className="rounded-card border border-green-200 bg-green-50 p-4 dark:border-green-900/50 dark:bg-green-950/30">
                                 <h3 className="text-sm font-semibold text-green-800 dark:text-green-300">
                                     {t('organizationStructureImport.importedSuccessfully')}
                                 </h3>

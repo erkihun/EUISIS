@@ -97,12 +97,12 @@ export default function TransferApplicationShow({ application, can }: Props) {
                                 </button>
                             )}
                             {can.approveRelease && application.status === 'release_pending' && (
-                                <button type="button" onClick={() => router.post(route('transfer-applications.approve-release', application.id))} className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
+                                <button type="button" onClick={() => router.post(route('transfer-applications.approve-release', application.id))} className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     {t('transfers.approveRelease')}
                                 </button>
                             )}
                             {can.approveReceiving && application.status === 'receiving_pending' && (
-                                <button type="button" onClick={() => router.post(route('transfer-applications.approve-receiving', application.id))} className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700">
+                                <button type="button" onClick={() => router.post(route('transfer-applications.approve-receiving', application.id))} className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     {t('transfers.approveReceiving')}
                                 </button>
                             )}
@@ -120,7 +120,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
 
             {rejectOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                    <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-900">
+                    <div className="w-full max-w-md rounded-card bg-white p-6 shadow-xl dark:bg-slate-900">
                         <h3 className="mb-3 text-base font-semibold text-gray-900 dark:text-slate-100">{t('transfers.reject')}</h3>
                         <textarea
                             rows={4}
@@ -149,7 +149,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                 {/* Left: details */}
                 <div className="space-y-6">
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex items-center justify-between">
                             <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                                 {(useAmharic ? application.announcement?.position?.title_am : null) ?? application.announcement?.position?.title_en ?? '-'}
@@ -178,7 +178,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
 
                     {/* Approval chain */}
                     {application.approvals.length > 0 && (
-                        <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">{t('transfers.approvalChain')}</h4>
                             <div className="space-y-2">
                                 {application.approvals.map((approval) => (
@@ -196,7 +196,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
                 </div>
 
                 {/* Right: review history */}
-                <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h4 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('transfers.reviewHistory')}</h4>
                     {application.screening_reviews.length === 0 ? (
                         <p className="text-sm text-gray-400 dark:text-slate-500">{t('common.noResults')}</p>

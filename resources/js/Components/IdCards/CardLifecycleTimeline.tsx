@@ -38,15 +38,15 @@ function stepStatus(cardStatus: string, stepKey: string): StepStatus {
 }
 
 const stepDotCls: Record<StepStatus, string> = {
-    completed: 'bg-emerald-500 border-emerald-500 shadow-sm shadow-emerald-200 dark:shadow-emerald-900',
-    current:   'bg-blue-500 border-blue-500 shadow-sm shadow-blue-200 dark:shadow-blue-900 ring-2 ring-blue-100 dark:ring-blue-900/40',
+    completed: 'bg-emerald-500 border-emerald-500 shadow-emerald-200 dark:shadow-emerald-900',
+    current:   'bg-blue-500 border-[color:var(--color-primary)] shadow-blue-200 dark:shadow-blue-900 ring-2 ring-blue-100 dark:ring-blue-900/40',
     upcoming:  'bg-white border-gray-300 dark:bg-slate-800 dark:border-slate-600',
-    terminal:  'bg-red-500 border-red-500 shadow-sm shadow-red-200 dark:shadow-red-900',
+    terminal:  'bg-red-500 border-red-500 shadow-red-200 dark:shadow-red-900',
 };
 
 const stepLabelCls: Record<StepStatus, string> = {
     completed: 'text-gray-800 dark:text-slate-200 font-medium',
-    current:   'text-blue-700 dark:text-blue-400 font-semibold',
+    current:   'text-blue-700 dark:text-[color:var(--color-primary)] font-semibold',
     upcoming:  'text-gray-400 dark:text-slate-500',
     terminal:  'text-red-600 dark:text-red-400 font-semibold',
 };

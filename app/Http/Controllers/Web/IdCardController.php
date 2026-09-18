@@ -134,6 +134,7 @@ class IdCardController extends Controller
         $card->makeVisible('qr_payload');
 
         return Inertia::render('IdCards/Show', [
+            'nfc' => app(\App\Services\Nfc\NfcAccess::class)->cardPayload($user, $card),
             'card' => [...$card->toArray(), 'qr_verification_url' => $qrPayloadService->buildStableQrUrl($card)],
             'can' => [
                 'view' => $user?->can('view', $card),

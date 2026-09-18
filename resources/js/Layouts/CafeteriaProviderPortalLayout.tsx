@@ -21,14 +21,14 @@ type Provider = { id: string; code: string; name_en: string; name_am?: string | 
 
 // ── Portal nav items ─────────────────────────────────────────────────────────
 const NAV = [
-    { routeName: 'provider.portal.dashboard',          labelKey: 'providerPortal.dashboard',    Icon: LayoutDashboard,  color: 'text-violet-500' },
-    { routeName: 'provider.portal.scan',               labelKey: 'providerPortal.scan',         Icon: QrCodeIcon,       color: 'text-orange-500' },
-    { routeName: 'provider.portal.transactions.index', labelKey: 'providerPortal.transactions', Icon: ReceiptTextIcon,  color: 'text-blue-500'   },
-    { routeName: 'provider.portal.menus.index',        labelKey: 'providerPortal.menus',        Icon: ForkKnifeIcon,    color: 'text-green-500'  },
-    { routeName: 'provider.portal.orders.index',       labelKey: 'providerPortal.orders',       Icon: Inbox,            color: 'text-amber-500'  },
-    { routeName: 'provider.portal.ledger.index',       labelKey: 'providerPortal.ledger',       Icon: ScrollText,       color: 'text-cyan-500'   },
-    { routeName: 'provider.portal.reports.index',      labelKey: 'providerPortal.reports',      Icon: ActivityIcon,     color: 'text-rose-500'   },
-    { routeName: 'provider.portal.profile.show',            labelKey: 'providerPortal.profile',      Icon: UserIcon,         color: 'text-slate-400'  },
+    { routeName: 'provider.portal.dashboard', labelKey: 'providerPortal.dashboard', Icon: LayoutDashboard,  color: 'text-violet-500' },
+    { routeName: 'provider.portal.scan', labelKey: 'providerPortal.scan', Icon: QrCodeIcon,       color: 'text-orange-500' },
+    { routeName: 'provider.portal.transactions.index', labelKey: 'providerPortal.transactions', Icon: ReceiptTextIcon, color: 'text-blue-500'   },
+    { routeName: 'provider.portal.menus.index', labelKey: 'providerPortal.menus', Icon: ForkKnifeIcon,    color: 'text-green-500'  },
+    { routeName: 'provider.portal.orders.index', labelKey: 'providerPortal.orders', Icon: Inbox,            color: 'text-amber-500'  },
+    { routeName: 'provider.portal.ledger.index', labelKey: 'providerPortal.ledger', Icon: ScrollText,       color: 'text-cyan-500'   },
+    { routeName: 'provider.portal.reports.index', labelKey: 'providerPortal.reports', Icon: ActivityIcon,     color: 'text-rose-500'   },
+    { routeName: 'provider.portal.profile.show', labelKey: 'providerPortal.profile', Icon: UserIcon,         color: 'text-slate-400'  },
 ] as const;
 
 // ── Inline mini-icons ─────────────────────────────────────────────────────────
@@ -84,7 +84,7 @@ function Sidebar({
                 {collapsed ? (
                     /* Icon-only: clicking expands */
                     <button onClick={onToggle} title="Expand" aria-label="Expand sidebar"
-                        className="flex h-10 w-10 items-center justify-center rounded-xl transition-transform hover:scale-105 focus:outline-none"
+                        className="flex h-10 w-10 items-center justify-center rounded-card transition-transform hover:scale-105 focus:outline-none"
                         style={{ background: `linear-gradient(135deg,${PRIMARY},${ACCENT})` }}>
                         <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -94,7 +94,7 @@ function Sidebar({
                     <>
                         {/* Logo + title */}
                         <div
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl shadow-md"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-card shadow-md"
                             style={{ background: `linear-gradient(135deg,${PRIMARY},${ACCENT})` }}
                         >
                             <svg className="h-[18px] w-[18px] text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -141,7 +141,7 @@ function Sidebar({
                         )
                     ) : (
                         <>
-                            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-600">
+                            <p className="mb-1.5 text-[10px] font-semibold text-gray-400 dark:text-slate-600">
                                 {t('providerPortal.provider')}
                             </p>
                             {providers.length > 1 ? (
@@ -176,7 +176,7 @@ function Sidebar({
             {/* ── Navigation ── */}
             <nav className="flex-1 overflow-y-auto py-3" aria-label="Portal navigation">
                 {!collapsed && (
-                    <p className="mb-1 px-4 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-600">
+                    <p className="mb-1 px-4 text-[10px] font-semibold text-gray-400 dark:text-slate-600">
                         Menu
                     </p>
                 )}
@@ -194,7 +194,7 @@ function Sidebar({
                                         aria-label={label}
                                         aria-current={isActive ? 'page' : undefined}
                                         className={[
-                                            'relative flex h-10 w-full items-center justify-center rounded-xl transition-all duration-150 focus:outline-none',
+                                            'relative flex h-10 w-full items-center justify-center rounded-card transition-all duration-150 focus:outline-none',
                                             isActive
                                                 ? 'bg-orange-500/10 dark:bg-orange-500/15'
                                                 : 'hover:bg-gray-100 dark:hover:bg-slate-800/70',
@@ -215,7 +215,7 @@ function Sidebar({
                                     href={route(routeName)}
                                     aria-current={isActive ? 'page' : undefined}
                                     className={[
-                                        'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13.5px] font-medium transition-all duration-150 focus:outline-none',
+                                        'group flex items-center gap-3 rounded-card px-3 py-2.5 text-[13.5px] font-medium transition-all duration-150 focus:outline-none',
                                         isActive
                                             ? 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400'
                                             : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100',
@@ -297,7 +297,7 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
                     <Dropdown.Trigger>
                         <button
                             type="button"
-                            className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-gray-100 focus:outline-none dark:hover:bg-slate-800"
+                            className="flex items-center gap-2.5 rounded-card px-2 py-1.5 transition-colors hover:bg-gray-100 focus:outline-none dark:hover:bg-slate-800"
                         >
                             {/* Avatar */}
                             <span
@@ -322,12 +322,12 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
                         </button>
                     </Dropdown.Trigger>
 
-                    <Dropdown.Content contentClasses="py-1.5 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700/80 min-w-[230px] shadow-xl rounded-xl">
+                    <Dropdown.Content contentClasses="py-1.5 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700/80 min-w-[230px] shadow-xl rounded-card">
                         {/* User card */}
                         <div className="mx-1.5 mb-1.5 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 p-3 dark:from-orange-950/30 dark:to-amber-950/20">
                             <div className="flex items-center gap-3">
                                 <span
-                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white shadow-sm"
+                                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-card text-sm font-bold text-white shadow-sm"
                                     style={{ background: `linear-gradient(135deg,${PRIMARY},${ACCENT})` }}
                                 >
                                     {initials}

@@ -12,7 +12,7 @@ type Order = {
 
 const STATUS_CLS: Record<string, string> = {
     pending:    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    confirmed:  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    confirmed:  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]',
     preparing:  'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
     ready:      'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
     served:     'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
@@ -21,7 +21,7 @@ const STATUS_CLS: Record<string, string> = {
 };
 
 const ACTION_TRANSITIONS: { status: string; labelKey: string; cls: string }[] = [
-    { status: 'confirm', labelKey: 'markConfirmed', cls: 'bg-blue-500 text-white hover:bg-blue-600' },
+    { status: 'confirm', labelKey: 'markConfirmed', cls: 'bg-blue-500 text-white hover:bg-[color:var(--color-primary-hover)]' },
     { status: 'prepare', labelKey: 'markPreparing', cls: 'bg-purple-500 text-white hover:bg-purple-600' },
     { status: 'serve', labelKey: 'markServed', cls: 'bg-emerald-500 text-white hover:bg-emerald-600' },
     { status: 'reject', labelKey: 'reject', cls: 'bg-red-500 text-white hover:bg-red-600' },
@@ -65,9 +65,9 @@ export default function OrderShow({ providers, selected_provider_id, order }: {
 
             <div className="mx-auto max-w-2xl space-y-4">
                 {/* Details card */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="border-b border-gray-100 px-5 py-4 dark:border-slate-800">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('providerPortal.orders')}</p>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">{t('providerPortal.orders')}</p>
                         <p className="mt-1 font-mono text-sm font-medium text-gray-900 dark:text-slate-100">{order.order_number}</p>
                     </div>
                     <div className="px-5">
@@ -89,8 +89,8 @@ export default function OrderShow({ providers, selected_provider_id, order }: {
                 </div>
 
                 {/* Actions card */}
-                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('common.actions')}</p>
+                <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <p className="mb-3 text-xs font-semibold text-gray-500 dark:text-slate-400">{t('common.actions')}</p>
                     <div className="flex flex-wrap gap-2">
                         {ACTION_TRANSITIONS.map(({ status, labelKey, cls }) => (
                             <button

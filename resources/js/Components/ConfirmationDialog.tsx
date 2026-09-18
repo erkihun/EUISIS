@@ -55,14 +55,14 @@ const iconWrapperCls: Record<ConfirmVariant, string> = {
     danger:  'rounded-full bg-red-100 p-2 text-red-600 dark:bg-red-900/30 dark:text-red-400',
     warning: 'rounded-full bg-amber-100 p-2 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
     success: 'rounded-full bg-green-100 p-2 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-    default: 'rounded-full bg-blue-100 p-2 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+    default: 'rounded-full bg-blue-100 p-2 text-[color:var(--color-primary)] dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]',
 };
 
 const confirmBtnCls: Record<ConfirmVariant, string> = {
     danger:  'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:opacity-60',
     warning: 'bg-amber-500 text-slate-900 hover:bg-amber-600 focus:ring-amber-400 disabled:opacity-60',
     success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:opacity-60',
-    default: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 disabled:opacity-60',
+    default: 'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] focus:ring-[color:var(--color-primary)] disabled:opacity-60',
 };
 
 export default function ConfirmationDialog({
@@ -153,7 +153,7 @@ export default function ConfirmationDialog({
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                 >
-                    <DialogPanel className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-700">
+                    <DialogPanel className="relative w-full max-w-md rounded-panel bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-700">
                         {/* Header */}
                         <div className="flex items-start gap-4 p-6">
                             <div className={iconWrapperCls[variant]} aria-hidden="true">
@@ -199,7 +199,7 @@ export default function ConfirmationDialog({
                                     type="text"
                                     value={typed}
                                     onChange={(e) => setTyped(e.target.value)}
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                                     placeholder={requireTyped}
                                     autoComplete="off"
                                     spellCheck={false}
@@ -217,14 +217,14 @@ export default function ConfirmationDialog({
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value)}
                                     rows={3}
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
+                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
                                     placeholder={reasonLabel}
                                 />
                             </div>
                         )}
 
                         {/* Footer */}
-                        <div className="flex justify-end gap-2 rounded-b-2xl border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
+                        <div className="flex justify-end gap-2 rounded-b-panel border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
                             <button
                                 ref={cancelRef}
                                 type="button"

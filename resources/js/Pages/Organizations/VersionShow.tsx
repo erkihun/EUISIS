@@ -54,7 +54,7 @@ export default function VersionShow({
             <Head title={version.version_name} />
 
             <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-start justify-between gap-4">
                         <div>
                             <p className="text-xs font-medium text-gray-400 dark:text-slate-500">
@@ -77,7 +77,7 @@ export default function VersionShow({
                     {version.status !== 'published' && (
                         <button
                             type="button"
-                            className="mt-6 rounded-xl bg-amber-500 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="mt-6 rounded-card bg-amber-500 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
                             onClick={() => form.post(route('hierarchy-versions.publish', { hierarchyVersion: version.id }))}
                         >
                             Publish Version
@@ -85,7 +85,7 @@ export default function VersionShow({
                     )}
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         Hierarchy Tree
                     </h3>
@@ -93,9 +93,9 @@ export default function VersionShow({
                 </section>
             </div>
 
-            <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="font-semibold text-gray-900 dark:text-slate-100">Edges</h3>
-                <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800">
+                <div className="mt-4 overflow-hidden rounded-card border border-gray-100 dark:border-slate-800">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>

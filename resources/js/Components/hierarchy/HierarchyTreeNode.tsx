@@ -38,21 +38,21 @@ function NodeAvatar({ code, logoUrl, nodeType }: { code: string; logoUrl: string
             <img
                 src={logoUrl}
                 alt=""
-                className="h-8 w-8 shrink-0 rounded-xl object-cover ring-1 ring-black/5 dark:ring-white/10"
+                className="h-8 w-8 shrink-0 rounded-card object-cover ring-1 ring-black/5 dark:ring-white/10"
             />
         );
     }
 
     if (nodeType === 'organization_unit') {
         return (
-            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-100 dark:ring-emerald-900/40">
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-card bg-emerald-100 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-100 dark:ring-emerald-900/40">
                 {code ? code.slice(0, 2).toUpperCase() : 'U'}
             </span>
         );
     }
 
     return (
-        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[11px] font-bold text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-100 dark:ring-blue-900/40">
+        <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-card bg-blue-100 text-[11px] font-bold text-blue-700 ring-1 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-100 dark:ring-blue-900/40">
             {code ? code.slice(0, 2).toUpperCase() : 'O'}
         </span>
     );
@@ -124,10 +124,10 @@ export default function HierarchyTreeNode({
             <div
                 role="treeitem"
                 aria-expanded={hasChildren ? isExpanded : undefined}
-                className="group relative rounded-2xl"
+                className="group relative rounded-panel"
             >
                 <div
-                    className="relative z-20 flex min-h-[4.25rem] flex-col gap-3 rounded-2xl border border-transparent bg-white px-3 py-3 transition hover:border-gray-200 hover:bg-gray-50/80 dark:bg-slate-900 dark:hover:border-slate-700 dark:hover:bg-slate-800/60 lg:flex-row lg:items-center"
+                    className="relative z-20 flex min-h-[4.25rem] flex-col gap-3 rounded-panel border border-transparent bg-white px-3 py-3 transition hover:border-gray-200 hover:bg-gray-50/80 dark:bg-slate-900 dark:hover:border-slate-700 dark:hover:bg-slate-800/60 lg:flex-row lg:items-center"
                     style={{ marginLeft: `${rowMarginLeft}px` }}
                 >
                     <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -138,7 +138,7 @@ export default function HierarchyTreeNode({
                                     onClick={() => onToggle(nodeKey)}
                                     aria-label={isExpanded ? t('hierarchyVersions.collapseNode') : t('hierarchyVersions.expandNode')}
                                     title={isExpanded ? t('hierarchyVersions.hideChildren') : t('hierarchyVersions.showChildren')}
-                                    className="flex h-6 w-6 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-900/40 dark:hover:bg-blue-950/30 dark:hover:text-blue-200"
+                                    className="flex h-6 w-6 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-blue-200 hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-900/40 dark:hover:bg-blue-950/30 dark:hover:text-blue-200"
                                 >
                                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                 </button>
@@ -214,7 +214,7 @@ export default function HierarchyTreeNode({
                                 href={route('organization-units.show', { organizationUnit: node.organization_id })}
                                 aria-label={t('common.details')}
                                 title={t('common.details')}
-                                className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-emerald-300 px-2.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
+                                className="inline-flex h-8 items-center gap-1.5 rounded-card border border-emerald-300 px-2.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950/30"
                             >
                                 <EyeIcon className="h-3.5 w-3.5" />
                                 <span>{t('common.details')}</span>
@@ -225,7 +225,7 @@ export default function HierarchyTreeNode({
                                     href={route('organizations.show', { organization: node.organization_id })}
                                     aria-label={t('common.details')}
                                     title={t('common.details')}
-                                    className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-gray-300 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                    className="inline-flex h-8 items-center gap-1.5 rounded-card border border-gray-300 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                                 >
                                     <EyeIcon className="h-3.5 w-3.5" />
                                     <span>{t('common.details')}</span>
@@ -237,7 +237,7 @@ export default function HierarchyTreeNode({
                                         onClick={() => onAddChild(node.organization_id)}
                                         aria-label={t('hierarchyVersions.addRelation')}
                                         title={t('hierarchyVersions.addRelation')}
-                                        className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-blue-200 px-2.5 text-xs font-medium text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-950/30"
+                                        className="inline-flex h-8 items-center gap-1.5 rounded-card border border-blue-200 px-2.5 text-xs font-medium text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-950/30"
                                     >
                                         <Plus className="h-3.5 w-3.5" />
                                         <span>{t('hierarchyVersions.addRelation')}</span>
@@ -250,7 +250,7 @@ export default function HierarchyTreeNode({
                                         onClick={() => onEditRelation(node.edge_id!)}
                                         aria-label={t('hierarchyVersions.editRelation')}
                                         title={t('hierarchyVersions.editRelation')}
-                                        className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-gray-300 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                        className="inline-flex h-8 items-center gap-1.5 rounded-card border border-gray-300 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                                     >
                                         <PencilIcon className="h-3.5 w-3.5" />
                                         <span>{t('hierarchyVersions.editRelation')}</span>
@@ -263,7 +263,7 @@ export default function HierarchyTreeNode({
                                         onClick={() => onRemoveRelation(node.edge_id!)}
                                         aria-label={t('hierarchyVersions.removeRelation')}
                                         title={t('hierarchyVersions.removeRelation')}
-                                        className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-red-200 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/30"
+                                        className="inline-flex h-8 items-center gap-1.5 rounded-card border border-red-200 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/30"
                                     >
                                         <TrashIcon className="h-3.5 w-3.5" />
                                         <span>{t('hierarchyVersions.removeRelation')}</span>

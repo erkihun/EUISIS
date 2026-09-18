@@ -101,7 +101,7 @@ export default function VacanciesCreate({ organizations, units, establishments, 
     };
 
     const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300';
-    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50';
+    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50';
     const errorCls = 'mt-1 text-xs text-red-500';
 
     return (
@@ -117,7 +117,7 @@ export default function VacanciesCreate({ organizations, units, establishments, 
             <Head title={t('vacancies.createAnnouncement')} />
 
             <div className="mx-auto max-w-5xl">
-                <form onSubmit={submit} className="space-y-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <form onSubmit={submit} className="space-y-6 rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
                             <label className={labelCls}>{t('vacancies.titleEn')}</label>
@@ -331,7 +331,7 @@ export default function VacanciesCreate({ organizations, units, establishments, 
                         <button
                             type="submit"
                             disabled={processing || data.positions.some((position) => ! position.position_establishment_id)}
-                            className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         >
                             {t('common.save')}
                         </button>

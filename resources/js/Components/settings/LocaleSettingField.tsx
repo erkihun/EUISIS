@@ -41,7 +41,7 @@ export default function LocaleSettingField({
                         return (
                             <label
                                 key={option.value}
-                                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-slate-700 dark:text-slate-200"
+                                className="inline-flex items-center gap-2 rounded-card border border-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-slate-700 dark:text-slate-200"
                             >
                                 <input
                                     type="checkbox"

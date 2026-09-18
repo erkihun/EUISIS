@@ -65,7 +65,7 @@ export default function InstitutionOfficesIndex({
     const { t } = useLocale();
 
     const inputCls =
-        'rounded-md border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+        'rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
 
     function handleFilter(key: string, value: string) {
         router.get(
@@ -84,7 +84,7 @@ export default function InstitutionOfficesIndex({
                         can.create ? (
                             <Link
                                 href={route('institution-offices.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 <Plus className="h-4 w-4" />
                                 {t('institutionOffices.create')}
@@ -190,7 +190,7 @@ export default function InstitutionOfficesIndex({
                                             {office.parent ? (
                                                 <Link
                                                     href={route('organization-units.show', office.parent.id)}
-                                                    className="text-blue-600 hover:underline dark:text-blue-400"
+                                                    className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                                 >
                                                     {office.parent.name_en}
                                                 </Link>
@@ -208,7 +208,7 @@ export default function InstitutionOfficesIndex({
                                             <div className="flex items-center gap-2">
                                                 <Link
                                                     href={route('organization-units.show', office.id)}
-                                                    className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                                    className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                                 >
                                                     {t('common.view')}
                                                 </Link>

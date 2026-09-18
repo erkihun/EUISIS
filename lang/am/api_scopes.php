@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 return [
+    'nfc.verify' => 'Verify NFC credentials',
+    'nfc.service_eligibility' => 'Check NFC service eligibility',
+    'nfc.service_transactions.create' => 'Record NFC service transactions',
     'id_cards.verify' => 'መታወቂያ ካርዶችን ማረጋገጥ',
     'employees.basic_verify' => 'መሠረታዊ የሠራተኛ ማረጋገጫ',
     'service_eligibility.check' => 'የአገልግሎት ብቁነት ማረጋገጥ',

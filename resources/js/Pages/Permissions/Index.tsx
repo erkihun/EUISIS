@@ -42,7 +42,7 @@ const CRITICAL = new Set([
 ]);
 
 const inputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 
 export default function PermissionsIndex({
     permissions,
@@ -122,7 +122,7 @@ export default function PermissionsIndex({
                         can.create ? (
                             <Link
                                 href={route('permissions.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {t('permissions.createPermission')}
@@ -194,14 +194,14 @@ export default function PermissionsIndex({
                     <button
                         type="button"
                         onClick={() => setView('grouped')}
-                        className={`rounded-l-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'grouped' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}
+                        className={`rounded-l-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'grouped' ? 'bg-[color:var(--color-primary)] text-white' : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}
                     >
                         {t('permissions.groupedView')}
                     </button>
                     <button
                         type="button"
                         onClick={() => setView('table')}
-                        className={`rounded-r-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'table' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}
+                        className={`rounded-r-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'table' ? 'bg-[color:var(--color-primary)] text-white' : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}
                     >
                         {t('permissions.tableView')}
                     </button>
@@ -209,7 +209,7 @@ export default function PermissionsIndex({
             </div>
 
             {permissionRows.length === 0 ? (
-                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <EmptyState title={t('permissions.noPermissionsFound')} description="" />
                 </div>
             ) : view === 'table' ? (
@@ -316,7 +316,7 @@ function RowActions({
             {permission.can.update && (
                 <Link
                     href={route('permissions.edit', permission.id)}
-                    className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                 >
                     {t('common.edit')}
                 </Link>
@@ -355,7 +355,7 @@ function TableView({
     t: (key: string) => string;
 }) {
     return (
-        <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-slate-950">
@@ -372,7 +372,7 @@ function TableView({
                             ].map((h) => (
                                 <th
                                     key={h}
-                                    className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 first:pl-5 last:pr-5 last:text-right dark:text-slate-400"
+                                    className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 last:text-right dark:text-slate-400"
                                 >
                                     {h}
                                 </th>
@@ -446,7 +446,7 @@ function GroupedView({
                 return (
                     <div
                         key={group}
-                        className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                        className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900"
                     >
                         <button
                             type="button"
@@ -458,11 +458,11 @@ function GroupedView({
                                 {isCollapsed
                                     ? <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
                                     : <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />}
-                                <span className="min-w-0 break-words text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-slate-300">
+                                <span className="min-w-0 break-words text-xs font-semibold text-gray-600 dark:text-slate-300">
                                     {group}
                                 </span>
                             </span>
-                            <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                            <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
                                 {perms.length === totalInGroup ? perms.length : `${perms.length} / ${totalInGroup}`}
                             </span>
                         </button>

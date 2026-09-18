@@ -80,12 +80,12 @@ export default function ApiManagementEndpointShow({
             <Head title={endpoint.uri} />
 
             <div className="mb-4">
-                <Link href={route('api-management.endpoints')} className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                <Link href={route('api-management.endpoints')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                     &larr; {t('apiManagement.endpointCatalog')}
                 </Link>
             </div>
 
-            <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.endpointSummary')}</h3>
                 <dl className="grid gap-3 text-sm sm:grid-cols-2">
                     <Field label={t('apiManagement.routeName')} value={endpoint.route_name} mono />
@@ -124,7 +124,7 @@ export default function ApiManagementEndpointShow({
             </section>
 
             <div className="mb-6 grid gap-6 lg:grid-cols-2">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.sampleRequest')}</h3>
                     <pre className="overflow-x-auto rounded-lg bg-gray-50 p-3 text-xs leading-relaxed text-gray-800 dark:bg-slate-950 dark:text-slate-200">
                         {sampleRequest}
@@ -132,7 +132,7 @@ export default function ApiManagementEndpointShow({
                     <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.sampleTokenNote')}</p>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.commonErrors')}</h3>
                     <ul className="space-y-2">
                         {ERROR_CODES.map((error) => (
@@ -148,7 +148,7 @@ export default function ApiManagementEndpointShow({
             </div>
 
             {can.update && (
-                <section className="mb-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-1 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.updateEndpoint')}</h3>
                     <p className="mb-4 text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.updateEndpointHint')}</p>
 
@@ -219,7 +219,7 @@ export default function ApiManagementEndpointShow({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         >
                             {t('common.save')}
                         </button>
@@ -228,7 +228,7 @@ export default function ApiManagementEndpointShow({
             )}
 
             {can.viewLogs && (
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="mb-3 font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.recentLogs')}</h3>
 
                     {recentLogs.length === 0 ? (

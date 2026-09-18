@@ -44,7 +44,7 @@ export default function MfaSetup() {
                     </span>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
                     <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                         {t('auth.mfaSetup')}
                     </h1>
@@ -57,7 +57,7 @@ export default function MfaSetup() {
                     </p>
 
                     {recoveryCodes.length > 0 && (
-                        <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/40 dark:bg-amber-900/20">
+                        <div className="mt-6 rounded-card border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/40 dark:bg-amber-900/20">
                             <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">
                                 {t('auth.mfaRecoveryCodes')}
                             </h2>
@@ -81,7 +81,7 @@ export default function MfaSetup() {
                         <img
                             src={qrCodeUri}
                             alt="MFA QR code"
-                            className="h-56 w-56 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700"
+                            className="h-56 w-56 rounded-card border border-slate-200 bg-white p-3 dark:border-slate-700"
                         />
                         <div className="w-full">
                             <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
@@ -110,7 +110,7 @@ export default function MfaSetup() {
                                 maxLength={6}
                                 value={data.code}
                                 onChange={(e) => setData('code', e.target.value)}
-                                className={`w-full rounded-xl border px-4 py-2.5 text-center font-mono text-lg tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 ${
+                                className={`w-full rounded-card border px-4 py-2.5 text-center font-mono text-lg tracking-widest text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-slate-900 dark:text-slate-100 ${
                                     errors.code
                                         ? 'border-red-400 bg-red-50 dark:border-red-700 dark:bg-red-900/10'
                                         : 'border-slate-300 bg-white dark:border-slate-700'
@@ -128,7 +128,7 @@ export default function MfaSetup() {
                         <button
                             type="submit"
                             disabled={processing}
-                            className="flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
+                            className="flex w-full items-center justify-center rounded-card bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-950"
                         >
                             {processing ? '…' : t('auth.mfaConfirmSetup')}
                         </button>

@@ -68,7 +68,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
             <Head title={establishment.establishment_number} />
 
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <StatusBadge status={establishment.status} />
                     <dl className="mt-4 grid gap-4 sm:grid-cols-2 text-sm">
                         {[
@@ -109,7 +109,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                 </section>
 
                 <div className="space-y-6">
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('positionEstablishments.activeOccupancies')}</h3>
                         {establishment.occupancies.filter(o => o.status === 'active').length === 0 ? (
                             <p className="mt-3 text-sm text-gray-400">{t('common.none')}</p>
@@ -125,13 +125,13 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                         )}
                     </section>
 
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex items-center justify-between">
                             <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('vacancies.announcements')}</h3>
                             {establishment.status === 'approved' && (
                                 <Link
                                     href={route('vacancy-announcements.create') + `?establishment=${establishment.id}`}
-                                    className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                    className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                 >
                                     {t('vacancies.createAnnouncement')}
                                 </Link>
@@ -143,7 +143,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             <ul className="mt-3 space-y-1.5 text-sm">
                                 {establishment.vacancy_announcements.map(a => (
                                     <li key={a.id} className="flex items-center justify-between">
-                                        <Link href={route('vacancy-announcements.show', a.id)} className="text-blue-600 hover:underline dark:text-blue-400">
+                                        <Link href={route('vacancy-announcements.show', a.id)} className="text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                             {a.title_en}
                                         </Link>
                                         <StatusBadge status={a.status} />

@@ -45,7 +45,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
         is_active: true,
     });
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
     const errorCls = 'mt-1 text-xs text-red-600 dark:text-red-400';
 
     function submit(event: FormEvent<HTMLFormElement>) {
@@ -67,7 +67,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
         return (
             <AuthenticatedLayout header={<PageHeader title={t('positions.createPosition')} />}>
                 <Head title={t('positions.createPosition')} />
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-800 dark:bg-amber-950/30">
+                <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-800 dark:bg-amber-950/30">
                     <p className="text-base font-semibold text-amber-800 dark:text-amber-300">
                         {t('positions.noOrganizationUnits')}
                     </p>
@@ -89,7 +89,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
         <AuthenticatedLayout header={<PageHeader title={t('positions.createPosition')} />}>
             <Head title={t('positions.createPosition')} />
             <form
-                className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
                 onSubmit={submit}
             >
                 <div className="grid gap-4 md:grid-cols-2">
@@ -183,7 +183,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* Owner / Host — read-only, shown only when the selected unit is hosted */}
                     {selectedUnit?.host_organization && (
-                        <div className="md:col-span-2 space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
+                        <div className="md:col-span-2 space-y-3 rounded-card border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
                             <div className="grid gap-3 md:grid-cols-2">
                                 <div className="space-y-1">
                                     <InputLabel value={t('positions.ownerOrganization')} />
@@ -291,7 +291,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                 <div className="flex gap-3">
                     <button
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         type="submit"
                         disabled={form.processing}
                     >

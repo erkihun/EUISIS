@@ -39,7 +39,7 @@ type Props = {
 };
 
 const inputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
 export default function PositionServicesIndex({ records, filters, organizations, can }: Props): JSX.Element {
     const { locale, t } = useLocale();
@@ -73,7 +73,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                         can.create ? (
                             <Link
                                 href={route('position-services.create')}
-                                className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('serviceFeedback.addPositionService')}
                             </Link>
@@ -81,7 +81,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                     }
                 />
 
-                <div className="flex flex-wrap gap-2 rounded-xl border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex flex-wrap gap-2 rounded-card border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
                     <select
                         className={inputCls}
                         value={filters.organization_id ?? ''}
@@ -109,7 +109,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                     />
                 </div>
 
-                <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-x-auto rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-800">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>
@@ -170,7 +170,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                     <td className="whitespace-nowrap px-4 py-2.5 text-right">
                                         <Link
                                             href={route('position-services.edit', row.id)}
-                                            className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                         >
                                             {t('common.edit')}
                                         </Link>
@@ -198,7 +198,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                 preserveScroll
                                 className={`rounded-md px-3 py-1.5 text-sm ${
                                     link.active
-                                        ? 'bg-blue-600 text-white'
+                                        ? 'bg-[color:var(--color-primary)] text-white'
                                         : link.url
                                           ? 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
                                           : 'cursor-not-allowed border border-gray-200 text-gray-400 dark:border-slate-800 dark:text-slate-600'
@@ -215,7 +215,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
 
 function Th({ children }: { children?: React.ReactNode }): JSX.Element {
     return (
-        <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
             {children}
         </th>
     );

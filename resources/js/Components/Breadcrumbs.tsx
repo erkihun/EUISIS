@@ -3,34 +3,34 @@ import { useLocale } from '@/hooks/useLocale';
 import { ChevronRight } from '@/Components/Icons';
 
 const SEGMENT_LABEL_KEYS: Record<string, string> = {
-    'dashboard':              'nav.dashboard',
-    'organizations':          'nav.organizations',
-    'organization-types':     'nav.organizationTypes',
-    'organization-units':     'nav.organizationUnits',
+    'dashboard': 'nav.dashboard',
+    'organizations': 'nav.organizations',
+    'organization-types': 'nav.organizationTypes',
+    'organization-units': 'nav.organizationUnits',
     'organization-unit-types': 'nav.organizationUnitTypes',
-    'hierarchy-versions':     'nav.hierarchyVersions',
-    'code-rules':             'nav.codeRules',
-    'employees':              'nav.employees',
-    'employee-transfers':     'nav.employeeTransfers',
-    'transfers':              'nav.transferManagement',
+    'hierarchy-versions': 'nav.hierarchyVersions',
+    'code-rules': 'nav.codeRules',
+    'employees': 'nav.employees',
+    'employee-transfers': 'nav.employeeTransfers',
+    'transfers': 'nav.transferManagement',
     'transfer-announcements': 'transfers.announcements',
-    'transfer-applications':  'transfers.applications',
-    'positions':              'nav.positions',
-    'id-cards':               'nav.idCards',
-    'card-requests':          'nav.cardRequests',
-    'print-batches':          'nav.printBatches',
-    'service-types':          'nav.serviceTypes',
-    'service-providers':      'nav.providers',
-    'entitlements':           'nav.entitlements',
-    'entitlement-rules':      'nav.entitlementRules',
-    'audit-logs':             'nav.auditLogs',
-    'users':                  'nav.users',
-    'roles':                  'nav.roles',
-    'permissions':            'nav.permissions',
-    'system-settings':        'nav.systemSettings',
-    'recycle-bin':            'nav.recycleBin',
-    'create':                 'common.create',
-    'edit':                   'common.edit',
+    'transfer-applications': 'transfers.applications',
+    'positions': 'nav.positions',
+    'id-cards': 'nav.idCards',
+    'card-requests': 'nav.cardRequests',
+    'print-batches': 'nav.printBatches',
+    'service-types': 'nav.serviceTypes',
+    'service-providers': 'nav.providers',
+    'entitlements': 'nav.entitlements',
+    'entitlement-rules': 'nav.entitlementRules',
+    'audit-logs': 'nav.auditLogs',
+    'users': 'nav.users',
+    'roles': 'nav.roles',
+    'permissions': 'nav.permissions',
+    'system-settings': 'nav.systemSettings',
+    'recycle-bin': 'nav.recycleBin',
+    'create': 'common.create',
+    'edit': 'common.edit',
 };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -98,7 +98,7 @@ export default function Breadcrumbs() {
                     ) : (
                         <Link
                             href={crumb.href}
-                            className="truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                            className="truncate hover:text-[color:var(--color-primary)] dark:hover:text-blue-400 transition-colors"
                         >
                             {crumb.label}
                         </Link>

@@ -1,31 +1,36 @@
 import { ReactNode } from 'react';
-import { Inbox } from '@/Components/Icons';
 
 interface Props {
     title?: string;
     description?: string;
     action?: ReactNode;
+    /**
+     * Kept for call-site compatibility, but ignored.
+     *
+     * An empty table is not an event worth illustrating — the icon chip this
+     * component used to render drew the eye to the one part of the page that
+     * had nothing to say. The sentence carries it.
+     */
     icon?: ReactNode;
 }
 
-export default function EmptyState({
-    title = 'No results found',
-    description,
-    action,
-    icon,
-}: Props) {
+/**
+ * Shown in place of a table or list that has no rows.
+ *
+ * Deliberately plain: no dashed border, no icon medallion, no encouragement.
+ * A government clerk who filters to an empty result needs to know the filter
+ * returned nothing and how to proceed, not to be congratulated for arriving.
+ */
+export default function EmptyState({ title = 'No results found', description, action }: Props) {
     return (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-slate-800 dark:text-slate-500">
-                {icon ?? <Inbox className="h-6 w-6" />}
-            </div>
-            <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
-                {title}
-            </h3>
+        <div className="px-6 py-12 text-center">
+            <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{title}</p>
             {description && (
-                <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{description}</p>
+                <p className="mx-auto mt-1 max-w-md text-sm text-gray-500 dark:text-slate-400">
+                    {description}
+                </p>
             )}
-            {action && <div className="mt-4">{action}</div>}
+            {action && <div className="mt-4 flex justify-center">{action}</div>}
         </div>
     );
 }

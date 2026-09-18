@@ -3,13 +3,25 @@ import { Command } from 'cmdk';
 import { Dialog, Transition, TransitionChild, DialogPanel } from '@headlessui/react';
 import { Fragment } from 'react';
 import { router } from '@inertiajs/react';
+/*
+ * These are the same nav icons the sidebar renders, so they come from the same
+ * set. They were previously pulled from `lucide-react` while the sidebar drew
+ * them from `Components/Icons` — two icon libraries side by side, with the
+ * palette and the sidebar showing subtly different glyphs for the same
+ * destination. The aliases keep the call sites below unchanged.
+ */
 import {
     LayoutDashboard, Building2, Users, CreditCard, Layers, ScrollText,
-    Settings, ShieldCheck, Briefcase, Trash2, Tag, GitBranch, Hash,
-    GitFork, ArrowLeftRight, ClipboardCheck, ClipboardList, Megaphone,
-    Inbox, BadgeCheck, ReceiptText, Handshake, Key, UserCog, TrendingUp,
-    HardHat, Activity, Boxes, QrCode, User, Search, Network,
-} from 'lucide-react';
+    SettingsIcon as Settings, ShieldCheck, Briefcase, TrashIcon as Trash2,
+    TagsIcon as Tag, GitBranchIcon as GitBranch, HashIcon as Hash,
+    GitForkIcon as GitFork, ArrowLeftRightIcon as ArrowLeftRight,
+    ClipboardCheckIcon as ClipboardCheck, ClipboardListIcon as ClipboardList,
+    MegaphoneIcon as Megaphone, Inbox, BadgeCheckIcon as BadgeCheck,
+    ReceiptTextIcon as ReceiptText, HandshakeIcon as Handshake, KeyIcon as Key,
+    UserCogIcon as UserCog, TrendingUpIcon as TrendingUp, HardHatIcon as HardHat,
+    ActivityIcon as Activity, BoxesIcon as Boxes, QrCodeIcon as QrCode,
+    UserIcon as User, SearchIcon as Search, NetworkIcon as Network,
+} from '@/Components/Icons';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -23,49 +35,49 @@ interface NavEntry {
 
 const allEntries: NavEntry[] = [
     // Overview
-    { routeName: 'dashboard',                          labelKey: 'nav.dashboard',               groupKey: 'nav.groupOverview',       icon: LayoutDashboard },
+    { routeName: 'dashboard', labelKey: 'nav.dashboard', groupKey: 'nav.groupOverview',       icon: LayoutDashboard },
     // Organization
-    { routeName: 'organizations.index',                labelKey: 'nav.organizations',           groupKey: 'nav.groupOrganization',   icon: Building2,        permission: 'organizations.view' },
-    { routeName: 'organization-types.index',           labelKey: 'nav.organizationTypes',       groupKey: 'nav.groupOrganization',   icon: Tag,              permission: 'organization-types.viewAny' },
-    { routeName: 'organization-units.index',           labelKey: 'nav.organizationUnits',       groupKey: 'nav.groupOrganization',   icon: GitBranch,        permission: 'organization-units.viewAny' },
-    { routeName: 'institution-offices.index',          labelKey: 'nav.institutionOffices',      groupKey: 'nav.groupOrganization',   icon: Network,          permission: 'institution-offices.viewAny' },
-    { routeName: 'organization-unit-types.index',      labelKey: 'nav.organizationUnitTypes',   groupKey: 'nav.groupOrganization',   icon: Boxes,            permission: 'organization-unit-types.viewAny' },
-    { routeName: 'hierarchy-versions.index',           labelKey: 'nav.hierarchyVersions',       groupKey: 'nav.groupOrganization',   icon: GitFork,          permission: 'hierarchy-versions.viewAny' },
+    { routeName: 'organizations.index', labelKey: 'nav.organizations', groupKey: 'nav.groupOrganization', icon: Building2,        permission: 'organizations.view' },
+    { routeName: 'organization-types.index', labelKey: 'nav.organizationTypes', groupKey: 'nav.groupOrganization', icon: Tag,              permission: 'organization-types.viewAny' },
+    { routeName: 'organization-units.index', labelKey: 'nav.organizationUnits', groupKey: 'nav.groupOrganization', icon: GitBranch,        permission: 'organization-units.viewAny' },
+    { routeName: 'institution-offices.index', labelKey: 'nav.institutionOffices', groupKey: 'nav.groupOrganization', icon: Network,          permission: 'institution-offices.viewAny' },
+    { routeName: 'organization-unit-types.index', labelKey: 'nav.organizationUnitTypes', groupKey: 'nav.groupOrganization', icon: Boxes,            permission: 'organization-unit-types.viewAny' },
+    { routeName: 'hierarchy-versions.index', labelKey: 'nav.hierarchyVersions', groupKey: 'nav.groupOrganization', icon: GitFork,          permission: 'hierarchy-versions.viewAny' },
     // Workforce
-    { routeName: 'employees.index',                    labelKey: 'nav.employees',               groupKey: 'nav.groupWorkforce',      icon: Users,            permission: 'employees.view' },
-    { routeName: 'positions.index',                    labelKey: 'nav.positions',               groupKey: 'nav.groupWorkforce',      icon: Briefcase,        permission: 'positions.viewAny' },
-    { routeName: 'grade-levels.index',                 labelKey: 'nav.gradeLevels',             groupKey: 'nav.groupWorkforce',      icon: TrendingUp,       permission: 'grade-levels.viewAny' },
-    { routeName: 'occupations.index',                  labelKey: 'nav.occupations',             groupKey: 'nav.groupWorkforce',      icon: HardHat,          permission: 'occupations.viewAny' },
-    { routeName: 'vacancy-announcements.index',        labelKey: 'nav.vacancyAnnouncements',    groupKey: 'nav.groupWorkforce',      icon: Megaphone,        permission: 'vacancy-announcements.viewAny' },
-    { routeName: 'position-establishments.index',      labelKey: 'nav.positionEstablishments',  groupKey: 'nav.groupWorkforce',      icon: ClipboardList,    permission: 'position-establishments.viewAny' },
+    { routeName: 'employees.index', labelKey: 'nav.employees', groupKey: 'nav.groupWorkforce', icon: Users,            permission: 'employees.view' },
+    { routeName: 'positions.index', labelKey: 'nav.positions', groupKey: 'nav.groupWorkforce', icon: Briefcase,        permission: 'positions.viewAny' },
+    { routeName: 'grade-levels.index', labelKey: 'nav.gradeLevels', groupKey: 'nav.groupWorkforce', icon: TrendingUp,       permission: 'grade-levels.viewAny' },
+    { routeName: 'occupations.index', labelKey: 'nav.occupations', groupKey: 'nav.groupWorkforce', icon: HardHat,          permission: 'occupations.viewAny' },
+    { routeName: 'vacancy-announcements.index', labelKey: 'nav.vacancyAnnouncements', groupKey: 'nav.groupWorkforce', icon: Megaphone,        permission: 'vacancy-announcements.viewAny' },
+    { routeName: 'position-establishments.index', labelKey: 'nav.positionEstablishments', groupKey: 'nav.groupWorkforce', icon: ClipboardList,    permission: 'position-establishments.viewAny' },
     // Transfers
-    { routeName: 'transfer-announcements.index',       labelKey: 'nav.transferAnnouncements',   groupKey: 'nav.transferManagement',  icon: Megaphone,        permission: 'transfers.announcements.view' },
-    { routeName: 'transfer-applications.index',        labelKey: 'nav.transferApplications',    groupKey: 'nav.transferManagement',  icon: Inbox,            permission: 'transfers.applications.view' },
+    { routeName: 'transfer-announcements.index', labelKey: 'nav.transferAnnouncements', groupKey: 'nav.transferManagement', icon: Megaphone,        permission: 'transfers.announcements.view' },
+    { routeName: 'transfer-applications.index', labelKey: 'nav.transferApplications', groupKey: 'nav.transferManagement', icon: Inbox,            permission: 'transfers.applications.view' },
     // Identity
-    { routeName: 'id-cards.index',                     labelKey: 'nav.idCards',                 groupKey: 'nav.groupIdentity',       icon: CreditCard,       permission: 'cards.view' },
-    { routeName: 'card-requests.index',                labelKey: 'nav.cardRequests',            groupKey: 'nav.groupIdentity',       icon: ClipboardCheck,   permission: 'card-requests.viewAny' },
+    { routeName: 'id-cards.index', labelKey: 'nav.idCards', groupKey: 'nav.groupIdentity', icon: CreditCard,       permission: 'cards.view' },
+    { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', groupKey: 'nav.groupIdentity', icon: ClipboardCheck,   permission: 'card-requests.viewAny' },
     // Services
-    { routeName: 'service-types.index',                labelKey: 'nav.serviceTypes',            groupKey: 'nav.groupServices',       icon: Layers,           permission: 'service-types.viewAny' },
-    { routeName: 'entitlement-rules.index',            labelKey: 'nav.entitlementRules',        groupKey: 'nav.groupServices',       icon: ReceiptText,      permission: 'entitlement-rules.viewAny' },
+    { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', groupKey: 'nav.groupServices', icon: Layers,           permission: 'service-types.viewAny' },
+    { routeName: 'entitlement-rules.index', labelKey: 'nav.entitlementRules', groupKey: 'nav.groupServices', icon: ReceiptText,      permission: 'entitlement-rules.viewAny' },
     // Cafeteria
-    { routeName: 'cafeteria.dashboard',                labelKey: 'nav.cafeteriaDashboard',      groupKey: 'nav.groupCafeteria',      icon: LayoutDashboard,  permission: 'cafeteria_transactions.viewAny' },
-    { routeName: 'cafeteria.transactions.index',       labelKey: 'nav.cafeteriaTransactions',   groupKey: 'nav.groupCafeteria',      icon: ReceiptText,      permission: 'cafeteria_transactions.viewAny' },
-    { routeName: 'cafeteria.reports.index',            labelKey: 'nav.cafeteriaReports',        groupKey: 'nav.groupCafeteria',      icon: Activity,         permission: 'cafeteria_reports.viewAny' },
-    { routeName: 'cafeteria.settings.index',           labelKey: 'nav.cafeteriaSettings',       groupKey: 'nav.groupCafeteria',      icon: Settings,         permission: 'cafeteria_settings.view' },
+    { routeName: 'cafeteria.dashboard', labelKey: 'nav.cafeteriaDashboard', groupKey: 'nav.groupCafeteria', icon: LayoutDashboard,  permission: 'cafeteria_transactions.viewAny' },
+    { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', groupKey: 'nav.groupCafeteria', icon: ReceiptText,      permission: 'cafeteria_transactions.viewAny' },
+    { routeName: 'cafeteria.reports.index', labelKey: 'nav.cafeteriaReports', groupKey: 'nav.groupCafeteria', icon: Activity,         permission: 'cafeteria_reports.viewAny' },
+    { routeName: 'cafeteria.settings.index', labelKey: 'nav.cafeteriaSettings', groupKey: 'nav.groupCafeteria', icon: Settings,         permission: 'cafeteria_settings.view' },
     // Transport
-    { routeName: 'transport.providers.index',          labelKey: 'nav.transportProviders',      groupKey: 'nav.groupTransport',      icon: Handshake,        permission: 'transport-providers.viewAny' },
-    { routeName: 'transport.routes.index',             labelKey: 'nav.transportRoutes',         groupKey: 'nav.groupTransport',      icon: ScrollText,       permission: 'transport-routes.viewAny' },
-    { routeName: 'transport.vehicles.index',           labelKey: 'nav.transportVehicles',       groupKey: 'nav.groupTransport',      icon: Activity,         permission: 'transport-vehicles.viewAny' },
-    { routeName: 'transport.drivers.index',            labelKey: 'nav.transportDrivers',        groupKey: 'nav.groupTransport',      icon: User,             permission: 'transport-drivers.viewAny' },
-    { routeName: 'transport.passes.index',             labelKey: 'nav.transportPasses',         groupKey: 'nav.groupTransport',      icon: BadgeCheck,       permission: 'transport-passes.viewAny' },
+    { routeName: 'transport.providers.index', labelKey: 'nav.transportProviders', groupKey: 'nav.groupTransport', icon: Handshake,        permission: 'transport-providers.viewAny' },
+    { routeName: 'transport.routes.index', labelKey: 'nav.transportRoutes', groupKey: 'nav.groupTransport', icon: ScrollText,       permission: 'transport-routes.viewAny' },
+    { routeName: 'transport.vehicles.index', labelKey: 'nav.transportVehicles', groupKey: 'nav.groupTransport', icon: Activity,         permission: 'transport-vehicles.viewAny' },
+    { routeName: 'transport.drivers.index', labelKey: 'nav.transportDrivers', groupKey: 'nav.groupTransport', icon: User,             permission: 'transport-drivers.viewAny' },
+    { routeName: 'transport.passes.index', labelKey: 'nav.transportPasses', groupKey: 'nav.groupTransport', icon: BadgeCheck,       permission: 'transport-passes.viewAny' },
     // Configuration
-    { routeName: 'code-rules.index',                   labelKey: 'nav.codeRules',               groupKey: 'nav.groupConfiguration',  icon: Hash,             permission: 'code-rules.viewAny' },
-    { routeName: 'audit-logs.index',                   labelKey: 'nav.auditLogs',               groupKey: 'nav.groupConfiguration',  icon: ScrollText,       permission: 'audit.view' },
-    { routeName: 'users.index',                        labelKey: 'nav.users',                   groupKey: 'nav.groupConfiguration',  icon: UserCog,          permission: 'users.viewAny' },
-    { routeName: 'roles.index',                        labelKey: 'nav.roles',                   groupKey: 'nav.groupConfiguration',  icon: ShieldCheck,      permission: 'roles.viewAny' },
-    { routeName: 'permissions.index',                  labelKey: 'nav.permissions',             groupKey: 'nav.groupConfiguration',  icon: Key,              permission: 'permissions.viewAny' },
-    { routeName: 'system-settings.index',              labelKey: 'nav.systemSettings',          groupKey: 'nav.groupConfiguration',  icon: Settings,         permission: 'system-settings.view' },
-    { routeName: 'recycle-bin.index',                  labelKey: 'nav.recycleBin',              groupKey: 'nav.groupConfiguration',  icon: Trash2,           permission: 'recycle-bin.view' },
+    { routeName: 'code-rules.index', labelKey: 'nav.codeRules', groupKey: 'nav.groupConfiguration', icon: Hash,             permission: 'code-rules.viewAny' },
+    { routeName: 'audit-logs.index', labelKey: 'nav.auditLogs', groupKey: 'nav.groupConfiguration', icon: ScrollText,       permission: 'audit.view' },
+    { routeName: 'users.index', labelKey: 'nav.users', groupKey: 'nav.groupConfiguration', icon: UserCog,          permission: 'users.viewAny' },
+    { routeName: 'roles.index', labelKey: 'nav.roles', groupKey: 'nav.groupConfiguration', icon: ShieldCheck,      permission: 'roles.viewAny' },
+    { routeName: 'permissions.index', labelKey: 'nav.permissions', groupKey: 'nav.groupConfiguration', icon: Key,              permission: 'permissions.viewAny' },
+    { routeName: 'system-settings.index', labelKey: 'nav.systemSettings', groupKey: 'nav.groupConfiguration', icon: Settings,         permission: 'system-settings.view' },
+    { routeName: 'recycle-bin.index', labelKey: 'nav.recycleBin', groupKey: 'nav.groupConfiguration', icon: Trash2,           permission: 'recycle-bin.view' },
 ];
 
 interface Props {
@@ -143,7 +155,7 @@ export default function AppCommandPalette({ open, onClose }: Props) {
                     leaveFrom="opacity-100 scale-100 translate-y-0"
                     leaveTo="opacity-0 scale-95 translate-y-2"
                 >
-                    <DialogPanel className="relative mx-auto mt-20 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-700">
+                    <DialogPanel className="relative mx-auto mt-20 w-full max-w-lg overflow-hidden rounded-panel bg-white shadow-2xl ring-1 ring-gray-200 dark:bg-slate-900 dark:ring-slate-700">
                         <Command
                             className="flex flex-col"
                             shouldFilter={true}
@@ -176,7 +188,7 @@ export default function AppCommandPalette({ open, onClose }: Props) {
                                         heading={t(groupKey as any)}
                                         className="mb-1"
                                     >
-                                        <div className="mb-1 px-3 pt-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                                        <div className="mb-1 px-3 pt-2 text-[10px] font-semibold text-gray-400 dark:text-slate-500">
                                             {t(groupKey as any)}
                                         </div>
                                         {entries.map((entry) => {

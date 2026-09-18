@@ -10,7 +10,7 @@ type Order = { id: string; order_number: string; status: string; employee?: { na
 const STATUS_COLORS: Record<string, string> = {
     accepted: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     pending:  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    served:   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    served:   'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]',
     reversed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 };
 
@@ -24,10 +24,10 @@ function StatusBadge({ status }: { status: string }) {
 
 function KpiCard({ label, value, icon, color }: { label: string; value: string | number; icon: string; color: string }) {
     return (
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</p>
-                <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-lg ${color}`}>{icon}</span>
+                <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">{label}</p>
+                <span className={`flex h-9 w-9 items-center justify-center rounded-card text-lg ${color}`}>{icon}</span>
             </div>
             <p className="mt-3 text-3xl font-bold tabular-nums text-gray-900 dark:text-slate-100">{value}</p>
         </div>
@@ -84,7 +84,7 @@ export default function Dashboard({ providers, selected_provider_id, stats, rece
 
                 <div className="grid gap-5 lg:grid-cols-2">
                     {/* Recent Transactions */}
-                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
                             <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('providerPortal.recentActivity')}</h2>
                             <Link href={route('provider.portal.transactions.index')} className="text-xs font-medium text-orange-600 hover:underline dark:text-orange-400">{t('common.viewAll')}</Link>
@@ -110,7 +110,7 @@ export default function Dashboard({ providers, selected_provider_id, stats, rece
                     </div>
 
                     {/* Recent Orders */}
-                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
                             <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('providerPortal.recentOrders')}</h2>
                             <Link href={route('provider.portal.orders.index')} className="text-xs font-medium text-orange-600 hover:underline dark:text-orange-400">{t('common.viewAll')}</Link>

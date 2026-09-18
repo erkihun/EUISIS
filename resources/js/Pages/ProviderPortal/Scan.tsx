@@ -163,7 +163,7 @@ export default function ProviderPortalScan({
         usage_mode: 'single_day',
     });
 
-    const inputCls = 'w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-400/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100';
+    const inputCls = 'w-full rounded-card border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-400/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100';
 
     // ── Camera ───────────────────────────────────────────────────────────────
 
@@ -334,7 +334,7 @@ export default function ProviderPortalScan({
 
     return (
         <CafeteriaProviderPortalLayout title={t('providerPortal.scan')} providers={providers} selectedProviderId={selected_provider_id}>
-            <form onSubmit={submit} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <form onSubmit={submit} className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
 
                 {/* Header */}
                 <div className="border-b border-gray-200 px-6 py-4 dark:border-slate-800">
@@ -358,7 +358,7 @@ export default function ProviderPortalScan({
                     {/* ── LEFT: QR Scanner ── */}
                     <div className="space-y-4">
                         {/* Camera */}
-                        <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-gray-950 dark:border-slate-700">
+                        <div className="relative overflow-hidden rounded-card border border-gray-200 bg-gray-950 dark:border-slate-700">
                             <div id={scannerRegionId} className="min-h-[300px] w-full [&_video]:min-h-[300px] [&_video]:w-full [&_video]:object-cover" />
                             {!cameraActive && (
                                 <div className="absolute inset-0 flex items-center justify-center bg-gray-950 px-6 text-center text-sm text-slate-300">
@@ -367,16 +367,16 @@ export default function ProviderPortalScan({
                             )}
                         </div>
 
-                        {cameraError && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">{cameraError}</p>}
+                        {cameraError && <p className="rounded-card border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">{cameraError}</p>}
 
                         <div className="flex flex-wrap gap-3">
                             <button type="button" onClick={() => void startCamera()} disabled={cameraStarting || cameraActive || cameraProcessing || form.processing}
-                                className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                                className="rounded-card px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
                                 style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)' }}>
                                 {cameraStarting || cameraActive ? t('cafeteria.cameraScanning') : t('cafeteria.startCamera')}
                             </button>
                             <button type="button" onClick={() => void stopCamera()} disabled={!cameraActive}
-                                className="rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
+                                className="rounded-card border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                                 {t('cafeteria.stopCamera')}
                             </button>
                         </div>
@@ -399,8 +399,8 @@ export default function ProviderPortalScan({
 
                         {/* Week summary */}
                         {scan_result?.allowed && scan_result.week_start && (
-                            <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 dark:border-orange-900/40 dark:bg-orange-950/20">
-                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-orange-600 dark:text-orange-400">
+                            <div className="rounded-card border border-orange-200 bg-orange-50 p-4 dark:border-orange-900/40 dark:bg-orange-950/20">
+                                <p className="mb-2 text-xs font-semibold text-orange-600 dark:text-orange-400">
                                     {t('cafeteria.weeklyWindowTitle')} — {scan_result.week_start} → {scan_result.week_end}
                                 </p>
                                 <dl className="space-y-1 text-sm">
@@ -416,7 +416,7 @@ export default function ProviderPortalScan({
                     {/* ── MIDDLE: Calendar + Employee ── */}
                     <div className="flex flex-col gap-4">
                         {/* Calendar */}
-                        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+                        <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
                             <div className="border-b border-gray-100 bg-gray-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40">
                                 <div className="flex items-center justify-between">
                                     <button type="button" onClick={prevMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700">
@@ -433,7 +433,7 @@ export default function ProviderPortalScan({
                             </div>
                             <div className="px-3 pb-3 pt-2">
                                 <div className="mb-1 grid grid-cols-7">
-                                    {dayLabels.map(d => <div key={d} className="py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide text-gray-400">{d}</div>)}
+                                    {dayLabels.map(d => <div key={d} className="py-1.5 text-center text-[11px] font-semibold text-gray-400">{d}</div>)}
                                 </div>
                                 <div className="grid grid-cols-7">
                                     {cells.map((cell, idx) => {
@@ -475,7 +475,7 @@ export default function ProviderPortalScan({
 
                         {/* Employee info */}
                         {scan_result?.employee ? (
-                            <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-slate-700 dark:bg-slate-950">
+                            <div className="rounded-card border border-gray-200 bg-gray-50 p-5 dark:border-slate-700 dark:bg-slate-950">
                                 <div className="flex flex-col items-center text-center">
                                     {scan_result.employee.photo_url
                                         ? <img src={scan_result.employee.photo_url} alt={scan_result.employee.full_name} className={`h-24 w-24 rounded-full object-cover ring-4 ${!scan_result.allowed ? 'ring-red-400' : scan_result.is_extra_scan ? 'ring-orange-400' : 'ring-emerald-400'}`} />
@@ -491,7 +491,7 @@ export default function ProviderPortalScan({
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex min-h-[180px] flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-slate-700 dark:bg-slate-950">
+                            <div className="flex min-h-[180px] flex-col items-center justify-center rounded-card border border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-slate-700 dark:bg-slate-950">
                                 <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800">
                                     <UserIcon className="h-7 w-7 text-gray-300 dark:text-slate-600" />
                                 </div>
@@ -502,8 +502,8 @@ export default function ProviderPortalScan({
 
                     {/* ── RIGHT: Today's Scans ── */}
                     <div className="flex flex-col self-stretch">
-                        <div className="flex flex-1 flex-col rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{t('cafeteria.todayScans')} - {todayScans.length}</p>
+                        <div className="flex flex-1 flex-col rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+                            <p className="mb-2 text-xs font-semibold text-gray-500">{t('cafeteria.todayScans')} - {todayScans.length}</p>
                             {todayScans.length === 0
                                 ? <p className="text-sm text-gray-400">{t('cafeteria.noScansForProviderToday')}</p>
                                 : <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
@@ -533,7 +533,7 @@ export default function ProviderPortalScan({
                 {/* Footer submit */}
                 <div className="flex justify-end border-t border-gray-200 px-6 py-4 dark:border-slate-800">
                     <button type="submit" disabled={form.processing}
-                        className="rounded-xl px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                        className="rounded-card px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
                         style={{ background: 'linear-gradient(135deg,#f97316,#ea580c)' }}>
                         {t('cafeteria.processScan')}
                     </button>

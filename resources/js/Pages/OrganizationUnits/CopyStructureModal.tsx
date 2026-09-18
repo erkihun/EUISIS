@@ -121,7 +121,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
     }
 
     const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 disabled:opacity-50';
+        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 disabled:opacity-50';
 
     // Units that will be previewed (root source units or selected source unit)
     const previewUnits = data.source_unit_id
@@ -171,7 +171,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             <option value="">{t('organizationUnits.allUnits')}</option>
                             {sourceUnits.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
-                                    {'  '.repeat(unit.depth)}{unit.name_en} ({unit.code})
+                                    {' '.repeat(unit.depth)}{unit.name_en} ({unit.code})
                                 </option>
                             ))}
                         </select>
@@ -213,7 +213,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             <option value="">{t('organizationUnits.noParentUnit')}</option>
                             {targetUnits.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
-                                    {'  '.repeat(unit.depth)}{unit.name_en} ({unit.code})
+                                    {' '.repeat(unit.depth)}{unit.name_en} ({unit.code})
                                 </option>
                             ))}
                         </select>
@@ -280,7 +280,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            className="rounded border-gray-300 text-blue-600 dark:border-slate-600"
+                            className="rounded border-gray-300 text-[color:var(--color-primary)] dark:border-slate-600"
                             checked={data.copy_positions}
                             onChange={(e) => setData('copy_positions', e.target.checked)}
                         />
@@ -291,7 +291,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            className="rounded border-gray-300 text-blue-600 dark:border-slate-600"
+                            className="rounded border-gray-300 text-[color:var(--color-primary)] dark:border-slate-600"
                             checked={data.copy_functional_relationships}
                             onChange={(e) => setData('copy_functional_relationships', e.target.checked)}
                         />
@@ -304,7 +304,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                 {/* Preview */}
                 {data.source_organization_id && previewUnits.length > 0 && (
                     <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-950/20">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-400 mb-2">
+                        <p className="text-xs font-semibold text-blue-700 dark:text-[color:var(--color-primary)] mb-2">
                             {t('organizationUnits.previewUnits')} ({previewUnits.length})
                         </p>
                         <ul className="space-y-1 max-h-40 overflow-y-auto">

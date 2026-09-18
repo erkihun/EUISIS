@@ -26,8 +26,8 @@ type ProviderUser = {
 
 type Meta = { current_page: number; last_page: number; total: number };
 
-const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
-const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400';
+const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
+const thCls = 'px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400';
 
 export default function AllProviderUsersIndex({
     providerUsers,
@@ -94,7 +94,7 @@ export default function AllProviderUsersIndex({
                     actions={
                         <Link
                             href={route('provider-users.create')}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
                         >
                             + Create Provider User
                         </Link>
@@ -118,7 +118,7 @@ export default function AllProviderUsersIndex({
                             <option key={o.value} value={o.value}>{o.label}</option>
                         ))}
                     </select>
-                    <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                         Filter
                     </button>
                     {(filters.search || filters.status) && (
@@ -135,7 +135,7 @@ export default function AllProviderUsersIndex({
                 {providerUsers.data.length === 0 ? (
                     <EmptyState title="No provider users found" />
                 ) : (
-                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-800">
                                 <thead className="bg-gray-50 dark:bg-slate-800/60">
@@ -193,7 +193,7 @@ export default function AllProviderUsersIndex({
                                                     {pu.can.edit && (
                                                         <Link
                                                             href={route('provider-users.edit', pu.id)}
-                                                            className="rounded px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 hover:text-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/30"
+                                                            className="rounded px-2 py-1 text-xs font-medium text-[color:var(--color-primary)] hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:bg-blue-900/30"
                                                         >
                                                             Edit
                                                         </Link>

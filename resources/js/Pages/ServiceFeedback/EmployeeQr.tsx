@@ -100,7 +100,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
 
                 <div className="grid gap-5 lg:grid-cols-3">
                     {/* QR card */}
-                    <div className="rounded-xl border border-gray-200 bg-white p-5 text-center dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-card border border-gray-200 bg-white p-5 text-center dark:border-slate-800 dark:bg-slate-900">
                         {token === null ? (
                             <>
                                 {/*
@@ -119,7 +119,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                 <button
                                     type="button"
                                     onClick={generate}
-                                    className="w-full rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="w-full rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     {t('serviceFeedback.generateQr')}
                                 </button>
@@ -206,8 +206,8 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                     {/* Feedback summary */}
                     <div className="space-y-5 lg:col-span-2">
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                            <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                                <div className="text-xs font-semibold text-gray-500 dark:text-slate-400">
                                     {t('serviceFeedback.feedbackCount')}
                                 </div>
                                 <div className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">
@@ -215,8 +215,8 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                                <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                            <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                                <div className="text-xs font-semibold text-gray-500 dark:text-slate-400">
                                     {t('serviceFeedback.averageRating')}
                                 </div>
                                 <div className="mt-1 flex items-center gap-2">
@@ -228,7 +228,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                             </div>
                         </div>
 
-                        <div className="rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                             <h2 className="border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-900 dark:border-slate-800 dark:text-slate-100">
                                 {t('serviceFeedback.recentComments')}
                             </h2>

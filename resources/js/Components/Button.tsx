@@ -1,6 +1,19 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'warning' | 'success';
+/*
+ * Four roles, deliberately. `warning` and `success` were dropped: a button is
+ * a thing you click, and "this action is a success" is not a meaningful state
+ * to communicate before the fact — those two existed only to give pages more
+ * colours to pick from, which is exactly what made the UI look scattered.
+ *
+ * Use:
+ *   primary     — the one committing action on the page (Save, Create, Confirm)
+ *   secondary   — supporting actions (Cancel, Back, Export)
+ *   outline     — same weight as secondary, on tinted or busy backgrounds
+ *   ghost       — in-table / in-toolbar actions where a border would add noise
+ *   destructive — only for actions that delete, revoke or cannot be undone
+ */
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
 type Size = 'xs' | 'sm' | 'md' | 'lg';
 
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -11,28 +24,35 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
     iconPosition?: 'left' | 'right';
 }
 
+/*
+ * Primary resolves through the brand token rather than a Tailwind blue, so an
+ * administrator changing `appearance.primary_color` actually moves the
+ * buttons — previously the setting existed but every button ignored it.
+ */
 const variantClasses: Record<Variant, string> = {
     primary:
-        'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-500 disabled:bg-blue-300 dark:disabled:bg-blue-900',
+        'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] ' +
+        'focus-visible:ring-[color:var(--color-primary)] disabled:opacity-50',
     secondary:
-        'bg-gray-100 text-gray-700 hover:bg-gray-200 focus-visible:ring-gray-400 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600',
+        'bg-gray-100 text-gray-800 hover:bg-gray-200 focus-visible:ring-gray-400 ' +
+        'dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700',
     outline:
-        'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:ring-gray-400 dark:border-slate-600 dark:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800',
+        'border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 focus-visible:ring-gray-400 ' +
+        'dark:border-slate-700 dark:bg-transparent dark:text-slate-100 dark:hover:bg-slate-800',
     ghost:
-        'text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-400 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100',
+        'text-gray-600 hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-gray-400 ' +
+        'dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100',
     destructive:
-        'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 disabled:bg-red-300',
-    warning:
-        'bg-amber-500 text-white hover:bg-amber-600 focus-visible:ring-amber-400 disabled:bg-amber-300',
-    success:
-        'bg-green-600 text-white hover:bg-green-700 focus-visible:ring-green-500 disabled:bg-green-300',
+        'bg-red-700 text-white hover:bg-red-800 focus-visible:ring-red-600 disabled:opacity-50 ' +
+        'dark:bg-red-700 dark:hover:bg-red-600',
 };
 
+/* Heights match --control-h-* so buttons line up with inputs in a filter row. */
 const sizeClasses: Record<Size, string> = {
-    xs: 'h-7 px-2.5 text-xs gap-1',
-    sm: 'h-8 px-3 text-sm gap-1.5',
-    md: 'h-9 px-4 text-sm gap-2',
-    lg: 'h-10 px-5 text-base gap-2',
+    xs: 'h-6 px-2 text-xs gap-1',
+    sm: 'h-[30px] px-3 text-sm gap-1.5',
+    md: 'h-9 px-3.5 text-sm gap-2',
+    lg: 'h-10 px-5 text-sm gap-2',
 };
 
 const Spinner = () => (
@@ -70,7 +90,7 @@ const Button = forwardRef<HTMLButtonElement, Props>(
                 ref={ref}
                 disabled={isDisabled}
                 className={[
-                    'inline-flex items-center justify-center rounded-lg font-medium transition-colors',
+                    'inline-flex items-center justify-center rounded-control font-medium transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                     'disabled:pointer-events-none disabled:opacity-60',
                     variantClasses[variant],

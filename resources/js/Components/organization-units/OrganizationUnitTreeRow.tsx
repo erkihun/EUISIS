@@ -89,7 +89,7 @@ export default function OrganizationUnitTreeRow({
                     </span>
                     <Link
                         href={route('organization-units.show', node.id)}
-                        className={`font-medium hover:underline ${node.is_deleted ? 'line-through text-gray-400 dark:text-slate-500' : 'text-blue-600 dark:text-blue-400'}`}
+                        className={`font-medium hover:underline ${node.is_deleted ? 'line-through text-gray-400 dark:text-slate-500' : 'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'}`}
                     >
                         {localizedName(node.name_en, node.name_am, locale)}
                     </Link>
@@ -131,7 +131,7 @@ export default function OrganizationUnitTreeRow({
                     {(canUpdate || node.can?.update) && !node.is_deleted && (
                         <Link
                             href={route('organization-units.edit', node.id)}
-                            className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                            className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                         >
                             {t('common.edit')}
                         </Link>

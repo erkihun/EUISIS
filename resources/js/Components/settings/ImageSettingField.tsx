@@ -80,14 +80,14 @@ export default function ImageSettingField({
             <div className="space-y-3 md:col-span-2">
                 <div className="flex items-center gap-4">
                     {/* Preview box */}
-                    <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-gray-300 bg-gray-50 dark:border-slate-700 dark:bg-slate-950">
+                    <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-panel border border-dashed border-gray-300 bg-gray-50 dark:border-slate-700 dark:bg-slate-950">
                         {displayUrl ? (
                             <img src={displayUrl} alt="" className="h-full w-full object-contain" />
                         ) : (
                             <span className="text-xs text-gray-400 dark:text-slate-500">{t('settings.preview')}</span>
                         )}
                         {localPreview && (
-                            <span className="absolute right-1 top-1 rounded-full bg-blue-600 px-1 py-0.5 text-[9px] font-semibold text-white">
+                            <span className="absolute right-1 top-1 rounded-full bg-[color:var(--color-primary)] px-1 py-0.5 text-[9px] font-semibold text-white">
                                 NEW
                             </span>
                         )}
@@ -101,18 +101,18 @@ export default function ImageSettingField({
                             accept={accept}
                             disabled={disabled}
                             onChange={handleChange}
-                            className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:file:bg-slate-800 dark:file:text-slate-200"
+                            className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-card file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:file:bg-slate-800 dark:file:text-slate-200"
                         />
                         {fileName && (
-                            <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 dark:border-blue-500/30 dark:bg-blue-500/10">
-                                <svg className="h-3.5 w-3.5 shrink-0 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 dark:border-[color:var(--color-primary)]/30 dark:bg-blue-500/10">
+                                <svg className="h-3.5 w-3.5 shrink-0 text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
                                 </svg>
                                 <span className="flex-1 truncate text-xs text-blue-700 dark:text-blue-300">{fileName}</span>
                                 <button
                                     type="button"
                                     onClick={clearSelection}
-                                    className="text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300"
+                                    className="text-blue-400 hover:text-[color:var(--color-primary)] dark:text-blue-500 dark:hover:text-[color:var(--color-primary-hover)]"
                                 >
                                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />

@@ -18,7 +18,7 @@ const STATUS_CLS: Record<string, string> = {
     pending:   'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     served:    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    confirmed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    confirmed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]',
 };
 
 const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400/20';
@@ -71,7 +71,7 @@ export default function OrdersIndex({ providers, selected_provider_id, orders, f
                 </form>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>

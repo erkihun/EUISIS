@@ -29,7 +29,7 @@ type OrgOption = {
 };
 
 const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
 
 function Field({
@@ -182,7 +182,7 @@ export default function EditUser({
                 <form
                     id="user-edit-form"
                     onSubmit={submit}
-                    className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                    className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
                 >
                     <div className="space-y-6">
                         {/* ── Profile ───────────────────────────────────── */}
@@ -254,7 +254,7 @@ export default function EditUser({
 
                             {/* Password is optional on edit — leaving it blank keeps the current one. */}
                             <div className="rounded-lg border border-gray-100 p-3 md:col-span-2 dark:border-slate-800">
-                                <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">
+                                <p className="mb-2 text-[10px] font-semibold text-gray-400 dark:text-slate-500">
                                     {t('users.changePasswordNote')}
                                 </p>
                                 <div className="grid gap-4 md:grid-cols-2">
@@ -308,7 +308,7 @@ export default function EditUser({
                                         +251
                                     </span>
                                     <input
-                                        className="w-full rounded-r-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
+                                        className="w-full rounded-r-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
                                         placeholder={t('users.phonePlaceholder')}
                                         maxLength={9}
                                         value={form.data.phone_number.replace(/^\+251/, '')}
@@ -354,7 +354,7 @@ export default function EditUser({
                                         >
                                             <input
                                                 type="checkbox"
-                                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600"
+                                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
                                                 checked={form.data.roles.includes(role.name)}
                                                 onChange={() => toggleRole(role.name)}
                                             />
@@ -391,7 +391,7 @@ export default function EditUser({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                         >
                             {form.processing ? t('common.saving') : t('users.saveChanges')}
                         </button>

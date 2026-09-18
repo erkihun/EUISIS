@@ -49,7 +49,7 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
         >
             <Head title={t('positions.movePosition')} />
 
-            <form onSubmit={submit} className="mx-auto max-w-3xl space-y-6 rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+            <form onSubmit={submit} className="mx-auto max-w-3xl space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                 {isOccupied && (
                     <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
                         {t('positions.occupiedCannotMove')}

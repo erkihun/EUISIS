@@ -44,7 +44,7 @@ export default function ServiceProvidersIndex({
                     {can.create && (
                         <Link
                             href={route('service-providers.create')}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
                         >
                             + {t('providers.addProvider')}
                         </Link>
@@ -55,7 +55,7 @@ export default function ServiceProvidersIndex({
             <Head title={t('providers.title')} />
 
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('providers.serviceTypes')}
                     </h3>
@@ -82,7 +82,7 @@ export default function ServiceProvidersIndex({
                     )}
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('providers.title')}
                     </h3>
@@ -95,12 +95,12 @@ export default function ServiceProvidersIndex({
                             {providers.map((p) => (
                                 <li
                                     key={p.id}
-                                    className="rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-slate-800 dark:bg-slate-950"
+                                    className="rounded-card border border-gray-100 bg-gray-50 p-3 dark:border-slate-800 dark:bg-slate-950"
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <Link
                                             href={route('service-providers.show', p.id)}
-                                            className="font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                            className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
                                         >
                                             {p.name}
                                         </Link>
@@ -119,7 +119,7 @@ export default function ServiceProvidersIndex({
                     )}
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('providers.recentTransactions')}
                     </h3>
@@ -132,7 +132,7 @@ export default function ServiceProvidersIndex({
                             {transactions.map((tx) => (
                                 <li
                                     key={tx.id}
-                                    className="rounded-xl border border-gray-100 bg-gray-50 p-3 dark:border-slate-800 dark:bg-slate-950"
+                                    className="rounded-card border border-gray-100 bg-gray-50 p-3 dark:border-slate-800 dark:bg-slate-950"
                                 >
                                     <div className="flex items-start justify-between gap-2">
                                         <p className="font-medium text-gray-800 dark:text-slate-200">

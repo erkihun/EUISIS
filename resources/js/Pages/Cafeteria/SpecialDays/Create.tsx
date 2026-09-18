@@ -36,7 +36,7 @@ export default function SpecialDayCreate({ day_types }: { day_types: DayTypeOpti
         <AuthenticatedLayout header={<PageHeader title={t('cafeteria.addSpecialDay')} />}>
             <Head title={t('cafeteria.addSpecialDay')} />
             <div className="mx-auto max-w-2xl">
-                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <form onSubmit={submit} className="space-y-5">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -98,7 +98,7 @@ export default function SpecialDayCreate({ day_types }: { day_types: DayTypeOpti
 
                         <div className="flex justify-end gap-3 pt-2">
                             <a href={route('cafeteria.special-days.index')} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">{t('common.cancel')}</a>
-                            <button type="submit" disabled={processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                            <button type="submit" disabled={processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                                 {processing ? t('common.saving') : t('common.save')}
                             </button>
                         </div>

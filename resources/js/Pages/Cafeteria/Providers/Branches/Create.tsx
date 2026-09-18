@@ -45,7 +45,7 @@ export default function CreateBranch({
         >
             <div className="mx-auto max-w-2xl">
                 <form onSubmit={submit} className="space-y-5">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 space-y-4">
+                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 space-y-4">
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -107,7 +107,7 @@ export default function CreateBranch({
                         <a href={route('cafeteria.providers.show', provider.id)} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">
                             {t('common.cancel')}
                         </a>
-                        <button type="submit" disabled={form.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                        <button type="submit" disabled={form.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                             {form.processing ? t('common.saving') : t('cafeteria.addBranch')}
                         </button>
                     </div>

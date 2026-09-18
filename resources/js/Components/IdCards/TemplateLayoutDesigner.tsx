@@ -157,7 +157,7 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                                 'absolute rounded-sm transition-colors',
                                 disabled ? 'cursor-not-allowed' : 'cursor-move',
                                 isSelected
-                                    ? 'border-2 border-blue-500 bg-blue-500/10'
+                                    ? 'border-2 border-[color:var(--color-primary)] bg-blue-500/10'
                                     : 'border border-dashed border-blue-400/60 hover:bg-blue-500/5',
                             ].join(' ')}
                             style={{
@@ -167,7 +167,7 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                                 height: `${box.h}%`,
                             }}
                         >
-                            <span className="pointer-events-none absolute -top-4 left-0 whitespace-nowrap rounded bg-blue-600 px-1 text-[9px] font-medium text-white opacity-0 group-hover:opacity-100" style={{ opacity: isSelected ? 1 : undefined }}>
+                            <span className="pointer-events-none absolute -top-4 left-0 whitespace-nowrap rounded bg-[color:var(--color-primary)] px-1 text-[9px] font-medium text-white opacity-0 group-hover:opacity-100" style={{ opacity: isSelected ? 1 : undefined }}>
                                 {labels[element]}
                             </span>
                             {isSelected && !disabled && (
@@ -175,7 +175,7 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                                     role="button"
                                     aria-label={`${labels[element]} — resize`}
                                     onPointerDown={(event) => beginDrag(event, element, 'resize')}
-                                    className="absolute -bottom-1 -right-1 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-blue-600"
+                                    className="absolute -bottom-1 -right-1 h-3 w-3 cursor-nwse-resize rounded-sm border border-white bg-[color:var(--color-primary)]"
                                 />
                             )}
                         </div>

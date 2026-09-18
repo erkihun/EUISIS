@@ -9,7 +9,7 @@ type Props = PropsWithChildren<{
 
 export default function SettingsCard({ title, description, actions, footer, children }: Props) {
     return (
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
             <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-start sm:justify-between dark:border-slate-800">
                 <div>
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h3>

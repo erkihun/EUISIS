@@ -69,7 +69,7 @@ export default function CodeRuleForm({
     const formatInputRef = useRef<CodeFormatInputHandle>(null);
 
     const inputClassName =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     const scopeOptions = useMemo(
         () => options.scope_options[form.data.scope_type] ?? [],
@@ -184,7 +184,7 @@ export default function CodeRuleForm({
 
     return (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_360px]">
-            <form className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900" onSubmit={onSubmit}>
+            <form className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" onSubmit={onSubmit}>
                 <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.entityType')}</label>
@@ -308,7 +308,7 @@ export default function CodeRuleForm({
                 </div>
 
                 {/* Sequence Behavior */}
-                <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-slate-700 dark:bg-slate-800">
+                <div className="rounded-card border border-blue-100 bg-blue-50 p-4 dark:border-slate-700 dark:bg-slate-800">
                     <p className="mb-3 text-sm font-semibold text-blue-900 dark:text-blue-300">{t('codeRules.sequenceScopeBehavior')}</p>
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
@@ -381,7 +381,7 @@ export default function CodeRuleForm({
                 </div>
 
                 <div className="flex gap-3">
-                    <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60" disabled={form.processing}>
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60" disabled={form.processing}>
                         {submitLabel}
                     </button>
                     <Link href={cancelHref} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200">

@@ -23,6 +23,14 @@ class UpdateAppearanceSettingsRequest extends FormRequest
             'primary_color' => $hex,
             'secondary_color' => $hex,
             'accent_color' => $hex,
+            /*
+             * Every appearance key must be listed here, not only validated:
+             * the controller persists `$request->validated()`, which drops any
+             * field without a rule. A key registered in SystemSettingsRegistry
+             * but missing from this list renders in the form, submits, and is
+             * then silently discarded — the setting simply never saves.
+             */
+            'sidebar_color' => $hex,
             'table_density' => ['required', Rule::in(['compact', 'comfortable', 'spacious'])],
             'button_style' => ['required', Rule::in(['rounded', 'soft', 'square'])],
             'card_radius' => ['required', Rule::in(['sm', 'md', 'lg', 'xl', '2xl'])],
@@ -36,7 +44,6 @@ class UpdateAppearanceSettingsRequest extends FormRequest
             'sticky_table_headers' => ['required', 'boolean'],
             'default_page_size' => ['required', 'integer', 'min:10', 'max:100'],
             'logo_position' => ['required', Rule::in(['start', 'center'])],
-            'navigation_style' => ['required', Rule::in(['sidebar'])],
         ];
     }
 }

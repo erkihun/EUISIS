@@ -65,7 +65,7 @@ const CARD_COLOR: Record<string, string> = {
     expired:       'text-red-500 dark:text-red-400',
     revoked:       'text-red-600 dark:text-red-400',
     suspended:     'text-amber-500 dark:text-amber-400',
-    issued:        'text-blue-500 dark:text-blue-400',
+    issued:        'text-blue-500 dark:text-[color:var(--color-primary)]',
     pending_print: 'text-gray-400 dark:text-slate-500',
 };
 
@@ -86,10 +86,10 @@ function SectionHeading({ icon: I, title, href }: { icon: (p: IconProps) => JSX.
     return (
         <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-slate-100">
-                <I className="h-4 w-4 text-[var(--color-primary,#2563eb)]" /> {title}
+                <I className="h-4 w-4 text-[var(--color-primary)]" /> {title}
             </h2>
             {href && (
-                <Link href={href} className="flex items-center gap-0.5 text-xs text-[var(--color-primary,#2563eb)] hover:underline">
+                <Link href={href} className="flex items-center gap-0.5 text-xs text-[var(--color-primary)] hover:underline">
                     View all <Ic.ArrowRight className="h-3 w-3" />
                 </Link>
             )}
@@ -109,12 +109,12 @@ function WeekStrip({ days }: { days: WeekDay[] }) {
                 if (d) {
                     if (d.is_holiday || d.is_employee_excluded) bg = 'bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400';
                     else if (d.is_consumed)  bg = 'bg-emerald-500 text-white';
-                    else if (d.is_available) bg = 'bg-[var(--color-primary,#2563eb)]/15 text-[var(--color-primary,#2563eb)]';
-                    if (d.is_today) ring = 'ring-2 ring-[var(--color-primary,#2563eb)] ring-offset-1 dark:ring-offset-slate-900';
+                    else if (d.is_available) bg = 'bg-[var(--color-primary)]/15 text-[var(--color-primary)]';
+                    if (d.is_today) ring = 'ring-2 ring-[var(--color-primary)] ring-offset-1 dark:ring-offset-slate-900';
                 }
                 return (
                     <div key={name} className="flex flex-1 flex-col items-center gap-1">
-                        <span className={`text-[10px] font-semibold ${d?.is_today ? 'text-[var(--color-primary,#2563eb)]' : 'text-gray-400 dark:text-slate-500'}`}>{name}</span>
+                        <span className={`text-[10px] font-semibold ${d?.is_today ? 'text-[var(--color-primary)]' : 'text-gray-400 dark:text-slate-500'}`}>{name}</span>
                         <div className={`flex h-9 w-full items-center justify-center rounded-lg text-xs font-bold ${bg} ${ring}`}>
                             {!d ? '—' : d.is_consumed ? '✓' : d.is_available ? '●' : d.is_holiday ? '✗' : '—'}
                         </div>
@@ -139,7 +139,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
         return (
             <AuthenticatedLayout header={<PageHeader title={t('nav.myPortal') || 'My Portal'} />}>
                 <Head title="My Portal" />
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
+                <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
                     <Ic.Alert className="mx-auto mb-3 h-10 w-10 text-amber-500" />
                     <p className="font-medium text-amber-800 dark:text-amber-300">No employee profile linked to your account.</p>
                     <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">Contact HR to link your account to your employee record.</p>
@@ -162,16 +162,16 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
             {/* ── Top stat row ─────────────────────────────────────────────── */}
             <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
 
-                <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">Café Balance</p>
+                <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">Café Balance</p>
                     <p className={`mt-1.5 text-2xl font-bold ${cafeteria && cafeteria.balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-slate-100'}`}>
                         {cafeteria != null ? `${fmt(cafeteria.balance)}` : '—'}
                     </p>
                     <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">ETB</p>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">Days Left</p>
+                <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">Days Left</p>
                     <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-slate-100">
                         {cafeteria != null ? cafeteria.available_days : '—'}
                     </p>
@@ -180,8 +180,8 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                     </p>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">ID Card</p>
+                <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">ID Card</p>
                     {id_card ? (
                         <>
                             <p className={`mt-1.5 text-lg font-bold capitalize ${CARD_COLOR[id_card.status] ?? 'text-gray-900 dark:text-slate-100'}`}>
@@ -194,8 +194,8 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                     )}
                 </div>
 
-                <div className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">Active Apps</p>
+                <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">Active Apps</p>
                     <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-slate-100">{activeApps.length}</p>
                     <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">transfer applications</p>
                 </div>
@@ -209,7 +209,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
 
                     {/* Cafeteria */}
                     {cafeteria && (
-                        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <SectionHeading icon={Ic.Utensils} title="Cafeteria Subsidy" />
 
                             {/* Week strip */}
@@ -218,14 +218,14 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                     <span>Week {cafeteria.week_start} – {cafeteria.week_end}</span>
                                     <div className="flex items-center gap-3 text-[10px]">
                                         <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" />Used</span>
-                                        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[var(--color-primary,#2563eb)]/20" />Available</span>
+                                        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[var(--color-primary)]/20" />Available</span>
                                     </div>
                                 </div>
                                 <WeekStrip days={cafeteria.week_days} />
                             </div>
 
                             {/* Stats row */}
-                            <div className="mb-5 grid grid-cols-3 divide-x divide-gray-100 rounded-xl border border-gray-100 dark:divide-slate-800 dark:border-slate-800">
+                            <div className="mb-5 grid grid-cols-3 divide-x divide-gray-100 rounded-card border border-gray-100 dark:divide-slate-800 dark:border-slate-800">
                                 <div className="px-4 py-3 text-center">
                                     <p className="text-[10px] text-gray-400 dark:text-slate-500">Daily Rate</p>
                                     <p className="mt-1 text-base font-bold text-gray-900 dark:text-slate-100">{fmt(cafeteria.daily_amount)}</p>
@@ -233,7 +233,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                 </div>
                                 <div className="px-4 py-3 text-center">
                                     <p className="text-[10px] text-gray-400 dark:text-slate-500">Week Remaining</p>
-                                    <p className="mt-1 text-base font-bold text-[var(--color-primary,#2563eb)]">{fmt(cafeteria.remaining_subsidy)}</p>
+                                    <p className="mt-1 text-base font-bold text-[var(--color-primary)]">{fmt(cafeteria.remaining_subsidy)}</p>
                                     <p className="text-[9px] text-gray-400">ETB</p>
                                 </div>
                                 <div className="px-4 py-3 text-center">
@@ -248,7 +248,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                             {/* Recent transactions */}
                             {cafeteria.recent_transactions.length > 0 && (
                                 <>
-                                    <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">Recent Transactions</p>
+                                    <p className="mb-2 text-[10px] font-semibold text-gray-400 dark:text-slate-500">Recent Transactions</p>
                                     <div className="divide-y divide-gray-100 dark:divide-slate-800">
                                         {cafeteria.recent_transactions.map((tx, i) => (
                                             <div key={i} className="flex items-center justify-between py-2.5 text-sm">
@@ -269,23 +269,23 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                     )}
 
                     {/* Transfer applications */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <SectionHeading icon={Ic.Clock} title="My Transfer Applications" href={route('employee.transfer-applications')} />
 
                         {transfer_apps.length === 0 ? (
                             <div className="py-6 text-center">
                                 <p className="text-sm text-gray-400 dark:text-slate-500">No applications yet.</p>
-                                <Link href={route('public.transfer-announcements')} className="mt-2 inline-block text-sm text-[var(--color-primary,#2563eb)] hover:underline">
+                                <Link href={route('public.transfer-announcements')} className="mt-2 inline-block text-sm text-[var(--color-primary)] hover:underline">
                                     Browse open announcements →
                                 </Link>
                             </div>
                         ) : (
                             <div className="space-y-2">
                                 {transfer_apps.map(app => (
-                                    <div key={app.id} className="flex items-center gap-3 rounded-xl border border-gray-100 p-3 dark:border-slate-800">
+                                    <div key={app.id} className="flex items-center gap-3 rounded-card border border-gray-100 p-3 dark:border-slate-800">
                                         <div className="min-w-0 flex-1">
                                             <Link href={route('public.transfer-announcements.show', { announcement: app.announcement_id })}
-                                                className="text-sm font-medium text-gray-900 hover:text-[var(--color-primary,#2563eb)] dark:text-slate-100">
+                                                className="text-sm font-medium text-gray-900 hover:text-[var(--color-primary)] dark:text-slate-100">
                                                 {app.position ?? '—'}
                                             </Link>
                                             <p className="truncate text-xs text-gray-400 dark:text-slate-500">{app.organization}{app.submitted_at && <> · <LocalizedDateDisplay value={app.submitted_at} /></>}</p>
@@ -299,12 +299,12 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
 
                     {/* Open announcements */}
                     {open_announcements.length > 0 && (
-                        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <SectionHeading icon={Ic.Megaphone} title="Open Announcements" href={route('public.transfer-announcements')} />
                             <div className="space-y-2">
                                 {open_announcements.map(a => (
                                     <Link key={a.id} href={route('public.transfer-announcements.show', { announcement: a.id })}
-                                        className="group flex items-center justify-between rounded-xl border border-gray-100 p-3 transition hover:border-[var(--color-primary,#2563eb)]/30 hover:bg-[var(--color-primary,#2563eb)]/5 dark:border-slate-800">
+                                        className="group flex items-center justify-between rounded-card border border-gray-100 p-3 transition hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 dark:border-slate-800">
                                         <div className="min-w-0">
                                             <p className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">{a.position ?? '—'}</p>
                                             <p className="truncate text-xs text-gray-400 dark:text-slate-500">{a.organization}{a.grade_level && ` · Grade ${a.grade_level}`}</p>
@@ -326,13 +326,13 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                 <div className="space-y-5">
 
                     {/* Profile card */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="mb-4 flex items-center gap-3">
                             {employee.photo_url ? (
-                                <img src={employee.photo_url} alt="" className="h-14 w-11 rounded-xl object-cover" />
+                                <img src={employee.photo_url} alt="" className="h-14 w-11 rounded-card object-cover" />
                             ) : (
-                                <div className="flex h-14 w-11 items-center justify-center rounded-xl bg-[var(--color-primary,#2563eb)]/10">
-                                    <Ic.User className="h-7 w-7 text-[var(--color-primary,#2563eb)]" />
+                                <div className="flex h-14 w-11 items-center justify-center rounded-card bg-[var(--color-primary)]/10">
+                                    <Ic.User className="h-7 w-7 text-[var(--color-primary)]" />
                                 </div>
                             )}
                             <div className="min-w-0">
@@ -372,10 +372,10 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                     </div>
 
                     {/* ID Card */}
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <SectionHeading icon={Ic.Card} title="ID Card" />
                         {id_card ? (
-                            <div className="rounded-xl bg-gradient-to-br from-[var(--color-primary,#2563eb)] to-indigo-700 p-4 text-white shadow">
+                            <div className="rounded-card bg-gradient-to-br from-[var(--color-primary)] to-indigo-700 p-4 text-white shadow">
                                 <div className="flex items-center justify-between">
                                     <Ic.Card className="h-5 w-5 opacity-60" />
                                     {id_card.is_active && (
@@ -395,11 +395,11 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
 
                     {/* Entitlements */}
                     {entitlements.length > 0 && (
-                        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <SectionHeading icon={Ic.Layers} title="My Services" />
                             <div className="space-y-3">
                                 {entitlements.map(e => (
-                                    <div key={e.id} className="rounded-xl border border-gray-100 p-3 dark:border-slate-800">
+                                    <div key={e.id} className="rounded-card border border-gray-100 p-3 dark:border-slate-800">
                                         <div className="flex items-center justify-between">
                                             <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{e.service ?? e.service_code}</p>
                                             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">Active</span>
@@ -411,7 +411,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                                     <span>{Math.round(((e.quota_used ?? 0) / e.quota_limit) * 100)}%</span>
                                                 </div>
                                                 <div className="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
-                                                    <div className="h-full rounded-full bg-[var(--color-primary,#2563eb)]"
+                                                    <div className="h-full rounded-full bg-[var(--color-primary)]"
                                                         style={{ width: `${Math.min(100, Math.round(((e.quota_used ?? 0) / e.quota_limit) * 100))}%` }} />
                                                 </div>
                                             </div>

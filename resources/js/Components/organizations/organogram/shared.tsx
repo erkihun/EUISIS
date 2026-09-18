@@ -95,7 +95,7 @@ export function OrganizationBox({ tree, compact = false }: { tree: OrganogramTre
 
     return (
         <div
-            className={`rounded-xl border-2 border-blue-500 bg-blue-50 text-center dark:border-blue-600 dark:bg-blue-950/50 ${
+            className={`rounded-card border-2 border-[color:var(--color-primary)] bg-blue-50 text-center dark:border-[color:var(--color-primary)] dark:bg-blue-950/50 ${
                 compact ? 'w-48 px-3 py-2' : 'w-64 px-4 py-3'
             }`}
         >

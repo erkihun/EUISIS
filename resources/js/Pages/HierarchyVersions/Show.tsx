@@ -128,7 +128,7 @@ export default function HierarchyVersionShow({
             <Head title={version.version_name} />
 
             <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-start justify-between gap-4">
                         <div>
                             <p className="text-xs font-medium text-gray-400 dark:text-slate-500">
@@ -194,7 +194,7 @@ export default function HierarchyVersionShow({
                     </div>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('hierarchyVersions.viewTree')}
                     </h3>
@@ -207,11 +207,11 @@ export default function HierarchyVersionShow({
                 </section>
             </div>
 
-            <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mt-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                 <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                     {t('hierarchyVersions.edgeCount')}
                 </h3>
-                <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 dark:border-slate-800">
+                <div className="mt-4 overflow-hidden rounded-card border border-gray-100 dark:border-slate-800">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>

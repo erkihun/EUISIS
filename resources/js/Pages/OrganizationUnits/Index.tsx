@@ -97,7 +97,7 @@ export default function OrganizationUnitsIndex({
                             <button
                                 type="button"
                                 onClick={() => setShowCopyModal(true)}
-                                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
                             >
                                 {t('organizationUnits.copyStructure')}
                             </button>
@@ -135,16 +135,16 @@ export default function OrganizationUnitsIndex({
                     {displayOrg ? (
                         <div className="space-y-4">
                             {/* Selected org header card */}
-                            <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                            <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                                 <div className="flex flex-wrap items-center gap-4">
                                     {displayOrg.has_logo && displayOrg.logo_url ? (
                                         <img
                                             src={displayOrg.logo_url}
                                             alt=""
-                                            className="h-12 w-12 rounded-xl object-cover"
+                                            className="h-12 w-12 rounded-card object-cover"
                                         />
                                     ) : (
-                                        <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-lg font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                        <span className="flex h-12 w-12 items-center justify-center rounded-card bg-blue-100 text-lg font-bold text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                                             {displayOrgName.charAt(0).toUpperCase()}
                                         </span>
                                     )}
@@ -188,7 +188,7 @@ export default function OrganizationUnitsIndex({
                             />
                         </div>
                     ) : (
-                        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900">
+                        <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-panel border border-dashed border-gray-200 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900">
                             <Building2 className="h-10 w-10 text-gray-300 dark:text-slate-600" />
                             <p className="mt-3 text-sm font-medium text-gray-500 dark:text-slate-400">
                                 {t('organizationUnits.selectOrganizationToViewUnits')}

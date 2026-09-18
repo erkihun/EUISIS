@@ -42,6 +42,11 @@ readonly class VerifyCardForServiceAction
             return $this->deny('invalid_token', null, $serviceType, $provider, $actor, $request);
         }
 
+        return $this->verifyResolvedCard($card, $serviceType, $provider, $actor, $request);
+    }
+
+    public function verifyResolvedCard(IdCard $card, ServiceType $serviceType, ?ServiceProvider $provider, ?User $actor = null, ?Request $request = null): array
+    {
         $serviceEligibility = $this->serviceEligibility->check(
             $card->employee,
             $card,

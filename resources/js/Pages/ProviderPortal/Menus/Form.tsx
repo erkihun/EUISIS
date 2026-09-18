@@ -75,7 +75,7 @@ export default function MenuForm({ providers, selected_provider_id, menu }: {
             <div className="mx-auto max-w-2xl">
                 <form onSubmit={submit} className="space-y-6">
                     {/* Basic details */}
-                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="border-b border-gray-100 px-5 py-4 dark:border-slate-800">
                             <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('providerPortal.menuDetails')}</p>
                         </div>
@@ -114,7 +114,7 @@ export default function MenuForm({ providers, selected_provider_id, menu }: {
                     </div>
 
                     {/* Menu items */}
-                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="border-b border-gray-100 px-5 py-4 dark:border-slate-800">
                             <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('providerPortal.items')}</p>
                         </div>

@@ -57,7 +57,7 @@ interface AppDataTableProps<TData> {
  * ```tsx
  * const columns: ColumnDef<Employee>[] = [
  *   { accessorKey: 'full_name', header: 'Name' },
- *   { accessorKey: 'status',    header: 'Status', cell: ({ getValue }) => <Badge>{getValue()}</Badge> },
+ *   { accessorKey: 'status', header: 'Status', cell: ({ getValue }) => <Badge>{getValue()}</Badge> },
  *   { id: 'actions', header: '', cell: ({ row }) => <AppActionMenu items={[...]} /> },
  * ];
  *
@@ -102,7 +102,7 @@ export default function AppDataTable<TData>({
     return (
         <div className={`space-y-3 ${className}`}>
             {/* Table card */}
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 {!loading && data.length === 0 ? (
                     <EmptyState
                         title={emptyTitle ?? t('common.noResults')}
@@ -122,7 +122,7 @@ export default function AppDataTable<TData>({
                                             <th
                                                 key={header.id}
                                                 colSpan={header.colSpan}
-                                                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400"
+                                                className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400"
                                                 style={header.column.columnDef.meta as React.CSSProperties | undefined}
                                             >
                                                 {header.isPlaceholder
@@ -213,7 +213,7 @@ export function AppDataTablePagination({
                             className={[
                                 'min-w-[2rem] rounded px-2 py-1 font-medium transition-colors',
                                 Number(p) === current_page
-                                    ? 'bg-blue-600 text-white'
+                                    ? 'bg-[color:var(--color-primary)] text-white'
                                     : 'hover:bg-gray-100 dark:hover:bg-slate-800',
                             ].join(' ')}
                             aria-current={Number(p) === current_page ? 'page' : undefined}

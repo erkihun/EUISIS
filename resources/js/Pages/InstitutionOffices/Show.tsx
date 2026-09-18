@@ -134,7 +134,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
 
             <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
                 {/* Main details */}
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-start justify-between gap-4">
                         <div>
                             <p className="text-xs font-medium text-gray-400 dark:text-slate-500">
@@ -179,7 +179,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                 </section>
 
                 {/* Child offices */}
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h3 className="font-semibold text-gray-900 dark:text-slate-100">
                         {t('institutionOffices.childOffices')} ({office.child_offices_count})
                     </h3>
@@ -197,7 +197,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                                     <div>
                                         <Link
                                             href={route('institution-offices.show', child.id)}
-                                            className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                            className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                         >
                                             {child.name_en ?? child.office_code}
                                         </Link>

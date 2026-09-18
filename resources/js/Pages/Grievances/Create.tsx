@@ -13,7 +13,7 @@ type Props = {
     originLevels: string[];
 };
 
-const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
 const errorCls = 'mt-1 text-xs text-red-600 dark:text-red-400';
 
@@ -40,7 +40,7 @@ export default function GrievancesCreate({ categories, organizations, originLeve
             <Head title={t('grievances.submitGrievance')} />
 
             <div className="mx-auto max-w-2xl">
-                <form onSubmit={submit} className="space-y-6 rounded-xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <form onSubmit={submit} className="space-y-6 rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <div>
                         <label className={labelCls}>{t('grievances.organization')} *</label>
                         <select className={inputCls} value={data.organization_id} onChange={e => setData('organization_id', e.target.value)}>
@@ -92,7 +92,7 @@ export default function GrievancesCreate({ categories, organizations, originLeve
                         <a href={route('grievances.my')} className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
                             {t('common.cancel')}
                         </a>
-                        <button type="submit" disabled={processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                        <button type="submit" disabled={processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50">
                             {t('grievances.submitGrievance')}
                         </button>
                     </div>

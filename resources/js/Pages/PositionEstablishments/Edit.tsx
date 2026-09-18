@@ -30,7 +30,7 @@ export default function PositionEstablishmentsEdit({ establishment }: { establis
     };
 
     const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300';
-    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
+    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
     const errorCls = 'mt-1 text-xs text-red-500';
 
     return (
@@ -46,7 +46,7 @@ export default function PositionEstablishmentsEdit({ establishment }: { establis
             <Head title={t('positionEstablishments.edit')} />
 
             <div className="mx-auto max-w-2xl">
-                <form onSubmit={submit} className="space-y-5 rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <form onSubmit={submit} className="space-y-5 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <div>
                         <label className={labelCls}>{t('positionEstablishments.approvedSlots')}</label>
                         <input type="number" min={1} className={inputCls} value={data.approved_slots} onChange={e => setData('approved_slots', +e.target.value)} required />
@@ -76,7 +76,7 @@ export default function PositionEstablishmentsEdit({ establishment }: { establis
                     </div>
 
                     <div className="flex justify-end">
-                        <button type="submit" disabled={processing} className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                        <button type="submit" disabled={processing} className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                             {t('common.saveChanges')}
                         </button>
                     </div>

@@ -31,7 +31,13 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, rootStyle }: P
     const showEmergencyContact = getBoolean('id_cards.show_emergency_contact', true);
     const showCardNumber       = getBoolean('id_cards.show_card_number', true);
     const verificationUrl = getString('id_cards.verification_url', '');
-    const supportContact  = getString('id_cards.support_contact', '');
+    /*
+     * Reuses the general support phone rather than a card-specific setting.
+     * `id_cards.support_contact` was read here but never existed anywhere in
+     * the backend, so this line printed nothing on every card; adding a second
+     * support field would have duplicated what General settings already holds.
+     */
+    const supportContact  = getString('general.support_phone', '');
     const sealUrl = getString('general.seal_url', '');
 
     const returnAddress = locale === 'am'
@@ -51,7 +57,7 @@ export default function IdCardPortraitBack({ cardNumber, qrValue, rootStyle }: P
                 'relative flex flex-col overflow-hidden shadow-xl',
                 template === 'modern' ? 'rounded-[1.5rem] ring-1 ring-white/20' : '',
                 template === 'minimal' ? 'rounded-lg ring-1 ring-white/25' : '',
-                template === 'classic' ? 'rounded-2xl' : '',
+                template === 'classic' ? 'rounded-panel' : '',
             ].join(' ')}
             style={{
                 aspectRatio: `${dimensions.widthMm} / ${dimensions.heightMm}`,

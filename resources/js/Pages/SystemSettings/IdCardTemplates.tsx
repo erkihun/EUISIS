@@ -27,6 +27,8 @@ import enSettings from '@/i18n/en/settings';
 import amSettings from '@/i18n/am/settings';
 import TemplateEditorSection from '@/Components/IdCards/TemplateEditorSection';
 import TemplateWizardSteps from '@/Components/IdCards/TemplateWizardSteps';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
+import StatusBadge from '@/Components/StatusBadge';
 
 type Template = TemplatePresentation & {
     id: string;
@@ -367,7 +369,7 @@ function TemplateForm({
     return (
         <form onSubmit={submit} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
             <fieldset disabled={!editable || form.processing} className="min-w-0 space-y-4">
-                <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
+                <div className="rounded-card border border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
                     <TemplateWizardSteps
                         steps={stepKeys.map((key) => label(key))}
                         current={step}
@@ -705,7 +707,7 @@ function TemplateForm({
                 {form.progress && <progress className="w-full" value={form.progress.percentage} max="100" />}
                 {editable && (
                     // Sticks to the bottom so navigation is always reachable.
-                    <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center gap-3 rounded-xl border border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
+                    <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center gap-3 rounded-card border border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
                         <Button
                             type="button"
                             variant="outline"
@@ -735,7 +737,7 @@ function TemplateForm({
                 )}
             </fieldset>
             {/* Preview follows the admin down the form. */}
-            <div className="space-y-4 self-start rounded-xl border border-gray-200 bg-gray-50 p-5 xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="space-y-4 self-start rounded-card border border-gray-200 bg-gray-50 p-5 xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
                 <h2 className="font-semibold">{label('live_preview')}</h2>
                 <p className="text-xs text-gray-500">{label('preview_help')}</p>
                 <IdCardTemplateContext.Provider value={presentation}>
@@ -806,120 +808,137 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
     const [revision, setRevision] = useState(0);
     const template = templates.find((item) => item.id === selected) ?? null;
     return (
-        <AuthenticatedLayout header={<PageHeader title={label('title')} description={label('help')} />}>
-            <Head title={label('title')} />
-            <div className="space-y-5">
-                <Link
-                    href={route('system-settings.index', { tab: 'id_cards' })}
-                    className="text-sm text-blue-600 hover:underline"
-                >
-                    {t('settings.title')} → {t('settings.tabs.id_cards')}
-                </Link>
-                <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
-                    {/* Template list — one row per template, with its state visible. */}
-                    <aside className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{label('title')}</h2>
+        <AuthenticatedLayout
+            header={
+                <PageHeader
+                    /*
+                     * `backHref` replaces the "Settings → ID Cards" link that
+                     * used to sit in the page body. The breadcrumb bar above
+                     * already states the same trail, so the link was a third
+                     * copy of the same navigation.
+                     */
+                    backHref={route('system-settings.index', { tab: 'id_cards' })}
+                    title={label('title')}
+                    description={label('help')}
+                    actions={
+                        <div className="flex items-center gap-2">
                             {can.create && (
-                                <button
+                                <Button
                                     type="button"
-                                    className="rounded-lg border border-dashed border-gray-300 px-2 py-1 text-xs font-medium hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
                                     onClick={() => {
                                         setSelected(null);
                                         setRevision((value) => value + 1);
                                     }}
                                 >
-                                    + {label('create')}
-                                </button>
+                                    {label('create')}
+                                </Button>
+                            )}
+                            {/*
+                             * Per-template actions. `set_default` and `delete`
+                             * used to render as full buttons above the editor —
+                             * which made "Delete template" the largest, reddest
+                             * thing on a page whose purpose is editing. They are
+                             * occasional actions, so they live behind the menu.
+                             */}
+                            {template && (
+                                <AppActionMenu
+                                    label={template.name}
+                                    items={[
+                                        {
+                                            label: label('set_default'),
+                                            show:
+                                                can.set_default &&
+                                                !template.is_default &&
+                                                template.status === 'active',
+                                            onClick: () =>
+                                                router.post(
+                                                    route('id-card-templates.set-default', template.id),
+                                                    {},
+                                                    { onSuccess: () => setRevision((value) => value + 1) },
+                                                ),
+                                        },
+                                        {
+                                            label: label('delete'),
+                                            variant: 'danger',
+                                            show: can.delete && (!template.is_default || can.set_default),
+                                            onClick: () => {
+                                                if (window.confirm(label('confirm_delete'))) {
+                                                    router.delete(route('id-card-templates.destroy', template.id), {
+                                                        onSuccess: () => setSelected(null),
+                                                    });
+                                                }
+                                            },
+                                        },
+                                    ]}
+                                />
                             )}
                         </div>
-                        {templates.length === 0 && <p className="text-sm text-gray-500">{label('empty')}</p>}
-                        {templates.map((item) => (
-                            <button
-                                key={item.id}
-                                type="button"
-                                aria-current={selected === item.id}
-                                onClick={() => setSelected(item.id)}
-                                className={[
-                                    'block w-full rounded-lg border px-3 py-2 text-left transition-colors',
-                                    selected === item.id
-                                        ? 'border-blue-500 bg-blue-50 dark:border-blue-500 dark:bg-blue-950/40'
-                                        : 'border-gray-200 hover:bg-gray-50 dark:border-slate-800 dark:hover:bg-slate-900',
-                                ].join(' ')}
-                            >
-                                <span className="block truncate text-sm font-medium text-gray-900 dark:text-slate-100">
-                                    {item.name}
-                                </span>
-                                <span className="mt-1 flex flex-wrap items-center gap-1">
-                                    {item.is_default && (
-                                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                                            {label('default')}
-                                        </span>
-                                    )}
-                                    <span
+                    }
+                />
+            }
+        >
+            <Head title={label('title')} />
+
+            <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
+                {/* Template list — one row per template, with its state visible. */}
+                <aside className="lg:sticky lg:top-4 lg:self-start">
+                    <h2 className="mb-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
+                        {label('title')}
+                    </h2>
+
+                    {templates.length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-slate-400">{label('empty')}</p>
+                    ) : (
+                        <ul className="overflow-hidden rounded-card border border-gray-200 dark:border-slate-800">
+                            {templates.map((item) => (
+                                <li key={item.id} className="border-b border-gray-100 last:border-b-0 dark:border-slate-800">
+                                    <button
+                                        type="button"
+                                        aria-current={selected === item.id ? 'true' : undefined}
+                                        onClick={() => setSelected(item.id)}
                                         className={[
-                                            'rounded-full px-2 py-0.5 text-[10px] font-medium',
-                                            item.status === 'active'
-                                                ? 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-300'
-                                                : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+                                            'relative block w-full px-3 py-2.5 text-left transition-colors',
+                                            selected === item.id
+                                                ? 'bg-[color:var(--color-primary)]/5'
+                                                : 'hover:bg-gray-50 dark:hover:bg-slate-900',
                                         ].join(' ')}
                                     >
-                                        {label(item.status)}
-                                    </span>
-                                </span>
-                            </button>
-                        ))}
-                    </aside>
+                                        {/* Selection reads as a rail, not a tinted
+                                            box — it survives any brand colour. */}
+                                        {selected === item.id && (
+                                            <span
+                                                aria-hidden="true"
+                                                className="absolute inset-y-0 left-0 w-0.5 bg-[color:var(--color-primary)]"
+                                            />
+                                        )}
+                                        <span className="block truncate text-sm font-medium text-gray-900 dark:text-slate-100">
+                                            {item.name}
+                                        </span>
+                                        <span className="mt-1 flex flex-wrap items-center gap-1">
+                                            {item.is_default && (
+                                                <StatusBadge status="active" label={label('default')} />
+                                            )}
+                                            <StatusBadge status={item.status} label={label(item.status)} />
+                                        </span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </aside>
 
-                    <div className="min-w-0 space-y-4">
-                        {template && (
-                            // Per-template actions live beside the template they affect.
-                            <div className="flex flex-wrap items-center gap-2">
-                                {can.set_default && !template.is_default && template.status === 'active' && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                            router.post(
-                                                route('id-card-templates.set-default', template.id),
-                                                {},
-                                                { onSuccess: () => setRevision((value) => value + 1) },
-                                            )
-                                        }
-                                    >
-                                        {label('set_default')}
-                                    </Button>
-                                )}
-                                {can.delete && (!template.is_default || can.set_default) && (
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="sm"
-                                        onClick={() => {
-                                            if (window.confirm(label('confirm_delete')))
-                                                router.delete(route('id-card-templates.destroy', template.id), {
-                                                    onSuccess: () => setSelected(null),
-                                                });
-                                        }}
-                                    >
-                                        {label('delete')}
-                                    </Button>
-                                )}
-                            </div>
-                        )}
-                        {template || can.create ? (
-                            <TemplateForm
-                                key={`${selected}-${revision}-${template?.front_background_url}-${template?.back_background_url}`}
-                                template={template}
-                                can={can}
-                                uploadLimitMb={uploadLimitMb}
-                                onSaved={() => setRevision((value) => value + 1)}
-                            />
-                        ) : (
-                            <p className="text-sm text-gray-500">{label('empty')}</p>
-                        )}
-                    </div>
+                <div className="min-w-0">
+                    {template || can.create ? (
+                        <TemplateForm
+                            key={`${selected}-${revision}-${template?.front_background_url}-${template?.back_background_url}`}
+                            template={template}
+                            can={can}
+                            uploadLimitMb={uploadLimitMb}
+                            onSaved={() => setRevision((value) => value + 1)}
+                        />
+                    ) : (
+                        <p className="text-sm text-gray-500 dark:text-slate-400">{label('empty')}</p>
+                    )}
                 </div>
             </div>
         </AuthenticatedLayout>

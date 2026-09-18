@@ -1,7 +1,7 @@
 import { Fragment, ReactNode } from 'react';
 import { Menu, Transition, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
 import { Link } from '@inertiajs/react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
 export interface AppActionItem {
@@ -33,7 +33,7 @@ const itemCls = {
  *
  * ```tsx
  * <AppActionMenu items={[
- *   { label: t('common.edit'),   href: route('employees.edit', id) },
+ *   { label: t('common.edit'), href: route('employees.edit', id) },
  *   { label: t('common.delete'), variant: 'danger', onClick: () => setConfirm(true) },
  * ]} />
  * ```
@@ -47,7 +47,7 @@ export default function AppActionMenu({ items, label, align = 'right' }: AppActi
     return (
         <Menu as="div" className="relative inline-block text-left">
             <MenuButton
-                className="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                className="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
                 aria-label={label ?? t('common.actions')}
             >
                 <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -64,7 +64,7 @@ export default function AppActionMenu({ items, label, align = 'right' }: AppActi
             >
                 <MenuItems
                     className={[
-                        'absolute z-20 mt-1 w-40 rounded-xl border border-gray-100 bg-white py-1 shadow-lg',
+                        'absolute z-20 mt-1 w-40 rounded-card border border-gray-100 bg-white py-1 shadow-lg',
                         'ring-1 ring-black/5 focus:outline-none dark:border-slate-700 dark:bg-slate-900',
                         align === 'right' ? 'right-0' : 'left-0',
                     ].join(' ')}

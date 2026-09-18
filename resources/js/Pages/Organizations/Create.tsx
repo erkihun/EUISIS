@@ -12,7 +12,7 @@ import ParentOrganizationSelect, { type ParentOrganizationOption } from '@/Compo
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
 type HierarchyVersion = { id: string; version_name: string; status: string };
 const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 
 const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
 const helpCls = 'mt-1 text-xs text-gray-400 dark:text-slate-500';
@@ -147,10 +147,10 @@ export default function CreateOrganization({
             <div className="w-full">
                 <form
                     onSubmit={submit}
-                    className="w-full rounded-2xl border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full rounded-panel border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
                 >
                     {errorMessages.length > 0 && (
-                        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
+                        <div className="mb-6 rounded-card border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/50 dark:bg-red-950/20">
                             <p className="text-sm font-medium text-red-700 dark:text-red-300">
                                 {t('common.error')}
                             </p>
@@ -280,7 +280,7 @@ export default function CreateOrganization({
                             {form.data.parent_organization_id && (
                                 <>
                                     {selectedParent && (
-                                        <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3 dark:border-blue-900/60 dark:bg-blue-950/30">
+                                        <div className="rounded-card border border-blue-100 bg-blue-50/70 px-4 py-3 dark:border-blue-900/60 dark:bg-blue-950/30">
                                             <div className="text-xs font-medium uppercase text-blue-700 dark:text-blue-300">
                                                 {t('organizations.selectedParent')}
                                             </div>
@@ -422,10 +422,10 @@ export default function CreateOrganization({
                                         >
                                             <div className="flex gap-1.5">
                                                 {primary && (
-                                                    <span className="h-4 w-4 rounded-full border border-white shadow-sm" style={{ backgroundColor: primary }} />
+                                                    <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: primary }} />
                                                 )}
                                                 {secondary && (
-                                                    <span className="h-4 w-4 rounded-full border border-white shadow-sm" style={{ backgroundColor: secondary }} />
+                                                    <span className="h-4 w-4 rounded-full border border-white" style={{ backgroundColor: secondary }} />
                                                 )}
                                             </div>
                                             <span className="text-xs text-gray-500 dark:text-slate-400">
@@ -449,7 +449,7 @@ export default function CreateOrganization({
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
                         >
                             {form.processing ? t('common.saving') : t('organizations.createAction')}
                         </button>

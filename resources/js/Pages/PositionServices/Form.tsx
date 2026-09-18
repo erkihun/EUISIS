@@ -121,7 +121,7 @@ export default function PositionServiceForm({
 
                 <form
                     onSubmit={submit}
-                    className="space-y-5 rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+                    className="space-y-5 rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
                 >
                     <Field label={t('serviceFeedback.filterOrganization')} error={undefined}>
                         <select
@@ -237,7 +237,7 @@ export default function PositionServiceForm({
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                        className="w-full rounded-lg bg-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                     >
                         {processing ? t('common.saving') : t('common.save')}
                     </button>
@@ -248,7 +248,7 @@ export default function PositionServiceForm({
 }
 
 const selectCls =
-    'mt-1 block w-full rounded-lg border-gray-300 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    'mt-1 block w-full rounded-lg border-gray-300 py-2 text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
 function Field({
     label,
@@ -288,7 +288,7 @@ function Checkbox({
                 type="checkbox"
                 checked={checked}
                 onChange={(e) => onChange(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-700"
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-700"
             />
             <span>
                 <span className="block text-sm font-medium text-gray-900 dark:text-slate-100">{label}</span>

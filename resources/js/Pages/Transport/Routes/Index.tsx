@@ -74,13 +74,13 @@ export default function Index({
                     </select>
                     <button
                         type="submit"
-                        className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                     >
                         {t('common.filter')}
                     </button>
                 </form>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {rows.length === 0 ? (
                         <EmptyState title={t('transport.noRecords')} />
                     ) : (
@@ -137,7 +137,7 @@ export default function Index({
                                             <td className="px-4 py-3 text-right">
                                                 <Link
                                                     href={route('transport.routes.edit', item.id)}
-                                                    className="text-xs text-blue-600 hover:underline"
+                                                    className="text-xs text-[color:var(--color-primary)] hover:underline"
                                                 >
                                                     {t('common.edit')}
                                                 </Link>
@@ -160,7 +160,7 @@ export default function Index({
                                 }
                                 className={`rounded px-3 py-1 ${
                                     meta.current_page === page
-                                        ? 'bg-blue-600 text-white'
+                                        ? 'bg-[color:var(--color-primary)] text-white'
                                         : 'border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400'
                                 }`}
                             >

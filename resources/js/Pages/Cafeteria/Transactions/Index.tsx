@@ -73,7 +73,7 @@ export default function TransactionsIndex({
                         can.scan ? (
                             <Link
                                 href={route('cafeteria.scan')}
-                                className="inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('cafeteria.scanQr')}
                             </Link>
@@ -98,12 +98,12 @@ export default function TransactionsIndex({
                         <option value="accepted">{t('cafeteria.statusAccepted')}</option>
                         <option value="reversed">{t('cafeteria.statusReversed')}</option>
                     </select>
-                    <button type="submit" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                         {t('common.filter')}
                     </button>
                 </form>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {transactions.length === 0 ? (
                         <EmptyState title={t('common.noResults')} />
                     ) : (
@@ -134,7 +134,7 @@ export default function TransactionsIndex({
                                                 <StatusBadge status={txn.status} label={statusLabel(txn.status)} />
                                             </td>
                                             <td className="px-4 py-3 text-right">
-                                                <Link href={route('cafeteria.transactions.show', txn.id)} className="text-xs text-blue-600 hover:underline">
+                                                <Link href={route('cafeteria.transactions.show', txn.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">
                                                     {t('common.view')}
                                                 </Link>
                                             </td>
@@ -152,7 +152,7 @@ export default function TransactionsIndex({
                             <button
                                 key={page}
                                 onClick={() => router.get(route('cafeteria.transactions.index'), { ...filters, page })}
-                                className={`rounded px-3 py-1 ${meta.current_page === page ? 'bg-blue-600 text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400'}`}
+                                className={`rounded px-3 py-1 ${meta.current_page === page ? 'bg-[color:var(--color-primary)] text-white' : 'border border-gray-300 text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-400'}`}
                             >
                                 {page}
                             </button>

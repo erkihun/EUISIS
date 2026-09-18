@@ -172,6 +172,16 @@ const employees = {
     // Position context
     positionSelected: 'የሥራ መደብ ተመርጧል',
     positionContextLocked: 'ተቋሙ፣ የተቋም ዩኒቱና የሥራ መደቡ ከተመረጠው የሥራ መደብ የመጡ ናቸው፤ እዚህ ማስተካከል አይቻልም።',
+    addNewEmployee: 'አዲስ ሠራተኛ ጨምር',
+    organizationUnit: 'የተቋም ዩኒት',
+    systemStatus: 'የሥርዓት ሁኔታ',
+    employmentTypeStatus: 'የቅጥር ዓይነት / የሠራተኛ ሁኔታ',
+    assignmentStartDate: 'የምደባ መጀመሪያ ቀን',
+    allOrganizations: 'ሁሉም ተቋማት',
+    allOrganizationUnits: 'ሁሉም የተቋም ዩኒቶች',
+    allPositions: 'ሁሉም የሥራ መደቦች',
+    allEmploymentTypes: 'ሁሉም የቅጥር ዓይነቶች',
+    noVacantPositionsAvailable: 'ክፍት የሥራ መደብ የለም',
 } as const;
 
 export default employees;

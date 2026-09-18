@@ -50,7 +50,7 @@ export default function CardDataChecklist({ employee }: { employee: EmployeeData
     const allPass = checks.every((c) => c.pass);
 
     return (
-        <div className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+        <div className="rounded-card border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
             <h4 className="mb-3 text-sm font-semibold text-gray-700 dark:text-slate-300">
                 {t('idCards.requiredDataChecklist')}
             </h4>

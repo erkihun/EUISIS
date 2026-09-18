@@ -481,9 +481,17 @@ class SystemSettingsRegistry
                 'table_density' => self::field(type: 'select', default: 'comfortable', labelEn: 'Table Density', labelAm: 'የሰንጠረዥ ጥግግት', isPublic: true, options: ['compact', 'comfortable', 'spacious'], validationRules: ['required', 'in:compact,comfortable,spacious'], sortOrder: 20),
                 'button_style' => self::field(type: 'select', default: 'rounded', labelEn: 'Button Style', labelAm: 'የአዝራር ቅጥ', isPublic: true, options: ['rounded', 'soft', 'square'], validationRules: ['required', 'in:rounded,soft,square'], sortOrder: 30),
                 'card_radius' => self::field(type: 'select', default: 'xl', labelEn: 'Card Radius', labelAm: 'የካርድ ክብ መጠን', isPublic: true, options: ['sm', 'md', 'lg', 'xl', '2xl'], validationRules: ['required', 'in:sm,md,lg,xl,2xl'], sortOrder: 40),
-                'primary_color' => self::field(type: 'color', default: '#2563EB', labelEn: 'Primary Color', labelAm: 'ዋና ቀለም', isPublic: true, validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'], sortOrder: 50),
-                'secondary_color' => self::field(type: 'color', default: '#1E40AF', labelEn: 'Secondary Color', labelAm: 'ሁለተኛ ቀለም', isPublic: true, validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'], sortOrder: 60),
-                'accent_color' => self::field(type: 'color', default: '#F97316', labelEn: 'Accent Color', labelAm: 'አክሰንት ቀለም', isPublic: true, validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'], sortOrder: 70),
+                'primary_color' => self::field(type: 'color', default: '#122170', labelEn: 'Primary Color', labelAm: 'ዋና ቀለም', isPublic: true, validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'], sortOrder: 50),
+                'secondary_color' => self::field(type: 'color', default: '#1D3084', labelEn: 'Secondary Color', labelAm: 'ሁለተኛ ቀለም', isPublic: true, validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'], sortOrder: 60),
+                'accent_color' => self::field(type: 'color', default: '#D12908', labelEn: 'Accent Color', labelAm: 'አክሰንት ቀለም', isPublic: true, validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'], sortOrder: 70),
+                /*
+                 * Sidebar surface. Label text, icons, borders and hover states
+                 * are derived from this colour's luminance at runtime, so any
+                 * value stays legible and only this one needs configuring.
+                 * In dark mode a light choice is ignored in favour of the dark
+                 * surface — see AuthenticatedLayout.
+                 */
+                'sidebar_color' => self::field(type: 'color', default: '#FFFFFF', labelEn: 'Sidebar Color', labelAm: 'የጎን አሞሌ ቀለም', descriptionEn: 'Background of the main navigation sidebar. Text and icons adjust automatically for contrast.', descriptionAm: 'የዋናው የዳሰሳ ጎን አሞሌ ዳራ። ጽሑፍና አዶዎች ለንጽጽር በራስ-ሰር ይስተካከላሉ።', isPublic: true, validationRules: ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'], sortOrder: 75),
                 'allow_user_theme_switching' => self::field(type: 'boolean', default: true, labelEn: 'Allow User Theme Switching', labelAm: 'የተጠቃሚ ገጽታ መቀየር ፍቀድ', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 80),
                 'sidebar_compact_default' => self::field(type: 'boolean', default: false, labelEn: 'Sidebar Compact Default', labelAm: 'ነባሪ የጎን አሞሌ ጥቅጥቅ', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 90),
                 'show_breadcrumbs' => self::field(type: 'boolean', default: true, labelEn: 'Show Breadcrumbs', labelAm: 'የመንገድ አሻራዎችን አሳይ', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 100),
@@ -494,7 +502,6 @@ class SystemSettingsRegistry
                 'sticky_table_headers' => self::field(type: 'boolean', default: true, labelEn: 'Sticky Table Headers', labelAm: 'የሚቆዩ የሰንጠረዥ ራሶች', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 150),
                 'default_page_size' => self::field(type: 'integer', default: 25, labelEn: 'Default Page Size', labelAm: 'ነባሪ የገፅ መጠን', isPublic: true, validationRules: ['required', 'integer', 'min:10', 'max:100'], sortOrder: 160),
                 'logo_position' => self::field(type: 'select', default: 'start', labelEn: 'Logo Position', labelAm: 'የአርማ ቦታ', isPublic: true, options: ['start', 'center'], validationRules: ['required', 'in:start,center'], sortOrder: 170),
-                'navigation_style' => self::field(type: 'select', default: 'sidebar', labelEn: 'Navigation Style', labelAm: 'የአሰሳ ቅጥ', isPublic: true, options: ['sidebar'], validationRules: ['required', 'in:sidebar'], sortOrder: 180),
             ],
 
             self::GROUP_ID_CARDS => [
@@ -660,6 +667,23 @@ class SystemSettingsRegistry
                 'show_qr' => self::field(type: 'boolean', default: true, labelEn: 'Show QR Code', labelAm: 'QR ኮድ አሳይ', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 124),
                 'show_return_notice' => self::field(type: 'boolean', default: true, labelEn: 'Show Return If Found Notice', labelAm: 'ከተገኘ ይመለስ ማስታወቂያ አሳይ', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 125),
                 'show_emergency_contact' => self::field(type: 'boolean', default: true, labelEn: 'Show Emergency Contact', labelAm: 'የአደጋ ጊዜ መገናኛ አሳይ', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 126),
+                /*
+                 * Printed small on the back so a citizen can check a card
+                 * against the public verification page. The card components
+                 * already rendered this, but no setting existed to fill it, so
+                 * the line was always blank on every card issued.
+                 */
+                'verification_url' => self::field(
+                    type: 'url',
+                    default: '',
+                    labelEn: 'Verification URL',
+                    labelAm: 'የማረጋገጫ አድራሻ',
+                    descriptionEn: 'Printed on the back of the card beneath the QR code, so a holder or checker can verify it without scanning. Leave blank to omit.',
+                    descriptionAm: 'በካርዱ ኋላ ከQR ኮድ በታች ይታተማል፤ ሳይቃኝ ማረጋገጥ ያስችላል። ባዶ ከተተወ አይታተምም።',
+                    isPublic: true,
+                    validationRules: ['nullable', 'url', 'max:255'],
+                    sortOrder: 128,
+                ),
                 // Back card — background
                 'back_bg_from' => self::field(
                     type: 'color',

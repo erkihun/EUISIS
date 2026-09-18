@@ -1,7 +1,7 @@
 import { useLocale } from '@/hooks/useLocale';
 
 const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
 
 interface FormData {
@@ -111,7 +111,7 @@ export default function OrganizationUnitTypeForm({ data, errors, onChange }: Pro
                 <input
                     id="is_active"
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600"
+                    className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
                     checked={data.is_active}
                     onChange={(e) => onChange('is_active', e.target.checked)}
                 />

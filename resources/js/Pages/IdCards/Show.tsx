@@ -1,6 +1,7 @@
 import { mapCardEmployee } from '@/Components/IdCards/mapCardEmployee';
 import { useIdCardTemplate } from '@/Components/IdCards/IdCardTemplateContext';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import NfcStatusPanel, { NfcStatus } from '@/Components/IdCards/NfcStatusPanel';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import CardStatusBadge from '@/Components/IdCards/CardStatusBadge';
@@ -79,6 +80,7 @@ type Can = {
 };
 
 type PageProps = {
+    nfc: NfcStatus;
     card: CardData;
     can: Can;
 };
@@ -88,7 +90,7 @@ type PageProps = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-slate-500">
+            <dt className="text-xs font-medium text-gray-400 dark:text-slate-500">
                 {label}
             </dt>
             <dd className="mt-1 text-sm text-gray-900 dark:text-slate-100">{children}</dd>
@@ -131,7 +133,7 @@ function Modal({
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
             onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-slate-700">
+            <div className="w-full max-w-md rounded-panel bg-white shadow-2xl dark:bg-slate-900 ring-1 ring-gray-200 dark:ring-slate-700">
                 <div className="flex items-start justify-between px-6 pt-5">
                     <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{title}</h3>
                     <button
@@ -146,7 +148,7 @@ function Modal({
                 </div>
                 <p className="mt-1 px-6 text-sm text-gray-500 dark:text-slate-400">{description}</p>
                 {children && <div className="mt-4 px-6 space-y-3">{children}</div>}
-                <div className="mt-5 flex justify-end gap-2 rounded-b-2xl border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
+                <div className="mt-5 flex justify-end gap-2 rounded-b-panel border-t border-gray-100 bg-gray-50 px-6 py-4 dark:border-slate-800 dark:bg-slate-950">
                     <button
                         type="button"
                         onClick={onClose}
@@ -197,7 +199,7 @@ function ActionButton({
             type="button"
             onClick={onClick}
             disabled={disabled}
-            className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 ${cls[variant]}`}
+            className={`flex w-full items-center gap-2.5 rounded-card px-3 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 ${cls[variant]}`}
         >
             <span className="shrink-0">{icon}</span>
             {label}
@@ -256,11 +258,11 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
     );
 }
 
-const inputCls = 'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500';
+const inputCls = 'w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500';
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export default function IdCardShow({ card, can }: PageProps) {
+export default function IdCardShow({ card, can, nfc }: PageProps) {
     const { t, locale } = useLocale();
     const calendarSystem = useCalendarSystem();
     const { errors } = usePage().props as { errors: Record<string, string> };
@@ -339,10 +341,11 @@ export default function IdCardShow({ card, can }: PageProps) {
             }
         >
             <Head title={card.card_number} />
+            <NfcStatusPanel cardId={card.id} nfc={nfc} />
 
             {/* Action error banner */}
             {errors.action && (
-                <div className="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800/60 dark:bg-red-900/20 dark:text-red-400">
+                <div className="mb-5 flex items-start gap-3 rounded-card border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800/60 dark:bg-red-900/20 dark:text-red-400">
                     <svg className="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008z" />
                     </svg>
@@ -356,7 +359,7 @@ export default function IdCardShow({ card, can }: PageProps) {
                 <div className="space-y-5">
 
                     {/* Card visual preview */}
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="mb-4 flex items-center justify-between">
                             <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">
                                 {t('common.preview')}
@@ -483,7 +486,7 @@ export default function IdCardShow({ card, can }: PageProps) {
                     </section>
 
                     {/* Card details */}
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h2 className="mb-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                             {t('common.details')}
                         </h2>
@@ -519,8 +522,8 @@ export default function IdCardShow({ card, can }: PageProps) {
                                 {card.employee?.current_assignment?.organization?.name_en ?? '—'}
                             </Field>
                             {card.revoke_reason && (
-                                <div className="col-span-full rounded-xl border border-red-100 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-900/10">
-                                    <dt className="text-xs font-medium uppercase tracking-wide text-red-500 dark:text-red-400">
+                                <div className="col-span-full rounded-card border border-red-100 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-900/10">
+                                    <dt className="text-xs font-medium text-red-500 dark:text-red-400">
                                         {t('idCards.revocationReason')}
                                     </dt>
                                     <dd className="mt-1 text-sm text-red-700 dark:text-red-300">{card.revoke_reason}</dd>
@@ -538,7 +541,7 @@ export default function IdCardShow({ card, can }: PageProps) {
 
                     {/* Provenance: request + issuance + linked cards */}
                     {(card.card_request || card.issuance || card.previous_card || card.replacement_card) && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                        <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                             <h2 className="mb-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                                 {t('idCards.history')}
                             </h2>
@@ -567,7 +570,7 @@ export default function IdCardShow({ card, can }: PageProps) {
                                     <Field label={t('idCards.previousCard')}>
                                         <Link
                                             href={route('id-cards.show', card.previous_card.id)}
-                                            className="font-mono text-blue-600 hover:underline dark:text-blue-400"
+                                            className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                         >
                                             {card.previous_card.card_number}
                                         </Link>
@@ -577,7 +580,7 @@ export default function IdCardShow({ card, can }: PageProps) {
                                     <Field label={t('idCards.replacementCard')}>
                                         <Link
                                             href={route('id-cards.show', card.replacement_card.id)}
-                                            className="font-mono text-blue-600 hover:underline dark:text-blue-400"
+                                            className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                         >
                                             {card.replacement_card.card_number}
                                         </Link>
@@ -593,8 +596,8 @@ export default function IdCardShow({ card, can }: PageProps) {
 
                     {/* Actions */}
                     {hasAnyAction && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+                        <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                            <h2 className="mb-3 text-xs font-semibold text-gray-400 dark:text-slate-500">
                                 {t('common.actions')}
                             </h2>
                             <div className="space-y-2">
@@ -658,7 +661,7 @@ export default function IdCardShow({ card, can }: PageProps) {
                     )}
 
                     {/* Lifecycle timeline */}
-                    <section className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                         <CardLifecycleTimeline cardStatus={card.status} />
                     </section>
                 </div>

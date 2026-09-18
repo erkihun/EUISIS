@@ -17,7 +17,7 @@ type Category = {
 
 type Props = { categories: Category[] };
 
-const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
 
 function CreateForm({ t }: { t: (k: never) => string }): JSX.Element {
@@ -34,7 +34,7 @@ function CreateForm({ t }: { t: (k: never) => string }): JSX.Element {
                 e.preventDefault();
                 post(route('grievance-categories.store'), { onSuccess: () => reset() });
             }}
-            className="rounded-xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
         >
             <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-slate-300">
                 + {t('grievances.category' as never)}
@@ -82,7 +82,7 @@ function CreateForm({ t }: { t: (k: never) => string }): JSX.Element {
                 <button
                     type="submit"
                     disabled={!data.name_en.trim() || processing}
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
                 >
                     {t('common.create' as never)}
                 </button>
@@ -135,7 +135,7 @@ function EditRow({ category, onDone, t, am }: { category: Category; onDone: () =
                     type="checkbox"
                     checked={data.is_active}
                     onChange={e => setData('is_active', e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600"
+                    className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)]"
                 />
             </td>
             <td className="px-4 py-2">
@@ -144,7 +144,7 @@ function EditRow({ category, onDone, t, am }: { category: Category; onDone: () =
                         type="button"
                         disabled={processing}
                         onClick={() => patch(route('grievance-categories.update', category.id), { onSuccess: onDone })}
-                        className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                        className="rounded bg-[color:var(--color-primary)] px-3 py-1 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
                     >
                         {t('common.save' as never)}
                     </button>
@@ -173,7 +173,7 @@ export default function CategoriesIndex({ categories }: Props): JSX.Element {
             <div className="space-y-6">
                 <CreateForm t={t as (k: never) => string} />
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="min-w-full text-left text-sm">
                         <thead className="bg-gray-50 dark:bg-slate-950">
                             <tr>
@@ -223,7 +223,7 @@ export default function CategoriesIndex({ categories }: Props): JSX.Element {
                                             <button
                                                 type="button"
                                                 onClick={() => setEditingId(cat.id)}
-                                                className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                             >
                                                 {t('common.edit' as never)}
                                             </button>

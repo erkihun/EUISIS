@@ -78,7 +78,7 @@ export default function TransactionShow({ transaction }: { transaction: Transact
             <Head title={transaction.transaction_number} />
 
             <div className="mx-auto max-w-2xl space-y-4">
-                <div className="rounded-xl border border-gray-200 bg-white px-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white px-6 dark:border-slate-800 dark:bg-slate-900">
                     <div className={rowCls}>
                         <span className={labelCls}>{t('cafeteria.transactionStatus')}</span>
                         <StatusBadge status={transaction.status} label={statusLabel(transaction.status)} />

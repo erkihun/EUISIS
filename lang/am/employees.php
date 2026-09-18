@@ -42,6 +42,15 @@ return [
     'select_position' => 'የሥራ መደብ ይምረጡ',
     'select_vacant_position_first' => 'ሠራተኛ ከመፍጠርዎ በፊት እባክዎ ክፍት የሥራ መደብ ይምረጡ።',
 
+    'add_new_employee' => 'አዲስ ሠራተኛ ጨምር',
+    'create_employee' => 'ሠራተኛ ፍጠር',
+    'employment_placement' => 'የሥራ ምደባ',
+    'organization_unit' => 'የተቋም ዩኒት',
+    'select_organization' => 'ተቋም ይምረጡ',
+    'select_organization_unit' => 'የተቋም ዩኒት ይምረጡ',
+    'no_vacant_positions_available' => 'ክፍት የሥራ መደብ የለም',
+    'save_employee' => 'ሠራተኛ አስቀምጥ',
+
     // Employee CSV import
     'import' => [
         'title' => 'የሠራተኞች CSV ይጫኑ',

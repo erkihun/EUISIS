@@ -38,7 +38,7 @@ const styles: Record<ToastType, StyleDef> = {
     info: {
         container: 'bg-blue-50 dark:bg-blue-900 text-blue-800 dark:text-blue-200',
         border:    'border-blue-200 dark:border-blue-700',
-        icon:      'text-blue-500 dark:text-blue-400',
+        icon:      'text-blue-500 dark:text-[color:var(--color-primary)]',
         bar:       'bg-blue-500',
         ariaLive:  'polite',
     },
@@ -98,7 +98,7 @@ export default function Toast({ toast: item, onDismiss }: ToastProps) {
             aria-atomic="true"
             className={[
                 'relative flex w-full items-start gap-3 overflow-hidden',
-                'rounded-xl border shadow-lg px-4 py-3',
+                'rounded-card border shadow-lg px-4 py-3',
                 style.container,
                 style.border,
                 exiting ? 'toast-exit' : 'toast-enter',

@@ -36,7 +36,7 @@ export default function Index({ settings }: { settings: Settings }) {
             <Head title={t('transport.settings')} />
 
             <form onSubmit={submit} className="space-y-4">
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {(Object.keys(labels) as Array<keyof Settings>).map((key, idx, arr) => (
                         <div
                             key={key}

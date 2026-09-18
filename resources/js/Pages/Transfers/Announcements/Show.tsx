@@ -112,7 +112,7 @@ export default function TransferAnnouncementShow({ announcement, can }: Props) {
                                 <button
                                     type="button"
                                     onClick={handlePublish}
-                                    className={`${btnBase} bg-blue-600 text-white hover:bg-blue-700`}
+                                    className={`${btnBase} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)]`}
                                 >
                                     {t('transfers.publishAnnouncement')}
                                 </button>
@@ -154,7 +154,7 @@ export default function TransferAnnouncementShow({ announcement, can }: Props) {
             <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                 {/* Details */}
                 <div className="space-y-6">
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="flex items-start justify-between gap-4">
                             <div>
                                 <h3 className="font-semibold text-gray-900 dark:text-slate-100">{positionLabel}</h3>
@@ -165,7 +165,7 @@ export default function TransferAnnouncementShow({ announcement, can }: Props) {
 
                         <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
                             {[
-                                { label: t('transfers.gradeLevel'),        value: announcement.grade_level ?? '—' },
+                                { label: t('transfers.gradeLevel'), value: announcement.grade_level ?? '—' },
                                 { label: t('transfers.numberOfVacancies'), value: String(announcement.number_of_vacancies) },
                             ].map(({ label, value }) => (
                                 <div key={label}>
@@ -218,7 +218,7 @@ export default function TransferAnnouncementShow({ announcement, can }: Props) {
                 </div>
 
                 {/* Applications */}
-                <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <div className="mb-3 flex items-center justify-between">
                         <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('transfers.applications')}</h3>
                         <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
@@ -234,7 +234,7 @@ export default function TransferAnnouncementShow({ announcement, can }: Props) {
                                 <li key={app.id} className="flex items-center justify-between gap-3">
                                     <Link
                                         href={route('transfer-applications.show', app.id)}
-                                        className="truncate text-blue-600 hover:underline dark:text-blue-400"
+                                        className="truncate text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                     >
                                         {app.employee?.full_name ?? app.employee?.employee_number ?? app.id}
                                     </Link>

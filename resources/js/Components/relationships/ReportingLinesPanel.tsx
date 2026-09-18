@@ -9,7 +9,7 @@ export default function ReportingLinesPanel({ rows }: Props) {
     const { t, locale } = useLocale();
 
     return (
-        <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('relationships.reportingLines')}</h3>
             <div className="mt-4 space-y-2">
                 {rows.length === 0 ? (

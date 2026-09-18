@@ -14,6 +14,9 @@ namespace App\Enums;
  */
 enum ApiScope: string
 {
+    case NfcVerify = 'nfc.verify';
+    case NfcServiceEligibility = 'nfc.service_eligibility';
+    case NfcServiceTransactionsCreate = 'nfc.service_transactions.create';
     case IdCardsVerify = 'id_cards.verify';
     case EmployeesBasicVerify = 'employees.basic_verify';
     case ServiceEligibilityCheck = 'service_eligibility.check';

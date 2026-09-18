@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { usePage } from '@inertiajs/react';
-import { MenuIcon, ChevronDown, LogOut, SettingsIcon } from '@/Components/Icons';
-import { Search } from 'lucide-react';
+import { MenuIcon, ChevronDown, LogOut, SettingsIcon, SearchIcon as Search } from '@/Components/Icons';
 import ThemeToggle from '@/Components/ThemeToggle';
 import Dropdown from '@/Components/Dropdown';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';

@@ -40,7 +40,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
         effective_to: toDateInput(position.effective_to),
     });
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
     const errorCls = 'mt-1 text-xs text-red-600 dark:text-red-400';
     const selectedUnit = organizationUnits.find((unit) => unit.id === form.data.organization_unit_id);
 
@@ -53,7 +53,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
         <AuthenticatedLayout header={<PageHeader title={t('positions.editPosition')} />}>
             <Head title={t('positions.editPosition')} />
             <form
-                className="space-y-6 rounded-2xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
                 onSubmit={submit}
             >
                 <div className="grid gap-4 md:grid-cols-2">
@@ -245,7 +245,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                 <div className="flex gap-3">
                     <button
-                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                         type="submit"
                         disabled={form.processing}
                     >

@@ -48,12 +48,12 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
 
             <div className="max-w-3xl">
                 {pendingCards.length === 0 ? (
-                    <div className="rounded-2xl border border-gray-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
                         <EmptyState title={idCards.noPendingPrintCards ?? 'No approved cards pending print'} />
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit}>
-                        <div className="rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                             <div className="border-b border-gray-100 p-4 dark:border-slate-800">
                                 <p className="text-sm text-gray-600 dark:text-slate-400">
                                     {idCards.selectCardsForBatch ?? 'Select approved cards to add to this print batch'}
@@ -70,7 +70,7 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
                                             type="checkbox"
                                             checked={selected.includes(card.id)}
                                             onChange={() => toggleCard(card.id)}
-                                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                                         />
                                         <div className="min-w-0 flex-1">
                                             <p className="font-mono text-sm font-medium text-gray-900 dark:text-slate-100">{card.card_number}</p>
@@ -101,7 +101,7 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
                             <button
                                 type="submit"
                                 disabled={selected.length === 0 || form.processing}
-                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
                             >
                                 {form.processing ? t('common.saving') : `${idCards.createPrintBatch} (${selected.length})`}
                             </button>

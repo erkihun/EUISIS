@@ -132,7 +132,7 @@ export default function EndpointAssignment({ endpoints, selected, onChange }: Pr
                 <button
                     type="button"
                     onClick={() => onChange([])}
-                    className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                 >
                     {t('apiManagement.clearSelection')}
                 </button>
@@ -153,7 +153,7 @@ export default function EndpointAssignment({ endpoints, selected, onChange }: Pr
                                 <button
                                     type="button"
                                     onClick={() => selectGroup(rows)}
-                                    className="text-[11px] font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                    className="text-[11px] font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                 >
                                     {t('apiManagement.selectAllInGroup')}
                                 </button>

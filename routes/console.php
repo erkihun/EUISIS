@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // API request logs grow with every integration call; keep 90 days.
 Schedule::command('api:prune-logs')->dailyAt('02:30');
+
+// Challenge nonces are only meaningful until they expire; keep a short tail.
+Schedule::command('nfc:prune-challenges')->dailyAt('02:45');

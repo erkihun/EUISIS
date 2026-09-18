@@ -43,7 +43,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                             {occupation.can?.update && (
                                 <Link
                                     href={route('occupations.edit', occupation.id)}
-                                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     {t('common.edit')}
                                 </Link>
@@ -73,7 +73,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
         >
             <Head title={occupation.name_en ?? occupation.isco_code} />
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
                     <div className="grid gap-4 md:grid-cols-2 text-sm">
                         <Field label={t('occupations.iscoCode')} value={occupation.isco_code} mono />
                         <Field
@@ -110,7 +110,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                     )}
                 </section>
                 <aside className="space-y-4">
-                    <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="text-xs text-gray-500 dark:text-slate-400">{t('common.createdAt')}</div>
                         <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
                             <LocalizedDateDisplay value={occupation.created_at} withTime />
@@ -123,7 +123,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                     <div>
                         <Link
                             href={route('occupations.index')}
-                            className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                            className="text-sm text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
                         >
                             {t('occupations.backToList')}
                         </Link>

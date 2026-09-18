@@ -141,7 +141,7 @@ export default function OrganizationUnitTree({
                     <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
                     <input
                         type="text"
-                        className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
+                        className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
                         placeholder={t('organizationUnits.searchUnits')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -165,7 +165,7 @@ export default function OrganizationUnitTree({
                     {canCreate && (
                         <Link
                             href={route('organization-units.create', { organization_id: selectedOrgId })}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                         >
                             <Plus className="h-3.5 w-3.5" />
                             {t('organizationUnits.addOrganizationUnit')}
@@ -181,7 +181,7 @@ export default function OrganizationUnitTree({
                         canCreate ? (
                             <Link
                                 href={route('organization-units.create', { organization_id: selectedOrgId })}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 <Plus className="h-4 w-4" />
                                 {t('organizationUnits.addOrganizationUnit')}
@@ -190,20 +190,20 @@ export default function OrganizationUnitTree({
                     }
                 />
             ) : (
-                <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <table className="w-full text-sm">
                         <thead className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
                             <tr>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                     {t('common.name')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                     {t('organizationUnits.unitType')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
                                     {t('common.status')}
                                 </th>
-                                <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-slate-400">
                                     {t('organizationUnits.childUnits')}
                                 </th>
                                 <th className="px-4 py-3" />

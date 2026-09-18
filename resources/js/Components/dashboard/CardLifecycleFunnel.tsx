@@ -30,8 +30,8 @@ export default function CardLifecycleFunnel({ data, t }: Props) {
                             </span>
                             <span className="font-semibold text-gray-900 dark:text-slate-100">{item.value}</span>
                         </div>
-                        <div className="h-10 rounded-xl bg-gray-100 p-1 dark:bg-slate-800">
-                            <div className="flex h-full items-center rounded-lg bg-blue-600 px-3 text-sm font-medium text-white" style={{ width: `${width}%` }}>
+                        <div className="h-10 rounded-card bg-gray-100 p-1 dark:bg-slate-800">
+                            <div className="flex h-full items-center rounded-lg bg-[color:var(--color-primary)] px-3 text-sm font-medium text-white" style={{ width: `${width}%` }}>
                                 {item.value}
                             </div>
                         </div>

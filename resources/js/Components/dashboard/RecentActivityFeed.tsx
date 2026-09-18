@@ -51,7 +51,7 @@ export default function RecentActivityFeed({ items, t }: Props) {
             {items.map((item) => (
                 <div
                     key={item.id}
-                    className="flex items-start gap-3 rounded-xl border border-gray-100 px-4 py-3 dark:border-slate-800"
+                    className="flex items-start gap-3 rounded-card border border-gray-100 px-4 py-3 dark:border-slate-800"
                 >
                     {/* Severity indicator */}
                     <span

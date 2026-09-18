@@ -6,7 +6,7 @@ interface Props {
 }
 
 const barTone = {
-    blue: 'bg-blue-600',
+    blue: 'bg-[color:var(--color-primary)]',
     orange: 'bg-orange-500',
     green: 'bg-emerald-500',
 } as const;

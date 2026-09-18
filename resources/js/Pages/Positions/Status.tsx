@@ -86,7 +86,7 @@ export default function PositionStatus({ summary, positions, organizations, orga
         { label: t('positions.vacantPositions'), value: summary.vacant_positions, icon: Inbox },
     ];
 
-    const inputClass = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputClass = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function optionLabel(option: SelectOption): string {
         return (useAmharic ? option.name_am : option.name_en) ?? option.name_en ?? option.id;
@@ -132,7 +132,7 @@ export default function PositionStatus({ summary, positions, organizations, orga
                     })}
                 </section>
 
-                <section className="rounded-xl border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                     <form className={`grid gap-3 ${isOrganizationScoped ? 'lg:grid-cols-4' : 'lg:grid-cols-5'}`} onSubmit={submit}>
                         <input
                             className={`${inputClass} lg:col-span-2`}
@@ -171,7 +171,7 @@ export default function PositionStatus({ summary, positions, organizations, orga
                                 <option value="1">{t('common.active')}</option>
                                 <option value="0">{t('common.inactive')}</option>
                             </select>
-                            <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                            <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                 {t('common.filter')}
                             </button>
                         </div>
@@ -192,7 +192,7 @@ export default function PositionStatus({ summary, positions, organizations, orga
                     </form>
                 </section>
 
-                <section className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <section className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {positions.data.length === 0 ? (
                         <div className="p-10 text-center text-sm text-gray-500 dark:text-slate-400">{t('positions.noPositionStatusFound')}</div>
                     ) : (
@@ -228,7 +228,7 @@ export default function PositionStatus({ summary, positions, organizations, orga
                                                 )}
                                                 <td className="whitespace-nowrap px-4 py-3">{departmentName}</td>
                                                 <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">
-                                                    <Link href={route('positions.show', position.position_id)} className="text-blue-600 hover:text-blue-800 dark:text-blue-400">
+                                                    <Link href={route('positions.show', position.position_id)} className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                                                         {position.job_position_code ?? position.establishment_number ?? '-'}
                                                     </Link>
                                                 </td>
@@ -254,7 +254,7 @@ export default function PositionStatus({ summary, positions, organizations, orga
                                                     {position.vacant_positions > 0 && position.establishment_id && (
                                                         <Link
                                                             href={route('vacancy-announcements.create', { establishment: position.establishment_id })}
-                                                            className="rounded-lg bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+                                                            className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                                         >
                                                             {t('vacancies.announceVacancy')}
                                                         </Link>

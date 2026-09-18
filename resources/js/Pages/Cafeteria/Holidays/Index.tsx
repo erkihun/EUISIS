@@ -37,7 +37,7 @@ export default function HolidaysIndex({ holidays, meta, filters, year, can }: { 
                 <PageHeader
                     title={t('cafeteria.holidays')}
                     actions={can.create ? (
-                        <Link href={route('cafeteria.holidays.create')} className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                        <Link href={route('cafeteria.holidays.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                             + {t('cafeteria.addHoliday')}
                         </Link>
                     ) : undefined}
@@ -48,10 +48,10 @@ export default function HolidaysIndex({ holidays, meta, filters, year, can }: { 
             <div className="space-y-4">
                 <form className="flex gap-3" onSubmit={submit}>
                     <input type="number" name="year" defaultValue={String(year)} min="2000" max="2100" className={inputCls} style={{ width: 90 }} />
-                    <button type="submit" className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700">{t('common.filter')}</button>
+                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.filter')}</button>
                 </form>
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {holidays.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
@@ -73,7 +73,7 @@ export default function HolidaysIndex({ holidays, meta, filters, year, can }: { 
                                             <td className="px-4 py-3 text-center">{h.is_recurring ? '✓' : '—'}</td>
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex justify-end gap-2">
-                                                    {h.can.update && <Link href={route('cafeteria.holidays.edit', h.id)} className="text-xs text-blue-600 hover:underline">{t('common.edit')}</Link>}
+                                                    {h.can.update && <Link href={route('cafeteria.holidays.edit', h.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}
                                                     {h.can.archive && !h.deleted_at && <button onClick={() => handleArchive(h.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
                                                 </div>
                                             </td>

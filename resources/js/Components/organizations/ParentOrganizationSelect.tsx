@@ -45,7 +45,7 @@ type ParentOrganizationResponse = {
 };
 
 const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900';
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900';
 
 export default function ParentOrganizationSelect({
     value,
@@ -169,7 +169,7 @@ export default function ParentOrganizationSelect({
                 )}
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
+            <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-950">
                 <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2 text-xs font-medium text-gray-500 dark:border-slate-800 dark:text-slate-400">
                     <span>{labels.eligibleParents}</span>
                     <span>{loading ? '...' : displayOptions.length}</span>

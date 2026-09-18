@@ -1,6 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
 import Button from '@/Components/Button';
-import { RefreshIcon } from '@/Components/Icons';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
 interface OrganizationOption {
@@ -20,6 +19,22 @@ interface Props {
     t: (key: string) => string;
 }
 
+const controlCls =
+    'h-9 rounded-control border-gray-300 text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+
+/**
+ * Scope controls for the dashboard: how far back, and whose data.
+ *
+ * Previously a full-width bordered card carrying four stacked label/control
+ * pairs and two buttons — "Refresh" and "Filter" — which called the same
+ * submit handler and did exactly the same thing. It was the tallest element
+ * above the fold and the first thing a reader met after the page title.
+ *
+ * Now an inline toolbar. Changing the range or the organization applies
+ * immediately, so neither button is needed; the custom date pair appears only
+ * when "Custom range" is chosen, and brings the one button that is genuinely
+ * required, because a half-typed date range must not fire a query.
+ */
 export default function DateRangeFilter({ filters, t }: Props) {
     const form = useForm({
         date_range: filters.dateRange,
@@ -28,74 +43,75 @@ export default function DateRangeFilter({ filters, t }: Props) {
         organization_id: filters.organizationId ?? '',
     });
 
-    const submit = () => {
-        router.get(route('dashboard'), form.data, {
-            preserveState: true,
-            replace: true,
-        });
+    const isCustom = form.data.date_range === 'custom';
+
+    const apply = (data = form.data) => {
+        router.get(route('dashboard'), data, { preserveState: true, replace: true });
+    };
+
+    /* Applies on change, except for "custom" — that one waits for the dates. */
+    const applyNow = (patch: Partial<typeof form.data>) => {
+        const next = { ...form.data, ...patch };
+        form.setData(next);
+
+        if (next.date_range !== 'custom') {
+            apply(next);
+        }
     };
 
     return (
-        <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-end">
-            <div className="grid flex-1 gap-3 md:grid-cols-4">
-                <label className="text-sm">
-                    <span className="mb-1 block text-gray-600 dark:text-slate-300">{t('dashboard.dateRange')}</span>
-                    <select
-                        value={form.data.date_range}
-                        onChange={(event) => form.setData('date_range', event.target.value)}
-                        className="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    >
-                        <option value="today">{t('dashboard.filters.today')}</option>
-                        <option value="7d">{t('dashboard.filters.last7Days')}</option>
-                        <option value="30d">{t('dashboard.filters.last30Days')}</option>
-                        <option value="90d">{t('dashboard.filters.last90Days')}</option>
-                        <option value="custom">{t('dashboard.filters.customRange')}</option>
-                    </select>
-                </label>
+        <div className="flex flex-wrap items-center gap-2">
+            <select
+                aria-label={t('dashboard.dateRange')}
+                value={form.data.date_range}
+                onChange={(event) => applyNow({ date_range: event.target.value })}
+                className={controlCls}
+            >
+                <option value="today">{t('dashboard.filters.today')}</option>
+                <option value="7d">{t('dashboard.filters.last7Days')}</option>
+                <option value="30d">{t('dashboard.filters.last30Days')}</option>
+                <option value="90d">{t('dashboard.filters.last90Days')}</option>
+                <option value="custom">{t('dashboard.filters.customRange')}</option>
+            </select>
 
-                <label className="text-sm">
-                    <span className="mb-1 block text-gray-600 dark:text-slate-300">{t('common.effectiveFrom')}</span>
+            {isCustom && (
+                <>
                     <LocalizedDatePicker
                         value={form.data.date_from}
                         onChange={(iso) => form.setData('date_from', iso)}
-                        className="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        className={controlCls}
                     />
-                </label>
-
-                <label className="text-sm">
-                    <span className="mb-1 block text-gray-600 dark:text-slate-300">{t('common.effectiveTo')}</span>
+                    <span aria-hidden="true" className="text-sm text-gray-400 dark:text-slate-600">
+                        –
+                    </span>
                     <LocalizedDatePicker
                         value={form.data.date_to}
                         onChange={(iso) => form.setData('date_to', iso)}
-                        className="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        className={controlCls}
                     />
-                </label>
+                    <Button type="button" size="sm" onClick={() => apply()}>
+                        {t('common.filter')}
+                    </Button>
+                </>
+            )}
 
-                <label className="text-sm">
-                    <span className="mb-1 block text-gray-600 dark:text-slate-300">{t('organizations.organization')}</span>
-                    <select
-                        value={form.data.organization_id}
-                        onChange={(event) => form.setData('organization_id', event.target.value)}
-                        className="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    >
-                        <option value="">{t('dashboard.filters.allOrganizations')}</option>
-                        {filters.organizationOptions.map((organization) => (
-                            <option key={organization.id} value={organization.id}>
-                                {organization.name}
-                            </option>
-                        ))}
-                    </select>
-                </label>
-            </div>
-
-            <div className="flex items-center gap-2">
-                <Button type="button" onClick={submit}>
-                    {t('dashboard.refresh')}
-                </Button>
-                <Button type="button" variant="outline" onClick={submit} icon={<RefreshIcon className="h-4 w-4" />}>
-                    {t('common.filter')}
-                </Button>
-            </div>
+            {/* Hidden entirely when the viewer is scoped to one organization —
+                a dropdown with a single choice is not a choice. */}
+            {filters.organizationOptions.length > 1 && (
+                <select
+                    aria-label={t('organizations.organization')}
+                    value={form.data.organization_id}
+                    onChange={(event) => applyNow({ organization_id: event.target.value })}
+                    className={`${controlCls} max-w-[16rem]`}
+                >
+                    <option value="">{t('dashboard.filters.allOrganizations')}</option>
+                    {filters.organizationOptions.map((organization) => (
+                        <option key={organization.id} value={organization.id}>
+                            {organization.name}
+                        </option>
+                    ))}
+                </select>
+            )}
         </div>
     );
 }

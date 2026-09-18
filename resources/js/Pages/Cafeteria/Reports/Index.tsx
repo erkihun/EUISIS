@@ -64,7 +64,7 @@ export default function ReportsIndex({
                         can.generate ? (
                             <button
                                 onClick={() => setShowForm(!showForm)}
-                                className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('cafeteria.generateReport')}
                             </button>
@@ -79,7 +79,7 @@ export default function ReportsIndex({
                 {showForm && (
                     <form
                         onSubmit={submit}
-                        className="rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-900 dark:bg-blue-950/30"
+                        className="rounded-card border border-blue-200 bg-blue-50 p-5 dark:border-blue-900 dark:bg-blue-950/30"
                     >
                         <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">{t('cafeteria.generateReport')}</h3>
                         <div className="grid gap-4 sm:grid-cols-3">
@@ -100,7 +100,7 @@ export default function ReportsIndex({
                             </div>
                         </div>
                         <div className="mt-4 flex gap-3">
-                            <button type="submit" disabled={form.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                            <button type="submit" disabled={form.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                                 {t('cafeteria.generateReport')}
                             </button>
                             <button type="button" onClick={() => setShowForm(false)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300">
@@ -110,7 +110,7 @@ export default function ReportsIndex({
                     </form>
                 )}
 
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {reports.length === 0 ? (
                         <EmptyState title={t('common.noResults')} />
                     ) : (
@@ -137,7 +137,7 @@ export default function ReportsIndex({
                                             <td className="px-4 py-3 text-right font-medium text-emerald-600">{rpt.totals?.total_subsidy?.toFixed(2) ?? '—'}</td>
                                             <td className="px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={rpt.generated_at} withTime /></td>
                                             <td className="px-4 py-3 text-right">
-                                                <Link href={route('cafeteria.reports.show', rpt.id)} className="text-xs text-blue-600 hover:underline">
+                                                <Link href={route('cafeteria.reports.show', rpt.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">
                                                     {t('common.view')}
                                                 </Link>
                                             </td>

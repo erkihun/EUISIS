@@ -22,7 +22,7 @@ export default function ProvidersCreate({ organizations }: { organizations: OrgO
         is_active: true,
     });
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-60';
+    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-60';
 
     function orgLabel(o: OrgOption): string {
         return (locale === 'am' && o.name_am) ? o.name_am : o.name_en;
@@ -37,7 +37,7 @@ export default function ProvidersCreate({ organizations }: { organizations: OrgO
         <AuthenticatedLayout
             header={<PageHeader title={t('cafeteria.addProvider')} backHref={route('cafeteria.providers.index')} />}
         >
-            <form onSubmit={submit} className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <form onSubmit={submit} className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <div className="border-b border-gray-200 px-6 py-4 dark:border-slate-800">
                     <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.provider')}</h2>
                 </div>
@@ -98,7 +98,7 @@ export default function ProvidersCreate({ organizations }: { organizations: OrgO
                     <Link href={route('cafeteria.providers.index')} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
                         {t('common.cancel')}
                     </Link>
-                    <button type="submit" disabled={form.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60">
+                    <button type="submit" disabled={form.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                         {t('common.save')}
                     </button>
                 </div>

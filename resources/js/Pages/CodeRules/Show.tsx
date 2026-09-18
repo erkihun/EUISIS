@@ -78,7 +78,7 @@ export default function CodeRulesShow({
                     actions={(
                         <div className="flex gap-3">
                             {codeRule.can.update && (
-                                <Link href={route('code-rules.edit', codeRule.id)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                <Link href={route('code-rules.edit', codeRule.id)} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     {t('common.edit')}
                                 </Link>
                             )}
@@ -101,38 +101,38 @@ export default function CodeRulesShow({
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_360px]">
                 <section className="space-y-6">
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.entityType')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.entityType')}</p>
                                 <div className="mt-2"><CodeRuleEntityTypeBadge entityType={codeRule.entity_type} /></div>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('common.status')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('common.status')}</p>
                                 <div className="mt-2"><CodeRuleStatusBadge isActive={codeRule.is_active} /></div>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.scope')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.scope')}</p>
                                 <p className="mt-1 text-sm text-gray-900 dark:text-slate-100">{codeRule.scope_label ?? t('codeRules.globalRule')}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.resetFrequency')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.resetFrequency')}</p>
                                 <p className="mt-1 text-sm text-gray-900 dark:text-slate-100">{t(`codeRules.resetFrequencies.${codeRule.reset_frequency}` as Parameters<typeof t>[0])}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.prefix')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.prefix')}</p>
                                 <p className="mt-1 font-mono text-sm text-gray-900 dark:text-slate-100">{codeRule.prefix ?? '—'}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.suffix')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.suffix')}</p>
                                 <p className="mt-1 font-mono text-sm text-gray-900 dark:text-slate-100">{codeRule.suffix ?? '—'}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.sequenceLength')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.sequenceLength')}</p>
                                 <p className="mt-1 text-sm text-gray-900 dark:text-slate-100">{codeRule.sequence_length}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.sequenceScopeStrategy')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.sequenceScopeStrategy')}</p>
                                 <p className="mt-1 flex items-center gap-2 text-sm text-gray-900 dark:text-slate-100">
                                     {strategyLabel}
                                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${isGlobal ? 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}`}>
@@ -143,17 +143,17 @@ export default function CodeRulesShow({
                         </div>
 
                         <div className="mt-6">
-                            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.format')}</p>
+                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.format')}</p>
                             <p className="mt-1 font-mono text-sm text-gray-900 dark:text-slate-100">{codeRule.format}</p>
                         </div>
 
                         <div className="mt-6 grid gap-4 md:grid-cols-2">
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.descriptionEn')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.descriptionEn')}</p>
                                 <p className="mt-1 text-sm leading-6 text-gray-700 dark:text-slate-300">{codeRule.description_en ?? '—'}</p>
                             </div>
                             <div>
-                                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.descriptionAm')}</p>
+                                <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.descriptionAm')}</p>
                                 <p className="mt-1 text-sm leading-6 text-gray-700 dark:text-slate-300">{codeRule.description_am ?? '—'}</p>
                             </div>
                         </div>
@@ -161,7 +161,7 @@ export default function CodeRulesShow({
 
                     {/* Sequence Counters */}
                     {can.viewSequences && (
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                             <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">{t('codeRules.sequenceCounters')}</h3>
                             {sequences.length === 0 ? (
                                 <p className="text-sm text-gray-500 dark:text-slate-400">{t('codeRules.noSequencesYet')}</p>
@@ -170,11 +170,11 @@ export default function CodeRulesShow({
                                     <table className="w-full text-sm">
                                         <thead>
                                             <tr className="border-b border-gray-100 text-left dark:border-slate-700">
-                                                <th className="pb-2 pr-4 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.scopeKey')}</th>
-                                                <th className="pb-2 pr-4 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.nextNumber')}</th>
-                                                <th className="pb-2 pr-4 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.lastNumber')}</th>
-                                                <th className="pb-2 pr-4 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('codeRules.lastGeneratedCode')}</th>
-                                                {can.resetSequence && <th className="pb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400" />}
+                                                <th className="pb-2 pr-4 text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.scopeKey')}</th>
+                                                <th className="pb-2 pr-4 text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.nextNumber')}</th>
+                                                <th className="pb-2 pr-4 text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.lastNumber')}</th>
+                                                <th className="pb-2 pr-4 text-xs font-medium text-gray-500 dark:text-slate-400">{t('codeRules.lastGeneratedCode')}</th>
+                                                {can.resetSequence && <th className="pb-2 text-xs font-medium text-gray-500 dark:text-slate-400" />}
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
@@ -221,7 +221,7 @@ export default function CodeRulesShow({
                         preview={codeRule.preview}
                         usesRandomToken={codeRule.format.includes('{RAND_6}')}
                     />
-                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="space-y-3 text-sm text-gray-700 dark:text-slate-300">
                             <div className="flex items-center justify-between gap-3">
                                 <span>{t('codeRules.manualOverride')}</span>

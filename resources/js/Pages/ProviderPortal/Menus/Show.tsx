@@ -66,9 +66,9 @@ export default function MenuShow({ providers, selected_provider_id, menu }: {
 
             <div className="mx-auto max-w-2xl space-y-4">
                 {/* Details */}
-                <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="border-b border-gray-100 px-5 py-4 dark:border-slate-800">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('providerPortal.menus')}</p>
+                        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">{t('providerPortal.menus')}</p>
                         <p className="mt-1 font-semibold text-gray-900 dark:text-slate-100">{title}</p>
                     </div>
                     <div className="px-5">
@@ -85,7 +85,7 @@ export default function MenuShow({ providers, selected_provider_id, menu }: {
 
                 {/* Menu items */}
                 {menu.items && menu.items.length > 0 && (
-                    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                         <div className="border-b border-gray-100 px-5 py-4 dark:border-slate-800">
                             <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('providerPortal.items')}</p>
                         </div>

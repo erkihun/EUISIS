@@ -44,7 +44,7 @@ export default function TransportScanPanel({
 
     return (
         <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
-            <form onSubmit={submit} className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <form onSubmit={submit} className="space-y-4 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                 {providers.length > 0 && (
                     <select value={providerId} onChange={(event) => setProviderId(event.target.value)} className="w-full rounded-md border-slate-300 dark:border-slate-700 dark:bg-slate-950" required>
                         <option value="">Transport Provider</option>

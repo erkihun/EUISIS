@@ -4,7 +4,7 @@ import RatingStars from '@/Components/ServiceFeedback/RatingStars';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
-import { MessageSquare, Star, AlertTriangle, Inbox } from 'lucide-react';
+import { MessageSquareIcon as MessageSquare, StarIcon as Star, AlertTriangle, Inbox } from '@/Components/Icons';
 import type { JSX } from 'react';
 
 type NamePair = { en: string | null; am: string | null } | null;
@@ -107,7 +107,7 @@ export default function ServiceFeedbackDashboard({
                 </div>
 
                 {/* Rating distribution */}
-                <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                         {t('serviceFeedback.ratingDistribution')}
                     </h2>
@@ -139,7 +139,7 @@ export default function ServiceFeedbackDashboard({
                 </div>
 
                 {/* Recent comments */}
-                <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                         {t('serviceFeedback.recentComments')}
                     </h2>
@@ -160,7 +160,7 @@ export default function ServiceFeedbackDashboard({
                                         </div>
                                         <Link
                                             href={route('service-feedback.admin.show', item.id)}
-                                            className="shrink-0 text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                            className="shrink-0 text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                         >
                                             {t('common.view')}
                                         </Link>
@@ -177,7 +177,7 @@ export default function ServiceFeedbackDashboard({
 
 function GroupCard({ title, rows, emptyLabel }: { title: string; rows: GroupRow[]; emptyLabel: string }): JSX.Element {
     return (
-        <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
 
             {rows.length === 0 ? (

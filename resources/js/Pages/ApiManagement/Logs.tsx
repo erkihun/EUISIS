@@ -29,12 +29,12 @@ export default function ApiManagementLogs({ logs }: Props) {
             <Head title={t('apiManagement.apiLogs')} />
 
             <div className="mb-4">
-                <Link href={route('api-management.index')} className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                     &larr; {t('apiManagement.title')}
                 </Link>
             </div>
 
-            <section className="overflow-x-auto rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <section className="overflow-x-auto rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <table className="min-w-full text-left text-sm">
                     <thead className="bg-gray-50 dark:bg-slate-950">
                         <tr>

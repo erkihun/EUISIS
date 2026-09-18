@@ -6,6 +6,7 @@ namespace App\Enums;
 
 enum AuditEventType: string
 {
+    case NfcEvent = 'nfc_event';
     case EmployeeCreated = 'employee_created';
     case EmployeeUpdated = 'employee_updated';
     case AssignmentChanged = 'assignment_changed';

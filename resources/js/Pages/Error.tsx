@@ -13,17 +13,17 @@ type Props = {
  */
 function getErrorKeys(status: number): { titleKey: string; messageKey: string } {
     switch (status) {
-        case 400: return { titleKey: 'errors.generic_title',          messageKey: 'errors.bad_request' };
-        case 401: return { titleKey: 'errors.generic_title',          messageKey: 'errors.unauthorized' };
-        case 403: return { titleKey: 'errors.generic_title',          messageKey: 'errors.forbidden' };
-        case 404: return { titleKey: 'errors.generic_title',          messageKey: 'errors.not_found' };
-        case 405: return { titleKey: 'errors.generic_title',          messageKey: 'errors.method_not_allowed' };
-        case 409: return { titleKey: 'errors.generic_title',          messageKey: 'errors.conflict' };
-        case 419: return { titleKey: 'errors.session_expired_title',  messageKey: 'errors.session_expired' };
-        case 422: return { titleKey: 'errors.generic_title',          messageKey: 'errors.validation_failed' };
-        case 429: return { titleKey: 'errors.generic_title',          messageKey: 'errors.too_many_requests' };
-        case 503: return { titleKey: 'errors.generic_title',          messageKey: 'errors.service_unavailable' };
-        default:  return { titleKey: 'errors.generic_title',          messageKey: 'errors.generic' };
+        case 400: return { titleKey: 'errors.generic_title', messageKey: 'errors.bad_request' };
+        case 401: return { titleKey: 'errors.generic_title', messageKey: 'errors.unauthorized' };
+        case 403: return { titleKey: 'errors.generic_title', messageKey: 'errors.forbidden' };
+        case 404: return { titleKey: 'errors.generic_title', messageKey: 'errors.not_found' };
+        case 405: return { titleKey: 'errors.generic_title', messageKey: 'errors.method_not_allowed' };
+        case 409: return { titleKey: 'errors.generic_title', messageKey: 'errors.conflict' };
+        case 419: return { titleKey: 'errors.session_expired_title', messageKey: 'errors.session_expired' };
+        case 422: return { titleKey: 'errors.generic_title', messageKey: 'errors.validation_failed' };
+        case 429: return { titleKey: 'errors.generic_title', messageKey: 'errors.too_many_requests' };
+        case 503: return { titleKey: 'errors.generic_title', messageKey: 'errors.service_unavailable' };
+        default:  return { titleKey: 'errors.generic_title', messageKey: 'errors.generic' };
     }
 }
 
@@ -41,10 +41,10 @@ export default function ErrorPage({ status, error_id }: Props) {
             <Head title={`${status} – ${title}`} />
 
             <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 dark:bg-slate-950">
-                <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="w-full max-w-md rounded-panel border border-gray-200 bg-white p-8 text-center dark:border-slate-800 dark:bg-slate-900">
 
                     {/* Status badge */}
-                    <p className="mb-2 font-mono text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">
+                    <p className="mb-2 font-mono text-xs font-semibold text-gray-400 dark:text-slate-500">
                         {t('errors.error_reference_label')} {status}
                     </p>
 
@@ -73,7 +73,7 @@ export default function ErrorPage({ status, error_id }: Props) {
                             <button
                                 type="button"
                                 onClick={() => window.location.reload()}
-                                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 {t('errors.retry')}
                             </button>
@@ -88,7 +88,7 @@ export default function ErrorPage({ status, error_id }: Props) {
                                 </button>
                                 <Link
                                     href={route('dashboard')}
-                                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     {t('errors.go_home')}
                                 </Link>

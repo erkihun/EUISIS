@@ -112,7 +112,7 @@ function NavItem({ href, active, icon: Icon, label, badge, onClick, mobile }: Na
             <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{label}</span>
             {badge != null && badge > 0 && (
-                <span className="ml-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white">
+                <span className="ml-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-[color:var(--color-primary)] px-1 text-[10px] font-bold text-white">
                     {badge > 99 ? '99+' : badge}
                 </span>
             )}
@@ -153,7 +153,7 @@ export default function PublicLayout({ title, children }: Props) {
 
             <header
                 className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/95 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/95"
-                style={{ borderTop: '3px solid var(--color-accent, #ea580c)' }}
+                style={{ borderTop: '3px solid var(--color-accent, #d12908)' }}
             >
                 <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
                     {/* Logo */}

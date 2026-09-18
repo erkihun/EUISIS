@@ -25,8 +25,8 @@ type ProviderRow = {
 
 function KpiCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</p>
+        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</p>
             <p className="mt-2 text-3xl font-bold tabular-nums text-gray-900 dark:text-slate-100">{value}</p>
             {sub && <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">{sub}</p>}
         </div>
@@ -47,7 +47,7 @@ export default function ProviderDashboard({
     const { t, locale } = useLocale();
     const money = new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400';
+    const thCls = 'px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400';
     const tdCls = 'px-4 py-3 text-sm text-gray-700 dark:text-slate-300';
 
     return (
@@ -69,7 +69,7 @@ export default function ProviderDashboard({
                             {can.create && (
                                 <Link
                                     href={route('cafeteria.providers.create')}
-                                    className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                                    className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                                 >
                                     + {t('cafeteria.addProvider')}
                                 </Link>
@@ -105,14 +105,14 @@ export default function ProviderDashboard({
                 </div>
 
                 {/* Providers table */}
-                <div className="rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-slate-800">
                         <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {t('cafeteria.providers')}
                         </h2>
                         <Link
                             href={route('cafeteria.providers.index')}
-                            className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                            className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                         >
                             {t('common.viewAll')} →
                         </Link>
@@ -145,13 +145,13 @@ export default function ProviderDashboard({
                                         <td className="px-4 py-3">
                                             <Link
                                                 href={route('cafeteria.providers.show', p.id)}
-                                                className="font-medium text-gray-900 hover:text-blue-600 hover:underline dark:text-slate-100 dark:hover:text-blue-400"
+                                                className="font-medium text-gray-900 hover:text-[color:var(--color-primary)] hover:underline dark:text-slate-100 dark:hover:text-blue-400"
                                             >
                                                 {(locale === 'am' && p.name_am) ? p.name_am : p.name_en}
                                             </Link>
                                         </td>
                                         <td className="px-4 py-3 text-center tabular-nums">
-                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
                                                 {p.branches_count}
                                             </span>
                                         </td>
@@ -175,7 +175,7 @@ export default function ProviderDashboard({
                                         <td className="px-4 py-3 text-right">
                                             <Link
                                                 href={route('cafeteria.providers.show', p.id)}
-                                                className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                                                className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                                             >
                                                 {t('common.view')}
                                             </Link>

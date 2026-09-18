@@ -114,7 +114,7 @@ export default function ShowProviderUser({ providerUser }: { providerUser: Provi
 
             <div className="mx-auto max-w-3xl space-y-5">
                 {/* Identity */}
-                <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="border-b border-gray-100 px-6 py-4 dark:border-slate-800">
                         <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Identity</h2>
                     </div>
@@ -131,7 +131,7 @@ export default function ShowProviderUser({ providerUser }: { providerUser: Provi
                 </section>
 
                 {/* Service */}
-                <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="border-b border-gray-100 px-6 py-4 dark:border-slate-800">
                         <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Service</h2>
                     </div>
@@ -150,7 +150,7 @@ export default function ShowProviderUser({ providerUser }: { providerUser: Provi
                 </section>
 
                 {/* Access */}
-                <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="border-b border-gray-100 px-6 py-4 dark:border-slate-800">
                         <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Access</h2>
                     </div>
@@ -178,7 +178,7 @@ export default function ShowProviderUser({ providerUser }: { providerUser: Provi
                 </section>
 
                 {/* Reset Password */}
-                <section id="reset-password" className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <section id="reset-password" className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     <div className="border-b border-gray-100 px-6 py-4 dark:border-slate-800">
                         <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-300">Reset Password</h2>
                     </div>
@@ -191,7 +191,7 @@ export default function ShowProviderUser({ providerUser }: { providerUser: Provi
 
 function ResetPasswordForm({ userId }: { userId: string }) {
     const { confirm } = useConfirm();
-    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
+    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

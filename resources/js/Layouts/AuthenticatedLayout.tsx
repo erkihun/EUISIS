@@ -5,6 +5,7 @@ import Breadcrumbs from '@/Components/Breadcrumbs';
 import AppToaster from '@/Components/ui/AppToaster';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
 
 const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 
@@ -15,9 +16,13 @@ export default function Authenticated({
     const { locale } = useLocale();
     const { getBoolean, getString } = useSystemSettings();
 
-    const primary = getString('appearance.primary_color', '#2563eb');
-    const secondary = getString('appearance.secondary_color', '#1d4ed8');
-    const accent = getString('appearance.accent_color', '#ea580c');
+    /* Defaults mirror the brand tokens in app.css. They are repeated here
+       because this effect writes them onto the root element unconditionally,
+       so a stale default would silently override the stylesheet. */
+    const primary = getString('appearance.primary_color', '#122170');
+    const secondary = getString('appearance.secondary_color', '#1d3084');
+    const accent = getString('appearance.accent_color', '#d12908');
+    const sidebarColor = getString('appearance.sidebar_color', '#ffffff');
     const buttonStyle = getString('appearance.button_style', 'rounded');
     const cardRadius = getString('appearance.card_radius', 'xl');
     const tableDensity = getString('appearance.table_density', 'comfortable');
@@ -51,15 +56,46 @@ export default function Authenticated({
 
     useEffect(() => {
         const root = document.documentElement;
-        root.style.setProperty('--color-primary', primary);
+        /* Write the two theme variants, never `--color-primary` itself: an
+           inline value would outrank the `.dark` rule in app.css and leave
+           dark mode stuck on the light-theme colour. */
+        root.style.setProperty('--color-primary-strong', primary);
+        root.style.setProperty('--color-primary-soft', darkThemeVariant(primary));
         root.style.setProperty('--color-secondary', secondary);
-        root.style.setProperty('--color-accent', accent);
+        root.style.setProperty('--color-accent-strong', accent);
+        root.style.setProperty('--color-accent-soft', darkThemeVariant(accent));
+
+        /*
+         * Sidebar surface, per theme.
+         *
+         * Light mode uses the configured colour as chosen. Dark mode only
+         * honours it when it is already dark — a white sidebar beside a dark
+         * page is not a look anyone picks on purpose, so a light choice falls
+         * back to the dark surface rather than overriding the theme.
+         *
+         * The foreground is derived from whichever background ends up in play,
+         * which is what allows the setting to be a free colour picker: the
+         * labels and icons follow it automatically instead of needing their
+         * own setting (and their own way to be set wrong).
+         */
+        const sidebarDark = isLight(sidebarColor) ? '#0b1020' : sidebarColor;
+        root.style.setProperty('--sidebar-bg-light', sidebarColor);
+        root.style.setProperty('--sidebar-bg-dark', sidebarDark);
+        root.style.setProperty('--sidebar-fg-light', readableForeground(sidebarColor));
+        root.style.setProperty('--sidebar-fg-dark', readableForeground(sidebarDark));
+
+        /* Selected-item colour, kept legible against whatever the sidebar is. */
+        root.style.setProperty('--sidebar-accent-light', sidebarAccent(primary, sidebarColor));
+        root.style.setProperty(
+            '--sidebar-accent-dark',
+            sidebarAccent(darkThemeVariant(primary), sidebarDark),
+        );
         root.dataset.buttonStyle = buttonStyle;
         root.dataset.cardRadius = cardRadius;
         root.dataset.tableDensity = tableDensity;
         root.dataset.stickyTables = String(stickyTableHeaders);
         root.dataset.animations = String(enableAnimations);
-    }, [primary, secondary, accent, buttonStyle, cardRadius, tableDensity, stickyTableHeaders, enableAnimations]);
+    }, [primary, secondary, accent, sidebarColor, buttonStyle, cardRadius, tableDensity, stickyTableHeaders, enableAnimations]);
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-slate-950">

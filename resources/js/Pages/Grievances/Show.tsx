@@ -36,9 +36,9 @@ type Can = {
 
 type Props = { grievance: Grievance; committees: Committee[]; can: Can };
 
-const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
-const sectionCls = 'rounded-xl border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900';
+const sectionCls = 'rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
@@ -130,7 +130,7 @@ export default function GrievancesShow({ grievance, committees, can }: Props): J
                                 </label>
                             </div>
                             <textarea rows={3} className={inputCls} placeholder={t('grievances.requirementNotes')} value={reqForm.data.notes} onChange={e => reqForm.setData('notes', e.target.value)} />
-                            <button type="submit" disabled={!reqForm.data.fulfilled || reqForm.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                            <button type="submit" disabled={!reqForm.data.fulfilled || reqForm.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50">
                                 {t('grievances.checkRequirements')}
                             </button>
                         </form>
@@ -152,7 +152,7 @@ export default function GrievancesShow({ grievance, committees, can }: Props): J
                                 <label className={labelCls}>{t('common.notes')}</label>
                                 <input type="text" className={inputCls} value={assignForm.data.notes} onChange={e => assignForm.setData('notes', e.target.value)} />
                             </div>
-                            <button type="submit" disabled={!assignForm.data.committee_id || assignForm.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                            <button type="submit" disabled={!assignForm.data.committee_id || assignForm.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50">
                                 {t('grievances.assignCommittee')}
                             </button>
                         </form>
@@ -176,7 +176,7 @@ export default function GrievancesShow({ grievance, committees, can }: Props): J
                                 <label className={labelCls}>{t('grievances.responseBodyAm')}</label>
                                 <textarea rows={6} className={inputCls} value={compileForm.data.response_body_am} onChange={e => compileForm.setData('response_body_am', e.target.value)} />
                             </div>
-                            <button type="submit" disabled={!compileForm.data.response_body_en || compileForm.processing} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                            <button type="submit" disabled={!compileForm.data.response_body_en || compileForm.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50">
                                 {t('grievances.compileResponse')}
                             </button>
                         </form>

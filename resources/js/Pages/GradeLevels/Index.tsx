@@ -42,7 +42,7 @@ export default function GradeLevelsIndex({
     });
 
     const inputCls =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -80,7 +80,7 @@ export default function GradeLevelsIndex({
                         can.create ? (
                             <Link
                                 href={route('grade-levels.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             >
                                 <Plus className="h-3.5 w-3.5" />
                                 {t('gradeLevels.createGradeLevel')}
@@ -93,7 +93,7 @@ export default function GradeLevelsIndex({
             <Head title={t('gradeLevels.gradeLevels')} />
 
             <div className="space-y-6">
-                <section className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <form className="grid gap-3 sm:grid-cols-2 md:grid-cols-3" onSubmit={submit}>
                         <input
                             className={inputCls}
@@ -111,7 +111,7 @@ export default function GradeLevelsIndex({
                             <option value="0">{t('common.inactive')}</option>
                         </select>
                         <button
-                            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                             type="submit"
                         >
                             {t('common.filter')}
@@ -119,7 +119,7 @@ export default function GradeLevelsIndex({
                     </form>
                 </section>
 
-                <section className="rounded-2xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                     {gradeLevels.length === 0 ? (
                         <div className="p-6">
                             <EmptyState title={t('gradeLevels.noGradeLevels')} />
@@ -132,7 +132,7 @@ export default function GradeLevelsIndex({
                                         {[t('gradeLevels.name'), t('common.status'), ''].map((heading, i) => (
                                             <th
                                                 key={i}
-                                                className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400"
+                                                className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400"
                                             >
                                                 {heading}
                                             </th>
@@ -148,7 +148,7 @@ export default function GradeLevelsIndex({
                                             <td className="px-4 py-3 font-medium">
                                                 <Link
                                                     href={route('grade-levels.show', gl.id)}
-                                                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                                    className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
                                                 >
                                                     {gl.name}
                                                 </Link>
@@ -169,7 +169,7 @@ export default function GradeLevelsIndex({
                                                     {gl.can.update && (
                                                         <Link
                                                             href={route('grade-levels.edit', gl.id)}
-                                                            className="text-xs font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400"
+                                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
                                                         >
                                                             {t('common.edit')}
                                                         </Link>

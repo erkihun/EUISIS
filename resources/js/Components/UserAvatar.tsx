@@ -35,7 +35,7 @@ export default function UserAvatar({ src, name = 'U', size = 32, className = '' 
         <span
             aria-label={name}
             style={style}
-            className={`inline-flex shrink-0 items-center justify-center rounded-full bg-blue-600 font-semibold text-white ${className}`}
+            className={`inline-flex shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary)] font-semibold text-white ${className}`}
         >
             {initials || '?'}
         </span>

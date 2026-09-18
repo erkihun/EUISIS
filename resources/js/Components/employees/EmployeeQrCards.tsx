@@ -48,7 +48,7 @@ export default function EmployeeQrCards({
     }
 
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                 {t('employees.qrSectionTitle')}
             </h2>
@@ -145,8 +145,8 @@ function QrCard({
     }
 
     return (
-        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-center dark:border-slate-800 dark:bg-slate-950">
-            <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+        <div className="rounded-card border border-gray-100 bg-gray-50 p-4 text-center dark:border-slate-800 dark:bg-slate-950">
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-400">
                 {title}
             </h3>
 

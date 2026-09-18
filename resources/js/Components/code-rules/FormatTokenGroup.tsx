@@ -49,7 +49,7 @@ export default function FormatTokenGroup({
         <div className="border-b border-gray-100 last:border-0 dark:border-slate-800">
             <button
                 type="button"
-                className="flex w-full items-center justify-between px-1 py-2 text-xs font-semibold uppercase tracking-wider text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+                className="flex w-full items-center justify-between px-1 py-2 text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
                 onClick={() => setOpen((v) => !v)}
                 aria-expanded={open}
             >

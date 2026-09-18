@@ -22,9 +22,9 @@ export default function Index({ summary = {} }: { summary?: Record<string, numbe
                 {Object.entries(summary).map(([key, value]) => (
                     <div
                         key={key}
-                        className="overflow-hidden rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                        className="overflow-hidden rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
                     >
-                        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">
+                        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">
                             {t(labels[key] ?? key)}
                         </p>
                         <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-slate-50">{value}</p>
