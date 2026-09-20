@@ -16,7 +16,7 @@ return [
     'issue_date' => 'Issue Date',
     'expiry_date' => 'Exp',
     'card_no' => 'Card No',
-    'signature' => 'Signature',
+    'signature' => 'Authorized Signature',
     'emergency_contact_name' => 'Emergency Contact Name',
     'emergency_contact_phone' => 'Emergency Contact Phone',
     'emergency_contact' => 'Emergency Contact',

@@ -3,7 +3,8 @@ import { useCardDimensions } from '@/Components/IdCards/IdCardTemplateContext';
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toPng } from 'html-to-image';
-import { flushSync } from 'react-dom';
+import { EXPORT_DPI } from '@/hooks/useCardExport';
+import { pixelsForMillimetres, withPngDensity } from '@/utils/pngDensity';
 import axios from 'axios';
 import IdCardPortraitFront from '@/Components/IdCards/IdCardPortraitFront';
 import IdCardPortraitBack from '@/Components/IdCards/IdCardPortraitBack';
@@ -21,19 +22,22 @@ type Props = {
     card: CardForExport;
     isOpen: boolean;
     onClose: () => void;
-    initialAction?: 'print' | 'export_png';
 };
 
-async function capturePortrait(el: HTMLElement): Promise<string> {
+async function capturePortrait(el: HTMLElement, widthMm: number, dpi = EXPORT_DPI): Promise<string> {
     await waitForCardAssets(el);
-    return toPng(el, {
-        pixelRatio: 2,
+    // Exported at the pixel count the card's millimetres need, and stamped
+    // with that density, so the PNG prints at its true physical size.
+    const dataUrl = await toPng(el, {
+        pixelRatio: pixelsForMillimetres(widthMm, dpi) / el.offsetWidth,
         backgroundColor: '#ffffff',
         width: el.offsetWidth,
         height: el.offsetHeight,
         skipFonts: true,
         style: { transform: 'none', transformOrigin: 'top left', margin: '0', padding: '0' },
     });
+
+    return withPngDensity(dataUrl, dpi);
 }
 
 function downloadDataUrl(dataUrl: string, fileName: string): void {
@@ -45,70 +49,46 @@ function downloadDataUrl(dataUrl: string, fileName: string): void {
     document.body.removeChild(a);
 }
 
-export default function CardPortraitPrintExportModal({ card, isOpen, onClose, initialAction = 'export_png' }: Props) {
+export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: Props) {
     const { t, locale } = useLocale();
-    const { width: PORTRAIT_W, height: PORTRAIT_H, printStyle } = useCardDimensions('portrait');
+    const { width: PORTRAIT_W, height: PORTRAIT_H, widthMm: portraitWidthMm, printStyle } = useCardDimensions('portrait');
     const [tab, setTab]           = useState<Tab>('front');
     const [exporting, setExporting] = useState(false);
-    const [printSide, setPrintSide] = useState<PrintSide>(null);
 
     const frontRef      = useRef<HTMLDivElement>(null);
     const backRef       = useRef<HTMLDivElement>(null);
-    const printFrontRef = useRef<HTMLDivElement>(null);
-    const printBackRef  = useRef<HTMLDivElement>(null);
 
     if (!isOpen) return null;
 
     const fmtDate = (v?: string | null) =>
         v ? new Date(v).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : undefined;
 
-    const qrValue = card.qr_verification_url ?? null;
-    const canPrint  = card.can.printAnytime === true;
+    const qrValue = card.feedback_qr_url ?? null;
     const canExport = card.can.exportPng    === true;
 
-    async function audit(side: Tab, action: 'print' | 'export_png') {
-        await axios.post(route('id-cards.export.audit', card.id), { side, action });
+    async function audit(side: Tab) {
+        await axios.post(route('id-cards.export.audit', card.id), { side, action: 'export_png' });
     }
 
     async function handleExport() {
         setExporting(true);
         try {
-            await audit(tab, 'export_png');
+            await audit(tab);
             if (tab === 'front' || tab === 'both') {
                 if (frontRef.current) {
-                    const url = await capturePortrait(frontRef.current);
+                    const url = await capturePortrait(frontRef.current, portraitWidthMm);
                     downloadDataUrl(url, `id-card-${card.card_number}-portrait-front.png`);
                 }
             }
             if (tab === 'back' || tab === 'both') {
                 if (backRef.current) {
-                    const url = await capturePortrait(backRef.current);
+                    const url = await capturePortrait(backRef.current, portraitWidthMm);
                     downloadDataUrl(url, `id-card-${card.card_number}-portrait-back.png`);
                 }
             }
         } catch (e) {
             console.error('Portrait export failed', e);
         } finally {
-            setExporting(false);
-        }
-    }
-
-    async function handlePrint() {
-        setExporting(true);
-        try {
-            await audit(tab, 'print');
-            flushSync(() => setPrintSide(tab));
-            if (tab === 'front' && printFrontRef.current) await waitForCardAssets(printFrontRef.current);
-            else if (tab === 'back' && printBackRef.current) await waitForCardAssets(printBackRef.current);
-            else if (tab === 'both') {
-                if (printFrontRef.current) await waitForCardAssets(printFrontRef.current);
-                if (printBackRef.current)  await waitForCardAssets(printBackRef.current);
-            }
-            window.print();
-        } catch (e) {
-            console.error('Portrait print failed', e);
-        } finally {
-            setPrintSide(null);
             setExporting(false);
         }
     }
@@ -132,7 +112,6 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
     };
 
     const exportLabel = tab === 'front' ? t('idCards.exportFront') : tab === 'back' ? t('idCards.exportBack') : t('idCards.exportBoth');
-    const printLabel  = tab === 'front' ? t('idCards.printFront') : tab === 'back' ? t('idCards.printBack') : t('idCards.printBoth');
 
     return (
         <>
@@ -153,30 +132,8 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                     </div>
                     <div style={{ height: 32 }} />
                     <div ref={backRef} style={{ width: PORTRAIT_W, height: PORTRAIT_H }}>
-                        <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
+                        <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
                     </div>
-                </div>,
-                document.body,
-            )}
-
-            {/* ── Print portal ───────────────────────────────────────────── */}
-            {createPortal(
-                <div className="id-card-print-area" aria-hidden={printSide === null}>
-                    {(printSide === 'front' || printSide === 'both') && (
-                        <div className="id-card-print-card-portrait" style={{ borderRadius: 0, ...printStyle }}>
-                            <div ref={printFrontRef} style={{ width: '100%', height: '100%' }}>
-                                <IdCardPortraitFront {...frontProps} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
-                            </div>
-                        </div>
-                    )}
-                    {printSide === 'both' && <div className="id-card-print-spacer" />}
-                    {(printSide === 'back' || printSide === 'both') && (
-                        <div className="id-card-print-card-portrait" style={{ borderRadius: 0, ...printStyle }}>
-                            <div ref={printBackRef} style={{ width: '100%', height: '100%' }}>
-                                <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
-                            </div>
-                        </div>
-                    )}
                 </div>,
                 document.body,
             )}
@@ -192,7 +149,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                     <div className="flex items-center justify-between px-6 pt-5 pb-3">
                         <div>
                             <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-                                {initialAction === 'print' ? t('idCards.printCard') : t('idCards.exportPng')}
+                                {t('idCards.exportPng')}
                             </h3>
                             <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-0.5">Portrait design</p>
                         </div>
@@ -238,7 +195,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                             <IdCardPortraitFront {...frontProps} />
                         )}
                         {(tab === 'back' || tab === 'both') && (
-                            <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} />
+                            <IdCardPortraitBack cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} />
                         )}
                     </div>
 
@@ -251,19 +208,6 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose, in
                         >
                             {t('common.close')}
                         </button>
-                        {canPrint && (
-                            <button
-                                type="button"
-                                onClick={handlePrint}
-                                disabled={exporting}
-                                className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                            >
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5z" />
-                                </svg>
-                                {exporting ? t('idCards.printingCard') : printLabel}
-                            </button>
-                        )}
                         {canExport && (
                             <button
                                 type="button"

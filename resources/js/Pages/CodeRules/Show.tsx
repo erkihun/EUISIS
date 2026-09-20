@@ -6,6 +6,8 @@ import CodeGenerationLogsTable from '@/Components/code-rules/CodeGenerationLogsT
 import CodeRuleEntityTypeBadge from '@/Components/code-rules/CodeRuleEntityTypeBadge';
 import CodeRulePreviewCard from '@/Components/code-rules/CodeRulePreviewCard';
 import CodeRuleStatusBadge from '@/Components/code-rules/CodeRuleStatusBadge';
+import { useConfirm } from '@/hooks/useConfirm';
+import { usesRandomToken } from '@/Components/code-rules/randomTokens';
 
 type CodeRuleView = {
     id: string;
@@ -62,6 +64,7 @@ export default function CodeRulesShow({
     can: { preview: boolean; viewSequences: boolean; resetSequence: boolean };
 }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
 
     const strategyKey = codeRule.sequence_scope_strategy ?? 'auto';
     const strategyLabel = t(`codeRules.scopeStrategies.${strategyKey}` as Parameters<typeof t>[0]);
@@ -189,8 +192,9 @@ export default function CodeRulesShow({
                                                             <button
                                                                 type="button"
                                                                 className="rounded-md border border-amber-300 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50 dark:border-amber-600 dark:text-amber-400 dark:hover:bg-amber-900/30"
-                                                                onClick={() => {
-                                                                    if (window.confirm(t('codeRules.resetSequence') + '?')) {
+                                                                onClick={async () => {
+                                                                    const result = await confirm({ title: t('codeRules.resetSequence'), description: t('codeRules.resetSequence') + '?', variant: 'warning' });
+                                                                    if (result.confirmed) {
                                                                         router.post(route('code-rules.sequences.reset', { codeRule: codeRule.id, sequence: seq.id }), {}, {
                                                                             onSuccess: () => router.reload({ only: ['sequences'] }),
                                                                         });
@@ -219,7 +223,7 @@ export default function CodeRulesShow({
                 <aside className="space-y-6">
                     <CodeRulePreviewCard
                         preview={codeRule.preview}
-                        usesRandomToken={codeRule.format.includes('{RAND_6}')}
+                        usesRandomToken={usesRandomToken(codeRule.format)}
                     />
                     <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <div className="space-y-3 text-sm text-gray-700 dark:text-slate-300">

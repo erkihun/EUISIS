@@ -17,6 +17,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnitType;
 use App\Models\ServiceType;
 use App\Services\CodeGeneration\CodeFormatTokenRegistry;
+use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -64,7 +65,9 @@ class StoreCodeRuleRequest extends FormRequest
 
                 $format = $this->string('format')->toString();
 
-                if (! is_string($this->input('format')) || (! str_contains($format, '{SEQUENCE}') && ! str_contains($format, '{SEQUENCE_PADDED}') && ! str_contains($format, '{RAND_6}'))) {
+                if (! is_string($this->input('format')) || (! str_contains($format, '{SEQUENCE}')
+                    && ! str_contains($format, '{SEQUENCE_PADDED}')
+                    && ! CodeFormatTokenResolver::usesRandomToken($format))) {
                     $validator->errors()->add('format', __('code-rules.format_must_contain_sequence'));
                 }
 
@@ -128,7 +131,7 @@ class StoreCodeRuleRequest extends FormRequest
             return;
         }
 
-        $excluded = ['SEQUENCE', 'SEQUENCE_PADDED', 'RAND_6'];
+        $excluded = ['SEQUENCE', 'SEQUENCE_PADDED', ...CodeFormatTokenResolver::RANDOM_TOKENS];
 
         foreach ($tokens as $token) {
             if (in_array($token, $excluded, true)) {

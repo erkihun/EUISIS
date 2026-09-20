@@ -19,6 +19,7 @@ use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
+use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -127,7 +128,7 @@ class EmployeeCsvImportService
                 $codeContext = ['organization_id' => $resolved['organization']->id];
                 $rule = $this->codeRuleResolver->resolve(CodeRuleEntityType::Employee, $codeContext);
 
-                if ($manualNumber === '' && str_contains((string) $rule?->format, '{RAND_6}')) {
+                if ($manualNumber === '' && CodeFormatTokenResolver::usesRandomToken($rule?->format)) {
                     $generatedNumber = null;
 
                     for ($attempt = 0; $attempt < self::MAX_RANDOM_CODE_ATTEMPTS; $attempt++) {

@@ -1,25 +1,33 @@
 import axios from 'axios';
 import { toPng } from 'html-to-image';
 import { useRef, useState } from 'react';
-import { flushSync } from 'react-dom';
 import { waitForCardAssets } from '@/hooks/useWaitForCardAssets';
+import { pixelsForMillimetres, withPngDensity } from '@/utils/pngDensity';
 
 // ── Card dimensions ────────────────────────────────────────────────
-// Physical card: ISO/IEC 7810 ID-1 = 85.6 × 54 mm.
+// Physical card: ISO/IEC 7810 ID-1 = 85.6 × 54 mm by default, but a template
+// may set its own width_mm / height_mm, and that is the size the card must
+// print at.
 //
-// We render the offscreen capture node at 428 × 270 px (half the
-// target output) so the card layout — designed for ~400 px wide —
-// looks correct. html-to-image then doubles it via pixelRatio:2 to
-// produce a 856 × 540 px PNG (ISO/IEC 7810 ID-1 at ~254 DPI).
+// The offscreen capture node stays at ~428 px wide because the card layout is
+// designed for that width. The exported pixel count is then derived from the
+// card's millimetres at EXPORT_DPI, and the same density is written into the
+// PNG, so the file prints at its true physical size instead of at whatever
+// the viewer assumes.
 export const CARD_W = 428;
 export const CARD_H = 270;
 
-export type PrintSide = 'front' | 'back' | 'both' | null;
+/**
+ * Print resolution for exported cards. 300 DPI is the standard for card
+ * printing: an 85.6 mm card becomes 1011 px, which holds fine detail in the
+ * QR and Ethiopic text without producing an unwieldy file.
+ */
+export const EXPORT_DPI = 300;
 
 /** Capture an unscaled DOM node as a PNG data URL. */
 async function captureElement(
     el: HTMLElement,
-    opts?: { width?: number; height?: number },
+    opts?: { width?: number; height?: number; widthMm?: number; heightMm?: number; dpi?: number },
 ): Promise<string> {
     // Make sure all images & web fonts have finished loading before
     // html-to-image walks the DOM — otherwise the photo, org logo or
@@ -42,8 +50,16 @@ async function captureElement(
         }
     }
 
-    return await toPng(el, {
-        pixelRatio: 2,
+    // Scale the capture so the output holds exactly the pixels the card's
+    // millimetres need at this DPI. Falls back to 2x when a caller has not
+    // said how big the card is.
+    const dpi = opts?.dpi ?? EXPORT_DPI;
+    const pixelRatio = opts?.widthMm
+        ? pixelsForMillimetres(opts.widthMm, dpi) / targetW
+        : 2;
+
+    const dataUrl = await toPng(el, {
+        pixelRatio,
         backgroundColor: '#ffffff',
         width: targetW,
         height: targetH,
@@ -59,6 +75,9 @@ async function captureElement(
             padding: '0',
         },
     });
+
+    // Stamp the print density so the file carries its physical size.
+    return withPngDensity(dataUrl, dpi);
 }
 
 function downloadDataUrl(dataUrl: string, fileName: string): void {
@@ -70,32 +89,33 @@ function downloadDataUrl(dataUrl: string, fileName: string): void {
     document.body.removeChild(link);
 }
 
-export function useCardExport(cardId: string, cardNumber: string) {
+export function useCardExport(
+    cardId: string,
+    cardNumber: string,
+    /**
+     * The card's real size, from the template. Exports are rendered to the
+     * pixel count these millimetres need at `dpi`, and the PNG carries that
+     * density so it prints at exactly this size.
+     */
+    size?: { widthMm: number; heightMm: number; dpi?: number },
+) {
+    const capture = (el: HTMLElement): Promise<string> => captureElement(el, size);
     const [exporting, setExporting] = useState(false);
     // Capture refs point at the always-rendered offscreen full-size nodes
     // hosted by `CardPrintExportModal`.
     const frontRef = useRef<HTMLDivElement>(null);
     const backRef  = useRef<HTMLDivElement>(null);
-    // Print area refs point at full-size nodes that become visible via the
-    // `@media print` CSS when `window.print()` is called.
-    const printFrontRef = useRef<HTMLDivElement>(null);
-    const printBackRef  = useRef<HTMLDivElement>(null);
-    // Toggles which side is rendered into the print area before printing.
-    const [printSide, setPrintSide] = useState<PrintSide>(null);
 
-    async function auditExport(
-        side: 'front' | 'back' | 'both',
-        action: 'print' | 'export_png' = 'export_png',
-    ): Promise<void> {
-        await axios.post(route('id-cards.export.audit', cardId), { side, action });
+    async function auditExport(side: 'front' | 'back' | 'both'): Promise<void> {
+        await axios.post(route('id-cards.export.audit', cardId), { side, action: 'export_png' });
     }
 
     async function exportFront(): Promise<void> {
         if (!frontRef.current) return;
         setExporting(true);
         try {
-            await auditExport('front', 'export_png');
-            const dataUrl = await captureElement(frontRef.current);
+            await auditExport('front');
+            const dataUrl = await capture(frontRef.current);
             downloadDataUrl(dataUrl, `id-card-${cardNumber}-front.png`);
         } catch (e) {
             console.error('Export failed', e);
@@ -108,8 +128,8 @@ export function useCardExport(cardId: string, cardNumber: string) {
         if (!backRef.current) return;
         setExporting(true);
         try {
-            await auditExport('back', 'export_png');
-            const dataUrl = await captureElement(backRef.current);
+            await auditExport('back');
+            const dataUrl = await capture(backRef.current);
             downloadDataUrl(dataUrl, `id-card-${cardNumber}-back.png`);
         } catch (e) {
             console.error('Export failed', e);
@@ -127,10 +147,10 @@ export function useCardExport(cardId: string, cardNumber: string) {
         if (!frontRef.current || !backRef.current) return;
         setExporting(true);
         try {
-            await auditExport('both', 'export_png');
-            const frontUrl = await captureElement(frontRef.current);
+            await auditExport('both');
+            const frontUrl = await capture(frontRef.current);
             downloadDataUrl(frontUrl, `id-card-${cardNumber}-front.png`);
-            const backUrl  = await captureElement(backRef.current);
+            const backUrl  = await capture(backRef.current);
             downloadDataUrl(backUrl,  `id-card-${cardNumber}-back.png`);
         } catch (e) {
             console.error('Export failed', e);
@@ -139,49 +159,13 @@ export function useCardExport(cardId: string, cardNumber: string) {
         }
     }
 
-    async function printCard(side: 'front' | 'back' | 'both'): Promise<void> {
-        setExporting(true);
-        try {
-            await auditExport(side, 'print');
-
-            // Mount the card(s) into the print area synchronously so the ref
-            // is populated before we try to access it. Without flushSync,
-            // setPrintSide is batched and the ref is still null when we
-            // check it — causing an early return and nothing being printed.
-            flushSync(() => setPrintSide(side));
-
-            // Now the print area is mounted and the ref is non-null.
-            if (side === 'front' && printFrontRef.current) {
-                await waitForCardAssets(printFrontRef.current);
-            } else if (side === 'back' && printBackRef.current) {
-                await waitForCardAssets(printBackRef.current);
-            } else if (side === 'both') {
-                if (printFrontRef.current) await waitForCardAssets(printFrontRef.current);
-                if (printBackRef.current)  await waitForCardAssets(printBackRef.current);
-            }
-
-            window.print();
-        } catch (e) {
-            console.error('Print failed', e);
-        } finally {
-            setPrintSide(null);
-            setExporting(false);
-        }
-    }
-
     return {
         // Capture targets (offscreen, full-size) — used by exportFront/Back/Both.
         frontRef,
         backRef,
-        // Print targets (inside `.id-card-print-area`, full-size) — used by printCard.
-        printFrontRef,
-        printBackRef,
-        // Which side, if any, is currently mounted into the print area.
-        printSide,
         exporting,
         exportFront,
         exportBack,
         exportBoth,
-        printCard,
     };
 }

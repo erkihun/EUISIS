@@ -4,6 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/hooks/useConfirm';
 
 type Provider = {
     id: string;
@@ -33,10 +34,12 @@ export default function ServiceProvidersShow({
     can: { update: boolean; delete: boolean };
 }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
     const deleteForm = useForm({});
 
-    function handleDelete() {
-        if (!window.confirm(t('providers.confirmDelete'))) return;
+    async function handleDelete() {
+        const result = await confirm({ title: t('providers.confirmDelete'), variant: 'danger' });
+        if (!result.confirmed) return;
         deleteForm.delete(route('service-providers.destroy', provider.id));
     }
 

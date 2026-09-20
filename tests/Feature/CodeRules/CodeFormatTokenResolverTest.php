@@ -179,3 +179,34 @@ it('sanitizes values to uppercase alphanumeric with allowed symbols', function (
     expect($this->resolver->sanitize('foo/bar.baz_qux'))->toBe('FOO/BAR.BAZ_QUX');
     expect($this->resolver->sanitize(str_repeat('A', 60)))->toHaveLength(50);
 });
+
+it('resolves rand_8 to exactly eight digits', function (): void {
+    $result = $this->resolver->resolveToken('RAND_8', makeTestRule(), [], $this->now);
+
+    expect($result)->toMatch('/^\d{8}$/')
+        ->and(strlen($result))->toBe(8)
+        ->and((int) $result)->toBeGreaterThanOrEqual(10000000)
+        ->and((int) $result)->toBeLessThanOrEqual(99999999)
+        // Never leading-zero, so the value survives a round trip through a
+        // numeric column or spreadsheet without losing a digit.
+        ->and($result[0])->not->toBe('0');
+});
+
+it('resolves rand_8 to a different value on each call', function (): void {
+    $values = [];
+    for ($i = 0; $i < 25; $i++) {
+        $values[] = $this->resolver->resolveToken('RAND_8', makeTestRule(), [], $this->now);
+    }
+
+    // Not a uniqueness guarantee - that is the database's job - but a constant
+    // here would mean the token is not random at all.
+    expect(count(array_unique($values)))->toBeGreaterThan(1);
+});
+
+it('knows which formats carry a random token', function (): void {
+    expect(CodeFormatTokenResolver::usesRandomToken('AAC-{RAND_8}'))->toBeTrue()
+        ->and(CodeFormatTokenResolver::usesRandomToken('EMP-{RAND_6}'))->toBeTrue()
+        ->and(CodeFormatTokenResolver::usesRandomToken('EMP-{SEQUENCE}'))->toBeFalse()
+        ->and(CodeFormatTokenResolver::usesRandomToken(null))->toBeFalse()
+        ->and(CodeFormatTokenResolver::RANDOM_TOKENS)->toBe(['RAND_6', 'RAND_8']);
+});

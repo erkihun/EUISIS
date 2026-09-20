@@ -110,3 +110,20 @@ it('publishes the secure six digit random token to the code rule UI', function (
         ->and($token['example'])->toBe('EMP-{RAND_6} → EMP-483920')
         ->and($token['is_active'])->toBeTrue();
 });
+
+it('offers rand_8 in the token picker without disturbing rand_6', function (): void {
+    $tokens = $this->registry->all();
+    $randEight = $tokens['RAND_8'];
+
+    expect($randEight['token'])->toBe('RAND_8')
+        ->and($randEight['label_en'])->toBe('8-Digit Random Number')
+        ->and($randEight['label_am'])->toBe('ባለ 8 አሃዝ የዘፈቀደ ቁጥር')
+        ->and($randEight['description_en'])->toBe('Generates a secure random 8-digit numeric value.')
+        ->and($randEight['description_am'])->not->toBe('')
+        ->and($randEight['example'])->toBe('AAC-{RAND_8} → AAC-48392017')
+        ->and($randEight['category'])->toBe('Core')
+        ->and($randEight['is_active'])->toBeTrue()
+        // The existing token is untouched.
+        ->and($tokens['RAND_6']['label_en'])->toBe('6-digit random number')
+        ->and($tokens['RAND_6']['example'])->toBe('EMP-{RAND_6} → EMP-483920');
+});

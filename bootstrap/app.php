@@ -10,6 +10,7 @@ use App\Http\Middleware\EnsureProviderHasActiveAssignment;
 use App\Http\Middleware\EnsureProviderPortalUser;
 use App\Http\Middleware\EnsureProviderServiceEnabled;
 use App\Http\Middleware\EnsureProviderServiceScope;
+use App\Http\Middleware\EnsurePublicSiteEnabled;
 use App\Http\Middleware\ExternalApplicationGate;
 use App\Http\Middleware\ForcePasswordChange;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -68,6 +69,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'mfa' => RequireMfa::class,
             'force.password' => ForcePasswordChange::class,
             'mfa.setup' => EnsureMfaNotRequired::class,
+            'public.site' => EnsurePublicSiteEnabled::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

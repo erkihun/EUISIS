@@ -90,6 +90,7 @@ const common = {
     results: 'results',
     dismiss: 'Dismiss',
     remove: 'Remove',
+    replace: 'Replace',
     undo: 'Undo',
     user: 'User',
     optional: 'Optional',

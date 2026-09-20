@@ -18,8 +18,8 @@ export type CardForExport = {
     qr_payload?: string | null;
     public_card_uuid?: string | null;
     qr_verification_url?: string | null;
+    feedback_qr_url?: string | null;
     can: {
-        printAnytime?: boolean;
         exportPng?: boolean;
         previewSvg?: boolean;
     };
@@ -52,30 +52,27 @@ type Props = {
     isOpen: boolean;
     onClose: () => void;
     /** When true the modal opens already on the "print" workflow rather than export */
-    initialAction?: 'print' | 'export_png';
 };
 
 // Capture element rendered at half the output size so the card layout
 // (designed for ~400 px wide) looks correct. pixelRatio:2 in useCardExport
 // doubles it to produce a 856×540 px PNG.
 
-export default function CardPrintExportModal({ card, isOpen, onClose, initialAction = 'export_png' }: Props) {
+export default function CardPrintExportModal({ card, isOpen, onClose }: Props) {
     const { t, locale } = useLocale();
-    const { width: CARD_W, height: CARD_H, printStyle } = useCardDimensions('landscape');
+    const { width: CARD_W, height: CARD_H, widthMm, heightMm, printStyle } = useCardDimensions('landscape');
     const [tab, setTab] = useState<Tab>('front');
 
     const {
         frontRef,
         backRef,
-        printFrontRef,
-        printBackRef,
-        printSide,
         exporting,
         exportFront,
         exportBack,
         exportBoth,
-        printCard,
-    } = useCardExport(card.id, card.card_number);
+        // The template's own size drives the exported PNG, so it prints at
+        // the size configured on the ID Card Templates page.
+    } = useCardExport(card.id, card.card_number, { widthMm, heightMm });
 
     if (!isOpen) return null;
 
@@ -88,7 +85,6 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
 
     const qrValue = card.qr_verification_url ?? null;
 
-    const canPrint      = card.can.printAnytime === true;
     const canExport     = card.can.exportPng    === true;
     const canPreviewSvg = card.can.previewSvg   === true;
 
@@ -100,10 +96,6 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
         if (tab === 'front')     await exportFront();
         else if (tab === 'back') await exportBack();
         else                     await exportBoth();
-    }
-
-    async function handlePrint() {
-        await printCard(tab);
     }
 
     // Shared card props used by the offscreen capture portal and print portal.
@@ -130,11 +122,6 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
         tab === 'front' ? t('idCards.exportFront')
       : tab === 'back' ? t('idCards.exportBack')
       :                   t('idCards.exportBoth');
-
-    const printLabel =
-        tab === 'front' ? t('idCards.printFront')
-      : tab === 'back' ? t('idCards.printBack')
-      :                   t('idCards.printBoth');
 
     return (
         <>
@@ -171,33 +158,6 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                 document.body,
             )}
 
-            {/* ── Print portal ───────────────────────────────────────────
-                Hidden on screen, made visible by `@media print` rules in
-                app.css. Mounts only the side(s) being printed.
-                Important: do NOT use IdCardCanvas here — its 856×540 inline
-                styles would overflow the 85.6mm×54mm CSS container and the
-                browser would clip instead of scale the card. Plain divs let
-                the card components fill the physical container naturally. */}
-            {createPortal(
-                <div className="id-card-print-area" aria-hidden={printSide === null}>
-                    {(printSide === 'front' || printSide === 'both') && (
-                        <div className="id-card-print-card" style={{ borderRadius: 0, ...printStyle }}>
-                            <div ref={printFrontRef} style={{ width: '100%', height: '100%' }}>
-                                <IdCardFront {...frontProps} rootStyle={{ width: '100%', height: '100%', maxWidth: 'none' }} />
-                            </div>
-                        </div>
-                    )}
-                    {printSide === 'both' && <div className="id-card-print-spacer" />}
-                    {(printSide === 'back' || printSide === 'both') && (
-                        <div className="id-card-print-card" style={{ borderRadius: 0, ...printStyle }}>
-                            <div ref={printBackRef} style={{ width: '100%', height: '100%' }}>
-                                <IdCardBack cardNumber={card.card_number} qrValue={qrValue} emergencyContactName={card.employee?.emergency_contact_name} emergencyContactPhone={card.employee?.emergency_contact_phone} photoUrl={card.employee?.photo_url} rootStyle={{ width: "100%", height: "100%", maxWidth: "none" }} />
-                            </div>
-                        </div>
-                    )}
-                </div>,
-                document.body,
-            )}
 
             {/* Modal overlay */}
             <div
@@ -210,7 +170,7 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 pt-5 pb-3">
                         <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
-                            {initialAction === 'print' ? t('idCards.printCard') : t('idCards.exportPng')}
+                            {t('idCards.exportPng')}
                         </h3>
                         <button
                             type="button"
@@ -292,19 +252,6 @@ export default function CardPrintExportModal({ card, isOpen, onClose, initialAct
                         >
                             {t('common.close')}
                         </button>
-                        {canPrint && (
-                            <button
-                                type="button"
-                                onClick={handlePrint}
-                                disabled={exporting}
-                                className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                            >
-                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5z" />
-                                </svg>
-                                {exporting ? t('idCards.printingCard') : printLabel}
-                            </button>
-                        )}
                         {canExport && (
                             <button
                                 type="button"

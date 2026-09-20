@@ -54,13 +54,16 @@ final readonly class SaveIdCardTemplateAction
                         'name', 'code', 'description', 'orientation', 'width_mm', 'height_mm', 'status', 'is_default',
                         'text_style_config', 'layout_config', 'header_config', 'back_photo_config',
                     ]));
-                    // Both header logos are stored like the backgrounds, each
+                    // Every piece of template artwork — backgrounds, header
+                    // logos, seal and signature — is stored the same way, each
                     // input name mapping to its own column.
                     foreach ([
                         'front_background' => 'front_background_path',
                         'back_background' => 'back_background_path',
                         'logo_primary' => 'logo_primary_path',
                         'logo_secondary' => 'logo_secondary_path',
+                        'seal' => 'seal_path',
+                        'signature' => 'signature_path',
                     ] as $input => $column) {
                         $file = $data[$input] ?? null;
                         if ($file instanceof UploadedFile) {

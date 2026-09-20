@@ -23,6 +23,7 @@ use App\Http\Resources\IdCardResource;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Services\IdCards\CardQrPayloadService;
+use App\Services\Nfc\NfcAccess;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -134,8 +135,12 @@ class IdCardController extends Controller
         $card->makeVisible('qr_payload');
 
         return Inertia::render('IdCards/Show', [
-            'nfc' => app(\App\Services\Nfc\NfcAccess::class)->cardPayload($user, $card),
-            'card' => [...$card->toArray(), 'qr_verification_url' => $qrPayloadService->buildStableQrUrl($card)],
+            'nfc' => app(NfcAccess::class)->cardPayload($user, $card),
+            'card' => [
+                ...$card->toArray(),
+                'qr_verification_url' => $qrPayloadService->buildStableQrUrl($card),
+                'feedback_qr_url' => $card->employee?->activeFeedbackToken?->publicUrl(),
+            ],
             'can' => [
                 'view' => $user?->can('view', $card),
                 'update' => $user?->can('update', $card),
@@ -146,7 +151,6 @@ class IdCardController extends Controller
                 'reportDamaged' => in_array($card->status, [CardStatus::Active, CardStatus::Issued], true) && $user?->can('reportDamaged', $card),
                 'replace' => in_array($card->status, [CardStatus::Lost, CardStatus::Damaged, CardStatus::Expired, CardStatus::Active], true) && $user?->can('replace', $card),
                 'revoke' => ! in_array($card->status, [CardStatus::Revoked, CardStatus::Replaced, CardStatus::Expired], true) && $user?->can('revoke', $card),
-                'printAnytime' => $user?->can('printAnytime', $card),
                 'exportPng' => $user?->can('exportPng', $card),
                 'previewSvg' => $user?->can('previewSvg', $card),
             ],
@@ -170,7 +174,11 @@ class IdCardController extends Controller
         $card->makeVisible('qr_payload');
 
         return Inertia::render('IdCards/Preview', [
-            'card' => [...$card->toArray(), 'qr_verification_url' => $qrPayloadService->buildStableQrUrl($card)],
+            'card' => [
+                ...$card->toArray(),
+                'qr_verification_url' => $qrPayloadService->buildStableQrUrl($card),
+                'feedback_qr_url' => $card->employee?->activeFeedbackToken?->publicUrl(),
+            ],
             'can' => [
                 'print' => $user?->can('print', $card),
             ],
@@ -222,25 +230,20 @@ class IdCardController extends Controller
     public function exportAudit(Request $request, IdCard $card, WriteAuditLogAction $writeAuditLogAction): JsonResponse
     {
         $side = $request->input('side', 'front');
-        $action = $request->input('action', 'export_png');
 
-        if ($action === 'print') {
-            $this->authorize('printAnytime', $card);
-            $eventType = AuditEventType::CardPrintedAnytime;
-        } else {
-            $this->authorize('exportPng', $card);
-            $eventType = AuditEventType::CardExportedPng;
-        }
+        // Direct printing from the browser was removed; a card leaves the
+        // system as a PNG export, which is what this records.
+        $this->authorize('exportPng', $card);
 
         $writeAuditLogAction->execute(
-            $eventType,
+            AuditEventType::CardExportedPng,
             $request->user(),
             $card,
             $card->employee?->currentAssignment?->organization_id,
             newValues: [
                 'card_number' => $card->card_number,
                 'side' => $side,
-                'action' => $action,
+                'action' => 'export_png',
             ],
         );
 

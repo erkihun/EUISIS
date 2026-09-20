@@ -98,6 +98,7 @@ const codeRules = {
         day: '{DAY} inserts the current day.',
         sequence: '{SEQUENCE} inserts the padded next number.',
         randomSix: '{RAND_6} inserts a secure 6-digit random number.',
+        randomEight: '{RAND_8} inserts a secure 8-digit random number.',
         orgCode: '{ORG_CODE} inserts the organization code when available.',
         orgTypeCode: '{ORG_TYPE_CODE} inserts the organization type code when available.',
         orgTypePrefix: '{ORG_TYPE_PREFIX} inserts the organization type prefix when available.',

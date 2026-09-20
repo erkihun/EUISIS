@@ -642,7 +642,7 @@ const en = {
         emergencyContactNameLabel: 'Emergency Contact Name',
         emergencyContactPhoneLabel: 'Emergency Contact Phone',
         emergencyContact: 'Emergency Contact',
-        signatureLabel: 'Signature',
+        signatureLabel: 'Authorized Signature',
         nameLabel: 'Name',
         sexLabel: 'Sex',
         dobLabel: 'Date of Birth',

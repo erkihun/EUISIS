@@ -98,6 +98,7 @@ const codeRules = {
         day: '{DAY} የአሁኑን ቀን ያስገባል።',
         sequence: '{SEQUENCE} የተሞላውን ቀጣይ ቁጥር ያስገባል።',
         randomSix: '{RAND_6} ደህንነቱ የተጠበቀ ባለ 6 አሃዝ የዘፈቀደ ቁጥር ያስገባል።',
+        randomEight: '{RAND_8} ደህንነቱ የተጠበቀ ባለ 8 አሃዝ የዘፈቀደ ቁጥር ያስገባል።',
         orgCode: '{ORG_CODE} ካለ የተቋም ኮድን ያስገባል።',
         orgTypeCode: '{ORG_TYPE_CODE} ካለ የተቋም ዓይነት ኮድን ያስገባል።',
         orgTypePrefix: '{ORG_TYPE_PREFIX} ካለ የተቋም ዓይነት ቅድመ ኮድን ያስገባል።',

@@ -2,6 +2,7 @@ import { PropsWithChildren, ReactNode, useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import AppToaster from '@/Components/ui/AppToaster';
+import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import ThemeToggle from '@/Components/ThemeToggle';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import UserAvatar from '@/Components/UserAvatar';
@@ -195,6 +196,7 @@ export default function CafeteriaProviderAdminLayout({ title, header, children }
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     return (
+        <LocalizedUiProvider>
         <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
             <AppToaster />
 
@@ -231,5 +233,6 @@ export default function CafeteriaProviderAdminLayout({ title, header, children }
                 </main>
             </div>
         </div>
+        </LocalizedUiProvider>
     );
 }

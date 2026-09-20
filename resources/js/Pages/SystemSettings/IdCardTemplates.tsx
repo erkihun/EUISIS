@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import Button from '@/Components/Button';
+import { useConfirm } from '@/hooks/useConfirm';
 import IdCardFront from '@/Components/IdCards/IdCardFront';
 import IdCardBack from '@/Components/IdCards/IdCardBack';
 import IdCardPortraitFront from '@/Components/IdCards/IdCardPortraitFront';
@@ -14,8 +15,11 @@ import {
     BACK_ROLES,
     BACK_LAYOUT_DEFAULTS,
     BACK_LAYOUT_ELEMENTS,
+    LANDSCAPE_FRONT_LAYOUT_ELEMENTS,
     LAYOUT_DEFAULTS,
     LAYOUT_ELEMENTS,
+    PORTRAIT_BACK_LAYOUT_ELEMENTS,
+    PORTRAIT_FRONT_LAYOUT_ELEMENTS,
     type LayoutBox,
     type LayoutElement,
     type TemplatePresentation,
@@ -77,6 +81,8 @@ const ROLE_DEFAULTS: Record<'front' | 'back', Record<string, TextStyle>> = {
         header: { color: '#FFFFFF', font_size: '9px', font_weight: '700' },
         label: { color: '#BFDBFE', font_size: '7px', font_weight: '400' },
         value: { color: '#FFFFFF', font_size: '10px', font_weight: '600' },
+        employee_name: { color: '#FFFFFF', font_size: '12px', font_weight: '700' },
+        employee_position: { color: '#BFDBFE', font_size: '9px', font_weight: '600' },
         footer: { color: '#BFDBFE', font_size: '7px', font_weight: '400' },
     },
     back: {
@@ -149,10 +155,14 @@ function TemplateForm({
         back_background: null as File | null,
         logo_primary: null as File | null,
         logo_secondary: null as File | null,
+        seal: null as File | null,
+        signature: null as File | null,
         remove_front_background: false,
         remove_back_background: false,
         remove_logo_primary: false,
         remove_logo_secondary: false,
+        remove_seal: false,
+        remove_signature: false,
         // Blank means "inherit the system setting", so the stored overrides are
         // what the form edits — never the resolved text.
         header_config: {
@@ -215,6 +225,16 @@ function TemplateForm({
         template?.logo_secondary_url ?? null,
         form.data.remove_logo_secondary,
     );
+    const sealUrl = useBackgroundPreview(
+        form.data.seal,
+        template?.seal_url ?? null,
+        form.data.remove_seal,
+    );
+    const signatureUrl = useBackgroundPreview(
+        form.data.signature,
+        template?.signature_url ?? null,
+        form.data.remove_signature,
+    );
     const presentation: TemplatePresentation = {
         orientation: form.data.orientation,
         width_mm: form.data.width_mm || 85.6,
@@ -235,6 +255,8 @@ function TemplateForm({
         },
         logo_primary_url: logoPrimaryUrl,
         logo_secondary_url: logoSecondaryUrl,
+        seal_url: sealUrl,
+        signature_url: signatureUrl,
         back_photo_config: {
             ...form.data.back_photo_config,
             // The form keeps a blank string so the colour input stays cleared;
@@ -266,9 +288,16 @@ function TemplateForm({
         // A neutral silhouette, inlined so the preview makes no request and
         // shows no real person. Lets the back-photo controls be judged by eye.
         photoUrl: SAMPLE_PHOTO,
+        organizationName: enSettings.templateManager.sample_organization,
+        organizationNameAm: amSettings.templateManager.sample_organization,
+        positionTitle: 'Employee Position',
+        positionTitleAm: 'የሰራተኛ የስራ መደብ',
     };
 
     const portrait = form.data.orientation === 'portrait';
+    const activeStyleGroups = portrait
+        ? STYLE_GROUPS
+        : STYLE_GROUPS.filter(({ role }) => role !== 'employee_name' && role !== 'employee_position');
     const Front = portrait ? IdCardPortraitFront : IdCardFront;
     const Back = portrait ? IdCardPortraitBack : IdCardBack;
     const inputClass =
@@ -290,8 +319,9 @@ function TemplateForm({
      * file input mid-interaction.
      */
     const assetUpload = (
-        field: 'front_background' | 'back_background' | 'logo_primary' | 'logo_secondary',
-        remove: 'remove_front_background' | 'remove_back_background' | 'remove_logo_primary' | 'remove_logo_secondary',
+        field: 'front_background' | 'back_background' | 'logo_primary' | 'logo_secondary' | 'seal' | 'signature',
+        remove: 'remove_front_background' | 'remove_back_background' | 'remove_logo_primary' | 'remove_logo_secondary'
+            | 'remove_seal' | 'remove_signature',
         url: string | null,
     ) => (
         <div
@@ -367,9 +397,18 @@ function TemplateForm({
     }
 
     return (
-        <form onSubmit={submit} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(320px,420px)]">
-            <fieldset disabled={!editable || form.processing} className="min-w-0 space-y-4">
-                <div className="rounded-card border border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
+        <form onSubmit={submit} className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
+            {/*
+             * One editor panel: step bar, the current step's fields, and the
+             * Back / Next footer. These used to be three separate bordered
+             * cards stacked on top of each other, with each field group in a
+             * fourth card inside the middle one.
+             */}
+            <fieldset
+                disabled={!editable || form.processing}
+                className="min-w-0 overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+            >
+                <div className="border-b border-gray-200 px-3 py-2 dark:border-slate-800">
                     <TemplateWizardSteps
                         steps={stepKeys.map((key) => label(key))}
                         current={step}
@@ -451,7 +490,9 @@ function TemplateForm({
                 {/* Header logos — each slot is its own panel, side by side so the
                     left/right split on screen matches the card itself. */}
                 {step === 3 && <>
-                <div className="grid gap-4 md:grid-cols-2">
+                {/* Sections are flush inside the editor panel, so the two
+                    logo slots are split by a rule rather than a gap. */}
+                <div className="grid border-b border-gray-100 md:grid-cols-2 md:divide-x md:divide-gray-100 dark:border-slate-800 md:dark:divide-slate-800 [&>section]:border-b-0">
                 {([
                     { slot: 'left', show: 'show_logo', field: 'logo_primary', remove: 'remove_logo_primary', url: logoPrimaryUrl },
                     { slot: 'right', show: 'show_secondary_logo', field: 'logo_secondary', remove: 'remove_logo_secondary', url: logoSecondaryUrl },
@@ -476,6 +517,24 @@ function TemplateForm({
                             />
                             {label(`headerLogo_${slot}Show`)}
                         </label>
+                        {assetUpload(field, remove, url)}
+                    </TemplateEditorSection>
+                ))}
+                </div>
+
+                {/* Back-face marks. Portrait omits the signature entirely. */}
+                <div className="grid border-b border-gray-100 md:grid-cols-2 md:divide-x md:divide-gray-100 dark:border-slate-800 md:dark:divide-slate-800 [&>section]:border-b-0">
+                {(portrait ? [
+                    { mark: 'seal', field: 'seal', remove: 'remove_seal', url: sealUrl },
+                ] as const : [
+                    { mark: 'seal', field: 'seal', remove: 'remove_seal', url: sealUrl },
+                    { mark: 'signature', field: 'signature', remove: 'remove_signature', url: signatureUrl },
+                ] as const).map(({ mark, field, remove, url }) => (
+                    <TemplateEditorSection
+                        key={mark}
+                        title={label(`${mark}Section`)}
+                        description={label(`${mark}SectionHelp`)}
+                    >
                         {assetUpload(field, remove, url)}
                     </TemplateEditorSection>
                 ))}
@@ -616,9 +675,9 @@ function TemplateForm({
                     title={label('text_style_management')}
                     description={label('text_styling_help')}
                     defaultOpen={false}
-                    badge={<span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-slate-800 dark:text-slate-300">{STYLE_GROUPS.length}</span>}
+                    badge={<span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-slate-800 dark:text-slate-300">{activeStyleGroups.length}</span>}
                 >
-                    {STYLE_GROUPS.map(({ side, role }) => {
+                    {activeStyleGroups.map(({ side, role }) => {
                         const style = form.data.text_style_config[side][role as keyof object] as TextStyle;
                         const groupKey = `${side}_${role}_text`;
                         const set = (patch: Partial<TextStyle>) =>
@@ -704,98 +763,113 @@ function TemplateForm({
                 {error('is_default')}
                 </TemplateEditorSection>}
 
-                {form.progress && <progress className="w-full" value={form.progress.percentage} max="100" />}
+                {form.progress && (
+                    <progress className="block h-1 w-full" value={form.progress.percentage} max="100" />
+                )}
                 {editable && (
-                    // Sticks to the bottom so navigation is always reachable.
-                    <div className="sticky bottom-0 -mx-1 flex flex-wrap items-center gap-3 rounded-card border border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            disabled={step === 0 || form.processing}
-                            onClick={() => setStep((current) => Math.max(0, current - 1))}
-                        >
-                            {label('back')}
-                        </Button>
-                        {step < stepKeys.length - 1 ? (
-                            <Button type="button" disabled={form.processing} onClick={() => goTo(step + 1)}>
-                                {label('next')}
-                            </Button>
-                        ) : (
-                            <Button type="submit" disabled={form.processing}>
-                                {form.processing ? label('saving') : label('save')}
-                            </Button>
-                        )}
-                        <span className="text-xs text-gray-500">
+                    /*
+                     * Footer of the same panel, pinned to the viewport bottom so
+                     * Back / Next stay reachable on the long steps. Status on the
+                     * left, actions on the right — the primary action ends the row.
+                     */
+                    <div className="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+                        <span className="text-xs tabular-nums text-gray-500 dark:text-slate-400">
                             {label('stepCounter')
                                 .replace(':current', String(step + 1))
                                 .replace(':total', String(stepKeys.length))}
                         </span>
                         {form.isDirty && !form.processing && (
-                            <span className="text-xs text-amber-600 dark:text-amber-400">{label('unsavedChanges')}</span>
+                            <span className="text-xs text-amber-700 dark:text-amber-400">{label('unsavedChanges')}</span>
                         )}
+                        <div className="ms-auto flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                disabled={step === 0 || form.processing}
+                                onClick={() => setStep((current) => Math.max(0, current - 1))}
+                            >
+                                {label('back')}
+                            </Button>
+                            {step < stepKeys.length - 1 ? (
+                                <Button type="button" disabled={form.processing} onClick={() => goTo(step + 1)}>
+                                    {label('next')}
+                                </Button>
+                            ) : (
+                                <Button type="submit" disabled={form.processing}>
+                                    {form.processing ? label('saving') : label('save')}
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 )}
             </fieldset>
             {/* Preview follows the admin down the form. */}
-            <div className="space-y-4 self-start rounded-card border border-gray-200 bg-gray-50 p-5 xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
-                <h2 className="font-semibold">{label('live_preview')}</h2>
-                <p className="text-xs text-gray-500">{label('preview_help')}</p>
+            <div className="self-start rounded-panel border border-gray-200 bg-white xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
+                <div className="border-b border-gray-200 px-4 py-2.5 dark:border-slate-800">
+                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{label('live_preview')}</h2>
+                    <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{label('preview_help')}</p>
+                </div>
+                <div className="bg-gray-50 p-4 dark:bg-slate-950/40">
                 <IdCardTemplateContext.Provider value={presentation}>
                     <div className="space-y-4">
                         {/* The designer overlays the real preview, so the box an
                             admin drags is the region that prints. */}
-                        <div className="relative" style={{ width: '100%', maxWidth: portrait ? 260 : 400 }}>
-                            <Front {...sampleCard} />
-                            {!portrait && (
-                                <TemplateLayoutDesigner
-                                    side="front"
-                                    value={form.data.layout_config.front}
-                                    onChange={(front) =>
-                                        form.setData('layout_config', { ...form.data.layout_config, front })
-                                    }
-                                    disabled={!editable || form.processing}
-                                    labels={
-                                        Object.fromEntries(
-                                            LAYOUT_ELEMENTS.map((element) => [element, label(`layout_${element}`)]),
-                                        ) as Record<LayoutElement, string>
-                                    }
-                                    text={{
-                                        reset: label('layout_reset'),
-                                        resetAll: label('layout_reset_all'),
-                                        hint: label('layout_hint'),
-                                    }}
-                                />
-                            )}
+                        <div style={{ width: '100%', maxWidth: portrait ? 260 : 400 }}>
+                            <TemplateLayoutDesigner
+                                side="front"
+                                elements={portrait ? PORTRAIT_FRONT_LAYOUT_ELEMENTS : LANDSCAPE_FRONT_LAYOUT_ELEMENTS}
+                                value={form.data.layout_config.front}
+                                onChange={(front) =>
+                                    form.setData('layout_config', { ...form.data.layout_config, front })
+                                }
+                                disabled={!editable || form.processing}
+                                labels={
+                                    Object.fromEntries(
+                                        (portrait ? PORTRAIT_FRONT_LAYOUT_ELEMENTS : LANDSCAPE_FRONT_LAYOUT_ELEMENTS)
+                                            .map((element) => [element, label(`layout_${element}`)]),
+                                    ) as Record<LayoutElement, string>
+                                }
+                                text={{
+                                    reset: label('layout_reset'),
+                                    resetAll: label('layout_reset_all'),
+                                    hint: label('layout_hint'),
+                                }}
+                            >
+                                <Front {...sampleCard} />
+                            </TemplateLayoutDesigner>
                         </div>
-                        <div className="relative" style={{ width: '100%', maxWidth: portrait ? 260 : 400 }}>
-                            <Back
-                                cardNumber={sampleCard.cardNumber}
-                                qrValue="https://example.invalid/id-card-preview"
-                                emergencyContactName={sampleCard.emergencyContactName}
-                                emergencyContactPhone={sampleCard.phoneNumber}
-                                photoUrl={sampleCard.photoUrl}
-                            />
-                            {!portrait && (
-                                <TemplateLayoutDesigner
-                                    side="back"
-                                    value={form.data.layout_config.back}
-                                    onChange={(back) =>
-                                        form.setData('layout_config', { ...form.data.layout_config, back })
-                                    }
-                                    disabled={!editable || form.processing}
-                                    labels={Object.fromEntries(
-                                        BACK_LAYOUT_ELEMENTS.map((element) => [element, label(`layout_${element}`)]),
-                                    )}
-                                    text={{
-                                        reset: label('layout_reset'),
-                                        resetAll: label('layout_reset_all'),
-                                        hint: label('layout_hint'),
-                                    }}
+                        <div style={{ width: '100%', maxWidth: portrait ? 260 : 400 }}>
+                            <TemplateLayoutDesigner
+                                side="back"
+                                elements={portrait ? PORTRAIT_BACK_LAYOUT_ELEMENTS : BACK_LAYOUT_ELEMENTS}
+                                value={form.data.layout_config.back}
+                                onChange={(back) =>
+                                    form.setData('layout_config', { ...form.data.layout_config, back })
+                                }
+                                disabled={!editable || form.processing}
+                                labels={Object.fromEntries(
+                                    (portrait ? PORTRAIT_BACK_LAYOUT_ELEMENTS : BACK_LAYOUT_ELEMENTS)
+                                        .map((element) => [element, label(`layout_${element}`)]),
+                                )}
+                                text={{
+                                    reset: label('layout_reset'),
+                                    resetAll: label('layout_reset_all'),
+                                    /* Already stated under the front card. */
+                                    hint: '',
+                                }}
+                            >
+                                <Back
+                                    cardNumber={sampleCard.cardNumber}
+                                    qrValue="https://example.invalid/id-card-preview"
+                                    emergencyContactName={sampleCard.emergencyContactName}
+                                    emergencyContactPhone={sampleCard.phoneNumber}
+                                    photoUrl={sampleCard.photoUrl}
                                 />
-                            )}
+                            </TemplateLayoutDesigner>
                         </div>
                     </div>
                 </IdCardTemplateContext.Provider>
+                </div>
             </div>
         </form>
     );
@@ -803,6 +877,7 @@ function TemplateForm({
 
 export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
     const label = (key: string) => t(`settings.templateManager.${key}`);
     const [selected, setSelected] = useState<string | null>(templates[0]?.id ?? null);
     const [revision, setRevision] = useState(0);
@@ -861,8 +936,9 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                                             label: label('delete'),
                                             variant: 'danger',
                                             show: can.delete && (!template.is_default || can.set_default),
-                                            onClick: () => {
-                                                if (window.confirm(label('confirm_delete'))) {
+                                            onClick: async () => {
+                                                const result = await confirm({ title: label('confirm_delete'), variant: 'danger' });
+                                                if (result.confirmed) {
                                                     router.delete(route('id-card-templates.destroy', template.id), {
                                                         onSuccess: () => setSelected(null),
                                                     });
@@ -879,53 +955,46 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
         >
             <Head title={label('title')} />
 
-            <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
-                {/* Template list — one row per template, with its state visible. */}
-                <aside className="lg:sticky lg:top-4 lg:self-start">
-                    <h2 className="mb-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
-                        {label('title')}
-                    </h2>
+            <div className="space-y-4">
+                {/*
+                 * Template selector — a row above the editor, not a column
+                 * beside it. Most institutions keep one to three templates, so
+                 * a 240px sidebar was nearly empty while squeezing the editor
+                 * and preview into what was left; the six-step bar no longer
+                 * fit and cut off its last step.
+                 */}
+                {templates.length > 0 && (
+                    <nav aria-label={label('title')} className="flex flex-wrap gap-2">
+                        {templates.map((item) => {
+                            const active = selected === item.id;
 
-                    {templates.length === 0 ? (
-                        <p className="text-sm text-gray-500 dark:text-slate-400">{label('empty')}</p>
-                    ) : (
-                        <ul className="overflow-hidden rounded-card border border-gray-200 dark:border-slate-800">
-                            {templates.map((item) => (
-                                <li key={item.id} className="border-b border-gray-100 last:border-b-0 dark:border-slate-800">
-                                    <button
-                                        type="button"
-                                        aria-current={selected === item.id ? 'true' : undefined}
-                                        onClick={() => setSelected(item.id)}
-                                        className={[
-                                            'relative block w-full px-3 py-2.5 text-left transition-colors',
-                                            selected === item.id
-                                                ? 'bg-[color:var(--color-primary)]/5'
-                                                : 'hover:bg-gray-50 dark:hover:bg-slate-900',
-                                        ].join(' ')}
-                                    >
-                                        {/* Selection reads as a rail, not a tinted
-                                            box — it survives any brand colour. */}
-                                        {selected === item.id && (
-                                            <span
-                                                aria-hidden="true"
-                                                className="absolute inset-y-0 left-0 w-0.5 bg-[color:var(--color-primary)]"
-                                            />
-                                        )}
-                                        <span className="block truncate text-sm font-medium text-gray-900 dark:text-slate-100">
-                                            {item.name}
-                                        </span>
-                                        <span className="mt-1 flex flex-wrap items-center gap-1">
-                                            {item.is_default && (
-                                                <StatusBadge status="active" label={label('default')} />
-                                            )}
-                                            <StatusBadge status={item.status} label={label(item.status)} />
-                                        </span>
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </aside>
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    aria-current={active ? 'true' : undefined}
+                                    onClick={() => setSelected(item.id)}
+                                    className={[
+                                        'flex min-w-0 max-w-xs items-center gap-2 rounded-card border px-3 py-2 text-left transition-colors',
+                                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
+                                        active
+                                            ? 'border-[color:var(--color-primary)] bg-white ring-1 ring-[color:var(--color-primary)] dark:bg-slate-900'
+                                            : 'border-gray-200 bg-white hover:border-gray-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700',
+                                    ].join(' ')}
+                                >
+                                    <span className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">
+                                        {item.name}
+                                    </span>
+                                    {item.is_default && <StatusBadge status="active" label={label('default')} />}
+                                    {/* Only worth a badge when it is the exception. */}
+                                    {item.status !== 'active' && (
+                                        <StatusBadge status={item.status} label={label(item.status)} />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </nav>
+                )}
 
                 <div className="min-w-0">
                     {template || can.create ? (

@@ -23,6 +23,7 @@ use App\Models\OrganizationUnitType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
+use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
@@ -436,7 +437,7 @@ class OrganizationStructureImportValidator
         }
 
         $rule = $projector->rule($entityType, $context);
-        $usesRandomToken = str_contains((string) $rule?->format, '{RAND_6}');
+        $usesRandomToken = CodeFormatTokenResolver::usesRandomToken($rule?->format);
         $maximumAttempts = $usesRandomToken ? self::MAX_RANDOM_CODE_ATTEMPTS : 1;
         $generated = null;
 

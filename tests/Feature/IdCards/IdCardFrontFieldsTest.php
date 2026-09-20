@@ -22,8 +22,8 @@ use App\Services\IdCards\IdCardSvgRenderer;
 use Spatie\Permission\Models\Permission;
 
 /**
- * The front face carries identity fields only. Organization and position stay
- * in the database (and on the back face) but must not appear on the front.
+ * Landscape keeps the detailed identity grid. Portrait uses the compact
+ * organization, photo, employee name and position arrangement.
  */
 function frontCard(): IdCard
 {
@@ -141,13 +141,38 @@ it('never joins the two languages with a pipe separator', function (string $orie
     }
 })->with(['landscape', 'portrait']);
 
-it('omits position code and organization name from both front layouts', function (string $orientation): void {
-    $svg = renderFrontSvg(frontCard(), $orientation);
+it('keeps organization and position off the landscape front', function (): void {
+    $svg = renderFrontSvg(frontCard(), 'landscape');
 
     expect($svg)->not->toContain('POS-FRONT-9')
         ->and($svg)->not->toContain('Front Organization')
         ->and($svg)->not->toContain('የፊት ድርጅት');
-})->with(['landscape', 'portrait']);
+});
+
+it('prints the full bilingual employer organization and employee position on the portrait front', function (): void {
+    $card = frontCard();
+    $card->employee->currentAssignment->organization->update([
+        'name_en' => 'Addis Ababa Comprehensive Public Service Human Resource Development Directorate',
+    ]);
+    IdCardTemplate::query()->create([
+        'name' => 'Employer only', 'code' => 'employer-only', 'orientation' => 'portrait',
+        'status' => 'active', 'is_default' => true,
+        'header_config' => [
+            'city_name_en' => 'Repeated City', 'city_name_am' => 'የተደገመ ከተማ',
+            'bureau_name_en' => 'Repeated Bureau', 'bureau_name_am' => 'የተደገመ ቢሮ',
+        ],
+    ]);
+    $svg = renderFrontSvg($card, 'portrait');
+
+    expect($svg)->toContain('Comprehensive Public Service')
+        ->and($svg)->toContain('Resource Development Directorate')
+        ->and($svg)->toContain('የፊት ድርጅት')
+        ->and($svg)->toContain('Front Officer')
+        ->and($svg)->toContain('የፊት ሹም')
+        ->and($svg)->not->toContain('Repeated City')
+        ->and($svg)->not->toContain('Repeated Bureau')
+        ->and($svg)->not->toContain('POS-FRONT-9');
+});
 
 it('keeps organization and position data in the database', function (): void {
     $assignment = frontCard()->employee->currentAssignment;
@@ -247,8 +272,8 @@ it('renders amharic labels without mangling the encoding', function (): void {
         ->and($svg)->toContain('Noto Sans Ethiopic');
 });
 
-it('shows every bilingual label in full, never clipped', function (string $orientation): void {
-    $svg = renderFrontSvg(frontCard(), $orientation);
+it('shows every bilingual label in full on the landscape detail layout', function (): void {
+    $svg = renderFrontSvg(frontCard(), 'landscape');
 
     // A wrapped label splits at the separator, so both halves must survive intact.
     foreach (['ጾታ', 'Sex', 'የትውልድ ቀን', 'Date of Birth', 'ዜግነት', 'Nationality',
@@ -256,7 +281,7 @@ it('shows every bilingual label in full, never clipped', function (string $orien
         expect($svg)->toContain($label);
     }
     expect($svg)->not->toContain('…');
-})->with(['landscape', 'portrait']);
+});
 
 it('applies the configured header and label colours to the front face', function (): void {
     IdCardTemplate::query()->create([
@@ -273,8 +298,8 @@ it('applies the configured header and label colours to the front face', function
     expect($svg)->toContain('#FF7700')->and($svg)->toContain('#00FF77');
 });
 
-it('prints a value on each language row when the two languages differ', function (string $orientation): void {
-    $svg = renderFrontSvg(frontCard(), $orientation);
+it('prints a value on each language row when the two languages differ', function (): void {
+    $svg = renderFrontSvg(frontCard(), 'landscape');
 
     // Values that genuinely differ per language are printed twice.
     expect($svg)->toContain('ወንድ')->and($svg)->toContain('Male');
@@ -285,10 +310,10 @@ it('prints a value on each language row when the two languages differ', function
         ->and(substr_count($svg, '>EMP-FRONT-1<'))->toBe(1)
         ->and($svg)->toContain('ስ.ቁ / Phone No.')
         ->and($svg)->toContain('መ.ቁ / ID.No');
-})->with(['landscape', 'portrait']);
+});
 
-it('takes structure from the reference without copying its artwork or sample data', function (string $orientation): void {
-    $svg = renderFrontSvg(frontCard(), $orientation);
+it('takes structure from the reference without copying its artwork or sample data', function (): void {
+    $svg = renderFrontSvg(frontCard(), 'landscape');
 
     // Sample values and decorative colours from the reference must never appear.
     foreach (['Abebe Kebede', 'አበበ ከበደ', '0000000000', '+2510000000000', 'Emp.Status'] as $sample) {
@@ -297,7 +322,23 @@ it('takes structure from the reference without copying its artwork or sample dat
 
     // Real card data is what renders instead.
     expect($svg)->toContain('EMP-FRONT-1')->and($svg)->toContain('+251911223344');
-})->with(['landscape', 'portrait']);
+});
+
+it('omits the detail fields from the portrait front', function (): void {
+    $card = frontCard();
+    $data = app(IdCardRenderDataFactory::class)->make($card, 'portrait');
+    $svg = renderFrontSvg($card, 'portrait');
+
+    expect($svg)->toContain('Front Employee')
+        ->and($svg)->toContain('Front Officer')
+        ->and($svg)->toContain('EMP-FRONT-1')
+        ->and($svg)->not->toContain('+251911223344')
+        ->and($svg)->not->toContain('Date of Birth')
+        ->and($svg)->not->toContain('Nationality')
+        ->and($svg)->not->toContain('Employment Status')
+        ->and($svg)->not->toContain($data->issueDateFormatted)
+        ->and($svg)->not->toContain($data->expiryDateFormatted);
+});
 
 it('keeps the whole front face inside the card bounds', function (string $orientation): void {
     $svg = renderFrontSvg(frontCard(), $orientation);

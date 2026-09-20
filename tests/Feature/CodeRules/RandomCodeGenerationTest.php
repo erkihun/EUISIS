@@ -193,3 +193,129 @@ it('does not regenerate an employee number during a normal update', function ():
 
     expect($employee->refresh()->employee_number)->toBe('EMP-483920');
 });
+
+it('formats employee codes with rand_8', function (): void {
+    $code = app(CodeGeneratorService::class)->preview(randomEmployeeCodeRule([
+        'format' => 'AAC-{RAND_8}',
+    ]));
+
+    expect($code)->toMatch('/^AAC-\d{8}$/')
+        ->and((int) substr($code, 4))->toBeGreaterThanOrEqual(10000000)
+        ->and((int) substr($code, 4))->toBeLessThanOrEqual(99999999);
+});
+
+it('retries a duplicate rand_8 code against the target code column', function (): void {
+    Employee::query()->create([
+        'employee_number' => 'AAC-11111111',
+        'first_name' => 'Existing',
+        'last_name' => 'Employee',
+        'full_name' => 'Existing Employee',
+        'status' => EmployeeStatus::Active,
+    ]);
+
+    $resolver = new class(app(PositionCodeContextResolver::class), ['11111111', '22222222']) extends CodeFormatTokenResolver
+    {
+        public int $calls = 0;
+
+        /** @param list<string> $values */
+        public function __construct(PositionCodeContextResolver $positionResolver, private array $values)
+        {
+            parent::__construct($positionResolver);
+        }
+
+        public function resolveAll(CodeRule $rule, array $context, Carbon $now): array
+        {
+            $this->calls++;
+
+            return ['{RAND_8}' => array_shift($this->values) ?? '22222222'];
+        }
+    };
+
+    $generator = new CodeGeneratorService($resolver, new SequenceScopeResolver($resolver));
+    $generated = $generator->generate(randomEmployeeCodeRule(['format' => 'AAC-{RAND_8}']));
+
+    expect($generated)->toBe('AAC-22222222')
+        ->and($resolver->calls)->toBe(2);
+});
+
+it('stops after twenty duplicate rand_8 codes with a validation error', function (): void {
+    Employee::query()->create([
+        'employee_number' => 'AAC-11111111',
+        'first_name' => 'Existing',
+        'last_name' => 'Employee',
+        'full_name' => 'Existing Employee',
+        'status' => EmployeeStatus::Active,
+    ]);
+
+    $resolver = new class(app(PositionCodeContextResolver::class)) extends CodeFormatTokenResolver
+    {
+        public int $calls = 0;
+
+        public function resolveAll(CodeRule $rule, array $context, Carbon $now): array
+        {
+            $this->calls++;
+
+            return ['{RAND_8}' => '11111111'];
+        }
+    };
+
+    $action = new GenerateCodeAction(
+        app(CodeRuleResolver::class),
+        new CodeGeneratorService($resolver, new SequenceScopeResolver($resolver)),
+        app(WriteAuditLogAction::class),
+    );
+
+    try {
+        $action->execute(
+            CodeRuleEntityType::Employee,
+            resolvedRule: randomEmployeeCodeRule(['format' => 'AAC-{RAND_8}']),
+            field: 'employee_number',
+        );
+
+        $this->fail('Expected duplicate random code validation to fail.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors()['employee_number'])->toBe([
+            __('code-rules.random_code_duplicate'),
+        ]);
+    }
+
+    // No duplicate was saved, and the retry ceiling was honoured.
+    expect($resolver->calls)->toBe(20)
+        ->and(Employee::query()->where('employee_number', 'AAC-11111111')->count())->toBe(1);
+});
+
+it('keeps a previewed rand_8 code when the import is confirmed', function (): void {
+    $rule = randomEmployeeCodeRule(['format' => 'AAC-{RAND_8}']);
+
+    // What an import preview would show the operator.
+    $previewed = app(CodeGeneratorService::class)->preview($rule);
+
+    // Confirming the import passes that exact value back through.
+    $confirmed = app(CodeGeneratorService::class)->generate(
+        $rule,
+        [],
+        null,
+        null,
+        $previewed,
+    );
+
+    expect($confirmed)->toBe($previewed)
+        ->and($confirmed)->toMatch('/^AAC-\d{8}$/');
+});
+
+it('does not regenerate a saved rand_8 code when the record is updated', function (): void {
+    $rule = randomEmployeeCodeRule(['format' => 'AAC-{RAND_8}']);
+    $code = app(CodeGeneratorService::class)->generate($rule);
+
+    $employee = Employee::query()->create([
+        'employee_number' => $code,
+        'first_name' => 'Stable',
+        'last_name' => 'Employee',
+        'full_name' => 'Stable Employee',
+        'status' => EmployeeStatus::Active,
+    ]);
+
+    $employee->update(['first_name' => 'Renamed', 'full_name' => 'Renamed Employee']);
+
+    expect($employee->fresh()->employee_number)->toBe($code);
+});

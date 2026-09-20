@@ -85,7 +85,7 @@ export default function IdCardFront({
 }: IdCardFrontProps) {
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
-    const cardTemplate = useIdCardTemplate();
+    const cardTemplate = useIdCardTemplate('landscape');
     const backgroundUrl = cardTemplate?.front_background_url;
     const dimensions = useCardDimensions('landscape');
 

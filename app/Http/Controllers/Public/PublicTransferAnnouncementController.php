@@ -20,30 +20,48 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class PublicTransferAnnouncementController extends Controller
 {
+    /**
+     * All published transfer announcements, open ones first.
+     *
+     * Paginated: the list used to load every published row in one query,
+     * which grows without bound on a public, anonymous page.
+     */
     public function index(): Response
     {
         $announcements = TransferAnnouncement::query()
             ->where('status', TransferAnnouncementStatus::Published)
             ->with(['organization', 'position'])
+            ->orderByDesc('closing_date')
             ->orderByDesc('published_at')
-            ->get()
-            ->map(fn (TransferAnnouncement $a) => [
-                'id' => $a->id,
-                'organization_name_en' => $a->organization?->name_en,
-                'organization_name_am' => $a->organization?->name_am,
-                'position_title_en' => $a->position?->title_en,
-                'position_title_am' => $a->position?->title_am,
-                'grade_level' => $a->grade_level,
-                'number_of_vacancies' => $a->totalVacancyCount(),
-                'opening_date' => $a->opening_date?->toDateString(),
-                'closing_date' => $a->closing_date?->toDateString(),
-                'published_at' => $a->published_at?->toDateString(),
-                'is_open' => $a->isAcceptingApplications(),
-            ]);
+            ->paginate(15)
+            ->through(fn (TransferAnnouncement $a): array => self::presentSummary($a));
 
         return Inertia::render('Public/TransferAnnouncements', [
             'announcements' => $announcements,
         ]);
+    }
+
+    /**
+     * The public summary of a transfer announcement. Shared with the combined
+     * announcements page so both show the same fields and nothing more.
+     *
+     * @return array<string, mixed>
+     */
+    public static function presentSummary(TransferAnnouncement $a): array
+    {
+        return [
+            'id' => $a->id,
+            'organization_name_en' => $a->organization?->name_en,
+            'organization_name_am' => $a->organization?->name_am,
+            'position_title_en' => $a->position?->title_en,
+            'position_title_am' => $a->position?->title_am,
+            'grade_level' => $a->grade_level,
+            'number_of_vacancies' => $a->totalVacancyCount(),
+            'opening_date' => $a->opening_date?->toDateString(),
+            'closing_date' => $a->closing_date?->toDateString(),
+            'published_at' => $a->published_at?->toDateString(),
+            'is_open' => $a->isAcceptingApplications(),
+        ];
     }
 
     public function show(TransferAnnouncement $announcement): Response

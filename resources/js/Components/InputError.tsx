@@ -1,4 +1,5 @@
 import { HTMLAttributes } from 'react';
+import { FieldError } from '@euisis/ui';
 
 export default function InputError({
     message,
@@ -6,11 +7,11 @@ export default function InputError({
     ...props
 }: HTMLAttributes<HTMLParagraphElement> & { message?: string }) {
     return message ? (
-        <p
+        <FieldError
             {...props}
-            className={'text-sm text-red-600 dark:text-red-400 ' + className}
+            className={className}
         >
             {message}
-        </p>
+        </FieldError>
     ) : null;
 }

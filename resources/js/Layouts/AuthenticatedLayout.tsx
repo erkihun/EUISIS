@@ -3,6 +3,7 @@ import AppSidebar from '@/Components/AppSidebar';
 import AppHeader from '@/Components/AppHeader';
 import Breadcrumbs from '@/Components/Breadcrumbs';
 import AppToaster from '@/Components/ui/AppToaster';
+import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
@@ -98,6 +99,7 @@ export default function Authenticated({
     }, [primary, secondary, accent, sidebarColor, buttonStyle, cardRadius, tableDensity, stickyTableHeaders, enableAnimations]);
 
     return (
+        <LocalizedUiProvider>
         <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
             <AppToaster />
 
@@ -163,5 +165,6 @@ export default function Authenticated({
                 </main>
             </div>
         </div>
+        </LocalizedUiProvider>
     );
 }

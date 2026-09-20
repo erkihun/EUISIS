@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Requests\PublicSite\UpdatePublicSiteSettingsRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;
 use App\Http\Requests\Settings\UpdateEmailSettingsRequest;
 use App\Http\Requests\Settings\UpdateGeneralSettingsRequest;
@@ -81,6 +82,7 @@ function settingsGroupRequests(): array
         SystemSettingsRegistry::GROUP_SECURITY => UpdateSecuritySettingsRequest::class,
         SystemSettingsRegistry::GROUP_APPEARANCE => UpdateAppearanceSettingsRequest::class,
         SystemSettingsRegistry::GROUP_ID_CARDS => UpdateIdCardSettingsRequest::class,
+        SystemSettingsRegistry::GROUP_PUBLIC_SITE => UpdatePublicSiteSettingsRequest::class,
     ];
 }
 

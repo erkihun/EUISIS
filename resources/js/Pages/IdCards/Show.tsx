@@ -31,6 +31,7 @@ type CardData = {
     qr_payload?: string | null;
     public_card_uuid?: string | null;
     qr_verification_url?: string | null;
+    feedback_qr_url?: string | null;
     employee?: {
         full_name: string;
         metadata?: { name_en?: string | null; name_am?: string | null } | null;
@@ -75,7 +76,6 @@ type Can = {
     reportDamaged?: boolean;
     replace?: boolean;
     revoke?: boolean;
-    printAnytime?: boolean;
     exportPng?: boolean;
 };
 
@@ -269,12 +269,11 @@ export default function IdCardShow({ card, can, nfc }: PageProps) {
     const [modal, setModal] = useState<string | null>(null);
     const selectedTemplate = useIdCardTemplate();
     const [cardDesign, setCardDesign] = useState<'landscape' | 'portrait'>(selectedTemplate?.orientation ?? 'landscape');
-    const [portraitModal, setPortraitModal] = useState<{ open: boolean; action: 'print' | 'export_png' }>({
-        open: false, action: 'export_png',
-    });
-    const [exportModal, setExportModal] = useState<{ open: boolean; action: 'print' | 'export_png' }>({
+    const [portraitModal, setPortraitModal] = useState<{ open: boolean }>({
         open: false,
-        action: 'export_png',
+    });
+    const [exportModal, setExportModal] = useState<{ open: boolean }>({
+        open: false,
     });
 
     const issueForm    = useForm({ issued_to: '', received_by: '' });
@@ -307,20 +306,10 @@ export default function IdCardShow({ card, can, nfc }: PageProps) {
                                     {t('idCards.previewBeforePrint')}
                                 </Link>
                             )}
-                            {can.printAnytime && (
-                                <button
-                                    type="button"
-                                    onClick={() => setExportModal({ open: true, action: 'print' })}
-                                    className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                                >
-                                    {Icon.print}
-                                    {t('idCards.printCard')}
-                                </button>
-                            )}
                             {can.exportPng && (
                                 <button
                                     type="button"
-                                    onClick={() => setExportModal({ open: true, action: 'export_png' })}
+                                    onClick={() => setExportModal({ open: true })}
                                     className="flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
                                 >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -451,27 +440,18 @@ export default function IdCardShow({ card, can, nfc }: PageProps) {
                                     />
                                     <IdCardPortraitBack
                                         cardNumber={card.card_number}
-                                        qrValue={card.qr_verification_url ?? null}
+                                        qrValue={card.feedback_qr_url ?? null}
+                                        emergencyContactName={card.employee?.emergency_contact_name}
+                                        emergencyContactPhone={card.employee?.emergency_contact_phone}
+                                        photoUrl={card.employee?.photo_url}
                                     />
                                 </div>
                                 {/* Portrait print / export actions */}
                                 <div className="flex justify-center gap-2 pt-1">
-                                    {can.printAnytime && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setPortraitModal({ open: true, action: 'print' })}
-                                            className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                                        >
-                                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.056 48.056 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5z" />
-                                            </svg>
-                                            {t('idCards.printCard')}
-                                        </button>
-                                    )}
                                     {can.exportPng && (
                                         <button
                                             type="button"
-                                            onClick={() => setPortraitModal({ open: true, action: 'export_png' })}
+                                            onClick={() => setPortraitModal({ open: true })}
                                             className="flex items-center gap-1.5 rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
                                         >
                                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -854,12 +834,10 @@ export default function IdCardShow({ card, can, nfc }: PageProps) {
                 card={{
                     ...card,
                     can: {
-                        printAnytime: can.printAnytime,
                         exportPng: can.exportPng,
                     },
                 }}
                 isOpen={portraitModal.open}
-                initialAction={portraitModal.action}
                 onClose={() => setPortraitModal((prev) => ({ ...prev, open: false }))}
             />
 
@@ -867,12 +845,10 @@ export default function IdCardShow({ card, can, nfc }: PageProps) {
                 card={{
                     ...card,
                     can: {
-                        printAnytime: can.printAnytime,
                         exportPng: can.exportPng,
                     },
                 }}
                 isOpen={exportModal.open}
-                initialAction={exportModal.action}
                 onClose={() => setExportModal((prev) => ({ ...prev, open: false }))}
             />
         </AuthenticatedLayout>

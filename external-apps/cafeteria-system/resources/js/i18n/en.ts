@@ -70,6 +70,12 @@ export default {
         amount: 'Amount',
         export: 'Export CSV',
         apply: 'Apply',
+        clear: 'Clear',
+        confirm: 'Confirm',
+        next: 'Next',
+        previous: 'Previous',
+        replace: 'Replace',
+        results: 'results',
     },
 
     login: {

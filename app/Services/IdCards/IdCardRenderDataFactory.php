@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\IdCard;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\SystemSettings\SystemSettingsService;
+use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -30,6 +31,7 @@ final readonly class IdCardRenderDataFactory
         private SystemSettingsService $systemSettings,
         private IdCardTemplateService $templates,
         private EthiopianCalendarService $ethiopianCalendar,
+        private EmployeeFeedbackTokenService $feedbackTokens,
     ) {}
 
     public function make(IdCard $card, ?string $orientation = null): IdCardRenderData
@@ -40,7 +42,9 @@ final readonly class IdCardRenderDataFactory
         $unit = $assignment?->organizationUnit;
         $position = $assignment?->position;
         $sealPath = $this->systemSettings->get('general', 'seal');
-        $template = $this->templates->active();
+        // A requested orientation picks the template built for it; without
+        // one, the default template decides the orientation as before.
+        $template = $this->templates->active($orientation);
         $frontBackground = $this->templates->dataUri($template?->front_background_path);
         $backBackground = $this->templates->dataUri($template?->back_background_path);
         $layout = $this->layoutService->get(frontPng: $frontBackground !== null, backPng: $backBackground !== null);
@@ -48,9 +52,12 @@ final readonly class IdCardRenderDataFactory
         $orientation ??= $template?->orientation ?? 'landscape';
         $long = max($presentation['width_mm'] ?? 85.6, $presentation['height_mm'] ?? 54);
         $short = min($presentation['width_mm'] ?? 85.6, $presentation['height_mm'] ?? 54);
-        // The template's own logo wins; otherwise the organization's is used.
+        $organizationLogo = $this->assetResolver->resolveLogoPath($org?->logo_path);
+        // Landscape retains its existing secondary organization-logo fallback.
+        // Portrait uses the employer logo as its primary mark, so do not also
+        // repeat it in the secondary slot.
         $header = $this->templates->header(
-            $template, $layout, $this->assetResolver->resolveLogoPath($org?->logo_path),
+            $template, $layout, $orientation === 'portrait' ? null : $organizationLogo,
         );
 
         return new IdCardRenderData(
@@ -84,6 +91,8 @@ final readonly class IdCardRenderDataFactory
             ], fn (array $row): bool => filled($row[1]))),
             cardNumberLabel: $this->bilingualCaption('card_no'),
             signatureLabel: $this->bilingualCaption('signature'),
+            signatureLabelAm: (string) $this->line('am', 'signature', ''),
+            signatureLabelEn: (string) $this->line('en', 'signature', 'Authorized Signature'),
             issueDateLabel: $this->bilingualCaption('issue_date'),
             expiryDateLabel: $this->bilingualCaption('expiry_date'),
             issueDateFormattedAm: $this->formatCardDate($card->issued_at, 'am'),
@@ -104,9 +113,14 @@ final readonly class IdCardRenderDataFactory
             // Resolve files to base64 data URIs — never expose raw paths
             photoDataUri: $this->assetResolver->resolvePhotoPath($employee?->photo_path),
             logoDataUri: $header->logoDataUri,
-            sealDataUri: $this->assetResolver->resolveStoragePath(
-                is_string($sealPath) ? $sealPath : null,
-            ),
+            // The template's own seal takes precedence; the global
+            // `general.seal` setting remains the fallback for templates that
+            // have not uploaded one.
+            sealDataUri: $this->templates->dataUri($template?->seal_path)
+                ?? $this->assetResolver->resolveStoragePath(
+                    is_string($sealPath) ? $sealPath : null,
+                ),
+            signatureDataUri: $this->templates->dataUri($template?->signature_path),
 
             // Stable service-gateway QR URL — printed once, never changes on service updates.
             qrVerificationUrl: $this->qrPayloadService->buildStableQrUrl($card),
@@ -122,6 +136,8 @@ final readonly class IdCardRenderDataFactory
             bilingualFields: $this->bilingualFields($card, $employee),
             header: $header,
             backPhoto: $this->templates->backPhoto($template),
+            organizationLogoDataUri: $organizationLogo,
+            feedbackQrUrl: $employee ? $this->feedbackTokens->activeToken($employee)?->publicUrl() : null,
         );
     }
 

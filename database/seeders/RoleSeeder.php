@@ -57,7 +57,7 @@ class RoleSeeder extends Seeder
             'id-cards.submitRequest', 'id-cards.verifyRequest', 'id-cards.approveRequest',
             'id-cards.print', 'id-cards.issue', 'id-cards.activate', 'id-cards.replace',
             'id-cards.reportLost', 'id-cards.reportDamaged', 'id-cards.revoke',
-            'id-cards.printAnytime', 'id-cards.exportPng', 'id-cards.previewSvg',
+            'id-cards.exportPng', 'id-cards.previewSvg',
             'cards.view', 'cards.manage',
 
             // Transfers & vacancies (scoped)
@@ -94,7 +94,16 @@ class RoleSeeder extends Seeder
             'api_management.endpoints.update',
         ];
 
+        // Public Site Manager — edits the public website's content and nothing
+        // else. Not given to Organizational Admin: the public site speaks for
+        // the whole institution, not for one organization.
+        $publicSiteManagerPerms = array_values(array_filter(
+            $allPermissions,
+            static fn (string $name): bool => str_starts_with($name, 'public_'),
+        ));
+
         $roleMap = [
+            'Public Site Manager' => $publicSiteManagerPerms,
             'Super Admin' => $allPermissions,
             'System Admin' => $allPermissions,
             'API Manager' => $apiManagerPerms,
@@ -106,7 +115,7 @@ class RoleSeeder extends Seeder
                 'employees.view', 'employees.manage', 'employees.viewAny',
                 'cards.view', 'cards.manage',
                 'id-cards.viewAny', 'id-cards.view', 'id-cards.submitRequest',
-                'id-cards.verifyRequest', 'id-cards.printAnytime', 'id-cards.exportPng',
+                'id-cards.verifyRequest', 'id-cards.exportPng',
                 'id-cards.previewSvg',
                 'entitlements.view', 'entitlements.viewAny',
                 'service-types.viewAny', 'service-types.view',
@@ -127,7 +136,7 @@ class RoleSeeder extends Seeder
                 'id-cards.issue', 'id-cards.activate', 'id-cards.reportLost',
                 'id-cards.reportDamaged', 'id-cards.replace', 'id-cards.revoke',
                 'card-verifications.viewAny',
-                'id-cards.export', 'id-cards.printAnytime', 'id-cards.exportPng',
+                'id-cards.export', 'id-cards.exportPng',
                 'id-cards.previewSvg',
             ],
             'Service Provider User' => [
@@ -219,6 +228,7 @@ class RoleSeeder extends Seeder
             'City Admin',
             'Public Service Bureau Admin',
             'Security Settings Manager',
+            'Public Site Manager',
         ];
 
         foreach ($roleMap as $roleName => $permissions) {

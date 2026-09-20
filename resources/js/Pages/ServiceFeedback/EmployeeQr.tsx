@@ -7,6 +7,7 @@ import { Head, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 import type { JSX } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 
 type Token = {
     id: string;
@@ -39,6 +40,7 @@ type Props = {
 
 export default function EmployeeFeedbackQr({ employee, token, stats, unavailableReason }: Props): JSX.Element {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
     const [copied, setCopied] = useState(false);
 
     async function copyLink() {
@@ -70,19 +72,17 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
         router.post(route('employees.feedback-qr.generate', employee.id), {}, { preserveScroll: true });
     }
 
-    function regenerate() {
+    async function regenerate() {
         // Destructive: any QR already printed and taped to a desk dies here.
-        if (!window.confirm(t('serviceFeedback.regenerateQrWarning'))) {
-            return;
-        }
+        const result = await confirm({ title: t('serviceFeedback.regenerateQrWarning'), variant: 'warning' });
+        if (!result.confirmed) return;
 
         router.post(route('employees.feedback-qr.regenerate', employee.id), {}, { preserveScroll: true });
     }
 
-    function revoke() {
-        if (!window.confirm(t('confirmations.deleteWarning'))) {
-            return;
-        }
+    async function revoke() {
+        const result = await confirm({ title: t('confirmations.deleteWarning'), variant: 'danger' });
+        if (!result.confirmed) return;
 
         router.post(route('employees.feedback-qr.revoke', employee.id), {}, { preserveScroll: true });
     }

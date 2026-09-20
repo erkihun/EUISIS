@@ -14,6 +14,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
+use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 
@@ -61,7 +62,7 @@ function createPageTestCard(int $sequence, CardStatus $status = CardStatus::Acti
 }
 
 beforeEach(function (): void {
-    foreach (['cards.view', 'id-cards.printAnytime', 'id-cards.exportPng'] as $permission) {
+    foreach (['cards.view', 'id-cards.exportPng'] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
 });
@@ -87,20 +88,24 @@ it('renders a server-paginated ID card index with filters and summaries', functi
 
 it('renders ID card show and preview pages without rotating QR identity', function (): void {
     $user = User::factory()->create();
-    $user->givePermissionTo(['cards.view', 'id-cards.printAnytime', 'id-cards.exportPng']);
+    $user->givePermissionTo(['cards.view', 'id-cards.exportPng']);
     $card = createPageTestCard(100);
+    $feedbackToken = app(EmployeeFeedbackTokenService::class)->ensureActiveToken($card->employee);
     $tokenVersion = $card->token_version;
 
     $this->actingAs($user)
         ->get(route('id-cards.show', $card))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('IdCards/Show'));
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('IdCards/Show')
+            ->where('card.feedback_qr_url', $feedbackToken->publicUrl()));
 
     $this->actingAs($user)
         ->get(route('id-cards.preview', $card))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('IdCards/Preview')
+            ->where('card.feedback_qr_url', $feedbackToken->publicUrl())
             ->has('card.employee'));
 
     expect($card->refresh()->token_version)->toBe($tokenVersion);

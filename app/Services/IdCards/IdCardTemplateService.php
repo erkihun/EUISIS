@@ -24,9 +24,34 @@ final class IdCardTemplateService
         ];
     }
 
-    public function active(): ?IdCardTemplate
+    /**
+     * The template a card should be rendered with.
+     *
+     * A template is built for one orientation: its background artwork, its
+     * layout boxes and its millimetres all assume that shape. Applying a
+     * landscape template to a portrait card puts every element in the wrong
+     * place, so an orientation only ever resolves to a template built for it —
+     * and falls back to the built-in arrangement when none exists, rather than
+     * borrowing the other orientation's.
+     *
+     * Passing no orientation keeps the old meaning: the default template,
+     * whatever shape it is.
+     */
+    public function active(?string $orientation = null): ?IdCardTemplate
     {
-        return IdCardTemplate::query()->where('is_default', true)->where('status', 'active')->first();
+        $query = IdCardTemplate::query()->where('status', 'active');
+
+        if ($orientation === null) {
+            return $query->where('is_default', true)->first();
+        }
+
+        $query->where('orientation', $orientation);
+
+        // The default for that orientation wins; otherwise the most recently
+        // updated one, so a single portrait template is picked up without an
+        // administrator having to make it the global default.
+        return (clone $query)->where('is_default', true)->first()
+            ?? $query->orderByDesc('updated_at')->first();
     }
 
     public function safePath(?string $path): bool
@@ -84,6 +109,8 @@ final class IdCardTemplateService
             'header_overrides' => $this->headerOverrides($template),
             'logo_primary_url' => $this->logoUrl($template, 'primary'),
             'logo_secondary_url' => $this->logoUrl($template, 'secondary'),
+            'seal_url' => $this->markUrl($template, 'seal'),
+            'signature_url' => $this->markUrl($template, 'signature'),
             'back_photo_config' => $this->backPhoto($template)->toArray(),
         ];
     }
@@ -213,6 +240,18 @@ final class IdCardTemplateService
     public function backPhoto(?IdCardTemplate $template): IdCardBackPhoto
     {
         return IdCardBackPhoto::fromArray($template?->back_photo_config);
+    }
+
+    /**
+     * The template's own seal or signature image, or null when it has none.
+     * The seal then falls back to the global `general.seal` setting; the
+     * signature simply prints as the ruled line it has always been.
+     */
+    public function markUrl(?IdCardTemplate $template, string $mark): ?string
+    {
+        return $template === null
+            ? null
+            : $this->assetUrl($template, $mark, $template->{$mark.'_path'});
     }
 
     /** One header logo slot, or null when the template has not uploaded it. */

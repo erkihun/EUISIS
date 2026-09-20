@@ -19,9 +19,13 @@
         "vite": "^6.0.0"
     },
     "dependencies": {
+        "@euisis/ui": "file:../../packages/euisis-ui",
+        "@headlessui/react": "^2.0.0",
         "@inertiajs/react": "^2.0.0",
+        "@tanstack/react-table": "^8.21.3",
         "html5-qrcode": "^2.3.8",
         "react": "^19.0.0",
-        "react-dom": "^19.0.0"
+        "react-dom": "^19.0.0",
+        "sonner": "^2.0.7"
     }
 }

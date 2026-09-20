@@ -126,3 +126,15 @@ it('preview does not increment next_number', function (): void {
     // The rule's next_number must NOT have changed
     expect($rule->fresh()->next_number)->toBe(7);
 });
+
+it('preview resolves rand_8 to an eight-digit code', function (): void {
+    $user = newPreviewSuperAdmin();
+
+    $response = $this->actingAs($user)
+        ->postJson(route('code-rules.preview'), previewPayload([
+            'format' => 'AAC-{RAND_8}',
+        ]))
+        ->assertOk();
+
+    expect($response->json('preview'))->toMatch('/^AAC-\d{8}$/');
+});

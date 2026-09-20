@@ -11,6 +11,7 @@ import { IdCardTemplateContext, useIdCardTemplate, type TemplatePresentation } f
 import { SystemSettingsPreviewContext } from '@/hooks/useSystemSettings';
 import { useLocale } from '@/hooks/useLocale';
 import type { SettingsField, SettingsGroupPayload } from '@/lib/settings';
+import { useConfirm } from '@/hooks/useConfirm';
 
 type Template = TemplatePresentation & {
     id: string; name: string; code: string; description: string | null;
@@ -59,6 +60,7 @@ function useBackground(file: File | null, existing: string | null, removed: bool
 
 export default function IdCardSettingsPanel({ payload, readOnly, management }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const label = (key: string) => t(`settings.pngCards.${key}`);
     const templateLabel = (key: string) => t(`settings.templateManager.${key}`);
     const active = useIdCardTemplate();
@@ -87,8 +89,11 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
         if (!settings.isDirty) settings.setData(initialSettings);
     }, [initialSettings]);
 
-    function chooseTemplate(id: string) {
-        if (editor.isDirty && !window.confirm(label('discard_changes'))) return;
+    async function chooseTemplate(id: string) {
+        if (editor.isDirty) {
+            const result = await confirm({ title: label('discard_changes'), variant: 'warning' });
+            if (!result.confirmed) return;
+        }
         const values = templateValues(templates.find(template => template.id === id));
         setSelectedId(id);
         editor.setData(values);

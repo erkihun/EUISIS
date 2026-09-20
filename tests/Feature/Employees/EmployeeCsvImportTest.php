@@ -270,6 +270,22 @@ it('stores a random employee number in preview and uses the same value on confir
     expect(Employee::query()->firstOrFail()->employee_number)->toBe($previewedNumber);
 });
 
+it('stores a rand_8 employee number in preview and uses the same value on confirm', function (): void {
+    CodeRule::query()
+        ->where('entity_type', CodeRuleEntityType::Employee->value)
+        ->update(['format' => 'AAC-{RAND_8}']);
+
+    $batch = $this->service->validate(csvUpload([importRow($this->alpha)]), $this->admin);
+    $previewedNumber = $this->service->preview($batch)[0]['employee_number'];
+
+    expect($previewedNumber)->toMatch('/^AAC-\d{8}$/');
+
+    $this->service->import($batch, $this->admin);
+
+    // The confirmed import must not roll a second, different number.
+    expect(Employee::query()->firstOrFail()->employee_number)->toBe($previewedNumber);
+});
+
 it('keeps an employee number supplied in the file', function (): void {
     $batch = $this->service->validate(
         csvUpload([importRow($this->alpha, 1, ['employee_number' => 'CSV-0001'])]),

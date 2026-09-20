@@ -9,6 +9,7 @@ const FORMAT_EXAMPLES = [
     '{PREFIX}-{SEQUENCE_PADDED}',
     'EMP-{YEAR}-{SEQUENCE_PADDED}',
     'EMP-{RAND_6}',
+    'AAC-{RAND_8}',
     '{ORG_CODE}-{PREFIX}-{SEQUENCE_PADDED}',
 ];
 

@@ -337,4 +337,31 @@ enum AuditEventType: string
     case EmployeeImportValidated = 'employee_import.validated';
     case EmployeeImportCompleted = 'employee_import.completed';
     case ServiceFeedbackSettingsUpdated = 'service_feedback.settings_updated';
+
+    /*
+     * Public Site Management. Changed field NAMES are recorded, never uploaded
+     * file content or rendered HTML.
+     */
+    case PublicPageSectionUpdated = 'public_site.page_section_updated';
+    case PublicAnnouncementCreated = 'public_site.announcement_created';
+    case PublicAnnouncementUpdated = 'public_site.announcement_updated';
+    case PublicAnnouncementPublished = 'public_site.announcement_published';
+    case PublicAnnouncementUnpublished = 'public_site.announcement_unpublished';
+    case PublicAnnouncementArchived = 'public_site.announcement_archived';
+    case PublicAnnouncementRestored = 'public_site.announcement_restored';
+    case PublicAnnouncementDeleted = 'public_site.announcement_deleted';
+    case PublicServiceCreated = 'public_site.service_created';
+    case PublicServiceUpdated = 'public_site.service_updated';
+    case PublicServicePublished = 'public_site.service_published';
+    case PublicServiceHidden = 'public_site.service_hidden';
+    case PublicServiceArchived = 'public_site.service_archived';
+    case PublicServiceDeleted = 'public_site.service_deleted';
+    case PublicFaqSaved = 'public_site.faq_saved';
+    case PublicFaqDeleted = 'public_site.faq_deleted';
+    case PublicNavigationUpdated = 'public_site.navigation_updated';
+    case PublicFooterUpdated = 'public_site.footer_updated';
+    case PublicBrandingUpdated = 'public_site.branding_updated';
+    case PublicSeoUpdated = 'public_site.seo_updated';
+    case PublicSiteSettingsUpdated = 'public_site.settings_updated';
+    case PublicSiteEnabledChanged = 'public_site.enabled_changed';
 }

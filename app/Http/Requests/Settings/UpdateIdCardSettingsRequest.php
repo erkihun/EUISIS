@@ -57,6 +57,8 @@ class UpdateIdCardSettingsRequest extends FormRequest
             'back_text_color' => $hex,
             'return_address_en' => ['required', 'string', 'max:300'],
             'return_address_am' => ['required', 'string', 'max:300'],
+            'back_notice_am' => ['required', 'string', 'max:200'],
+            'back_notice_en' => ['required', 'string', 'max:200'],
             'show_magnetic_stripe' => ['required', 'boolean'],
             // Capped at 200 to match the clamp in IdCardLayoutSettingsService.
             'qr_size' => ['required', Rule::in(['80', '100', '120', '140', '160', '180', '200'])],

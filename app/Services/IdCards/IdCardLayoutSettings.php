@@ -33,6 +33,8 @@ final readonly class IdCardLayoutSettings
         public string $bureauNameAm,
         public string $returnAddressEn,
         public string $returnAddressAm,
+        public string $backNoticeAm,
+        public string $backNoticeEn,
         public string $verificationUrl,
         public string $supportContact,
 

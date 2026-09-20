@@ -1,4 +1,5 @@
 import { getStatusStyle } from '@/lib/statusStyles';
+import { StatusBadge as UiStatusBadge } from '@euisis/ui';
 
 interface Props {
     status: string;
@@ -18,11 +19,5 @@ interface Props {
 export default function StatusBadge({ status, label, className = '' }: Props) {
     const style = getStatusStyle(status);
 
-    return (
-        <span
-            className={`badge inline-flex items-center rounded-control px-2 py-0.5 text-xs font-medium ${style.className} ${className}`}
-        >
-            {label ?? style.label}
-        </span>
-    );
+    return <UiStatusBadge tone={style.tone === 'danger' ? 'danger' : style.tone} className={`badge ${className}`}>{label ?? style.label}</UiStatusBadge>;
 }

@@ -7,8 +7,8 @@ namespace App\Policies;
 use App\Enums\CardStatus;
 use App\Models\IdCard;
 use App\Models\User;
-use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use App\Services\OrganizationScope\OrganizationScopeService;
 
 readonly class IdCardPolicy
 {
@@ -93,15 +93,6 @@ readonly class IdCardPolicy
             && $this->organizationScopeService->canAccessEmployee($user, $idCard->employee);
     }
 
-    public function printAnytime(User $user, IdCard $idCard): bool
-    {
-        $employee = $idCard->employee;
-
-        return $employee !== null
-            && $user->can('id-cards.printAnytime')
-            && $this->organizationScopeService->canAccessEmployee($user, $employee);
-    }
-
     public function exportPng(User $user, IdCard $idCard): bool
     {
         $employee = $idCard->employee;
@@ -116,7 +107,7 @@ readonly class IdCardPolicy
         $employee = $idCard->employee;
 
         return $employee !== null
-            && ($user->can('id-cards.previewSvg') || $user->can('id-cards.exportPng') || $user->can('id-cards.printAnytime') || $user->can('cards.manage'))
+            && ($user->can('id-cards.previewSvg') || $user->can('id-cards.exportPng') || $user->can('cards.manage'))
             && $this->organizationScopeService->canAccessEmployee($user, $employee);
     }
 }

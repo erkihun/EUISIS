@@ -9,6 +9,7 @@ export default {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
         './resources/js/**/*.{ts,tsx}',
+        './packages/euisis-ui/src/**/*.{ts,tsx}',
     ],
 
     theme: {

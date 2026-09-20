@@ -70,6 +70,45 @@ it('moves elements to the positions a template stores', function (): void {
     expect($svg)->toContain('<rect x="599" y="108" width="171" height="216"');
 });
 
+it('moves portrait sections to the positions a template stores', function (): void {
+    $card = frontCard();
+    IdCardTemplate::query()->create([
+        'name' => 'Portrait moved', 'code' => 'portrait-moved', 'orientation' => 'portrait',
+        'status' => 'active', 'is_default' => true,
+        'layout_config' => ['front' => [
+            'employee_name' => ['x' => 10.0, 'y' => 20.0, 'w' => 80.0, 'h' => 10.0],
+            'employee_position' => ['x' => 20.0, 'y' => 32.0, 'w' => 60.0, 'h' => 8.0],
+        ]],
+    ]);
+
+    $svg = renderFrontSvg($card->fresh(), 'portrait');
+
+    // The employee name and position have independent portrait boxes.
+    expect($svg)->toContain('x="54"')
+        ->and($svg)->toContain('Front Employee')
+        ->and($svg)->toContain('Front Officer');
+});
+
+it('removes card number notes dates signature and emergency contact from the portrait back', function (): void {
+    $card = frontCard();
+    $card->employee->forceFill([
+        'emergency_contact_name' => 'Portrait Emergency',
+        'emergency_contact_phone' => '+251911999999',
+    ])->save();
+
+    $data = app(IdCardRenderDataFactory::class)->make($card->fresh(), 'portrait');
+    $svg = app(IdCardSvgRenderer::class)->renderBack($data);
+
+    expect($svg)->not->toContain('Portrait Emergency')
+        ->and($svg)->not->toContain('+251911999999')
+        ->and($svg)->not->toContain($card->card_number)
+        ->and($svg)->not->toContain('Authorized Signature')
+        ->and($svg)->not->toContain($data->layout->returnAddressAm)
+        ->and($svg)->not->toContain($data->layout->returnAddressEn)
+        ->and($svg)->not->toContain($card->issued_at->format('d M Y'))
+        ->and($svg)->not->toContain($card->expires_at->format('d M Y'));
+});
+
 it('resolves every element for the client, filling gaps from the defaults', function (): void {
     $template = IdCardTemplate::query()->create([
         'name' => 'Partial', 'code' => 'partial', 'orientation' => 'landscape',
@@ -259,7 +298,10 @@ it('prints the emergency contact on the back where the template puts it', functi
     // 30% of 856 is 257; 50% of 540 is 270.
     expect($svg)->toContain('Almaz Bekele')
         ->and($svg)->toContain('+251911999888')
-        ->and($svg)->toContain('x="257" y="270"');
+        // SVG text hangs from its baseline, so the first row sits one line
+        // below the box top (270) rather than on the edge - otherwise a block
+        // placed near the top of the card loses its first line off the edge.
+        ->and($svg)->toContain('x="257" y="284"');
 });
 
 it('omits the emergency block when the employee has no contact', function (): void {
@@ -324,7 +366,10 @@ it('gives the card number and signature their own sections with dates in both ca
 
     // Card number and signature carry bilingual captions of their own.
     expect($svg)->toContain('የካርድ ቁጥር/Card No')
-        ->and($svg)->toContain('ፊርማ/Signature');
+        // The signature caption is one row per language, not slash-joined.
+        ->and($svg)->toContain('የባለስልጣኑ ፊርማ<')
+        ->and($svg)->toContain('Authorized Signature<')
+        ->and($svg)->not->toContain('የባለስልጣኑ ፊርማ/Authorized Signature');
 
     // Dates moved to the front, so the back no longer prints them.
     $front = app(IdCardSvgRenderer::class)->renderFront(app(IdCardRenderDataFactory::class)->make($card->fresh()));

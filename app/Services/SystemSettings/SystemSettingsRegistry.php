@@ -27,6 +27,16 @@ class SystemSettingsRegistry
     public const GROUP_ID_CARDS = 'id_cards';
 
     /**
+     * Public website presentation settings. Managed from Public Site
+     * Management, not from the System Settings page, so it is excluded there
+     * (see SystemSettingController::index) to avoid two places editing one value.
+     *
+     * Deliberately holds nothing about security, authentication or ID
+     * verification rules — those stay in their own groups.
+     */
+    public const GROUP_PUBLIC_SITE = 'public_site';
+
+    /**
      * @return array<string, array<string, array<string, mixed>>>
      */
     public static function definitions(): array
@@ -744,6 +754,28 @@ class SystemSettingsRegistry
                     validationRules: ['required', 'string', 'max:300'],
                     sortOrder: 160,
                 ),
+                'back_notice_am' => self::field(
+                    type: 'text',
+                    default: 'ካርዱ የሚወዳደርበት ቦታ ካገኙ ወደ ቅርብ ባለስልጣን ይመልሱ።',
+                    labelEn: 'Back Notice (Amharic)',
+                    labelAm: 'የኋላ ገጽ ማስታወሻ (አማርኛ)',
+                    descriptionEn: 'Notice printed on the back of the ID card (Amharic). Long text wraps onto further lines.',
+                    descriptionAm: 'በካርዱ ኋላ ላይ የሚታተም ማስታወሻ (አማርኛ)። ረጅም ጽሑፍ ወደ ቀጣይ መስመሮች ይሸጋገራል።',
+                    isPublic: true,
+                    validationRules: ['required', 'string', 'max:200'],
+                    sortOrder: 165,
+                ),
+                'back_notice_en' => self::field(
+                    type: 'text',
+                    default: 'If found, please return to the issuing bureau.',
+                    labelEn: 'Back Notice (English)',
+                    labelAm: 'የኋላ ገጽ ማስታወሻ (እንግሊዝኛ)',
+                    descriptionEn: 'Notice printed on the back of the ID card (English). Long text wraps onto further lines.',
+                    descriptionAm: 'በካርዱ ኋላ ላይ የሚታተም ማስታወሻ (እንግሊዝኛ)። ረጅም ጽሑፍ ወደ ቀጣይ መስመሮች ይሸጋገራል።',
+                    isPublic: true,
+                    validationRules: ['required', 'string', 'max:200'],
+                    sortOrder: 170,
+                ),
                 // Back card — layout options
                 'show_magnetic_stripe' => self::field(
                     type: 'boolean',
@@ -783,6 +815,24 @@ class SystemSettingsRegistry
                     sortOrder: 190,
                     templateManaged: true,
                 ),
+            ],
+            self::GROUP_PUBLIC_SITE => [
+                // Off: Home, Announcements, Services and Support show the notice
+                // below. Verify ID Cards and the ID checker keep working — they
+                // are operational tools, not published content.
+                'enabled' => self::field(type: 'boolean', default: true, labelEn: 'Public Site Enabled', labelAm: 'ህዝባዊ ድረ-ገጽ ነቅቷል', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 10),
+                'maintenance_notice_en' => self::field(type: 'text', default: '', labelEn: 'Maintenance Notice (English)', labelAm: 'የጥገና ማስታወቂያ (እንግሊዝኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:500'], sortOrder: 20),
+                'maintenance_notice_am' => self::field(type: 'text', default: '', labelEn: 'Maintenance Notice (Amharic)', labelAm: 'የጥገና ማስታወቂያ (አማርኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:500'], sortOrder: 30),
+                'announcements_page_size' => self::field(type: 'integer', default: 10, labelEn: 'Announcements Per Page', labelAm: 'በገጽ የሚታዩ ማስታወቂያዎች', isPublic: true, validationRules: ['required', 'integer', 'min:5', 'max:50'], sortOrder: 40),
+                'services_page_size' => self::field(type: 'integer', default: 12, labelEn: 'Services Per Page', labelAm: 'በገጽ የሚታዩ አገልግሎቶች', isPublic: true, validationRules: ['required', 'integer', 'min:6', 'max:48'], sortOrder: 50),
+                'office_hours_en' => self::field(type: 'string', default: '', labelEn: 'Office Hours (English)', labelAm: 'የሥራ ሰዓት (እንግሊዝኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:160'], sortOrder: 60),
+                'office_hours_am' => self::field(type: 'string', default: '', labelEn: 'Office Hours (Amharic)', labelAm: 'የሥራ ሰዓት (አማርኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:160'], sortOrder: 70),
+                'office_location_en' => self::field(type: 'string', default: '', labelEn: 'Office Location (English)', labelAm: 'የቢሮ አድራሻ (እንግሊዝኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:255'], sortOrder: 80),
+                'office_location_am' => self::field(type: 'string', default: '', labelEn: 'Office Location (Amharic)', labelAm: 'የቢሮ አድራሻ (አማርኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:255'], sortOrder: 90),
+                'footer_description_en' => self::field(type: 'text', default: '', labelEn: 'Footer Description (English)', labelAm: 'የግርጌ መግለጫ (እንግሊዝኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:300'], sortOrder: 100),
+                'footer_description_am' => self::field(type: 'text', default: '', labelEn: 'Footer Description (Amharic)', labelAm: 'የግርጌ መግለጫ (አማርኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:300'], sortOrder: 110),
+                'copyright_text_en' => self::field(type: 'string', default: '', labelEn: 'Copyright Text (English)', labelAm: 'የቅጂ መብት ጽሑፍ (እንግሊዝኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:160'], sortOrder: 120),
+                'copyright_text_am' => self::field(type: 'string', default: '', labelEn: 'Copyright Text (Amharic)', labelAm: 'የቅጂ መብት ጽሑፍ (አማርኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:160'], sortOrder: 130),
             ],
         ];
     }
@@ -891,6 +941,8 @@ class SystemSettingsRegistry
             'id_cards.back_text_color',
             'id_cards.return_address_en',
             'id_cards.return_address_am',
+            'id_cards.back_notice_am',
+            'id_cards.back_notice_en',
             'id_cards.show_magnetic_stripe',
             'id_cards.qr_size',
             'id_cards.card_padding',

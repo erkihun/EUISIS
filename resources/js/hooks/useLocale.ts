@@ -28,6 +28,7 @@ import amHierarchyVersions from '@/i18n/am/hierarchyVersions';
 import amNavigation from '@/i18n/am/navigation';
 import amApiManagement from '@/i18n/am/apiManagement';
 import amIdChecker from '@/i18n/am/idChecker';
+import amPublicSite from '@/i18n/am/publicSite';
 import amOrganizations from '@/i18n/am/organizations';
 import amPositions from '@/i18n/am/positions';
 import amProfile from '@/i18n/am/profile';
@@ -76,6 +77,7 @@ import enOrganizationUnitTypes from '@/i18n/en/organizationUnitTypes';
 import enOrganizationStructureImport from '@/i18n/en/organizationStructureImport';
 import enApiManagement from '@/i18n/en/apiManagement';
 import enIdChecker from '@/i18n/en/idChecker';
+import enPublicSite from '@/i18n/en/publicSite';
 import enOrganizations from '@/i18n/en/organizations';
 import enPermissions from '@/i18n/en/permissions';
 import enPositions from '@/i18n/en/positions';
@@ -115,6 +117,7 @@ const translations: Record<Locale, TranslationTree> = {
         occupations: enOccupations,
         apiManagement: enApiManagement,
         idChecker: enIdChecker,
+        publicSite: enPublicSite,
         organizations: { ...((en.organizations as TranslationTree | undefined) ?? {}), ...enOrganizations },
         organizationTypes: enOrganizationTypes,
         organizationUnits: enOrganizationUnits,
@@ -163,6 +166,7 @@ const translations: Record<Locale, TranslationTree> = {
         occupations: amOccupations,
         apiManagement: amApiManagement,
         idChecker: amIdChecker,
+        publicSite: amPublicSite,
         organizations: { ...(((am as { organizations?: TranslationTree }).organizations) ?? {}), ...amOrganizations },
         organizationTypes: amOrganizationTypes,
         organizationUnits: amOrganizationUnits,

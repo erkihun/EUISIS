@@ -25,6 +25,7 @@ class IdCardTemplate extends Model
     protected $hidden = [
         'front_background_path', 'back_background_path',
         'logo_primary_path', 'logo_secondary_path',
+        'seal_path', 'signature_path',
     ];
 
     protected function casts(): array

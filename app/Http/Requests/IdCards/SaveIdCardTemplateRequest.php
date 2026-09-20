@@ -47,10 +47,14 @@ class SaveIdCardTemplateRequest extends FormRequest
             'back_background' => $png,
             'logo_primary' => $logoPng,
             'logo_secondary' => $logoPng,
+            'seal' => $logoPng,
+            'signature' => $logoPng,
             'remove_front_background' => ['sometimes', 'boolean'],
             'remove_back_background' => ['sometimes', 'boolean'],
             'remove_logo_primary' => ['sometimes', 'boolean'],
             'remove_logo_secondary' => ['sometimes', 'boolean'],
+            'remove_seal' => ['sometimes', 'boolean'],
+            'remove_signature' => ['sometimes', 'boolean'],
             ...$this->styleRules(),
             ...$this->layoutRules(),
             ...$this->headerRules(),
@@ -192,7 +196,7 @@ class SaveIdCardTemplateRequest extends FormRequest
     public function messages(): array
     {
         $messages = [];
-        foreach (['front_background', 'back_background', 'logo_primary', 'logo_secondary'] as $field) {
+        foreach (['front_background', 'back_background', 'logo_primary', 'logo_secondary', 'seal', 'signature'] as $field) {
             foreach (['image', 'mimes', 'mimetypes', 'extensions'] as $rule) {
                 $messages[$field.'.'.$rule] = __('id-card-templates.png_only');
             }

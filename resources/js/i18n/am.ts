@@ -457,7 +457,7 @@ const am = {
         emergencyContactNameLabel: 'የአስቸኳይ ጊዜ ተጠሪ ስም',
         emergencyContactPhoneLabel: 'የአስቸኳይ ጊዜ ተጠሪ ስልክ',
         emergencyContact: 'የአስቸኳይ ጊዜ ተጠሪ',
-        signatureLabel: 'ፊርማ',
+        signatureLabel: 'የባለስልጣኑ ፊርማ',
         nameLabel: 'ስም',
         sexLabel: 'ጾታ',
         dobLabel: 'የትውልድ ቀን',

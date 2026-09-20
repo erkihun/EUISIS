@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 
 /**
  * Feedback services per position.
@@ -43,6 +44,7 @@ const inputCls =
 
 export default function PositionServicesIndex({ records, filters, organizations, can }: Props): JSX.Element {
     const { locale, t } = useLocale();
+    const { confirm } = useConfirm();
     const am = locale === 'am';
 
     function applyFilter(key: string, value: string) {
@@ -53,10 +55,9 @@ export default function PositionServicesIndex({ records, filters, organizations,
         );
     }
 
-    function destroy(id: string) {
-        if (!window.confirm(t('confirmations.deleteWarning'))) {
-            return;
-        }
+    async function destroy(id: string) {
+        const result = await confirm({ title: t('confirmations.deleteWarning'), variant: 'danger' });
+        if (!result.confirmed) return;
 
         router.delete(route('position-services.destroy', id), { preserveScroll: true });
     }

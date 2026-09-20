@@ -8,9 +8,10 @@ import amDict from '@/i18n/am';
 import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import IdCardBilingualField from '@/Components/IdCards/IdCardBilingualField';
 
-// The card face is bilingual by design — labels come from both dictionaries.
+// The card face is bilingual by design — labels come from both dictionaries,
+// Amharic first, matching bilingualCaption() on the printed card.
 const biLabel = (key: 'signatureLabel' | 'emergencyContact' | 'cardNoLabel'): string =>
-    `${enDict.idCards[key]}/${amDict.idCards[key]}`;
+    `${amDict.idCards[key]}/${enDict.idCards[key]}`;
 
 type IdCardBackProps = {
     cardNumber: string;
@@ -28,7 +29,7 @@ type IdCardBackProps = {
 export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, emergencyContactPhone, photoUrl, rootStyle }: IdCardBackProps) {
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
-    const cardTemplate = useIdCardTemplate();
+    const cardTemplate = useIdCardTemplate('landscape');
     const backgroundUrl = cardTemplate?.back_background_url;
     const dimensions = useCardDimensions('landscape');
 
@@ -43,6 +44,8 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
     const showMagStripe = getBoolean('id_cards.show_magnetic_stripe', true);
     const showQr = getBoolean('id_cards.show_qr', true);
     const showReturnNotice = getBoolean('id_cards.show_return_notice', true);
+    const noticeAm = getString('id_cards.back_notice_am', amDict.idCards.propertyNotice);
+    const noticeEn = getString('id_cards.back_notice_en', enDict.idCards.propertyNotice);
     const showEmergencyContact = getBoolean('id_cards.show_emergency_contact', true);
     const showCardNumber = getBoolean('id_cards.show_card_number', true);
     const qrSizeRaw     = getString('id_cards.qr_size', '96');
@@ -50,7 +53,9 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
     const padding       = getString('id_cards.card_padding', 'normal');
 
     const verificationUrl = getString('id_cards.verification_url', '');
-    const sealUrl = getString('general.seal_url', '');
+    // The template's own seal wins; the global setting is the fallback.
+    const sealUrl = cardTemplate?.seal_url || getString('general.seal_url', '');
+    const signatureUrl = cardTemplate?.signature_url ?? null;
 
     // The back photo is a watermark, off unless the template turns it on.
     // Mirrors IdCardBackPhoto on the server, including the fit mapping.
@@ -164,15 +169,21 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
                 {/* Notes and details column — positioned by the template. */}
                 <div className="flex min-w-0 flex-col justify-between" style={layoutStyle(cardTemplate, 'notes', 'back')}>
                     <div className="space-y-1">
-                        {/* Return notice in both languages */}
+                        {/* Back notice in both languages, Amharic first. Both
+                            come from ID card settings, so what prints on the
+                            card is what an administrator typed there. */}
                         {showReturnNotice && (
                             <>
-                                <p className="leading-relaxed" style={{ ...footerStyle, opacity: 0.65 }}>
-                                    {enDict.idCards.propertyNotice}
-                                </p>
-                                <p className="leading-relaxed" style={{ ...footerStyle, opacity: 0.65 }}>
-                                    {amDict.idCards.propertyNotice}
-                                </p>
+                                {noticeAm && (
+                                    <p className="leading-relaxed" style={{ ...footerStyle, opacity: 0.65 }}>
+                                        {noticeAm}
+                                    </p>
+                                )}
+                                {noticeEn && (
+                                    <p className="leading-relaxed" style={{ ...footerStyle, opacity: 0.65 }}>
+                                        {noticeEn}
+                                    </p>
+                                )}
                             </>
                         )}
                         {verificationUrl && (
@@ -210,13 +221,36 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
                     </div>
                 )}
 
-                {/* Signature — its own movable section. */}
-                <div className="flex min-w-0 flex-col justify-end" style={layoutStyle(cardTemplate, 'signature', 'back')}>
-                    <span style={{ ...labelStyle, opacity: 0.7 }}>{biLabel('signatureLabel')}</span>
-                    <span
-                        className="mt-0.5 w-full"
-                        style={{ borderBottom: '1px dotted rgba(15,23,42,0.3)', minHeight: 6 }}
-                    />
+                {/* Signature — its own section: label, signing area, rule.
+                    Self-contained so it never reads as a continuation of the
+                    block above it on a crowded card. */}
+                {/* The signing area: the template's signature image when it
+                    has one, otherwise a clear space above the rule. */}
+                <div
+                    className="flex min-w-0 flex-col justify-end"
+                    style={layoutStyle(cardTemplate, 'signature', 'back')}
+                >
+                    <span className="flex min-h-[14px] flex-1 items-end overflow-hidden pb-[2px]">
+                        {signatureUrl && (
+                            <img src={signatureUrl} alt="" className="max-h-full w-full object-contain object-bottom" />
+                        )}
+                    </span>
+                    <span className="w-full" style={{ borderBottom: '1px solid rgba(15,23,42,0.35)' }} />
+                </div>
+
+                {/* The caption naming it — its own movable section, so it can be
+                    placed above the line, below it, or anywhere else. Each
+                    language takes its own row, as on every bilingual field. */}
+                <div
+                    className="flex min-w-0 flex-col justify-end"
+                    style={layoutStyle(cardTemplate, 'signature_label', 'back')}
+                >
+                    <span className="block truncate leading-tight" style={{ ...labelStyle, opacity: 0.7 }}>
+                        {amDict.idCards.signatureLabel}
+                    </span>
+                    <span className="block truncate leading-tight" style={{ ...labelStyle, opacity: 0.7 }}>
+                        {enDict.idCards.signatureLabel}
+                    </span>
                 </div>
 
             {/* Emergency contact — who to call if the holder needs help. */}

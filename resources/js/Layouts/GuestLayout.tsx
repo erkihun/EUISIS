@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import AppToaster from '@/Components/ui/AppToaster';
+import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Link } from '@inertiajs/react';
@@ -15,6 +16,7 @@ export default function GuestLayout({ children }: PropsWithChildren) {
         : getString('general.login_page_message_en');
 
     return (
+        <LocalizedUiProvider>
         <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-12 dark:bg-slate-950">
             <AppToaster />
             <Link href="/" className="mb-8 flex items-center gap-2.5">
@@ -35,5 +37,6 @@ export default function GuestLayout({ children }: PropsWithChildren) {
                 )}
             </div>
         </div>
+        </LocalizedUiProvider>
     );
 }

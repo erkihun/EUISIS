@@ -4,6 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 import ThemeToggle from '@/Components/ThemeToggle';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import AppToaster from '@/Components/ui/AppToaster';
+import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import Dropdown from '@/Components/Dropdown';
 import {
     LayoutDashboard, QrCodeIcon, ReceiptTextIcon, ScrollText,
@@ -397,6 +398,7 @@ export default function CafeteriaProviderPortalLayout({
     }
 
     return (
+        <LocalizedUiProvider>
         <div
             className="min-h-screen bg-gray-50 dark:bg-slate-950"
             style={{ '--color-primary': PRIMARY, '--color-accent': ACCENT } as CSSProperties}
@@ -456,5 +458,6 @@ export default function CafeteriaProviderPortalLayout({
                 </main>
             </div>
         </div>
+        </LocalizedUiProvider>
     );
 }

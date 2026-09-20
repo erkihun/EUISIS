@@ -90,6 +90,7 @@ const common = {
     results: 'ውጤቶች',
     dismiss: 'አሰናብት',
     remove: 'አስወግድ',
+    replace: 'ተካ',
     undo: 'ቀልብስ',
     user: 'ተጠቃሚ',
     optional: 'አማራጭ',

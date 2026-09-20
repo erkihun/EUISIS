@@ -20,6 +20,7 @@ use App\Services\IdCards\CardQrPayloadService;
 use App\Services\IdCards\IdCardPngExporter;
 use App\Services\IdCards\IdCardRenderDataFactory;
 use App\Services\IdCards\IdCardSvgRenderer;
+use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\IdCards\IdCardTemplateService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\UploadedFile;
@@ -268,17 +269,24 @@ it('shares artwork in card previews and the SVG export source without changing Q
 
 it('renders portrait backgrounds with configured output dimensions and square QR modules', function (): void {
     $card = templateCard();
+    $feedbackToken = app(EmployeeFeedbackTokenService::class)->ensureActiveToken($card->employee);
     $this->post(route('id-card-templates.store'), templatePayload([
         'orientation' => 'portrait', 'width_mm' => 60, 'height_mm' => 90,
         'back_background' => UploadedFile::fake()->image('back.png', 540, 856),
     ]))->assertSessionHasNoErrors();
     $data = app(IdCardRenderDataFactory::class)->make($card);
-    expect($data->orientation)->toBe('portrait')->and($data->widthMm)->toBe(60.0)->and($data->heightMm)->toBe(90.0);
+    expect($data->orientation)->toBe('portrait')->and($data->widthMm)->toBe(60.0)->and($data->heightMm)->toBe(90.0)
+        ->and($data->feedbackQrUrl)->toBe($feedbackToken->publicUrl());
     $svg = app(IdCardSvgRenderer::class)->renderBack($data);
     $document = new DOMDocument;
     expect($document->loadXML($svg))->toBeTrue()->and($svg)->toContain('id="backBackground"')
-        ->toContain('width="224" height="224"')->toContain('width="600" height="900"');
-    expect(app(IdCardRenderDataFactory::class)->make($card, 'landscape')->widthMm)->toBe(90.0);
+        ->toContain('Feedback and Suggestion QR')
+        // The root carries the card's physical size, so printing or exporting
+        // it reproduces 60 x 90 mm rather than a pixel count the viewer scales.
+        ->toContain('width="60mm" height="90mm"');
+    // Only a portrait template exists, so a landscape card falls back to the
+    // built-in ID-1 card rather than borrowing the portrait template's size.
+    expect(app(IdCardRenderDataFactory::class)->make($card, 'landscape')->widthMm)->toBe(85.6);
 });
 
 it('saves a style for every text role on both sides', function (): void {
@@ -287,6 +295,8 @@ it('saves a style for every text role on both sides', function (): void {
             'header' => ['color' => '#101010', 'font_size' => '12px', 'font_weight' => '700'],
             'label' => ['color' => '#112233', 'font_size' => '9px', 'font_weight' => '600'],
             'value' => ['color' => '#445566', 'font_size' => '10px', 'font_weight' => '500'],
+            'employee_name' => ['color' => '#556677', 'font_size' => '12px', 'font_weight' => '700'],
+            'employee_position' => ['color' => '#667788', 'font_size' => '9px', 'font_weight' => '600'],
         ],
         // The back has no heading role; its notes lead the text column.
         'back' => [
@@ -303,6 +313,8 @@ it('saves a style for every text role on both sides', function (): void {
     // The edit page hands every saved role back to the form.
     $this->get(route('id-card-templates.index'))->assertOk()->assertInertia(fn (Assert $page) => $page
         ->where('templates.0.text_style_config.front.value', $config['front']['value'])
+        ->where('templates.0.text_style_config.front.employee_name', $config['front']['employee_name'])
+        ->where('templates.0.text_style_config.front.employee_position', $config['front']['employee_position'])
         ->where('templates.0.text_style_config.back.footer', $config['back']['footer']));
 });
 
@@ -640,4 +652,165 @@ it('clamps a back photo setting written straight to the database', function (): 
     expect($photo->opacity)->toBe(100)
         ->and($photo->contrast)->toBe(0)
         ->and($photo->fit)->toBe('cover');
+});
+
+it('stores a seal and signature per template and serves them privately', function (): void {
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'seal' => UploadedFile::fake()->image('seal.png', 300, 300),
+        'signature' => UploadedFile::fake()->image('signature.png', 400, 120),
+    ]))->assertRedirect()->assertSessionHasNoErrors();
+
+    $template = IdCardTemplate::query()->sole();
+    expect($template->seal_path)->toStartWith('id-card-templates/')->toEndWith('.png')
+        ->and($template->signature_path)->toStartWith('id-card-templates/')
+        ->and($template->signature_path)->not->toBe($template->seal_path);
+    Storage::disk('local')->assertExists([$template->seal_path, $template->signature_path]);
+
+    // The page hands the editor URLs, never storage paths.
+    $this->get(route('id-card-templates.index'))->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->missing('templates.0.seal_path')
+        ->missing('templates.0.signature_path')
+        ->whereNot('templates.0.seal_url', null)
+        ->whereNot('templates.0.signature_url', null));
+
+    $this->get(route('id-card-templates.background', [$template, 'seal']))->assertOk();
+    $this->get(route('id-card-templates.background', [$template, 'signature']))->assertOk();
+});
+
+it('prints the template signature and prefers its seal over the global setting', function (): void {
+    SystemSetting::query()->updateOrCreate(
+        ['group' => 'general', 'key' => 'seal'],
+        ['value' => 'system-assets/global-seal.png', 'type' => 'string'],
+    );
+    // The global seal is a public-disk asset, unlike template artwork.
+    Storage::disk('public')->put('system-assets/global-seal.png', UploadedFile::fake()->image('g.png', 80, 80)->get());
+
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'seal' => UploadedFile::fake()->image('seal.png', 300, 300),
+        'signature' => UploadedFile::fake()->image('signature.png', 400, 120),
+    ]))->assertSessionHasNoErrors();
+
+    $template = IdCardTemplate::query()->sole();
+    $data = app(IdCardRenderDataFactory::class)->make(templateCard());
+    $back = app(IdCardSvgRenderer::class)->renderBack($data);
+
+    $templateSeal = app(IdCardTemplateService::class)->dataUri($template->seal_path);
+    expect($data->sealDataUri)->toBe($templateSeal)
+        ->and($data->signatureDataUri)->not->toBeNull()
+        ->and($back)->toContain('id="templateSignature"');
+
+    $document = new DOMDocument;
+    expect($document->loadXML($back))->toBeTrue();
+});
+
+it('falls back to the global seal when the template has none', function (): void {
+    SystemSetting::query()->updateOrCreate(
+        ['group' => 'general', 'key' => 'seal'],
+        ['value' => 'system-assets/global-seal.png', 'type' => 'string'],
+    );
+    // The global seal is a public-disk asset, unlike template artwork.
+    Storage::disk('public')->put('system-assets/global-seal.png', UploadedFile::fake()->image('g.png', 80, 80)->get());
+
+    $this->post(route('id-card-templates.store'), templatePayload())->assertSessionHasNoErrors();
+
+    $data = app(IdCardRenderDataFactory::class)->make(templateCard());
+
+    // The global seal still prints, and no signature image is invented.
+    expect($data->sealDataUri)->not->toBeNull()
+        ->and($data->signatureDataUri)->toBeNull();
+});
+
+it('exports at the physical size the template configures', function (): void {
+    $exporter = app(IdCardPngExporter::class);
+
+    // The renderer writes physical units; the exporter reads them back.
+    expect($exporter->millimetres('85.6mm', 0.0))->toBe(85.6)
+        ->and($exporter->millimetres('60mm', 0.0))->toBe(60.0)
+        // Older pixel form, at the canvas's 10 px per mm.
+        ->and($exporter->millimetres('856', 0.0))->toBe(85.6)
+        ->and($exporter->millimetres('', 54.0))->toBe(54.0)
+        ->and($exporter->millimetres(null, 54.0))->toBe(54.0);
+
+    // 300 DPI: an 85.6 mm card is 1011 px, a 60 x 90 mm card 709 x 1063.
+    expect($exporter->pixelsForMillimetres(85.6))->toBe(1011)
+        ->and($exporter->pixelsForMillimetres(54.0))->toBe(638)
+        ->and($exporter->pixelsForMillimetres(60.0))->toBe(709)
+        ->and($exporter->pixelsForMillimetres(90.0))->toBe(1063);
+});
+
+it('gives every rendered card face a physical size', function (): void {
+    IdCardTemplate::query()->create(templatePayload([
+        'orientation' => 'landscape', 'width_mm' => 85.6, 'height_mm' => 54,
+    ]));
+
+    $data = app(IdCardRenderDataFactory::class)->make(templateCard());
+    $renderer = app(IdCardSvgRenderer::class);
+
+    foreach ([$renderer->renderFront($data), $renderer->renderBack($data)] as $svg) {
+        expect($svg)->toContain('width="85.6mm" height="54mm"')
+            // The drawing coordinates are untouched, so nothing moves.
+            ->and($svg)->toContain('viewBox="0 0 856 540"');
+    }
+});
+
+it('applies a template only to cards of its own orientation', function (): void {
+    $service = app(IdCardTemplateService::class);
+
+    // A portrait template, made the default.
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'code' => 'portrait-only', 'name' => 'Portrait only',
+        'orientation' => 'portrait', 'width_mm' => 60, 'height_mm' => 90,
+    ]))->assertSessionHasNoErrors();
+
+    // It serves portrait cards, and nothing serves landscape ones.
+    expect($service->active('portrait')?->orientation)->toBe('portrait')
+        ->and($service->active('landscape'))->toBeNull();
+
+    // Now add a landscape template. Each orientation keeps its own.
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'code' => 'landscape-only', 'name' => 'Landscape only',
+        'orientation' => 'landscape', 'is_default' => false,
+    ]))->assertSessionHasNoErrors();
+
+    expect($service->active('portrait')?->code)->toBe('portrait-only')
+        ->and($service->active('landscape')?->code)->toBe('landscape-only')
+        // With no orientation the default template still answers, whatever
+        // shape it happens to be.
+        ->and($service->active()?->code)->toBe('portrait-only');
+});
+
+it('renders each face with the template built for its orientation', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'code' => 'portrait-sized', 'name' => 'Portrait sized',
+        'orientation' => 'portrait', 'width_mm' => 60, 'height_mm' => 90,
+    ]))->assertSessionHasNoErrors();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'code' => 'landscape-sized', 'name' => 'Landscape sized', 'is_default' => false,
+        'orientation' => 'landscape', 'width_mm' => 100, 'height_mm' => 70,
+    ]))->assertSessionHasNoErrors();
+
+    $factory = app(IdCardRenderDataFactory::class);
+
+    // Each orientation gets its own template's millimetres, never the other's.
+    expect($factory->make($card, 'portrait')->widthMm)->toBe(60.0)
+        ->and($factory->make($card, 'portrait')->heightMm)->toBe(90.0)
+        ->and($factory->make($card, 'landscape')->widthMm)->toBe(100.0)
+        ->and($factory->make($card, 'landscape')->heightMm)->toBe(70.0);
+});
+
+it('falls back to the built-in card when an orientation has no template', function (): void {
+    $card = templateCard();
+    $this->post(route('id-card-templates.store'), templatePayload([
+        'orientation' => 'landscape', 'width_mm' => 100, 'height_mm' => 70,
+        'back_background' => UploadedFile::fake()->image('back.png', 856, 540),
+    ]))->assertSessionHasNoErrors();
+
+    $portrait = app(IdCardRenderDataFactory::class)->make($card, 'portrait');
+
+    // No portrait template: built-in size, and none of the landscape
+    // template's artwork bleeds across.
+    expect($portrait->widthMm)->toBe(54.0)
+        ->and($portrait->heightMm)->toBe(85.6)
+        ->and($portrait->backBackgroundDataUri)->toBeNull();
 });

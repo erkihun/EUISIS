@@ -4,6 +4,7 @@ import { useLocale } from '@/hooks/useLocale';
 import ThemeToggle from '@/Components/ThemeToggle';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import AppToaster from '@/Components/ui/AppToaster';
+import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import Dropdown from '@/Components/Dropdown';
 import { ActivityIcon, ChevronDown, LayoutDashboard, LogOut, MenuIcon, QrCodeIcon, ReceiptTextIcon, ScrollText, UserIcon, X } from '@/Components/Icons';
 import type { PageProps } from '@/types';
@@ -123,6 +124,7 @@ export default function TransportProviderLayout({ title, header, children }: Pro
     const [open, setOpen] = useState(false);
 
     return (
+        <LocalizedUiProvider>
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
             <AppToaster />
             <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:w-64">
@@ -142,5 +144,6 @@ export default function TransportProviderLayout({ title, header, children }: Pro
                 <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
             </div>
         </div>
+        </LocalizedUiProvider>
     );
 }

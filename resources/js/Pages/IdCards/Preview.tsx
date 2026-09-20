@@ -22,6 +22,7 @@ type CardData = {
     qr_payload?: string | null;
     public_card_uuid?: string | null;
     qr_verification_url?: string | null;
+    feedback_qr_url?: string | null;
     employee?: {
         employee_number: string;
         full_name: string;
@@ -100,7 +101,7 @@ export default function IdCardPreview({ card, can }: PageProps) {
                         <div className="max-w-sm">
                             <IdCardBack
                                 cardNumber={card.card_number}
-                                qrValue={card.qr_verification_url ?? null}
+                                qrValue={portrait ? card.feedback_qr_url ?? null : card.qr_verification_url ?? null}
                                 emergencyContactName={card.employee?.emergency_contact_name}
                                 emergencyContactPhone={card.employee?.emergency_contact_phone}
                                 photoUrl={card.employee?.photo_url}

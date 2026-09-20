@@ -30,7 +30,10 @@ class SequenceScopeResolver
     /**
      * Tokens that must never be used as scope tokens.
      */
-    private const EXCLUDED_TOKENS = ['SEQUENCE', 'SEQUENCE_PADDED', 'RAND_6', 'PREFIX', 'SUFFIX', 'SEPARATOR'];
+    private const EXCLUDED_TOKENS = [
+        'SEQUENCE', 'SEQUENCE_PADDED', 'PREFIX', 'SUFFIX', 'SEPARATOR',
+        ...CodeFormatTokenResolver::RANDOM_TOKENS,
+    ];
 
     /**
      * Scope tokens that may legitimately resolve to an empty value. Instead of

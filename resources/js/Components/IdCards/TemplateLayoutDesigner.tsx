@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import {
     BACK_LAYOUT_ELEMENTS,
     LAYOUT_ELEMENTS,
@@ -18,6 +18,15 @@ type Props = {
     labels: Record<string, string>;
     /** Translated UI strings. */
     text: { reset: string; resetAll: string; hint: string };
+    /** Orientation-specific elements to expose; omitted for the legacy full set. */
+    elements?: readonly string[];
+    /**
+     * The card being designed. The designer wraps it so the drag surface is
+     * sized to the card alone: box positions are percentages of the surface,
+     * and when the surface shared a wrapper with the controls below the card,
+     * every box was scaled against the card plus the controls.
+     */
+    children: ReactNode;
 };
 
 /** Positions snap to this grid, in percent, so edges line up predictably. */
@@ -33,8 +42,8 @@ const snap = (value: number) => Math.round(value / SNAP) * SNAP;
  * Boxes are percentages of the card, which is what both renderers consume, so
  * nothing here needs to know the card's pixel size.
  */
-export default function TemplateLayoutDesigner({ side, value, onChange, disabled, labels, text }: Props) {
-    const elements: readonly string[] = side === 'back' ? BACK_LAYOUT_ELEMENTS : LAYOUT_ELEMENTS;
+export default function TemplateLayoutDesigner({ side, value, onChange, disabled, labels, text, elements: requestedElements, children }: Props) {
+    const elements: readonly string[] = requestedElements ?? (side === 'back' ? BACK_LAYOUT_ELEMENTS : LAYOUT_ELEMENTS);
     const defaults = layoutDefaults(side);
     const surfaceRef = useRef<HTMLDivElement>(null);
     const [selected, setSelected] = useState<string | null>(null);
@@ -131,6 +140,8 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
 
     return (
         <>
+            <div className="relative">
+            {children}
             <div
                 ref={surfaceRef}
                 className="absolute inset-0"
@@ -183,9 +194,16 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                 })}
             </div>
 
-            {/* Readout and per-element reset sit below the card, not over it. */}
-            <div className="absolute inset-x-0 top-full mt-2 flex flex-wrap items-center gap-2 text-xs">
-                <span className="text-gray-500">{text.hint}</span>
+            </div>
+
+            {/*
+             * Readout and resets sit below the card, in normal flow. They used
+             * to be `absolute top-full`, which took them out of layout: the
+             * front card's controls were drawn over the back card, and the back
+             * card's hung out of the bottom of the preview panel.
+             */}
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                {text.hint && <span className="text-gray-500 dark:text-slate-400">{text.hint}</span>}
                 {active && selected && (
                     <>
                         <span className="font-mono text-gray-700 dark:text-slate-300">
@@ -204,7 +222,10 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                 <button
                     type="button"
                     disabled={disabled}
-                    onClick={() => onChange({ ...defaults })}
+                    onClick={() => onChange({
+                        ...value,
+                        ...Object.fromEntries(elements.map((element) => [element, defaults[element]])),
+                    })}
                     className="rounded border border-gray-300 px-2 py-0.5 hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
                 >
                     {text.resetAll}

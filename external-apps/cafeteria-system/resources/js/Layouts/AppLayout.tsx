@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { Toaster, UiProvider } from '@euisis/ui';
 
 type AuthUser = { id: string; name: string; email: string; role: string };
 
@@ -246,8 +247,25 @@ export default function AppLayout({ title, children }: { title: string; children
         );
     };
 
+    const uiMessages = {
+        actions: t('common.actions'),
+        cancel: t('common.cancel'),
+        clear: t('common.clear'),
+        confirm: t('common.confirm'),
+        loading: t('common.loading'),
+        noResults: t('common.noResults'),
+        next: t('common.next'),
+        previous: t('common.previous'),
+        remove: t('common.remove'),
+        replace: t('common.replace'),
+        results: t('common.results'),
+        search: t('common.search'),
+    };
+
     return (
-        <div className="min-h-screen bg-gray-50">
+        <UiProvider messages={uiMessages}>
+        <div className="min-h-screen bg-[color:var(--app-background)] text-[color:var(--app-foreground)]">
+            <Toaster position="top-center" richColors closeButton />
             {/* Mobile backdrop */}
             {sidebarOpen && (
                 <button
@@ -441,5 +459,6 @@ export default function AppLayout({ title, children }: { title: string; children
                 <main className="flex-1 p-4 sm:p-6">{children}</main>
             </div>
         </div>
+        </UiProvider>
     );
 }

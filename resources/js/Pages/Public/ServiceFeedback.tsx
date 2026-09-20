@@ -1,5 +1,7 @@
 import { FormEvent, useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { controlClassName } from '@euisis/ui';
+import { publicButtonPrimary } from '@/Components/public/PublicPage';
+import { useForm } from '@inertiajs/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -88,8 +90,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
      */
     if (!available) {
         return (
-            <PublicLayout title={t('serviceFeedback.publicTitle')}>
-                <Head title={t('serviceFeedback.publicTitle')} />
+            <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
                 <div className="mx-auto max-w-md px-4 py-12">
                     <div className="rounded-card border border-slate-200 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-900">
                         <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -106,8 +107,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
 
     if (submitted) {
         return (
-            <PublicLayout title={t('serviceFeedback.publicTitle')}>
-                <Head title={t('serviceFeedback.publicTitle')} />
+            <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
                 <div className="mx-auto max-w-md px-4 py-12">
                     <div className="rounded-card border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-900 dark:bg-emerald-950/40">
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900">
@@ -130,8 +130,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
     const activeRating = hoveredRating ?? data.rating;
 
     return (
-        <PublicLayout title={t('serviceFeedback.publicTitle')}>
-            <Head title={t('serviceFeedback.publicTitle')} />
+        <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
 
             <div className="mx-auto max-w-md px-4 py-8">
                 {/* Service point context — office and role only, never a person. */}
@@ -180,7 +179,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                             id="position_service_id"
                             value={data.position_service_id}
                             onChange={(e) => setData('position_service_id', e.target.value)}
-                            className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                            className={`${controlClassName} mt-1.5 h-11 text-base`}
                         >
                             <option value="">{t('serviceFeedback.serviceTypePlaceholder')}</option>
                             {serviceTypes.map((type) => (
@@ -214,7 +213,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                                     aria-label={t(`serviceFeedback.rating${value}`)}
                                     onClick={() => setData('rating', value)}
                                     onMouseEnter={() => setHoveredRating(value)}
-                                    className="rounded-md p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                                    className="rounded-md p-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
                                 >
                                     <StarIcon filled={value <= activeRating} />
                                 </button>
@@ -238,7 +237,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                             value={data.comment}
                             onChange={(e) => setData('comment', e.target.value)}
                             placeholder={t('serviceFeedback.commentPlaceholder')}
-                            className="mt-1.5 block w-full rounded-lg border-slate-300 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                            className={`${controlClassName} mt-1.5 h-auto min-h-28 py-2 text-base`}
                         />
                         {errors.comment && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.comment}</p>}
                     </div>
@@ -256,7 +255,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                                 maxLength={120}
                                 value={data.client_name}
                                 onChange={(e) => setData('client_name', e.target.value)}
-                                className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                                className={`${controlClassName} mt-1.5 h-11 text-base`}
                             />
                             {errors.client_name && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.client_name}</p>}
                         </div>
@@ -272,7 +271,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                                 maxLength={120}
                                 value={data.client_contact}
                                 onChange={(e) => setData('client_contact', e.target.value)}
-                                className="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                                className={`${controlClassName} mt-1.5 h-11 text-base`}
                             />
                             {errors.client_contact && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.client_contact}</p>}
                         </div>
@@ -281,7 +280,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full rounded-lg bg-indigo-600 px-4 py-3 text-base font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-60"
+                        className={`${publicButtonPrimary} min-h-[48px] w-full text-base`}
                     >
                         {processing ? t('serviceFeedback.submitting') : t('serviceFeedback.submitFeedback')}
                     </button>

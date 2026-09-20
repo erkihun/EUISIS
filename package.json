@@ -25,6 +25,7 @@
         "vite": "^6.0.11"
     },
     "dependencies": {
+        "@euisis/ui": "file:packages/euisis-ui",
         "@hookform/resolvers": "^5.4.0",
         "@tanstack/react-table": "^8.21.3",
         "cmdk": "^1.1.1",

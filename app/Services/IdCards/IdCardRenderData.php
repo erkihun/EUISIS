@@ -53,6 +53,7 @@ final readonly class IdCardRenderData
         public ?string $photoDataUri,
         public ?string $logoDataUri,
         public ?string $sealDataUri,
+        public ?string $signatureDataUri,
 
         // QR payload – the signed verification URL (no raw token/hash)
         public string $qrVerificationUrl,
@@ -93,6 +94,8 @@ final readonly class IdCardRenderData
         /** Bilingual captions for the card number and signature sections. */
         public string $cardNumberLabel = '',
         public string $signatureLabel = '',
+        public string $signatureLabelAm = '',
+        public string $signatureLabelEn = '',
 
         // Issue / expiry shown in both calendars, like the front-face dates.
         public string $issueDateLabel = '',
@@ -122,5 +125,11 @@ final readonly class IdCardRenderData
 
         /** How the back face draws the employee photo, if at all. */
         public ?IdCardBackPhoto $backPhoto = null,
+
+        /** Employer organization logo, kept separate from template artwork. */
+        public ?string $organizationLogoDataUri = null,
+
+        /** Public employee feedback URL used by the portrait card QR. */
+        public ?string $feedbackQrUrl = null,
     ) {}
 }

@@ -1,4 +1,5 @@
 import { LabelHTMLAttributes } from 'react';
+import { FormLabel } from '@euisis/ui';
 
 export default function InputLabel({
     value,
@@ -7,14 +8,11 @@ export default function InputLabel({
     ...props
 }: LabelHTMLAttributes<HTMLLabelElement> & { value?: string }) {
     return (
-        <label
+        <FormLabel
             {...props}
-            className={
-                `block text-sm font-medium text-gray-700 dark:text-gray-300 ` +
-                className
-            }
+            className={className}
         >
             {value ? value : children}
-        </label>
+        </FormLabel>
     );
 }

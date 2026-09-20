@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { JSX, ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/hooks/useConfirm';
 
 /**
  * The two public QR codes for an employee, shown on the detail page.
@@ -41,6 +42,7 @@ export default function EmployeeQrCards({
     qrCodes?: QrCodesProp;
 }): JSX.Element | null {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
 
     // Nothing to show for a user who may see neither code.
     if (!qrCodes || (!qrCodes.canViewIdQr && !qrCodes.canManageFeedbackQr)) {
@@ -75,11 +77,10 @@ export default function EmployeeQrCards({
                         emptyLabel={t('employees.noFeedbackQr')}
                         downloadHref={route('employees.feedback-qr.png', employeeId)}
                         printHref={route('employees.feedback-qr.pdf', employeeId)}
-                        onRegenerate={() => {
+                        onRegenerate={async () => {
                             // Destructive: any QR already printed stops working.
-                            if (!window.confirm(t('serviceFeedback.regenerateQrWarning'))) {
-                                return;
-                            }
+                            const result = await confirm({ title: t('serviceFeedback.regenerateQrWarning'), variant: 'warning' });
+                            if (!result.confirmed) return;
 
                             router.post(
                                 route('employees.feedback-qr.regenerate', employeeId),
@@ -87,10 +88,9 @@ export default function EmployeeQrCards({
                                 { preserveScroll: true },
                             );
                         }}
-                        onRevoke={() => {
-                            if (!window.confirm(t('confirmations.deleteWarning'))) {
-                                return;
-                            }
+                        onRevoke={async () => {
+                            const result = await confirm({ title: t('confirmations.deleteWarning'), variant: 'danger' });
+                            if (!result.confirmed) return;
 
                             router.post(
                                 route('employees.feedback-qr.revoke', employeeId),

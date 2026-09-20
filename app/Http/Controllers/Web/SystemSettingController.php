@@ -49,6 +49,12 @@ class SystemSettingController extends Controller
 
         $groups = [];
         foreach (SystemSettingsRegistry::groups() as $group) {
+            // Edited under Public Site Management; showing it here too would
+            // give one value two editors.
+            if ($group === SystemSettingsRegistry::GROUP_PUBLIC_SITE) {
+                continue;
+            }
+
             $fields = $this->settingsService->getGroupForAdmin($group);
 
             if ($group === SystemSettingsRegistry::GROUP_SECURITY) {

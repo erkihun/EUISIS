@@ -18,8 +18,8 @@ final readonly class IdCardLayoutElement
      * Elements an administrator can move, with the built-in arrangement as the
      * default. A template that stores nothing keeps exactly this layout.
      *
-     * Both landscape faces are positionable; the portrait face still renders
-     * from its own fixed arrangement.
+     * Both faces in both orientations are positionable from the same
+     * percentage-based boxes.
      *
      * @var array<string, array<string, array{x: float, y: float, w: float, h: float}>>
      */
@@ -32,6 +32,8 @@ final readonly class IdCardLayoutElement
             'logo_secondary' => ['x' => 72.0, 'y' => 0.0, 'w' => 27.0, 'h' => 15.5],
             // Both clear the header band rather than starting underneath it.
             'photo' => ['x' => 2.0, 'y' => 22.0, 'w' => 25.0, 'h' => 49.0],
+            'employee_name' => ['x' => 28.0, 'y' => 22.0, 'w' => 72.0, 'h' => 10.0],
+            'employee_position' => ['x' => 28.0, 'y' => 32.0, 'w' => 72.0, 'h' => 8.0],
             'fields' => ['x' => 28.0, 'y' => 22.0, 'w' => 72.0, 'h' => 68.0],
             'emphasis' => ['x' => 2.5, 'y' => 74.5, 'w' => 96.0, 'h' => 12.0],
             // Issue and expiry sit on the front, between the emphasised ID
@@ -46,6 +48,9 @@ final readonly class IdCardLayoutElement
             'emergency' => ['x' => 41.5, 'y' => 6.0, 'w' => 58.5, 'h' => 43.5],
             'card_number' => ['x' => 7.0, 'y' => 62.0, 'w' => 35.0, 'h' => 7.0],
             'signature' => ['x' => 55.0, 'y' => 78.5, 'w' => 34.0, 'h' => 7.0],
+            // The caption naming the signing line, movable on its own so it can
+            // sit above it, below it, or somewhere else entirely.
+            'signature_label' => ['x' => 55.0, 'y' => 73.5, 'w' => 34.0, 'h' => 5.0],
             // The employee photo as a watermark; off unless a template enables it.
             'photo' => ['x' => 60.0, 'y' => 20.0, 'w' => 25.0, 'h' => 45.0],
         ],

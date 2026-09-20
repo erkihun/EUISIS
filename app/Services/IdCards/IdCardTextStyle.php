@@ -36,6 +36,8 @@ final readonly class IdCardTextStyle
             'header' => ['size' => '9px', 'weight' => '700', 'color' => 'primary'],
             'label' => ['size' => '7px', 'weight' => '400', 'color' => 'secondary'],
             'value' => ['size' => '10px', 'weight' => '600', 'color' => 'primary'],
+            'employee_name' => ['size' => '12px', 'weight' => '700', 'color' => 'primary'],
+            'employee_position' => ['size' => '9px', 'weight' => '600', 'color' => 'secondary'],
         ],
         // The back has no heading of its own; its notes lead the text column.
         'back' => [

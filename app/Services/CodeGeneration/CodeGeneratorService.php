@@ -90,7 +90,7 @@ class CodeGeneratorService
             $this->resetSequenceIfDue($sequence, $lockedRule);
 
             $sequenceNumber = max(1, $sequence->next_number);
-            $usesRandomToken = str_contains($lockedRule->format, '{RAND_6}');
+            $usesRandomToken = CodeFormatTokenResolver::usesRandomToken($lockedRule->format);
             $maximumAttempts = $usesRandomToken
                 ? self::MAX_RANDOM_CODE_ATTEMPTS
                 : self::MAX_SEQUENCE_CODE_ATTEMPTS;
@@ -118,7 +118,10 @@ class CodeGeneratorService
 
             if ($this->codeExists($lockedRule->entity_type, $generatedCode)) {
                 if ($usesRandomToken) {
-                    throw new RandomCodeGenerationException('Unable to generate a unique random code after 20 attempts.');
+                    throw new RandomCodeGenerationException(
+                        'UNABLE_TO_GENERATE_UNIQUE_CODE: no unique random code after '
+                        .self::MAX_RANDOM_CODE_ATTEMPTS.' attempts.',
+                    );
                 }
 
                 throw new RuntimeException('Unable to generate a unique code after multiple attempts.');

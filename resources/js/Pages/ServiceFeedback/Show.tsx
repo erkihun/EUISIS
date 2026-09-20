@@ -6,6 +6,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX, ReactNode } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 
 type NamePair = { en: string | null; am: string | null } | null;
 
@@ -34,6 +35,7 @@ type Props = {
 
 export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Element {
     const { locale, t } = useLocale();
+    const { confirm } = useConfirm();
     const am = locale === 'am';
 
     const label = (pair: NamePair): string => (am ? (pair?.am ?? pair?.en) : pair?.en) ?? '—';
@@ -59,10 +61,9 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
         router.post(route('service-feedback.admin.hide', feedback.id), {}, { preserveScroll: true });
     }
 
-    function destroy() {
-        if (!window.confirm(t('confirmations.deleteWarning'))) {
-            return;
-        }
+    async function destroy() {
+        const result = await confirm({ title: t('confirmations.deleteWarning'), variant: 'danger' });
+        if (!result.confirmed) return;
 
         router.delete(route('service-feedback.admin.destroy', feedback.id));
     }

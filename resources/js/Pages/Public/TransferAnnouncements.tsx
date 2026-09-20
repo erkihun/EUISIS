@@ -1,33 +1,10 @@
-import { useLocale } from '@/hooks/useLocale';
+import { Link, router } from '@inertiajs/react';
+import { EmptyState, Pagination, StatusBadge } from '@euisis/ui';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PublicLayout from '@/Layouts/PublicLayout';
-import { MegaphoneIcon, ChevronRight } from '@/Components/Icons';
-import { Link } from '@inertiajs/react';
-import { SVGProps } from 'react';
-
-type IconProps = SVGProps<SVGSVGElement>;
-
-function CalendarIcon(p: IconProps) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
-    );
-}
-
-function UsersIcon(p: IconProps) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-    );
-}
+import { PublicPageHeader, PublicSection, publicCardClass } from '@/Components/public/PublicPage';
+import { useBilingual } from '@/Components/public/bilingual';
+import { useLocale } from '@/hooks/useLocale';
 
 type Announcement = {
     id: string;
@@ -44,113 +21,80 @@ type Announcement = {
 };
 
 interface Props {
-    announcements: Announcement[];
+    announcements: { data: Announcement[]; current_page: number; last_page: number; per_page: number; total: number };
 }
 
+/**
+ * All published transfer announcements.
+ *
+ * Previously lift-on-hover cards with an animated "pinging" dot on open ones
+ * and a pill for every attribute. Now a plain list: open/closed is stated as a
+ * status badge in words, and the page is paginated rather than loading every
+ * published announcement at once.
+ */
 export default function PublicTransferAnnouncements({ announcements }: Props) {
-    const { locale, t } = useLocale();
-    const useAmharic = locale === 'am';
-
-    const open = announcements.filter((a) => a.is_open);
-    const other = announcements.filter((a) => !a.is_open);
+    const { t } = useLocale();
+    const pick = useBilingual();
+    const title = t('home.announcementsPageTitle');
 
     return (
-        <PublicLayout title={t('home.announcementsPageTitle')}>
-            <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-                <div className="mb-8 flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-card bg-[color:var(--color-primary)] text-white">
-                        <MegaphoneIcon className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{t('home.announcementsPageTitle')}</h1>
-                        <p className="text-sm text-gray-500 dark:text-slate-400">{t('home.announcementsPageSubtitle')}</p>
-                    </div>
-                </div>
+        <PublicLayout title={title} description={t('home.announcementsPageSubtitle')}>
+            <PublicPageHeader
+                title={title}
+                description={t('home.announcementsPageSubtitle')}
+                breadcrumbs={[{ label: t('nav.announcements'), href: route('public.announcements') }, { label: title }]}
+            />
 
-                {announcements.length === 0 ? (
-                    <div className="rounded-panel border border-gray-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-                        <MegaphoneIcon className="mx-auto h-10 w-10 text-gray-300 dark:text-slate-600" aria-hidden="true" />
-                        <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">{t('home.noAnnouncements')}</p>
-                    </div>
-                ) : (
-                    <div className="space-y-8">
-                        {open.length > 0 && (
-                            <section>
-                                <h2 className="mb-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                    {t('transfers.statusPublished')} — {t('transfers.statusOpen')}
-                                </h2>
-                                <div className="space-y-3">
-                                    {open.map((a) => <AnnouncementCard key={a.id} a={a} useAmharic={useAmharic} t={t} />)}
-                                </div>
-                            </section>
-                        )}
-                        {other.length > 0 && (
-                            <section>
-                                <h2 className="mb-3 text-xs font-semibold text-gray-400 dark:text-slate-500">
-                                    {t('transfers.statusPublished')}
-                                </h2>
-                                <div className="space-y-3">
-                                    {other.map((a) => <AnnouncementCard key={a.id} a={a} useAmharic={useAmharic} t={t} />)}
-                                </div>
-                            </section>
-                        )}
-                    </div>
-                )}
-            </div>
-        </PublicLayout>
-    );
-}
-
-function AnnouncementCard({ a, useAmharic, t }: { a: Announcement; useAmharic: boolean; t: (k: string) => string }) {
-    const orgName = (useAmharic ? a.organization_name_am : null) ?? a.organization_name_en ?? '—';
-    const posTitle = (useAmharic ? a.position_title_am : null) ?? a.position_title_en ?? '—';
-
-    return (
-        <Link
-            href={route('public.transfer-announcements.show', { announcement: a.id })}
-            className={`group relative block overflow-hidden rounded-panel border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:bg-slate-900 ${a.is_open ? 'border-emerald-200 dark:border-emerald-900/60' : 'border-gray-200 dark:border-slate-800'}`}
-        >
-            {a.is_open && <div className="absolute left-0 top-0 h-full w-1 rounded-l-panel bg-emerald-500" aria-hidden="true" />}
-
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 pl-2">
-                    <p className="text-xs font-medium text-gray-500 dark:text-slate-400">{orgName}</p>
-                    <p className="mt-0.5 text-base font-semibold text-gray-900 dark:text-slate-100">{posTitle}</p>
-                    <div className="mt-3 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-slate-400">
-                        {a.grade_level && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 dark:bg-slate-800">
-                                {t('transfers.gradeLevel')}: <strong className="text-gray-700 dark:text-slate-200">{a.grade_level}</strong>
-                            </span>
-                        )}
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-                            <UsersIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                            {a.number_of_vacancies} {t('transfers.vacancies')}
-                        </span>
-                        {a.opening_date && a.closing_date && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 dark:bg-slate-800">
-                                <CalendarIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                                <LocalizedDateDisplay value={a.opening_date} /> → <LocalizedDateDisplay value={a.closing_date} />
-                            </span>
-                        )}
-                    </div>
-                </div>
-                <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end">
-                    {a.is_open ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                            <span className="relative flex h-2 w-2" aria-hidden="true">
-                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                            </span>
-                            {t('transfers.statusOpen')}
-                        </span>
+            <PublicSection tone="muted">
+                <div className="space-y-8">
+                    {announcements.data.length === 0 ? (
+                        <EmptyState
+                            className={publicCardClass}
+                            title={t('home.noAnnouncements')}
+                        />
                     ) : (
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-500 dark:bg-slate-800 dark:text-slate-400">
-                            {t('transfers.statusPublished')}
-                        </span>
+                        <>
+                            <ul className="divide-y divide-gray-200 border-y border-gray-200 dark:divide-slate-800 dark:border-slate-800">
+                                {announcements.data.map((a) => (
+                                    <li key={a.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                                        <div className="min-w-0">
+                                            <p className="text-sm text-gray-600 dark:text-slate-400">{pick(a, 'organization_name') || '—'}</p>
+                                            <h2 className="mt-0.5 text-base font-semibold leading-snug [overflow-wrap:anywhere]">
+                                                <Link
+                                                    href={route('public.transfer-announcements.show', { announcement: a.id })}
+                                                    className="text-gray-900 hover:text-[color:var(--color-primary)] hover:underline dark:text-slate-100"
+                                                >
+                                                    {pick(a, 'position_title') || '—'}
+                                                </Link>
+                                            </h2>
+                                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                                                {a.grade_level && <>{t('transfers.gradeLevel')}: {a.grade_level} · </>}
+                                                {a.number_of_vacancies} {t('transfers.vacancies')}
+                                                {a.opening_date && a.closing_date && (
+                                                    <> · <LocalizedDateDisplay value={a.opening_date} /> – <LocalizedDateDisplay value={a.closing_date} /></>
+                                                )}
+                                            </p>
+                                        </div>
+                                        <StatusBadge tone={a.is_open ? 'success' : 'neutral'}>
+                                            {a.is_open ? t('transfers.statusOpen') : t('publicSite.closed')}
+                                        </StatusBadge>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <Pagination
+                                meta={{
+                                    currentPage: announcements.current_page,
+                                    lastPage: announcements.last_page,
+                                    perPage: announcements.per_page,
+                                    total: announcements.total,
+                                }}
+                                onPageChange={(page) => router.get(route('public.transfer-announcements'), { page }, { preserveState: true })}
+                            />
+                        </>
                     )}
-                    <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 dark:text-slate-600 dark:group-hover:text-slate-400" aria-hidden="true" />
                 </div>
-            </div>
-        </Link>
+            </PublicSection>
+        </PublicLayout>
     );
 }

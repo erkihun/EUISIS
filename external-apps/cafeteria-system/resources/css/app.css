@@ -1,3 +1,14 @@
+@import '@euisis/ui/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body {
+        min-width: 320px;
+        margin: 0;
+        background: var(--app-background);
+        color: var(--app-foreground);
+    }
+}

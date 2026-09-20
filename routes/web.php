@@ -24,6 +24,8 @@ use App\Http\Controllers\ProviderPortal\Transport\TransportScanController as Pro
 use App\Http\Controllers\ProviderPortal\Transport\TransportTransactionController as ProviderTransportTransactionController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportTripController as ProviderTransportTripController;
 use App\Http\Controllers\ProviderPortal\Transport\TransportVehicleController as ProviderTransportVehicleController;
+use App\Http\Controllers\Public\PublicAnnouncementController;
+use App\Http\Controllers\Public\PublicHomeController;
 use App\Http\Controllers\Public\PublicServicesController;
 use App\Http\Controllers\Public\PublicSupportController;
 use App\Http\Controllers\Public\PublicTransferAnnouncementController;
@@ -106,11 +108,10 @@ use App\Http\Controllers\Web\VacancyApplicationController;
 use App\Models\IdCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+// Public home — content from Public Site Management. `public.site` shows the
+// maintenance notice instead when an administrator switches the site off.
+Route::get('/', PublicHomeController::class)->middleware('public.site')->name('home');
 
 // /cafe → cafeteria provider login shortcut
 Route::get('/cafe', function () {
@@ -256,8 +257,31 @@ Route::prefix('cafeteria/portal')->name('cafeteria.portal.')->group(function ():
 });
 
 // ── Public pages — no auth required ─────────────────────────────────────────
-Route::get('/announcements', [PublicTransferAnnouncementController::class, 'index'])
-    ->name('public.transfer-announcements');
+//
+// Content pages carry `public.site` (maintenance notice when the site is off).
+// Verify / ID checker / service feedback deliberately do not: they are
+// operational tools and must stay up during a content outage.
+Route::middleware('public.site')->group(function (): void {
+    // General notices (Public Site Management) plus open transfer opportunities.
+    Route::get('/announcements', [PublicAnnouncementController::class, 'index'])
+        ->name('public.announcements');
+
+    // Full list of transfer announcements. Kept under its historical route
+    // NAME so every existing route('public.transfer-announcements') link
+    // still lands on the transfer list it always meant.
+    Route::get('/announcements/transfers', [PublicTransferAnnouncementController::class, 'index'])
+        ->name('public.transfer-announcements');
+
+    Route::get('/services', [PublicServicesController::class, 'index'])
+        ->name('public.services');
+
+    Route::get('/services/{slug}', [PublicServicesController::class, 'show'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->name('public.services.show');
+
+    Route::get('/support', [PublicSupportController::class, 'index'])
+        ->name('public.support');
+});
 
 Route::get('/announcements/transfer/{announcement}', [PublicTransferAnnouncementController::class, 'show'])
     ->name('public.transfer-announcements.show');
@@ -280,14 +304,16 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
         ->name('public.transfer-announcements.apply.store');
 });
 
+// Announcement detail by slug. Registered after every fixed /announcements/*
+// path, and the pattern excludes `transfer` / `transfers`, so a slug can never
+// shadow the transfer routes above.
+Route::get('/announcements/{slug}', [PublicAnnouncementController::class, 'show'])
+    ->where('slug', '(?!transfers?$)[a-z0-9]+(?:-[a-z0-9]+)*')
+    ->middleware('public.site')
+    ->name('public.announcements.show');
+
 Route::get('/verify', [PublicVerifyController::class, 'index'])
     ->name('public.verify');
-
-Route::get('/services', [PublicServicesController::class, 'index'])
-    ->name('public.services');
-
-Route::get('/support', [PublicSupportController::class, 'index'])
-    ->name('public.support');
 
 /*
  * Public Global ID Checker — anonymous, OTP-gated.
@@ -733,7 +759,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/system-settings/id-card-templates/{template}', [IdCardTemplateController::class, 'update'])->name('id-card-templates.update');
     Route::delete('/system-settings/id-card-templates/{template}', [IdCardTemplateController::class, 'destroy'])->name('id-card-templates.destroy');
     Route::post('/system-settings/id-card-templates/{template}/default', [IdCardTemplateController::class, 'setDefault'])->name('id-card-templates.set-default');
-    Route::get('/system-settings/id-card-templates/{template}/background/{side}', [IdCardTemplateController::class, 'background'])->whereIn('side', ['front', 'back', 'logo-primary', 'logo-secondary'])->name('id-card-templates.background');
+    Route::get('/system-settings/id-card-templates/{template}/background/{side}', [IdCardTemplateController::class, 'background'])->whereIn('side', ['front', 'back', 'logo-primary', 'logo-secondary', 'seal', 'signature'])->name('id-card-templates.background');
     Route::get('/system-settings', [SystemSettingController::class, 'index'])->name('system-settings.index');
     Route::patch('/system-settings/general', [SystemSettingController::class, 'updateGeneral'])->name('system-settings.general.update');
     Route::patch('/system-settings/localization', [SystemSettingController::class, 'updateLocalization'])->name('system-settings.localization.update');

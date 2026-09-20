@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Services\PublicIdCheckerService;
+use App\Services\PublicSite\PublicSiteContent;
+use App\Services\PublicSite\PublicSiteSectionRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -24,7 +26,20 @@ use Inertia\Response;
  */
 class PublicIdCheckerController extends Controller
 {
-    public function __construct(private readonly PublicIdCheckerService $checker) {}
+    public function __construct(
+        private readonly PublicIdCheckerService $checker,
+        private readonly PublicSiteContent $content,
+    ) {}
+
+    /**
+     * Administrator-written guidance for this page (Public Site Management →
+     * Verify). Wording only: it is rendered around the flow and has no bearing
+     * on card resolution, OTP issuance, limits or the fields revealed.
+     */
+    private function guidance(): array
+    {
+        return $this->content->sections(PublicSiteSectionRegistry::PAGE_VERIFY);
+    }
 
     /** Landing page: manual token entry or QR scan. */
     public function index(): Response
@@ -32,6 +47,7 @@ class PublicIdCheckerController extends Controller
         return Inertia::render('Public/IdChecker', [
             'cardUuid' => null,
             'card' => null,
+            'sections' => $this->guidance(),
         ]);
     }
 
@@ -62,6 +78,7 @@ class PublicIdCheckerController extends Controller
                     ? null
                     : $this->checker->maskCardNumber($resolved['card']->card_number),
             ],
+            'sections' => $this->guidance(),
         ]);
     }
 

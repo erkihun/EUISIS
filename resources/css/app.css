@@ -1,3 +1,5 @@
+@import '@euisis/ui/tokens.css';
+
 /*
  * ── Amharic / Ethiopic font ───────────────────────────────────
  *
@@ -288,95 +290,7 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
     animation: toast-fade-out 0.18s ease-in forwards;
 }
 
-/* ── Card print area ──────────────────────────────────────────
-   The `.id-card-print-area` element is rendered into <body> by
-   `CardPrintExportModal` (via React portal). On screen it is hidden;
-   when `window.print()` runs, the @media print rules below make
-   ONLY the card area visible, centred on the page. */
-
-.id-card-print-area {
-    /* Hidden on screen — only the @media print block reveals it. */
-    position: fixed;
-    left: -99999px;
-    top: 0;
-    width: 0;
-    height: 0;
-    overflow: hidden;
-    pointer-events: none;
-}
-
 @media print {
-    /* Hide everything in the app… (visibility, not display, so the
-       print area inside <body> can still be made visible below). */
-    body > * {
-        visibility: hidden !important;
-    }
-
-    /* …except the print area and its descendants. */
-    .id-card-print-area,
-    .id-card-print-area * {
-        visibility: visible !important;
-    }
-
-    /* Place the print area as the only thing the printer sees, and
-       restore normal positioning so the card flows on the page. */
-    .id-card-print-area {
-        position: fixed !important;
-        inset: 0 !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: auto !important;
-        height: auto !important;
-        overflow: visible !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 8mm !important;
-        background: #ffffff !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        z-index: 99999 !important;
-    }
-
-    /* Force the printed card to the physical ID-1 size (85.6 × 54 mm)
-       so it always lands at the correct real-world dimensions regardless
-       of the source pixel size. `print-color-adjust: exact` keeps the
-       gradient backgrounds from being dropped by ink-saving heuristics. */
-    .id-card-print-card {
-        width: var(--id-card-width, 85.6mm) !important;
-        height: var(--id-card-height, 54mm) !important;
-        max-width: none !important;
-        max-height: none !important;
-        break-inside: avoid;
-        page-break-inside: avoid;
-        print-color-adjust: exact !important;
-        -webkit-print-color-adjust: exact !important;
-        overflow: hidden !important;
-    }
-
-    /* Portrait card: 54 × 85.6 mm (rotated ID-1). */
-    .id-card-print-card-portrait {
-        width: var(--id-card-width, 54mm) !important;
-        height: var(--id-card-height, 85.6mm) !important;
-        max-width: none !important;
-        max-height: none !important;
-        break-inside: avoid;
-        page-break-inside: avoid;
-        print-color-adjust: exact !important;
-        -webkit-print-color-adjust: exact !important;
-        overflow: hidden !important;
-    }
-
-    /* When printing both sides, force a page break between them. */
-    .id-card-print-spacer {
-        display: block !important;
-        break-after: page;
-        page-break-after: always;
-        height: 0;
-        width: 0;
-    }
-
     /* Common chrome we never want on paper. */
     .no-print,
     nav,
@@ -395,41 +309,6 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
     }
 }
 
-/* ── Welcome page animations ────────────────────────────────── */
-@keyframes fade-up {
-    from { opacity: 0; transform: translateY(28px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fade-in-right {
-    from { opacity: 0; transform: translateX(32px); }
-    to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes float-y {
-    0%, 100% { transform: translateY(0); }
-    50%       { transform: translateY(-10px); }
-}
-@keyframes orb-drift {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    40%       { transform: translate(20px, -28px) scale(1.06); }
-    70%       { transform: translate(-14px, 16px) scale(0.96); }
-}
-@keyframes step-line-grow {
-    from { transform: scaleX(0); }
-    to   { transform: scaleX(1); }
-}
-@keyframes pop-in {
-    from { opacity: 0; transform: scale(0.55); }
-    to   { opacity: 1; transform: scale(1); }
-}
-@keyframes shimmer {
-    0%   { background-position: -200% center; }
-    100% { background-position:  200% center; }
-}
-
-.animate-fade-up       { animation: fade-up 0.65s ease-out both; }
-.animate-fade-in-right { animation: fade-in-right 0.65s ease-out both; }
-.animate-float-y       { animation: float-y 5s ease-in-out infinite; }
-.animate-orb-drift     { animation: orb-drift 10s ease-in-out infinite; }
 
 /* ── Sidebar motion ─────────────────────────────────────────── */
 /* Smooth expand/collapse for nav groups. The wrapper animates grid-rows
@@ -500,4 +379,36 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 }
 .dark .org-tree-connector::before {
     background: #475569;
+}
+
+/* ── Public site long-form text ───────────────────────────────
+ * Styles the sanitized HTML that Public Site Management produces
+ * (announcements, service details, FAQ answers). Only the elements the
+ * server-side allow-list permits are styled, because nothing else can
+ * reach the page. Kept here rather than pulling in a typography plugin.
+ */
+/* In the components layer so a utility on the element (text-sm, a
+   colour) overrides the base size/colour, as utilities should. */
+@layer components {
+    .public-prose {
+        color: var(--app-foreground);
+        font-size: 1rem;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+    }
+    .public-prose > * + * { margin-top: 1em; }
+    .public-prose h2 { font-size: 1.25rem; font-weight: 600; line-height: 1.35; margin-top: 1.75em; }
+    .public-prose h3 { font-size: 1.0625rem; font-weight: 600; line-height: 1.4; margin-top: 1.5em; }
+    .public-prose h4 { font-size: 1rem; font-weight: 600; margin-top: 1.25em; }
+    .public-prose ul { list-style: disc; padding-inline-start: 1.25em; }
+    .public-prose ol { list-style: decimal; padding-inline-start: 1.25em; }
+    .public-prose li + li { margin-top: 0.35em; }
+    .public-prose a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+    .public-prose strong { font-weight: 600; }
+    .public-prose blockquote { border-inline-start: 3px solid var(--app-border-strong); padding-inline-start: 1em; color: var(--app-muted-foreground); }
+    .public-prose code { font-size: 0.875em; background: var(--app-surface-muted); padding: 0.1em 0.3em; border-radius: 4px; }
+    .public-prose hr { border-color: var(--app-border); }
+    .public-prose table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; display: block; overflow-x: auto; }
+    .public-prose th, .public-prose td { border: 1px solid var(--app-border); padding: 0.5em 0.75em; text-align: start; }
+    .public-prose th { background: var(--app-surface-muted); font-weight: 600; }
 }

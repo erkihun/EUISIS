@@ -8,6 +8,7 @@ use App\Enums\CodeRuleEntityType;
 use App\Exceptions\MissingSequenceScopeContextException;
 use App\Models\CodeRule;
 use App\Models\CodeRuleSequence;
+use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\CodeGeneratorService;
 use App\Services\CodeGeneration\CodeRuleResolver;
 use App\Services\CodeGeneration\SequenceScopeResolver;
@@ -82,7 +83,7 @@ class CodeProjector
         }
 
         if ($lockKey !== null
-            && str_contains($rule->format, '{RAND_6}')
+            && CodeFormatTokenResolver::usesRandomToken($rule->format)
             && isset($this->lockedRandomCodes[$lockKey])) {
             return (string) $this->lockedRandomCodes[$lockKey];
         }

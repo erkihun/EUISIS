@@ -12,7 +12,7 @@ return [
     'issue_date' => 'የስጦታ ቀን',
     'expiry_date' => 'ያልቃ',
     'card_no' => 'የካርድ ቁጥር',
-    'signature' => 'ፊርማ',
+    'signature' => 'የባለስልጣኑ ፊርማ',
     'emergency_contact_name' => 'የአስቸኳይ ጊዜ ተጠሪ ስም',
     'emergency_contact_phone' => 'የአስቸኳይ ጊዜ ተጠሪ ስልክ',
     'emergency_contact' => 'የአስቸኳይ ጊዜ ተጠሪ',

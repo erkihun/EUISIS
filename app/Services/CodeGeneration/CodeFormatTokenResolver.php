@@ -18,6 +18,27 @@ use Illuminate\Support\Carbon;
 
 class CodeFormatTokenResolver
 {
+    /**
+     * Tokens that resolve to a random value. A format using one cannot rely on
+     * a sequence to avoid collisions, so the generator retries instead, and the
+     * token is never usable as a sequence scope.
+     *
+     * @var list<string>
+     */
+    public const RANDOM_TOKENS = ['RAND_6', 'RAND_8'];
+
+    /** Whether a format produces a random value that may collide. */
+    public static function usesRandomToken(?string $format): bool
+    {
+        foreach (self::RANDOM_TOKENS as $token) {
+            if (str_contains((string) $format, '{'.$token.'}')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function __construct(
         private readonly PositionCodeContextResolver $positionCodeContextResolver,
     ) {}
@@ -63,6 +84,8 @@ class CodeFormatTokenResolver
             'SEQUENCE' => str_pad((string) $sequenceNumber, (int) ($rule->sequence_length ?? 4), '0', STR_PAD_LEFT),
             'SEQUENCE_PADDED' => str_pad((string) $sequenceNumber, (int) ($rule->sequence_length ?? 4), '0', STR_PAD_LEFT),
             'RAND_6' => (string) random_int(100000, 999999),
+            // Eight digits, never leading-zero, cryptographically secure.
+            'RAND_8' => (string) random_int(10000000, 99999999),
 
             // ── DATE / TIME ───────────────────────────────────────────────────
             'YEAR' => $now->format('Y'),
@@ -805,7 +828,7 @@ class CodeFormatTokenResolver
     private function tokenKeys(): array
     {
         return [
-            'PREFIX', 'SUFFIX', 'SEPARATOR', 'SEQUENCE', 'SEQUENCE_PADDED', 'RAND_6',
+            'PREFIX', 'SUFFIX', 'SEPARATOR', 'SEQUENCE', 'SEQUENCE_PADDED', 'RAND_6', 'RAND_8',
             'YEAR', 'YEAR_SHORT', 'MONTH', 'MONTH_NAME', 'DAY', 'DATE', 'TIME', 'TIMESTAMP', 'FISCAL_YEAR',
             'ORG_CODE', 'ORG_PREFIX', 'ORG_NAME', 'ORG_TYPE_CODE', 'ORG_TYPE_PREFIX', 'ORG_TYPE_NAME',
             'PARENT_ORG_CODE', 'PARENT_ORG_PREFIX',

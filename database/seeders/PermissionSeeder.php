@@ -60,7 +60,7 @@ class PermissionSeeder extends Seeder
             'id-cards.approveRequest', 'id-cards.rejectRequest', 'id-cards.createPrintBatch',
             'id-cards.print', 'id-cards.issue', 'id-cards.activate', 'id-cards.reportLost',
             'id-cards.reportDamaged', 'id-cards.replace', 'id-cards.revoke', 'id-cards.verify',
-            'id-cards.export', 'id-cards.printAnytime', 'id-cards.exportPng', 'id-cards.previewSvg',
+            'id-cards.export', 'id-cards.exportPng', 'id-cards.previewSvg',
             'card-verifications.viewAny',
             'employees.viewAny', 'employees.viewPii', 'entitlements.viewAny', 'providers.viewAny',
             'service-transactions.viewAny', 'audit-logs.viewAny',

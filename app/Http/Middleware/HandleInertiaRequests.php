@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Calendar\CalendarService;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Services\IdCards\IdCardTemplateService;
+use App\Services\PublicSite\PublicSiteContent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -72,8 +73,38 @@ class HandleInertiaRequests extends Middleware
 
                 return $template ? $templates->presentation($template) : null;
             },
+            /*
+             * One template per orientation. A template is built for its own
+             * shape, so a portrait card must not be styled by a landscape
+             * template; the card components pick the entry for the face they
+             * are drawing, and fall back to the built-in arrangement when that
+             * orientation has no template.
+             */
+            'idCardTemplates' => function () use ($user): ?array {
+                if ($user === null) {
+                    return null;
+                }
+                $templates = app(IdCardTemplateService::class);
+
+                return collect(['landscape', 'portrait'])
+                    ->mapWithKeys(function (string $orientation) use ($templates): array {
+                        $template = $templates->active($orientation);
+
+                        return [$orientation => $template ? $templates->presentation($template) : null];
+                    })
+                    ->all();
+            },
             'registration_enabled' => (bool) config('security.registration_enabled', false),
             'announcement_count' => $this->publishedAnnouncementCount(),
+            /*
+             * Public website chrome from Public Site Management. Published,
+             * allow-listed links only, cached by PublicSiteContent; both
+             * languages are sent and the browser picks one.
+             */
+            'publicSite' => fn (): array => [
+                'navigation' => app(PublicSiteContent::class)->navigation(),
+                'footerLinks' => app(PublicSiteContent::class)->footerLinks(),
+            ],
             'is_employee_user' => $user !== null && $this->resolveIsEmployeeUser($user),
             'flash' => [
                 // Individual-key form (preferred) — set via session('success'), etc.

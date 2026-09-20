@@ -23,7 +23,7 @@ export const CARD_SURFACE = {
 
 /** Text roles that can be styled per card side. */
 // The front has no footer of its own; the dates close the card face.
-export const FRONT_ROLES = ['header', 'label', 'value'] as const;
+export const FRONT_ROLES = ['header', 'label', 'value', 'employee_name', 'employee_position'] as const;
 // The back has no heading of its own; its notes lead the text column.
 export const BACK_ROLES = ['label', 'value', 'footer'] as const;
 export type FrontRole = (typeof FRONT_ROLES)[number];
@@ -35,8 +35,11 @@ export type TextStyleConfig = {
 };
 
 /** Elements an admin can move, in the order the designer lists them. */
-export const LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'fields', 'emphasis', 'dates'] as const;
-export const BACK_LAYOUT_ELEMENTS = ['qr', 'notes', 'seal', 'emergency', 'card_number', 'signature', 'photo'] as const;
+export const LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'fields', 'emphasis', 'dates'] as const;
+export const BACK_LAYOUT_ELEMENTS = ['qr', 'notes', 'seal', 'emergency', 'card_number', 'signature', 'signature_label', 'photo'] as const;
+export const LANDSCAPE_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'fields', 'emphasis', 'dates'] as const;
+export const PORTRAIT_FRONT_LAYOUT_ELEMENTS = ['header', 'logo_primary', 'logo_secondary', 'photo', 'employee_name', 'employee_position', 'emphasis'] as const;
+export const PORTRAIT_BACK_LAYOUT_ELEMENTS = ['qr', 'seal', 'photo'] as const;
 export type LayoutElement = (typeof LAYOUT_ELEMENTS)[number];
 export type BackLayoutElement = (typeof BACK_LAYOUT_ELEMENTS)[number];
 export type AnyLayoutElement = LayoutElement | BackLayoutElement;
@@ -59,6 +62,8 @@ export const LAYOUT_DEFAULTS: Record<LayoutElement, LayoutBox> = {
     logo_secondary: { x: 72, y: 0, w: 27, h: 15.5 },
     // Both clear the header band rather than starting underneath it.
     photo: { x: 2, y: 22, w: 25, h: 49 },
+    employee_name: { x: 28, y: 22, w: 72, h: 10 },
+    employee_position: { x: 28, y: 32, w: 72, h: 8 },
     fields: { x: 28, y: 22, w: 72, h: 68 },
     emphasis: { x: 2.5, y: 74.5, w: 96, h: 12 },
     // Issue and expiry sit on the front, between the emphasised ID number and
@@ -74,6 +79,8 @@ export const BACK_LAYOUT_DEFAULTS: Record<BackLayoutElement, LayoutBox> = {
     emergency: { x: 41.5, y: 6, w: 58.5, h: 43.5 },
     card_number: { x: 7, y: 62, w: 35, h: 7 },
     signature: { x: 55, y: 78.5, w: 34, h: 7 },
+    // The caption naming the signing line, movable on its own.
+    signature_label: { x: 55, y: 73.5, w: 34, h: 5 },
     // The employee photo as a watermark; off unless a template enables it.
     photo: { x: 60, y: 20, w: 25, h: 45 },
 };
@@ -161,6 +168,13 @@ export type TemplatePresentation = {
      */
     logo_primary_url?: string | null;
     logo_secondary_url?: string | null;
+    /**
+     * The template's own seal and signature. A null seal falls back to the
+     * global `general.seal` setting; a null signature leaves the ruled line to
+     * be signed by hand.
+     */
+    seal_url?: string | null;
+    signature_url?: string | null;
     back_photo_config?: BackPhotoConfig | null;
 };
 
@@ -199,14 +213,39 @@ export function roleStyle(
 
 export const IdCardTemplateContext = createContext<TemplatePresentation | null | undefined>(undefined);
 
-export function useIdCardTemplate() {
+/**
+ * The template to draw a card face with.
+ *
+ * A template is built for one orientation — its artwork, layout boxes and
+ * millimetres all assume that shape — so a face asks for the template built
+ * for the shape it is drawing. When that orientation has no template the hook
+ * returns null and the card falls back to the built-in arrangement, rather
+ * than borrowing the other orientation's layout.
+ *
+ * Omitting the orientation keeps the old meaning: whatever the default
+ * template is. A context override (the template editor's live preview) always
+ * wins, because there the administrator is looking at one specific template.
+ */
+export function useIdCardTemplate(orientation?: 'portrait' | 'landscape') {
     const override = useContext(IdCardTemplateContext);
-    const { idCardTemplate } = usePage<PageProps<{ idCardTemplate?: TemplatePresentation | null }>>().props;
-    return override === undefined ? (idCardTemplate ?? null) : override;
+    const { idCardTemplate, idCardTemplates } = usePage<PageProps<{
+        idCardTemplate?: TemplatePresentation | null;
+        idCardTemplates?: Partial<Record<'portrait' | 'landscape', TemplatePresentation | null>> | null;
+    }>>().props;
+
+    if (override !== undefined) {
+        return override;
+    }
+
+    if (orientation !== undefined) {
+        return idCardTemplates?.[orientation] ?? null;
+    }
+
+    return idCardTemplate ?? null;
 }
 
 export function useCardDimensions(orientation: 'portrait' | 'landscape') {
-    const template = useIdCardTemplate();
+    const template = useIdCardTemplate(orientation);
     const portrait = orientation === 'portrait';
     const long = template ? Math.max(template.width_mm, template.height_mm) : 85.6;
     const short = template ? Math.min(template.width_mm, template.height_mm) : 54;

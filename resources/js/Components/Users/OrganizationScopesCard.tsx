@@ -3,6 +3,7 @@ import { router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import { useConfirm } from '@/hooks/useConfirm';
 
 type OrganizationScope = {
     id: string;
@@ -52,6 +53,7 @@ const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
 
 export default function OrganizationScopesCard({ userId, scopes, organizations, canManage }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState<FormState>(emptyForm());
@@ -145,8 +147,9 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
         }
     }
 
-    function removeScope(scopeId: string) {
-        if (!window.confirm(t('users.userOrganizationScopes.confirmRemove'))) return;
+    async function removeScope(scopeId: string) {
+        const result = await confirm({ title: t('users.userOrganizationScopes.confirmRemove'), variant: 'danger' });
+        if (!result.confirmed) return;
         router.delete(route('users.organization-scopes.destroy', { user: userId, scope: scopeId }), {
             preserveScroll: true,
         });

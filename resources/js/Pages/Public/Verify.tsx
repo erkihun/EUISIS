@@ -1,8 +1,19 @@
-import { Component, FormEvent, ReactNode, Suspense, lazy, useState } from 'react';
+import { FormEvent, Suspense, lazy, useState } from 'react';
 import { router } from '@inertiajs/react';
+import { FormField, Input } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
-import PublicLayout from '@/Layouts/PublicLayout';
-import { SVGProps } from 'react';
+import PublicLayout, { type PublicPageMeta } from '@/Layouts/PublicLayout';
+import {
+    PublicContainer,
+    PublicPageHeader,
+    RichText,
+    publicButtonPrimary,
+    publicButtonSecondary,
+    publicCardClass,
+} from '@/Components/public/PublicPage';
+import ScannerBoundary from '@/Components/public/ScannerBoundary';
+import { useBilingual } from '@/Components/public/bilingual';
+import type { PageSection } from '@/Components/public/PublicPage';
 
 /*
  * html5-qrcode is ~335 kB. Visitors who arrive here having already scanned with
@@ -10,51 +21,6 @@ import { SVGProps } from 'react';
  * eagerly would cost them the download for nothing.
  */
 const QrScanner = lazy(() => import('@/Components/public/QrScanner'));
-
-type IconProps = SVGProps<SVGSVGElement>;
-
-function BadgeCheckIcon(p: IconProps) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            <polyline points="9 12 11 14 15 10" />
-        </svg>
-    );
-}
-
-/**
- * Contains any failure from the lazily-loaded scanner.
- *
- * Written as a class because React error boundaries have no hook equivalent.
- * A chunk-load failure or an unsupported camera API must not blank the page —
- * the manual entry field below is a complete alternative path.
- */
-class ScannerBoundary extends Component<
-    { children: ReactNode; onFailure: () => void; fallbackLabel: string },
-    { failed: boolean }
-> {
-    state = { failed: false };
-
-    static getDerivedStateFromError() {
-        return { failed: true };
-    }
-
-    componentDidCatch() {
-        this.props.onFailure();
-    }
-
-    render() {
-        if (this.state.failed) {
-            return (
-                <p role="alert" className="rounded-card bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                    {this.props.fallbackLabel}
-                </p>
-            );
-        }
-
-        return this.props.children;
-    }
-}
 
 /**
  * Route a scanned or pasted value to the page that can handle it.
@@ -100,125 +66,111 @@ function resolveDestination(raw: string): string | null {
     return `/id-checker/${encodeURIComponent(value)}`;
 }
 
-export default function PublicVerify() {
+/**
+ * Verify an employee ID card: scan the QR, or type the printed reference.
+ *
+ * Page wording comes from Public Site Management (Verify). What happens to the
+ * value — card lookup, OTP, rate limits, the fields shown afterwards — happens
+ * on the ID checker's server side and is not affected by anything here.
+ */
+export default function PublicVerify({ sections, meta }: { sections: Record<string, PageSection>; meta: PublicPageMeta }) {
     const { t } = useLocale();
+    const pick = useBilingual();
     const [value, setValue] = useState('');
     const [showScanner, setShowScanner] = useState(false);
 
+    const header = sections.header;
+    const title = pick(header, 'title') || t('home.verifyPageTitle');
+    const subtitle = pick(header, 'subtitle') || t('home.verifyPageSubtitle');
+    const scanHelp = pick(sections.scan_help, 'body_html');
+    const notice = pick(sections.notice, 'body_html');
+
+    const go = (raw: string) => {
+        const destination = resolveDestination(raw);
+        if (destination !== null) router.visit(destination);
+    };
+
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-
-        const destination = resolveDestination(value);
-
-        if (destination !== null) {
-            router.visit(destination);
-        }
+        go(value);
     };
 
     return (
-        <PublicLayout title={t('home.verifyPageTitle')}>
-            <div className="mx-auto max-w-lg px-4 py-10 sm:px-6 sm:py-16">
-                <div className="mb-6 flex items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-emerald-600 text-white">
-                        <BadgeCheckIcon className="h-5 w-5" aria-hidden="true" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{t('home.verifyPageTitle')}</h1>
-                        <p className="text-sm text-gray-500 dark:text-slate-400">{t('home.verifyPageSubtitle')}</p>
-                    </div>
-                </div>
+        // Never indexed: a verification tool is reached from a QR or a link,
+        // not from search results.
+        <PublicLayout title={title} description={subtitle} meta={meta} noindex>
+            <PublicPageHeader title={title} description={subtitle} breadcrumbs={[{ label: title }]} />
 
-                {/* Scanner first: this page exists to point a camera at a code. */}
-                <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
-                    {showScanner ? (
-                        <ScannerBoundary
-                            onFailure={() => setShowScanner(false)}
-                            fallbackLabel={t('idChecker.scannerUnavailable')}
-                        >
-                            <Suspense
-                                fallback={
-                                    <div className="flex aspect-square w-full items-center justify-center rounded-panel border border-gray-200 bg-slate-950 text-sm text-slate-300 dark:border-slate-800">
-                                        {t('idChecker.loadingScanner')}
-                                    </div>
-                                }
-                            >
-                                <QrScanner
-                                    onDecoded={(decoded) => {
-                                        const destination = resolveDestination(decoded);
-
-                                        if (destination !== null) {
-                                            router.visit(destination);
-                                        }
-                                    }}
-                                />
-                            </Suspense>
-                        </ScannerBoundary>
-                    ) : (
-                        <>
-                            <div className="flex aspect-square w-full items-center justify-center rounded-panel border border-dashed border-gray-300 bg-gray-50 dark:border-slate-700 dark:bg-slate-950">
-                                <div className="px-6 text-center">
-                                    <QrIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-600" aria-hidden="true" />
-                                    <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
-                                        {t('idChecker.cameraIdle')}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() => setShowScanner(true)}
-                                className="mt-4 min-h-[48px] w-full rounded-card bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-                            >
-                                {t('idChecker.startCamera')}
-                            </button>
-                        </>
+            <div className="bg-gray-50 py-12 sm:py-16 dark:bg-slate-900">
+                <PublicContainer narrow className="py-6 sm:py-8">
+                    {notice && (
+                        <div role="note" className={`${publicCardClass} mb-6 text-sm`}>
+                            <RichText html={notice} className="text-sm" />
+                        </div>
                     )}
 
-                    {/* Manual entry stays available: cameras get denied, and a
-                        damaged code still has a readable reference printed on it. */}
-                    <div className="my-5 flex items-center gap-3">
-                        <span className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
-                        <span className="text-xs text-gray-400 dark:text-slate-500">
-                            {t('idChecker.or')}
-                        </span>
-                        <span className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
-                    </div>
+                    <div className="mx-auto max-w-md space-y-6">
+                        {/* Scanner first: this page exists to point a camera at a code. */}
+                        <section aria-labelledby="scan-heading">
+                            <h2 id="scan-heading" className="sr-only">{t('idChecker.startCamera')}</h2>
 
-                    <form onSubmit={handleSubmit}>
-                        <label htmlFor="card-ref" className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                            {t('home.verifyInputLabel')}
-                        </label>
-                        <input
-                            id="card-ref"
-                            type="text"
-                            inputMode="text"
-                            autoComplete="off"
-                            value={value}
-                            onChange={(e) => setValue(e.target.value)}
-                            placeholder={t('home.verifyInputPlaceholder')}
-                            className="mt-1.5 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
-                        />
-                        <button
-                            type="submit"
-                            disabled={!value.trim()}
-                            className="mt-4 min-h-[48px] w-full rounded-lg border border-gray-300 px-4 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                        >
-                            {t('home.verifyButton')}
-                        </button>
-                    </form>
-                </div>
+                            {showScanner ? (
+                                <ScannerBoundary onFailure={() => setShowScanner(false)} fallbackLabel={t('idChecker.scannerUnavailable')}>
+                                    <Suspense
+                                        fallback={
+                                            <div className="flex aspect-square w-full items-center justify-center rounded-panel border border-gray-200 bg-slate-950 text-sm text-slate-300 dark:border-slate-800">
+                                                {t('idChecker.loadingScanner')}
+                                            </div>
+                                        }
+                                    >
+                                        {/* autoStart: the tap that loaded the scanner
+                                            already asked for the camera. */}
+                                        <QrScanner autoStart onDecoded={go} />
+                                    </Suspense>
+                                </ScannerBoundary>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className={`${publicButtonPrimary} min-h-[48px] w-full`}
+                                    onClick={() => setShowScanner(true)}
+                                >
+                                    {t('idChecker.startCamera')}
+                                </button>
+                            )}
+
+                            {scanHelp && <RichText html={scanHelp} className="mt-3 text-sm text-gray-600 dark:text-slate-400" />}
+                        </section>
+
+                        {/* Manual entry stays available: cameras get denied, and a
+                            damaged code still has a readable reference printed on it. */}
+                        <div className="flex items-center gap-3" aria-hidden="true">
+                            <span className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
+                            <span className="text-xs text-gray-500 dark:text-slate-400">{t('idChecker.or')}</span>
+                            <span className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-3">
+                            <FormField id="card-ref" label={t('home.verifyInputLabel')}>
+                                <Input
+                                    id="card-ref"
+                                    type="text"
+                                    inputMode="text"
+                                    autoComplete="off"
+                                    autoCapitalize="off"
+                                    spellCheck={false}
+                                    value={value}
+                                    onChange={(e) => setValue(e.target.value)}
+                                    placeholder={t('home.verifyInputPlaceholder')}
+                                    className="h-12 text-base"
+                                />
+                            </FormField>
+                            <button type="submit" className={`${publicButtonSecondary} min-h-[48px] w-full`} disabled={!value.trim()}>
+                                {t('home.verifyButton')}
+                            </button>
+                        </form>
+                    </div>
+                </PublicContainer>
             </div>
         </PublicLayout>
-    );
-}
-
-function QrIcon(p: IconProps) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" {...p}>
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <path d="M14 14h3v3h-3zM20 14v.01M14 20v.01M20 20v.01M17 20v.01M20 17v.01" />
-        </svg>
     );
 }

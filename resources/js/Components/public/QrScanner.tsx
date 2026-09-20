@@ -1,10 +1,20 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { publicButtonPrimary, publicButtonSecondary } from './PublicPage';
 import { useLocale } from '@/hooks/useLocale';
 
 interface Props {
     /** Called once with the decoded text; the scanner stops itself first. */
     onDecoded: (value: string) => void;
+    /**
+     * Start the camera as soon as the scanner mounts.
+     *
+     * The page lazy-loads this component behind its own "Start camera"
+     * button. Without this, that press only downloaded the scanner, which then
+     * showed a second "Start camera" button — two presses, two different
+     * buttons, for one action.
+     */
+    autoStart?: boolean;
 }
 
 /**
@@ -18,7 +28,7 @@ interface Props {
  * measures the element on start, and mounting into a zero-size box produces a
  * running camera with a blank screen.
  */
-export default function QrScanner({ onDecoded }: Props) {
+export default function QrScanner({ onDecoded, autoStart = false }: Props) {
     const { t } = useLocale();
     const regionId = useId().replace(/:/g, '');
     const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -44,6 +54,14 @@ export default function QrScanner({ onDecoded }: Props) {
 
     // Release the camera when the component unmounts, or the stream stays live.
     useEffect(() => () => void stop(), [stop]);
+
+    useEffect(() => {
+        if (autoStart) {
+            void start();
+        }
+        // Once, on mount: the press that loaded the scanner is the request.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     async function start() {
         setError(null);
@@ -208,7 +226,7 @@ export default function QrScanner({ onDecoded }: Props) {
                     type="button"
                     onClick={active ? stop : start}
                     disabled={starting}
-                    className="min-h-[48px] flex-1 rounded-card bg-[color:var(--color-primary)] px-4 text-sm font-semibold text-white transition hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 disabled:opacity-60"
+                    className={`${active ? publicButtonSecondary : publicButtonPrimary} min-h-[48px] flex-1`}
                 >
                     {active
                         ? t('idChecker.stopCamera')

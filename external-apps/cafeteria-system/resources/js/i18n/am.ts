@@ -70,6 +70,12 @@ export default {
         amount: 'መጠን',
         export: 'CSV አውጣ',
         apply: 'ተግብር',
+        clear: 'አጽዳ',
+        confirm: 'አረጋግጥ',
+        next: 'ቀጣይ',
+        previous: 'ቀዳሚ',
+        replace: 'ተካ',
+        results: 'ውጤቶች',
     },
 
     login: {

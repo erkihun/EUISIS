@@ -129,3 +129,16 @@ it('accepts all core tokens in format', function (): void {
         ]))
         ->assertRedirect();
 });
+
+it('accepts a rand_8 format and keeps rand_6 available', function (): void {
+    $user = validationSuperAdmin();
+
+    $this->actingAs($user)
+        ->post(route('code-rules.store'), basePayload([
+            'format' => 'AAC-{RAND_8}',
+        ]))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    expect(CodeRule::query()->where('format', 'AAC-{RAND_8}')->exists())->toBeTrue();
+});

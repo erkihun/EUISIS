@@ -50,6 +50,8 @@ final readonly class IdCardLayoutSettingsService
             bureauNameAm: $this->str('id_cards', 'bureau_name_am', 'የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ'),
             returnAddressEn: $this->str('id_cards', 'return_address_en', 'Addis Ababa City Administration, Public Service & HRD Bureau'),
             returnAddressAm: $this->str('id_cards', 'return_address_am', 'አዲስ አበባ ከተማ አስተዳደር፣ የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ'),
+            backNoticeAm: $this->str('id_cards', 'back_notice_am', 'ካርዱ የሚወዳደርበት ቦታ ካገኙ ወደ ቅርብ ባለስልጣን ይመልሱ።'),
+            backNoticeEn: $this->str('id_cards', 'back_notice_en', 'If found, please return to the issuing bureau.'),
             verificationUrl: $this->str('id_cards', 'verification_url', ''),
             supportContact: $this->str('id_cards', 'support_contact', ''),
 

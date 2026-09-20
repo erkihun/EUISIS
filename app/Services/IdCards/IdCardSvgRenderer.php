@@ -31,6 +31,9 @@ final class IdCardSvgRenderer
     /** Shown when a card field has no value. */
     private const DASH = '-';
 
+    /** Most lines the back notice may occupy before it stops printing. */
+    private const MAX_NOTICE_LINES = 6;
+
     /** The SVG canvas is twice the card's millimetre size. */
     private const SCALE = 2;
 
@@ -456,24 +459,49 @@ final class IdCardSvgRenderer
         }
 
         // ── Text column ───────────────────────────────────────────────────
-        $topTextY = $contentTop + 18;
+        // The notice follows its own box on both axes. Taking only x from the
+        // box and y from the top of the card printed a footer notice across
+        // the QR block.
+        $noticeSize = $data->textStyle('back', 'footer')?->fontSizePx() !== null
+            ? $data->textStyle('back', 'footer')->fontSizePx() * self::SCALE
+            : 7.0;
+        $topTextY = $notesBox !== null
+            ? $notesBox->yIn(self::H) + (int) ceil($noticeSize)
+            : $contentTop + 18;
 
-        // Property notice leads the notes block.
+        // Property notice leads the notes block: Amharic first, then English,
+        // both from ID card settings so the printed card matches the preview.
+        $noticeLines = 0;
         if ($l->showReturnNotice) {
-            $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="%s" %s opacity="0.65">%s</text>',
-                $textX, $topTextY,
-                self::FONT,
-                $this->styleAttrs($data->textStyle('back', 'footer'), 7, '400', $l->backTextColor),
-                $this->e($this->trunc('If found, please return to the issuing bureau.', 55)),
-            );
+            $noticeStyle = $data->textStyle('back', 'footer');
+            $noticeSize = $noticeStyle?->fontSizePx() !== null ? $noticeStyle->fontSizePx() * self::SCALE : 7.0;
+            foreach ([$l->backNoticeAm, $l->backNoticeEn] as $notice) {
+                if ($notice === '') {
+                    continue;
+                }
+                // Wrapped, not truncated: an administrator's wording prints in
+                // full, however long, rather than being cut mid-sentence.
+                foreach ($this->wrapNotice($notice, (float) $textW, $noticeSize) as $line) {
+                    if ($noticeLines >= self::MAX_NOTICE_LINES) {
+                        break 2;
+                    }
+                    $svg .= sprintf(
+                        '<text x="%d" y="%d" font-family="%s" %s opacity="0.65">%s</text>',
+                        $textX, $topTextY + $noticeLines * 12,
+                        self::FONT,
+                        $this->styleAttrs($noticeStyle, 7, '400', $l->backTextColor),
+                        $this->e($line),
+                    );
+                    $noticeLines++;
+                }
+            }
         }
 
-        // Verification URL
+        // Verification URL, below however many notice lines printed.
         if ($l->verificationUrl !== '') {
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" %s opacity="0.5">%s</text>',
-                $textX, $topTextY + 14,
+                $textX, $topTextY + max(1, $noticeLines) * 12 + 2,
                 self::FONT,
                 $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
                 $this->e($this->trunc($l->verificationUrl, 50)),
@@ -525,15 +553,43 @@ final class IdCardSvgRenderer
             $sigX = $signatureBox->xIn(self::W);
             $sigY = $signatureBox->yIn(self::H);
             $sigW = $signatureBox->wIn(self::W);
+            // The block owns its whole box: the space signed in, then the
+            // rule, then the caption naming it — a signature block as it reads
+            // on paper, so a long bilingual caption never squeezes the space.
+            $sigH = max(20, $signatureBox->hIn(self::H));
+            $ruleY = $sigY + $sigH - 2;
             $svg .= sprintf(
-                '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>'
-                .'<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="rgba(15,23,42,0.3)"'
-                .' stroke-width="1" stroke-dasharray="2 2"/>',
-                $sigX, $sigY, self::FONT,
-                $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
-                $this->e($data->signatureLabel !== '' ? $data->signatureLabel : 'Signature'),
-                $sigX, $sigY + 18, $sigX + $sigW, $sigY + 18,
+                '<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="rgba(15,23,42,0.35)" stroke-width="1"/>',
+                $sigX, $ruleY, $sigX + $sigW, $ruleY,
             );
+            // The template's signature image, sitting on the rule it signs.
+            if ($data->signatureDataUri !== null) {
+                $imageTop = $sigY + 2;
+                $svg .= sprintf(
+                    '<image id="templateSignature" x="%d" y="%d" width="%d" height="%d" href="%s"'
+                    .' preserveAspectRatio="xMidYMax meet"/>',
+                    $sigX, $imageTop, $sigW, max(8, $ruleY - $imageTop), $this->e($data->signatureDataUri),
+                );
+            }
+        }
+
+        // The signature caption — its own movable block, one row per language.
+        $captionBox = $data->box('back', 'signature_label');
+        if ($captionBox !== null) {
+            $captionRows = array_values(array_filter([
+                $data->signatureLabelAm,
+                $data->signatureLabelEn !== '' ? $data->signatureLabelEn : 'Authorized Signature',
+            ], fn (string $row): bool => $row !== ''));
+            $captionX = $captionBox->xIn(self::W);
+            $captionTop = $captionBox->yIn(self::H) + 8;
+            foreach ($captionRows as $row => $caption) {
+                $svg .= sprintf(
+                    '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>',
+                    $captionX, $captionTop + $row * 10, self::FONT,
+                    $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
+                    $this->e($caption),
+                );
+            }
         }
 
         // Emergency contact — who to call if the holder needs help.
@@ -548,9 +604,16 @@ final class IdCardSvgRenderer
             // card, however many contacts there are.
             $rows = max(1, count($data->emergencyContactFields));
             $step = (int) max(40, min(92, $emergencyH / $rows));
+            // SVG text hangs from its baseline, so the first row starts a line
+            // below the box's top edge; otherwise a block placed near the top
+            // of the card loses its first line off the edge.
+            $emergencyLabelSize = $data->textStyle('back', 'label')?->fontSizePx() !== null
+                ? $data->textStyle('back', 'label')->fontSizePx() * self::SCALE
+                : 9.0;
+            $emergencyTop = $emergencyY + (int) ceil($emergencyLabelSize);
             foreach ($data->emergencyContactFields as $index => $field) {
                 $svg .= $this->bilingualField(
-                    $emergencyX, $emergencyY + $index * $step, $field, $emergencyW, $l,
+                    $emergencyX, $emergencyTop + $index * $step, $field, $emergencyW, $l,
                     $data->textStyle('back', 'label'), $data->textStyle('back', 'value'),
                 );
             }
@@ -573,15 +636,120 @@ final class IdCardSvgRenderer
 
     private function sizeSvg(string $svg, IdCardRenderData $data): string
     {
-        // Preserve the viewBox and square QR modules while setting the physical output size.
+        // Physical units, not pixels: a bare pixel width leaves the printed
+        // size to whatever DPI the viewer assumes, so an 85.6 mm card came out
+        // around 226 mm wide. The viewBox keeps the drawing coordinates and
+        // the QR modules square.
+        $mm = static fn (float $value): string => rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.').'mm';
+
         return preg_replace(
             '/(<svg\b[^>]*\b)width="\d+" height="\d+"/',
-            '${1}width="'.round($data->widthMm * 10).'" height="'.round($data->heightMm * 10).'"',
+            '${1}width="'.$mm($data->widthMm).'" height="'.$mm($data->heightMm).'"',
             $svg, 1,
         ) ?? $svg;
     }
 
     private function renderPortrait(IdCardRenderData $data, string $side): string
+    {
+        $front = $side === 'front';
+        $l = $data->layout;
+        $color = $front ? $l->frontTextPrimary : $l->backTextColor;
+        $from = $front ? $l->frontBgFrom : $l->backBgFrom;
+        $to = $front ? $l->frontBgTo : $l->backBgTo;
+        $background = $front ? $data->frontBackgroundDataUri : $data->backBackgroundDataUri;
+        $svg = '<?xml version="1.0" encoding="UTF-8"?>'
+            .'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 856" width="540" height="856" data-card-template="'.$l->template->value.'">';
+        $svg .= $this->defs($from, $to, 'portraitBg', $l->template)
+            .'<rect width="540" height="856" rx="24" fill="url(#portraitBg)"/>';
+        if ($background !== null) {
+            $svg .= '<image id="'.$side.'Background" width="540" height="856" href="'.$this->e($background).'" preserveAspectRatio="xMidYMid slice"/>';
+        }
+
+        $box = static fn (IdCardRenderData $data, string $face, string $element): array => (function ($value): array {
+            return [$value->xIn(540), $value->yIn(856), $value->wIn(540), $value->hIn(856)];
+        })($data->box($face, $element));
+        $centerText = fn (string $value, int $x, int $y, int $size, string $fill = null, string $weight = '600'): string => sprintf(
+            '<text x="%d" y="%d" text-anchor="middle" font-family="%s" font-size="%d" font-weight="%s" fill="%s">%s</text>',
+            $x, $y, self::FONT, $size, $weight, $this->e($fill ?? $color), $this->e($this->trunc($value, 52)),
+        );
+
+        if ($front) {
+            [$hx, $hy, $hw, $hh] = $box($data, 'front', 'header');
+            $header = $data->header;
+            // The portrait header names only the employee's actual employer;
+            // global city/bureau settings must not repeat above it.
+            $lineBudget = min(52, $this->charBudget(max(1, $hw - 16), 16));
+            $lines = $this->wrapText((string) $data->organizationNameAm, $lineBudget);
+            if ($data->organizationNameEn) {
+                array_push($lines, ...$this->wrapText($data->organizationNameEn, $lineBudget));
+            }
+            $lineHeight = max(10, min(22, (int) floor(max(1, $hh - 8) / max(1, count($lines)))));
+            $fontSize = max(8, min(16, $lineHeight - 2));
+            $contentHeight = count($lines) * $lineHeight;
+            $firstBaseline = $hy + max($fontSize, intdiv(max(0, $hh - $contentHeight), 2) + $fontSize);
+            foreach ($lines as $index => $line) {
+                $svg .= sprintf(
+                    '<text x="%d" y="%d" text-anchor="middle" font-family="%s" font-size="%d" font-weight="700" fill="%s">%s</text>',
+                    $hx + intdiv($hw, 2), $firstBaseline + $index * $lineHeight,
+                    self::FONT, $fontSize, $this->e($color), $this->e((string) $line),
+                );
+            }
+
+            foreach ([['logo_primary', $data->organizationLogoDataUri ?? $data->logoDataUri, $header?->showLogo ?? true], ['logo_secondary', $header?->secondaryLogoDataUri, $header?->showSecondaryLogo ?? true]] as [$element, $uri, $visible]) {
+                if ($l->showOrganizationLogo && $visible && $uri) {
+                    [$x, $y, $w, $h] = $box($data, 'front', $element);
+                    $svg .= '<image x="'.$x.'" y="'.$y.'" width="'.$w.'" height="'.$h.'" href="'.$this->e($uri).'" preserveAspectRatio="xMidYMid meet"/>';
+                }
+            }
+            if ($l->showPhoto && $data->photoDataUri) {
+                [$x, $y, $w, $h] = $box($data, 'front', 'photo');
+                $svg .= '<image x="'.$x.'" y="'.$y.'" width="'.$w.'" height="'.$h.'" href="'.$this->e($data->photoDataUri).'" preserveAspectRatio="xMidYMid slice"/>';
+            }
+            [$x, $y, $w] = $box($data, 'front', 'employee_name');
+            $nameStyle = $data->textStyle('front', 'employee_name');
+            foreach (array_values(array_unique(array_filter([$data->fullNameAm, $data->fullNameEn]))) as $index => $line) {
+                $svg .= $centerText(
+                    (string) $line, $x + intdiv($w, 2), $y + 22 + $index * 24,
+                    (int) (($nameStyle?->fontSizePx() ?? 12) * self::SCALE),
+                    $nameStyle?->color, $nameStyle?->fontWeight ?? '700',
+                );
+            }
+            [$x, $y, $w] = $box($data, 'front', 'employee_position');
+            $positionStyle = $data->textStyle('front', 'employee_position');
+            $positionLines = array_values(array_filter([$data->positionTitleAm, $data->positionTitleEn]));
+            foreach ($positionLines as $index => $line) {
+                $svg .= $centerText(
+                    (string) $line, $x + intdiv($w, 2), $y + 18 + $index * 20,
+                    (int) (($positionStyle?->fontSizePx() ?? 9) * self::SCALE),
+                    $positionStyle?->color, $positionStyle?->fontWeight ?? '600',
+                );
+            }
+            [$x, $y, $w] = $box($data, 'front', 'emphasis');
+            $svg .= $centerText($data->employeeNumber ?: $data->cardNumber, $x + intdiv($w, 2), $y + 24, 18);
+        } else {
+            if ($l->showQr && $data->feedbackQrUrl) {
+                [$x, $y, $w, $h] = $box($data, 'back', 'qr');
+                $size = max(1, min($w, $h - 28));
+                $qr = $this->qrRenderer->idCardSvgDataUri($data->feedbackQrUrl, $size);
+                $svg .= $centerText('Feedback and Suggestion QR', $x + intdiv($w, 2), $y + 18, 14)
+                    .'<rect x="'.($x + intdiv($w - $size, 2)).'" y="'.($y + 26).'" width="'.$size.'" height="'.$size.'" fill="#FFFFFF"/>'
+                    .'<image x="'.($x + intdiv($w - $size, 2)).'" y="'.($y + 26).'" width="'.$size.'" height="'.$size.'" href="'.$this->e($qr).'"/>';
+            }
+            if ($data->sealDataUri) {
+                [$x, $y, $w, $h] = $box($data, 'back', 'seal');
+                $svg .= '<image id="officialSeal" x="'.$x.'" y="'.$y.'" width="'.$w.'" height="'.$h.'" href="'.$this->e($data->sealDataUri).'" preserveAspectRatio="xMidYMid meet"/>';
+            }
+        }
+        $watermark = self::WATERMARKS[strtolower($data->status)] ?? null;
+        if ($watermark !== null) {
+            $svg .= '<text x="270" y="440" text-anchor="middle" font-size="60" fill="rgba(255,0,0,0.3)" transform="rotate(-30,270,440)">'.$watermark.'</text>';
+        }
+
+        return $this->sizeSvg($svg.'</svg>', $data);
+    }
+
+    /** Kept as a reference for templates saved before portrait positioning. */
+    private function renderLegacyPortrait(IdCardRenderData $data, string $side): string
     {
         $l = $data->layout;
         $front = $side === 'front';
@@ -659,7 +827,8 @@ final class IdCardSvgRenderer
                 $svg .= '<image x="158" y="360" width="224" height="224" href="'.$this->e($qr).'"/>';
             }
             if ($l->showReturnNotice) {
-                $svg .= $text($l->returnAddressEn, 628, 13).$text($l->returnAddressAm, 654, 13);
+                // Amharic first, then English, matching the card face.
+                $svg .= $text($l->returnAddressAm, 628, 13).$text($l->returnAddressEn, 654, 13);
             }
             if ($l->showCardNumber) {
                 $svg .= $text($data->cardNumber, 696);
@@ -1020,7 +1189,11 @@ final class IdCardSvgRenderer
             if ($current !== '') {
                 $lines[] = $current;
             }
-            $current = mb_strlen($word) > $perLine ? $this->trunc($word, $perLine) : $word;
+            while (mb_strlen($word) > $perLine) {
+                $lines[] = mb_substr($word, 0, $perLine);
+                $word = mb_substr($word, $perLine);
+            }
+            $current = $word;
         }
         if ($current !== '') {
             $lines[] = $current;
@@ -1087,6 +1260,44 @@ final class IdCardSvgRenderer
     }
 
     /** Hard-truncate with ellipsis at $max characters. */
+    /**
+     * Break text into lines that fit a column, using the same glyph-width
+     * heuristic as the browser-side BackTextBlock so the preview and the
+     * printed card wrap at the same words. Ethiopic glyphs are full width,
+     * Latin about two-thirds, whitespace a third.
+     *
+     * @return list<string>
+     */
+    private function wrapNotice(string $text, float $width, float $size): array
+    {
+        $measure = function (string $value) use ($size): float {
+            $units = 0.0;
+            foreach (mb_str_split($value) as $char) {
+                $units += preg_match('/\s/u', $char) ? 0.33 : (mb_ord($char) >= 0x1100 ? 1 : 0.65);
+            }
+
+            return $units * $size;
+        };
+
+        $lines = [];
+        $line = '';
+        foreach (preg_split('/\s+/u', trim($text), -1, PREG_SPLIT_NO_EMPTY) ?: [] as $word) {
+            $candidate = $line === '' ? $word : $line.' '.$word;
+            if ($line !== '' && $measure($candidate) > $width) {
+                $lines[] = $line;
+                $line = $word;
+
+                continue;
+            }
+            $line = $candidate;
+        }
+        if ($line !== '') {
+            $lines[] = $line;
+        }
+
+        return $lines;
+    }
+
     private function trunc(?string $s, int $max): string
     {
         if ($s === null) {

@@ -8,6 +8,7 @@ import FormatTokenHelper from './FormatTokenHelper';
 import type { TokenDefinition } from './FormatTokenGroup';
 import type { CodeFormatInputHandle } from './CodeFormatInput';
 import CodeFormatInput from './CodeFormatInput';
+import { RANDOM_TOKENS, usesRandomToken } from './randomTokens';
 
 export type CodeRuleFormData = {
     entity_type: string;
@@ -76,7 +77,7 @@ export default function CodeRuleForm({
         [form.data.scope_type, options.scope_options],
     );
 
-    const hasRandomToken = form.data.format.includes('{RAND_6}');
+    const hasRandomToken = usesRandomToken(form.data.format);
     const hasGenerationToken =
         form.data.format.includes('{SEQUENCE}') ||
         form.data.format.includes('{SEQUENCE_PADDED}') ||
@@ -84,7 +85,7 @@ export default function CodeRuleForm({
 
     // Tokens present in the format that are valid scope candidates
     const availableScopeTokens = useMemo(() => {
-        const excluded = new Set(['SEQUENCE', 'SEQUENCE_PADDED', 'RAND_6', 'PREFIX', 'SUFFIX', 'SEPARATOR']);
+        const excluded = new Set<string>(['SEQUENCE', 'SEQUENCE_PADDED', 'PREFIX', 'SUFFIX', 'SEPARATOR', ...RANDOM_TOKENS]);
         const matches = [...form.data.format.matchAll(/\{([A-Z0-9_]+)\}/g)];
         return [...new Set(matches.map((m) => m[1]).filter((t) => !excluded.has(t)))];
     }, [form.data.format]);

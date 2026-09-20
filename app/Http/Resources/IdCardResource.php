@@ -80,7 +80,6 @@ class IdCardResource extends JsonResource
                 'reportDamaged' => $user->can('reportDamaged', $this->resource),
                 'replace' => $user->can('replace', $this->resource),
                 'revoke' => $user->can('revoke', $this->resource),
-                'printAnytime' => $user->can('printAnytime', $this->resource),
                 'exportPng' => $user->can('exportPng', $this->resource),
             ] : [],
         ];
