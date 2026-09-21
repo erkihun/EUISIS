@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -420,4 +421,78 @@ test('users with restore permission can restore a deactivated user', function ()
         ->assertRedirect(route('users.index'));
 
     expect($target->fresh()->status)->toBe('active');
+});
+
+// ── Index filtering and paging ─────────────────────────────────────────────
+
+/*
+ * The index used to load every user in scope in one unpaginated query, with
+ * four policy evaluations per row.
+ */
+test('the users index paginates instead of returning every user', function (): void {
+    User::factory()->count(55)->create(['status' => 'active']);
+
+    $this->actingAs(userMgmtAdmin())
+        ->get(route('users.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('users', 50)
+            ->where('users_pagination.per_page', 50)
+            ->where('users_pagination.current_page', 1)
+            ->where('users_pagination.last_page', fn ($last) => $last >= 2));
+});
+
+/* phone_number is an encrypted column, so it is deliberately not searchable. */
+test('the users index searches name and email', function (string $search): void {
+    $admin = userMgmtAdmin();
+    User::factory()->create(['name' => 'Searchable Person', 'email' => 'findme@example.test', 'phone_number' => '0911222333']);
+    User::factory()->create(['name' => 'Someone Else', 'email' => 'other@example.test', 'phone_number' => '0911999888']);
+
+    $this->actingAs($admin)
+        ->get(route('users.index', ['search' => $search]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.search', trim($search))
+            ->where('users', fn ($users) => collect($users)->pluck('email')->contains('findme@example.test')
+                && ! collect($users)->pluck('email')->contains('other@example.test')));
+})->with(['Searchable', ' findme@example.test ', 'searchable person']);
+
+test('the users index filters by status', function (): void {
+    $admin = userMgmtAdmin();
+    User::factory()->create(['email' => 'on@example.test', 'status' => 'active']);
+    User::factory()->create(['email' => 'off@example.test', 'status' => 'inactive']);
+
+    $this->actingAs($admin)
+        ->get(route('users.index', ['status' => 'inactive']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', 'inactive')
+            ->where('users', fn ($users) => collect($users)->pluck('email')->contains('off@example.test')
+                && ! collect($users)->pluck('email')->contains('on@example.test')));
+});
+
+test('the users index filters by role', function (): void {
+    $admin = userMgmtAdmin();
+    User::factory()->create(['email' => 'viewer@example.test'])->assignRole('User Viewer');
+    User::factory()->create(['email' => 'plain@example.test']);
+
+    $this->actingAs($admin)
+        ->get(route('users.index', ['role' => 'User Viewer']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.role', 'User Viewer')
+            ->where('users', fn ($users) => collect($users)->pluck('email')->contains('viewer@example.test')
+                && ! collect($users)->pluck('email')->contains('plain@example.test')));
+});
+
+/* An unknown status must not narrow the list to nothing. */
+test('the users index ignores a status outside the known set', function (): void {
+    User::factory()->count(3)->create(['status' => 'active']);
+
+    $this->actingAs(userMgmtAdmin())
+        ->get(route('users.index', ['status' => 'bogus']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', '')
+            ->where('users', fn ($users) => count($users) > 0));
 });

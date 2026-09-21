@@ -14,6 +14,7 @@ use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\User;
 use DomainException;
+use Illuminate\Support\Facades\DB;
 
 readonly class SubmitCardRequestAction
 {
@@ -30,15 +31,34 @@ readonly class SubmitCardRequestAction
             throw new DomainException('Cannot submit card request for an inactive employee.');
         }
 
-        $hasPendingRequest = CardRequest::query()
-            ->where('employee_id', $employee->id)
-            ->whereIn('status', [CardRequestStatus::Draft->value, CardRequestStatus::Submitted->value, CardRequestStatus::Verified->value])
-            ->exists();
+        /*
+         * Lock the employee row before reading, so two submits racing each
+         * other cannot both see "no pending request" and both create one.
+         * Same pattern as RegisterEmployeeAction's position-occupancy guard.
+         */
+        return DB::transaction(function () use ($employee, $actor, $reason, $requestType, $previousCard): CardRequest {
+            Employee::query()->whereKey($employee->id)->lockForUpdate()->first();
 
-        if ($hasPendingRequest) {
-            throw new DomainException('Employee already has a pending card request.');
-        }
+            $hasPendingRequest = CardRequest::query()
+                ->where('employee_id', $employee->id)
+                ->whereIn('status', [CardRequestStatus::Draft->value, CardRequestStatus::Submitted->value, CardRequestStatus::Verified->value])
+                ->exists();
 
+            if ($hasPendingRequest) {
+                throw new DomainException('Employee already has a pending card request.');
+            }
+
+            return $this->createRequest($employee, $actor, $reason, $requestType, $previousCard);
+        });
+    }
+
+    private function createRequest(
+        Employee $employee,
+        User $actor,
+        ?string $reason,
+        CardRequestType $requestType,
+        ?IdCard $previousCard,
+    ): CardRequest {
         $request = CardRequest::query()->create([
             'employee_id' => $employee->id,
             'requested_by' => $actor->getKey(),

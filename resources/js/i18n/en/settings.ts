@@ -1,4 +1,18 @@
 const settings = {
+    idCardCleanup: {
+        headerDefaults: 'Default header text',
+        headerDefaultsHelp: 'Fallback text for landscape templates. Template overrides take priority. Portrait cards use the employee’s employer name, Amharic first, instead.',
+        visibility: 'Employee information',
+        visibilityHelp: 'Shared visibility rules for fields supported by each card layout. Portrait cards omit the details and date sections.',
+        backContent: 'Back-side content',
+        backContentHelp: 'Shared return text and optional back-side details. Portrait cards do not show notes, signatures, emergency contacts or card numbers.',
+        verification: 'QR and verification',
+        verificationHelp: 'Shared QR visibility, size and printed verification address. These settings do not change the QR payload or security policy.',
+        portraitHeader: 'Portrait headers use the employee’s employer name and logo. City and bureau overrides are not used in portrait; existing values are retained for landscape.',
+        portraitLogo: 'Used only when the employee’s employer has no logo. Manage employer names and logos on the organization record.',
+        discard: 'Discard unsaved template changes?',
+        saveErrors: 'The template was not saved. Correct these errors before trying again.',
+    },
     templateManager: {
     "layout_card_number": "Card Number",
     "layout_signature_label": "Signature label",
@@ -194,7 +208,7 @@ const settings = {
         telegram: 'Telegram bot and default chat configuration.',
         security: 'Password, upload, maintenance, and API protection settings.',
         appearance: 'Theme, colors, density, and visual defaults for the app shell.',
-        id_cards: 'Customize ID card colors, typography, header text, and layout for printed cards.',
+        id_cards: 'Manage shared content and visibility defaults. Artwork, typography and layout are edited in ID Card Templates.',
     },
     groups: {
         brandingPreview: 'Branding Preview',

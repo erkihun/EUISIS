@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\Web\NfcAdminController;
-use App\Http\Controllers\Web\NfcManagementController;
-use App\Http\Controllers\Web\NfcTerminalController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
 use App\Http\Controllers\ProviderPortal\ProviderDashboardController;
 use App\Http\Controllers\ProviderPortal\ProviderFoodOrderController;
@@ -78,6 +75,9 @@ use App\Http\Controllers\Web\IdCardExportController;
 use App\Http\Controllers\Web\IdCardTemplateController;
 use App\Http\Controllers\Web\InstitutionOfficeController;
 use App\Http\Controllers\Web\IsicActivityController;
+use App\Http\Controllers\Web\NfcAdminController;
+use App\Http\Controllers\Web\NfcManagementController;
+use App\Http\Controllers\Web\NfcTerminalController;
 use App\Http\Controllers\Web\OccupationController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationEdgeController;
@@ -107,6 +107,7 @@ use App\Http\Controllers\Web\VacancyAnnouncementController;
 use App\Http\Controllers\Web\VacancyApplicationController;
 use App\Models\IdCard;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Public home — content from Public Site Management. `public.site` shows the
@@ -118,10 +119,24 @@ Route::get('/cafe', function () {
     return redirect()->route('provider.portal.login');
 })->name('cafe.login');
 
-// /employee → employee login shortcut
-Route::get('/employee', function () {
-    return redirect()->route('login');
-})->middleware('guest')->name('employee.login.redirect');
+/*
+ * /employee and /employee/login → employee sign-in shortcut.
+ *
+ * Both spellings are served: the sibling portals live at
+ * /provider/portal/login and /cafeteria/portal/login, so /employee/login is
+ * the address people reach for, and it used to 404.
+ *
+ * An authenticated visitor is sent to their own portal rather than handed to
+ * the `guest` middleware. That middleware's default target is the admin
+ * dashboard, which an employee-only account has no permission to view — so
+ * the shortcut answered a signed-in employee with a 403.
+ */
+$employeeLoginShortcut = static fn () => redirect()->route(
+    Auth::check() ? 'employee.portal' : 'login'
+);
+
+Route::get('/employee', $employeeLoginShortcut)->name('employee.login.redirect');
+Route::get('/employee/login', $employeeLoginShortcut)->name('employee.login');
 
 // Cafeteria Provider Portal — login (guest only for cafeteria_provider guard)
 Route::middleware('guest:provider')->prefix('provider/portal')->name('provider.portal.')->group(function (): void {
@@ -297,6 +312,29 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::get('/my-portal/transfer-applications', [EmployeePortalController::class, 'myTransferApplications'])
         ->name('employee.transfer-applications');
 
+    /*
+     * Transfer announcements inside the portal. The public pages render in
+     * PublicLayout, so following an announcement from /my-portal used to throw
+     * the employee out of the signed-in chrome onto the public site.
+     */
+    /*
+     * Paths mirror the public ones — /announcements/transfers for the list and
+     * /announcements/transfer/{id} for one of them — so the two halves of the
+     * site read the same way. The literal `transfers` and `transfer` segments
+     * are distinct, so neither can shadow the other.
+     */
+    Route::get('/my-portal/announcements/transfers', [EmployeePortalController::class, 'announcements'])
+        ->name('employee.announcements');
+
+    Route::get('/my-portal/announcements/transfer/{announcement}', [EmployeePortalController::class, 'announcementShow'])
+        ->name('employee.announcements.show');
+
+    Route::get('/my-portal/announcements/transfer/{announcement}/apply', [EmployeePortalController::class, 'announcementApply'])
+        ->name('employee.announcements.apply');
+
+    Route::post('/my-portal/announcements/transfer/{announcement}/apply', [EmployeePortalController::class, 'announcementApplyStore'])
+        ->name('employee.announcements.apply.store');
+
     Route::get('/announcements/transfer/{announcement}/apply', [PublicTransferAnnouncementController::class, 'apply'])
         ->name('public.transfer-announcements.apply');
 
@@ -379,6 +417,15 @@ Route::get('/verify/card/{publicCardUuid}', fn (string $publicCardUuid) => redir
 
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+
+    Route::prefix('public-site-management')->name('public-site-management.')->controller(\App\Http\Controllers\Web\PublicSiteManagementController::class)->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::put('/settings', 'settings')->name('settings');
+        Route::put('/pages/{page}/{section}', 'section')->name('section');
+        Route::post('/content/{kind}', 'save')->name('store');
+        Route::put('/content/{kind}/{id}', 'save')->name('update');
+        Route::post('/content/{kind}/{id}/status', 'transition')->name('transition');
+    });
 
     // Organizations
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations.index');

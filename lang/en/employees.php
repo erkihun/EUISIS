@@ -63,6 +63,7 @@ return [
         'chooseFile' => 'Choose a CSV file',
         'allowedOrganizations' => 'Organizations you may import into',
         'validatedClean' => ':valid rows validated. Review the preview, then confirm.',
+        'truncated' => 'This file is longer than the importer can read. Only the first :read rows were validated; :skipped rows were skipped and will not be imported.',
         'validatedWithErrors' => 'Validation found :invalid invalid rows. Fix the file and upload again.',
         'imported' => ':count employees imported successfully.',
         'notImportable' => 'This upload cannot be imported. Every row must be valid first.',

@@ -66,6 +66,7 @@ return [
         'chooseFile' => 'የCSV ፋይል ይምረጡ',
         'allowedOrganizations' => 'ማስመጣት የሚችሉባቸው ተቋማት',
         'validatedClean' => ':valid ረድፎች ተረጋግጠዋል። ቅድመ እይታውን ከገመገሙ በኋላ ያረጋግጡ።',
+        'truncated' => 'ይህ ፋይል አስመጪው ከሚያነበው በላይ ረጅም ነው። የመጀመሪያዎቹ :read ረድፎች ብቻ ተረጋግጠዋል፤ :skipped ረድፎች ተዘለዋል እና አይገቡም።',
         'validatedWithErrors' => 'ማረጋገጫው :invalid ስህተት ያለባቸው ረድፎች አግኝቷል። ፋይሉን አስተካክለው እንደገና ይጫኑ።',
         'imported' => ':count ሠራተኞች በተሳካ ሁኔታ ገብተዋል።',
         'notImportable' => 'ይህ ጭነት ማስመጣት አይቻልም። መጀመሪያ ሁሉም ረድፎች ትክክለኛ መሆን አለባቸው።',

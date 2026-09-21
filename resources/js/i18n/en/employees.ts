@@ -76,6 +76,10 @@ const employees = {
     import: {
         title: 'Upload Employees CSV',
         downloadTemplate: 'Download CSV Template',
+        templateOrganization: 'Organization for this template',
+        selectTemplateOrganization: 'Select an organization',
+        templateOrganizationHelp: 'Downloads up to :max active, vacant positions with the correct organization, unit and position codes. Fill in employee details and remove unused rows. If no positions are available, the template contains only the organization code; add an available position before importing. Availability is checked again during import.',
+        noTemplateOrganizations: 'No active organizations are available in your permitted scope.',
         validate: 'Validate CSV',
         preview: 'Import Preview',
         confirm: 'Confirm Import',
@@ -88,6 +92,8 @@ const employees = {
         allowedOrganizations: 'Organizations you may import into',
         notImportable: 'Every row must be valid before this file can be imported.',
         rowValid: 'Valid',
+        truncatedTitle: 'Part of this file was not read',
+        truncatedBody: 'The importer reads at most :max rows per file. :skipped rows beyond that were skipped: they were not validated and will not be imported. Split the file and upload the remainder separately.',
     },
 
     // Employee QR codes (detail page)
@@ -126,7 +132,22 @@ const employees = {
     columnOrganization: 'Organization',
     columnPosition: 'Position',
     columnFlags: 'Flags',
+    duplicateFlagsTooltip: 'Possible duplicate records detected for this employee',
     notAvailable: 'Not available',
+
+    // Registry (index) page — list chrome, filters and pagination.
+    registryTitle: 'Employee Registry',
+    unsavedChangesWarning: 'You have unsaved changes on this form. Leave the page and lose them?',
+    registryScope: 'Every organization you have access to',
+    registryFilters: 'Employee registry filters',
+    registryResults: 'Showing :from-:to of :total employees',
+    registryApplyHint: 'Press Filter to apply your changes.',
+    registryDependentHint: 'Unit and position options follow the selected organization.',
+    registryPagination: 'Employee registry pagination',
+    registryLoadError: 'Could not load the employee registry. Please try again.',
+    sortByColumn: 'Sort by :column',
+    sortedAscending: 'Sorted ascending',
+    sortedDescending: 'Sorted descending',
 
     // Create page — sections
     createDescription: 'Register a new employee and place them in the organization structure.',

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Employee;
 
+use App\Actions\Transfers\SubmitTransferApplicationAction;
 use App\Enums\CardStatus;
 use App\Enums\EntitlementStatus;
 use App\Enums\TransferAnnouncementStatus;
 use App\Enums\TransferApplicationStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Public\PublicTransferAnnouncementController;
+use App\Http\Requests\Transfers\PublicStoreTransferApplicationRequest;
 use App\Models\CafeteriaTransaction;
 use App\Models\CafeteriaTransactionConsumedDay;
 use App\Models\Employee;
@@ -21,6 +24,8 @@ use App\Services\Cafeteria\CafeteriaCalendarService;
 use App\Services\Cafeteria\CafeteriaLedgerService;
 use App\Services\Cafeteria\CafeteriaSubsidyRuleResolver;
 use App\Services\Cafeteria\WorkingDayCalendarService;
+use DomainException;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -99,7 +104,7 @@ class EmployeePortalController extends Controller
             // Last 5 cafeteria transactions
             $recentTxns = CafeteriaTransaction::query()
                 ->where('employee_id', $employee->id)
-                ->with('provider:id,name_en')
+                ->with('provider:id,name_en,name_am')
                 ->orderByDesc('transaction_date')
                 ->orderByDesc('transaction_time')
                 ->limit(5)
@@ -110,6 +115,7 @@ class EmployeePortalController extends Controller
                     'meal_amount' => (float) $t->meal_amount,
                     'employee_pays' => (float) $t->employee_payable_amount,
                     'provider' => $t->provider?->name_en,
+                    'provider_am' => $t->provider?->name_am,
                     'status' => $t->status?->value,
                     'transaction_type' => $t->transaction_type?->value ?? $t->transaction_type,
                 ])
@@ -126,13 +132,21 @@ class EmployeePortalController extends Controller
                 'week_days' => $weekDays,
                 'recent_transactions' => $recentTxns,
             ];
-        } catch (Throwable) {
-            // Cafeteria not configured — show empty state
+        } catch (Throwable $exception) {
+            /*
+             * An unconfigured cafeteria is an expected empty state, but this
+             * also catches genuine faults in the subsidy services. Logging it
+             * keeps a real failure from looking identical to "not set up".
+             */
+            Log::warning('Employee portal cafeteria panel unavailable', [
+                'employee_id' => $employee->id,
+                'exception' => $exception->getMessage(),
+            ]);
         }
 
         // ── Entitlements ──────────────────────────────────────────────────────
         $entitlements = $employee->entitlements()
-            ->with('serviceType:id,name_en,code')
+            ->with('serviceType:id,name_en,name_am,code')
             ->where('status', 'active')
             ->whereDate('effective_from', '<=', now())
             ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', now()))
@@ -140,6 +154,7 @@ class EmployeePortalController extends Controller
             ->map(fn ($e) => [
                 'id' => $e->id,
                 'service' => $e->serviceType?->name_en,
+                'service_am' => $e->serviceType?->name_am,
                 'service_code' => $e->serviceType?->code,
                 'quota_limit' => $e->quota_limit,
                 'quota_used' => $e->quota_used,
@@ -170,7 +185,9 @@ class EmployeePortalController extends Controller
                 'status_label' => $app->status?->label(),
                 'submitted_at' => $app->submitted_at?->toDateString(),
                 'organization' => $app->announcement?->organization?->name_en,
+                'organization_am' => $app->announcement?->organization?->name_am,
                 'position' => $app->announcement?->position?->title_en,
+                'position_am' => $app->announcement?->position?->title_am,
                 'announcement_id' => $app->announcement_id,
                 'closing_date' => $app->announcement?->closing_date?->toDateString(),
             ])
@@ -189,7 +206,9 @@ class EmployeePortalController extends Controller
             ->map(fn (TransferAnnouncement $a) => [
                 'id' => $a->id,
                 'organization' => $a->organization?->name_en,
+                'organization_am' => $a->organization?->name_am,
                 'position' => $a->position?->title_en,
+                'position_am' => $a->position?->title_am,
                 'grade_level' => $a->grade_level,
                 'vacancies' => $a->totalVacancyCount(),
                 'closing_date' => $a->closing_date?->toDateString(),
@@ -209,8 +228,11 @@ class EmployeePortalController extends Controller
             ],
             'assignment' => $assignment ? [
                 'organization' => $assignment->organization?->name_en,
+                'organization_am' => $assignment->organization?->name_am,
                 'organization_unit' => $assignment->organizationUnit?->name_en,
+                'organization_unit_am' => $assignment->organizationUnit?->name_am,
                 'position' => $assignment->position?->title_en,
+                'position_am' => $assignment->position?->title_am,
                 'grade_level' => $assignment->position?->grade_level,
                 'effective_from' => $assignment->effective_from?->toDateString(),
                 'status' => $assignment->assignment_status?->value,
@@ -450,7 +472,7 @@ class EmployeePortalController extends Controller
         // ── Transactions ──────────────────────────────────────────────────
         $transactions = CafeteriaTransaction::query()
             ->where('employee_id', $employee->id)
-            ->with('provider:id,name_en')
+            ->with('provider:id,name_en,name_am')
             ->orderByDesc('transaction_date')
             ->orderByDesc('transaction_time')
             ->limit(15)
@@ -539,6 +561,134 @@ class EmployeePortalController extends Controller
         }
 
         return Carbon::parse($value)->format('H:i');
+    }
+
+    /**
+     * Open transfer announcements, inside the portal.
+     *
+     * The public listing renders in PublicLayout, so following an announcement
+     * from the portal used to drop the employee out of the signed-in chrome
+     * and onto the public site. These three screens keep the whole
+     * browse → read → apply path under /my-portal; the presenter and the
+     * submit action are shared with the public pages so the two never drift.
+     */
+    public function announcements(Request $request): Response
+    {
+        $announcements = TransferAnnouncement::query()
+            ->where('status', TransferAnnouncementStatus::Published)
+            ->with(['organization', 'position'])
+            ->orderByDesc('closing_date')
+            ->orderByDesc('published_at')
+            ->paginate(15)
+            ->through(fn (TransferAnnouncement $a): array => PublicTransferAnnouncementController::presentSummary($a));
+
+        $employee = $request->user()?->employee;
+
+        return Inertia::render('Employee/Announcements', [
+            'announcements' => $announcements,
+            'applied_ids' => $employee === null ? [] : $this->activeApplicationAnnouncementIds($employee),
+            'has_employee' => $employee !== null,
+        ]);
+    }
+
+    public function announcementShow(Request $request, TransferAnnouncement $announcement): Response
+    {
+        abort_unless($announcement->status === TransferAnnouncementStatus::Published, 404);
+
+        $announcement->loadMissing(['organization', 'position']);
+        $employee = $request->user()?->employee;
+
+        return Inertia::render('Employee/AnnouncementShow', [
+            'announcement' => $this->presentAnnouncementDetail($announcement),
+            'already_applied' => $employee !== null
+                && in_array($announcement->id, $this->activeApplicationAnnouncementIds($employee), true),
+            'has_employee' => $employee !== null,
+        ]);
+    }
+
+    public function announcementApply(Request $request, TransferAnnouncement $announcement): Response|RedirectResponse
+    {
+        if (! $announcement->isAcceptingApplications()) {
+            return $this->backToAnnouncement($announcement, __('transfers.notAcceptingApplications'));
+        }
+
+        $employee = $request->user()?->employee;
+
+        if ($employee === null) {
+            return $this->backToAnnouncement($announcement, __('transfers.noEmployeeProfile'));
+        }
+
+        if (in_array($announcement->id, $this->activeApplicationAnnouncementIds($employee), true)) {
+            return $this->backToAnnouncement($announcement, __('transfers.alreadyApplied'));
+        }
+
+        $announcement->loadMissing(['organization', 'position']);
+
+        return Inertia::render('Employee/AnnouncementApply', [
+            'announcement' => $this->presentAnnouncementDetail($announcement),
+        ]);
+    }
+
+    public function announcementApplyStore(
+        PublicStoreTransferApplicationRequest $request,
+        TransferAnnouncement $announcement,
+        SubmitTransferApplicationAction $action,
+    ): RedirectResponse {
+        $employee = $request->user()?->employee;
+
+        if ($employee === null) {
+            return $this->backToAnnouncement($announcement, __('transfers.noEmployeeProfile'));
+        }
+
+        try {
+            $action->execute($announcement, $employee, $request->user(), [
+                'cover_letter' => $request->input('cover_letter'),
+                'documents' => $request->file('documents') ?? [],
+            ]);
+        } catch (DomainException $e) {
+            return back()->withErrors(['application' => $e->getMessage()]);
+        }
+
+        return to_route('employee.announcements.show', $announcement)->with('flash', [
+            'message' => __('transfers.applicationSubmitted'),
+            'type' => 'success',
+        ]);
+    }
+
+    /**
+     * Announcement ids this employee holds a live application against.
+     *
+     * @return array<int, string>
+     */
+    private function activeApplicationAnnouncementIds(Employee $employee): array
+    {
+        return TransferApplication::query()
+            ->where('employee_id', $employee->id)
+            ->whereNotIn('status', [
+                TransferApplicationStatus::Withdrawn->value,
+                TransferApplicationStatus::Cancelled->value,
+            ])
+            ->pluck('announcement_id')
+            ->all();
+    }
+
+    /** @return array<string, mixed> */
+    private function presentAnnouncementDetail(TransferAnnouncement $announcement): array
+    {
+        return [
+            ...PublicTransferAnnouncementController::presentSummary($announcement),
+            'salary_min' => $announcement->salary_min,
+            'salary_max' => $announcement->salary_max,
+            'eligibility_rules' => $announcement->eligibility_rules,
+            'required_documents' => $announcement->required_documents,
+            'status' => $announcement->status->value,
+        ];
+    }
+
+    private function backToAnnouncement(TransferAnnouncement $announcement, string $message): RedirectResponse
+    {
+        return to_route('employee.announcements.show', $announcement)
+            ->with('flash', ['message' => $message, 'type' => 'error']);
     }
 
     public function myTransferApplications(Request $request): Response

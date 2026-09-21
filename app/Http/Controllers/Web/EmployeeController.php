@@ -60,8 +60,6 @@ class EmployeeController extends Controller
             'status',
         ]);
 
-        $organizationStructure = $this->organizationStructure($organizations, $user, $organizationScopeService);
-
         $selectedOrganization = null;
         $selectedPosition = null;
         $selectedOrganizationId = $request->string('organization_id')->toString()
@@ -141,6 +139,17 @@ class EmployeeController extends Controller
 
         $employmentType = $request->string('employment_type')->toString();
         $status = $request->string('status')->toString();
+        $search = trim($request->string('search')->toString());
+
+        /*
+         * Sorting is whitelisted rather than passed through: the column name
+         * reaches orderBy() directly, and only these five are indexed columns
+         * on `employees` that make sense to order a registry by.
+         */
+        $sortableColumns = ['full_name', 'employee_number', 'employment_type', 'status', 'created_at'];
+        $sort = $request->string('sort')->toString();
+        $sort = in_array($sort, $sortableColumns, true) ? $sort : 'full_name';
+        $direction = $request->string('direction')->toString() === 'desc' ? 'desc' : 'asc';
 
         $employeesPaginated = Employee::query()
             ->with(['currentAssignment.organization', 'currentAssignment.organizationUnit', 'currentAssignment.position'])
@@ -161,22 +170,23 @@ class EmployeeController extends Controller
                 $selectedPosition !== null,
                 fn ($query) => $query->whereHas('currentAssignment', fn ($assignmentQuery) => $assignmentQuery->where('position_id', $selectedPosition->id))
             )
-            ->when($request->string('search')->toString() !== '', function ($query) use ($request): void {
-                $search = $request->string('search')->toString();
+            ->when($search !== '', function ($query) use ($search): void {
                 $query->where(function ($nested) use ($search): void {
                     $nested->where('employee_number', ci_like_operator(), "%{$search}%")
                         ->orWhere('full_name', ci_like_operator(), "%{$search}%")
+                        ->orWhere('name_en', ci_like_operator(), "%{$search}%")
+                        ->orWhere('email', ci_like_operator(), "%{$search}%")
                         ->orWhere('phone', ci_like_operator(), "%{$search}%");
                 });
             })
             ->when(in_array($employmentType, EmploymentType::values(), true), fn ($query) => $query->where('employment_type', $employmentType))
             ->when($status !== '', fn ($query) => $query->where('status', $status))
-            ->orderBy('full_name')
+            ->orderBy($sort, $direction)
+            ->orderBy('id')
             ->paginate(50)
             ->withQueryString();
 
         return Inertia::render('Employees/Index', [
-            'organizationStructure' => $organizationStructure,
             'isOrganizationScoped' => $isOrganizationScoped,
             'selectedOrganization' => $selectedOrganization,
             'selectedPosition' => $selectedPosition ? [
@@ -222,9 +232,23 @@ class EmployeeController extends Controller
                 'per_page' => $employeesPaginated->perPage(),
                 'total' => $employeesPaginated->total(),
             ],
-            'filters' => $request->only(['search', 'status', 'organization_id', 'organization_unit_id', 'position_id', 'employment_type']),
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+                'organization_id' => $selectedOrganizationId ?? '',
+                'organization_unit_id' => $selectedOrganizationUnitId ?? '',
+                'position_id' => $selectedPositionId ?? '',
+                'employment_type' => in_array($employmentType, EmploymentType::values(), true) ? $employmentType : '',
+            ],
+            'sort' => [
+                'column' => $sort,
+                'direction' => $direction,
+            ],
             'can' => [
                 'create' => $user?->can('create', Employee::class) ?? false,
+                // List rows are already organization-scoped. The edit endpoint
+                // continues to enforce the per-employee update policy.
+                'update' => $user?->can('employees.manage') ?? false,
             ],
         ]);
     }

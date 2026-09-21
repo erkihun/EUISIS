@@ -97,10 +97,25 @@ test('the layout guards against horizontal overflow on narrow screens', function
     }
 });
 
-test('the form is width-capped and centred rather than stretched edge to edge', function (): void {
-    foreach (['Create', 'Edit'] as $page) {
-        expect(employeeFormSource($page))->toContain('mx-auto w-full max-w-5xl');
-    }
+/*
+ * Create runs the full width of the content area and takes a third column from
+ * `xl` up; Edit is still the capped, centred column. The two pages deliberately
+ * differ here, so each is asserted on its own terms.
+ */
+test('the create form fills the content area and widens its cards', function (): void {
+    $source = employeeFormSource('Create');
+
+    expect($source)
+        ->not->toContain('mx-auto w-full max-w-5xl')
+        ->toContain('<form onSubmit={submit} className="w-full">')
+        // Full width without extra columns would leave every control stretched.
+        ->toContain('wide');
+
+    expect(employeeFormLayoutSource())->toContain('xl:grid-cols-3');
+});
+
+test('the edit form stays width-capped and centred', function (): void {
+    expect(employeeFormSource('Edit'))->toContain('mx-auto w-full max-w-5xl');
 });
 
 // ── 4. Position context renders read-only ─────────────────────────────────

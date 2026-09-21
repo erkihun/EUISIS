@@ -11,6 +11,7 @@ use App\Enums\CardRequestType;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\CardRequest;
+use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\User;
 use DomainException;
@@ -43,18 +44,32 @@ readonly class ApproveCardRequestAction
             throw new DomainException('Employee must have a current organization assignment before card approval.');
         }
 
-        if (! in_array($cardRequest->request_type, [CardRequestType::Replacement, CardRequestType::Lost, CardRequestType::Damaged], true)) {
-            $hasActiveCard = IdCard::query()
-                ->where('employee_id', $employee->id)
-                ->whereIn('status', [CardStatus::Active->value, CardStatus::Issued->value, CardStatus::Printed->value, CardStatus::PendingPrint->value])
-                ->exists();
+        return DB::transaction(function () use ($cardRequest, $employee, $actor, $notes): array {
+            /*
+             * The one-active-card invariant is checked inside the transaction,
+             * behind a row lock on the employee.
+             *
+             * It used to be checked before the transaction opened, with no
+             * lock and no unique index behind it, so two approvals for the
+             * same employee racing each other both saw "no active card" and
+             * both issued one — leaving an employee holding two live
+             * credentials. Locking the employee row serialises concurrent
+             * approvals for that employee, which is the same pattern
+             * RegisterEmployeeAction already uses for position occupancy.
+             */
+            Employee::query()->whereKey($employee->id)->lockForUpdate()->first();
 
-            if ($hasActiveCard) {
-                throw new DomainException('Employee already has an active card. Use replacement flow for a new card.');
+            if (! in_array($cardRequest->request_type, [CardRequestType::Replacement, CardRequestType::Lost, CardRequestType::Damaged], true)) {
+                $hasActiveCard = IdCard::query()
+                    ->where('employee_id', $employee->id)
+                    ->whereIn('status', [CardStatus::Active->value, CardStatus::Issued->value, CardStatus::Printed->value, CardStatus::PendingPrint->value])
+                    ->exists();
+
+                if ($hasActiveCard) {
+                    throw new DomainException('Employee already has an active card. Use replacement flow for a new card.');
+                }
             }
-        }
 
-        return DB::transaction(function () use ($cardRequest, $actor, $notes): array {
             $cardRequest->update([
                 'status' => CardRequestStatus::Approved,
                 'approved_by' => $actor->getKey(),

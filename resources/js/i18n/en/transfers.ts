@@ -161,6 +161,9 @@ const transfers = {
 
     // Public announcement detail & apply pages
     statusOpen: 'Open',
+    // Used by the portal pages; previously only present in the PHP lang files,
+    // so these screens rendered the raw key.
+    noEmployeeProfile: 'No employee profile is linked to your account. Please contact HR.',
     salary: 'Salary',
     eligibilityRequirements: 'Eligibility Requirements',
     notAcceptingApplicationsInfo: 'This announcement is no longer accepting applications.',

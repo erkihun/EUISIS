@@ -26,6 +26,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -35,19 +36,47 @@ class UserController extends Controller
         private readonly DefaultPasswordPolicyService $defaultPasswordPolicy,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', User::class);
 
         /** @var User $actor */
         $actor = Auth::user();
 
+        $search = trim($request->string('search')->toString());
+        $status = $request->string('status')->toString();
+        $role = $request->string('role')->toString();
+
         $usersQuery = User::query()->with('roles');
         $this->organizationScopeService->applyUserScope($usersQuery, $actor);
 
-        $users = $usersQuery
+        $usersQuery
+            ->when($search !== '', function ($query) use ($search): void {
+                /*
+                 * Name and email only: phone_number is encrypted at rest with
+                 * a non-deterministic cast, so a LIKE against that column can
+                 * never match and would just be a search that silently fails.
+                 */
+                $query->where(function ($nested) use ($search): void {
+                    $nested->where('name', ci_like_operator(), "%{$search}%")
+                        ->orWhere('email', ci_like_operator(), "%{$search}%");
+                });
+            })
+            ->when(in_array($status, ['active', 'inactive'], true), fn ($query) => $query->where('status', $status))
+            ->when($role !== '', fn ($query) => $query->whereHas('roles', fn ($roleQuery) => $roleQuery->where('name', $role)));
+
+        /*
+         * Paginated rather than loaded whole. Each row costs four policy
+         * evaluations, so an unbounded list grew in both query and CPU terms
+         * with every account ever created.
+         */
+        $paginated = $usersQuery
             ->orderBy('name')
-            ->get()
+            ->orderBy('id')
+            ->paginate(50)
+            ->withQueryString();
+
+        $users = $paginated->getCollection()
             ->map(fn (User $u) => [
                 'id' => $u->id,
                 'name' => $u->name,
@@ -64,12 +93,25 @@ class UserController extends Controller
                     'archive' => $actor->can('archive', $u),
                     'restore' => $actor->can('restore', $u),
                     'assignRoles' => $actor->can('assignRoles', $u),
-                    'delete' => $actor->can('delete', $u),
                 ],
             ]);
 
         return Inertia::render('Users/Index', [
             'users' => $users,
+            'users_pagination' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ],
+            'filters' => [
+                'search' => $search,
+                'status' => in_array($status, ['active', 'inactive'], true) ? $status : '',
+                'role' => $role,
+            ],
+            // Role names the actor may filter by, drawn from the roles actually
+            // present on the users they can see.
+            'roleOptions' => Role::query()->orderBy('name')->pluck('name')->all(),
             'scopedUserManagement' => $this->organizationScopeService->isScopedOrganizationalAdmin($actor),
             'can' => [
                 'create' => $actor->can('create', User::class),

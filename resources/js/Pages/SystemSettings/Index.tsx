@@ -5,7 +5,6 @@ import SettingsCard from '@/Components/settings/SettingsCard';
 import SettingsSection from '@/Components/settings/SettingsSection';
 import SettingsTabs from '@/Components/settings/SettingsTabs';
 import TestChannelButton from '@/Components/settings/TestChannelButton';
-import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import type { SettingsField, SettingsGroupPayload } from '@/lib/settings';
@@ -441,6 +440,15 @@ function GroupFormPanel({
         </SettingsCard>
     );
 
+    // Global defaults remain here; template-specific artwork and overrides have
+    // one editor on ID Card Templates. Each global field appears exactly once.
+    const idCardGroups = [
+        { key: 'headerDefaults', fields: genericFields.filter(field => /^(city|bureau)_name_/.test(field.key)) },
+        { key: 'visibility', fields: genericFields.filter(field => field.type === 'boolean' && !['show_qr', 'show_return_notice', 'show_emergency_contact', 'show_signature', 'show_magnetic_stripe'].includes(field.key)) },
+        { key: 'backContent', fields: genericFields.filter(field => /^(return_address|back_notice)_/.test(field.key) || ['show_return_notice', 'show_emergency_contact', 'show_signature', 'show_magnetic_stripe'].includes(field.key)) },
+        { key: 'verification', fields: genericFields.filter(field => ['show_qr', 'qr_size', 'verification_url'].includes(field.key)) },
+    ];
+
     return (
         <form onSubmit={submit}>
             <SettingsSection
@@ -463,9 +471,20 @@ function GroupFormPanel({
                         <BrandingPreview data={form.data} />
                     </div>
                 ) : groupId === 'id_cards' ? (
-                    <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
-                        <div>{mainCard}</div>
-                        <IdCardTemplatesPanel canManage={canViewTemplates} />
+                    <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
+                        <div className="min-w-0 space-y-5">
+                            {idCardGroups.filter(group => group.fields.length > 0).map(group => (
+                                <SettingsCard key={group.key} title={t(`settings.idCardCleanup.${group.key}`)} description={t(`settings.idCardCleanup.${group.key}Help`)}>
+                                    <div className={group.key === 'visibility' ? 'grid divide-y divide-gray-100 sm:grid-cols-2 dark:divide-slate-800' : 'divide-y divide-gray-100 dark:divide-slate-800'}>
+                                    {group.fields.map(field => <SettingField key={field.key} field={field} locale={locale}
+                                        compact={group.key === 'visibility'}
+                                        value={form.data[field.key]} error={form.errors[field.key]} disabled={readOnly || form.processing}
+                                        onChange={value => form.setData(field.key, value)} />)}
+                                    </div>
+                                </SettingsCard>
+                            ))}
+                        </div>
+                        <aside className="min-w-0 xl:sticky xl:top-4"><IdCardTemplatesPanel canManage={canViewTemplates} /></aside>
                     </div>
                 ) : (
                     mainCard

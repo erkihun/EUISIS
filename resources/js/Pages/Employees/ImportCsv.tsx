@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
@@ -42,14 +42,19 @@ type Props = {
     batch: BatchSummary | null;
     preview: PreviewRow[];
     columns: string[];
+    /** Rows the reader could not take from the uploaded file. */
+    skippedRows: number;
+    maxRows: number;
     allowedOrganizations: { id: string; code: string; name_en: string; name_am: string | null }[];
     can: { upload: boolean; confirm: boolean };
 };
 
-export default function ImportCsv({ batch, preview, columns, allowedOrganizations, can }: Props): JSX.Element {
+export default function ImportCsv({ batch, preview, columns, skippedRows, maxRows, allowedOrganizations, can }: Props): JSX.Element {
     const { locale, t } = useLocale();
     const am = locale === 'am';
     const [confirming, setConfirming] = useState(false);
+    const [templateOrganization, setTemplateOrganization] = useState(allowedOrganizations.length === 1 ? allowedOrganizations[0].id : '');
+    const templateError = usePage().props.errors.organization_id;
 
     const { setData, post, processing, errors, reset } = useForm<{ file: File | null }>({ file: null });
 
@@ -84,15 +89,21 @@ export default function ImportCsv({ batch, preview, columns, allowedOrganization
                 <PageHeader
                     title={t('employees.import.title')}
                     backHref={route('employees.index')}
-                    actions={
-                        <a
-                            href={route('employees.import.template')}
-                            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                        >
-                            {t('employees.import.downloadTemplate')}
-                        </a>
-                    }
                 />
+
+                <form method="get" action={route('employees.import.template')} className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <label htmlFor="template-organization" className="block text-sm font-medium text-gray-900 dark:text-slate-100">{t('employees.import.templateOrganization')}</label>
+                    <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start">
+                        <select id="template-organization" name="organization_id" required value={templateOrganization} onChange={event => setTemplateOrganization(event.target.value)} aria-describedby="template-help" aria-invalid={Boolean(templateError)} className="min-w-0 flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                            <option value="">{t('employees.import.selectTemplateOrganization')}</option>
+                            {allowedOrganizations.map(org => <option key={org.id} value={org.id}>{org.code} — {am ? (org.name_am || org.name_en) : org.name_en}</option>)}
+                        </select>
+                        <button type="submit" disabled={!templateOrganization} className="shrink-0 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50">{t('employees.import.downloadTemplate')}</button>
+                    </div>
+                    <p id="template-help" className="mt-3 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{t('employees.import.templateOrganizationHelp').replace(':max', String(maxRows))}</p>
+                    {allowedOrganizations.length === 0 && <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{t('employees.import.noTemplateOrganizations')}</p>}
+                    {templateError && <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">{templateError}</p>}
+                </form>
 
                 {/* Upload */}
                 {can.upload && (
@@ -138,6 +149,25 @@ export default function ImportCsv({ batch, preview, columns, allowedOrganization
                     </form>
                 )}
 
+                {/*
+                  * Shown whenever the file ran past the reader's cap. Without
+                  * it the preview looks like a complete, clean file: the row
+                  * counts only ever describe what was read.
+                  */}
+                {skippedRows > 0 && (
+                    <div
+                        role="alert"
+                        className="rounded-panel border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200"
+                    >
+                        <p className="font-semibold">{t('employees.import.truncatedTitle')}</p>
+                        <p className="mt-1 text-xs">
+                            {t('employees.import.truncatedBody')
+                                .replace(':skipped', String(skippedRows))
+                                .replace(':max', String(maxRows))}
+                        </p>
+                    </div>
+                )}
+
                 {/* Preview */}
                 {batch !== null && (
                     <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
@@ -162,7 +192,7 @@ export default function ImportCsv({ batch, preview, columns, allowedOrganization
                                     <tr>
                                         <Th>#</Th>
                                         <Th>{t('employees.employee')}</Th>
-                                        <Th>{t('employees.employee_id')}</Th>
+                                        <Th>{t('employees.employeeNumber')}</Th>
                                         <Th>{t('organizations.title')}</Th>
                                         <Th>{t('nav.positions')}</Th>
                                         <Th>{t('common.status')}</Th>

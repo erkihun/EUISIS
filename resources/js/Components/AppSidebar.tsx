@@ -261,6 +261,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
             // API Management lives as a tab inside System Settings, beside
             // Security — not as a separate sidebar entry.
             { routeName: 'system-settings.index', labelKey: 'nav.systemSettings', icon: SettingsIcon, permission: 'system-settings.view' },
+            { routeName: 'public-site-management.index', labelKey: 'publicSite.admin.title', icon: MegaphoneIcon, permission: 'public_site.view' },
         ],
     },
 ];

@@ -16,6 +16,7 @@ import {
 } from '@/Components/Icons';
 import type { PageProps } from '@/types';
 import { SVGProps } from 'react';
+import './Welcome.css';
 
 type IconProps = SVGProps<SVGSVGElement>;
 
@@ -78,6 +79,10 @@ function useInView(threshold = 0.12) {
     useEffect(() => {
         const el = ref.current;
         if (!el) return;
+        if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            setInView(true);
+            return;
+        }
         const obs = new IntersectionObserver(
             ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
             { threshold },
@@ -118,7 +123,7 @@ export default function Welcome() {
     const { auth } = usePage<WelcomePageProps>().props;
     const isAuthenticated = Boolean(auth?.user);
     const { t } = useLocale();
-    const { getString } = useSystemSettings();
+    const { getString, getBoolean } = useSystemSettings();
     const { ref: trustRef,   inView: trustInView   } = useInView();
     const { ref: modulesRef, inView: modulesInView } = useInView();
     const { ref: stepsRef,   inView: stepsInView   } = useInView();
@@ -128,13 +133,14 @@ export default function Welcome() {
 
     return (
         <PublicLayout title={appNameEn}>
+            <div className="public-home" data-motion={getBoolean('appearance.enable_ui_animations', true) ? 'on' : 'off'}>
             {/* ─────────────────────────── HERO ────────────────────────────── */}
             <section
                 aria-labelledby="hero-heading"
-                className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-blue-800 py-20 sm:py-28 dark:from-blue-900 dark:via-blue-800 dark:to-slate-900"
+                className="home-hero relative overflow-hidden py-16 sm:py-24"
             >
                 <div
-                    className="pointer-events-none absolute inset-0 opacity-[0.04]"
+                    className="home-hero-grid pointer-events-none absolute inset-0 opacity-[0.06]"
                     style={{
                         backgroundImage: 'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)',
                         backgroundSize: '48px 48px',
@@ -189,21 +195,20 @@ export default function Welcome() {
 
                         {/* Platform module icon grid */}
                         <div
-                            className="mx-auto w-full max-w-sm lg:max-w-none"
+                            className="home-platform mx-auto w-full max-w-sm lg:max-w-none"
                             aria-label={t('home.platformOverview')}
-                            style={{ animation: 'fade-in-right 0.7s ease-out 0.2s both, float-y 5s ease-in-out 0.9s infinite' }}
                         >
-                            <div className="rounded-panel border border-white/20 bg-white/10 p-5 shadow-2xl backdrop-blur-sm">
+                            <div className="home-platform-panel rounded-panel border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-sm sm:p-6">
                                 <p className="mb-4 text-center text-xs font-semibold text-blue-200">
                                     {t('home.platformOverview')}
                                 </p>
-                                <div className="grid grid-cols-4 gap-3">
+                                <div className="grid grid-cols-2 gap-3 min-[400px]:grid-cols-4 lg:grid-cols-4">
                                     {MODULE_KEY_LIST.map((key, idx) => {
                                         const Icon = MODULE_ICON_MAP[idx];
                                         return (
-                                            <div key={key} className="flex flex-col items-center gap-1.5 rounded-card bg-white/10 p-3 text-center">
+                                            <div key={key} className="home-module-tile flex min-w-0 flex-col items-center gap-2 rounded-card bg-white/10 px-2 py-4 text-center" style={{ animationDelay: `${0.15 + idx * 0.06}s` }}>
                                                 <Icon className="h-6 w-6 text-white/90" aria-hidden="true" />
-                                                <span className="text-[9px] font-medium leading-tight text-blue-100">{t(`home.${key}Title`)}</span>
+                                                <span className="text-[11px] font-medium leading-snug text-blue-100">{t(`home.${key}Title`)}</span>
                                             </div>
                                         );
                                     })}
@@ -411,6 +416,7 @@ export default function Welcome() {
                     </div>
                 </div>
             </section>
+            </div>
         </PublicLayout>
     );
 }

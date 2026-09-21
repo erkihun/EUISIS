@@ -27,6 +27,7 @@ import {
     type TextStyleConfig,
 } from '@/Components/IdCards/IdCardTemplateContext';
 import { useLocale } from '@/hooks/useLocale';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import enSettings from '@/i18n/en/settings';
 import amSettings from '@/i18n/am/settings';
 import TemplateEditorSection from '@/Components/IdCards/TemplateEditorSection';
@@ -133,13 +134,16 @@ function TemplateForm({
     can,
     uploadLimitMb,
     onSaved,
+    onStateChange,
 }: {
     template: Template | null;
     can: Can;
     uploadLimitMb: number;
-    onSaved: () => void;
+    onSaved: (id: string | null) => void;
+    onStateChange: (state: { dirty: boolean; processing: boolean }) => void;
 }) {
     const { t } = useLocale();
+    const { getString } = useSystemSettings();
     const label = (key: string) => t(`settings.templateManager.${key}`);
     const editable = template ? can.update : can.create;
     const form = useForm({
@@ -200,6 +204,9 @@ function TemplateForm({
     const stepKeys = ['stepDetails', 'stepSize', 'stepBackground', 'stepLogos', 'stepDesign', 'stepReview'] as const;
     const [step, setStep] = useState(0);
     const [furthest, setFurthest] = useState(template ? stepKeys.length - 1 : 0);
+    useEffect(() => {
+        onStateChange({ dirty: form.isDirty, processing: form.processing });
+    }, [form.isDirty, form.processing, onStateChange]);
     const goTo = (next: number) => {
         setStep(next);
         setFurthest((seen) => Math.max(seen, next));
@@ -243,13 +250,13 @@ function TemplateForm({
         back_background_url: backUrl,
         text_style_config: form.data.text_style_config,
         layout_config: form.data.layout_config,
-        // A blank override falls back to what the card already resolved, so the
-        // preview shows the inherited text rather than an empty header.
+        // Clearing an override must preview the current global default, not
+        // the previously saved override in the template's resolved header.
         header_config: {
-            city_name_en: form.data.header_config.city_name_en || template?.header_config?.city_name_en || '',
-            city_name_am: form.data.header_config.city_name_am || template?.header_config?.city_name_am || '',
-            bureau_name_en: form.data.header_config.bureau_name_en || template?.header_config?.bureau_name_en || '',
-            bureau_name_am: form.data.header_config.bureau_name_am || template?.header_config?.bureau_name_am || '',
+            city_name_en: form.data.header_config.city_name_en.trim() || getString('id_cards.city_name_en'),
+            city_name_am: form.data.header_config.city_name_am.trim() || getString('id_cards.city_name_am'),
+            bureau_name_en: form.data.header_config.bureau_name_en.trim() || getString('id_cards.bureau_name_en'),
+            bureau_name_am: form.data.header_config.bureau_name_am.trim() || getString('id_cards.bureau_name_am'),
             show_logo: form.data.header_config.show_logo,
             show_secondary_logo: form.data.header_config.show_secondary_logo,
         },
@@ -391,7 +398,19 @@ function TemplateForm({
             {
                 forceFormData: true,
                 preserveScroll: true,
-                onSuccess: onSaved,
+                onSuccess: page => {
+                    const saved = (page.props.templates as Template[] | undefined)?.find(item => item.code === form.data.code);
+                    onSaved(saved?.id ?? template?.id ?? null);
+                },
+                onError: errors => {
+                    const key = Object.keys(errors)[0] ?? '';
+                    const errorStep = /^(name|code|description)$/.test(key) ? 0
+                        : /^(orientation|width_mm|height_mm)$/.test(key) ? 1
+                        : /^(front_background|back_background)/.test(key) ? 2
+                        : /^(header_config|logo_|seal|signature)/.test(key) ? 3
+                        : /^(layout_config|text_style_config|back_photo_config)/.test(key) ? 4 : 5;
+                    goTo(errorStep);
+                },
             },
         );
     }
@@ -404,18 +423,21 @@ function TemplateForm({
              * cards stacked on top of each other, with each field group in a
              * fourth card inside the middle one.
              */}
-            <fieldset
-                disabled={!editable || form.processing}
-                className="min-w-0 overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-            >
+            <div className="min-w-0 overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <div className="border-b border-gray-200 px-3 py-2 dark:border-slate-800">
                     <TemplateWizardSteps
                         steps={stepKeys.map((key) => label(key))}
                         current={step}
                         furthest={furthest}
-                        onSelect={setStep}
+                        onSelect={next => { if (!form.processing) setStep(next); }}
                     />
                 </div>
+
+                {Object.keys(form.errors).length > 0 && <div role="alert" className="border-b border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+                    <p className="font-medium">{t('settings.idCardCleanup.saveErrors')}</p>
+                    <ul className="mt-2 list-inside list-disc">{Object.entries(form.errors).map(([key, message]) => <li key={key}>{message}</li>)}</ul>
+                </div>}
+                <fieldset disabled={!editable || form.processing} className="min-w-0">
 
                 {/* Identity — the fields an admin always fills in. */}
                 {step === 0 && <TemplateEditorSection title={label(template ? 'edit' : 'create')}>
@@ -500,7 +522,7 @@ function TemplateForm({
                     <TemplateEditorSection
                         key={slot}
                         title={label(`headerLogo_${slot}`)}
-                        description={label(`headerLogo_${slot}Help`)}
+                        description={portrait && slot === 'left' ? t('settings.idCardCleanup.portraitLogo') : label(`headerLogo_${slot}Help`)}
                     >
                         <label className="flex items-center gap-2 text-sm">
                             <input
@@ -541,7 +563,7 @@ function TemplateForm({
                 </div>
 
                 {/* Institution text — shown beside the left logo only. */}
-                <TemplateEditorSection
+                {portrait ? <p role="note" className="px-4 py-4 text-sm leading-6 text-gray-600 dark:text-slate-400">{t('settings.idCardCleanup.portraitHeader')}</p> : <TemplateEditorSection
                     title={label('headerSection')}
                     description={label('headerSectionHelp')}
                 >
@@ -556,7 +578,7 @@ function TemplateForm({
                                 value={form.data.header_config[field]}
                                 disabled={!editable || form.processing}
                                 // Blank inherits, so the system value is the placeholder.
-                                placeholder={template?.header_config?.[field] ?? ''}
+                                placeholder={getString(`id_cards.${field}`)}
                                 onChange={(e) =>
                                     form.setData('header_config', {
                                         ...form.data.header_config,
@@ -572,7 +594,7 @@ function TemplateForm({
                         </label>
                     ))}
                     <p className="text-xs text-gray-500">{label('header_inherit_help')}</p>
-                </TemplateEditorSection>
+                </TemplateEditorSection>}
                 </>}
 
                 {step === 4 && <>{/* Back photo — the employee photo as a security watermark. */}
@@ -791,18 +813,19 @@ function TemplateForm({
                                 {label('back')}
                             </Button>
                             {step < stepKeys.length - 1 ? (
-                                <Button type="button" disabled={form.processing} onClick={() => goTo(step + 1)}>
+                                <Button key="next-step" type="button" disabled={form.processing} onClick={event => { event.preventDefault(); goTo(step + 1); }}>
                                     {label('next')}
                                 </Button>
                             ) : (
-                                <Button type="submit" disabled={form.processing}>
+                                <Button key="save-template" type="submit" disabled={form.processing}>
                                     {form.processing ? label('saving') : label('save')}
                                 </Button>
                             )}
                         </div>
                     </div>
                 )}
-            </fieldset>
+                </fieldset>
+            </div>
             {/* Preview follows the admin down the form. */}
             <div className="self-start rounded-panel border border-gray-200 bg-white xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
                 <div className="border-b border-gray-200 px-4 py-2.5 dark:border-slate-800">
@@ -881,7 +904,18 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
     const label = (key: string) => t(`settings.templateManager.${key}`);
     const [selected, setSelected] = useState<string | null>(templates[0]?.id ?? null);
     const [revision, setRevision] = useState(0);
+    const [editorState, setEditorState] = useState({ dirty: false, processing: false });
     const template = templates.find((item) => item.id === selected) ?? null;
+    async function mayLeaveEditor() {
+        if (editorState.processing) return false;
+        return !editorState.dirty || (await confirm({ title: t('settings.idCardCleanup.discard'), variant: 'warning' })).confirmed;
+    }
+    async function selectTemplate(id: string | null) {
+        if (id === selected && id !== null) return;
+        if (!await mayLeaveEditor()) return;
+        setSelected(id);
+        setRevision(value => value + 1);
+    }
     return (
         <AuthenticatedLayout
             header={
@@ -900,10 +934,8 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                             {can.create && (
                                 <Button
                                     type="button"
-                                    onClick={() => {
-                                        setSelected(null);
-                                        setRevision((value) => value + 1);
-                                    }}
+                                    disabled={editorState.processing}
+                                    onClick={() => selectTemplate(null)}
                                 >
                                     {label('create')}
                                 </Button>
@@ -925,18 +957,21 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                                                 can.set_default &&
                                                 !template.is_default &&
                                                 template.status === 'active',
-                                            onClick: () =>
+                                            onClick: async () => {
+                                                if (!await mayLeaveEditor()) return;
                                                 router.post(
                                                     route('id-card-templates.set-default', template.id),
                                                     {},
                                                     { onSuccess: () => setRevision((value) => value + 1) },
-                                                ),
+                                                );
+                                            },
                                         },
                                         {
                                             label: label('delete'),
                                             variant: 'danger',
                                             show: can.delete && (!template.is_default || can.set_default),
                                             onClick: async () => {
+                                                if (editorState.processing) return;
                                                 const result = await confirm({ title: label('confirm_delete'), variant: 'danger' });
                                                 if (result.confirmed) {
                                                     router.delete(route('id-card-templates.destroy', template.id), {
@@ -973,7 +1008,8 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                                     key={item.id}
                                     type="button"
                                     aria-current={active ? 'true' : undefined}
-                                    onClick={() => setSelected(item.id)}
+                                    disabled={editorState.processing}
+                                    onClick={() => selectTemplate(item.id)}
                                     className={[
                                         'flex min-w-0 max-w-xs items-center gap-2 rounded-card border px-3 py-2 text-left transition-colors',
                                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
@@ -1003,7 +1039,8 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                             template={template}
                             can={can}
                             uploadLimitMb={uploadLimitMb}
-                            onSaved={() => setRevision((value) => value + 1)}
+                            onStateChange={setEditorState}
+                            onSaved={id => { setSelected(id); setRevision(value => value + 1); }}
                         />
                     ) : (
                         <p className="text-sm text-gray-500 dark:text-slate-400">{label('empty')}</p>

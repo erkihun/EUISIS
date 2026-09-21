@@ -31,6 +31,7 @@ export function FormCard({
     description,
     aside,
     grid = true,
+    wide = false,
     children,
 }: PropsWithChildren<{
     icon: ReactNode;
@@ -40,6 +41,13 @@ export function FormCard({
     aside?: ReactNode;
     /** false renders children stacked instead of in the two-column grid. */
     grid?: boolean;
+    /**
+     * Adds a third column from `xl` up, for a page that runs the full width of
+     * the content area. Two columns across 1,600px leaves every control absurdly
+     * wide, so a full-width page opts in rather than inheriting the narrow
+     * page's proportions.
+     */
+    wide?: boolean;
 }>) {
     return (
         <section className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
@@ -61,7 +69,7 @@ export function FormCard({
                 {aside && <div className="shrink-0">{aside}</div>}
             </header>
 
-            <div className={`p-5 ${grid ? 'grid gap-x-5 gap-y-4 md:grid-cols-2' : 'space-y-4'}`}>{children}</div>
+            <div className={`p-5 ${grid ? `grid gap-x-5 gap-y-4 md:grid-cols-2${wide ? ' xl:grid-cols-3' : ''}` : 'space-y-4'}`}>{children}</div>
         </section>
     );
 }

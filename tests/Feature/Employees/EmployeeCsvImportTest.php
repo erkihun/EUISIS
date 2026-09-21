@@ -189,7 +189,7 @@ it('rejects a file that is not a csv', function (): void {
 
 it('serves a csv template with the expected columns', function (): void {
     $response = $this->actingAs($this->admin)
-        ->get(route('employees.import.template'))
+        ->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))
         ->assertOk();
 
     $body = $response->getContent();
@@ -351,6 +351,10 @@ it('rejects a position that is already occupied', function (): void {
     $batch = $this->service->validate(csvUpload([importRow($this->alpha, 1)]), $this->admin);
 
     expect($batch->failed_rows)->toBe(1);
+
+    $template = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertOk()->getContent();
+    expect($template)->not->toContain($this->alpha['positions'][1]->job_position_code)
+        ->and($template)->toContain($this->alpha['positions'][2]->job_position_code);
 
     $errors = implode(' ', EmployeeImportBatchRow::query()->firstOrFail()->errors);
 
@@ -539,4 +543,124 @@ it('imports through the http flow end to end', function (): void {
         ->assertRedirect(route('employees.index'));
 
     expect(Employee::query()->count())->toBe(1);
+});
+
+/*
+ * The reader stops at MAX_ROWS. It used to stop silently, so an over-long file
+ * produced a batch whose totals described only the part that was read.
+ */
+it('reports the rows it skipped past the row cap', function (): void {
+    $service = app(EmployeeCsvImportService::class);
+    $max = $service->maxRows();
+
+    // Rows naming an organization that does not exist: each is rejected after
+    // a single lookup, which keeps this file cheap to validate.
+    $rows = array_fill(0, $max + 3, ['organization_code' => 'NO-SUCH-ORG', 'first_name' => 'Over', 'father_name' => 'Cap']);
+
+    $batch = $service->validate(csvUpload($rows), $this->admin);
+
+    expect($batch->total_rows)->toBe($max)
+        ->and($service->skippedRowCount())->toBe(3);
+});
+
+it('warns on the import page when a file ran past the row cap', function (): void {
+    $max = app(EmployeeCsvImportService::class)->maxRows();
+    $rows = array_fill(0, $max + 2, ['organization_code' => 'NO-SUCH-ORG', 'first_name' => 'Over', 'father_name' => 'Cap']);
+
+    $this->actingAs($this->admin)
+        ->post(route('employees.import.store'), ['file' => csvUpload($rows)])
+        ->assertRedirect(route('employees.import.create'));
+
+    $this->actingAs($this->admin)
+        ->get(route('employees.import.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('skippedRows', 2)->where('maxRows', $max));
+});
+
+/* The template's example row must line up with its own header. */
+it('serves a template whose sample row has one value per column', function (): void {
+    $body = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->getContent();
+    $lines = explode("\n", trim(ltrim($body, "\xEF\xBB\xBF")));
+
+    expect(str_getcsv($lines[1]))->toHaveCount(count(EmployeeCsvImportService::COLUMNS));
+});
+
+it('downloads real placement codes only for the selected organization', function (): void {
+    $body = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertOk()->getContent();
+    $lines = explode("\n", trim(substr($body, 3)));
+    expect($lines)->toHaveCount(3);
+    $row = array_combine(EmployeeCsvImportService::COLUMNS, str_getcsv($lines[1]));
+    expect($row['organization_code'])->toBe($this->alpha['org']->code)
+        ->and($row['organization_unit_code'])->toBe($this->alpha['unit']->code)
+        ->and($row['position_code'])->toBe($this->alpha['positions'][1]->job_position_code)
+        ->and($row['first_name'])->toBe('')
+        ->and($body)->not->toContain($this->beta['org']->code)
+        ->and($body)->not->toContain('abebe@example.et');
+});
+
+it('requires an active accessible organization for template downloads', function (): void {
+    $this->actingAs($this->admin)->get(route('employees.import.template'))->assertSessionHasErrors('organization_id');
+    $this->alpha['org']->update(['status' => 'inactive']);
+    $this->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertNotFound();
+    $user = User::factory()->create();
+    $user->givePermissionTo(Permission::findOrCreate('employees.import.view', 'web'));
+    $user->organizationScopes()->create(['organization_id' => $this->beta['org']->id, 'scope_type' => 'self', 'is_active' => true]);
+    $this->alpha['org']->update(['status' => 'active']);
+    $this->actingAs($user)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertNotFound();
+    $this->get(route('employees.import.template', ['organization_id' => $this->beta['org']->id]))->assertOk();
+});
+
+it('does not suggest inactive positions and keeps an organization starter when none remain', function (): void {
+    foreach ($this->alpha['positions'] as $position) {
+        $position->update(['is_active' => false]);
+    }
+    $body = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertOk()->getContent();
+    $lines = explode("\n", trim(substr($body, 3)));
+    $row = array_combine(EmployeeCsvImportService::COLUMNS, str_getcsv($lines[1]));
+    expect($lines)->toHaveCount(2)->and($row['organization_code'])->toBe($this->alpha['org']->code)->and($row['position_code'])->toBe('');
+});
+
+/*
+ * Preview used to re-query the organization and the unit for every single row,
+ * so a file repeating one organization cost three queries per row.
+ */
+it('looks the organization and unit up once when building a preview', function (): void {
+    $ctx = importOrg('PRV');
+
+    // Six rows: one shared organization and unit, a distinct vacant position
+    // each, which is the shape of a real file.
+    $rows = [];
+
+    foreach (range(1, 6) as $n) {
+        $position = Position::query()->create([
+            'organization_id' => $ctx['org']->id,
+            'organization_unit_id' => $ctx['unit']->id,
+            'job_position_code' => 'PRV-EXTRA-'.$n,
+            'title_en' => 'Preview Officer '.$n,
+            'is_active' => true,
+        ]);
+
+        $rows[] = importRow($ctx, 1, [
+            'position_code' => $position->job_position_code,
+            'email' => "preview{$n}@example.et",
+        ]);
+    }
+
+    $batch = app(EmployeeCsvImportService::class)->validate(csvUpload($rows), $this->admin);
+
+    expect($batch->valid_rows)->toBe(6);
+
+    $queries = 0;
+    DB::listen(function () use (&$queries): void {
+        $queries++;
+    });
+
+    app(EmployeeCsvImportService::class)->preview($batch);
+
+    /*
+     * One query to load the rows, one for the organization, one for the unit
+     * and one position lookup per row: ten or so. Re-querying the organization
+     * and unit per row would be nineteen.
+     */
+    expect($queries)->toBeGreaterThan(0)->toBeLessThanOrEqual(12);
 });

@@ -23,8 +23,13 @@ class TransportSettingsController extends Controller
 
     public function index(): Response
     {
+        /*
+         * NOT `settings`: that name is taken by the globally shared appearance
+         * configuration, and a page prop of the same name replaces it — the
+         * screen then renders with no sidebar colour and the default logo.
+         */
         return Inertia::render('Transport/Settings/Index', [
-            'settings' => $this->settings(),
+            'transportSettings' => $this->settings(),
         ]);
     }
 

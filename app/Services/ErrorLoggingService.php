@@ -33,6 +33,26 @@ class ErrorLoggingService
         'national_id',
         'document_path',
         '_token',
+        /*
+         * One-time and recovery secrets. The public ID checker posts `otp` and
+         * the MFA challenge posts `recovery_code`; without these an unhandled
+         * exception on either route wrote the live secret into the log beside
+         * the card UUID and the caller's IP.
+         *
+         * The generic `code` field is deliberately NOT redacted: it is also
+         * the business code for organization types, provider branches and ID
+         * card templates, and blanking those would cost more in debugging than
+         * a 30-second TOTP value is worth.
+         */
+        'otp',
+        'otp_code',
+        'recovery_code',
+        'recovery_codes',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'client_secret',
+        'api_key',
+        'remember_token',
     ];
 
     /**

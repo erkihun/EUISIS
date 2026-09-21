@@ -259,14 +259,31 @@ it('allows a parameterised endpoint that was assigned', function (): void {
         ->assertStatus(404);
 });
 
-it('leaves an application with no assignments unrestricted', function (): void {
+it('leaves a legacy application with no assignments unrestricted', function (): void {
     // Applications registered before endpoint assignment existed must keep
-    // working until an administrator narrows them.
-    [, $token] = registeredApplication(['reports.read_limited']);
+    // working until an administrator narrows them. That grace is now explicit
+    // (`unrestricted_endpoints`), granted by migration to the applications
+    // that already relied on it — a newly registered application is
+    // deny-by-default instead. See the Phase-2 SEC2-001 finding.
+    [$application, $token] = registeredApplication(['reports.read_limited']);
+
+    $application->forceFill(['unrestricted_endpoints' => true])->save();
 
     $this->withToken($token)
         ->getJson('/api/v1/organizations')
         ->assertOk();
+});
+
+it('denies a newly registered application that has no assignments', function (): void {
+    // The fail-open this replaces meant an administrator who registered an
+    // application and did not get as far as assigning endpoints published the
+    // whole API to it.
+    [, $token] = registeredApplication(['reports.read_limited']);
+
+    $this->withToken($token)
+        ->getJson('/api/v1/organizations')
+        ->assertForbidden()
+        ->assertJsonPath('error_code', 'endpoint_not_allowed');
 });
 
 it('still enforces scope on an assigned endpoint', function (): void {

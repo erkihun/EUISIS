@@ -21,6 +21,21 @@ const users = {
     activeUsers: 'Active Users',
     deactivatedUsers: 'Deactivated Users',
     noUsers: 'No users found',
+
+    // Registry chrome: filters, paging and the confirmations for the two
+    // account-state actions.
+    filters: 'User filters',
+    searchPlaceholder: 'Search by name or email',
+    allStatuses: 'All Statuses',
+    allRoles: 'All Roles',
+    statusActive: 'Active',
+    statusInactive: 'Inactive',
+    results: 'Showing :from-:to of :total users',
+    pagination: 'User list pagination',
+    confirmDeactivateTitle: 'Deactivate this account?',
+    confirmDeactivateBody: ':name (:email) will be signed out and will no longer be able to sign in. The account can be reactivated later.',
+    confirmReactivateTitle: 'Reactivate this account?',
+    confirmReactivateBody: ':name (:email) will be able to sign in again.',
     searchUsers: 'Search users...',
     filterByRole: 'Filter by role',
     filterByStatus: 'Filter by status',

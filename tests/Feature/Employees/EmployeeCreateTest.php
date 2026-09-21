@@ -404,3 +404,24 @@ it('renders the create page without raw ISO datetime strings in its props', func
             expect($props)->not->toMatch('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/');
         });
 });
+
+/*
+ * The address textarea caps input client side. That cap and the `max:500`
+ * rule have to agree, or the form silently accepts text the server rejects.
+ */
+it('accepts an address at the 500 character limit and rejects one over it', function (): void {
+    $org = ecOrg('EC-ADDR');
+
+    $this->actingAs(ecManager())
+        ->post(route('employees.store'), ecPayload($org, ['address' => str_repeat('a', 500)]))
+        ->assertSessionHasNoErrors();
+
+    $this->post(route('employees.store'), ecPayload($org, ['address' => str_repeat('a', 501)]))
+        ->assertSessionHasErrors('address');
+});
+
+it('keeps the create form address cap aligned with the validation rule', function (): void {
+    expect(file_get_contents(dirname(__DIR__, 3).'/resources/js/Pages/Employees/Create.tsx'))
+        ->toContain('id="address"')
+        ->toContain('maxLength={500}');
+});

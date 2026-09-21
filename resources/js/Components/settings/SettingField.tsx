@@ -7,6 +7,7 @@ import SecretSettingField from '@/Components/settings/SecretSettingField';
 import TimezoneSettingField from '@/Components/settings/TimezoneSettingField';
 import { useLocale } from '@/hooks/useLocale';
 import type { SettingsField } from '@/lib/settings';
+import { useId } from 'react';
 
 type ScalarValue = string | number | boolean | string[] | File | null;
 
@@ -16,13 +17,15 @@ type Props = {
     value: ScalarValue;
     error?: string;
     disabled?: boolean;
+    compact?: boolean;
     onChange: (value: ScalarValue) => void;
 };
 
 const inputClassName =
     'w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
-export default function SettingField({ field, locale, value, error, disabled = false, onChange }: Props) {
+export default function SettingField({ field, locale, value, error, disabled = false, compact = false, onChange }: Props) {
+    const controlId = useId();
     const { t } = useLocale();
     const label = (locale === 'am' ? field.label_am : field.label_en) ?? field.label_en ?? field.key;
     const description = (locale === 'am' ? field.description_am : field.description_en) ?? field.description_en ?? null;
@@ -113,10 +116,10 @@ export default function SettingField({ field, locale, value, error, disabled = f
     }
 
     return (
-        <div className="grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-3 md:items-start">
+        <div className={compact ? 'flex min-w-0 items-center justify-between gap-3 px-5 py-3' : 'grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-3 md:items-start'}>
             <div>
                 <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{label}</span>
+                    <label htmlFor={controlId} className="text-sm font-medium text-gray-900 dark:text-slate-100">{label}</label>
                     {field.is_required && (
                         <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[11px] font-semibold text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">
                             {t('settings.required')}
@@ -128,8 +131,8 @@ export default function SettingField({ field, locale, value, error, disabled = f
                 )}
             </div>
 
-            <div className="space-y-2 md:col-span-2">
-                {renderFieldControl(field, value, disabled, onChange)}
+            <div className={compact ? 'shrink-0 space-y-2' : 'space-y-2 md:col-span-2'}>
+                {renderFieldControl(field, value, disabled, onChange, controlId)}
                 <InputError message={error} />
             </div>
         </div>
@@ -141,10 +144,12 @@ function renderFieldControl(
     value: ScalarValue,
     disabled: boolean,
     onChange: (value: ScalarValue) => void,
+    controlId: string,
 ) {
     if (field.type === 'boolean') {
         return (
             <button
+                id={controlId}
                 type="button"
                 role="switch"
                 aria-checked={Boolean(value)}
@@ -170,6 +175,7 @@ function renderFieldControl(
         return (
             <div className="relative">
                 <select
+                    id={controlId}
                     value={(value as string) ?? ''}
                     disabled={disabled}
                     onChange={(event) => onChange(event.target.value)}
@@ -193,6 +199,7 @@ function renderFieldControl(
     if (field.type === 'integer') {
         return (
             <input
+                id={controlId}
                 type="number"
                 value={value === null || value === undefined ? '' : String(value)}
                 disabled={disabled}
@@ -205,6 +212,7 @@ function renderFieldControl(
     if (field.type === 'text') {
         return (
             <textarea
+                id={controlId}
                 value={(value as string) ?? ''}
                 disabled={disabled}
                 onChange={(event) => onChange(event.target.value)}
@@ -223,6 +231,7 @@ function renderFieldControl(
 
     return (
         <input
+            id={controlId}
             type={inputType}
             value={Array.isArray(value) ? value.join(', ') : ((value as string | number | null) ?? '')}
             disabled={disabled}

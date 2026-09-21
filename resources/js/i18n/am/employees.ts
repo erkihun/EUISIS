@@ -71,6 +71,10 @@ const employees = {
     import: {
         title: 'የሠራተኞች CSV ይጫኑ',
         downloadTemplate: 'የCSV አብነት ያውርዱ',
+        templateOrganization: 'ለአብነቱ ተቋም ይምረጡ',
+        selectTemplateOrganization: 'ተቋም ይምረጡ',
+        templateOrganizationHelp: 'እስከ :max ንቁና ክፍት የሥራ መደቦች ከትክክለኛ የተቋም፣ የክፍልና የመደብ ኮዶች ጋር ይወርዳሉ። የሠራተኛ መረጃ ይሙሉ፤ ያልተጠቀሙባቸውን ረድፎች ያስወግዱ። ክፍት መደብ ከሌለ የተቋም ኮድ ብቻ ይካተታል፤ ከማስመጣት በፊት ክፍት መደብ ይጨምሩ። በማስመጣት ጊዜ መደቡ እንደገና ይረጋገጣል።',
+        noTemplateOrganizations: 'በተፈቀደልዎ ወሰን ውስጥ ንቁ ተቋም የለም።',
         validate: 'CSV ያረጋግጡ',
         preview: 'የማስመጣት ቅድመ እይታ',
         confirm: 'ማስመጣት ያረጋግጡ',
@@ -83,6 +87,8 @@ const employees = {
         allowedOrganizations: 'ማስመጣት የሚችሉባቸው ተቋማት',
         notImportable: 'ይህ ፋይል ከመግባቱ በፊት ሁሉም ረድፎች ትክክለኛ መሆን አለባቸው።',
         rowValid: 'ትክክለኛ',
+        truncatedTitle: 'የዚህ ፋይል ከፊሉ አልተነበበም',
+        truncatedBody: 'አስመጪው በአንድ ፋይል ቢበዛ :max ረድፎችን ያነባል። ከዚያ በላይ ያሉ :skipped ረድፎች ተዘለዋል፤ አልተረጋገጡም እና አይገቡም። ፋይሉን ከፋፍለው ቀሪውን በተናጠል ይጫኑ።',
     },
 
     // Employee QR codes (detail page)
@@ -117,7 +123,22 @@ const employees = {
     columnOrganization: 'ተቋም',
     columnPosition: 'የስራ መደብ',
     columnFlags: 'ምልክቶች',
+    duplicateFlagsTooltip: 'ለዚህ ሠራተኛ ሊደገሙ የሚችሉ መዝገቦች ተገኝተዋል',
     notAvailable: 'አይገኝም',
+
+    // Registry (index) page — list chrome, filters and pagination.
+    registryTitle: 'የሠራተኛ መዝገብ',
+    unsavedChangesWarning: 'በዚህ ቅጽ ላይ ያልተቀመጡ ለውጦች አሉ። ገጹን ለቀው ሊያጡዋቸው ይፈልጋሉ?',
+    registryScope: 'ማግኘት የሚችሏቸው ሁሉም ተቋማት',
+    registryFilters: 'የሠራተኛ መዝገብ ማጣሪያዎች',
+    registryResults: 'ከ:total ሠራተኞች :from-:to በማሳየት ላይ',
+    registryApplyHint: 'ለውጦችዎን ለማስፈጸም "አጣራ" የሚለውን ይጫኑ።',
+    registryDependentHint: 'የክፍል እና የስራ መደብ አማራጮች በተመረጠው ተቋም መሠረት ይቀየራሉ።',
+    registryPagination: 'የሠራተኛ መዝገብ ገጽ አሰሳ',
+    registryLoadError: 'የሠራተኛ መዝገቡን መጫን አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
+    sortByColumn: 'በ:column ደርድር',
+    sortedAscending: 'ከታች ወደ ላይ ተደርድሯል',
+    sortedDescending: 'ከላይ ወደ ታች ተደርድሯል',
 
     // Create page — sections
     createDescription: 'አዲስ ሰራተኛ ይመዝግቡ እና በተቋሙ መዋቅር ውስጥ ይመድቡ።',

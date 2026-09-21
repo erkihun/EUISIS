@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
 import type { PageProps } from '@/types';
 import { SVGProps } from 'react';
 
@@ -33,17 +34,17 @@ type WeekDay = {
 };
 type PortalProps = PageProps & {
     employee: { id: string; full_name: string | null; employee_number: string | null; status: string | null; photo_url: string | null; email: string | null; phone: string | null; } | null;
-    assignment: { organization: string | null; organization_unit: string | null; position: string | null; grade_level: string | null; effective_from: string | null; } | null;
+    assignment: { organization: string | null; organization_am: string | null; organization_unit: string | null; organization_unit_am: string | null; position: string | null; position_am: string | null; grade_level: string | null; effective_from: string | null; } | null;
     id_card: { card_number: string | null; status: string; expires_at: string | null; is_active: boolean; } | null;
     cafeteria: {
         balance: number; pending_deduction: number; daily_amount: number | null;
         available_days: number; remaining_subsidy: number | null;
         week_start: string; week_end: string; week_days: WeekDay[];
-        recent_transactions: { date: string | null; subsidy: number; meal_amount: number; employee_pays: number; provider: string | null; status: string | null; }[];
+        recent_transactions: { date: string | null; subsidy: number; meal_amount: number; employee_pays: number; provider: string | null; provider_am: string | null; status: string | null; }[];
     } | null;
-    entitlements: { id: string; service: string | null; service_code: string | null; quota_limit: number | null; quota_used: number | null; effective_to: string | null; }[];
-    transfer_apps: { id: string; status: string; status_label: string; submitted_at: string | null; organization: string | null; position: string | null; announcement_id: string; }[];
-    open_announcements: { id: string; organization: string | null; position: string | null; grade_level: string | null; vacancies: number; closing_date: string | null; }[];
+    entitlements: { id: string; service: string | null; service_am: string | null; service_code: string | null; quota_limit: number | null; quota_used: number | null; effective_to: string | null; }[];
+    transfer_apps: { id: string; status: string; status_label: string; submitted_at: string | null; organization: string | null; organization_am: string | null; position: string | null; position_am: string | null; announcement_id: string; }[];
+    open_announcements: { id: string; organization: string | null; organization_am: string | null; position: string | null; position_am: string | null; grade_level: string | null; vacancies: number; closing_date: string | null; }[];
 };
 
 /* ── small helpers ───────────────────────────────────────────────────────── */
@@ -69,9 +70,11 @@ const CARD_COLOR: Record<string, string> = {
     pending_print: 'text-gray-400 dark:text-slate-500',
 };
 
-function fmt(n: number | null | undefined) {
+/* Amounts follow the active locale rather than always reading as en-US. */
+function fmt(n: number | null | undefined, locale = 'en') {
     if (n == null) return '—';
-    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    return n.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function StatusPill({ status, label }: { status: string; label?: string }) {
@@ -83,6 +86,8 @@ function StatusPill({ status, label }: { status: string; label?: string }) {
 }
 
 function SectionHeading({ icon: I, title, href }: { icon: (p: IconProps) => JSX.Element; title: string; href?: string }) {
+    const { t } = useLocale();
+
     return (
         <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-slate-100">
@@ -90,7 +95,7 @@ function SectionHeading({ icon: I, title, href }: { icon: (p: IconProps) => JSX.
             </h2>
             {href && (
                 <Link href={href} className="flex items-center gap-0.5 text-xs text-[var(--color-primary)] hover:underline">
-                    View all <Ic.ArrowRight className="h-3 w-3" />
+                    {t('employeePortal.viewAll')} <Ic.ArrowRight className="h-3 w-3" />
                 </Link>
             )}
         </div>
@@ -99,7 +104,8 @@ function SectionHeading({ icon: I, title, href }: { icon: (p: IconProps) => JSX.
 
 /* ── week calendar strip ─────────────────────────────────────────────────── */
 function WeekStrip({ days }: { days: WeekDay[] }) {
-    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+    const { t } = useLocale();
+    const names = (['mon', 'tue', 'wed', 'thu', 'fri'] as const).map((day) => t(`employeePortal.weekdays.${day}`));
     return (
         <div className="flex gap-2">
             {names.map((name, i) => {
@@ -128,21 +134,29 @@ function WeekStrip({ days }: { days: WeekDay[] }) {
 
 /* ── main page ───────────────────────────────────────────────────────────── */
 export default function EmployeePortal({ employee, assignment, id_card, cafeteria, entitlements, transfer_apps, open_announcements }: PortalProps) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const { props } = usePage<PortalProps>();
     const user = props.auth?.user;
 
-    const greeting = employee?.full_name ?? user?.name ?? 'Employee';
+    /* Every localized value on this page resolves through one pair of helpers
+     * so the Amharic reading is never dropped on the floor. */
+    const name = (en: string | null, am: string | null) => localizedName(en ?? '', am, locale) || '—';
+    const amount = (n: number | null | undefined) => fmt(n, locale);
+    const fill = (key: string, values: Record<string, string | number>) =>
+        Object.entries(values).reduce((text, [token, value]) => text.replace(`:${token}`, String(value)), t(key));
+
+    const greeting = employee?.full_name ?? user?.name ?? t('employeePortal.title');
+    const assignmentPosition = assignment ? name(assignment.position, assignment.position_am) : null;
     const activeApps = transfer_apps.filter(a => !['rejected', 'withdrawn', 'cancelled', 'transferred'].includes(a.status));
 
     if (!employee) {
         return (
-            <AuthenticatedLayout header={<PageHeader title={t('nav.myPortal') || 'My Portal'} />}>
-                <Head title="My Portal" />
+            <AuthenticatedLayout header={<PageHeader title={t('employeePortal.title')} />}>
+                <Head title={t('employeePortal.title')} />
                 <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
                     <Ic.Alert className="mx-auto mb-3 h-10 w-10 text-amber-500" />
-                    <p className="font-medium text-amber-800 dark:text-amber-300">No employee profile linked to your account.</p>
-                    <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">Contact HR to link your account to your employee record.</p>
+                    <p className="font-medium text-amber-800 dark:text-amber-300">{t('employeePortal.noProfileTitle')}</p>
+                    <p className="mt-1 text-sm text-amber-700 dark:text-amber-400">{t('employeePortal.noProfileBody')}</p>
                 </div>
             </AuthenticatedLayout>
         );
@@ -152,52 +166,54 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
         <AuthenticatedLayout
             header={
                 <PageHeader
-                    title={t('nav.myPortal') || 'My Portal'}
-                    description={greeting + (assignment?.position ? ` · ${assignment.position}` : '')}
+                    title={t('employeePortal.title')}
+                    description={greeting + (assignmentPosition && assignmentPosition !== '—' ? ` · ${assignmentPosition}` : '')}
                 />
             }
         >
-            <Head title="My Portal" />
+            <Head title={t('employeePortal.title')} />
 
             {/* ── Top stat row ─────────────────────────────────────────────── */}
             <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
 
                 <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">Café Balance</p>
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('employeePortal.cafeBalance')}</p>
                     <p className={`mt-1.5 text-2xl font-bold ${cafeteria && cafeteria.balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-slate-100'}`}>
-                        {cafeteria != null ? `${fmt(cafeteria.balance)}` : '—'}
+                        {cafeteria != null ? `${amount(cafeteria.balance)}` : '—'}
                     </p>
-                    <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">ETB</p>
+                    <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{t('employeePortal.currency')}</p>
                 </div>
 
                 <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">Days Left</p>
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('employeePortal.daysLeft')}</p>
                     <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-slate-100">
                         {cafeteria != null ? cafeteria.available_days : '—'}
                     </p>
                     <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">
-                        {cafeteria?.daily_amount != null ? `${fmt(cafeteria.daily_amount)} ETB/day` : 'this week'}
+                        {cafeteria?.daily_amount != null
+                            ? fill('employeePortal.perDay', { amount: amount(cafeteria.daily_amount) })
+                            : t('employeePortal.thisWeek')}
                     </p>
                 </div>
 
                 <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">ID Card</p>
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('employeePortal.idCard')}</p>
                     {id_card ? (
                         <>
                             <p className={`mt-1.5 text-lg font-bold capitalize ${CARD_COLOR[id_card.status] ?? 'text-gray-900 dark:text-slate-100'}`}>
                                 {id_card.status.replace(/_/g, ' ')}
                             </p>
-                            <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{id_card.expires_at ? <><span>Exp. </span><LocalizedDateDisplay value={id_card.expires_at} /></> : id_card.card_number ?? '—'}</p>
+                            <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{id_card.expires_at ? <><span>{t('employeePortal.expiresShort')} </span><LocalizedDateDisplay value={id_card.expires_at} /></> : id_card.card_number ?? '—'}</p>
                         </>
                     ) : (
-                        <p className="mt-1.5 text-sm text-gray-400 dark:text-slate-500">No card</p>
+                        <p className="mt-1.5 text-sm text-gray-400 dark:text-slate-500">{t('employeePortal.noCard')}</p>
                     )}
                 </div>
 
                 <div className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">Active Apps</p>
+                    <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('employeePortal.activeApps')}</p>
                     <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-slate-100">{activeApps.length}</p>
-                    <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">transfer applications</p>
+                    <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{t('employeePortal.transferApplicationsCaption')}</p>
                 </div>
             </div>
 
@@ -210,15 +226,15 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                     {/* Cafeteria */}
                     {cafeteria && (
                         <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                            <SectionHeading icon={Ic.Utensils} title="Cafeteria Subsidy" />
+                            <SectionHeading icon={Ic.Utensils} title={t('employeePortal.cafeteriaSubsidy')} />
 
                             {/* Week strip */}
                             <div className="mb-5">
                                 <div className="mb-2 flex items-center justify-between text-xs text-gray-400 dark:text-slate-500">
-                                    <span>Week {cafeteria.week_start} – {cafeteria.week_end}</span>
+                                    <span>{fill('employeePortal.weekRange', { from: cafeteria.week_start, to: cafeteria.week_end })}</span>
                                     <div className="flex items-center gap-3 text-[10px]">
-                                        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" />Used</span>
-                                        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[var(--color-primary)]/20" />Available</span>
+                                        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-emerald-500" />{t('employeePortal.legendUsed')}</span>
+                                        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-[var(--color-primary)]/20" />{t('employeePortal.legendAvailable')}</span>
                                     </div>
                                 </div>
                                 <WeekStrip days={cafeteria.week_days} />
@@ -227,38 +243,48 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                             {/* Stats row */}
                             <div className="mb-5 grid grid-cols-3 divide-x divide-gray-100 rounded-card border border-gray-100 dark:divide-slate-800 dark:border-slate-800">
                                 <div className="px-4 py-3 text-center">
-                                    <p className="text-[10px] text-gray-400 dark:text-slate-500">Daily Rate</p>
-                                    <p className="mt-1 text-base font-bold text-gray-900 dark:text-slate-100">{fmt(cafeteria.daily_amount)}</p>
-                                    <p className="text-[9px] text-gray-400">ETB</p>
+                                    <p className="text-[10px] text-gray-400 dark:text-slate-500">{t('employeePortal.dailyRate')}</p>
+                                    <p className="mt-1 text-base font-bold text-gray-900 dark:text-slate-100">{amount(cafeteria.daily_amount)}</p>
+                                    <p className="text-[9px] text-gray-400">{t('employeePortal.currency')}</p>
                                 </div>
                                 <div className="px-4 py-3 text-center">
-                                    <p className="text-[10px] text-gray-400 dark:text-slate-500">Week Remaining</p>
-                                    <p className="mt-1 text-base font-bold text-[var(--color-primary)]">{fmt(cafeteria.remaining_subsidy)}</p>
-                                    <p className="text-[9px] text-gray-400">ETB</p>
+                                    <p className="text-[10px] text-gray-400 dark:text-slate-500">{t('employeePortal.weekRemaining')}</p>
+                                    <p className="mt-1 text-base font-bold text-[var(--color-primary)]">{amount(cafeteria.remaining_subsidy)}</p>
+                                    <p className="text-[9px] text-gray-400">{t('employeePortal.currency')}</p>
                                 </div>
                                 <div className="px-4 py-3 text-center">
-                                    <p className="text-[10px] text-gray-400 dark:text-slate-500">Balance</p>
+                                    <p className="text-[10px] text-gray-400 dark:text-slate-500">{t('employeePortal.balance')}</p>
                                     <p className={`mt-1 text-base font-bold ${cafeteria.balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                        {fmt(cafeteria.balance)}
+                                        {amount(cafeteria.balance)}
                                     </p>
-                                    <p className="text-[9px] text-gray-400">ETB</p>
+                                    <p className="text-[9px] text-gray-400">{t('employeePortal.currency')}</p>
                                 </div>
                             </div>
 
                             {/* Recent transactions */}
                             {cafeteria.recent_transactions.length > 0 && (
                                 <>
-                                    <p className="mb-2 text-[10px] font-semibold text-gray-400 dark:text-slate-500">Recent Transactions</p>
+                                    <p className="mb-2 text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('employeePortal.recentTransactions')}</p>
                                     <div className="divide-y divide-gray-100 dark:divide-slate-800">
                                         {cafeteria.recent_transactions.map((tx, i) => (
                                             <div key={i} className="flex items-center justify-between py-2.5 text-sm">
                                                 <div>
-                                                    <p className="font-medium text-gray-800 dark:text-slate-200">{tx.provider ?? 'Cafeteria'}</p>
-                                                    <p className="text-xs text-gray-400 dark:text-slate-500">{tx.date}</p>
+                                                    <p className="font-medium text-gray-800 dark:text-slate-200">
+                                                        {tx.provider ? name(tx.provider, tx.provider_am) : t('employeePortal.cafeteria')}
+                                                    </p>
+                                                    <p className="text-xs text-gray-400 dark:text-slate-500">
+                                                        {tx.date ? <LocalizedDateDisplay value={tx.date} /> : '—'}
+                                                    </p>
                                                 </div>
                                                 <div className="text-right text-xs">
-                                                    <p className="font-semibold text-emerald-600 dark:text-emerald-400">-{fmt(tx.subsidy)} ETB subsidy</p>
-                                                    {tx.employee_pays > 0 && <p className="text-gray-500 dark:text-slate-400">You pay {fmt(tx.employee_pays)} ETB</p>}
+                                                    <p className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                                        {fill('employeePortal.subsidyApplied', { amount: amount(tx.subsidy) })}
+                                                    </p>
+                                                    {tx.employee_pays > 0 && (
+                                                        <p className="text-gray-500 dark:text-slate-400">
+                                                            {fill('employeePortal.youPay', { amount: amount(tx.employee_pays) })}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
@@ -270,13 +296,13 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
 
                     {/* Transfer applications */}
                     <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <SectionHeading icon={Ic.Clock} title="My Transfer Applications" href={route('employee.transfer-applications')} />
+                        <SectionHeading icon={Ic.Clock} title={t('employeePortal.myTransferApplications')} href={route('employee.transfer-applications')} />
 
                         {transfer_apps.length === 0 ? (
                             <div className="py-6 text-center">
-                                <p className="text-sm text-gray-400 dark:text-slate-500">No applications yet.</p>
-                                <Link href={route('public.transfer-announcements')} className="mt-2 inline-block text-sm text-[var(--color-primary)] hover:underline">
-                                    Browse open announcements →
+                                <p className="text-sm text-gray-400 dark:text-slate-500">{t('employeePortal.noApplications')}</p>
+                                <Link href={route('employee.announcements')} className="mt-2 inline-block text-sm text-[var(--color-primary)] hover:underline">
+                                    {t('employeePortal.browseAnnouncements')}
                                 </Link>
                             </div>
                         ) : (
@@ -284,11 +310,11 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                 {transfer_apps.map(app => (
                                     <div key={app.id} className="flex items-center gap-3 rounded-card border border-gray-100 p-3 dark:border-slate-800">
                                         <div className="min-w-0 flex-1">
-                                            <Link href={route('public.transfer-announcements.show', { announcement: app.announcement_id })}
+                                            <Link href={route('employee.announcements.show', { announcement: app.announcement_id })}
                                                 className="text-sm font-medium text-gray-900 hover:text-[var(--color-primary)] dark:text-slate-100">
-                                                {app.position ?? '—'}
+                                                {name(app.position, app.position_am)}
                                             </Link>
-                                            <p className="truncate text-xs text-gray-400 dark:text-slate-500">{app.organization}{app.submitted_at && <> · <LocalizedDateDisplay value={app.submitted_at} /></>}</p>
+                                            <p className="truncate text-xs text-gray-400 dark:text-slate-500">{name(app.organization, app.organization_am)}{app.submitted_at && <> · <LocalizedDateDisplay value={app.submitted_at} /></>}</p>
                                         </div>
                                         <StatusPill status={app.status} label={app.status_label} />
                                     </div>
@@ -300,20 +326,20 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                     {/* Open announcements */}
                     {open_announcements.length > 0 && (
                         <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                            <SectionHeading icon={Ic.Megaphone} title="Open Announcements" href={route('public.transfer-announcements')} />
+                            <SectionHeading icon={Ic.Megaphone} title={t('employeePortal.openAnnouncements')} href={route('employee.announcements')} />
                             <div className="space-y-2">
                                 {open_announcements.map(a => (
-                                    <Link key={a.id} href={route('public.transfer-announcements.show', { announcement: a.id })}
+                                    <Link key={a.id} href={route('employee.announcements.show', { announcement: a.id })}
                                         className="group flex items-center justify-between rounded-card border border-gray-100 p-3 transition hover:border-[var(--color-primary)]/30 hover:bg-[var(--color-primary)]/5 dark:border-slate-800">
                                         <div className="min-w-0">
-                                            <p className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">{a.position ?? '—'}</p>
-                                            <p className="truncate text-xs text-gray-400 dark:text-slate-500">{a.organization}{a.grade_level && ` · Grade ${a.grade_level}`}</p>
+                                            <p className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">{name(a.position, a.position_am)}</p>
+                                            <p className="truncate text-xs text-gray-400 dark:text-slate-500">{name(a.organization, a.organization_am)}{a.grade_level && ` · ${fill('employeePortal.gradePrefix', { grade: a.grade_level })}`}</p>
                                         </div>
                                         <div className="ml-3 shrink-0 text-right">
                                             <span className="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-                                                {a.vacancies} open
+                                                {fill('employeePortal.vacanciesOpen', { count: a.vacancies })}
                                             </span>
-                                            {a.closing_date && <p className="mt-0.5 text-[10px] text-gray-400">Closes <LocalizedDateDisplay value={a.closing_date} /></p>}
+                                            {a.closing_date && <p className="mt-0.5 text-[10px] text-gray-400">{t('employeePortal.closes')} <LocalizedDateDisplay value={a.closing_date} /></p>}
                                         </div>
                                     </Link>
                                 ))}
@@ -347,13 +373,13 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                             {assignment?.organization && (
                                 <div className="flex items-start gap-2">
                                     <Ic.Building className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
-                                    <span className="text-gray-700 dark:text-slate-300">{assignment.organization}</span>
+                                    <span className="text-gray-700 dark:text-slate-300">{name(assignment.organization, assignment.organization_am)}</span>
                                 </div>
                             )}
                             {assignment?.position && (
                                 <div className="flex items-start gap-2">
                                     <Ic.Briefcase className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
-                                    <span className="text-gray-700 dark:text-slate-300">{assignment.position}{assignment.grade_level && <span className="ml-1 text-gray-400">· Gr. {assignment.grade_level}</span>}</span>
+                                    <span className="text-gray-700 dark:text-slate-300">{assignmentPosition}{assignment.grade_level && <span className="ml-1 text-gray-400">· {fill('employeePortal.gradeShort', { grade: assignment.grade_level })}</span>}</span>
                                 </div>
                             )}
                             {employee.email && (
@@ -373,7 +399,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
 
                     {/* ID Card */}
                     <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <SectionHeading icon={Ic.Card} title="ID Card" />
+                        <SectionHeading icon={Ic.Card} title={t('employeePortal.idCard')} />
                         {id_card ? (
                             <div className="rounded-card bg-gradient-to-br from-[var(--color-primary)] to-indigo-700 p-4 text-white shadow">
                                 <div className="flex items-center justify-between">
@@ -385,29 +411,29 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                 <p className="mt-3 font-mono text-sm opacity-80">{id_card.card_number ?? '——————'}</p>
                                 <div className="mt-2 flex items-end justify-between">
                                     <p className="text-xs capitalize opacity-70">{id_card.status.replace(/_/g, ' ')}</p>
-                                    {id_card.expires_at && <p className="text-xs opacity-70">Exp. <LocalizedDateDisplay value={id_card.expires_at} /></p>}
+                                    {id_card.expires_at && <p className="text-xs opacity-70">{t('employeePortal.expiresShort')} <LocalizedDateDisplay value={id_card.expires_at} /></p>}
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-sm text-gray-400 dark:text-slate-500">No active ID card.</p>
+                            <p className="text-sm text-gray-400 dark:text-slate-500">{t('employeePortal.noActiveCard')}</p>
                         )}
                     </div>
 
                     {/* Entitlements */}
                     {entitlements.length > 0 && (
                         <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                            <SectionHeading icon={Ic.Layers} title="My Services" />
+                            <SectionHeading icon={Ic.Layers} title={t('employeePortal.myServices')} />
                             <div className="space-y-3">
                                 {entitlements.map(e => (
                                     <div key={e.id} className="rounded-card border border-gray-100 p-3 dark:border-slate-800">
                                         <div className="flex items-center justify-between">
-                                            <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{e.service ?? e.service_code}</p>
-                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">Active</span>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{e.service ? name(e.service, e.service_am) : e.service_code}</p>
+                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">{t('employeePortal.active')}</span>
                                         </div>
                                         {e.quota_limit != null && (
                                             <div className="mt-2">
                                                 <div className="mb-1 flex justify-between text-[10px] text-gray-400 dark:text-slate-500">
-                                                    <span>{e.quota_used ?? 0} / {e.quota_limit} used</span>
+                                                    <span>{fill('employeePortal.quotaUsed', { used: e.quota_used ?? 0, limit: e.quota_limit })}</span>
                                                     <span>{Math.round(((e.quota_used ?? 0) / e.quota_limit) * 100)}%</span>
                                                 </div>
                                                 <div className="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
@@ -416,7 +442,7 @@ export default function EmployeePortal({ employee, assignment, id_card, cafeteri
                                                 </div>
                                             </div>
                                         )}
-                                        {e.effective_to && <p className="mt-1 text-[10px] text-gray-400">Until <LocalizedDateDisplay value={e.effective_to} /></p>}
+                                        {e.effective_to && <p className="mt-1 text-[10px] text-gray-400">{t('employeePortal.until')} <LocalizedDateDisplay value={e.effective_to} /></p>}
                                     </div>
                                 ))}
                             </div>

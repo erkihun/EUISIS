@@ -50,16 +50,16 @@ class TransportTransactionController extends Controller
 
         return response()->streamDownload(function () use ($rows): void {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['date', 'status', 'employee_number', 'employee_name', 'route', 'result_code']);
+            fputcsv($out, csv_safe_row(['date', 'status', 'employee_number', 'employee_name', 'route', 'result_code']));
             foreach ($rows as $row) {
-                fputcsv($out, [
+                fputcsv($out, csv_safe_row([
                     $row->transaction_date?->toDateString(),
                     $row->status,
                     $row->employee?->employee_number,
                     $row->employee?->full_name,
                     $row->route?->name_en,
                     $row->result_code,
-                ]);
+                ]));
             }
         }, 'transport-transactions.csv');
     }

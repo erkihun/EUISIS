@@ -19,8 +19,15 @@ class TransferSettingController extends Controller
     {
         $this->authorize('view', TransferSetting::class);
 
+        /*
+         * NOT `settings`: HandleInertiaRequests shares a global `settings`
+         * prop carrying the whole appearance configuration — sidebar colour,
+         * primary colour, logo position, logo URL. A page prop of the same
+         * name replaces it, which stripped the branding from this screen and
+         * left the sidebar unstyled and the default framework logo showing.
+         */
         return Inertia::render('Transfers/Settings', [
-            'settings' => TransferSetting::current(),
+            'transferSettings' => TransferSetting::current(),
         ]);
     }
 

@@ -27,13 +27,13 @@ test('employee index exposes server-side filters for unit position employment ty
         ->toContain('position_id')
         ->toContain('employment_type')
         ->toContain('SYSTEM_STATUSES')
-        ->toContain("router.get(route('employees.index'), filterForm.data");
+        ->toContain("router.get(route('employees.index'), withSort(filterForm.data)");
 });
 
 test('employee index hides the organization column when the controller says to', function (): void {
     expect(employeeIndexSource())
         ->toContain('showOrganizationColumn')
-        ->toContain("...(showOrganizationColumn ? [t('employees.columnOrganization')] : [])")
+        ->toContain("...(showOrganizationColumn ? [{ label: t('employees.columnOrganization') }] : [])")
         ->toContain('{showOrganizationColumn && (');
 });
 

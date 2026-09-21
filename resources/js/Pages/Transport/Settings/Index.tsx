@@ -16,12 +16,13 @@ const labels: Record<keyof Settings, string> = {
     scan_nonce_required: 'transport.scanNonceRequired',
 };
 
-export default function Index({ settings }: { settings: Settings }) {
+/* Named to avoid shadowing the globally shared `settings` branding prop. */
+export default function Index({ transportSettings }: { transportSettings: Settings }) {
     const { t } = useLocale();
     const form = useForm<Settings>({
-        require_pass_for_scan: settings.require_pass_for_scan,
-        allow_pay_as_you_go: settings.allow_pay_as_you_go,
-        scan_nonce_required: settings.scan_nonce_required,
+        require_pass_for_scan: transportSettings.require_pass_for_scan,
+        allow_pay_as_you_go: transportSettings.allow_pay_as_you_go,
+        scan_nonce_required: transportSettings.scan_nonce_required,
     });
 
     function submit(event: FormEvent) {

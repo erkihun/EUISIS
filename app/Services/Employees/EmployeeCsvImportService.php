@@ -69,6 +69,15 @@ class EmployeeCsvImportService
 
     private const MAX_RANDOM_CODE_ATTEMPTS = 20;
 
+    /**
+     * Rows present in the last file read beyond MAX_ROWS.
+     *
+     * The reader stops at the cap and `total_rows` counts only what it read,
+     * so without this a 2,500-row upload reported "2,000 rows, all valid" and
+     * the importer had no way to know 500 rows were never seen.
+     */
+    private int $skippedRowCount = 0;
+
     public function __construct(
         private readonly OrganizationScopeService $scope,
         private readonly RegisterEmployeeAction $registerEmployee,
@@ -283,14 +292,25 @@ class EmployeeCsvImportService
      */
     public function preview(EmployeeImportBatch $batch): array
     {
+        /*
+         * A file names the same organization on every row and usually the same
+         * handful of units, but resolveRow() re-queried both for each row — so
+         * a 2,000-row batch cost thousands of queries on every render of the
+         * import screen. Organizations and units are looked up once per code
+         * here. Positions are not cached: each row must name its own vacant
+         * position, so those lookups are genuinely one per row.
+         */
+        $organizationsByCode = [];
+        $unitsByCode = [];
+
         return $batch->rows()
             ->orderBy('row_number')
             ->get()
-            ->map(function (EmployeeImportBatchRow $batchRow): array {
+            ->map(function (EmployeeImportBatchRow $batchRow) use (&$organizationsByCode, &$unitsByCode): array {
                 $row = $batchRow->row_data;
                 $resolved = $batchRow->status === EmployeeImportBatchRow::STATUS_INVALID
                     ? null
-                    : $this->resolveRow($row);
+                    : $this->resolveRowCached($row, $organizationsByCode, $unitsByCode);
 
                 return [
                     'row_number' => $batchRow->row_number,
@@ -313,18 +333,40 @@ class EmployeeCsvImportService
     /**
      * The template body an importer downloads.
      *
-     * Carries one example row so the expected date format and the meaning of a
-     * blank employee_number are obvious without reading documentation. A BOM is
-     * prepended so Excel opens Amharic names as UTF-8.
+     * Prefills real placement codes, never fabricated employee details.
+     * A BOM lets spreadsheet software open Amharic codes as UTF-8.
      */
-    public function templateCsv(): string
+    public function templateCsv(Organization $organization): string
     {
-        $sample = [
-            '', 'Abebe', 'Kebede', 'Tesfaye', 'male', '0911000000', 'abebe@example.et',
-            'ORG-001', 'UNIT-001', 'POS-001', 'active', '2026-01-01',
-        ];
+        $positions = Position::query()
+            ->where('organization_id', $organization->id)
+            ->where('is_active', true)
+            ->whereDoesntHave('assignments', fn ($query) => $query->where('is_current', true)->where('assignment_status', AssignmentStatus::Active))
+            ->where(fn ($query) => $query->whereNull('organization_unit_id')->orWhereHas('organizationUnit', fn ($unit) => $unit->where('organization_id', $organization->id)->where('status', 'active')))
+            ->with('organizationUnit:id,code')
+            ->orderBy('job_position_code')->orderBy('id')
+            ->limit($this->maxRows())
+            ->get(['id', 'organization_unit_id', 'job_position_code', 'code']);
 
-        return "\xEF\xBB\xBF".implode(',', self::COLUMNS)."\n".implode(',', $sample)."\n";
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, "\xEF\xBB\xBF");
+        fputcsv($stream, self::COLUMNS, ',', '"', '');
+        // Empty organizations still get an organization-specific starter row.
+        foreach ($positions->isEmpty() ? [null] : $positions as $position) {
+            $row = array_fill_keys(self::COLUMNS, '');
+            $row['organization_code'] = $organization->code;
+            $row['organization_unit_code'] = $position?->organizationUnit?->code ?? '';
+            $row['position_code'] = $position?->job_position_code ?: ($position?->code ?? '');
+            $row['employment_status'] = 'active';
+            // Treat codes as text when opened in spreadsheet software.
+            $values = array_map(static fn ($value) => preg_match('/^[\s]*[=+@-]/u', (string) $value) ? "'".$value : $value, array_values($row));
+            fputcsv($stream, $values, ',', '"', '');
+        }
+        rewind($stream);
+        $csv = stream_get_contents($stream);
+        fclose($stream);
+
+        return $csv;
     }
 
     /**
@@ -347,8 +389,21 @@ class EmployeeCsvImportService
         return EmploymentType::tryFrom($value)?->value;
     }
 
+    /** Rows the last read skipped because the file exceeded MAX_ROWS. */
+    public function skippedRowCount(): int
+    {
+        return $this->skippedRowCount;
+    }
+
+    /** The largest file this importer will read, in rows. */
+    public function maxRows(): int
+    {
+        return self::MAX_ROWS;
+    }
+
     private function readRows(UploadedFile $file): array
     {
+        $this->skippedRowCount = 0;
         $handle = fopen($file->getRealPath(), 'rb');
 
         if ($handle === false) {
@@ -381,9 +436,20 @@ class EmployeeCsvImportService
 
         $rows = [];
 
-        while (($line = fgetcsv($handle, 0, ',', '"', '\\')) !== false && count($rows) < self::MAX_ROWS) {
+        while (($line = fgetcsv($handle, 0, ',', '"', '\\')) !== false && true) {
             // Skip blank trailing lines that spreadsheets append.
             if ($line === [null] || $line === ['']) {
+                continue;
+            }
+
+            /*
+             * Past the cap, keep counting instead of stopping, so the importer
+             * can be told how many rows were left out rather than being shown
+             * a total that quietly matches the cap.
+             */
+            if (count($rows) >= self::MAX_ROWS) {
+                $this->skippedRowCount++;
+
                 continue;
             }
 
@@ -514,6 +580,43 @@ class EmployeeCsvImportService
      * @param  array<string, string>  $row
      * @return array{organization: Organization, unit: OrganizationUnit|null, position: Position}|null
      */
+    /**
+     * resolveRow() with the organization and unit lookups served from caches
+     * held by the caller. Kept beside it so the two stay in step.
+     *
+     * @param  array<string, Organization|null>  $organizationsByCode
+     * @param  array<string, OrganizationUnit|null>  $unitsByCode
+     * @return array<string, mixed>|null
+     */
+    private function resolveRowCached(array $row, array &$organizationsByCode, array &$unitsByCode): ?array
+    {
+        $organizationCode = trim((string) ($row['organization_code'] ?? ''));
+        $organization = $organizationsByCode[$organizationCode] ??= $this->findOrganization($row);
+
+        if ($organization === null) {
+            return null;
+        }
+
+        $position = $this->findPosition($row, $organization);
+
+        if ($position === null) {
+            return null;
+        }
+
+        $unitCode = trim((string) ($row['organization_unit_code'] ?? ''));
+
+        if ($unitCode === '') {
+            $unit = null;
+        } else {
+            $unit = $unitsByCode[$organization->id.'|'.$unitCode] ??= OrganizationUnit::query()
+                ->where('organization_id', $organization->id)
+                ->where('code', $unitCode)
+                ->first();
+        }
+
+        return ['organization' => $organization, 'unit' => $unit, 'position' => $position];
+    }
+
     private function resolveRow(array $row): ?array
     {
         $organization = $this->findOrganization($row);

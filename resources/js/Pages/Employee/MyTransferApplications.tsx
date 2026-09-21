@@ -48,7 +48,7 @@ export default function MyTransferApplications({ applications, has_employee }: P
                     backHref={route('employee.portal')}
                     actions={
                         <Link
-                            href={route('public.transfer-announcements')}
+                            href={route('employee.announcements')}
                             className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
                         >
                             Browse Announcements
@@ -66,7 +66,7 @@ export default function MyTransferApplications({ applications, has_employee }: P
             ) : applications.length === 0 ? (
                 <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
                     <p className="text-sm text-gray-400 dark:text-slate-500">{t('transfers.noApplications')}</p>
-                    <Link href={route('public.transfer-announcements')} className="mt-4 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline">
+                    <Link href={route('employee.announcements')} className="mt-4 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline">
                         Browse open announcements →
                     </Link>
                 </div>
@@ -79,7 +79,7 @@ export default function MyTransferApplications({ applications, has_employee }: P
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                         <Link
-                                            href={route('public.transfer-announcements.show', { announcement: app.announcement_id })}
+                                            href={route('employee.announcements.show', { announcement: app.announcement_id })}
                                             className="font-semibold text-gray-900 hover:text-[var(--color-primary)] dark:text-slate-100"
                                         >
                                             {app.position_title ?? '—'}

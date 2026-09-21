@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -59,6 +60,11 @@ class EmployeeImportController extends Controller
             'batch' => $batch,
             'preview' => $preview,
             'columns' => EmployeeCsvImportService::COLUMNS,
+            // Rows the reader could not take from the uploaded file. Carried
+            // in the session beside the batch id so the warning survives a
+            // reload of the preview, not just the flash after upload.
+            'skippedRows' => $batch === null ? 0 : (int) $request->session()->get('employee_import_skipped', 0),
+            'maxRows' => $this->importService->maxRows(),
             // Shown so an importer knows which organization codes are usable.
             'allowedOrganizations' => $this->allowedOrganizations($user),
             'can' => [
@@ -81,7 +87,25 @@ class EmployeeImportController extends Controller
 
         $batch = $this->importService->validate($request->file('file'), Auth::user(), $request);
 
+        $skipped = $this->importService->skippedRowCount();
+
         $request->session()->put('employee_import_batch', $batch->id);
+        $request->session()->put('employee_import_skipped', $skipped);
+
+        /*
+         * A file longer than the reader's cap is the most important thing to
+         * say about it: the rows beyond the cap were never validated and will
+         * not be imported.
+         */
+        if ($skipped > 0) {
+            return to_route('employees.import.create')->with('flash', [
+                'message' => __('employees.import.truncated', [
+                    'read' => $batch->total_rows,
+                    'skipped' => $skipped,
+                ]),
+                'type' => 'warning',
+            ]);
+        }
 
         return to_route('employees.import.create')->with('flash', [
             'message' => $batch->failed_rows > 0
@@ -120,6 +144,7 @@ class EmployeeImportController extends Controller
         }
 
         $request->session()->forget('employee_import_batch');
+        $request->session()->forget('employee_import_skipped');
 
         return to_route('employees.index')->with('flash', [
             'message' => __('employees.import.imported', ['count' => $result['imported']]),
@@ -133,18 +158,26 @@ class EmployeeImportController extends Controller
         $this->authorizePermission('employees.import.view');
 
         $request->session()->forget('employee_import_batch');
+        $request->session()->forget('employee_import_skipped');
 
         return to_route('employees.import.create');
     }
 
     /** Download the CSV template. */
-    public function template(): HttpResponse
+    public function template(Request $request): HttpResponse
     {
         $this->authorizePermission('employees.import.view');
 
-        return response($this->importService->templateCsv(), 200, [
+        $data = $request->validate(['organization_id' => ['required', 'uuid']]);
+        $user = Auth::user();
+        $organization = Organization::query()
+            ->where('status', 'active')
+            ->when(! $this->scope->isUnrestricted($user), fn ($query) => $query->whereIn('id', $this->scope->accessibleOrganizationIds($user)->all()))
+            ->findOrFail($data['organization_id']);
+
+        return response($this->importService->templateCsv($organization), 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="employee-import-template.csv"',
+            'Content-Disposition' => 'attachment; filename="employee-import-'.Str::slug($organization->code).'-template.csv"',
         ]);
     }
 

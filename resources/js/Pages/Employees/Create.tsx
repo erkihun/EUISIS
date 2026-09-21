@@ -1,8 +1,9 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Head, Link, useForm } from '@inertiajs/react';
-import { ChangeEvent, FormEvent, useMemo, useRef, useState } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { toast } from '@/lib/toast';
 import { localizedName } from '@/utils/localizedName';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
@@ -157,14 +158,53 @@ export default function EmployeesCreate({
     function handlePhotoChange(e: ChangeEvent<HTMLInputElement>) {
         const file = e.target.files?.[0] ?? null;
         form.setData('photo', file);
-        setPhotoPreview(file ? URL.createObjectURL(file) : null);
+        /* Each preview holds a blob alive until it is revoked, so release the
+         * previous one whenever the pick changes. */
+        setPhotoPreview((previous) => {
+            if (previous) URL.revokeObjectURL(previous);
+
+            return file ? URL.createObjectURL(file) : null;
+        });
     }
 
     function clearPhoto() {
         form.setData('photo', null);
-        setPhotoPreview(null);
+        setPhotoPreview((previous) => {
+            if (previous) URL.revokeObjectURL(previous);
+
+            return null;
+        });
         if (photoInputRef.current) photoInputRef.current.value = '';
     }
+
+    useEffect(() => () => {
+        if (photoPreview) URL.revokeObjectURL(photoPreview);
+    }, [photoPreview]);
+
+    /*
+     * Guard the ~25 fields on this form against an accidental exit. Both exits
+     * are covered: a browser close or reload, and an in-app navigation such as
+     * the Cancel link or the sidebar. The submit itself must pass through, so
+     * an in-flight visit is never challenged.
+     */
+    useEffect(() => {
+        if (!form.isDirty || form.processing) {
+            return;
+        }
+
+        const warnOnUnload = (event: BeforeUnloadEvent) => {
+            event.preventDefault();
+            event.returnValue = '';
+        };
+
+        window.addEventListener('beforeunload', warnOnUnload);
+        const stopListening = router.on('before', () => window.confirm(t('employees.unsavedChangesWarning')));
+
+        return () => {
+            window.removeEventListener('beforeunload', warnOnUnload);
+            stopListening();
+        };
+    }, [form.isDirty, form.processing, t]);
 
     function changeOrganization(organizationId: string) {
         form.setData({
@@ -199,10 +239,39 @@ export default function EmployeesCreate({
         });
     }
 
+    /*
+     * Send the user to the field that failed.
+     *
+     * The form is six stacked cards tall and the save button is pinned to the
+     * bottom of the viewport, so a rejected submit used to look like nothing
+     * happened at all — the message was rendered correctly, just several
+     * screens above the button that was pressed.
+     */
+    function focusFirstError(errors: Record<string, string>) {
+        const [firstKey] = Object.keys(errors);
+
+        if (firstKey === undefined) {
+            return;
+        }
+
+        toast.error(errors[firstKey]);
+
+        /* Most controls carry an id matching the field name; the few that are
+         * rendered by a sub-component are found by name instead. */
+        const field = document.getElementById(firstKey)
+            ?? document.querySelector<HTMLElement>(`[name="${firstKey}"]`);
+
+        field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        field?.focus({ preventScroll: true });
+    }
+
     function submit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (form.processing) return;
-        form.post(route('employees.store'));
+        form.post(route('employees.store'), {
+            preserveScroll: true,
+            onError: focusFirstError,
+        });
     }
 
     return (
@@ -217,16 +286,17 @@ export default function EmployeesCreate({
         >
             <Head title={t('employees.createEmployee')} />
 
-            <form onSubmit={submit} className="mx-auto w-full max-w-5xl">
+            <form onSubmit={submit} className="w-full">
                 <div className="space-y-5">
                     <FormCard
+                        wide
                         icon={<EmploymentIcon />}
                         title={t('employees.sectionPlacement')}
                         description={t('employees.sectionPlacementHelp')}
                         aside={placementContext ? <PositionSelectedBadge /> : undefined}
                     >
                         {placementContext ? (
-                            <div className="md:col-span-2">
+                            <div className="md:col-span-2 xl:col-span-3">
                                 <div className="rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950/40">
                                     <dl className="grid gap-4 sm:grid-cols-3">
                                         <ReadOnlyValue
@@ -372,7 +442,7 @@ export default function EmployeesCreate({
                         )}
                     </FormCard>
 
-                    <FormCard icon={<BasicIcon />} title={t('employees.sectionBasic')} description={t('employees.sectionBasicHelp')}>
+                    <FormCard wide icon={<BasicIcon />} title={t('employees.sectionBasic')} description={t('employees.sectionBasicHelp')}>
                         <div className="min-w-0">
                             <CodeRuleField
                                 entityType="employee"
@@ -429,8 +499,8 @@ export default function EmployeesCreate({
                             <LocalizedDatePicker className={inputCls} value={form.data.date_of_birth} onChange={(iso) => form.setData('date_of_birth', iso)} />
                         </Field>
 
-                        <div className="md:col-span-2">
-                            <label className={labelCls}>{t('employees.photo')}</label>
+                        <div className="md:col-span-2 xl:col-span-3">
+                            <label className={labelCls} htmlFor="photo">{t('employees.photo')}</label>
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                                 {photoPreview ? (
                                     <div className="relative flex-shrink-0 self-start">
@@ -452,6 +522,7 @@ export default function EmployeesCreate({
                                 )}
                                 <div className="min-w-0 flex-1">
                                     <input
+                                        id="photo"
                                         ref={photoInputRef}
                                         type="file"
                                         accept="image/jpeg,image/png,image/webp"
@@ -465,7 +536,7 @@ export default function EmployeesCreate({
                         </div>
                     </FormCard>
 
-                    <FormCard icon={<ContactIcon />} title={t('employees.sectionContact')} description={t('employees.sectionContactHelp')}>
+                    <FormCard wide icon={<ContactIcon />} title={t('employees.sectionContact')} description={t('employees.sectionContactHelp')}>
                         <Field label={t('employees.phone')} error={form.errors.phone} htmlFor="phone">
                             <input id="phone" className={inputCls} placeholder="+251 9XX XXX XXX" value={form.data.phone} onChange={(e) => form.setData('phone', e.target.value)} />
                         </Field>
@@ -478,12 +549,12 @@ export default function EmployeesCreate({
                             <input id="nationality" className={inputCls} maxLength={100} placeholder={t('employees.nationalityPlaceholder')} value={form.data.nationality} onChange={(e) => form.setData('nationality', e.target.value)} />
                         </Field>
 
-                        <Field label={t('employees.address')} error={form.errors.address} className="md:col-span-2" htmlFor="address">
-                            <textarea id="address" className={inputCls} rows={2} maxLength={1000} placeholder={t('employees.addressPlaceholder')} value={form.data.address} onChange={(e) => form.setData('address', e.target.value)} />
+                        <Field label={t('employees.address')} error={form.errors.address} className="md:col-span-2 xl:col-span-3" htmlFor="address">
+                            <textarea id="address" className={inputCls} rows={2} maxLength={500} placeholder={t('employees.addressPlaceholder')} value={form.data.address} onChange={(e) => form.setData('address', e.target.value)} />
                         </Field>
                     </FormCard>
 
-                    <FormCard icon={<SystemIcon />} title={t('employees.sectionEmployment')} description={t('employees.sectionEmploymentHelp')}>
+                    <FormCard wide icon={<SystemIcon />} title={t('employees.sectionEmployment')} description={t('employees.sectionEmploymentHelp')}>
                         <Field label={t('employees.employmentType')} error={form.errors.employment_type} htmlFor="employment_type">
                             <select id="employment_type" className={inputCls} value={form.data.employment_type} onChange={(e) => form.setData('employment_type', e.target.value)}>
                                 <option value="">{t('employees.employmentTypePlaceholder')}</option>
@@ -509,7 +580,7 @@ export default function EmployeesCreate({
                         </Field>
                     </FormCard>
 
-                    <FormCard icon={<EmergencyIcon />} title={t('employees.sectionEmergency')} description={t('employees.sectionEmergencyHelp')}>
+                    <FormCard wide icon={<EmergencyIcon />} title={t('employees.sectionEmergency')} description={t('employees.sectionEmergencyHelp')}>
                         <Field label={t('employees.emergencyContactName')} error={form.errors.emergency_contact_name} htmlFor="emergency_contact_name">
                             <input id="emergency_contact_name" className={inputCls} maxLength={255} value={form.data.emergency_contact_name} onChange={(e) => form.setData('emergency_contact_name', e.target.value)} />
                         </Field>

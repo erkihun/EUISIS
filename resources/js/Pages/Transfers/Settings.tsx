@@ -20,14 +20,15 @@ type TransferSettings = {
     service_recalculation_policy: string;
 };
 
-type Props = { settings: TransferSettings };
+/* Named to avoid shadowing the globally shared `settings` branding prop. */
+type Props = { transferSettings: TransferSettings };
 
 type Tab = 'rules' | 'approval' | 'documents' | 'override' | 'post_transfer';
 
-export default function TransferSettings({ settings }: Props) {
+export default function TransferSettings({ transferSettings }: Props) {
     const { t } = useLocale();
     const [tab, setTab]   = useState<Tab>('rules');
-    const [form, setForm] = useState<TransferSettings>({ ...settings });
+    const [form, setForm] = useState<TransferSettings>({ ...transferSettings });
     const [saving, setSaving] = useState(false);
 
     const cardReprintOptions = [
@@ -42,9 +43,18 @@ export default function TransferSettings({ settings }: Props) {
         { value: 'recalculate_from_effective_date', label: t('transfers.serviceRecalcFromEffective') },
     ];
 
+    /*
+     * Control styling matches the shared admin form styling used by every
+     * other settings screen. This page had rolled its own, which left its
+     * fields with the browser's default focus outline instead of the
+     * institutional primary, no placeholder colour, and a plain opacity
+     * fade for disabled state — so it visibly did not match the rest of the
+     * admin area.
+     */
     const sectionCls = 'rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 space-y-5';
-    const inputCls   = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-60';
-    const labelCls   = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
+    const inputCls =
+        'w-full rounded-control border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900 dark:disabled:text-slate-500';
+    const labelCls = 'mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400';
 
     const tabBarCls = (active: boolean) =>
         `whitespace-nowrap px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
@@ -78,10 +88,16 @@ export default function TransferSettings({ settings }: Props) {
         <AuthenticatedLayout header={<PageHeader title={t('transfers.settings')} />}>
             <Head title={t('transfers.settings')} />
 
-            <div className="space-y-6">
+            {/*
+              * min-w-0 matches every other admin page and matters more here:
+              * the tab strip below is `min-w-max`, so without it a long tab
+              * row can push the content column wider than its track instead
+              * of scrolling inside its own container.
+              */}
+            <div className="min-w-0 space-y-6">
                 {/* Tab bar */}
-                <div className="overflow-x-auto">
-                    <div className="flex min-w-max border-b border-gray-200 dark:border-slate-700">
+                <div className="min-w-0 overflow-x-auto">
+                    <div className="flex min-w-max border-b border-gray-200 dark:border-slate-800">
                         {tabDefs.map((tb) => (
                             <button
                                 key={tb.key}

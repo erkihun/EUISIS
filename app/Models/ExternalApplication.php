@@ -90,6 +90,9 @@ class ExternalApplication extends Model implements AuthenticatableContract
             'allowed_scopes' => 'array',
             'allowed_ips' => 'array',
             'rate_limit_per_minute' => 'integer',
+            // Deliberately absent from $fillable: the legacy endpoint grace is
+            // set by migration only and must never be settable from a request.
+            'unrestricted_endpoints' => 'boolean',
             'last_used_at' => 'datetime',
         ];
     }
@@ -147,10 +150,15 @@ class ExternalApplication extends Model implements AuthenticatableContract
     /**
      * Whether this application may call a specific endpoint.
      *
-     * An application with NO assignments is treated as unrestricted, so
-     * integrations registered before endpoint assignment existed keep working
-     * until an administrator narrows them. Once any endpoint is assigned, the
-     * assignment list becomes authoritative and everything else is denied.
+     * An application with no assignments is unrestricted ONLY when it carries
+     * the explicit `unrestricted_endpoints` grace, which the Phase-2 migration
+     * granted to the integrations that predate endpoint assignment. Every
+     * application registered since is deny-by-default: an empty assignment
+     * list means it may call nothing, so forgetting to assign endpoints fails
+     * closed rather than handing out the whole API.
+     *
+     * Once any endpoint is assigned, the assignment list is authoritative and
+     * everything else is denied regardless of the grace.
      */
     public function allowsEndpoint(string $method, string $uri): bool
     {
@@ -159,7 +167,7 @@ class ExternalApplication extends Model implements AuthenticatableContract
         }
 
         if ($this->endpoints->isEmpty()) {
-            return true;
+            return (bool) $this->unrestricted_endpoints;
         }
 
         return $this->endpoints->contains(

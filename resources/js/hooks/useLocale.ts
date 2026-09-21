@@ -22,6 +22,7 @@ import amSecurity from '@/i18n/am/security';
 import amCodeRules from '@/i18n/am/codeRules';
 import amDashboard from '@/i18n/am/dashboard';
 import amEmployees from '@/i18n/am/employees';
+import amEmployeePortal from '@/i18n/am/employeePortal';
 import amEntitlementRules from '@/i18n/am/entitlementRules';
 import amHome from '@/i18n/am/home';
 import amHierarchyVersions from '@/i18n/am/hierarchyVersions';
@@ -68,6 +69,7 @@ import enSecurity from '@/i18n/en/security';
 import enCodeRules from '@/i18n/en/codeRules';
 import enDashboard from '@/i18n/en/dashboard';
 import enEmployees from '@/i18n/en/employees';
+import enEmployeePortal from '@/i18n/en/employeePortal';
 import enEntitlementRules from '@/i18n/en/entitlementRules';
 import enHome from '@/i18n/en/home';
 import enHierarchyVersions from '@/i18n/en/hierarchyVersions';
@@ -109,6 +111,7 @@ const translations: Record<Locale, TranslationTree> = {
         nav: { ...en.nav, ...enNavigation },
         dashboard: { ...((en.dashboard as TranslationTree | undefined) ?? {}), ...enDashboard },
         employees: { ...((en.employees as TranslationTree | undefined) ?? {}), ...enEmployees },
+        employeePortal: enEmployeePortal,
         entitlements: enEntitlements,
         gradeLevels: enGradeLevels,
         idCards: { ...((en.idCards as TranslationTree | undefined) ?? {}), ...enIdCards },
@@ -158,6 +161,7 @@ const translations: Record<Locale, TranslationTree> = {
         nav: { ...(((am as { nav?: TranslationTree }).nav) ?? {}), ...amNavigation },
         dashboard: { ...(((am as { dashboard?: TranslationTree }).dashboard) ?? {}), ...amDashboard },
         employees: { ...(((am as { employees?: TranslationTree }).employees) ?? {}), ...amEmployees },
+        employeePortal: amEmployeePortal,
         entitlements: amEntitlements,
         gradeLevels: amGradeLevels,
         idCards: { ...(((am as { idCards?: TranslationTree }).idCards) ?? {}), ...amIdCards },

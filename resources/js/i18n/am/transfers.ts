@@ -161,6 +161,9 @@ const transfers = {
 
     // Public announcement detail & apply pages
     statusOpen: 'ክፍት',
+    // Used by the portal pages; previously only present in the PHP lang files,
+    // so these screens rendered the raw key.
+    noEmployeeProfile: 'ከአካውንትዎ ጋር የተያያዘ የሠራተኛ መገለጫ የለም። እባክዎ ከ HR ጋር ያነጋግሩ።',
     salary: 'ደሞዝ',
     eligibilityRequirements: 'የብቃት መስፈርቶች',
     notAcceptingApplicationsInfo: 'ይህ ማስታወቂያ ማመልከቻዎችን መቀበል አቁሟል።',

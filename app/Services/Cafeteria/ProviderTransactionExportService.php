@@ -85,19 +85,19 @@ final readonly class ProviderTransactionExportService
 
             if ($paymentClaim) {
                 foreach ($summaryRows as $summaryRow) {
-                    fputcsv($handle, $summaryRow);
+                    fputcsv($handle, csv_safe_row($summaryRow));
                 }
                 fputcsv($handle, []);
             }
 
-            fputcsv($handle, $data['headers']);
+            fputcsv($handle, csv_safe_row($data['headers']));
 
             foreach ($rows as $row) {
-                fputcsv($handle, $row);
+                fputcsv($handle, csv_safe_row($row));
             }
 
             if (count($rows) === 0) {
-                fputcsv($handle, [$emptyMsg]);
+                fputcsv($handle, csv_safe_row([$emptyMsg]));
             }
 
             fclose($handle);

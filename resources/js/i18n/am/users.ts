@@ -21,6 +21,21 @@ const users = {
     activeUsers: 'ንቁ ተጠቃሚዎች',
     deactivatedUsers: 'የቦዘኑ ተጠቃሚዎች',
     noUsers: 'ምንም ተጠቃሚ አልተገኘም',
+
+    // Registry chrome: filters, paging and the confirmations for the two
+    // account-state actions.
+    filters: 'የተጠቃሚ ማጣሪያዎች',
+    searchPlaceholder: 'በስም ወይም በኢሜይል ይፈልጉ',
+    allStatuses: 'ሁሉም ሁኔታዎች',
+    allRoles: 'ሁሉም ሚናዎች',
+    statusActive: 'ንቁ',
+    statusInactive: 'ንቁ ያልሆነ',
+    results: 'ከ:total ተጠቃሚዎች :from-:to በማሳየት ላይ',
+    pagination: 'የተጠቃሚ ዝርዝር ገጽ አሰሳ',
+    confirmDeactivateTitle: 'ይህ መለያ ይቋረጥ?',
+    confirmDeactivateBody: ':name (:email) ከስርዓቱ ይወጣል እና መግባት አይችልም። መለያው በኋላ እንደገና ሊነቃ ይችላል።',
+    confirmReactivateTitle: 'ይህ መለያ እንደገና ይነቃ?',
+    confirmReactivateBody: ':name (:email) እንደገና መግባት ይችላል።',
     searchUsers: 'ተጠቃሚዎችን ፈልግ...',
     filterByRole: 'በሚና አጣራ',
     filterByStatus: 'በሁኔታ አጣራ',

@@ -42,7 +42,7 @@ class RecycleBinController extends Controller
                 ->values(),
             'can' => [
                 'restore' => $request->user()?->can('recycle-bin.restore') ?? false,
-                'forceDelete' => $request->user()?->can('recycle-bin.restore') ?? false,
+                'forceDelete' => $request->user()?->can('recycle-bin.forceDelete') ?? false,
             ],
         ]);
     }
@@ -64,7 +64,17 @@ class RecycleBinController extends Controller
         string $id,
         RecycleBinService $recycleBinService,
     ): RedirectResponse {
-        abort_unless($request->user()?->can('recycle-bin.restore'), 403);
+        /*
+         * Permanent destruction is gated on its own permission, not on
+         * `recycle-bin.restore`.
+         *
+         * `recycle-bin.forceDelete` has always existed in the permission
+         * catalog, but this endpoint checked the restore permission instead —
+         * so a role meant only to RECOVER records could irreversibly destroy
+         * them. Every role that holds restore today also holds forceDelete, so
+         * this tightening removes no capability from anyone currently.
+         */
+        abort_unless($request->user()?->can('recycle-bin.forceDelete'), 403);
 
         $recycleBinService->forceDelete($type, $id, $request->user(), $request);
 

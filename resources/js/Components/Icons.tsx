@@ -275,6 +275,16 @@ export function ChevronUp(p: IconProps) {
     );
 }
 
+/* Neutral "this column can be sorted" marker for unsorted table headings. */
+export function ChevronUpDown(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <polyline points="8 9 12 5 16 9" />
+            <polyline points="16 15 12 19 8 15" />
+        </svg>
+    );
+}
+
 export function FilterIcon(p: IconProps) {
     return (
         <svg {...base} {...p}>

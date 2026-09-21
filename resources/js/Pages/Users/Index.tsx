@@ -1,4 +1,5 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { FormEvent, useEffect, useState } from 'react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
@@ -8,6 +9,7 @@ import UserAvatar from '@/Components/UserAvatar';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import { useConfirm } from '@/Components/ConfirmProvider';
 
 type UserRow = {
     id: number;
@@ -23,16 +25,94 @@ type UserRow = {
     can: { update: boolean; archive: boolean; restore: boolean; assignRoles: boolean };
 };
 
+type Pagination = { current_page: number; last_page: number; per_page: number; total: number };
+
+type Filters = { search?: string; status?: string; role?: string };
+
 export default function UsersIndex({
     users,
+    users_pagination,
+    filters,
+    roleOptions,
     can,
     scopedUserManagement,
 }: {
     users: UserRow[];
+    users_pagination?: Pagination;
+    filters: Filters;
+    roleOptions: string[];
     can: { create: boolean };
     scopedUserManagement: boolean;
 }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
+    const [loading, setLoading] = useState(false);
+
+    const filterForm = useForm({
+        search: filters.search ?? '',
+        status: filters.status ?? '',
+        role: filters.role ?? '',
+    });
+
+    useEffect(() => {
+        filterForm.setData({
+            search: filters.search ?? '',
+            status: filters.status ?? '',
+            role: filters.role ?? '',
+        });
+    }, [filters]);
+
+    const visitOptions = {
+        preserveState: true,
+        preserveScroll: true,
+        onStart: () => setLoading(true),
+        onFinish: () => setLoading(false),
+    };
+
+    /* Search applies as you type; the two selects apply on change. */
+    useEffect(() => {
+        if (filterForm.data.search === (filters.search ?? '')) {
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            router.get(route('users.index'), filterForm.data, visitOptions);
+        }, 350);
+
+        return () => window.clearTimeout(timer);
+    }, [filterForm.data.search, filters.search]);
+
+    function applyFilter(key: 'status' | 'role', value: string) {
+        const next = { ...filterForm.data, [key]: value };
+        filterForm.setData(next);
+        router.get(route('users.index'), next, visitOptions);
+    }
+
+    function submitFilters(e: FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        router.get(route('users.index'), filterForm.data, visitOptions);
+    }
+
+    function resetFilters() {
+        router.get(route('users.index'), {}, { ...visitOptions, preserveState: false });
+    }
+
+    function goToPage(page: number) {
+        router.get(route('users.index'), { ...filterForm.data, page }, visitOptions);
+    }
+
+    const hasActiveFilters = Object.values(filterForm.data).some((value) => value !== '');
+    const countFormat = new Intl.NumberFormat(locale);
+    const total = users_pagination?.total ?? users.length;
+    const start = users.length === 0 ? 0 : ((users_pagination?.current_page ?? 1) - 1) * (users_pagination?.per_page ?? users.length) + 1;
+    const end = users.length === 0 ? 0 : start + users.length - 1;
+    const resultSummary = t('users.results')
+        .replace(':from', countFormat.format(start))
+        .replace(':to', countFormat.format(end))
+        .replace(':total', countFormat.format(total));
+
+    const inputCls =
+        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:bg-gray-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900';
 
     const genderLabels: Record<string, string> = {
         male: t('users.genderMale'),
@@ -41,12 +121,33 @@ export default function UsersIndex({
         not_specified: t('users.genderNotSpecified'),
     };
 
-    function deactivate(id: number) {
-        router.post(route('users.deactivate', id), {}, { preserveScroll: true });
+    async function deactivate(user: UserRow) {
+        const { confirmed } = await confirm({
+            title: t('users.confirmDeactivateTitle'),
+            /* Names the account: the button sits in a row of near-identical
+             * rows, and this is the last point before someone loses access. */
+            description: t('users.confirmDeactivateBody').replace(':name', user.name).replace(':email', user.email),
+            confirmLabel: t('users.deactivate'),
+            cancelLabel: t('confirmations.cancel'),
+            variant: 'danger',
+        });
+
+        if (confirmed) {
+            router.post(route('users.deactivate', user.id), {}, { preserveScroll: true });
+        }
     }
 
-    function restore(id: number) {
-        router.post(route('users.restore', id), {}, { preserveScroll: true });
+    async function restore(user: UserRow) {
+        const { confirmed } = await confirm({
+            title: t('users.confirmReactivateTitle'),
+            description: t('users.confirmReactivateBody').replace(':name', user.name).replace(':email', user.email),
+            confirmLabel: t('users.reactivate'),
+            cancelLabel: t('confirmations.cancel'),
+        });
+
+        if (confirmed) {
+            router.post(route('users.restore', user.id), {}, { preserveScroll: true });
+        }
     }
 
     return (
@@ -77,6 +178,65 @@ export default function UsersIndex({
                 </div>
             )}
 
+            <section className="mb-4 rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                <form onSubmit={submitFilters} aria-label={t('users.filters')}>
+                    <fieldset disabled={loading} className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        <label className="min-w-0 space-y-1.5 sm:col-span-2">
+                            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{t('common.search')}</span>
+                            <input
+                                type="search"
+                                className={inputCls}
+                                placeholder={t('users.searchPlaceholder')}
+                                value={filterForm.data.search}
+                                onChange={(e) => filterForm.setData('search', e.target.value)}
+                            />
+                        </label>
+
+                        <label className="min-w-0 space-y-1.5">
+                            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{t('common.status')}</span>
+                            <select
+                                className={inputCls}
+                                value={filterForm.data.status}
+                                onChange={(e) => applyFilter('status', e.target.value)}
+                            >
+                                <option value="">{t('users.allStatuses')}</option>
+                                <option value="active">{t('users.statusActive')}</option>
+                                <option value="inactive">{t('users.statusInactive')}</option>
+                            </select>
+                        </label>
+
+                        <label className="min-w-0 space-y-1.5">
+                            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{t('users.roles')}</span>
+                            <select
+                                className={inputCls}
+                                value={filterForm.data.role}
+                                onChange={(e) => applyFilter('role', e.target.value)}
+                            >
+                                <option value="">{t('users.allRoles')}</option>
+                                {roleOptions.map((role) => (
+                                    <option key={role} value={role}>{role}</option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <div className="flex flex-wrap items-center gap-2 sm:col-span-2 xl:col-span-4">
+                            {hasActiveFilters && (
+                                <button
+                                    type="button"
+                                    onClick={resetFilters}
+                                    className="shrink-0 rounded-control px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                                >
+                                    {t('common.reset')}
+                                </button>
+                            )}
+                            <p role="status" aria-live="polite" className="text-xs tabular-nums text-gray-500 dark:text-slate-400">
+                                {loading ? t('common.loading') : resultSummary}
+                            </p>
+                        </div>
+                    </fieldset>
+                </form>
+            </section>
+
             <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 {users.length === 0 ? (
                     <div className="p-6">
@@ -88,17 +248,18 @@ export default function UsersIndex({
                             <thead className="bg-gray-50 dark:bg-slate-950">
                                 <tr>
                                     {[
-                                        t('users.name'),
-                                        t('users.roles'),
-                                        t('common.status'),
-                                        t('users.lastLogin'),
-                                        '',
-                                    ].map((h) => (
+                                        { label: t('users.name') },
+                                        { label: t('users.roles') },
+                                        { label: t('common.status') },
+                                        { label: t('users.lastLogin') },
+                                        { label: t('common.actions'), hidden: true },
+                                    ].map((column, index) => (
                                         <th
-                                            key={h}
+                                            key={`${column.label}-${index}`}
+                                            scope="col"
                                             className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
                                         >
-                                            {h}
+                                            <span className={column.hidden ? 'sr-only' : undefined}>{column.label}</span>
                                         </th>
                                     ))}
                                 </tr>
@@ -159,7 +320,7 @@ export default function UsersIndex({
                                                 {u.can.archive && u.status === 'active' && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => deactivate(u.id)}
+                                                        onClick={() => deactivate(u)}
                                                         className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                                                     >
                                                         {t('users.deactivate')}
@@ -168,7 +329,7 @@ export default function UsersIndex({
                                                 {u.can.restore && u.status !== 'active' && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => restore(u.id)}
+                                                        onClick={() => restore(u)}
                                                         className="text-xs font-medium text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                                                     >
                                                         {t('users.reactivate')}
@@ -181,6 +342,34 @@ export default function UsersIndex({
                             </tbody>
                         </table>
                     </div>
+                )}
+
+                {users_pagination && users_pagination.last_page > 1 && (
+                    <nav aria-label={t('users.pagination')} className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 dark:border-slate-800">
+                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                            {t('common.page')} {users_pagination.current_page} / {users_pagination.last_page}
+                            {' - '}
+                            {countFormat.format(users_pagination.total)} {t('common.results')}
+                        </p>
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                disabled={loading || users_pagination.current_page <= 1}
+                                onClick={() => goToPage(users_pagination.current_page - 1)}
+                                className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
+                            >
+                                {t('common.previous')}
+                            </button>
+                            <button
+                                type="button"
+                                disabled={loading || users_pagination.current_page >= users_pagination.last_page}
+                                onClick={() => goToPage(users_pagination.current_page + 1)}
+                                className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
+                            >
+                                {t('common.next')}
+                            </button>
+                        </div>
+                    </nav>
                 )}
             </div>
         </AuthenticatedLayout>

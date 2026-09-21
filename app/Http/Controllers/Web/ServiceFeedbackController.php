@@ -289,15 +289,15 @@ class ServiceFeedbackController extends Controller
             // BOM so Excel opens the Amharic columns as UTF-8.
             fwrite($handle, "\xEF\xBB\xBF");
 
-            fputcsv($handle, [
+            fputcsv($handle, csv_safe_row([
                 'Submitted At', 'Employee', 'Employee No.', 'Organization',
                 'Unit', 'Service Type', 'Rating', 'Status', 'Comment',
                 'Client Name', 'Client Contact',
-            ]);
+            ]));
 
             $query->chunk(500, function ($rows) use ($handle): void {
                 foreach ($rows as $item) {
-                    fputcsv($handle, [
+                    fputcsv($handle, csv_safe_row([
                         $item->created_at?->toDateTimeString(),
                         $item->employee?->full_name,
                         $item->employee?->employee_number,
@@ -309,7 +309,7 @@ class ServiceFeedbackController extends Controller
                         $item->comment,
                         $item->client_name,
                         $item->client_contact,
-                    ]);
+                    ]));
                 }
             });
 
