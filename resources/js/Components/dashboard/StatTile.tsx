@@ -66,7 +66,9 @@ export default function StatTileGroup({ stats, columns = 4 }: { stats: Stat[]; c
 
                 const content = (
                     <>
-                        <dt className="truncate text-xs text-gray-600 dark:text-slate-400">{stat.label}</dt>
+                        <dt className="min-h-8 whitespace-normal break-words text-xs leading-snug text-gray-600 dark:text-slate-400">
+                            {stat.label}
+                        </dt>
                         <dd
                             className={`mt-1 text-lg font-semibold tabular-nums ${
                                 unavailable ? 'text-gray-400 dark:text-slate-600' : toneText[tone]

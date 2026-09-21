@@ -1,4 +1,5 @@
 const common = {
+    submit: 'አስገባ',
     create: 'ፍጠር',
     view: 'ይመልከቱ',
     edit: 'አርትዕ',

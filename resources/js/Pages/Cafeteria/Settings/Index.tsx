@@ -4,7 +4,7 @@ import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedTimePicker from '@/Components/Calendar/LocalizedTimePicker';
 import Modal from '@/Components/Modal';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -88,19 +88,26 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
     const [openTime, setOpenTime] = useState(rule.open_time ?? '');
     const [closeTime, setCloseTime] = useState(rule.close_time ?? '');
     const [saving, setSaving] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     function save() {
         setSaving(true);
         router.patch(route('cafeteria.day-rules.update', rule.id), {
             is_open: isOpen, is_subsidy_day: isSubsidy,
             open_time: openTime || null, close_time: closeTime || null,
-        }, { onFinish: () => setSaving(false), preserveScroll: true });
+        }, {
+            onError: setErrors,
+            onSuccess: () => setErrors({}),
+            onFinish: () => setSaving(false),
+            preserveScroll: true,
+        });
     }
 
     const timeCls = 'rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 disabled:opacity-50';
 
     return (
         <div className={`flex flex-wrap items-center gap-4 rounded-card border border-gray-200 p-4 dark:border-slate-700 ${DAY_COLORS[rule.day_of_week]}`}>
+            {Object.keys(errors).length > 0 && <div role="alert" className="w-full text-sm text-red-700 dark:text-red-300">{Object.values(errors).join(' ')}</div>}
             <div className="w-28 font-semibold text-gray-800 dark:text-slate-100">{localizedDayName(rule.day_of_week, locale)}</div>
             <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
                 <input type="checkbox" disabled={!canUpdate} checked={isOpen} onChange={e => { setIsOpen(e.target.checked); if (!e.target.checked) setIsSubsidy(false); }} className="h-4 w-4 rounded" />
@@ -137,7 +144,7 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
 
 // ─── main page ───────────────────────────────────────────────────────────────
 export default function CafeteriaSettingsIndex({
-    settings, can, activeTab = 'general',
+    cafeteriaSettings, can, editableSettingKeys, readOnlySettingReasons, activeTab = 'general',
     dayRules: rawDayRules,
     holidays: rawHolidays,
     holidaysYear,
@@ -148,7 +155,9 @@ export default function CafeteriaSettingsIndex({
     organizationOptions = [],
     branchOptions = [],
 }: {
-    settings: Settings;
+    cafeteriaSettings: Settings;
+    editableSettingKeys: string[];
+    readOnlySettingReasons: Record<string, string>;
     can: CanProps;
     activeTab?: string;
     dayRules?: DayRule[] | { data: DayRule[] };
@@ -166,10 +175,44 @@ export default function CafeteriaSettingsIndex({
     const subsidyRules: SubsidyRule[] = Array.isArray(rawSubsidyRules) ? rawSubsidyRules : (rawSubsidyRules as { data: SubsidyRule[] })?.data ?? [];
     const { t } = useLocale();
     const { confirm } = useConfirm();
+    const { errors: providerErrors } = usePage().props;
     const [tab, setTab] = useState<InPageTab>(
         (ALL_TABS.includes(activeTab as InPageTab) ? activeTab : 'general') as InPageTab
     );
-    const [form, setForm] = useState<Settings>({ ...settings });
+
+    /**
+     * Keep the open tab in the URL.
+     *
+     * Every write on this screen answers with `back()`, which returns to the
+     * current URL. Without the tab in it, archiving a holiday or saving a day
+     * rule reloads the page on `general` and the user loses their place.
+     */
+    function selectTab(next: InPageTab) {
+        setTab(next);
+        if (typeof window === 'undefined') return;
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', next);
+        window.history.replaceState(window.history.state, '', url.toString());
+    }
+
+    const currentHolidaysYear = holidaysYear ?? new Date().getFullYear();
+    const holidayYearOptions = Array.from(
+        { length: 7 },
+        (_, index) => new Date().getFullYear() - 3 + index,
+    ).concat(currentHolidaysYear)
+        .filter((year, index, all) => all.indexOf(year) === index)
+        .sort((a, b) => b - a);
+
+    function changeHolidaysYear(year: number) {
+        router.get(route('cafeteria.settings.index'), { tab: 'holidays', year }, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            only: ['holidays', 'holidaysYear'],
+        });
+    }
+    const [form, setForm] = useState<Settings>({ ...cafeteriaSettings });
+    const [settingsErrors, setSettingsErrors] = useState<Record<string, string>>({});
     const [providerUserForm, setProviderUserForm] = useState({
         service_provider_user_id: '',
         cafeteria_provider_id: '',
@@ -188,6 +231,13 @@ export default function CafeteriaSettingsIndex({
     const thCls = 'px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-slate-400';
     const tdCls = 'px-4 py-3 text-sm text-gray-700 dark:text-slate-300';
 
+    const canEdit = (key: string) => can.update && editableSettingKeys.includes(key);
+    const settingHint = (key: string) => (
+        <p id={`setting-hint-${key}`} className="mt-1 text-xs leading-5 text-gray-500 dark:text-slate-400">
+            {t(readOnlySettingReasons[key] ? `cafeteria.settingHelp.${readOnlySettingReasons[key]}` : `cafeteria.settingHelp.${key}`)}
+        </p>
+    );
+
     function set(key: string, value: unknown) {
         setForm(f => ({ ...f, [key]: value }));
     }
@@ -195,7 +245,12 @@ export default function CafeteriaSettingsIndex({
     function handleSubmit(e: FormEvent) {
         e.preventDefault();
         setSaving(true);
-        router.put(route('cafeteria.settings.update'), form as Record<string, string | number | boolean | null>, {
+        router.put(route('cafeteria.settings.update'), Object.fromEntries(Object.entries(form).filter(([key]) => editableSettingKeys.includes(key))) as Record<string, string | number | boolean | null>, {
+            onError: setSettingsErrors,
+            onSuccess: (page) => {
+                setSettingsErrors({});
+                setForm({ ...(page.props.cafeteriaSettings as Settings) });
+            },
             onFinish: () => setSaving(false),
             preserveScroll: true,
         });
@@ -321,11 +376,11 @@ export default function CafeteriaSettingsIndex({
                 {/* Tab bar */}
                 <div className="overflow-x-auto">
                     <div className="flex min-w-max border-b border-gray-200 dark:border-slate-700">
-                        {tabDefs.map(tb => (
+                        {tabDefs.filter(tb => tb.key !== 'provider-users' || can.manageProviderUsers).map(tb => (
                             <button
                                 key={tb.key}
                                 type="button"
-                                onClick={() => setTab(tb.key)}
+                                onClick={() => selectTab(tb.key)}
                                 className={tabBarCls(tab === tb.key)}
                             >
                                 {tb.label}
@@ -337,35 +392,47 @@ export default function CafeteriaSettingsIndex({
                 {/* ── Settings form tabs (wrap in form) ── */}
                 {isSettingsTab(tab) && (
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        <div role="note" className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                            <p className="font-semibold">{t('cafeteria.settingsConnectionTitle')}</p>
+                            <p className="mt-1">{t('cafeteria.settingsConnectionNotice')}</p>
+                        </div>
+                        {Object.keys(settingsErrors).length > 0 && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+                            <p className="font-medium">{t('cafeteria.settingsSaveError')}</p>
+                            <ul className="mt-2 list-inside list-disc">{Object.entries(settingsErrors).map(([key, message]) => <li key={key}>{message}</li>)}</ul>
+                        </div>}
                         {/* General */}
                         {tab === 'general' && (
                             <div className={sectionCls}>
                                 <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.generalSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.currency')}</label>
-                                        <input className={inputCls} disabled={!can.update} value={String(form.currency ?? 'ETB')} onChange={e => set('currency', e.target.value)} />
+                                        <label htmlFor="setting-currency" className={labelCls}>{t('cafeteria.currency')}</label>
+                                        <input id="setting-currency" aria-describedby="setting-hint-currency" className={inputCls} disabled={!canEdit('currency')} value={String(form.currency ?? 'ETB')} onChange={e => set('currency', e.target.value)} />
+                                        {settingHint('currency')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.requireActiveEmployee')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.require_active_employee ? '1' : '0'} onChange={e => set('require_active_employee', e.target.value === '1')}>
+                                        <label htmlFor="setting-require_active_employee" className={labelCls}>{t('cafeteria.requireActiveEmployee')}</label>
+                                        <select id="setting-require_active_employee" aria-describedby="setting-hint-require_active_employee" className={inputCls} disabled={!canEdit('require_active_employee')} value={form.require_active_employee ? '1' : '0'} onChange={e => set('require_active_employee', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('require_active_employee')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.requireActiveIdCard')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.require_active_id_card ? '1' : '0'} onChange={e => set('require_active_id_card', e.target.value === '1')}>
+                                        <label htmlFor="setting-require_active_id_card" className={labelCls}>{t('cafeteria.requireActiveIdCard')}</label>
+                                        <select id="setting-require_active_id_card" aria-describedby="setting-hint-require_active_id_card" className={inputCls} disabled={!canEdit('require_active_id_card')} value={form.require_active_id_card ? '1' : '0'} onChange={e => set('require_active_id_card', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('require_active_id_card')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.requireProviderOperator')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.require_provider_operator ? '1' : '0'} onChange={e => set('require_provider_operator', e.target.value === '1')}>
+                                        <label htmlFor="setting-require_provider_operator" className={labelCls}>{t('cafeteria.requireProviderOperator')}</label>
+                                        <select id="setting-require_provider_operator" aria-describedby="setting-hint-require_provider_operator" className={inputCls} disabled={!canEdit('require_provider_operator')} value={form.require_provider_operator ? '1' : '0'} onChange={e => set('require_provider_operator', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('require_provider_operator')}
                                     </div>
                                 </div>
                             </div>
@@ -377,43 +444,49 @@ export default function CafeteriaSettingsIndex({
                                 <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.subsidySettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.defaultDailySubsidyAmount')}</label>
-                                        <input type="number" min="0" step="0.01" className={inputCls} disabled={!can.update} value={String(form.default_daily_subsidy_amount ?? 0)} onChange={e => set('default_daily_subsidy_amount', parseFloat(e.target.value))} />
+                                        <label htmlFor="setting-default_daily_subsidy_amount" className={labelCls}>{t('cafeteria.defaultDailySubsidyAmount')}</label>
+                                        <input id="setting-default_daily_subsidy_amount" aria-describedby="setting-hint-default_daily_subsidy_amount" type="number" min="0" step="0.01" className={inputCls} disabled={!canEdit('default_daily_subsidy_amount')} value={String(form.default_daily_subsidy_amount ?? '')} onChange={e => set('default_daily_subsidy_amount', e.target.value === '' ? null : Number(e.target.value))} />
+                                        {settingHint('default_daily_subsidy_amount')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.usageModeLabel')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={String(form.default_usage_mode ?? 'single_day')} onChange={e => set('default_usage_mode', e.target.value)}>
+                                        <label htmlFor="setting-default_usage_mode" className={labelCls}>{t('cafeteria.usageModeLabel')}</label>
+                                        <select id="setting-default_usage_mode" aria-describedby="setting-hint-default_usage_mode" className={inputCls} disabled={!canEdit('default_usage_mode')} value={String(form.default_usage_mode ?? 'single_day')} onChange={e => set('default_usage_mode', e.target.value)}>
                                             <option value="single_day">{t('cafeteria.usageModeSingleDay')}</option>
                                             <option value="use_remaining_week">{t('cafeteria.usageModeRemainingWeek')}</option>
                                         </select>
+                                        {settingHint('default_usage_mode')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.allowUpfrontWeekdayUsage')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.allow_upfront_weekday_usage ? '1' : '0'} onChange={e => set('allow_upfront_weekday_usage', e.target.value === '1')}>
+                                        <label htmlFor="setting-allow_upfront_weekday_usage" className={labelCls}>{t('cafeteria.allowUpfrontWeekdayUsage')}</label>
+                                        <select id="setting-allow_upfront_weekday_usage" aria-describedby="setting-hint-allow_upfront_weekday_usage" className={inputCls} disabled={!canEdit('allow_upfront_weekday_usage')} value={form.allow_upfront_weekday_usage ? '1' : '0'} onChange={e => set('allow_upfront_weekday_usage', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('allow_upfront_weekday_usage')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.allowPastDayClaim')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.allow_past_day_claim ? '1' : '0'} onChange={e => set('allow_past_day_claim', e.target.value === '1')}>
+                                        <label htmlFor="setting-allow_past_day_claim" className={labelCls}>{t('cafeteria.allowPastDayClaim')}</label>
+                                        <select id="setting-allow_past_day_claim" aria-describedby="setting-hint-allow_past_day_claim" className={inputCls} disabled={!canEdit('allow_past_day_claim')} value={form.allow_past_day_claim ? '1' : '0'} onChange={e => set('allow_past_day_claim', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('allow_past_day_claim')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.allowFutureWeekBorrowing')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.allow_future_week_borrowing ? '1' : '0'} onChange={e => set('allow_future_week_borrowing', e.target.value === '1')}>
+                                        <label htmlFor="setting-allow_future_week_borrowing" className={labelCls}>{t('cafeteria.allowFutureWeekBorrowing')}</label>
+                                        <select id="setting-allow_future_week_borrowing" aria-describedby="setting-hint-allow_future_week_borrowing" className={inputCls} disabled={!canEdit('allow_future_week_borrowing')} value={form.allow_future_week_borrowing ? '1' : '0'} onChange={e => set('allow_future_week_borrowing', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('allow_future_week_borrowing')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.excessAmountMode')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={String(form.excess_amount_mode ?? 'employee_payable')} onChange={e => set('excess_amount_mode', e.target.value)}>
+                                        <label htmlFor="setting-excess_amount_mode" className={labelCls}>{t('cafeteria.excessAmountMode')}</label>
+                                        <select id="setting-excess_amount_mode" aria-describedby="setting-hint-excess_amount_mode" className={inputCls} disabled={!canEdit('excess_amount_mode')} value={String(form.excess_amount_mode ?? 'employee_payable')} onChange={e => set('excess_amount_mode', e.target.value)}>
                                             <option value="employee_payable">{t('cafeteria.excessModeEmployeePayable')}</option>
                                             <option value="reject">{t('cafeteria.excessModeReject')}</option>
                                         </select>
+                                        {settingHint('excess_amount_mode')}
                                     </div>
                                 </div>
                             </div>
@@ -425,44 +498,50 @@ export default function CafeteriaSettingsIndex({
                                 <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.daySettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.weekStartDay')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={String(form.week_start_day ?? 'monday')} onChange={e => set('week_start_day', e.target.value)}>
+                                        <label htmlFor="setting-week_start_day" className={labelCls}>{t('cafeteria.weekStartDay')}</label>
+                                        <select id="setting-week_start_day" aria-describedby="setting-hint-week_start_day" className={inputCls} disabled={!canEdit('week_start_day')} value={String(form.week_start_day ?? 'monday')} onChange={e => set('week_start_day', e.target.value)}>
                                             {DAY_VALUES.map(d => <option key={d} value={d}>{dayLabel[d]}</option>)}
                                         </select>
+                                        {settingHint('week_start_day')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.weekEndDay')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={String(form.week_end_day ?? 'friday')} onChange={e => set('week_end_day', e.target.value)}>
+                                        <label htmlFor="setting-week_end_day" className={labelCls}>{t('cafeteria.weekEndDay')}</label>
+                                        <select id="setting-week_end_day" aria-describedby="setting-hint-week_end_day" className={inputCls} disabled={!canEdit('week_end_day')} value={String(form.week_end_day ?? 'friday')} onChange={e => set('week_end_day', e.target.value)}>
                                             {DAY_VALUES.map(d => <option key={d} value={d}>{dayLabel[d]}</option>)}
                                         </select>
+                                        {settingHint('week_end_day')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.closedWeekendDefault')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.closed_weekend_default ? '1' : '0'} onChange={e => set('closed_weekend_default', e.target.value === '1')}>
+                                        <label htmlFor="setting-closed_weekend_default" className={labelCls}>{t('cafeteria.closedWeekendDefault')}</label>
+                                        <select id="setting-closed_weekend_default" aria-describedby="setting-hint-closed_weekend_default" className={inputCls} disabled={!canEdit('closed_weekend_default')} value={form.closed_weekend_default ? '1' : '0'} onChange={e => set('closed_weekend_default', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('closed_weekend_default')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.allowSaturdayService')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.allow_saturday_service ? '1' : '0'} onChange={e => set('allow_saturday_service', e.target.value === '1')}>
+                                        <label htmlFor="setting-allow_saturday_service" className={labelCls}>{t('cafeteria.allowSaturdayService')}</label>
+                                        <select id="setting-allow_saturday_service" aria-describedby="setting-hint-allow_saturday_service" className={inputCls} disabled={!canEdit('allow_saturday_service')} value={form.allow_saturday_service ? '1' : '0'} onChange={e => set('allow_saturday_service', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('allow_saturday_service')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.allowSundayService')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.allow_sunday_service ? '1' : '0'} onChange={e => set('allow_sunday_service', e.target.value === '1')}>
+                                        <label htmlFor="setting-allow_sunday_service" className={labelCls}>{t('cafeteria.allowSundayService')}</label>
+                                        <select id="setting-allow_sunday_service" aria-describedby="setting-hint-allow_sunday_service" className={inputCls} disabled={!canEdit('allow_sunday_service')} value={form.allow_sunday_service ? '1' : '0'} onChange={e => set('allow_sunday_service', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('allow_sunday_service')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.excludePublicHolidays')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.exclude_public_holidays ? '1' : '0'} onChange={e => set('exclude_public_holidays', e.target.value === '1')}>
+                                        <label htmlFor="setting-exclude_public_holidays" className={labelCls}>{t('cafeteria.excludePublicHolidays')}</label>
+                                        <select id="setting-exclude_public_holidays" aria-describedby="setting-hint-exclude_public_holidays" className={inputCls} disabled={!canEdit('exclude_public_holidays')} value={form.exclude_public_holidays ? '1' : '0'} onChange={e => set('exclude_public_holidays', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('exclude_public_holidays')}
                                     </div>
                                 </div>
                             </div>
@@ -475,28 +554,32 @@ export default function CafeteriaSettingsIndex({
                                 <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.scanSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.weekendScanMode')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={String(form.weekend_scan_mode ?? 'reject')} onChange={e => set('weekend_scan_mode', e.target.value)}>
+                                        <label htmlFor="setting-weekend_scan_mode" className={labelCls}>{t('cafeteria.weekendScanMode')}</label>
+                                        <select id="setting-weekend_scan_mode" aria-describedby="setting-hint-weekend_scan_mode" className={inputCls} disabled={!canEdit('weekend_scan_mode')} value={String(form.weekend_scan_mode ?? 'reject')} onChange={e => set('weekend_scan_mode', e.target.value)}>
                                             <option value="reject">{t('cafeteria.scanModeReject')}</option>
                                             <option value="allow">{t('cafeteria.scanModeAllow')}</option>
                                             <option value="employee_payable">{t('cafeteria.scanModeEmployeePayable')}</option>
                                         </select>
+                                        {settingHint('weekend_scan_mode')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.holidayScanMode')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={String(form.holiday_scan_mode ?? 'reject')} onChange={e => set('holiday_scan_mode', e.target.value)}>
+                                        <label htmlFor="setting-holiday_scan_mode" className={labelCls}>{t('cafeteria.holidayScanMode')}</label>
+                                        <select id="setting-holiday_scan_mode" aria-describedby="setting-hint-holiday_scan_mode" className={inputCls} disabled={!canEdit('holiday_scan_mode')} value={String(form.holiday_scan_mode ?? 'reject')} onChange={e => set('holiday_scan_mode', e.target.value)}>
                                             <option value="reject">{t('cafeteria.scanModeReject')}</option>
                                             <option value="allow">{t('cafeteria.scanModeAllow')}</option>
                                             <option value="employee_payable">{t('cafeteria.scanModeEmployeePayable')}</option>
                                         </select>
+                                        {settingHint('holiday_scan_mode')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.maxTransactionAmountPerScan')}</label>
-                                        <input type="number" min="0" step="0.01" className={inputCls} disabled={!can.update} value={String(form.max_transaction_amount_per_scan ?? '')} placeholder={t('common.optional')} onChange={e => set('max_transaction_amount_per_scan', e.target.value ? parseFloat(e.target.value) : null)} />
+                                        <label htmlFor="setting-max_transaction_amount_per_scan" className={labelCls}>{t('cafeteria.maxTransactionAmountPerScan')}</label>
+                                        <input id="setting-max_transaction_amount_per_scan" aria-describedby="setting-hint-max_transaction_amount_per_scan" type="number" min="0" step="0.01" className={inputCls} disabled={!canEdit('max_transaction_amount_per_scan')} value={String(form.max_transaction_amount_per_scan ?? '')} placeholder={t('common.optional')} onChange={e => set('max_transaction_amount_per_scan', e.target.value ? parseFloat(e.target.value) : null)} />
+                                        {settingHint('max_transaction_amount_per_scan')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.maxExtraAmountPerWeek')}</label>
-                                        <input type="number" min="0" step="0.01" className={inputCls} disabled={!can.update} value={String(form.max_extra_amount_per_week ?? '')} placeholder={t('common.optional')} onChange={e => set('max_extra_amount_per_week', e.target.value ? parseFloat(e.target.value) : null)} />
+                                        <label htmlFor="setting-max_extra_amount_per_week" className={labelCls}>{t('cafeteria.maxExtraAmountPerWeek')}</label>
+                                        <input id="setting-max_extra_amount_per_week" aria-describedby="setting-hint-max_extra_amount_per_week" type="number" min="0" step="0.01" className={inputCls} disabled={!canEdit('max_extra_amount_per_week')} value={String(form.max_extra_amount_per_week ?? '')} placeholder={t('common.optional')} onChange={e => set('max_extra_amount_per_week', e.target.value ? parseFloat(e.target.value) : null)} />
+                                        {settingHint('max_extra_amount_per_week')}
                                     </div>
                                 </div>
                             </div>
@@ -506,39 +589,44 @@ export default function CafeteriaSettingsIndex({
                                 <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.leaveAccessControl')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.blockCafeteriaDuringLeave')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.block_cafeteria_during_employee_leave ? '1' : '0'} onChange={e => set('block_cafeteria_during_employee_leave', e.target.value === '1')}>
+                                        <label htmlFor="setting-block_cafeteria_during_employee_leave" className={labelCls}>{t('cafeteria.blockCafeteriaDuringLeave')}</label>
+                                        <select id="setting-block_cafeteria_during_employee_leave" aria-describedby="setting-hint-block_cafeteria_during_employee_leave" className={inputCls} disabled={!canEdit('block_cafeteria_during_employee_leave')} value={form.block_cafeteria_during_employee_leave ? '1' : '0'} onChange={e => set('block_cafeteria_during_employee_leave', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('block_cafeteria_during_employee_leave')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.leaveScanMode')}</label>
-                                        <select className={inputCls} disabled={!can.update || !form.block_cafeteria_during_employee_leave} value={String(form.leave_scan_mode ?? 'reject')} onChange={e => set('leave_scan_mode', e.target.value)}>
+                                        <label htmlFor="setting-leave_scan_mode" className={labelCls}>{t('cafeteria.leaveScanMode')}</label>
+                                        <select id="setting-leave_scan_mode" aria-describedby="setting-hint-leave_scan_mode" className={inputCls} disabled={!canEdit('leave_scan_mode') || !form.block_cafeteria_during_employee_leave} value={String(form.leave_scan_mode ?? 'reject')} onChange={e => set('leave_scan_mode', e.target.value)}>
                                             <option value="reject">{t('cafeteria.leaveScanModeReject')}</option>
                                             <option value="employee_payable">{t('cafeteria.leaveScanModeEmployeePayable')}</option>
                                         </select>
+                                        {settingHint('leave_scan_mode')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.excludeLeaveDaysFromSubsidy')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.exclude_leave_days_from_subsidy ? '1' : '0'} onChange={e => set('exclude_leave_days_from_subsidy', e.target.value === '1')}>
+                                        <label htmlFor="setting-exclude_leave_days_from_subsidy" className={labelCls}>{t('cafeteria.excludeLeaveDaysFromSubsidy')}</label>
+                                        <select id="setting-exclude_leave_days_from_subsidy" aria-describedby="setting-hint-exclude_leave_days_from_subsidy" className={inputCls} disabled={!canEdit('exclude_leave_days_from_subsidy')} value={form.exclude_leave_days_from_subsidy ? '1' : '0'} onChange={e => set('exclude_leave_days_from_subsidy', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('exclude_leave_days_from_subsidy')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.allowLeaveDayRetroactiveClaim')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.allow_leave_day_retroactive_claim ? '1' : '0'} onChange={e => set('allow_leave_day_retroactive_claim', e.target.value === '1')}>
+                                        <label htmlFor="setting-allow_leave_day_retroactive_claim" className={labelCls}>{t('cafeteria.allowLeaveDayRetroactiveClaim')}</label>
+                                        <select id="setting-allow_leave_day_retroactive_claim" aria-describedby="setting-hint-allow_leave_day_retroactive_claim" className={inputCls} disabled={!canEdit('allow_leave_day_retroactive_claim')} value={form.allow_leave_day_retroactive_claim ? '1' : '0'} onChange={e => set('allow_leave_day_retroactive_claim', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('allow_leave_day_retroactive_claim')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.autoResumeAfterLeave')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={form.auto_resume_after_leave ? '1' : '0'} onChange={e => set('auto_resume_after_leave', e.target.value === '1')}>
+                                        <label htmlFor="setting-auto_resume_after_leave" className={labelCls}>{t('cafeteria.autoResumeAfterLeave')}</label>
+                                        <select id="setting-auto_resume_after_leave" aria-describedby="setting-hint-auto_resume_after_leave" className={inputCls} disabled={!canEdit('auto_resume_after_leave')} value={form.auto_resume_after_leave ? '1' : '0'} onChange={e => set('auto_resume_after_leave', e.target.value === '1')}>
                                             <option value="1">{t('common.yes')}</option>
                                             <option value="0">{t('common.no')}</option>
                                         </select>
+                                        {settingHint('auto_resume_after_leave')}
                                     </div>
                                 </div>
                             </div>
@@ -551,26 +639,29 @@ export default function CafeteriaSettingsIndex({
                                 <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.reportSettings')}</h3>
                                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.reportType')}</label>
-                                        <select className={inputCls} disabled={!can.update} value={String(form.report_default_format ?? 'csv')} onChange={e => set('report_default_format', e.target.value)}>
+                                        <label htmlFor="setting-report_default_format" className={labelCls}>{t('cafeteria.reportType')}</label>
+                                        <select id="setting-report_default_format" aria-describedby="setting-hint-report_default_format" className={inputCls} disabled={!canEdit('report_default_format')} value={String(form.report_default_format ?? 'csv')} onChange={e => set('report_default_format', e.target.value)}>
                                             <option value="csv">CSV</option>
                                             <option value="xlsx">Excel (XLSX)</option>
                                             <option value="pdf">PDF</option>
                                         </select>
+                                        {settingHint('report_default_format')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.reportTimezone')}</label>
-                                        <input className={inputCls} disabled={!can.update} value={String(form.report_timezone ?? 'Africa/Addis_Ababa')} onChange={e => set('report_timezone', e.target.value)} />
+                                        <label htmlFor="setting-report_timezone" className={labelCls}>{t('cafeteria.reportTimezone')}</label>
+                                        <input id="setting-report_timezone" aria-describedby="setting-hint-report_timezone" className={inputCls} disabled={!canEdit('report_timezone')} value={String(form.report_timezone ?? 'Africa/Addis_Ababa')} onChange={e => set('report_timezone', e.target.value)} />
+                                        {settingHint('report_timezone')}
                                     </div>
                                     <div>
-                                        <label className={labelCls}>{t('cafeteria.payrollCutoffDay')}</label>
-                                        <input type="number" min="1" max="31" className={inputCls} disabled={!can.update} value={String(form.payroll_cutoff_day ?? '')} placeholder={t('common.optional')} onChange={e => set('payroll_cutoff_day', e.target.value ? parseInt(e.target.value) : null)} />
+                                        <label htmlFor="setting-payroll_cutoff_day" className={labelCls}>{t('cafeteria.payrollCutoffDay')}</label>
+                                        <input id="setting-payroll_cutoff_day" aria-describedby="setting-hint-payroll_cutoff_day" type="number" min="1" max="31" className={inputCls} disabled={!canEdit('payroll_cutoff_day')} value={String(form.payroll_cutoff_day ?? '')} placeholder={t('common.optional')} onChange={e => set('payroll_cutoff_day', e.target.value ? parseInt(e.target.value) : null)} />
+                                        {settingHint('payroll_cutoff_day')}
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {can.update && (
+                        {can.update && tab !== 'reports' && (
                             <div className="flex justify-end">
                                 <button type="submit" disabled={saving} className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
                                     {saving ? t('common.saving') : t('common.save')}
@@ -585,7 +676,7 @@ export default function CafeteriaSettingsIndex({
                     <div className="space-y-3">
                         <p className="text-sm text-gray-500 dark:text-slate-400">{t('cafeteria.specialDayOverrideNote')}</p>
                         {dayRules.length === 0
-                            ? <EmptyState title={t('common.noResults')} />
+                            ? <EmptyState title={t('cafeteria.noDayRulesConfigured')} description={t('cafeteria.noDayRulesConfiguredHint')} />
                             : dayRules.map(r => <DayRuleRow key={r.id} rule={r} canUpdate={can.updateDayRules} />)
                         }
                     </div>
@@ -595,7 +686,19 @@ export default function CafeteriaSettingsIndex({
                 {tab === 'holidays' && (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500 dark:text-slate-400">{holidaysYear}</span>
+                            <div className="flex items-center gap-2">
+                                <label htmlFor="holidays-year" className="text-sm text-gray-500 dark:text-slate-400">{t('cafeteria.year')}</label>
+                                <select
+                                    id="holidays-year"
+                                    className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                                    value={String(currentHolidaysYear)}
+                                    onChange={e => changeHolidaysYear(Number(e.target.value))}
+                                >
+                                    {holidayYearOptions.map(year => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
+                            </div>
                             {can.createHoliday && (
                                 <Link href={route('cafeteria.holidays.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                     + {t('cafeteria.addHoliday')}
@@ -689,10 +792,11 @@ export default function CafeteriaSettingsIndex({
                     </div>
                 )}
 
-                {tab === 'provider-users' && (
+                {tab === 'provider-users' && can.manageProviderUsers && (
                     <div className="space-y-4">
                         {can.manageProviderUsers && (
                             <form onSubmit={saveProviderUser} className={sectionCls}>
+                                {Object.keys(providerErrors).length > 0 && <div role="alert" className="text-sm text-red-700 dark:text-red-300">{Object.values(providerErrors).join(' ')}</div>}
                                 <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.addProviderUser')}</h3>
                                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                     <div>
@@ -819,6 +923,7 @@ export default function CafeteriaSettingsIndex({
                         <Modal show={editingAssignment !== null} maxWidth="2xl" onClose={() => setEditingAssignment(null)}>
                             {editingAssignment && (
                                 <form onSubmit={submitEdit} className="p-6 space-y-5">
+                                    {Object.keys(providerErrors).length > 0 && <div role="alert" className="text-sm text-red-700 dark:text-red-300">{Object.values(providerErrors).join(' ')}</div>}
                                     <div className="border-b border-gray-100 pb-3 dark:border-slate-700">
                                         <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{t('common.edit')} — {t('cafeteria.providerUser')}</h3>
                                     </div>

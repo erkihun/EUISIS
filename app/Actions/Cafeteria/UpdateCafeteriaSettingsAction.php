@@ -9,6 +9,7 @@ use App\Enums\AuditEventType;
 use App\Models\User;
 use App\Services\Cafeteria\CafeteriaSettingsService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 readonly class UpdateCafeteriaSettingsAction
 {
@@ -19,18 +20,20 @@ readonly class UpdateCafeteriaSettingsAction
 
     public function execute(array $settings, User $actor, ?Request $request = null): void
     {
-        $old = $this->settingsService->all();
+        DB::transaction(function () use ($settings, $actor, $request): void {
+            $old = $this->settingsService->all();
 
-        $this->settingsService->setMany($settings);
+            $this->settingsService->setMany($settings);
 
-        $this->writeAuditLogAction->execute(
-            AuditEventType::CafeteriaSettingsUpdated,
-            $actor,
-            null,
-            null,
-            oldValues: array_intersect_key($old, $settings),
-            newValues: $settings,
-            request: $request,
-        );
+            $this->writeAuditLogAction->execute(
+                AuditEventType::CafeteriaSettingsUpdated,
+                $actor,
+                null,
+                null,
+                oldValues: array_intersect_key($old, $settings),
+                newValues: $settings,
+                request: $request,
+            );
+        });
     }
 }

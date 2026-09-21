@@ -7,8 +7,8 @@ function applyLocaleToDocument(locale: string) {
     document.body.classList.toggle('locale-am', locale === 'am');
 }
 
-export default function LanguageSwitcher() {
-    const { locale, setLocale, localeOptions } = useLocale();
+export default function LanguageSwitcher({ variant = 'default' }: { variant?: 'default' | 'toolbar' }) {
+    const { locale, setLocale, localeOptions, t } = useLocale();
     const { getBoolean } = useSystemSettings();
 
     useEffect(() => {
@@ -25,9 +25,9 @@ export default function LanguageSwitcher() {
 
     return (
         <div
-            className="flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5 dark:border-slate-700"
+            className={variant === 'toolbar' ? 'flex shrink-0 items-center gap-0.5 rounded-lg bg-[color:var(--app-surface-muted)] p-0.5' : 'flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5 dark:border-slate-700'}
             role="group"
-            aria-label="Language selector"
+            aria-label={t('common.language')}
         >
             {localeOptions.map((opt) => (
                 <button
@@ -35,9 +35,10 @@ export default function LanguageSwitcher() {
                     type="button"
                     onClick={() => handleSelect(opt.value as 'en' | 'am')}
                     className={[
-                        'rounded-md px-2.5 py-1 text-xs font-semibold transition-colors',
+                        'rounded-md text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
+                        variant === 'toolbar' ? 'flex h-9 min-w-9 items-center justify-center px-1.5' : 'px-2.5 py-1',
                         locale === opt.value
-                            ? 'bg-[color:var(--color-primary)] text-white'
+                            ? variant === 'toolbar' ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm' : 'bg-[color:var(--color-primary)] text-white'
                             : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-100',
                     ].join(' ')}
                     aria-pressed={locale === opt.value}

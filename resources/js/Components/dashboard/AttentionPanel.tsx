@@ -76,14 +76,20 @@ export default function AttentionPanel({ alerts, queues, t, title }: Props) {
 
     if (rows.length === 0) return null;
 
+    const leadingBorder = rows.some((row) => row.rank === 0)
+        ? 'border-t-red-500'
+        : rows.some((row) => row.rank === 1)
+          ? 'border-t-amber-500'
+          : 'border-t-[color:var(--color-primary)]';
+
     return (
         <section
             aria-label={title}
-            className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+            className={`overflow-hidden rounded-panel border border-t-2 border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 ${leadingBorder}`}
         >
-            <h2 className="border-b border-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-900 dark:border-slate-800 dark:text-slate-100">
-                {title}
-            </h2>
+            <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-slate-800">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
+            </div>
 
             <ul className="divide-y divide-gray-100 dark:divide-slate-800">
                 {rows.map((row) => (
@@ -96,7 +102,7 @@ export default function AttentionPanel({ alerts, queues, t, title }: Props) {
                                 aria-hidden="true"
                                 className={`h-1.5 w-1.5 shrink-0 rounded-full ${rankDot[row.rank]}`}
                             />
-                            <span className="min-w-0 flex-1 truncate text-sm text-gray-700 dark:text-slate-300">
+                            <span className="min-w-0 flex-1 text-sm leading-snug text-gray-700 dark:text-slate-300">
                                 {row.label}
                             </span>
                             <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900 dark:text-slate-100">

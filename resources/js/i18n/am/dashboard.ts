@@ -1,6 +1,10 @@
 const dashboard = {
+    navigationOverview: 'አጠቃላይ እይታ',
+    workforceSnapshot: 'የሰው ኃይል እና የሥራ መደቦች',
+    allowedToday: 'ዛሬ የተፈቀዱ ማረጋገጫዎች',
+    deniedToday: 'ዛሬ ውድቅ የተደረጉ ማረጋገጫዎች',
     title: 'ዳሽቦርድ',
-    subtitle: 'የስርዓቱ አጠቃላይ የስራ እይታ',
+    subtitle: 'የሥራ ሁኔታ እና ትኩረት የሚሹ ተግባራት',
     dateRange: 'የቀን ክልል',
     refresh: 'አድስ',
     previousPeriod: 'ከቀድሞ ጊዜ ጋር ንፅፅር',

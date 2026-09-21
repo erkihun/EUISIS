@@ -47,11 +47,11 @@ export default function RecentActivityFeed({ items, t }: Props) {
     }
 
     return (
-        <div className="space-y-2">
+        <div className="divide-y divide-gray-100 dark:divide-slate-800">
             {items.map((item) => (
                 <div
                     key={item.id}
-                    className="flex items-start gap-3 rounded-card border border-gray-100 px-4 py-3 dark:border-slate-800"
+                    className="grid grid-cols-[8px_minmax(0,1fr)] items-start gap-x-3 gap-y-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[8px_minmax(0,1fr)_auto]"
                 >
                     {/* Severity indicator */}
                     <span
@@ -66,7 +66,7 @@ export default function RecentActivityFeed({ items, t }: Props) {
                         </p>
 
                         {/* Actor + subject */}
-                        <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-slate-400">
+                        <p className="mt-0.5 break-words text-xs text-gray-500 dark:text-slate-400">
                             {item.actor !== 'system' ? item.actor : t('auditLogs.system')}
                             {item.subject && (
                                 <span className="ml-1 text-gray-400 dark:text-slate-500">
@@ -77,7 +77,7 @@ export default function RecentActivityFeed({ items, t }: Props) {
                     </div>
 
                     {/* Localized timestamp */}
-                    <div className="shrink-0 text-right">
+                    <div className="col-start-2 text-left sm:col-start-3 sm:text-right">
                         <LocalizedDateDisplay
                             value={item.timestamp}
                             withTime

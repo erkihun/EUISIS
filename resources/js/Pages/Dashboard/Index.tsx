@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import DashboardHeader, { type DashboardHeaderData } from '@/Components/dashboard/DashboardHeader';
 import StatTileGroup, { type Stat } from '@/Components/dashboard/StatTile';
@@ -11,15 +11,15 @@ import DateRangeFilter from '@/Components/dashboard/DateRangeFilter';
 import ChartCard from '@/Components/dashboard/ChartCard';
 import StatusDistribution from '@/Components/dashboard/StatusDistribution';
 import EmptyDashboardState from '@/Components/dashboard/EmptyDashboardState';
-import AttentionPanel, { type AlertItem, type QueueItem } from '@/Components/dashboard/AttentionPanel';
+import { type AlertItem, type QueueItem } from '@/Components/dashboard/AttentionPanel';
 import DashboardTabs, { useDashboardTab, type DashboardTab } from '@/Components/dashboard/DashboardTabs';
-import RecentActivityFeed from '@/Components/dashboard/RecentActivityFeed';
 import ProviderRanking from '@/Components/dashboard/ProviderRanking';
 import CardLifecycleFunnel from '@/Components/dashboard/CardLifecycleFunnel';
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useChartColors } from '@/hooks/useChartColors';
+import DashboardOverview from '@/Components/dashboard/DashboardOverview';
 
-interface KpiItem {
+export interface KpiItem {
     key: string;
     labelKey: string;
     value: string | number;
@@ -48,7 +48,7 @@ interface LabelValueDatum {
     value: number;
 }
 
-interface DashboardProps {
+export interface DashboardProps {
     header: DashboardHeaderData;
     filters: {
         dateRange: string;
@@ -79,6 +79,8 @@ interface DashboardProps {
     };
 }
 
+const REFRESHED_PROPS = ['kpis', 'cards', 'charts', 'alerts', 'workflowQueues', 'recentActivity', 'header'] as const;
+
 function keyLabel(t: (key: string) => string, prefix: string) {
     return (key: string): string => {
         const translated = t(`${prefix}.${key}`);
@@ -100,6 +102,9 @@ function SimpleBarChart({ data, labelFor, emptyTitle }: { data: KeyValueDatum[];
                 <XAxis dataKey="key" tickFormatter={labelFor} tick={{ fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={36} />
                 <Tooltip
+                    contentStyle={{ background: 'var(--app-surface)', borderColor: 'var(--app-border)', color: 'var(--app-foreground)', borderRadius: 8 }}
+                    labelStyle={{ color: 'var(--app-foreground)' }}
+                    itemStyle={{ color: 'var(--app-foreground)' }}
                     formatter={(value, name) => [Number(value ?? 0), labelFor(String(name))]}
                     labelFormatter={(label) => labelFor(String(label))}
                 />
@@ -123,7 +128,7 @@ function SimpleLineChart({ data, emptyTitle }: { data: LabelValueDatum[]; emptyT
                 <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={36} />
-                <Tooltip />
+                <Tooltip contentStyle={{ background: 'var(--app-surface)', borderColor: 'var(--app-border)', color: 'var(--app-foreground)', borderRadius: 8 }} labelStyle={{ color: 'var(--app-foreground)' }} itemStyle={{ color: 'var(--app-foreground)' }} />
                 <Line type="monotone" dataKey="value" stroke={colors.primary} strokeWidth={2} dot={false} />
             </LineChart>
         </ResponsiveContainer>
@@ -144,6 +149,8 @@ export default function Dashboard({
 }: DashboardProps) {
     const { t } = useLocale();
     const { getString, getNumber } = useSystemSettings();
+    const [refreshing, setRefreshing] = useState(false);
+    const refreshingRef = useRef(false);
 
     /*
      * `appearance.dashboard_layout`.
@@ -166,6 +173,20 @@ export default function Dashboard({
      */
     const refreshSeconds = getNumber('appearance.dashboard_refresh_seconds', 60);
 
+    const refreshDashboard = useCallback(() => {
+        if (refreshingRef.current) return;
+
+        refreshingRef.current = true;
+        setRefreshing(true);
+        router.reload({
+            only: [...REFRESHED_PROPS],
+            onFinish: () => {
+                refreshingRef.current = false;
+                setRefreshing(false);
+            },
+        });
+    }, []);
+
     useEffect(() => {
         if (!Number.isFinite(refreshSeconds) || refreshSeconds < 15) return;
 
@@ -174,13 +195,11 @@ export default function Dashboard({
                is looking at, and it keeps idle sessions off the database. */
             if (document.hidden) return;
 
-            router.reload({
-                only: ['kpis', 'cards', 'charts', 'alerts', 'workflowQueues', 'recentActivity', 'header'],
-            });
+            refreshDashboard();
         }, refreshSeconds * 1000);
 
         return () => window.clearInterval(id);
-    }, [refreshSeconds]);
+    }, [refreshDashboard, refreshSeconds]);
 
     /**
      * Two charts side by side on wide screens, stacked below — and nothing at
@@ -210,11 +229,12 @@ export default function Dashboard({
     const occupancyLabel = keyLabel(t, 'common');
     const verificationLabel = keyLabel(t, 'dashboard.verificationResults');
 
-    const headlineKpis = kpis.filter((kpi) => (kpi.group ?? 'headline') === 'headline');
+    const priorityKeys = ['activeEmployees', 'totalPositions', 'activeIdCards', 'pendingCardRequests'];
+    const prioritized = priorityKeys.flatMap((key) => kpis.filter((kpi) => kpi.key === key));
+    const headlineKpis = [...prioritized, ...kpis.filter((kpi) => !priorityKeys.includes(kpi.key))].slice(0, 4);
     const kpisForGroup = (group: string) => kpis.filter((kpi) => kpi.group === group);
-    const overflowKpis = kpisForGroup('overflow');
 
-    const renderKpi = (kpi: KpiItem) => (
+    const renderKpi = (kpi: KpiItem, featured = false) => (
         <KpiCard
             key={kpi.key}
             title={t(kpi.labelKey)}
@@ -225,6 +245,7 @@ export default function Dashboard({
             trendDirection={kpi.trendDirection}
             comparisonLabel={kpi.comparisonLabelKey ? t(kpi.comparisonLabelKey) : null}
             href={kpi.href ?? null}
+            featured={featured}
         />
     );
 
@@ -233,7 +254,7 @@ export default function Dashboard({
         const items = kpisForGroup(group);
         if (items.length === 0) return null;
 
-        return <MetricGrid count={items.length}>{items.map(renderKpi)}</MetricGrid>;
+        return <MetricGrid count={items.length}>{items.map((kpi) => renderKpi(kpi))}</MetricGrid>;
     };
 
     /*
@@ -244,9 +265,11 @@ export default function Dashboard({
     const canStructure = can.organizations || can.positions;
     const canIdentity = can.cards || can.verification || can.nfc;
     const canServices = can.entitlements || can.transactions || can.providers || can.serviceFeedback;
-    const canSystem = can.integration || can.audit;
+    const canSystem = can.integration;
 
     const tabs: DashboardTab[] = [
+        ...(can.employees || can.positions || can.cards || can.verification || can.nfc || can.audit || can.organizations || kpis.length > 0
+            ? [{ id: 'overview', label: t('dashboard.navigationOverview') }] : []),
         ...(can.employees || can.transfers ? [{ id: 'workforce', label: t('dashboard.tabs.workforce') }] : []),
         ...(canStructure ? [{ id: 'structure', label: t('dashboard.tabs.structure') }] : []),
         ...(canIdentity ? [{ id: 'identity', label: t('dashboard.tabs.identity') }] : []),
@@ -260,38 +283,51 @@ export default function Dashboard({
         role: 'tabpanel' as const,
         id: `dashboard-panel-${id}`,
         'aria-labelledby': `dashboard-tab-${id}`,
-        className: 'space-y-4',
+        className: 'space-y-5',
     });
 
     return (
         <AuthenticatedLayout>
             <Head title={t('dashboard.title')} />
 
-            <DashboardHeader header={header} />
+            <DashboardHeader header={header} refreshing={refreshing} onRefresh={refreshDashboard} filters={<DateRangeFilter filters={filters} t={t} />} />
 
-            <div className="space-y-4">
-                <DateRangeFilter filters={filters} t={t} />
+            <div className="min-w-0 space-y-5">
+                <section aria-labelledby="dashboard-overview-title" className="space-y-3">
+                    <h2
+                        id="dashboard-overview-title"
+                        className="sr-only"
+                    >
+                        {t('dashboard.overview')}
+                    </h2>
 
-                {/* What to do today, before any figure that merely describes. */}
-                <AttentionPanel
-                    alerts={alerts}
-                    queues={workflowQueues}
-                    t={t}
-                    title={t('dashboard.needsAttention')}
-                />
-
-                {kpis.length > 0 ? (
-                    <div className="space-y-3">
-                        <MetricGrid count={headlineKpis.length}>{headlineKpis.map(renderKpi)}</MetricGrid>
-                        {overflowKpis.length > 0 && (
-                            <MetricGrid count={overflowKpis.length}>{overflowKpis.map(renderKpi)}</MetricGrid>
-                        )}
+                    <div className="space-y-5">
+                        {kpis.length > 0 ? (
+                            <>
+                                {headlineKpis.length > 0 && (
+                                    <MetricGrid count={headlineKpis.length} variant="featured">
+                                        {headlineKpis.map((kpi, index) => renderKpi(kpi, index === 0))}
+                                    </MetricGrid>
+                                )}
+                            </>
+                        ) : !Object.values(can).some(Boolean) ? (
+                            <EmptyDashboardState title={t('dashboard.noDashboardData')} />
+                        ) : null}
                     </div>
-                ) : (
-                    <EmptyDashboardState title={t('dashboard.noDashboardData')} />
-                )}
+                </section>
 
-                <DashboardTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} label={t("dashboard.title")} />
+                <DashboardTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} label={t('dashboard.title')} />
+
+                {activeTab === 'overview' && (
+                    <div {...panelProps('overview')}>
+                        <DashboardOverview
+                            can={can} cards={cards} charts={charts} kpis={kpis}
+                            alerts={alerts} workflowQueues={workflowQueues}
+                            recentActivity={recentActivity} header={header}
+                            showCharts={showCharts} onNavigate={setActiveTab}
+                        />
+                    </div>
+                )}
 
                 {/* ── Workforce ──────────────────────────────────────────── */}
                 {activeTab === 'workforce' && (
@@ -568,11 +604,6 @@ export default function Dashboard({
                             />
                         )}
 
-                        {can.audit && (
-                            <ChartCard title={t('dashboard.sections.recentActivity')}>
-                                <RecentActivityFeed items={recentActivity} t={t} />
-                            </ChartCard>
-                        )}
                     </div>
                 )}
 

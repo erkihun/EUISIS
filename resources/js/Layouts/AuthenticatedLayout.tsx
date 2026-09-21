@@ -1,4 +1,6 @@
 import { PropsWithChildren, ReactNode, useEffect, useState } from 'react';
+import { usePage } from '@inertiajs/react';
+import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react';
 import AppSidebar from '@/Components/AppSidebar';
 import AppHeader from '@/Components/AppHeader';
 import Breadcrumbs from '@/Components/Breadcrumbs';
@@ -14,8 +16,9 @@ export default function Authenticated({
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-    const { locale } = useLocale();
+    const { locale, t } = useLocale();
     const { getBoolean, getString } = useSystemSettings();
+    const { url: pageUrl } = usePage();
 
     /* Defaults mirror the brand tokens in app.css. They are repeated here
        because this effect writes them onto the root element unconditionally,
@@ -54,6 +57,10 @@ export default function Authenticated({
             return next;
         });
     };
+
+    // Inertia keeps the shell mounted between visits. Close the mobile drawer
+    // after every successful navigation so the destination is immediately visible.
+    useEffect(() => setSidebarOpen(false), [pageUrl]);
 
     useEffect(() => {
         const root = document.documentElement;
@@ -101,6 +108,12 @@ export default function Authenticated({
     return (
         <LocalizedUiProvider>
         <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+            <a
+                href="#main-content"
+                className="sr-only fixed left-4 top-4 z-[60] rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg focus:not-sr-only"
+            >
+                {t('publicSite.skipToContent')}
+            </a>
             <AppToaster />
 
             {/* Desktop sidebar — fixed, does not scroll with page content */}
@@ -109,7 +122,7 @@ export default function Authenticated({
                     className={[
                         'fixed inset-y-0 left-0 z-30 flex h-screen flex-col',
                         'transition-[width] duration-200 ease-in-out overflow-hidden',
-                        sidebarCollapsed ? 'w-16' : 'w-64',
+                        sidebarCollapsed ? 'w-16' : 'w-72',
                     ].join(' ')}
                 >
                     <AppSidebar
@@ -119,26 +132,30 @@ export default function Authenticated({
                 </div>
             </div>
 
-            {/* Mobile sidebar drawer */}
-            {sidebarOpen && (
-                <div className="lg:hidden">
-                    <div
-                        className="fixed inset-0 z-20 bg-black/50"
-                        onClick={() => setSidebarOpen(false)}
-                        aria-hidden="true"
-                    />
-                    <div className="fixed inset-y-0 left-0 z-30 w-64 shadow-xl">
+            {/* Mobile sidebar drawer. Headless UI owns focus trapping, Escape,
+                scroll locking and focus restoration. */}
+            <Dialog open={sidebarOpen} onClose={setSidebarOpen} className="relative z-50 lg:hidden">
+                <DialogBackdrop
+                    transition
+                    className="fixed inset-0 bg-slate-950/60 backdrop-blur-[2px] transition-opacity duration-200 data-[closed]:opacity-0"
+                />
+                <div className="fixed inset-0 flex">
+                    <DialogPanel
+                        transition
+                        className="h-full w-[min(20rem,calc(100vw-3rem))] shadow-2xl transition duration-200 ease-out data-[closed]:-translate-x-full"
+                    >
+                        <DialogTitle className="sr-only">{t('publicSite.mainNavigation')}</DialogTitle>
                         <AppSidebar onClose={() => setSidebarOpen(false)} />
-                    </div>
+                    </DialogPanel>
                 </div>
-            )}
+            </Dialog>
 
             {/* Main area — offset by sidebar width on desktop, scrolls independently */}
             <div
                 className={[
                     'flex min-h-screen flex-col',
                     'transition-[margin-left] duration-200 ease-in-out',
-                    sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64',
+                    sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-72',
                 ].join(' ')}
             >
                 <AppHeader onMenuClick={() => setSidebarOpen(true)} />
@@ -160,7 +177,7 @@ export default function Authenticated({
 
                 {showBreadcrumbs && <Breadcrumbs />}
 
-                <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+                <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-5 outline-none sm:px-6 sm:py-6 lg:px-8">
                     {children}
                 </main>
             </div>

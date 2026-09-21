@@ -51,11 +51,13 @@ const DENIAL_REASON_KEY: Record<string, string> = {
 
 export default function MobileScan({
     providers,
+    scanOptions,
     provider_locked,
     today_scan_count,
     scan_result,
 }: {
     providers: Provider[];
+    scanOptions?: { default_usage_mode: string; allow_upfront_weekday_usage: boolean };
     provider_locked?: boolean;
     today_scan_count?: number;
     scan_result?: ScanResult | null;
@@ -80,7 +82,7 @@ export default function MobileScan({
         qr_token: '',
         scan_nonce: newScanNonce(),
         scanned_at: '',
-        usage_mode: 'single_day',
+        usage_mode: scanOptions?.default_usage_mode ?? 'single_day',
         source: 'mobile',
     });
 

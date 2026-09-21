@@ -109,7 +109,7 @@ class DashboardScopeService
             'previous_from' => $previousFrom,
             'previous_to' => $previousTo,
             'top_limit' => 10,
-            'activity_limit' => 12,
+            'activity_limit' => 8,
             'published_hierarchy_version_id' => $publishedHierarchyVersion?->id,
             'organization_options' => $this->organizationOptionsForFilter($baseOrganizationIds),
         ];

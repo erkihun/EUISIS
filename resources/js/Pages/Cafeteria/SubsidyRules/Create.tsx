@@ -6,11 +6,11 @@ import { FormEvent, ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-export default function SubsidyRulesCreate() {
+export default function SubsidyRulesCreate({ defaults }: { defaults?: { subsidy_amount: number; currency: string } }) {
     const { t } = useLocale();
     const form = useForm({
         code: '', name_en: '', name_am: '',
-        subsidy_amount: '', currency: 'ETB',
+        subsidy_amount: String(defaults?.subsidy_amount ?? ''), currency: defaults?.currency ?? 'ETB',
         effective_from: '', effective_to: '',
         applies_to: 'all_employees', organization_id: '',
         is_active: true, exclude_weekends: true, notes: '',
@@ -31,7 +31,7 @@ export default function SubsidyRulesCreate() {
                     <Field label={t('common.code')} error={form.errors.code}>
                         <input className={inputCls} value={form.data.code} onChange={(e) => form.setData('code', e.target.value.toUpperCase())} required />
                     </Field>
-                    <Field label={`${t('cafeteria.subsidyAmount')} (ETB)`} error={form.errors.subsidy_amount}>
+                    <Field label={`${t('cafeteria.subsidyAmount')} (${form.data.currency})`} error={form.errors.subsidy_amount}>
                         <input type="number" step="0.01" min="0" className={inputCls} value={form.data.subsidy_amount} onChange={(e) => form.setData('subsidy_amount', e.target.value)} required />
                     </Field>
                     <Field label={t('cafeteria.nameEn')} error={form.errors.name_en}>

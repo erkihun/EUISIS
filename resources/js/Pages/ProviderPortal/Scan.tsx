@@ -107,11 +107,13 @@ function computeCoveredDates(scanDate: string, result: ScanResult): string[] {
 
 export default function ProviderPortalScan({
     providers,
+    scanOptions,
     selected_provider_id,
     today_scans,
     scan_result,
 }: {
     providers: Provider[];
+    scanOptions?: { default_usage_mode: string; allow_upfront_weekday_usage: boolean };
     selected_provider_id: string | null;
     today_scans?: TodayScan[];
     scan_result?: ScanResult | null;
@@ -160,7 +162,7 @@ export default function ProviderPortalScan({
         qr_token: '',
         scan_nonce: newScanNonce(),
         scanned_at: '',
-        usage_mode: 'single_day',
+        usage_mode: scanOptions?.default_usage_mode ?? 'single_day',
     });
 
     const inputCls = 'w-full rounded-card border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-400/20 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100';
@@ -393,7 +395,7 @@ export default function ProviderPortalScan({
                             <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('cafeteria.usageModeLabel')}</label>
                             <select className={inputCls} value={form.data.usage_mode} onChange={e => form.setData('usage_mode', e.target.value)}>
                                 <option value="single_day">{t('cafeteria.usageModeSingleDay')}</option>
-                                <option value="use_remaining_week">{t('cafeteria.usageModeRemainingWeek')}</option>
+                                <option value="use_remaining_week" disabled={scanOptions?.allow_upfront_weekday_usage === false}>{t('cafeteria.usageModeRemainingWeek')}</option>
                             </select>
                         </div>
 

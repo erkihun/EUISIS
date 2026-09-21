@@ -15,13 +15,13 @@ use Illuminate\Support\Carbon;
 
 class CafeteriaCalendarService
 {
-    public function __construct(private readonly WorkingDayCalendarService $workingDays) {}
+    public function __construct(private readonly WorkingDayCalendarService $workingDays, private readonly CafeteriaWeekWindowService $weekWindow, private readonly CafeteriaSettingsService $settings) {}
 
     /** @return list<array<string, mixed>> */
     public function getEmployeeWeekCalendar(?Employee $employee, Carbon $date, ?CafeteriaProvider $provider = null): array
     {
-        $weekStart = $date->copy()->startOfWeek(Carbon::MONDAY);
-        $weekEnd = $date->copy()->startOfWeek(Carbon::MONDAY)->addDays(6);
+        $weekStart = $this->weekWindow->weekStart($date);
+        $weekEnd = $weekStart->copy()->addDays(6);
         $consumed = $employee === null ? [] : $this->getConsumedDatesForWeek($employee, $weekStart, $weekEnd);
         $days = [];
         $current = $weekStart->copy();
@@ -74,27 +74,32 @@ class CafeteriaCalendarService
             ? null
             : EmployeeCafeteriaExclusion::query()
                 ->where('employee_id', $employee->id)
-                ->where('starts_on', '<=', $dateString)
+                ->whereDate('starts_on', '<=', $dateString)
                 ->where(function ($query) use ($dateString): void {
-                    $query->whereNull('ends_on')->orWhere('ends_on', '>=', $dateString);
+                    $query->whereNull('return_to_work_on')->orWhereDate('return_to_work_on', '>', $dateString);
+                })
+                ->where(function ($query) use ($dateString): void {
+                    $query->whereNull('ends_on')->orWhereDate('ends_on', '>=', $dateString);
                 })
                 ->where('status', 'active')
                 ->first();
 
-        $isOpen = $this->workingDays->isCafeteriaOpen($date);
-        $isSubsidyDay = $this->workingDays->isSubsidyDay($date);
+        $isOpen = $this->workingDays->isCafeteriaOpen($date, $provider);
+        $isSubsidyDay = $this->workingDays->isSubsidyDay($date, $provider);
+        $isInWindow = $date->lte($this->weekWindow->weekEnd($date));
+        $excludesLeave = $exclusion !== null && $this->settings->getBool('exclude_leave_days_from_subsidy');
         $isConsumed = isset($consumed[$dateString]);
         $isPast = $date->lt(Carbon::today());
 
         $reasonCode = match (true) {
             $isConsumed => 'consumed',
-            $exclusion !== null => 'employee_leave',
+            $excludesLeave => 'employee_leave',
             $special !== null && ! $special->is_open => 'special_closed_day',
             $special !== null && ! $special->is_subsidy_day => 'special_no_subsidy_day',
-            $holiday !== null => 'public_holiday',
+            $holiday !== null && ! $isSubsidyDay => 'public_holiday',
             ! $isOpen => $date->isWeekend() ? 'weekend_closed' : 'closed',
             ! $isSubsidyDay => 'closed',
-            $isPast => 'past_unclaimable',
+            $isPast || ! $isInWindow => 'past_unclaimable',
             $special !== null && $special->is_open => 'special_open_day',
             default => $date->isWeekend() ? 'weekend_available' : 'available',
         };
@@ -103,7 +108,7 @@ class CafeteriaCalendarService
             'date' => $dateString,
             'day_name' => $date->format('l'),
             'is_today' => $date->isSameDay(Carbon::today()),
-            'is_working_day' => $this->workingDays->isWorkingDay($date),
+            'is_working_day' => $this->workingDays->isWorkingDay($date, true, $provider),
             'is_open' => $isOpen,
             'is_subsidy_day' => $isSubsidyDay,
             'is_public_holiday' => $holiday !== null,
@@ -111,7 +116,7 @@ class CafeteriaCalendarService
             'is_employee_excluded' => $exclusion !== null,
             'is_consumed' => $isConsumed,
             'consumed_by_transaction_id' => $consumed[$dateString]->cafeteria_transaction_id ?? null,
-            'is_available' => ! $isConsumed && $exclusion === null && $isOpen && $isSubsidyDay && ! $isPast,
+            'is_available' => ! $isConsumed && ! $excludesLeave && $isOpen && $isSubsidyDay && ! $isPast && $isInWindow,
             'reason_code' => $reasonCode,
             'label' => $this->labelForReason($reasonCode),
         ];

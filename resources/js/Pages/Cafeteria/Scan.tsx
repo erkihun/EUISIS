@@ -1,5 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import UserAvatar from '@/Components/UserAvatar';
 import { CheckCircle, UserIcon } from '@/Components/Icons';
 import { Head, router, useForm } from '@inertiajs/react';
 import { FormEvent, useCallback, useEffect, useId, useRef, useState } from 'react';
@@ -148,8 +150,8 @@ function isoDate(year: number, month: number, day: number): string {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
-function formatTime(iso: string): string {
-    return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+function formatTime(iso: string, locale: string): string {
+    return new Date(iso).toLocaleTimeString(locale === 'am' ? 'am-ET' : 'en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
 function newScanNonce(): string {
@@ -194,12 +196,14 @@ function computeCoveredDates(scanDate: string, result: ScanResult): string[] {
 
 export default function CafeteriaScan({
     providers,
+    scanOptions,
     provider_locked,
     today_scans,
     calendar_days,
     scan_result,
 }: {
     providers: Provider[];
+    scanOptions?: { default_usage_mode: string; allow_upfront_weekday_usage: boolean };
     provider_locked?: boolean;
     today_scans?: TodayScan[];
     calendar_days?: CalendarDay[];
@@ -222,6 +226,8 @@ export default function CafeteriaScan({
     const [cameraStarting,   setCameraStarting]   = useState(false);
     const [countdown,        setCountdown]        = useState<number | null>(null);
     const [todayScans, setTodayScans] = useState<TodayScan[]>(today_scans ?? []);
+    const [historyState, setHistoryState] = useState<'loading' | 'ready' | 'error'>('ready');
+    const [calendarState, setCalendarState] = useState<'loading' | 'ready' | 'error'>('ready');
     const [calendarMeta, setCalendarMeta] = useState<CalendarDay[]>(scan_result?.calendar_days ?? calendar_days ?? []);
 
     // Calendar state
@@ -263,11 +269,11 @@ export default function CafeteriaScan({
         qr_token:                  '',
         scan_nonce:                newScanNonce(),
         scanned_at:                '',
-        usage_mode:                'single_day',
+        usage_mode: scanOptions?.default_usage_mode ?? 'single_day',
     });
 
     const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+        'w-full min-w-0 rounded-lg border border-[var(--app-border-strong)] bg-[var(--app-surface)] px-3 py-2.5 text-sm text-[var(--app-foreground)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] disabled:opacity-70';
 
     const selectedProvider = providers.find((provider) => provider.id === form.data.provider_id) ?? null;
     const selectedProviderName = selectedProvider
@@ -399,12 +405,15 @@ export default function CafeteriaScan({
             const onScanSuccess = (decodedText: string) => {
                 if (scanHandledRef.current) return;
                 scanHandledRef.current = true;
-                submitScannedToken(decodedText);
+                setCameraProcessing(true);
+                // Stop decoding before posting, so one card cannot submit twice.
+                // Inertia preserves this component; the result effect restarts it.
+                void stopCamera().then(() => submitScannedToken(decodedText));
             };
 
             let started = false;
             try {
-                await scanner.start({ facingMode: { ideal: 'environment' } }, cameraScanConfig, onScanSuccess, () => undefined);
+                await scanner.start({ facingMode: 'environment' }, cameraScanConfig, onScanSuccess, () => undefined);
                 started = true;
             } catch { }
 
@@ -430,10 +439,20 @@ export default function CafeteriaScan({
             scannerTransitionRef.current = false;
             setCameraStarting(false);
         }
-    }, [cameraActive, cameraProcessing, form.data.provider_id, getCameraErrorMessage, scannerRegionId, selectPreferredCamera, submitScannedToken, t, verifyCameraAccess]);
+    }, [cameraActive, cameraProcessing, form.data.provider_id, getCameraErrorMessage, scannerRegionId, selectPreferredCamera, stopCamera, submitScannedToken, t, verifyCameraAccess]);
+
+    const startCameraRef = useRef(startCamera);
+    useEffect(() => { startCameraRef.current = startCamera; }, [startCamera]);
 
     function submit(e: FormEvent) {
         e.preventDefault();
+
+        // Manual entry submits on Enter, so these guards live here rather than
+        // on a submit button's disabled state.
+        if (!form.data.provider_id || !form.data.qr_token.trim() || form.processing || cameraProcessing) {
+            return;
+        }
+
         form.post(route('cafeteria.scan.process'), {
             preserveScroll: true,
             onFinish: () => form.setData('scan_nonce', newScanNonce()),
@@ -451,7 +470,7 @@ export default function CafeteriaScan({
 
     // Auto-restart after scan result
     useEffect(() => {
-        if (!scan_result) return;
+        if (!scan_result || credentialMethod !== 'qr' || cameraProcessing) { setCountdown(null); return; }
         let count = 3;
         setCountdown(count);
         const countInterval = window.setInterval(() => {
@@ -459,10 +478,9 @@ export default function CafeteriaScan({
             setCountdown(count > 0 ? count : null);
             if (count <= 0) clearInterval(countInterval);
         }, 1000);
-        const autoStart = window.setTimeout(() => void startCamera(), 3000);
+        const autoStart = window.setTimeout(() => void startCameraRef.current(), 3000);
         return () => { clearInterval(countInterval); clearTimeout(autoStart); };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [scan_result, credentialMethod, cameraProcessing]);
 
     // Track successful scans → update calendar
     useEffect(() => {
@@ -482,6 +500,8 @@ export default function CafeteriaScan({
         if (!form.data.provider_id) return;
 
         let cancelled = false;
+        setHistoryState('loading');
+        setCalendarState('loading');
 
         void window.axios
             .get<{ calendar_days: CalendarDay[] }>(route('cafeteria.scan.calendar'), {
@@ -492,7 +512,10 @@ export default function CafeteriaScan({
                 },
             })
             .then((response) => {
-                if (!cancelled) setCalendarMeta(response.data.calendar_days);
+                if (!cancelled) { setCalendarMeta(response.data.calendar_days); setCalendarState('ready'); }
+            })
+            .catch(() => {
+                if (!cancelled) setCalendarState('error');
             });
 
         void window.axios
@@ -500,7 +523,10 @@ export default function CafeteriaScan({
                 params: { provider_id: form.data.provider_id },
             })
             .then((response) => {
-                if (!cancelled) setTodayScans(response.data.data);
+                if (!cancelled) { setTodayScans(response.data.data); setHistoryState('ready'); }
+            })
+            .catch(() => {
+                if (!cancelled) setHistoryState('error');
             });
 
         return () => { cancelled = true; };
@@ -531,7 +557,6 @@ export default function CafeteriaScan({
         ? ['እሁ', 'ሰኞ', 'ማክ', 'ረቡ', 'ሐሙ', 'ዓር', 'ቅዳ']
         : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
     const cells = buildCalendarCells(calYear, calMonth, isEthiopian);
-    const todayScansToday = scanHistory.filter(({ ts }) => ts.startsWith(todayDateStr));
 
     function prevMonth() {
         if (isEthiopian) {
@@ -552,508 +577,332 @@ export default function CafeteriaScan({
         }
     }
 
-    // ── Render ──────────────────────────────────────────────────────────────
+
+    const panelCls = 'min-w-0 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)]';
+    const mutedCls = 'text-[var(--app-muted-foreground)]';
+    const buttonCls = 'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+    const resultTone = !scan_result?.allowed
+        ? 'border-red-200 bg-red-50 text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200'
+        : scan_result.is_extra_scan
+            ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200'
+            : 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200';
+    const denialKey = DENIAL_REASON_KEY[scan_result?.denial_reason ?? ''];
+    const employee = scan_result?.employee;
 
     return (
         <AuthenticatedLayout header={<PageHeader title={t('cafeteria.scanTerminal')} />}>
-            <Head title={t('cafeteria.scanQr')} />
-
-            <div className="mx-auto max-w-7xl">
-                <form
-                    onSubmit={submit}
-                    className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900"
-                >
-                    {/* Header */}
-                    <div className="border-b border-gray-200 px-6 py-4 dark:border-slate-800">
-                        <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                            {t('cafeteria.scanQr')}
-                        </h2>
-                    </div>
-
-                    {/* Scan result banner */}
-                    {scan_result && (
-                        <div className={`border-b px-6 py-4 ${
-                            scan_result.allowed
-                                ? scan_result.is_extra_scan
-                                    ? 'border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/30'
-                                    : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30'
-                                : 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30'
-                        }`}>
-                            <p className={`font-semibold ${
-                                scan_result.allowed
-                                    ? scan_result.is_extra_scan
-                                        ? 'text-orange-700 dark:text-orange-300'
-                                        : 'text-emerald-700 dark:text-emerald-300'
-                                    : 'text-red-700 dark:text-red-300'
-                            }`}>
-                                {scan_result.allowed
-                                    ? (scan_result.is_extra_scan ? t('cafeteria.extraScanRecorded') : t('cafeteria.scanRecorded'))
-                                    : scan_result.denial_message ?? (() => {
-                                        const key = DENIAL_REASON_KEY[scan_result.denial_reason ?? ''];
-                                        return key
-                                            ? `${t('cafeteria.scanDenied')} — ${t(`cafeteria.${key}`)}`
-                                            : `${t('cafeteria.scanDenied')} — ${scan_result.denial_reason ?? ''}`;
-                                    })()}
-                            </p>
-                            {countdown !== null && (
-                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                    {t('cafeteria.scanAgainIn').replace('{{count}}', String(countdown))}
-                                </p>
-                            )}
+            <Head title={t('cafeteria.scanTerminal')} />
+            <div data-cafeteria-terminal className="space-y-5 text-[var(--app-foreground)]">
+                <section aria-label={t('cafeteria.selectedProvider')} className={panelCls}>
+                    <div className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] xl:items-end">
+                        <div className="min-w-0">
+                            <label htmlFor="scan-provider" className={`mb-1.5 block text-xs font-medium ${mutedCls}`}>{t('cafeteria.selectProvider')}</label>
+                            <select id="scan-provider" className={inputCls} value={form.data.provider_id}
+                                onChange={(e) => form.setData('provider_id', e.target.value)}
+                                disabled={provider_locked || cameraStarting || cameraActive || cameraProcessing || form.processing} required>
+                                {providers.length === 0 && <option value="">{t('cafeteria.noProvidersAvailable')}</option>}
+                                {providers.map((provider) => <option key={provider.id} value={provider.id}>{locale === 'am' && provider.name_am ? provider.name_am : provider.name_en} ({provider.code})</option>)}
+                            </select>
+                            {form.errors.provider_id && <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-300">{form.errors.provider_id}</p>}
                         </div>
-                    )}
+                        <div className="min-w-0">
+                            <label htmlFor="scan-usage" className={`mb-1.5 block text-xs font-medium ${mutedCls}`}>{t('cafeteria.usageModeLabel')}</label>
+                            <select id="scan-usage" className={inputCls} value={form.data.usage_mode}
+                                disabled={cameraStarting || cameraActive || cameraProcessing || form.processing}
+                                onChange={(e) => form.setData('usage_mode', e.target.value)}>
+                                <option value="single_day">{t('cafeteria.usageModeSingleDay')}</option>
+                                <option value="use_remaining_week" disabled={scanOptions?.allow_upfront_weekday_usage === false}>{t('cafeteria.usageModeRemainingWeek')}</option>
+                            </select>
+                            {form.errors.usage_mode && <p role="alert" className="mt-1 text-xs text-red-600 dark:text-red-300">{form.errors.usage_mode}</p>}
+                        </div>
+                        <div className={`flex min-h-10 items-center gap-2 text-xs sm:col-span-2 xl:col-span-1 ${mutedCls}`}>
+                            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />
+                            <LocalizedDateDisplay value={todayDateStr} />
+                        </div>
+                    </div>
+                    {selectedProvider && <details className="border-t border-[var(--app-border)] px-4 py-2.5">
+                        <summary className={`cursor-pointer break-words text-xs leading-5 focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] ${mutedCls}`}>
+                            {t('cafeteria.providerDetails')} · {selectedOrganizationName || selectedProviderName}
+                        </summary>
+                        {provider_locked && <p className={`mt-2 text-xs ${mutedCls}`}>{t('cafeteria.providerScopedNotice')}</p>}
+                        <dl className="mt-3 grid gap-x-6 gap-y-3 pb-1 sm:grid-cols-2 xl:grid-cols-3">
+                            {selectedProviderDetails.map((detail) => <div key={detail.label} className="min-w-0 text-xs">
+                                <dt className={mutedCls}>{detail.label}</dt><dd className="mt-0.5 break-words font-medium">{detail.value}</dd>
+                            </div>)}
+                        </dl>
+                    </details>}
+                </section>
 
-                    {/* Main body: scanner | calendar | employee */}
-                    <div className="grid gap-6 p-6 lg:grid-cols-3 lg:items-start">
-
-                        {/* ── LEFT: Credential capture (QR or NFC) ── */}
-                        <div className="space-y-4">
-                            {/* Credential method — QR stays the default and is never removed */}
-                            <div className="flex gap-2 rounded-card bg-gray-100 p-1 dark:bg-slate-800">
-                                {(['qr', 'nfc'] as const).map((method) => (
-                                    <button
-                                        key={method}
-                                        type="button"
-                                        onClick={() => setCredentialMethod(method)}
-                                        aria-pressed={credentialMethod === method}
-                                        className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                                            credentialMethod === method
-                                                ? 'bg-white text-gray-900 shadow-sm dark:bg-slate-950 dark:text-slate-100'
-                                                : 'text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200'
-                                        }`}
-                                    >
-                                        {method === 'qr' ? t('nfc.scanMethodQr') : t('nfc.scanMethodNfc')}
+                <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-12">
+                    <section aria-labelledby="capture-heading" className={`${panelCls} xl:col-span-5`}>
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--app-border)] px-4 py-3">
+                            <h2 id="capture-heading" className="text-sm font-semibold">{t('cafeteria.scanCredential')}</h2>
+                            <span className={`text-xs ${mutedCls}`} aria-live="polite">
+                                {cameraProcessing || form.processing ? t('cafeteria.processingScan') : cameraActive ? t('cafeteria.cameraScanning') : t('cafeteria.readyToScan')}
+                            </span>
+                        </div>
+                        <div className="space-y-4 p-4">
+                            <div className="flex gap-1 rounded-lg bg-[var(--app-surface-muted)] p-1" role="group" aria-label={t('cafeteria.scanCredential')}>
+                                {(['qr', 'nfc'] as const).map((method) => <button key={method} type="button"
+                                    disabled={cameraStarting || cameraProcessing || form.processing}
+                                    onClick={async () => { if (method !== credentialMethod) { await stopCamera(); setCredentialMethod(method); } }}
+                                    aria-pressed={credentialMethod === method}
+                                    className={`${buttonCls} flex-1 ${credentialMethod === method ? 'bg-[var(--app-surface)] text-[var(--app-foreground)] shadow-sm' : mutedCls}`}>
+                                    {method === 'qr' ? t('nfc.scanMethodQr') : t('nfc.scanMethodNfc')}
+                                </button>)}
+                            </div>
+                            {credentialMethod === 'nfc' ? <NfcTapPanel disabled={!form.data.provider_id} onCredential={submitNfcCredential} /> : <>
+                                <div className="relative overflow-hidden rounded-lg bg-slate-950">
+                                    {/* The decoder uses video element dimensions: never crop or force its height. */}
+                                    <div id={scannerRegionId} className="mx-auto min-h-[240px] w-full max-w-[340px] [&_video]:h-auto [&_video]:w-full" />
+                                    {!cameraActive && <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6 text-center">
+                                        <svg aria-hidden="true" className="h-16 w-16 text-slate-400" fill="none" viewBox="0 0 64 64" stroke="currentColor" strokeWidth="2">
+                                            <path d="M20 6H6v14M44 6h14v14M6 44v14h14M58 44v14H44" />
+                                            <path d="M20 20h8v8h-8zM36 20h8v8h-8zM20 36h8v8h-8zM36 36h4v4h4v4h-8z" />
+                                        </svg>
+                                        <p className="max-w-xs text-sm leading-6 text-slate-300">{cameraProcessing ? t('cafeteria.processingScan') : t('cafeteria.cameraReady')}</p>
+                                    </div>}
+                                </div>
+                                {cameraError && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs leading-5 text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">{cameraError}</p>}
+                                <div className="flex flex-wrap gap-2">
+                                    <button type="button" onClick={() => void startCamera()}
+                                        disabled={!form.data.provider_id || cameraStarting || cameraActive || cameraProcessing || form.processing}
+                                        className={`${buttonCls} flex-1 bg-[var(--app-foreground)] text-[var(--app-surface)] hover:opacity-90`}>
+                                        {cameraStarting || cameraActive ? t('cafeteria.cameraScanning') : t('cafeteria.startCamera')}
                                     </button>
-                                ))}
-                            </div>
-
-                            {credentialMethod === 'nfc' ? (
-                                <NfcTapPanel
-                                    disabled={!form.data.provider_id}
-                                    onCredential={submitNfcCredential}
-                                />
-                            ) : (
-                              <>
-                            {/* Camera viewfinder */}
-                            <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-950 dark:border-slate-700">
-                                <div
-                                    id={scannerRegionId}
-                                    className="min-h-[300px] w-full [&_video]:min-h-[300px] [&_video]:w-full [&_video]:object-cover"
-                                />
-                                {!cameraActive && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-gray-950 px-6 text-center text-sm text-slate-300">
-                                        {cameraProcessing ? t('cafeteria.processingScan') : t('cafeteria.cameraReady')}
+                                    <button type="button" onClick={() => void stopCamera()} disabled={!cameraActive}
+                                        className={`${buttonCls} border border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]`}>{t('cafeteria.stopCamera')}</button>
+                                </div>
+                                <form onSubmit={submit} className="space-y-2 border-t border-[var(--app-border)] pt-4">
+                                    <label htmlFor="scan-token" className="block text-xs font-medium">{t('cafeteria.enterQrToken')}</label>
+                                    <div className="flex flex-wrap gap-2">
+                                        <input id="scan-token" className={`${inputCls} min-w-0 flex-1 basis-40`} placeholder="xxxx-xxxx|token"
+                                            autoComplete="off" spellCheck={false} aria-invalid={!!form.errors.qr_token}
+                                            value={form.data.qr_token} onChange={(e) => form.setData('qr_token', e.target.value)} />
                                     </div>
-                                )}
-                            </div>
-
-                            {cameraError && (
-                                <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
-                                    {cameraError}
-                                </p>
-                            )}
-
-                            {/* Camera controls */}
-                            <div className="flex flex-wrap gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => void startCamera()}
-                                    disabled={cameraStarting || cameraActive || cameraProcessing || form.processing}
-                                    className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
-                                >
-                                    {cameraStarting || cameraActive ? t('cafeteria.cameraScanning') : t('cafeteria.startCamera')}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => void stopCamera()}
-                                    disabled={!cameraActive}
-                                    className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                                >
-                                    {t('cafeteria.stopCamera')}
-                                </button>
-                            </div>
-                              </>
-                            )}
-
-                            {/* Provider selector */}
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                                    {t('cafeteria.selectProvider')}
-                                </label>
-                                <select
-                                    className={inputCls}
-                                    value={form.data.provider_id}
-                                    onChange={(e) => form.setData('provider_id', e.target.value)}
-                                    disabled={provider_locked}
-                                    required
-                                >
-                                    {providers.map((p) => (
-                                        <option key={p.id} value={p.id}>
-                                            {p.name_en} ({p.code})
-                                        </option>
-                                    ))}
-                                </select>
-                                {form.errors.provider_id && (
-                                    <p className="text-xs text-red-600">{form.errors.provider_id}</p>
-                                )}
-                                {provider_locked && (
-                                    <p className="text-xs text-[color:var(--color-primary)] dark:text-blue-300">
-                                        {t('cafeteria.providerScopedNotice')}
-                                    </p>
-                                )}
-                            </div>
-
-                            {selectedProvider && (
-                                <div className="rounded-lg border border-blue-100 bg-blue-50/70 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
-                                    <p className="text-xs font-semibold uppercase text-blue-700 dark:text-blue-300">
-                                        {t('cafeteria.selectedProvider')}
-                                    </p>
-                                    <h3 className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
-                                        {selectedProviderName}
-                                    </h3>
-                                    {selectedProviderDetails.length > 0 && (
-                                        <dl className="mt-3 space-y-2">
-                                            {selectedProviderDetails.map((detail) => (
-                                                <div key={detail.label} className="flex items-start justify-between gap-3 text-xs">
-                                                    <dt className="text-gray-500 dark:text-slate-400">{detail.label}</dt>
-                                                    <dd className="max-w-[65%] text-right font-medium text-gray-800 dark:text-slate-100">
-                                                        {detail.value}
-                                                    </dd>
-                                                </div>
-                                            ))}
-                                        </dl>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Manual token fallback */}
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                                    {t('cafeteria.enterQrToken')}
-                                </label>
-                                <input
-                                    className={inputCls}
-                                    placeholder="xxxx-xxxx|token"
-                                    value={form.data.qr_token}
-                                    onChange={(e) => form.setData('qr_token', e.target.value)}
-                                />
-                                {form.errors.qr_token && (
-                                    <p className="text-xs text-red-600">{form.errors.qr_token}</p>
-                                )}
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
-                                    {t('cafeteria.manualQrFallback')}
-                                </p>
-                            </div>
-
-                            {/* Usage mode selector */}
-                            <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
-                                    {t('cafeteria.usageModeLabel')}
-                                </label>
-                                <select
-                                    className={inputCls}
-                                    value={form.data.usage_mode}
-                                    onChange={(e) => form.setData('usage_mode', e.target.value)}
-                                >
-                                    <option value="single_day">{t('cafeteria.usageModeSingleDay')}</option>
-                                    <option value="use_remaining_week">{t('cafeteria.usageModeRemainingWeek')}</option>
-                                </select>
-                            </div>
-
-                            {/* Week availability summary (shown after a successful scan) */}
-                            {scan_result?.allowed && scan_result.week_start && (
-                                <div className="rounded-card border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
-                                    <p className="mb-2 text-xs font-semibold text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">
-                                        {t('cafeteria.weeklyWindowTitle')} — {scan_result.week_start} → {scan_result.week_end}
-                                    </p>
-                                    <dl className="space-y-1 text-sm">
-                                        <div className="flex justify-between">
-                                            <dt className="text-gray-500 dark:text-slate-400">{t('cafeteria.subsidyApplied')}</dt>
-                                            <dd className="font-semibold text-emerald-600 dark:text-emerald-400">{scan_result.subsidy_applied?.toFixed(2)}</dd>
-                                        </div>
-                                        {(scan_result.employee_payable ?? 0) > 0 && (
-                                            <div className="flex justify-between">
-                                                <dt className="text-gray-500 dark:text-slate-400">{t('cafeteria.employeePayableAmount')}</dt>
-                                                <dd className="font-semibold text-orange-600 dark:text-orange-400">{scan_result.employee_payable?.toFixed(2)}</dd>
-                                            </div>
-                                        )}
-                                        <div className="flex justify-between">
-                                            <dt className="text-gray-500 dark:text-slate-400">{t('cafeteria.consumedDays')}</dt>
-                                            <dd className="font-medium text-gray-700 dark:text-slate-300">{scan_result.consumed_days_count} / {scan_result.available_days_count}</dd>
-                                        </div>
-                                        <div className="flex justify-between border-t border-blue-200 pt-1 dark:border-blue-900/40">
-                                            <dt className="font-medium text-gray-600 dark:text-slate-300">{t('cafeteria.remainingWeekBalance')}</dt>
-                                            <dd className="font-bold text-blue-700 dark:text-blue-300">{scan_result.remaining_after?.toFixed(2)}</dd>
-                                        </div>
-                                    </dl>
-                                </div>
-                            )}
+                                    {form.errors.qr_token && <p role="alert" className="text-xs text-red-600 dark:text-red-300">{form.errors.qr_token}</p>}
+                                </form>
+                            </>}
                         </div>
+                    </section>
 
-                        {/* ── MIDDLE: Scan Calendar + Employee Info ── */}
-                        <div className="flex flex-col gap-4">
-                            <div className="shrink-0 overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-
-                                {/* Calendar header */}
-                                <div className="border-b border-gray-100 bg-gray-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40">
-                                    <div className="flex items-center justify-between">
-                                        <button
-                                            type="button"
-                                            onClick={prevMonth}
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700"
-                                            aria-label="Previous month"
-                                        >
-                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                            </svg>
-                                        </button>
-                                        <div className="text-center">
-                                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                                                {getMonthLabel(calYear, calMonth, locale, isEthiopian)}
-                                            </p>
-                                            <span className={`text-[10px] font-medium ${isEthiopian ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-400 dark:text-slate-500'}`}>
-                                                {isEthiopian
-                                                    ? (locale === 'am' ? 'የኢትዮጵያ ቀን አቆጣጠር' : 'Ethiopian Calendar')
-                                                    : (locale === 'am' ? 'ጎርጎሪያን ቀን አቆጣጠር' : 'Gregorian Calendar')}
-                                            </span>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={nextMonth}
-                                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700"
-                                            aria-label="Next month"
-                                        >
-                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="px-3 pb-3 pt-2">
-                                    {/* Day-of-week headers */}
-                                    <div className="mb-1 grid grid-cols-7">
-                                        {dayLabels.map((d) => (
-                                            <div key={d} className="py-1.5 text-center text-[11px] font-semibold text-gray-400 dark:text-slate-500">
-                                                {d}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Day cells */}
-                                    <div className="grid grid-cols-7">
-                                        {cells.map((cell, idx) => {
-                                            if (cell === null) return <div key={`empty-${idx}`} />;
-
-                                            const { day, gregorianIso: dateStr } = cell;
-                                            const isToday  = dateStr === todayDateStr;
-                                            const dayMeta = calendarMeta.find((item) => item.date === dateStr);
-                                            const scanCount = scannedDateMap.get(dateStr) ?? 0;
-                                            const isConsumed = dayMeta?.is_consumed || scanCount > 0;
-
-                                            let cellCls: string;
-                                            if (dayMeta?.is_consumed) {
-                                                cellCls = 'bg-emerald-500 text-white font-bold shadow-sm';
-                                            } else if (dayMeta?.is_employee_excluded) {
-                                                cellCls = 'bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400';
-                                            } else if (dayMeta?.is_public_holiday || dayMeta?.reason_code === 'special_no_subsidy_day') {
-                                                cellCls = 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400';
-                                            } else if (dayMeta?.reason_code === 'special_open_day') {
-                                                cellCls = 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400';
-                                            } else if (dayMeta?.is_available) {
-                                                cellCls = 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-950/40 dark:text-blue-300';
-                                            } else if (dayMeta !== undefined && !dayMeta.is_open) {
-                                                cellCls = 'bg-gray-100 text-gray-400 dark:bg-slate-800/70 dark:text-slate-600';
-                                            } else {
-                                                cellCls = 'text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800/60';
-                                            }
-
-                                            return (
-                                                <div
-                                                    key={dateStr || `cell-${idx}`}
-                                                    title={dayMeta?.label}
-                                                    className={`relative mx-auto my-0.5 flex h-8 w-8 flex-col items-center justify-center rounded-lg text-[13px] transition-colors
-                                                        ${isToday ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-1 dark:ring-offset-slate-900' : ''}
-                                                        ${cellCls}
-                                                    `}
-                                                >
-                                                    <span className="leading-none">{day}</span>
-                                                    {isConsumed && (
-                                                        scanCount <= 1 ? (
-                                                            <CheckCircle
-                                                                className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 ${
-                                                                    isToday ? 'text-emerald-300' : 'text-emerald-500'
-                                                                }`}
-                                                            />
-                                                        ) : (
-                                                            <span className={`absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
-                                                                isToday ? 'bg-emerald-300 text-emerald-900' : 'bg-emerald-500 text-white'
-                                                            }`}>
-                                                                {scanCount}
-                                                            </span>
-                                                        )
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-
-                                {/* Legend */}
-                                <div className="border-t border-gray-100 px-4 py-3 dark:border-slate-800">
-                                    <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-                                        {[
-                                            ['bg-blue-50 border border-blue-200', t('cafeteria.calendar_available')],
-                                            ['bg-emerald-500', t('cafeteria.calendar_consumed')],
-                                            ['bg-gray-100', t('cafeteria.calendar_closed')],
-                                            ['bg-amber-100', t('cafeteria.calendar_public_holiday')],
-                                            ['bg-purple-100', t('cafeteria.calendar_special_open_day')],
-                                            ['bg-red-100', t('cafeteria.calendar_employee_leave')],
-                                        ].map(([color, label]) => (
-                                            <span key={label} className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-slate-400">
-                                                <span className={`h-2.5 w-2.5 shrink-0 rounded-sm ${color}`} />
-                                                {label}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
+                    <section aria-labelledby="result-heading" className={`${panelCls} xl:col-span-7`}>
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--app-border)] px-4 py-3">
+                            <h2 id="result-heading" className="text-sm font-semibold">{t('cafeteria.scanResult')}</h2>
+                            {scan_result && <span className={`text-xs ${mutedCls}`}>{t('cafeteria.latest')}</span>}
+                        </div>
+                        {scan_result ? <div className="space-y-5 p-4">
+                            <div role="status" aria-live="polite" className={`rounded-lg border p-3 ${resultTone}`}>
+                                <p className="text-sm font-semibold">{!scan_result.allowed ? t('cafeteria.scanDenied') : scan_result.is_extra_scan ? t('cafeteria.extraScanRecorded') : t('cafeteria.scanRecorded')}</p>
+                                {!scan_result.allowed && <p className="mt-1 text-sm leading-6">{scan_result.denial_message || (denialKey ? t(`cafeteria.${denialKey}`) : scan_result.denial_reason)}</p>}
+                                {countdown !== null && <p className="mt-1 text-xs">{t('cafeteria.scanAgainIn').replace('{{count}}', String(countdown))}</p>}
                             </div>
+                            {employee && <div>
+                                <div className="flex items-center gap-4">
+                                    <UserAvatar key={employee.employee_number} src={employee.photo_url} name={employee.full_name} size={72} className="shrink-0 rounded-xl !bg-[var(--app-surface-muted)] !text-[var(--app-foreground)]" />
+                                    <div className="min-w-0">
+                                        <h3 className="break-words text-lg font-semibold leading-7">{employee.full_name}</h3>
+                                        <p className={`mt-1 break-words text-sm ${mutedCls}`}>{employee.employee_number}</p>
+                                    </div>
+                                </div>
+                                <dl className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2">
+                                    {[
+                                        [t('cafeteria.position'), employee.position],
+                                        [t('cafeteria.organization'), employee.organization],
+                                        [t('cafeteria.department'), employee.organization_unit],
+                                        [t('cafeteria.cardNo'), scan_result.card_number],
+                                    ].filter(([, value]) => value).map(([label, value]) => <div key={label} className="min-w-0">
+                                        <dt className={`text-xs ${mutedCls}`}>{label}</dt>
+                                        <dd className="mt-1 break-words text-sm">{value}</dd>
+                                    </div>)}
+                                </dl>
+                            </div>}
+                            {scan_result.allowed && scan_result.week_start && <div className="border-t border-[var(--app-border)] pt-4">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <h3 className="text-sm font-medium">{t('cafeteria.weeklyWindowTitle')}</h3>
+                                    <p className={`text-xs ${mutedCls}`}><LocalizedDateDisplay value={scan_result.week_start} /> – <LocalizedDateDisplay value={scan_result.week_end} /></p>
+                                </div>
+                                <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4">
+                                    {[
+                                        [t('cafeteria.subsidyApplied'), scan_result.subsidy_applied?.toFixed(2)],
+                                        [t('cafeteria.employeePayableAmount'), scan_result.employee_payable?.toFixed(2)],
+                                        [t('cafeteria.consumedDays'), scan_result.consumed_days_count != null && scan_result.available_days_count != null ? `${scan_result.consumed_days_count} / ${scan_result.available_days_count}` : null],
+                                        [t('cafeteria.remainingWeekBalance'), scan_result.remaining_after?.toFixed(2)],
+                                    ].map(([label, value]) => <div key={label}>
+                                        <dt className={`text-xs leading-5 ${mutedCls}`}>{label}</dt>
+                                        <dd className="mt-1 text-xl font-semibold tabular-nums">{value ?? '—'}</dd>
+                                    </div>)}
+                                </dl>
+                            </div>}
+                        </div> : <div className="flex min-h-[280px] flex-col items-center justify-center gap-3 p-6 text-center xl:min-h-[450px]">
+                            <UserIcon className={`h-10 w-10 ${mutedCls}`} />
+                            <h3 className="text-sm font-medium">{t('cafeteria.readyToScan')}</h3>
+                            <p className={`max-w-xs text-sm leading-6 ${mutedCls}`}>{t('cafeteria.scanToSeeEmployee')}</p>
+                        </div>}
+                    </section>
 
-                            {/* Employee Info */}
-                            {scan_result?.employee ? (
-                                <div className="rounded-card border border-gray-200 bg-gray-50 p-5 dark:border-slate-700 dark:bg-slate-950">
-                                    {/* Photo or initials */}
-                                    <div className="flex flex-col items-center text-center">
-                                        {scan_result.employee.photo_url ? (
-                                            <img
-                                                src={scan_result.employee.photo_url}
-                                                alt={scan_result.employee.full_name}
-                                                className={`h-24 w-24 rounded-full object-cover ring-4 ${
-                                                    scan_result.is_extra_scan ? 'ring-orange-400' : 'ring-emerald-400'
-                                                }`}
-                                            />
-                                        ) : (
-                                            <div className={`flex h-24 w-24 items-center justify-center rounded-full text-3xl font-bold ring-4 ${
-                                                scan_result.is_extra_scan
-                                                    ? 'bg-orange-100 text-orange-600 ring-orange-400 dark:bg-orange-900/30 dark:text-orange-300'
-                                                    : 'bg-emerald-100 text-emerald-600 ring-emerald-400 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                            }`}>
-                                                {scan_result.employee.full_name.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-
-                                        {/* Allowed / Extra badge */}
-                                        <div className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                                            scan_result.is_extra_scan
-                                                ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                                                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                        }`}>
-                                            <CheckCircle className="h-3.5 w-3.5" />
-                                            {scan_result.is_extra_scan ? t('cafeteria.extraScanBadge') : t('cafeteria.scanRecorded')}
+                    <section aria-labelledby="history-heading" className={`${panelCls} overflow-hidden xl:col-span-8`}>
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--app-border)] px-4 py-3">
+                            <h2 id="history-heading" className="text-sm font-semibold">{t('cafeteria.todayScans')}</h2>
+                            {historyState === 'ready' && <span className={`text-xs ${mutedCls}`}>{t('cafeteria.latest')} · {todayScans.length}</span>}
+                        </div>
+                        {historyState !== 'ready' ? <p role="status" className={`px-4 py-10 text-center text-sm ${mutedCls}`}>{t(historyState === 'loading' ? 'common.loading' : 'cafeteria.historyUnavailable')}</p> : todayScans.length === 0 ? <p className={`px-4 py-10 text-center text-sm ${mutedCls}`}>{t('cafeteria.noScansForProviderToday')}</p> :
+                            <ul className="max-h-[440px] divide-y divide-[var(--app-border)] overflow-y-auto">
+                                {todayScans.map((scan) => <li key={scan.id} className="grid gap-2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                                    <div className="flex min-w-0 items-start gap-3">
+                                        <UserAvatar src={scan.employee?.photo_url} name={scan.employee?.display_name ?? '?'} size={32} className="mt-0.5 !bg-[var(--app-surface-muted)] !text-[var(--app-foreground)]" />
+                                        <div className="min-w-0">
+                                            <p className="break-words text-sm font-medium">{scan.employee?.display_name ?? t('cafeteria.employeeName')}</p>
+                                            <p className={`mt-0.5 break-words text-xs ${mutedCls}`}>{[scan.employee?.employee_number, scan.employee?.organization_name].filter(Boolean).join(' · ')}</p>
+                                            <p className={`mt-0.5 break-words text-xs ${mutedCls}`}>{[scan.employee?.organization_unit_name, scan.employee?.position_title].filter(Boolean).join(' · ')}</p>
                                         </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 sm:flex-col sm:items-end">
+                                        <span className={`inline-flex rounded-md px-2 py-1 text-xs font-medium ${scan.status === 'accepted' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : scan.status === 'rejected' ? 'bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300' : 'bg-[var(--app-surface-muted)] text-[var(--app-muted-foreground)]'}`}>
+                                            {scan.status === 'accepted' ? t('cafeteria.statusAccepted') : scan.status === 'rejected' ? t('cafeteria.statusDenied') : scan.status === 'reversed' ? t('cafeteria.statusReversed') : scan.status === 'pending_review' ? t('cafeteria.statusPendingReview') : '—'}
+                                        </span>
+                                        <span className={`text-xs tabular-nums ${mutedCls}`}>{scan.scanned_at ? formatTime(scan.scanned_at, locale) : '—'}</span>
+                                    </div>
+                                    <div className={`flex flex-wrap gap-x-4 gap-y-1 text-xs sm:col-span-2 sm:pl-11 ${mutedCls}`}>
+                                        <span>{scan.usage_mode === 'use_remaining_week' ? t('cafeteria.usageModeRemainingWeek') : t('cafeteria.usageModeSingleDay')}</span>
+                                        <span>{t('cafeteria.subsidyApplied')}: <span className="tabular-nums">{scan.subsidy_amount_applied.toFixed(2)}</span></span>
+                                        <span>{t('cafeteria.consumedDays')}: {scan.consumed_days_count}</span>
+                                        {scan.is_extra_scan && <span className="text-amber-700 dark:text-amber-300">{t('cafeteria.extraScanBadge')}</span>}
+                                    </div>
+                                </li>)}
+                            </ul>}
+                    </section>
+                    <section aria-label={t('cafeteria.serviceCalendar')} className="min-w-0 xl:col-span-4">
+                        {calendarState !== 'ready' ? <p role="status" className={`${panelCls} p-4 text-sm ${mutedCls}`}>{t(calendarState === 'loading' ? 'common.loading' : 'cafeteria.calendarUnavailable')}</p> : <>
+                        <div className={`${panelCls} overflow-hidden`}>
 
-                                        <h3 className="mt-3 text-base font-bold text-gray-900 dark:text-white">
-                                            {scan_result.employee.full_name}
-                                        </h3>
-                                        <p className="text-sm text-gray-500 dark:text-slate-400">
-                                            #{scan_result.employee.employee_number}
+                            {/* Calendar header */}
+                            <div className="border-b border-gray-100 bg-gray-50/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-800/40">
+                                <div className="flex items-center justify-between">
+                                    <button
+                                        type="button"
+                                        onClick={prevMonth}
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700"
+                                        aria-label={t('cafeteria.previousMonth')}
+                                    >
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    <div className="text-center">
+                                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                                            {getMonthLabel(calYear, calMonth, locale, isEthiopian)}
                                         </p>
+                                        <span className={`text-[10px] font-medium ${isEthiopian ? 'text-indigo-500 dark:text-indigo-400' : 'text-gray-400 dark:text-slate-500'}`}>
+                                            {isEthiopian
+                                                ? (locale === 'am' ? 'የኢትዮጵያ ቀን አቆጣጠር' : 'Ethiopian Calendar')
+                                                : (locale === 'am' ? 'ጎርጎሪያን ቀን አቆጣጠር' : 'Gregorian Calendar')}
+                                        </span>
                                     </div>
-
-                                    {/* Details */}
-                                    <dl className="mt-4 space-y-2 border-t border-gray-200 pt-4 text-sm dark:border-slate-700">
-                                        {scan_result.employee.position && (
-                                            <div className="flex gap-2">
-                                                <dt className="w-20 shrink-0 text-gray-400 dark:text-slate-500">{t('cafeteria.position')}</dt>
-                                                <dd className="font-medium text-gray-700 dark:text-slate-300">{scan_result.employee.position}</dd>
-                                            </div>
-                                        )}
-                                        {scan_result.employee.organization && (
-                                            <div className="flex gap-2">
-                                                <dt className="w-20 shrink-0 text-gray-400 dark:text-slate-500">{t('cafeteria.department')}</dt>
-                                                <dd className="font-medium text-gray-700 dark:text-slate-300">{scan_result.employee.organization}</dd>
-                                            </div>
-                                        )}
-                                        {scan_result.card_number && (
-                                            <div className="flex gap-2">
-                                                <dt className="w-20 shrink-0 text-gray-400 dark:text-slate-500">{t('cafeteria.cardNo')}</dt>
-                                                <dd className="font-mono font-medium text-gray-700 dark:text-slate-300">{scan_result.card_number}</dd>
-                                            </div>
-                                        )}
-                                    </dl>
+                                    <button
+                                        type="button"
+                                        onClick={nextMonth}
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 transition hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700"
+                                        aria-label={t('cafeteria.nextMonth')}
+                                    >
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
                                 </div>
-                            ) : (
-                                /* Placeholder when no scan yet */
-                                <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-card border border-dashed border-gray-300 bg-gray-50 p-8 text-center dark:border-slate-700 dark:bg-slate-950">
-                                    <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800">
-                                        <UserIcon className="h-7 w-7 text-gray-300 dark:text-slate-600" />
-                                    </div>
-                                    <p className="text-sm text-gray-400 dark:text-slate-500">
-                                        {t('cafeteria.scanToSeeEmployee')}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+                            </div>
 
-                        {/* ── RIGHT: Today's Scans ── */}
-                        <div className="flex flex-col self-stretch">
-                            <div className="flex flex-1 flex-col rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950">
-                                <p className="mb-2 text-xs font-semibold text-gray-500 dark:text-slate-400">
-                                    {t('cafeteria.todayScans')} - {todayScans.length}
-                                </p>
-                                {todayScans.length === 0 ? (
-                                    <p className="text-sm text-gray-400 dark:text-slate-500">
-                                        {t('cafeteria.noScansForProviderToday')}
-                                    </p>
-                                ) : (
-                                    <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-                                        {todayScans.map((scan) => (
-                                            <li key={scan.id} className="rounded-lg border border-gray-200 bg-white p-3 text-sm dark:border-slate-800 dark:bg-slate-900">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="min-w-0">
-                                                        <p className="truncate font-semibold text-gray-900 dark:text-slate-100">
-                                                            {scan.employee?.display_name ?? t('cafeteria.employeeName')}
-                                                        </p>
-                                                        <p className="text-xs text-gray-500 dark:text-slate-400">
-                                                            {scan.employee?.employee_number} - {scan.employee?.organization_name ?? ''}
-                                                        </p>
-                                                        <p className="text-xs text-gray-500 dark:text-slate-400">
-                                                            {[scan.employee?.organization_unit_name, scan.employee?.position_title].filter(Boolean).join(' - ')}
-                                                        </p>
-                                                        <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-gray-500 dark:text-slate-400">
-                                                            <span className="font-mono">{scan.scanned_at ? formatTime(scan.scanned_at) : ''}</span>
-                                                            <span>{scan.usage_mode === 'use_remaining_week' ? t('cafeteria.usageModeRemainingWeek') : t('cafeteria.usageModeSingleDay')}</span>
-                                                            <span>{t('cafeteria.subsidyApplied')}: {scan.subsidy_amount_applied.toFixed(2)}</span>
-                                                            <span>{t('cafeteria.consumedDays')}: {scan.consumed_days_count}</span>
-                                                        </div>
-                                                    </div>
-                                                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                                                        scan.status === 'accepted'
-                                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                                            : 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300'
-                                                    }`}>
-                                                        {scan.status === 'accepted' ? t('cafeteria.statusAccepted') : t('cafeteria.statusDenied')}
-                                                    </span>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
+                            <div className="px-3 pb-3 pt-2">
+                                {/* Day-of-week headers */}
+                                <div className="mb-1 grid grid-cols-7">
+                                    {dayLabels.map((d) => (
+                                        <div key={d} className="py-1.5 text-center text-[11px] font-semibold text-gray-400 dark:text-slate-500">
+                                            {d}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Day cells */}
+                                <div className="grid grid-cols-7">
+                                    {cells.map((cell, idx) => {
+                                        if (cell === null) return <div key={`empty-${idx}`} />;
+
+                                        const { day, gregorianIso: dateStr } = cell;
+                                        const isToday  = dateStr === todayDateStr;
+                                        const dayMeta = calendarMeta.find((item) => item.date === dateStr);
+                                        const scanCount = scannedDateMap.get(dateStr) ?? 0;
+                                        const isConsumed = dayMeta?.is_consumed || scanCount > 0;
+
+                                        let cellCls: string;
+                                        if (dayMeta?.is_consumed) {
+                                            cellCls = 'bg-emerald-700 text-white font-semibold';
+                                        } else if (dayMeta?.is_employee_excluded) {
+                                            cellCls = 'bg-red-100 text-red-600 dark:bg-red-950/50 dark:text-red-400';
+                                        } else if (dayMeta?.is_public_holiday || dayMeta?.reason_code === 'special_no_subsidy_day') {
+                                            cellCls = 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400';
+                                        } else if (dayMeta?.reason_code === 'special_open_day') {
+                                            cellCls = 'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-400';
+                                        } else if (dayMeta?.is_available) {
+                                            cellCls = 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-950/40 dark:text-blue-300';
+                                        } else if (dayMeta !== undefined && !dayMeta.is_open) {
+                                            cellCls = 'bg-gray-100 text-gray-400 dark:bg-slate-800/70 dark:text-slate-600';
+                                        } else {
+                                            cellCls = 'text-gray-700 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800/60';
+                                        }
+
+                                        return (
+                                            <div
+                                                key={dateStr || `cell-${idx}`}
+                                                title={dayMeta?.label}
+                                                className={`relative mx-auto my-0.5 flex h-8 w-8 flex-col items-center justify-center rounded-lg text-[13px] transition-colors
+                                                    ${isToday ? 'ring-2 ring-[color:var(--color-primary)] ring-offset-1 dark:ring-offset-slate-900' : ''}
+                                                    ${cellCls}
+                                                `}
+                                            >
+                                                <span className="leading-none">{day}</span>
+                                                {isConsumed && (
+                                                    scanCount <= 1 ? (
+                                                        <CheckCircle
+                                                            className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 ${
+                                                                isToday ? 'text-emerald-300' : 'text-emerald-500'
+                                                            }`}
+                                                        />
+                                                    ) : (
+                                                        <span className={`absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
+                                                            isToday ? 'bg-emerald-300 text-emerald-900' : 'bg-emerald-500 text-white'
+                                                        }`}>
+                                                            {scanCount}
+                                                        </span>
+                                                    )
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Legend */}
+                            <div className="border-t border-gray-100 px-4 py-3 dark:border-slate-800">
+                                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                                    {[
+                                        ['bg-blue-50 border border-blue-200', t('cafeteria.calendar_available')],
+                                        ['bg-emerald-500', t('cafeteria.calendar_consumed')],
+                                        ['bg-gray-100', t('cafeteria.calendar_closed')],
+                                        ['bg-amber-100', t('cafeteria.calendar_public_holiday')],
+                                        ['bg-purple-100', t('cafeteria.calendar_special_open_day')],
+                                        ['bg-red-100', t('cafeteria.calendar_employee_leave')],
+                                    ].map(([color, label]) => (
+                                        <span key={label} className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-slate-400">
+                                            <span className={`h-2.5 w-2.5 shrink-0 rounded-sm ${color}`} />
+                                            {label}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Footer: submit */}
-                    <div className="flex justify-end border-t border-gray-200 px-6 py-4 dark:border-slate-800">
-                        <button
-                            type="submit"
-                            disabled={form.processing}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
-                        >
-                            {t('cafeteria.processScan')}
-                        </button>
-                    </div>
-                </form>
+                        </>}
+                    </section>
+                </div>
             </div>
         </AuthenticatedLayout>
     );

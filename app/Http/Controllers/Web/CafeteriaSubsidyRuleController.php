@@ -12,6 +12,7 @@ use App\Http\Requests\StoreCafeteriaSubsidyRuleRequest;
 use App\Http\Requests\UpdateCafeteriaSubsidyRuleRequest;
 use App\Http\Resources\CafeteriaSubsidyRuleResource;
 use App\Models\CafeteriaSubsidyRule;
+use App\Services\Cafeteria\CafeteriaSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -59,7 +60,14 @@ class CafeteriaSubsidyRuleController extends Controller
     {
         $this->authorize('create', CafeteriaSubsidyRule::class);
 
-        return Inertia::render('Cafeteria/SubsidyRules/Create');
+        $settings = app(CafeteriaSettingsService::class);
+
+        return Inertia::render('Cafeteria/SubsidyRules/Create', [
+            'defaults' => [
+                'subsidy_amount' => $settings->get('default_daily_subsidy_amount', 0),
+                'currency' => $settings->get('currency', 'ETB'),
+            ],
+        ]);
     }
 
     public function store(StoreCafeteriaSubsidyRuleRequest $request, CreateCafeteriaSubsidyRuleAction $action): RedirectResponse

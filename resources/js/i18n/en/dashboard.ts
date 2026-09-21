@@ -1,6 +1,10 @@
 const dashboard = {
+    navigationOverview: 'Overview',
+    workforceSnapshot: 'Workforce & positions',
+    allowedToday: 'Allowed verifications today',
+    deniedToday: 'Denied verifications today',
     title: 'Dashboard',
-    subtitle: 'System-wide operational overview',
+    subtitle: 'Operational status and work requiring attention',
     dateRange: 'Date Range',
     refresh: 'Refresh',
     previousPeriod: 'vs previous period',

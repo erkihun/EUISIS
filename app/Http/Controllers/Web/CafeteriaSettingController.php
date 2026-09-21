@@ -13,8 +13,8 @@ use App\Http\Resources\CafeteriaSubsidyRuleResource;
 use App\Http\Resources\PublicHolidayResource;
 use App\Models\CafeteriaDayRule;
 use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaProviderBranch;
 use App\Models\CafeteriaProviderAssignment;
+use App\Models\CafeteriaProviderBranch;
 use App\Models\CafeteriaSetting;
 use App\Models\CafeteriaSubsidyRule;
 use App\Models\Organization;
@@ -25,6 +25,7 @@ use App\Services\Cafeteria\CafeteriaSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -60,17 +61,19 @@ class CafeteriaSettingController extends Controller
             ->get();
 
         return Inertia::render('Cafeteria/Settings/Index', [
-            'settings' => $this->settingsService->all(),
+            'cafeteriaSettings' => $this->settingsService->effectiveForForm(),
+            'editableSettingKeys' => $this->settingsService->editableKeys(),
+            'readOnlySettingReasons' => CafeteriaSettingsService::READ_ONLY,
             'activeTab' => $tab,
             'dayRules' => CafeteriaDayRuleResource::collection($dayRules),
             'holidays' => PublicHolidayResource::collection($holidays),
             'holidaysYear' => $year,
             'subsidyRules' => CafeteriaSubsidyRuleResource::collection($subsidyRules),
-            'providerUsers' => $this->providerUsers(),
-            'providerOptions' => $this->providerOptions(),
-            'userOptions' => $this->userOptions(),
-            'organizationOptions' => $this->organizationOptions(),
-            'branchOptions' => $this->branchOptions(),
+            'providerUsers' => $user?->can('cafeteria_settings.update') ? $this->providerUsers() : [],
+            'providerOptions' => $user?->can('cafeteria_settings.update') ? $this->providerOptions() : [],
+            'userOptions' => $user?->can('cafeteria_settings.update') ? $this->userOptions() : [],
+            'organizationOptions' => $user?->can('cafeteria_settings.update') ? $this->organizationOptions() : [],
+            'branchOptions' => $user?->can('cafeteria_settings.update') ? $this->branchOptions() : [],
             'can' => [
                 'update' => $user?->can('cafeteria_settings.update') ?? false,
                 'updateDayRules' => $user?->can('cafeteria_day_rules.update') ?? false,
@@ -113,6 +116,8 @@ class CafeteriaSettingController extends Controller
                 ->withInput();
         }
 
+        $this->validateAssignmentRelations($validated);
+
         DB::transaction(function () use ($request, $validated): void {
             CafeteriaProviderAssignment::query()->updateOrCreate(
                 [
@@ -143,28 +148,47 @@ class CafeteriaSettingController extends Controller
 
         $validated = $request->validate([
             'service_provider_user_id' => ['nullable', 'uuid', 'exists:service_provider_users,id'],
-            'cafeteria_provider_id'     => ['nullable', 'uuid', 'exists:cafeteria_providers,id'],
+            'cafeteria_provider_id' => ['nullable', 'uuid', 'exists:cafeteria_providers,id'],
             'cafeteria_provider_branch_id' => ['nullable', 'uuid', 'exists:cafeteria_provider_branches,id'],
-            'organization_id'           => ['nullable', 'uuid', 'exists:organizations,id'],
-            'provider_role'             => ['nullable', 'string', 'max:100'],
-            'is_active'                 => ['required', 'boolean'],
-            'effective_from'            => ['nullable', 'date'],
-            'effective_to'              => ['nullable', 'date', 'after_or_equal:effective_from'],
+            'organization_id' => ['nullable', 'uuid', 'exists:organizations,id'],
+            'provider_role' => ['nullable', 'string', 'max:100'],
+            'is_active' => ['required', 'boolean'],
+            'effective_from' => ['nullable', 'date'],
+            'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
         ]);
 
-        $providerUser->update([
-            'service_provider_user_id'    => $validated['service_provider_user_id'] ?? $providerUser->service_provider_user_id,
-            'cafeteria_provider_id'        => $validated['cafeteria_provider_id'] ?? $providerUser->cafeteria_provider_id,
-            'cafeteria_provider_branch_id' => $validated['cafeteria_provider_branch_id'] ?? null,
-            'organization_id'              => $validated['organization_id'] ?? null,
-            'role'                         => $validated['provider_role'] ?? $providerUser->role,
-            'provider_role'                => $validated['provider_role'] ?? $providerUser->provider_role,
-            'is_active'                    => $validated['is_active'],
-            'effective_from'               => $validated['effective_from'] ?? null,
-            'effective_to'                 => $validated['effective_to'] ?? null,
-        ]);
+        $values = [
+            'service_provider_user_id' => $validated['service_provider_user_id'] ?? $providerUser->service_provider_user_id,
+            'cafeteria_provider_id' => $validated['cafeteria_provider_id'] ?? $providerUser->cafeteria_provider_id,
+            'cafeteria_provider_branch_id' => array_key_exists('cafeteria_provider_branch_id', $validated) ? $validated['cafeteria_provider_branch_id'] : $providerUser->cafeteria_provider_branch_id,
+            'organization_id' => array_key_exists('organization_id', $validated) ? $validated['organization_id'] : $providerUser->organization_id,
+            'role' => $validated['provider_role'] ?? $providerUser->role,
+            'provider_role' => $validated['provider_role'] ?? $providerUser->provider_role,
+            'is_active' => $validated['is_active'],
+            'effective_from' => array_key_exists('effective_from', $validated) ? $validated['effective_from'] : $providerUser->effective_from?->toDateString(),
+            'effective_to' => array_key_exists('effective_to', $validated) ? $validated['effective_to'] : $providerUser->effective_to?->toDateString(),
+        ];
+        $this->validateAssignmentRelations($values);
+        $providerUser->update($values);
 
         return back()->with('flash', ['message' => __('cafeteria.providerUserUpdated'), 'type' => 'success']);
+    }
+
+    private function validateAssignmentRelations(array $values): void
+    {
+        if (! empty($values['service_provider_user_id']) && ! ServiceProviderUser::query()
+            ->whereKey($values['service_provider_user_id'])
+            ->whereHas('serviceType', fn ($query) => $query->where('code', 'cafeteria'))->exists()) {
+            throw ValidationException::withMessages(['service_provider_user_id' => __('cafeteria.providerAccessDenied')]);
+        }
+        if (! empty($values['cafeteria_provider_branch_id']) && ! CafeteriaProviderBranch::query()
+            ->whereKey($values['cafeteria_provider_branch_id'])
+            ->where('cafeteria_provider_id', $values['cafeteria_provider_id'])->exists()) {
+            throw ValidationException::withMessages(['cafeteria_provider_branch_id' => __('cafeteria.providerAccessDenied')]);
+        }
+        if (! empty($values['effective_from']) && ! empty($values['effective_to']) && $values['effective_to'] < $values['effective_from']) {
+            throw ValidationException::withMessages(['effective_to' => __('validation.after_or_equal', ['attribute' => 'effective_to', 'date' => 'effective_from'])]);
+        }
     }
 
     public function destroyProviderUser(CafeteriaProviderAssignment $providerUser): RedirectResponse

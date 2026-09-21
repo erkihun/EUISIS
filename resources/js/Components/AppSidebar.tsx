@@ -36,8 +36,11 @@ import {
     StarIcon,
     NfcIcon,
     RouterIcon,
+    SearchIcon,
+    ChevronRight,
+    ChevronDown,
 } from '@/Components/Icons';
-import { CSSProperties, SVGProps, useMemo, useState } from 'react';
+import { type CSSProperties, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
@@ -95,7 +98,6 @@ const navGroups: NavGroup[] = [
              * two is used and the page re-checks both on arrival.
              */
             { routeName: 'reporting-lines.index', labelKey: 'nav.reportingLines', icon: NetworkIcon,   permission: 'relationships.viewAny' },
-            { routeName: 'code-rules.index', labelKey: 'nav.codeRules', icon: HashIcon,      permission: 'code-rules.viewAny' },
         ],
     },
     {
@@ -214,7 +216,6 @@ const navGroups: NavGroup[] = [
         icon: HandshakeIcon,
         items: [
             { routeName: 'service-providers.index', labelKey: 'nav.providers',              icon: HandshakeIcon },
-            { routeName: 'provider-users.index', labelKey: 'nav.cafeteriaProviderUsers', icon: UserCogIcon, permission: 'cafeteria-provider-users.viewAny' },
             { routeName: 'api-management.index', labelKey: 'nav.apiManagement', icon: NetworkIcon, permission: 'api_management.view' },
         ],
     },
@@ -241,7 +242,7 @@ const employeeNav: NavItem[] = [
     { routeName: 'public.transfer-announcements', labelKey: 'nav.announcements',         icon: MegaphoneIcon },
 ];
 
-/** Administration is split into labeled sub-clusters so 6 unrelated concerns stay scannable. */
+/** Administration is split into labeled sub-clusters so unrelated concerns stay scannable. */
 const adminGroups: { labelKey: string; items: NavItem[] }[] = [
     {
         labelKey: 'nav.adminAccess',
@@ -255,6 +256,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
     {
         labelKey: 'nav.adminSystem',
         items: [
+            { routeName: 'code-rules.index', labelKey: 'nav.codeRules', icon: HashIcon, permission: 'code-rules.viewAny' },
             { routeName: 'recycle-bin.index', labelKey: 'nav.recycleBin', icon: TrashIcon,    permission: 'recycle-bin.view' },
             // API Management lives as a tab inside System Settings, beside
             // Security — not as a separate sidebar entry.
@@ -263,8 +265,13 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
     },
 ];
 
-/** Flattened admin items — used for active-state detection and collapsed icon rail. */
-const adminNav: NavItem[] = adminGroups.flatMap((g) => g.items);
+const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
+
+const sections = [
+    { labelKey: 'nav.sidebarPeople', keys: ['employeeManagement', 'organization', 'hrMasterData', 'identity'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
+    { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
+];
 
 interface Props {
     onClose?: () => void;
@@ -272,560 +279,268 @@ interface Props {
     onToggleCollapse?: () => void;
 }
 
-function ChevronLeft({ className }: { className?: string }) {
-    return (
-        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-    );
-}
-function ChevronRight({ className }: { className?: string }) {
-    return (
-        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-    );
-}
-function ChevronDown({ className }: { className?: string }) {
-    return (
-        <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-    );
-}
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--sidebar-accent)]';
+const hoverSurface = 'hover:bg-[color:var(--sidebar-hover)]';
+const selectedSurface = 'bg-[color:var(--sidebar-accent-wash)] text-[color:var(--sidebar-accent)]';
 
-/** Single nav item — expanded or icon-only collapsed */
-function NavLink({ item, collapsed, isAdmin = false, index = 0 }: { item: NavItem; collapsed: boolean; isAdmin?: boolean; index?: number }) {
-    const { can } = useCan();
-    const { t } = useLocale();
-    const { url: pageUrl } = usePage();
-
-    if (item.permission && !can(item.permission)) return null;
-
-    const href = item.tab ? `${route(item.routeName)}?tab=${item.tab}` : route(item.routeName);
-    const isActive = item.tab
-        ? route().current(item.routeName) && (() => {
-            const currentTab = new URLSearchParams(pageUrl.split('?')[1] ?? '').get('tab') ?? 'general';
-            return currentTab === item.tab;
-        })()
-        : route().current(item.routeName);
-    const Icon = item.icon;
-    const label = t(item.labelKey);
-
-    const activeBar = 'border-[color:var(--sidebar-accent)] bg-[color:var(--sidebar-accent-wash)]';
-    const activeText = 'text-[color:var(--sidebar-accent)]';
-    const activeIcon  = activeText;
-    const hoverBg = 'hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)]';
-
-    if (collapsed) {
-        return (
-            <li>
-                <Link
-                    href={href}
-                    title={label}
-                    aria-label={label}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={[
-                        'sidebar-press group relative mx-2 flex h-10 w-10 items-center justify-center rounded-lg',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
-                        'hover:scale-[1.06]',
-                        isActive
-                            ? `${activeBar} ${activeText}`
-                            : `text-[color:var(--sidebar-muted)] ${hoverBg}`,
-                    ].join(' ')}
-                >
-                    <Icon
-                        className={[
-                            'h-5 w-5 shrink-0 transition-colors',
-                            isActive ? activeIcon : 'text-[color:var(--sidebar-muted)] group-hover:text-[color:var(--sidebar-fg)]',
-                        ].join(' ')}
-                        aria-hidden="true"
-                    />
-                </Link>
-            </li>
-        );
-    }
-
-    return (
-        <li className="sidebar-item" style={{ '--i': index } as CSSProperties}>
-            <Link
-                href={href}
-                aria-current={isActive ? 'page' : undefined}
-                className={[
-                    'sidebar-press group relative flex items-center gap-3 overflow-hidden rounded-lg py-2.5 pl-3 pr-3 text-[15px] font-normal',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
-                    isActive
-                        ? `${activeBar} ${activeText}`
-                        : `text-[color:var(--sidebar-muted)] ${hoverBg}`,
-                ].join(' ')}
-            >
-                {isActive && (
-                    <span
-                        aria-hidden="true"
-                        className="sidebar-active-bar absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]"
-                    />
-                )}
-                <Icon
-                    className={[
-                        'h-[19px] w-[19px] shrink-0 transition-all duration-200 group-hover:scale-110',
-                        isActive ? activeIcon : 'text-[color:var(--sidebar-muted)] group-hover:text-[color:var(--sidebar-fg)]',
-                    ].join(' ')}
-                    aria-hidden="true"
-                />
-                <span className="truncate transition-transform duration-200 group-hover:translate-x-0.5">{label}</span>
-            </Link>
-        </li>
-    );
-}
-
-/** Nav item that has expandable sub-items (dropdown within a group). */
-function NavItemDropdown({
-    item,
-    collapsed,
-    index = 0,
-}: {
-    item: NavItem & { children: NavSubItem[] };
-    collapsed: boolean;
-    index?: number;
-}) {
-    const { can } = useCan();
-    const { t } = useLocale();
-
-    const visibleChildren = item.children.filter((c) => !c.permission || can(c.permission));
-    if (visibleChildren.length === 0) return null;
-
-    const anyChildActive = visibleChildren.some((c) => route().current(c.routeName));
-    const [open, setOpen] = useState(anyChildActive);
-
-    const activeBar  = 'border-[color:var(--sidebar-accent)] bg-[color:var(--sidebar-accent-wash)]';
-    const activeText = 'text-[color:var(--sidebar-accent)]';
-    const hoverBg    = 'hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)]';
-    const Icon       = item.icon;
-    const label      = t(item.labelKey);
-
-    if (collapsed) {
-        // In collapsed mode render the parent icon only — clicking opens sub-items via tooltip/hover isn't supported;
-        // just show a single icon that links to the dashboard route.
-        return (
-            <li>
-                <button
-                    type="button"
-                    title={label}
-                    aria-label={label}
-                    onClick={() => setOpen((o) => !o)}
-                    className={[
-                        'sidebar-press group relative mx-2 flex h-10 w-10 items-center justify-center rounded-lg hover:scale-[1.06]',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
-                        anyChildActive
-                            ? `${activeBar} ${activeText}`
-                            : `text-[color:var(--sidebar-muted)] ${hoverBg}`,
-                    ].join(' ')}
-                >
-                    <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                </button>
-            </li>
-        );
-    }
-
-    return (
-        <li className="sidebar-item" style={{ '--i': index } as CSSProperties}>
-            <button
-                type="button"
-                onClick={() => setOpen((o) => !o)}
-                aria-expanded={open}
-                className={[
-                    'sidebar-press group relative flex w-full items-center gap-3 overflow-hidden rounded-lg py-2.5 pl-3 pr-3 text-[15px] font-normal',
-                    'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
-                    anyChildActive
-                        ? `${activeBar} ${activeText}`
-                        : `text-[color:var(--sidebar-muted)] ${hoverBg}`,
-                ].join(' ')}
-            >
-                {anyChildActive && (
-                    <span
-                        aria-hidden="true"
-                        className="sidebar-active-bar absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]"
-                    />
-                )}
-                <Icon
-                    className={[
-                        'h-[19px] w-[19px] shrink-0 transition-all duration-200 group-hover:scale-110',
-                        anyChildActive
-                            ? activeText
-                            : 'text-[color:var(--sidebar-muted)] group-hover:text-[color:var(--sidebar-fg)]',
-                    ].join(' ')}
-                    aria-hidden="true"
-                />
-                <span className="min-w-0 flex-1 truncate text-left">{label}</span>
-                <ChevronDown
-                    className={['sidebar-chevron h-3.5 w-3.5 shrink-0', open ? '' : '-rotate-90'].join(' ')}
-                />
-            </button>
-
-            <div className="sidebar-collapsible" data-open={open}>
-                <div className="sidebar-collapsible-inner">
-                    <ul role="list" className="mt-0.5 mb-1 space-y-0.5 pl-5 border-l border-[color:var(--sidebar-border)] ml-5">
-                        {visibleChildren.map((child, i) => (
-                            <NavLink key={child.routeName} item={child} collapsed={false} index={i} />
-                        ))}
-                    </ul>
-                </div>
-            </div>
-        </li>
-    );
+/** Exact routes win; otherwise select the nearest permitted module index. */
+function activeRoute(items: NavSubItem[], current: string): string | undefined {
+    if (items.some((item) => item.routeName === current)) return current;
+    return items
+        .filter((item) => /\.(index|dashboard)$/.test(item.routeName))
+        .map((item) => ({ name: item.routeName, prefix: item.routeName.replace(/\.(index|dashboard)$/, '') }))
+        .filter((item) => current.startsWith(item.prefix + '.'))
+        .sort((a, b) => b.prefix.length - a.prefix.length)[0]?.name;
 }
 
 export default function AppSidebar({ onClose, collapsed = false, onToggleCollapse }: Props) {
     const { can } = useCan();
     const { locale, t } = useLocale();
     const { getString } = useSystemSettings();
-    const isEmployeeUser = (usePage().props as any).is_employee_user === true;
+    const { props: pageProps, url: pageUrl } = usePage();
+    const isEmployeeUser = pageProps.is_employee_user === true;
+    const instanceId = useId();
+    const searchRef = useRef<HTMLInputElement>(null);
+    const focusSearchAfterExpand = useRef(false);
+    const [query, setQuery] = useState('');
+    const normalizedQuery = query.trim().toLocaleLowerCase();
 
-    const appName        = getString('app.short_name', 'AA Employee ID');
-    const orgName        = locale === 'am'
+    const appName = getString('app.short_name', 'AA Employee ID');
+    const orgName = locale === 'am'
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
     const environmentLabel = getString('general.system_environment_label');
-    /* Only meaningful in the expanded sidebar — the collapsed rail is a single
-       centred icon either way. */
     const logoCentered = getString('appearance.logo_position', 'start') === 'center';
     const sidebarStyle: CSSProperties | undefined = locale === 'am'
         ? { fontFamily: 'var(--font-ethiopic)' }
         : undefined;
 
-    const visibleGroups = useMemo(() =>
-        navGroups
-            .map((g) => ({
-                ...g,
-                items: g.items
-                    .filter((item) => !item.permission || can(item.permission))
-                    .map((item) =>
-                        item.children
-                            ? { ...item, children: item.children.filter((c) => !c.permission || can(c.permission)) }
-                            : item,
-                    )
-                    .filter((item) => !item.children || item.children.length > 0),
-            }))
-            .filter((g) => g.items.length > 0),
-        [can],
+    // Keep the existing permission contract, including independently permitted child links.
+    const allowedItems = (items: NavItem[]): NavSubItem[] => items
+        .filter((item) => !item.permission || can(item.permission))
+        .flatMap((item) => item.children
+            ? item.children.filter((child) => !child.permission || can(child.permission))
+            : [item]);
+    const visibleGroups = navGroups.map((group) => ({ ...group, items: allowedItems(group.items) }))
+        .filter((group) => group.items.length > 0);
+    const visibleAdminGroups = adminGroups.map((group) => ({ ...group, items: allowedItems(group.items) }))
+        .filter((group) => group.items.length > 0);
+    const visibleAdminNav = visibleAdminGroups.flatMap((group) => group.items);
+    const adminGroup: NavGroup = { key: 'admin', labelKey: 'nav.admin', icon: ShieldCheck, items: visibleAdminNav };
+    const allGroups = [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
+    const currentRoute = String(route().current() ?? '');
+    const currentItem = activeRoute(
+        isEmployeeUser ? employeeNav : [dashboardNav, ...allGroups.flatMap((group) => group.items)],
+        currentRoute,
     );
-
-    const visibleAdminGroups = useMemo(() =>
-        adminGroups
-            .map((g) => ({ ...g, items: g.items.filter((item) => !item.permission || can(item.permission)) }))
-            .filter((g) => g.items.length > 0),
-        [can],
-    );
-
-    const visibleAdminNav = useMemo(() =>
-        visibleAdminGroups.flatMap((g) => g.items),
-        [visibleAdminGroups],
-    );
-
-    const activeGroupKeys = useMemo(() => new Set(
-        [...visibleGroups, ...(visibleAdminNav.length > 0 ? [{ key: 'admin', labelKey: 'nav.admin', icon: ShieldCheck, items: visibleAdminNav }] : [])]
-            .filter((g) => g.items.some((item) =>
-                route().current(item.routeName) ||
-                (item.children ?? []).some((c) => route().current(c.routeName)),
-            ))
-            .map((g) => g.key),
-    ), [visibleGroups, visibleAdminNav]);
+    const activeGroupKeys = allGroups.filter((group) => group.items.some((item) => item.routeName === currentItem)).map((group) => group.key);
+    const activeGroupSignature = activeGroupKeys.join(',');
 
     const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-        const defaults: Record<string, boolean> = {};
-        for (const g of visibleGroups) {
-            defaults[g.key] = g.items.some((item) => route().current(item.routeName));
-        }
-        if (visibleAdminNav.length > 0) {
-            defaults.admin = visibleAdminNav.some((item) => route().current(item.routeName));
-        }
-        return defaults;
+        try {
+            const parsed: unknown = JSON.parse(window.localStorage.getItem(SIDEBAR_GROUPS_STORAGE_KEY) ?? '{}');
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return Object.fromEntries(Object.entries(parsed).filter(([, value]) => typeof value === 'boolean'));
+            }
+        } catch { /* Storage is optional. */ }
+        return {};
     });
 
-    const toggleGroup = (key: string) =>
-        setOpenGroups((cur) => ({ ...cur, [key]: !(cur[key] ?? false) }));
+    useEffect(() => {
+        setOpenGroups((previous) => {
+            const next = { ...previous };
+            for (const key of activeGroupKeys) next[key] = true;
+            return next;
+        });
+        setQuery('');
+        // The stable signature avoids reopening a manually collapsed group on every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pageUrl, activeGroupSignature]);
 
-    const renderGroup = (group: NavGroup, isAdmin = false) => {
-        const GroupIcon = group.icon;
-        const isActive  = activeGroupKeys.has(group.key);
-        const isOpen    = openGroups[group.key] ?? isActive;
-        const label     = t(group.labelKey);
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(SIDEBAR_GROUPS_STORAGE_KEY, JSON.stringify(openGroups));
+        } catch { /* Navigation remains usable without storage. */ }
+    }, [openGroups]);
 
-        if (collapsed) {
-            return (
-                <ul key={group.key} role="list" className="space-y-0.5 py-0.5">
-                    {group.items.map((item) =>
-                        item.children
-                            ? <NavItemDropdown key={item.routeName} item={item as NavItem & { children: NavSubItem[] }} collapsed />
-                            : <NavLink key={item.routeName} item={item} collapsed isAdmin={isAdmin} />
-                    )}
-                </ul>
-            );
+    useEffect(() => {
+        if (collapsed) setQuery('');
+        if (!collapsed && focusSearchAfterExpand.current) {
+            focusSearchAfterExpand.current = false;
+            searchRef.current?.focus();
         }
+    }, [collapsed]);
 
-        const headerActive  = 'text-[color:var(--sidebar-accent)]';
-        const headerDefault = 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]';
-        const iconActive    = 'text-[color:var(--sidebar-accent)]';
+    const matches = (item: NavSubItem) => t(item.labelKey).toLocaleLowerCase().includes(normalizedQuery);
+    const matchingItems = (group: NavGroup) => !normalizedQuery || t(group.labelKey).toLocaleLowerCase().includes(normalizedQuery)
+        ? group.items : group.items.filter(matches);
+    const matchingGroups = allGroups.filter((group) => matchingItems(group).length > 0);
 
+    function renderLink(item: NavSubItem, nested = false) {
+        const selected = currentItem === item.routeName && (!item.tab
+            || new URLSearchParams(pageUrl.split('?')[1] ?? '').get('tab') === item.tab);
+        const Icon = item.icon;
+        const label = t(item.labelKey);
+        return (
+            <li key={item.routeName + (item.tab ?? '')}>
+                <Link
+                    href={item.tab ? route(item.routeName) + '?tab=' + item.tab : route(item.routeName)}
+                    onClick={onClose}
+                    aria-current={selected ? 'page' : undefined}
+                    aria-label={collapsed ? label : undefined}
+                    title={collapsed ? label : undefined}
+                    className={[
+                        'relative flex min-h-10 items-center gap-2.5 rounded-lg text-sm transition-colors',
+                        focusRing, hoverSurface,
+                        collapsed ? 'mx-auto h-11 w-11 justify-center' : 'px-3 py-2.5',
+                        selected ? selectedSurface + ' font-semibold' : 'font-medium text-[color:var(--sidebar-fg)]',
+                    ].join(' ')}
+                >
+                    {selected && <span aria-hidden="true" className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]" />}
+                    {(!nested || collapsed) && <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />}
+                    {!collapsed && <span className="min-w-0 flex-1 whitespace-normal break-words leading-relaxed">{label}</span>}
+                    {!collapsed && selected && <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />}
+                </Link>
+            </li>
+        );
+    }
+
+    function renderGroup(group: NavGroup) {
+        const items = matchingItems(group);
+        if (!items.length) return null;
+        const Icon = group.icon;
+        const selected = activeGroupKeys.includes(group.key);
+        const isOpen = Boolean(normalizedQuery || openGroups[group.key]);
+        const panelId = instanceId + '-group-' + group.key;
+        const label = t(group.labelKey);
+        if (group.items.length === 1 && group.key !== 'admin') {
+            return <ul key={group.key}>{renderLink(group.items[0])}</ul>;
+        }
         return (
             <div key={group.key}>
                 <button
                     type="button"
-                    onClick={() => toggleGroup(group.key)}
-                    aria-expanded={isOpen}
+                    title={collapsed ? label : undefined}
+                    aria-label={collapsed ? label : undefined}
+                    aria-expanded={collapsed ? false : isOpen}
+                    aria-controls={panelId}
+                    onClick={() => {
+                        if (collapsed) {
+                            setOpenGroups((previous) => ({ ...previous, [group.key]: true }));
+                            onToggleCollapse?.();
+                        } else if (!normalizedQuery) {
+                            setOpenGroups((previous) => ({ ...previous, [group.key]: !isOpen }));
+                        }
+                    }}
                     className={[
-                        'sidebar-press flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
-                        isActive ? headerActive : headerDefault,
+                        'flex min-h-11 w-full items-center gap-2.5 rounded-lg text-left text-sm transition-colors',
+                        focusRing, hoverSurface,
+                        collapsed ? 'mx-auto !w-11 justify-center' : 'px-3 py-2.5',
+                        selected ? selectedSurface + ' font-semibold' : 'font-medium text-[color:var(--sidebar-fg)]',
                     ].join(' ')}
                 >
-                    <GroupIcon
-                        className={['h-4 w-4 shrink-0', isActive ? iconActive : 'text-[color:var(--sidebar-muted)]'].join(' ')}
-                        aria-hidden="true"
-                    />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                        {label}
-                    </span>
-                    <ChevronDown
-                        className={['sidebar-chevron h-3.5 w-3.5 shrink-0', isOpen ? '' : '-rotate-90'].join(' ')}
-                    />
+                    <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                    {!collapsed && <>
+                        <span className="min-w-0 flex-1 whitespace-normal break-words leading-relaxed">{label}</span>
+                        <ChevronDown className={['h-3.5 w-3.5 shrink-0 text-[color:var(--sidebar-muted)]', isOpen ? '' : '-rotate-90'].join(' ')} aria-hidden="true" />
+                    </>}
                 </button>
-
-                <div className="sidebar-collapsible" data-open={isOpen}>
-                    <div className="sidebar-collapsible-inner">
-                        <ul role="list" className="mt-0.5 mb-1 space-y-0.5 pl-1">
-                            {group.items.map((item, i) =>
-                                item.children
-                                    ? <NavItemDropdown key={item.routeName} item={item as NavItem & { children: NavSubItem[] }} collapsed={false} index={i} />
-                                    : <NavLink key={item.routeName} item={item} collapsed={false} isAdmin={isAdmin} index={i} />
-                            )}
-                        </ul>
+                <div id={panelId} hidden={collapsed || !isOpen}>
+                    <div className="ms-5 my-1 border-s border-[color:var(--sidebar-border)] ps-3">
+                        {group.key === 'admin' ? visibleAdminGroups.map((subgroup) => {
+                            const subItems = subgroup.items.filter((item) => items.some((match) => match.routeName === item.routeName));
+                            return subItems.length > 0 && (
+                                <div key={subgroup.labelKey} className="py-1">
+                                    <p className="px-3 py-2 text-xs font-semibold text-[color:var(--sidebar-muted)]">{t(subgroup.labelKey)}</p>
+                                    <ul className="space-y-0.5">{subItems.map((item) => renderLink(item, true))}</ul>
+                                </div>
+                            );
+                        }) : <ul className="space-y-0.5">{items.map((item) => renderLink(item, true))}</ul>}
                     </div>
                 </div>
             </div>
         );
-    };
-
-    /** Administration: one consistent collapsible header, with items grouped into labeled sub-clusters. */
-    const renderAdminGroup = () => {
-        const isActive = activeGroupKeys.has('admin');
-        const isOpen   = openGroups.admin ?? isActive;
-
-        const headerActive  = 'text-[color:var(--sidebar-accent)]';
-        const headerDefault = 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]';
-        const iconActive    = 'text-[color:var(--sidebar-accent)]';
-
-        return (
-            <div>
-                <button
-                    type="button"
-                    onClick={() => toggleGroup('admin')}
-                    aria-expanded={isOpen}
-                    className={[
-                        'sidebar-press flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left',
-                        'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
-                        isActive ? headerActive : headerDefault,
-                    ].join(' ')}
-                >
-                    <ShieldCheck
-                        className={['h-4 w-4 shrink-0', isActive ? iconActive : 'text-[color:var(--sidebar-muted)]'].join(' ')}
-                        aria-hidden="true"
-                    />
-                    <span className="min-w-0 flex-1 truncate text-sm font-medium">{t('nav.admin')}</span>
-                    <ChevronDown
-                        className={['sidebar-chevron h-3.5 w-3.5 shrink-0', isOpen ? '' : '-rotate-90'].join(' ')}
-                    />
-                </button>
-
-                <div className="sidebar-collapsible" data-open={isOpen}>
-                    <div className="sidebar-collapsible-inner">
-                        <div className="mt-0.5 mb-1 space-y-1.5 pl-1">
-                            {visibleAdminGroups.map((sub, gi) => {
-                                // Continuous stagger index across sub-clusters so items cascade as one list.
-                                const offset = visibleAdminGroups.slice(0, gi).reduce((n, g) => n + g.items.length, 0);
-                                return (
-                                    <div key={sub.labelKey}>
-                                        <p className="sidebar-item px-3 py-1 text-[11px] font-medium text-[color:var(--sidebar-muted)]"
-                                           style={{ '--i': offset } as CSSProperties}>
-                                            {t(sub.labelKey)}
-                                        </p>
-                                        <ul role="list" className="space-y-0.5">
-                                            {sub.items.map((item, i) => (
-                                                <NavLink key={item.routeName} item={item} collapsed={false} isAdmin index={offset + i + 1} />
-                                            ))}
-                                        </ul>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
+    }
 
     return (
-        <div
-            /*
-             * Surface and text come from the `appearance.sidebar_color`
-             * setting via the `--sidebar-*` tokens, not from fixed Tailwind
-             * colours, so an administrator can brand the navigation without a
-             * code change. The border, muted text and hover wash are mixed
-             * from the same two values in app.css, which is why only the
-             * background is configurable — everything else stays in contrast
-             * with it by construction.
-             */
-            className="flex h-full w-full flex-col border-r border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]"
-            style={sidebarStyle}
-            data-sidebar
-        >
-
-            {/* ── Header ─────────────────────────────────────────────────────── */}
-            {collapsed ? (
-                <div className="flex shrink-0 flex-col items-center gap-2 py-3">
-                    {onToggleCollapse && (
-                        <button
-                            type="button"
-                            onClick={onToggleCollapse}
-                            title="Expand sidebar"
-                            aria-label="Expand sidebar"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)] transition-colors hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]"
-                        >
-                            <ChevronRight className="h-3.5 w-3.5" />
-                        </button>
-                    )}
+        <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]" style={sidebarStyle}>
+            <div className={collapsed ? 'flex min-h-20 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'shrink-0 border-b border-[color:var(--sidebar-border)] p-4'}>
+                <div className="flex items-start gap-2">
                     <Link
                         href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
-                        title={appName}
-                        className="flex h-8 w-8 items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]"
+                        onClick={onClose}
+                        aria-label={appName}
+                        title={collapsed ? appName : undefined}
+                        className={['flex min-w-0 flex-1 gap-3 rounded-lg', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
                     >
-                        <ApplicationLogo className="h-full w-full fill-slate-900 object-contain dark:fill-white" />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center">
+                            <ApplicationLogo className="h-full w-full object-contain" />
+                        </span>
+                        {!collapsed && <div className="min-w-0">
+                            <p className="whitespace-normal break-words text-[15px] font-medium leading-snug">{appName}</p>
+                            <p className="mt-1 whitespace-normal break-words text-xs leading-relaxed text-[color:var(--sidebar-muted)]">{orgName}</p>
+                        </div>}
                     </Link>
+                    {onClose && <button type="button" onClick={onClose} aria-label={t('nav.closeMenu')} className={['flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', focusRing, hoverSurface].join(' ')}><X className="h-4 w-4" aria-hidden="true" /></button>}
                 </div>
-            ) : (
-                <div className="flex h-[60px] shrink-0 items-center gap-2.5 px-4">
-                    <Link
-                        href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
-                        /*
-                         * `appearance.logo_position`: `center` stacks the mark
-                         * over the name, which suits an institutional crest;
-                         * `start` keeps the compact inline lockup.
-                         */
-                        className={[
-                            'flex min-w-0 flex-1 gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]',
-                            logoCentered
-                                ? 'flex-col items-center justify-center gap-1 text-center'
-                                : 'items-center',
-                        ].join(' ')}
-                    >
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center">
-                            <ApplicationLogo className="h-full w-full fill-slate-900 object-contain dark:fill-white" />
-                        </div>
-                        <div className="min-w-0">
-                            <p className="truncate text-[15px] font-medium leading-tight text-[color:var(--sidebar-fg)]">
-                                {appName}
-                            </p>
-                            {!logoCentered && (
-                                <p className="truncate text-xs leading-tight text-[color:var(--sidebar-muted)]">
-                                    {orgName}
-                                </p>
-                            )}
-                        </div>
-                    </Link>
+            </div>
 
-                    {onClose && (
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            aria-label="Close sidebar"
-                            className="shrink-0 rounded-md p-1.5 text-[color:var(--sidebar-muted)] transition-colors hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]"
-                        >
-                            <X className="h-4 w-4" aria-hidden="true" />
-                        </button>
-                    )}
-
-                    {onToggleCollapse && (
-                        <button
-                            type="button"
-                            onClick={onToggleCollapse}
-                            title="Collapse sidebar"
-                            aria-label="Collapse sidebar"
-                            className="shrink-0 flex h-7 w-7 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)] transition-colors hover:bg-[color:var(--sidebar-hover)] hover:text-[color:var(--sidebar-fg)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--sidebar-accent)]"
-                        >
-                            <ChevronLeft className="h-3.5 w-3.5" />
-                        </button>
-                    )}
-                </div>
-            )}
-
-            {/* ── Navigation ─────────────────────────────────────────────────── */}
-            <nav className="sidebar-scroll flex-1 overflow-y-auto py-3" aria-label="Main navigation">
-
-                {/* Dashboard — standalone top item (admin only) */}
-                {!isEmployeeUser && (
-                    <ul role="list" className={collapsed ? 'space-y-0.5 py-0.5' : 'px-3 pb-2'}>
-                        <NavLink item={dashboardNav} collapsed={collapsed} />
-                    </ul>
+            <div className={collapsed ? 'px-2 pt-3' : 'px-3 pt-3'}>
+                {collapsed ? <button
+                    type="button"
+                    aria-label={t('nav.searchNavigation')}
+                    title={t('nav.searchNavigation')}
+                    onClick={() => { focusSearchAfterExpand.current = true; onToggleCollapse?.(); }}
+                    className={['mx-auto flex h-11 w-11 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)]', focusRing, hoverSurface].join(' ')}
+                ><SearchIcon className="h-[18px] w-[18px]" aria-hidden="true" /></button> : (
+                    <div className="flex items-center gap-2 rounded-lg border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-hover)] px-3 focus-within:ring-2 focus-within:ring-[color:var(--sidebar-accent)]">
+                        <SearchIcon className="h-4 w-4 shrink-0 text-[color:var(--sidebar-muted)]" aria-hidden="true" />
+                        <input
+                            ref={searchRef}
+                            type="search"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            onKeyDown={(event) => { if (event.key === 'Escape' && query) { event.preventDefault(); event.stopPropagation(); setQuery(''); } }}
+                            aria-label={t('nav.searchNavigation')}
+                            placeholder={t('nav.searchNavigation')}
+                            className="h-10 w-full min-w-0 border-0 bg-transparent p-0 text-sm text-[color:var(--sidebar-fg)] placeholder:text-[color:var(--sidebar-muted)] focus:ring-0"
+                        />
+                    </div>
                 )}
+            </div>
 
-                {/* Employee portal nav */}
-                {isEmployeeUser && (
-                    <>
-                        <ul role="list" className={collapsed ? 'space-y-0.5 py-0.5' : 'px-3 pb-2 space-y-0.5'}>
-                            {employeeNav.map((item) => (
-                                <NavLink key={item.routeName} item={item} collapsed={collapsed} />
-                            ))}
-                        </ul>
-                        {!collapsed && <div className="mx-3 mb-2 h-px bg-[color:var(--sidebar-border)]" />}
-                    </>
-                )}
-
-                {/* Main groups — admin only */}
-                {!isEmployeeUser && (
-                    <>
-                        {!collapsed && <div className="mx-3 mb-2 h-px bg-[color:var(--sidebar-border)]" />}
-                        <div className={['space-y-0.5', collapsed ? '' : 'px-3'].join(' ')}>
-                            {visibleGroups.map((g) => renderGroup(g, false))}
-                        </div>
-                    </>
-                )}
-
-                {/* Administration — admin only. One consistent collapsible group; items
-                    split into labeled sub-clusters (Access Control / System). */}
-                {!isEmployeeUser && visibleAdminNav.length > 0 && (
-                    collapsed ? (
-                        <>
-                            <div className="mx-auto my-1 h-px w-8 bg-[color:var(--sidebar-border)]" />
-                            <ul role="list" className="space-y-0.5 py-0.5">
-                                {visibleAdminNav.map((item) => (
-                                    <NavLink key={item.routeName} item={item} collapsed isAdmin />
-                                ))}
-                            </ul>
-                        </>
-                    ) : (
-                        <>
-                            <div className="mx-3 my-2 h-px bg-[color:var(--sidebar-border)]" />
-                            <div className="px-3">
-                                {renderAdminGroup()}
-                            </div>
-                        </>
-                    )
+            <nav className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3" aria-label={t('publicSite.mainNavigation')}>
+                {isEmployeeUser ? (
+                    <ul className="space-y-1">{employeeNav.filter(matches).map((item) => renderLink(item))}</ul>
+                ) : <>
+                    {(!normalizedQuery || matches(dashboardNav)) && <ul className="mb-3">{renderLink(dashboardNav)}</ul>}
+                    {sections.map((section) => {
+                        const groups = section.keys.flatMap((key) => visibleGroups.filter((group) => group.key === key));
+                        if (section.labelKey === 'nav.sidebarGovernance' && visibleAdminNav.length) groups.push(adminGroup);
+                        if (!groups.some((group) => matchingItems(group).length)) return null;
+                        return <div key={section.labelKey} className="mb-4 last:mb-0">
+                            {collapsed
+                                ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
+                                : <p className="px-3 pb-2 pt-1 text-[11px] font-semibold leading-relaxed tracking-wide text-[color:var(--sidebar-muted)]">{t(section.labelKey)}</p>}
+                            <div className="space-y-1">{groups.map(renderGroup)}</div>
+                        </div>;
+                    })}
+                </>}
+                {normalizedQuery && (isEmployeeUser ? !employeeNav.some(matches) : !matchingGroups.length && !matches(dashboardNav)) && (
+                    <p role="status" className="px-3 py-5 text-sm leading-relaxed text-[color:var(--sidebar-muted)]">{t('nav.noResults')}</p>
                 )}
             </nav>
 
-            {/* ── Footer ─────────────────────────────────────────────────────── */}
-            {!collapsed && (
-                <div className="shrink-0 border-t border-[color:var(--sidebar-border)] px-4 py-3">
-                    <div className="flex items-center justify-between gap-2">
-                        <p className="min-w-0 truncate text-xs text-[color:var(--sidebar-muted)]">{orgName}</p>
-                        {environmentLabel && (
-                            <span className="shrink-0 rounded-full bg-[color:var(--color-accent)]/10 px-2 py-0.5 text-[11px] font-medium text-[color:var(--color-accent)]">
-                                {environmentLabel}
-                            </span>
-                        )}
-                    </div>
-                </div>
-            )}
+            <div className="shrink-0 border-t border-[color:var(--sidebar-border)] p-2">
+                {onToggleCollapse ? (
+                    <button type="button" onClick={onToggleCollapse} aria-label={t(collapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')} title={collapsed ? t('nav.expandSidebar') : undefined}
+                        className={['flex min-h-11 items-center gap-3 rounded-lg text-sm text-[color:var(--sidebar-muted)]', focusRing, hoverSurface, collapsed ? 'mx-auto w-11 justify-center' : 'w-full px-3'].join(' ')}>
+                        <ChevronRight className={collapsed ? 'h-4 w-4' : 'h-4 w-4 rotate-180'} aria-hidden="true" />
+                        {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
+                    </button>
+                ) : <p className="px-3 py-2 text-xs text-[color:var(--sidebar-muted)]">{t(isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
+                {!collapsed && environmentLabel && environmentLabel.toLowerCase() !== 'production' && <p className="px-3 pb-1 text-xs text-[color:var(--sidebar-muted)]">{environmentLabel}</p>}
+            </div>
         </div>
     );
 }

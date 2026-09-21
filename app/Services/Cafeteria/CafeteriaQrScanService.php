@@ -83,6 +83,7 @@ class CafeteriaQrScanService
                 IdCard::whereKey($resolved->id)->lockForUpdate()->first();
                 Employee::whereKey($resolved->employee_id)->lockForUpdate()->first();
             }
+
             return $this->processResolvedInput($qrToken, $provider, $scannedAt, $actor, $options, $request, $dryRun);
         });
     }
@@ -174,13 +175,18 @@ class CafeteriaQrScanService
 
         // ── Step 5: Weekend gate ─────────────────────────────────────────────
 
-        if (! $this->calendar->isCafeteriaOpen($transactionDate)) {
+        if (! $this->calendar->isCafeteriaOpen($transactionDate, $provider)) {
             return $this->deny($transactionDate->isWeekend() ? 'cafeteria_closed_weekend' : 'cafeteria_closed');
         }
 
         // ── Step 6: Public holiday gate ──────────────────────────────────────
 
-        if (! $this->calendar->isSubsidyDay($transactionDate)) {
+        $isSubsidyDay = $this->calendar->isSubsidyDay($transactionDate, $provider);
+        $serviceEmployeePayable = ! $isSubsidyDay && (
+            ($transactionDate->isWeekend() && $this->settings->get('weekend_scan_mode') === 'employee_payable')
+            || ($this->calendar->isHoliday($transactionDate) && $this->settings->get('holiday_scan_mode') === 'employee_payable')
+        );
+        if (! $isSubsidyDay && ! $serviceEmployeePayable) {
             return $this->deny('cafeteria_closed_holiday');
         }
 
@@ -194,7 +200,7 @@ class CafeteriaQrScanService
 
         // ── Step 8: Availability calculation ────────────────────────────────
 
-        $availability = $this->availabilityService->calculate($employee, $transactionDate, $rule);
+        $availability = $this->availabilityService->calculate($employee, $transactionDate, $rule, $provider);
         $dailyAmount = $availability['daily_amount'];
         $availableDays = $this->withoutEmployeeExcludedDays($employee, $availability['available_days']);
         $availableDayCount = count($availableDays);
@@ -220,8 +226,11 @@ class CafeteriaQrScanService
 
         // ── Step 9: Determine requested subsidy ──────────────────────────────
 
-        $usageModeRaw = $options['usage_mode'] ?? CafeteriaUsageMode::SingleDay->value;
+        $usageModeRaw = $options['usage_mode'] ?? $this->settings->defaultUsageMode();
         $usageMode = CafeteriaUsageMode::tryFrom($usageModeRaw) ?? CafeteriaUsageMode::SingleDay;
+        if ($usageMode === CafeteriaUsageMode::UseRemainingWeek && ! $this->settings->getBool('allow_upfront_weekday_usage')) {
+            return $this->deny('upfront_usage_disabled', $employee, $card, __('cafeteria.upfrontUsageDisabled'));
+        }
         $scanRequestHash = $this->scanRequestHash($qrToken instanceof IdCard ? 'nfc:'.$card->id : $qrToken, $provider, $scannedAt, $usageMode->value);
 
         $existingByRequestHash = CafeteriaTransaction::query()
@@ -240,9 +249,9 @@ class CafeteriaQrScanService
 
         // ── Step 10: Apply subsidy up to remaining balance ───────────────────
 
-        $mealAmount = isset($options['meal_amount']) ? (float) $options['meal_amount'] : $requestedSubsidy;
+        $mealAmount = isset($options['meal_amount']) ? (float) $options['meal_amount'] : (($leaveEmployeePayable || $serviceEmployeePayable) ? $dailyAmount : $requestedSubsidy);
 
-        if ($leaveEmployeePayable) {
+        if ($leaveEmployeePayable || $serviceEmployeePayable) {
             // Employee is on leave and leave_scan_mode = employee_payable:
             // scan is permitted but no subsidy is applied.
             $subsidyApplied = 0.0;
@@ -254,7 +263,7 @@ class CafeteriaQrScanService
 
         // ── Step 11: Determine consumed dates ────────────────────────────────
 
-        $consumedDates = $leaveEmployeePayable
+        $consumedDates = ($leaveEmployeePayable || $serviceEmployeePayable)
             ? []
             : $this->resolveConsumedDates($usageMode, $availableDays, $dailyAmount, $subsidyApplied);
         $consumedDayCount = count($consumedDates);
@@ -279,6 +288,29 @@ class CafeteriaQrScanService
 
         $isExtraScan = $scanSequence > 1;
 
+        $maxTransaction = $this->settings->get('max_transaction_amount_per_scan');
+        if ($maxTransaction !== null && max($mealAmount, $subsidyApplied + $employeePayable) > (float) $maxTransaction) {
+            return $this->deny('transaction_limit_exceeded', $employee, $card, __('cafeteria.transactionLimitExceeded'));
+        }
+
+        if ($employeePayable > 0 && ! $leaveEmployeePayable && ! $serviceEmployeePayable && $this->settings->get('excess_amount_mode') === 'reject') {
+            return $this->deny('excess_amount_rejected', $employee, $card, __('cafeteria.excessAmountRejected'));
+        }
+
+        $maxExtra = $this->settings->get('max_extra_amount_per_week');
+        if ($isExtraScan && $maxExtra !== null) {
+            $usedExtra = CafeteriaTransaction::query()
+                ->where('employee_id', $employee->id)
+                ->where('status', CafeteriaTransactionStatus::Accepted)
+                ->where('is_extra_scan', true)
+                ->whereDate('transaction_date', '>=', $weekStart->toDateString())
+                ->whereDate('transaction_date', '<=', $weekStart->copy()->addDays(6)->toDateString())
+                ->sum('meal_amount');
+            if ((float) $usedExtra + $mealAmount > (float) $maxExtra) {
+                return $this->deny('weekly_extra_limit_exceeded', $employee, $card, __('cafeteria.weeklyExtraLimitExceeded'));
+            }
+        }
+
         // SingleDay mode: one scan per employee per day — reject duplicates.
         if ($isExtraScan && $usageMode === CafeteriaUsageMode::SingleDay) {
             return $this->deny('already_scanned_today');
@@ -298,6 +330,7 @@ class CafeteriaQrScanService
             $availableDayCount, $consumedDayCount, $consumedDates, $dailyAmount,
             $isExtraScan, $scanSequence, $actor,
             $availability, $scanNonce, $scanRequestHash,
+            $isSubsidyDay,
         ): CafeteriaTransaction {
             $transactionNumber = $this->generateTransactionNumber();
             $serviceType = ServiceType::query()
@@ -336,8 +369,8 @@ class CafeteriaQrScanService
                 'status' => CafeteriaTransactionStatus::Accepted,
                 'scan_sequence_for_day' => $scanSequence,
                 'is_extra_scan' => $isExtraScan,
-                'is_holiday' => false,
-                'is_working_day' => true,
+                'is_holiday' => $this->calendar->isHoliday($transactionDate),
+                'is_working_day' => $isSubsidyDay,
                 'usage_mode' => $usageMode->value,
                 'available_amount_before' => $availability['remaining'],
                 'week_start_date' => $weekStart->toDateString(),
@@ -467,6 +500,9 @@ class CafeteriaQrScanService
     /** @param list<string> $availableDays @return list<string> */
     private function withoutEmployeeExcludedDays(Employee $employee, array $availableDays): array
     {
+        if (! $this->settings->getBool('exclude_leave_days_from_subsidy')) {
+            return $availableDays;
+        }
         if ($availableDays === []) {
             return [];
         }
@@ -474,9 +510,9 @@ class CafeteriaQrScanService
         $excludedDates = EmployeeCafeteriaExclusion::query()
             ->where('employee_id', $employee->id)
             ->where('status', 'active')
-            ->where('starts_on', '<=', max($availableDays))
+            ->whereDate('starts_on', '<=', max($availableDays))
             ->where(function ($query) use ($availableDays): void {
-                $query->whereNull('ends_on')->orWhere('ends_on', '>=', min($availableDays));
+                $query->whereNull('ends_on')->orWhereDate('ends_on', '>=', min($availableDays));
             })
             ->get()
             ->flatMap(function (EmployeeCafeteriaExclusion $exclusion) use ($availableDays): array {
@@ -536,10 +572,13 @@ class CafeteriaQrScanService
         return EmployeeCafeteriaExclusion::query()
             ->where('employee_id', $employee->id)
             ->where('status', 'active')
-            ->where('starts_on', '<=', $date->toDateString())
+            ->whereDate('starts_on', '<=', $date->toDateString())
+            ->where(function ($query) use ($date): void {
+                $query->whereNull('return_to_work_on')->orWhereDate('return_to_work_on', '>', $date->toDateString());
+            })
             ->where(function ($query) use ($date): void {
                 $query->whereNull('ends_on')
-                    ->orWhere('ends_on', '>=', $date->toDateString());
+                    ->orWhereDate('ends_on', '>=', $date->toDateString());
             })
             ->exists();
     }

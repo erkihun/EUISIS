@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 return [
+    'upfrontUsageDisabled' => 'የቀረውን ሳምንት በቅድሚያ መጠቀም ተሰናክሏል። ዛሬ ብቻ ይምረጡ።',
+    'transactionLimitExceeded' => 'ይህ ቅኝት የተወሰነውን የግብይት ገደብ ያልፋል።',
+    'excessAmountRejected' => 'ድጎማው ይህን ቅኝት አይሸፍንም፤ ተጨማሪ ክፍያም አይፈቀድም።',
+    'weeklyExtraLimitExceeded' => 'ይህ ቅኝት ለሳምንቱ የተፈቀደውን ተጨማሪ ቅኝት መጠን ያልፋል።',
     'moduleName' => 'የካፌቴሪያ ድጎማ',
     'dashboard' => 'የካፌቴሪያ ዳሽቦርድ',
     'nameEn' => 'ስም (በእንግሊዝኛ)',

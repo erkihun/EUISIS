@@ -84,27 +84,29 @@ export default function Breadcrumbs() {
     return (
         <nav
             aria-label="Breadcrumb"
-            className="flex items-center gap-1 px-4 py-2 text-xs text-gray-500 bg-gray-50 border-b border-gray-100 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-400 sm:px-6"
+            className="overflow-x-auto border-b border-gray-100 bg-gray-50 px-4 py-2 text-xs text-gray-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 sm:px-6"
         >
-            {marked.map((crumb, i) => (
-                <span key={i} className="flex items-center gap-1 min-w-0">
-                    {i > 0 && (
-                        <ChevronRight className="h-3 w-3 shrink-0 text-gray-400 dark:text-slate-600" aria-hidden="true" />
-                    )}
-                    {crumb.isLast ? (
-                        <span className="truncate font-medium text-gray-700 dark:text-slate-200">
-                            {crumb.label}
-                        </span>
-                    ) : (
-                        <Link
-                            href={crumb.href}
-                            className="truncate hover:text-[color:var(--color-primary)] dark:hover:text-blue-400 transition-colors"
-                        >
-                            {crumb.label}
-                        </Link>
-                    )}
-                </span>
-            ))}
+            <ol className="flex min-w-max items-center gap-1 whitespace-nowrap">
+                {marked.map((crumb, i) => (
+                    <li key={crumb.href} className="flex min-w-0 items-center gap-1">
+                        {i > 0 && (
+                            <ChevronRight className="h-3 w-3 shrink-0 text-gray-400 dark:text-slate-600" aria-hidden="true" />
+                        )}
+                        {crumb.isLast ? (
+                            <span aria-current="page" className="max-w-64 truncate font-semibold text-gray-700 dark:text-slate-200">
+                                {crumb.label}
+                            </span>
+                        ) : (
+                            <Link
+                                href={crumb.href}
+                                className="max-w-48 truncate transition-colors hover:text-[color:var(--color-primary)] focus:outline-none focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:hover:text-blue-400"
+                            >
+                                {crumb.label}
+                            </Link>
+                        )}
+                    </li>
+                ))}
+            </ol>
         </nav>
     );
 }

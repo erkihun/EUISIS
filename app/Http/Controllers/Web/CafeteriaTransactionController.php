@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Actions\Cafeteria\ProcessCafeteriaQrScanAction;
-use App\Services\Nfc\NfcCredentialService;
 use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProcessCafeteriaQrScanRequest;
@@ -16,6 +15,8 @@ use App\Models\CafeteriaTransaction;
 use App\Models\Employee;
 use App\Services\Cafeteria\CafeteriaCalendarService;
 use App\Services\Cafeteria\CafeteriaProviderAccessService;
+use App\Services\Cafeteria\CafeteriaSettingsService;
+use App\Services\Nfc\NfcCredentialService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -109,6 +110,7 @@ class CafeteriaTransactionController extends Controller
         $selectedProvider = $providers->first();
 
         return Inertia::render('Cafeteria/Scan', [
+            'scanOptions' => app(CafeteriaSettingsService::class)->scanOptions(),
             'providers' => $providers,
             'provider_locked' => $providers->count() === 1 && ! $this->providerAccess->canAccessAllProviders($request->user()),
             'today_scans' => $selectedProvider
@@ -143,6 +145,7 @@ class CafeteriaTransactionController extends Controller
             : 0;
 
         return Inertia::render('Cafeteria/MobileScan', [
+            'scanOptions' => app(CafeteriaSettingsService::class)->scanOptions(),
             'providers' => $providers,
             'provider_locked' => $providers->count() === 1 && ! $this->providerAccess->canAccessAllProviders($request->user()),
             'today_scan_count' => $todayCount,

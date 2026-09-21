@@ -100,7 +100,10 @@ export function isLight(hex: string): boolean {
  * a free choice — whatever an administrator picks, the labels follow it.
  */
 export function readableForeground(background: string): string {
-    return isLight(background) ? '#1f2937' : '#f1f5f9';
+    const dark = '#1f2937';
+    const light = '#f1f5f9';
+
+    return contrastRatio(background, dark) >= contrastRatio(background, light) ? dark : light;
 }
 
 /** WCAG contrast ratio between two colours, 1 (identical) to 21 (black/white). */
@@ -117,10 +120,10 @@ export function contrastRatio(a: string, b: string): number {
  *
  * Normally the brand colour — that is the point of a brand colour. But when
  * the sidebar itself is set to the brand navy, a navy active state on a navy
- * background is invisible, and the user loses track of where they are. Below
- * a 3:1 ratio (the WCAG threshold for non-text UI) it falls back to the
- * sidebar's own foreground, which is guaranteed to contrast.
+ * background is invisible, and the user loses track of where they are. The
+ * accent is also used for the selected item's text, so below the WCAG AA 4.5:1
+ * text threshold it falls back to the sidebar's own foreground.
  */
 export function sidebarAccent(brand: string, background: string): string {
-    return contrastRatio(brand, background) >= 3 ? brand : readableForeground(background);
+    return contrastRatio(brand, background) >= 4.5 ? brand : readableForeground(background);
 }

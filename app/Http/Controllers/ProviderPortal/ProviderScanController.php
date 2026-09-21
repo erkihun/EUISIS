@@ -13,6 +13,7 @@ use App\Models\CafeteriaProviderLedgerEntry;
 use App\Models\CafeteriaTransaction;
 use App\Models\Employee;
 use App\Services\Cafeteria\CafeteriaCalendarService;
+use App\Services\Cafeteria\CafeteriaSettingsService;
 use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -41,6 +42,7 @@ class ProviderScanController extends Controller
             ->get();
 
         return Inertia::render('Cafeteria/Portal/Scan', [
+            'scanOptions' => app(CafeteriaSettingsService::class)->scanOptions(),
             ...$this->portalPayload($request, $context, $provider),
             'today_scans' => CafeteriaTransactionResource::collection($todayScans)->resolve(),
             'scan_result' => $request->session()->get('provider_scan_result'),

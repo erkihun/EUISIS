@@ -101,12 +101,14 @@
     --sidebar-bg:      var(--sidebar-bg-light, #ffffff);
     --sidebar-fg:      var(--sidebar-fg-light, #1f2937);
     --sidebar-border:  color-mix(in srgb, var(--sidebar-fg) 14%, var(--sidebar-bg));
-    --sidebar-muted:   color-mix(in srgb, var(--sidebar-fg) 58%, var(--sidebar-bg));
-    --sidebar-hover:   color-mix(in srgb, var(--sidebar-fg) 8%,  var(--sidebar-bg));
+    /* Menu labels are body-sized text, so the muted tone must retain enough
+       foreground to stay readable on user-configured light and dark colours. */
+    --sidebar-muted:   color-mix(in srgb, var(--sidebar-fg) 72%, var(--sidebar-bg));
+    --sidebar-hover:   color-mix(in srgb, var(--sidebar-fg) 12%, var(--sidebar-bg));
     /* Selected item. Normally the brand colour; falls back to the sidebar
        foreground when the sidebar is set to the brand colour itself. */
     --sidebar-accent:  var(--sidebar-accent-light, var(--color-primary));
-    --sidebar-accent-wash: color-mix(in srgb, var(--sidebar-accent) 12%, var(--sidebar-bg));
+    --sidebar-accent-wash: color-mix(in srgb, var(--sidebar-accent) 18%, var(--sidebar-bg));
 
     /* ── Radius ────────────────────────────────────────────────
        One scale, 6–10px. `--radius-card` is the only value a card should
@@ -310,62 +312,6 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
 }
 
 
-/* ── Sidebar motion ─────────────────────────────────────────── */
-/* Smooth expand/collapse for nav groups. The wrapper animates grid-rows
-   0fr → 1fr so it collapses to true zero height with no fixed max-height. */
-.sidebar-collapsible {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 260ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-.sidebar-collapsible[data-open="true"] {
-    grid-template-rows: 1fr;
-}
-.sidebar-collapsible > .sidebar-collapsible-inner {
-    overflow: hidden;
-    min-height: 0;
-}
-
-/* Each nav item slides up + fades in; stagger via --i set inline. */
-@keyframes sidebar-item-in {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-.sidebar-collapsible[data-open="true"] .sidebar-item {
-    animation: sidebar-item-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: calc(var(--i, 0) * 28ms);
-}
-
-/* Chevron rotates with a slight overshoot for a livelier feel. */
-.sidebar-chevron {
-    transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Active-indicator bar grows in vertically rather than snapping. */
-@keyframes sidebar-bar-in {
-    from { transform: scaleY(0); }
-    to   { transform: scaleY(1); }
-}
-.sidebar-active-bar {
-    transform-origin: center;
-    animation: sidebar-bar-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* Press feedback on nav rows. */
-.sidebar-press {
-    transition: transform 120ms ease, background-color 160ms ease, color 160ms ease;
-}
-.sidebar-press:active {
-    transform: scale(0.97);
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .sidebar-collapsible,
-    .sidebar-chevron,
-    .sidebar-press { transition: none; }
-    .sidebar-collapsible .sidebar-item,
-    .sidebar-active-bar { animation: none; }
-}
 
 /* ── Org tree connectors ────────────────────────────────────── */
 .org-tree-connector::before {

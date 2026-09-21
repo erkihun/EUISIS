@@ -1,4 +1,5 @@
 const common = {
+    submit: 'Submit',
     create: 'Create',
     view: 'View',
     edit: 'Edit',

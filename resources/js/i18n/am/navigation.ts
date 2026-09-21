@@ -1,4 +1,11 @@
 const navigation = {
+    accountMenu: 'የመለያ ዝርዝር',
+    sidebarPeople: 'የሰው ኃይል እና ተቋም',
+    sidebarOperations: 'የአገልግሎት አሰጣጥ',
+    sidebarGovernance: 'አስተዳደር እና ስርዓት',
+    searchNavigation: 'ገጽ ይፈልጉ…',
+    expandSidebar: 'ዝርዝሩን ዘርጋ',
+    collapseSidebar: 'ዝርዝሩን አሳንስ',
     dashboard: 'ዳሽቦርድ',
     groupOverview: 'አጠቃላይ እይታ',
     groupOrganization: 'የተቋም መዋቅር',

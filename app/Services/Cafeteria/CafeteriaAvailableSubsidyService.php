@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Cafeteria;
 
 use App\Enums\CafeteriaLedgerEntryType;
+use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaSubsidyLedger;
 use App\Models\CafeteriaSubsidyRule;
 use App\Models\CafeteriaTransactionConsumedDay;
@@ -38,18 +39,18 @@ class CafeteriaAvailableSubsidyService
      *   week_end: Carbon,
      * }
      */
-    public function calculate(Employee $employee, Carbon $scanDate, CafeteriaSubsidyRule $rule): array
+    public function calculate(Employee $employee, Carbon $scanDate, CafeteriaSubsidyRule $rule, ?CafeteriaProvider $provider = null): array
     {
         $dailyAmount = (float) $rule->subsidy_amount;
         $weekStart = $this->weekWindow->weekStart($scanDate);
         $weekEnd = $this->weekWindow->weekEnd($scanDate);
-        $availableDays = $this->weekWindow->remainingWorkingDaysFrom($scanDate);
+        $availableDays = $this->weekWindow->remainingWorkingDaysFrom($scanDate, $provider);
 
         if ($availableDays !== []) {
             $consumedDates = CafeteriaTransactionConsumedDay::query()
                 ->where('employee_id', $employee->id)
                 ->whereNull('reversed_at')
-                ->whereIn('consumed_date', $availableDays)
+                ->whereBetween('consumed_date', [min($availableDays), max($availableDays).' 23:59:59'])
                 ->pluck('consumed_date')
                 ->map(fn ($date) => Carbon::parse($date)->toDateString())
                 ->all();
@@ -73,7 +74,11 @@ class CafeteriaAvailableSubsidyService
                     CafeteriaLedgerEntryType::CarryForwardDeduction->value,
                 ])
                 ->whereNotNull('allocated_for_date')
-                ->whereIn('allocated_for_date', $availableDays)
+                ->where(function ($query) use ($availableDays): void {
+                    foreach ($availableDays as $day) {
+                        $query->orWhereDate('allocated_for_date', $day);
+                    }
+                })
                 ->sum('amount');
 
             // amounts are stored negative for debits; abs gives consumed total

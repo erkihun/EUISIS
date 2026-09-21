@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 return [
+    'upfrontUsageDisabled' => 'Using the remaining week is disabled. Select today only.',
+    'transactionLimitExceeded' => 'This scan exceeds the configured transaction limit.',
+    'excessAmountRejected' => 'The configured subsidy does not cover this scan and excess amounts are not allowed.',
+    'weeklyExtraLimitExceeded' => 'This scan exceeds the weekly extra-scan amount limit.',
     // General
     'moduleName' => 'Cafeteria Subsidy',
     'dashboard' => 'Cafeteria Dashboard',

@@ -1,4 +1,11 @@
 const navigation = {
+    accountMenu: 'Account menu',
+    sidebarPeople: 'People & organization',
+    sidebarOperations: 'Service delivery',
+    sidebarGovernance: 'Governance & system',
+    searchNavigation: 'Find a page…',
+    expandSidebar: 'Expand navigation',
+    collapseSidebar: 'Collapse navigation',
     dashboard: 'Dashboard',
     groupOverview: 'Overview',
     groupOrganization: 'Organization Structure',

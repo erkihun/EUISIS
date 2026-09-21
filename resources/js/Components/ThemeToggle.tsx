@@ -11,7 +11,7 @@ import {
 
 const order: ThemePreference[] = ['system', 'light', 'dark'];
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ variant = 'default' }: { variant?: 'default' | 'toolbar' }) {
     const { t } = useLocale();
     const { getBoolean, getString } = useSystemSettings();
     const allowSwitching = getBoolean('appearance.allow_user_theme_switching', true);
@@ -48,7 +48,9 @@ export default function ThemeToggle() {
         <button
             type="button"
             onClick={cycleTheme}
-            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+            className={variant === 'toolbar'
+                ? 'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]'
+                : 'rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'}
             aria-label={`${t('settings.themeMode')}: ${t(`common.${preference}`)}`}
             title={`${t('settings.themeMode')}: ${t(`common.${preference}`)}`}
         >

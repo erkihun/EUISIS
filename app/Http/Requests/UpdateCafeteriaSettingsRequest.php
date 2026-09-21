@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Services\Cafeteria\CafeteriaSettingsService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -16,9 +17,9 @@ class UpdateCafeteriaSettingsRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'default_daily_subsidy_amount' => ['nullable', 'numeric', 'min:0'],
-            'currency' => ['nullable', 'string', 'max:10'],
+            'currency' => ['sometimes', 'required', 'string', 'regex:/^[A-Z]{3}$/'],
             'week_start_day' => ['nullable', 'string', Rule::in(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])],
             'week_end_day' => ['nullable', 'string', Rule::in(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])],
             'default_usage_mode' => ['nullable', 'string', Rule::in(['single_day', 'use_remaining_week'])],
@@ -47,5 +48,19 @@ class UpdateCafeteriaSettingsRequest extends FormRequest
             'allow_leave_day_retroactive_claim' => ['nullable', 'boolean'],
             'auto_resume_after_leave' => ['nullable', 'boolean'],
         ];
+
+        foreach (CafeteriaSettingsService::READ_ONLY as $key => $reason) {
+            $rules[$key] = ['missing'];
+        }
+        foreach (app(CafeteriaSettingsService::class)->editableKeys() as $key) {
+            // Optional limits may be cleared; operating rules must have a value.
+            if (! in_array($key, ['max_transaction_amount_per_scan', 'max_extra_amount_per_week'], true)) {
+                $rules[$key] = array_values(array_filter($rules[$key], fn ($rule) => $rule !== 'nullable'));
+                $rules[$key][] = 'sometimes';
+                $rules[$key][] = 'required';
+            }
+        }
+
+        return $rules;
     }
 }
