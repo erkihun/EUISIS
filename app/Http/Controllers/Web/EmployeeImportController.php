@@ -168,17 +168,46 @@ class EmployeeImportController extends Controller
     {
         $this->authorizePermission('employees.import.view');
 
-        $data = $request->validate(['organization_id' => ['required', 'uuid']]);
+        $data = $request->validate([
+            'organization_id' => ['required', 'uuid'],
+            'locale' => ['nullable', 'string', 'in:en,am'],
+        ]);
         $user = Auth::user();
         $organization = Organization::query()
             ->where('status', 'active')
             ->when(! $this->scope->isUnrestricted($user), fn ($query) => $query->whereIn('id', $this->scope->accessibleOrganizationIds($user)->all()))
             ->findOrFail($data['organization_id']);
 
-        return response($this->importService->templateCsv($organization), 200, [
+        $locale = $this->templateLocale($data['locale'] ?? null);
+
+        return response($this->importService->templateCsv($organization, $locale), 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="employee-import-'.Str::slug($organization->code).'-template.csv"',
+            'Content-Disposition' => 'attachment; filename="employee-import-'.Str::slug($organization->code).'-template-'.$locale.'.csv"',
         ]);
+    }
+
+    /**
+     * Resolve the template locale.
+     *
+     * Priority: the locale the form submitted > the session locale > the app
+     * default. The session fallback keeps a hand-built URL honouring whatever
+     * language the user is actually browsing in.
+     */
+    private function templateLocale(?string $requested): string
+    {
+        $supported = ['en', 'am'];
+
+        if (is_string($requested) && in_array($requested, $supported, true)) {
+            return $requested;
+        }
+
+        $fromSession = session('locale');
+
+        if (is_string($fromSession) && in_array($fromSession, $supported, true)) {
+            return $fromSession;
+        }
+
+        return in_array(app()->getLocale(), $supported, true) ? app()->getLocale() : 'en';
     }
 
     /**

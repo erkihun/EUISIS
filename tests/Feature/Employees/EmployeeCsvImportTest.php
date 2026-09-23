@@ -724,3 +724,73 @@ it('looks the organization and unit up once when building a preview', function (
      */
     expect($queries)->toBeGreaterThan(0)->toBeLessThanOrEqual(12);
 });
+
+it('builds the template name columns in the requested locale', function (): void {
+    $this->alpha['org']->update(['name_am' => 'አልፋ ተቋም']);
+    $this->alpha['unit']->update(['name_am' => 'አልፋ ክፍል']);
+    $this->alpha['positions'][1]->update(['title_am' => 'አልፋ የሥራ መደብ']);
+
+    $amharic = $this->actingAs($this->admin)
+        ->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id, 'locale' => 'am']))
+        ->assertOk()
+        ->getContent();
+
+    $lines = explode("\n", trim(substr($amharic, 3)));
+    $row = array_combine(EmployeeCsvImportService::templateColumns(), str_getcsv($lines[1]));
+
+    expect($row['organization_name'])->toBe('አልፋ ተቋም')
+        ->and($row['organization_unit_name'])->toBe('አልፋ ክፍል')
+        ->and($row['position_name'])->toBe('አልፋ የሥራ መደብ')
+        // The header stays in canonical keys, or the file cannot be re-imported.
+        ->and(str_getcsv($lines[0]))->toBe(EmployeeCsvImportService::templateColumns());
+
+    $english = $this->actingAs($this->admin)
+        ->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id, 'locale' => 'en']))
+        ->assertOk()
+        ->getContent();
+
+    $englishRow = array_combine(
+        EmployeeCsvImportService::templateColumns(),
+        str_getcsv(explode("\n", trim(substr($english, 3)))[1]),
+    );
+
+    expect($englishRow['organization_name'])->toBe($this->alpha['org']->name_en);
+});
+
+it('falls back to the other language when a translation is missing', function (): void {
+    // name_am is deliberately left unset on the seeded organization.
+    $body = $this->actingAs($this->admin)
+        ->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id, 'locale' => 'am']))
+        ->assertOk()
+        ->getContent();
+
+    $row = array_combine(
+        EmployeeCsvImportService::templateColumns(),
+        str_getcsv(explode("\n", trim(substr($body, 3)))[1]),
+    );
+
+    expect($row['organization_name'])->toBe($this->alpha['org']->name_en);
+});
+
+it('follows the session locale when the template url names none', function (): void {
+    $this->alpha['org']->update(['name_am' => 'አልፋ ተቋም']);
+
+    $body = $this->actingAs($this->admin)
+        ->withSession(['locale' => 'am'])
+        ->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))
+        ->assertOk()
+        ->getContent();
+
+    $row = array_combine(
+        EmployeeCsvImportService::templateColumns(),
+        str_getcsv(explode("\n", trim(substr($body, 3)))[1]),
+    );
+
+    expect($row['organization_name'])->toBe('አልፋ ተቋም');
+});
+
+it('rejects an unsupported template locale', function (): void {
+    $this->actingAs($this->admin)
+        ->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id, 'locale' => 'fr']))
+        ->assertSessionHasErrors('locale');
+});

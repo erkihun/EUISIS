@@ -354,8 +354,18 @@ class EmployeeCsvImportService
      * Prefills placement names and an unambiguous reference, never employee details.
      * A BOM lets spreadsheet software open Amharic codes as UTF-8.
      */
-    public function templateCsv(Organization $organization): string
+    /**
+     * Build the starter CSV for an organization.
+     *
+     * The header row stays in canonical English keys whatever the locale:
+     * readRows() matches those keys exactly, so a translated header would make
+     * the file we just handed out impossible to upload back. Only the
+     * human-readable name columns follow the locale.
+     */
+    public function templateCsv(Organization $organization, string $locale = 'en'): string
     {
+        $amharic = $locale === 'am';
+
         $positions = Position::query()
             ->where('organization_id', $organization->id)
             ->where('is_active', true)
@@ -372,9 +382,18 @@ class EmployeeCsvImportService
         // Empty organizations still get an organization-specific starter row.
         foreach ($positions->isEmpty() ? [null] : $positions as $position) {
             $row = array_fill_keys(self::templateColumns(), '');
-            $row['organization_name'] = $organization->name_en ?: $organization->name_am;
-            $row['organization_unit_name'] = $position?->organizationUnit?->name_en ?: ($position?->organizationUnit?->name_am ?? '');
-            $row['position_name'] = $position?->title_en ?: ($position?->title_am ?? '');
+            // Preferred locale first, with the other language as the fallback
+            // so a record missing one translation still names something.
+            $row['organization_name'] = $amharic
+                ? ($organization->name_am ?: $organization->name_en)
+                : ($organization->name_en ?: $organization->name_am);
+            $unit = $position?->organizationUnit;
+            $row['organization_unit_name'] = ($amharic
+                ? ($unit?->name_am ?: $unit?->name_en)
+                : ($unit?->name_en ?: $unit?->name_am)) ?? '';
+            $row['position_name'] = ($amharic
+                ? ($position?->title_am ?: $position?->title_en)
+                : ($position?->title_en ?: $position?->title_am)) ?? '';
             $row['position_reference'] = $position?->id ?? '';
             $row['employment_status'] = 'active';
             // Treat codes as text when opened in spreadsheet software.

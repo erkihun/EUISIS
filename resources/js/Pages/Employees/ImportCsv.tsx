@@ -100,6 +100,9 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                             description={t('employees.import.prepareDescription')}
                         />
                         <form method="get" action={route('employees.import.template')} className="space-y-4 p-5">
+                            {/* The template's name columns follow the language
+                                the page is being viewed in. */}
+                            <input type="hidden" name="locale" value={locale} />
                             <div>
                                 <label htmlFor="template-organization" className="mb-1.5 block text-sm font-medium text-gray-800 dark:text-slate-200">
                                     {t('employees.import.templateOrganization')}
