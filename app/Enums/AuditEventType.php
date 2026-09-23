@@ -364,4 +364,19 @@ enum AuditEventType: string
     case PublicSeoUpdated = 'public_site.seo_updated';
     case PublicSiteSettingsUpdated = 'public_site.settings_updated';
     case PublicSiteEnabledChanged = 'public_site.enabled_changed';
+    case OrganizationalChangeRequestCreated = 'organizational_change_request.created';
+    case OrganizationalChangeRequestUpdated = 'organizational_change_request.updated';
+    case OrganizationalChangeRequestSubmitted = 'organizational_change_request.submitted';
+    case OrganizationalChangeRequestReviewStarted = 'organizational_change_request.review_started';
+    case OrganizationalChangeRequestCorrectionRequested = 'organizational_change_request.correction_requested';
+    case OrganizationalChangeRequestResubmitted = 'organizational_change_request.resubmitted';
+    case OrganizationalChangeRequestApproved = 'organizational_change_request.approved';
+    case OrganizationalChangeRequestRejected = 'organizational_change_request.rejected';
+    case OrganizationalChangeRequestCancelled = 'organizational_change_request.cancelled';
+    case OrganizationalChangeRequestImplementationAssigned = 'organizational_change_request.implementation_assigned';
+    case OrganizationalChangeRequestImplementationClaimed = 'organizational_change_request.implementation_claimed';
+    case OrganizationalChangeRequestImplementationBlocked = 'organizational_change_request.implementation_blocked';
+    case OrganizationalChangeRequestImplemented = 'organizational_change_request.implemented';
+    case OrganizationalChangeRequestCompleted = 'organizational_change_request.completed';
+    case OrganizationalChangeRequestReturnedForAmendment = 'organizational_change_request.returned_for_amendment';
 }

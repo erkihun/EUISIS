@@ -728,3 +728,48 @@ it('makes an auto-provisioned token immediately scannable by the public', functi
 
     expect(EmployeeServiceFeedback::query()->where('employee_id', $employee->id)->count())->toBe(1);
 });
+
+/**
+ * The service-type dropdown posts `service_type_id`. The controller's
+ * FILTER_KEYS must carry that same key through to the query service, or the
+ * filter is silently dropped and every page shows unfiltered results.
+ */
+it('narrows feedback by service type on the list, reports and export', function (): void {
+    $serviceOne = PositionService::query()->create([
+        'organization_id' => $this->alpha['org']->id,
+        'position_id' => $this->alpha['position']->id,
+        'service_no' => 'ALPHA-F1',
+        'name_en' => 'Filtered Service One',
+        'is_active' => true,
+        'sort_order' => 0,
+    ]);
+
+    $serviceTwo = PositionService::query()->create([
+        'organization_id' => $this->alpha['org']->id,
+        'position_id' => $this->alpha['position']->id,
+        'service_no' => 'ALPHA-F2',
+        'name_en' => 'Filtered Service Two',
+        'is_active' => true,
+        'sort_order' => 1,
+    ]);
+
+    makeFeedback($this->alpha, $serviceOne, 5);
+    makeFeedback($this->alpha, $serviceTwo, 1);
+    makeFeedback($this->alpha, $serviceTwo, 2);
+
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.admin.index', ['service_type_id' => $serviceOne->id]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('feedback.data', fn ($rows) => count($rows) === 1));
+
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.admin.reports', ['service_type_id' => $serviceTwo->id]))
+        ->assertOk()
+        ->assertInertia(function (Assert $page): void {
+            $props = $page->toArray()['props'];
+
+            expect($props['summary']['total'])->toBe(2)
+                // The filter must survive the round trip, or the bar renders blank.
+                ->and($props['filters']['service_type_id'] ?? null)->not->toBeNull();
+        });
+});

@@ -15,6 +15,7 @@ use App\Services\ApiEndpointCatalogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -81,6 +82,11 @@ class ApiManagementController extends Controller
         $this->authorizePermission('api_management.view');
 
         $user = Auth::user();
+        $endpointUsage = ApiRequestLog::query()
+            ->where('external_application_id', $externalApplication->getKey())
+            ->select('method', 'endpoint')->selectRaw('MAX(requested_at) as last_used_at')
+            ->groupBy('method', 'endpoint')->get()
+            ->keyBy(fn ($log) => $log->method.' '.$log->endpoint);
 
         return Inertia::render('ApiManagement/Show', [
             'application' => [
@@ -122,10 +128,7 @@ class ApiManagementController extends Controller
                     'status' => $endpoint->status,
                     'is_enabled' => (bool) $endpoint->pivot->is_enabled,
                     // Last call this application made to this endpoint.
-                    'last_used_at' => ApiRequestLog::query()
-                        ->where('external_application_id', $externalApplication->getKey())
-                        ->where('endpoint', $endpoint->uri)
-                        ->max('requested_at'),
+                    'last_used_at' => $endpointUsage->get($endpoint->method.' '.$endpoint->uri)?->last_used_at,
                 ])->all(),
             'can' => [
                 'update' => $user?->can('api_management.update') ?? false,
@@ -172,8 +175,12 @@ class ApiManagementController extends Controller
         $data['allowed_scopes'] = $this->withRequiredScopes($data['allowed_scopes'] ?? [], $endpointIds);
         $data['created_by'] = Auth::id();
 
-        $application = ExternalApplication::query()->create($data);
-        $this->syncEndpointAssignments($application, $endpointIds);
+        $application = DB::transaction(function () use ($data, $endpointIds) {
+            $application = ExternalApplication::query()->create($data);
+            $this->syncEndpointAssignments($application, $endpointIds);
+
+            return $application;
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::SettingUpdated,
@@ -191,12 +198,16 @@ class ApiManagementController extends Controller
         $this->authorizePermission('api_management.update');
 
         $data = $this->validatePayload($request, $externalApplication);
-        $endpointIds = $this->validatedEndpointIds($request);
+        $endpointIds = $request->has('endpoint_ids')
+            ? $this->validatedEndpointIds($request, $externalApplication)
+            : $externalApplication->endpoints()->pluck('api_endpoint_definitions.id')->all();
 
         $data['allowed_scopes'] = $this->withRequiredScopes($data['allowed_scopes'] ?? [], $endpointIds);
 
-        $externalApplication->update($data);
-        $this->syncEndpointAssignments($externalApplication, $endpointIds);
+        DB::transaction(function () use ($externalApplication, $data, $endpointIds): void {
+            $externalApplication->update($data);
+            $this->syncEndpointAssignments($externalApplication, $endpointIds);
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::SettingUpdated,
@@ -215,9 +226,11 @@ class ApiManagementController extends Controller
         // Deleting the registration must also kill live access. The model soft
         // deletes, so the database cascade never fires — both the tokens and
         // the endpoint assignments have to be detached explicitly.
-        $externalApplication->tokens()->delete();
-        $externalApplication->endpoints()->detach();
-        $externalApplication->delete();
+        DB::transaction(function () use ($externalApplication): void {
+            $externalApplication->tokens()->delete();
+            $externalApplication->endpoints()->detach();
+            $externalApplication->delete();
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::SettingUpdated,
@@ -236,6 +249,7 @@ class ApiManagementController extends Controller
     public function storeToken(Request $request, ExternalApplication $externalApplication): RedirectResponse
     {
         $this->authorizePermission('api_management.tokens.create');
+        $request->validate(['name' => ['nullable', 'string', 'max:255']]);
 
         $abilities = $externalApplication->grantableScopes();
 
@@ -267,7 +281,7 @@ class ApiManagementController extends Controller
     {
         $this->authorizePermission('api_management.tokens.revoke');
 
-        $externalApplication->tokens()->whereKey($tokenId)->delete();
+        $externalApplication->tokens()->findOrFail($tokenId)->delete();
 
         $this->writeAuditLogAction->execute(
             AuditEventType::SettingUpdated,
@@ -527,9 +541,13 @@ class ApiManagementController extends Controller
      *
      * @return array<int, string>
      */
-    private function validatedEndpointIds(Request $request): array
+    private function validatedEndpointIds(Request $request, ?ExternalApplication $application = null): array
     {
         $assignable = ApiEndpointDefinition::query()->assignable()->pluck('id')->all();
+        // Existing deprecated/hidden assignments may be retained, not newly granted.
+        if ($application !== null) {
+            $assignable = array_merge($assignable, $application->endpoints()->pluck('api_endpoint_definitions.id')->all());
+        }
 
         $validated = $request->validate([
             'endpoint_ids' => ['array'],
@@ -575,10 +593,11 @@ class ApiManagementController extends Controller
     private function syncEndpointAssignments(ExternalApplication $application, array $endpointIds): void
     {
         $createdBy = (string) Auth::id();
+        $existing = $application->endpoints()->get()->keyBy('id');
 
         $application->endpoints()->sync(
             collect($endpointIds)
-                ->mapWithKeys(fn (string $id): array => [$id => [
+                ->mapWithKeys(fn (string $id): array => [$id => $existing->has($id) ? [] : [
                     'id' => (string) Str::uuid(),
                     'is_enabled' => true,
                     'created_by' => $createdBy,

@@ -69,6 +69,8 @@ return [
         'notImportable' => 'This upload cannot be imported. Every row must be valid first.',
         'failed' => 'Import failed and nothing was saved. :reason',
         'errors' => [
+            'templateReference' => 'The position reference is missing, unavailable or outside your scope. Download a fresh organization template and keep its reference column unchanged.',
+            'templateNames' => 'The placement names do not match the position reference. Download a fresh template; change employee details only.',
             'notCsv' => 'The upload must be a CSV file.',
             'required' => 'The :field column is required.',
             'gender' => 'Gender must be male or female.',

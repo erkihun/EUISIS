@@ -93,6 +93,15 @@ const navGroups: NavGroup[] = [
             { routeName: 'organization-unit-types.index', labelKey: 'nav.organizationUnitTypes', icon: BoxesIcon, permission: 'organization-unit-types.viewAny' },
             { routeName: 'hierarchy-versions.index', labelKey: 'nav.hierarchyVersions', icon: GitForkIcon,   permission: 'hierarchy-versions.viewAny' },
             /*
+             * Change requests. Four entries, each gated by the permission for
+             * that stage, so a requester never sees the review or
+             * implementation queues and vice versa.
+             */
+            { routeName: 'organizational-change-requests.index', labelKey: 'nav.changeRequestsMine', icon: Inbox, permission: 'organizational-change-requests.view_own' },
+            { routeName: 'organizational-change-requests.review-queue', labelKey: 'nav.changeRequestsReview', icon: ClipboardCheckIcon, permission: 'organizational-change-requests.review' },
+            { routeName: 'organizational-change-requests.pending-implementation', labelKey: 'nav.changeRequestsImplement', icon: HardHatIcon, permission: 'organizational-change-requests.view_approved' },
+            { routeName: 'organizational-change-requests.completed', labelKey: 'nav.changeRequestsCompleted', icon: BadgeCheckIcon, permission: 'organizational-change-requests.view_own' },
+            /*
              * The controller also accepts `functional-reporting.viewReports`;
              * only one permission can gate a nav entry, so the broader of the
              * two is used and the page re-checks both on arrival.

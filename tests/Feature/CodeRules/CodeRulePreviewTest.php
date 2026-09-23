@@ -138,3 +138,15 @@ it('preview resolves rand_8 to an eight-digit code', function (): void {
 
     expect($response->json('preview'))->toMatch('/^AAC-\d{8}$/');
 });
+
+it('preview uses the same format validation as create and update', function (): void {
+    $user = newPreviewSuperAdmin();
+
+    $this->actingAs($user)
+        ->postJson(route('code-rules.preview'), previewPayload([
+            'format' => '{PREFIX}-{UNKNOWN_TOKEN}',
+            'sequence_length' => 11,
+        ]))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['format', 'sequence_length']);
+});

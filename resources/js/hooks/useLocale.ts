@@ -14,6 +14,7 @@ import amIdCards from '@/i18n/am/idCards';
 import amNfc from '@/i18n/am/nfc';
 import amIsicActivities from '@/i18n/am/isicActivities';
 import amOccupations from '@/i18n/am/occupations';
+import amOrganizationalChangeRequests from '@/i18n/am/organizationalChangeRequests';
 import amOrganizationTypes from '@/i18n/am/organizationTypes';
 import amPositionEstablishments from '@/i18n/am/positionEstablishments';
 import amProviders from '@/i18n/am/providers';
@@ -61,6 +62,7 @@ import enIdCards from '@/i18n/en/idCards';
 import enNfc from '@/i18n/en/nfc';
 import enIsicActivities from '@/i18n/en/isicActivities';
 import enOccupations from '@/i18n/en/occupations';
+import enOrganizationalChangeRequests from '@/i18n/en/organizationalChangeRequests';
 import enOrganizationTypes from '@/i18n/en/organizationTypes';
 import enPositionEstablishments from '@/i18n/en/positionEstablishments';
 import enProviders from '@/i18n/en/providers';
@@ -123,6 +125,7 @@ const translations: Record<Locale, TranslationTree> = {
         publicSite: enPublicSite,
         organizations: { ...((en.organizations as TranslationTree | undefined) ?? {}), ...enOrganizations },
         organizationTypes: enOrganizationTypes,
+        organizationalChangeRequests: enOrganizationalChangeRequests,
         organizationUnits: enOrganizationUnits,
         organizationUnitTypes: enOrganizationUnitTypes,
         organizationStructureImport: enOrganizationStructureImport,
@@ -173,6 +176,7 @@ const translations: Record<Locale, TranslationTree> = {
         publicSite: amPublicSite,
         organizations: { ...(((am as { organizations?: TranslationTree }).organizations) ?? {}), ...amOrganizations },
         organizationTypes: amOrganizationTypes,
+        organizationalChangeRequests: amOrganizationalChangeRequests,
         organizationUnits: amOrganizationUnits,
         organizationUnitTypes: amOrganizationUnitTypes,
         organizationStructureImport: amOrganizationStructureImport,

@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Models\ApiEndpointDefinition;
 use App\Models\ApiRequestLog;
 use App\Models\ExternalApplication;
 use App\Models\User;
 use App\Services\ApiEndpointCatalogService;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Sanctum\PersonalAccessToken;
 use Spatie\Permission\Models\Permission;
@@ -46,6 +48,35 @@ function apiManager(): User
 
     return $user->fresh();
 }
+
+it('persists owner institution and retains disabled endpoint assignments on ordinary edits', function (): void {
+    app(ApiEndpointCatalogService::class)->sync();
+    $endpoint = ApiEndpointDefinition::query()->assignable()->firstOrFail();
+    $pivotId = (string) Str::uuid();
+    $this->application->endpoints()->attach($endpoint->id, ['id' => $pivotId, 'is_enabled' => false]);
+    $endpoint->update(['status' => 'deprecated']);
+    $payload = ['name' => 'Partner', 'code' => 'PARTNER-1', 'status' => 'active', 'rate_limit_per_minute' => 60, 'owner_institution' => 'Test Institution', 'allowed_scopes' => ['id_cards.verify']];
+    $this->actingAs(apiManager())->patch(route('api-management.update', $this->application), $payload)->assertSessionHasNoErrors();
+    expect($this->application->fresh()->owner_institution)->toBe('Test Institution');
+    $this->patch(route('api-management.update', $this->application), [...$payload, 'endpoint_ids' => [$endpoint->id]])->assertSessionHasNoErrors();
+    $pivot = $this->application->endpoints()->firstOrFail()->pivot;
+    expect((bool) $pivot->is_enabled)->toBeFalse()->and($pivot->id)->toBe($pivotId);
+});
+
+it('validates token names and refuses to revoke another application token', function (): void {
+    $other = ExternalApplication::create(['name' => 'Other', 'code' => 'OTHER', 'status' => 'active', 'allowed_scopes' => ['id_cards.verify'], 'rate_limit_per_minute' => 60]);
+    $token = $other->createToken('other', ['id_cards.verify'])->accessToken;
+    $this->actingAs(apiManager())->post(route('api-management.tokens.store', $this->application), ['name' => str_repeat('x', 256)])->assertSessionHasErrors('name');
+    $this->delete(route('api-management.tokens.destroy', [$this->application, $token->id]))->assertNotFound();
+    expect($token->fresh())->not->toBeNull();
+});
+
+it('keeps log filters when paging through more than fifty requests', function (): void {
+    foreach (range(1, 51) as $i) {
+        ApiRequestLog::create(['external_application_id' => $this->application->id, 'endpoint' => '/api/test', 'method' => 'GET', 'status_code' => 403, 'success' => false, 'requested_at' => now()->subSeconds($i)]);
+    }
+    $this->actingAs(apiManager())->get(route('api-management.logs', ['application_id' => $this->application->id, 'status' => 'failed', 'page' => 2]))->assertInertia(fn (Assert $page) => $page->component('ApiManagement/Logs')->has('logs.data', 1)->where('logs.total', 51)->where('filters.status', 'failed')->where('filters.application_id', $this->application->id));
+});
 
 it('forbids a guest from reaching api management', function (): void {
     $this->get(route('api-management.index'))->assertRedirect();

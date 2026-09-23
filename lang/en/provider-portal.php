@@ -67,6 +67,7 @@ return [
     'status_accepted' => 'Accepted',
     'status_reversed' => 'Reversed',
     'status_rejected' => 'Rejected',
+    'status_pending_review' => 'Pending review',
     'usage_single_day' => 'Single Day',
     'usage_use_remaining_week' => 'Use Remaining Week',
     'export_columns_no' => 'No.',

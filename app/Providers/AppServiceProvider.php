@@ -30,6 +30,7 @@ use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationType;
+use App\Models\OrganizationalChangeRequest;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Permission;
@@ -74,6 +75,7 @@ use App\Policies\OccupationPolicy;
 use App\Policies\OrganizationEdgePolicy;
 use App\Policies\OrganizationPolicy;
 use App\Policies\OrganizationTypePolicy;
+use App\Policies\OrganizationalChangeRequestPolicy;
 use App\Policies\OrganizationUnitPolicy;
 use App\Policies\OrganizationUnitTypePolicy;
 use App\Policies\PermissionPolicy;
@@ -96,7 +98,7 @@ use App\Policies\VacancyApplicationPolicy;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
-use App\Services\Sms\LogSmsGateway;
+use App\Services\Sms\HttpSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -119,9 +121,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);
 
-        // No SMS provider is integrated yet; LogSmsGateway records the attempt
-        // and reports failure. Swap this binding when a real gateway lands.
-        $this->app->bind(SmsGateway::class, LogSmsGateway::class);
+        $this->app->bind(SmsGateway::class, HttpSmsGateway::class);
     }
 
     /**
@@ -152,6 +152,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ServiceType::class, ServiceTypePolicy::class);
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
         Gate::policy(OrganizationType::class, OrganizationTypePolicy::class);
+        Gate::policy(OrganizationalChangeRequest::class, OrganizationalChangeRequestPolicy::class);
         Gate::policy(OrganizationUnit::class, OrganizationUnitPolicy::class);
         Gate::policy(OrganizationUnitType::class, OrganizationUnitTypePolicy::class);
         Gate::policy(Occupation::class, OccupationPolicy::class);
@@ -193,6 +194,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('id-checker-verify-otp', fn (Request $request): array => [
             Limit::perMinute(5)->by('pic-verify:'.$request->route('cardUuid').'|'.$request->ip()),
+        ]);
+
+        RateLimiter::for('registration-send-otp', fn (Request $request): array => [
+            Limit::perMinutes(10, 3)->by('registration-send:'.mb_strtolower((string) $request->input('employee_number')).'|'.$request->ip()),
+            Limit::perMinutes(10, 10)->by('registration-send-ip:'.$request->ip()),
         ]);
 
         /*

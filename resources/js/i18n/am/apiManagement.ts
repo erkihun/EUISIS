@@ -1,4 +1,8 @@
 export default {
+    copyFailed: 'መቅዳት አልተሳካም። ቶከኑን መርጠው በእጅ ይቅዱ።',
+    assignmentDisabled: 'ምደባው ቦዝኗል',
+    allApplications: 'ሁሉም መተግበሪያዎች',
+    failedRequests: 'ያልተሳኩ ጥያቄዎች',
     title: 'የኤፒአይ አስተዳደር',
     description: 'የውጭ ስርዓቶችን ይመዝግቡ፣ የኤፒአይ ቶከኖችን ያውጡ እና የውህደት እንቅስቃሴን ይገምግሙ።',
     externalApplications: 'የውጭ መተግበሪያዎች',

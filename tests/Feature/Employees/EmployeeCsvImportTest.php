@@ -194,9 +194,11 @@ it('serves a csv template with the expected columns', function (): void {
 
     $body = $response->getContent();
 
-    foreach (EmployeeCsvImportService::COLUMNS as $column) {
+    foreach (EmployeeCsvImportService::templateColumns() as $column) {
         expect($body)->toContain($column);
     }
+
+    expect(EmployeeCsvImportService::templateColumns())->not->toContain('employee_number');
 });
 
 it('catches rows missing required fields', function (): void {
@@ -255,6 +257,19 @@ it('generates an employee number when the column is blank', function (): void {
         ->and($employee->employee_number)->not->toBe('');
 });
 
+it('rejects the upload when no employee code rule is active', function (): void {
+    CodeRule::query()
+        ->where('entity_type', CodeRuleEntityType::Employee->value)
+        ->update(['is_active' => false]);
+
+    $batch = $this->service->validate(csvUpload([importRow($this->alpha)]), $this->admin);
+
+    expect($batch->failed_rows)->toBe(1)
+        ->and($batch->isImportable())->toBeFalse()
+        ->and(implode(' ', EmployeeImportBatchRow::query()->firstOrFail()->errors))
+        ->toContain(__('code-rules.no_active_rule'));
+});
+
 it('stores a random employee number in preview and uses the same value on confirm', function (): void {
     CodeRule::query()
         ->where('entity_type', CodeRuleEntityType::Employee->value)
@@ -286,7 +301,7 @@ it('stores a rand_8 employee number in preview and uses the same value on confir
     expect(Employee::query()->firstOrFail()->employee_number)->toBe($previewedNumber);
 });
 
-it('keeps an employee number supplied in the file', function (): void {
+it('ignores an employee number supplied in a legacy file and uses the code rule', function (): void {
     $batch = $this->service->validate(
         csvUpload([importRow($this->alpha, 1, ['employee_number' => 'CSV-0001'])]),
         $this->admin,
@@ -294,10 +309,12 @@ it('keeps an employee number supplied in the file', function (): void {
 
     $this->service->import($batch, $this->admin);
 
-    expect(Employee::query()->firstOrFail()->employee_number)->toBe('CSV-0001');
+    expect(Employee::query()->firstOrFail()->employee_number)
+        ->toBe('EMP-000001')
+        ->not->toBe('CSV-0001');
 });
 
-it('rejects an employee number that already exists', function (): void {
+it('does not let a legacy csv number collide with an existing employee number', function (): void {
     Employee::query()->create([
         'employee_number' => 'CSV-DUP',
         'first_name' => 'Existing',
@@ -311,11 +328,16 @@ it('rejects an employee number that already exists', function (): void {
         $this->admin,
     );
 
-    expect($batch->failed_rows)->toBe(1)
-        ->and($batch->isImportable())->toBeFalse();
+    expect($batch->failed_rows)->toBe(0)
+        ->and($batch->isImportable())->toBeTrue();
+
+    $this->service->import($batch, $this->admin);
+
+    expect(Employee::query()->where('employee_number', 'CSV-DUP')->count())->toBe(1)
+        ->and(Employee::query()->where('employee_number', 'EMP-000001')->exists())->toBeTrue();
 });
 
-it('rejects a duplicate employee number within one file', function (): void {
+it('generates unique numbers when legacy rows contain the same employee number', function (): void {
     $batch = $this->service->validate(
         csvUpload([
             importRow($this->alpha, 1, ['employee_number' => 'CSV-SAME']),
@@ -324,9 +346,13 @@ it('rejects a duplicate employee number within one file', function (): void {
         $this->admin,
     );
 
-    // The first is fine; the second collides with it.
-    expect($batch->valid_rows)->toBe(1)
-        ->and($batch->failed_rows)->toBe(1);
+    expect($batch->valid_rows)->toBe(2)
+        ->and($batch->failed_rows)->toBe(0);
+
+    $this->service->import($batch, $this->admin);
+
+    expect(Employee::query()->orderBy('employee_number')->pluck('employee_number')->all())
+        ->toBe(['EMP-000001', 'EMP-000002']);
 });
 
 it('rejects a position that is already occupied', function (): void {
@@ -353,8 +379,8 @@ it('rejects a position that is already occupied', function (): void {
     expect($batch->failed_rows)->toBe(1);
 
     $template = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertOk()->getContent();
-    expect($template)->not->toContain($this->alpha['positions'][1]->job_position_code)
-        ->and($template)->toContain($this->alpha['positions'][2]->job_position_code);
+    expect($template)->not->toContain($this->alpha['positions'][1]->id)
+        ->and($template)->toContain($this->alpha['positions'][2]->id);
 
     $errors = implode(' ', EmployeeImportBatchRow::query()->firstOrFail()->errors);
 
@@ -582,17 +608,18 @@ it('serves a template whose sample row has one value per column', function (): v
     $body = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->getContent();
     $lines = explode("\n", trim(ltrim($body, "\xEF\xBB\xBF")));
 
-    expect(str_getcsv($lines[1]))->toHaveCount(count(EmployeeCsvImportService::COLUMNS));
+    expect(str_getcsv($lines[1]))->toHaveCount(count(EmployeeCsvImportService::templateColumns()));
 });
 
-it('downloads real placement codes only for the selected organization', function (): void {
+it('downloads real placement names only for the selected organization', function (): void {
     $body = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertOk()->getContent();
     $lines = explode("\n", trim(substr($body, 3)));
     expect($lines)->toHaveCount(3);
-    $row = array_combine(EmployeeCsvImportService::COLUMNS, str_getcsv($lines[1]));
-    expect($row['organization_code'])->toBe($this->alpha['org']->code)
-        ->and($row['organization_unit_code'])->toBe($this->alpha['unit']->code)
-        ->and($row['position_code'])->toBe($this->alpha['positions'][1]->job_position_code)
+    $row = array_combine(EmployeeCsvImportService::templateColumns(), str_getcsv($lines[1]));
+    expect($row['organization_name'])->toBe($this->alpha['org']->name_en)
+        ->and($row['organization_unit_name'])->toBe($this->alpha['unit']->name_en)
+        ->and($row['position_name'])->toBe($this->alpha['positions'][1]->title_en)
+        ->and($row['position_reference'])->toBe($this->alpha['positions'][1]->id)
         ->and($row['first_name'])->toBe('')
         ->and($body)->not->toContain($this->beta['org']->code)
         ->and($body)->not->toContain('abebe@example.et');
@@ -616,8 +643,41 @@ it('does not suggest inactive positions and keeps an organization starter when n
     }
     $body = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertOk()->getContent();
     $lines = explode("\n", trim(substr($body, 3)));
-    $row = array_combine(EmployeeCsvImportService::COLUMNS, str_getcsv($lines[1]));
-    expect($lines)->toHaveCount(2)->and($row['organization_code'])->toBe($this->alpha['org']->code)->and($row['position_code'])->toBe('');
+    $row = array_combine(EmployeeCsvImportService::templateColumns(), str_getcsv($lines[1]));
+    expect($lines)->toHaveCount(2)->and($row['organization_name'])->toBe($this->alpha['org']->name_en)->and($row['position_name'])->toBe('');
+});
+
+it('imports filled name templates and rejects mismatched names', function (): void {
+    $this->alpha['positions'][2]->update(['title_en' => $this->alpha['positions'][1]->title_en]);
+    $csv = $this->service->templateCsv($this->alpha['org']);
+    $lines = explode("\n", trim(substr($csv, 3)));
+    $row = array_combine(EmployeeCsvImportService::templateColumns(), str_getcsv($lines[1]));
+    $row['first_name'] = 'Test';
+    $row['father_name'] = 'Employee';
+    $row['grandfather_name'] = 'Family';
+    $row['gender'] = 'male';
+    $upload = function (array $row): UploadedFile {
+        $stream = fopen('php://temp', 'r+');
+        fputcsv($stream, EmployeeCsvImportService::templateColumns());
+        fputcsv($stream, array_values($row));
+        rewind($stream);
+        $file = UploadedFile::fake()->createWithContent('names.csv', stream_get_contents($stream));
+        fclose($stream);
+
+        return $file;
+    };
+    $batch = $this->service->validate($upload($row), $this->admin);
+    expect($batch->valid_rows)->toBe(1);
+    $scoped = User::factory()->create();
+    $scoped->organizationScopes()->create(['organization_id' => $this->beta['org']->id, 'scope_type' => 'self', 'is_active' => true]);
+    expect($this->service->validate($upload($row), $scoped)->failed_rows)->toBe(1);
+    $row['position_name'] = 'Wrong position';
+    $invalid = $this->service->validate($upload($row), $this->admin);
+    expect($invalid->failed_rows)->toBe(1);
+    $result = $this->service->import($batch, $this->admin);
+    expect($result['imported'])->toBe(1);
+    expect(EmployeeAssignment::where('position_id', $this->alpha['positions'][1]->id)->exists())->toBeTrue();
+    expect(EmployeeAssignment::where('position_id', $this->alpha['positions'][2]->id)->exists())->toBeFalse();
 });
 
 /*

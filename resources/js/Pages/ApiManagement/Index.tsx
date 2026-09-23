@@ -5,6 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import EndpointAssignment, { AssignableEndpoint } from '@/Components/apiManagement/EndpointAssignment';
 import { useLocale } from '@/hooks/useLocale';
+import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
 
 type ScopeOption = { value: string; label: string };
 
@@ -61,7 +62,7 @@ function DashboardCard({
         'block rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900';
 
     return href ? (
-        <Link href={href} className={`${className} transition hover:border-blue-400 hover:`}>
+        <Link href={href} className={`${className} transition hover:border-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2`}>
             {body}
         </Link>
     ) : (
@@ -107,8 +108,6 @@ export default function ApiManagementIndex({
         return [...required].filter((scope) => !form.data.allowed_scopes.includes(scope));
     }, [assignableEndpoints, form.data.endpoint_ids, form.data.allowed_scopes]);
 
-    const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function toggleScope(scope: string) {
         form.setData(
@@ -177,32 +176,6 @@ export default function ApiManagementIndex({
                         href={route('api-management.docs')}
                     />
                 )}
-                <DashboardCard
-                    title={t('apiManagement.rateLimits')}
-                    value="—"
-                    hint={t('apiManagement.rateLimitsHint')}
-                />
-                <DashboardCard
-                    title={t('apiManagement.ipAllowlist')}
-                    value="—"
-                    hint={t('apiManagement.ipAllowlistCardHint')}
-                />
-                {can.viewLogs && (
-                    <DashboardCard
-                        title={t('apiManagement.apiLogs')}
-                        value="—"
-                        hint={t('apiManagement.apiLogsHint')}
-                        href={route('api-management.logs')}
-                    />
-                )}
-                {can.viewDocs && (
-                    <DashboardCard
-                        title={t('apiManagement.apiDocumentation')}
-                        value="—"
-                        hint={t('apiManagement.apiDocumentationHint')}
-                        href={route('api-management.docs')}
-                    />
-                )}
             </div>
 
             <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -236,21 +209,7 @@ export default function ApiManagementIndex({
 
             {showForm && can.create && (
                 <form onSubmit={submit} className="mb-6 space-y-4 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        <input className={inputCls} placeholder={t('apiManagement.name')} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
-                        <input className={inputCls} placeholder={t('apiManagement.code')} value={form.data.code} onChange={(e) => form.setData('code', e.target.value)} />
-                        <input className={inputCls} placeholder={t('apiManagement.ownerInstitution')} value={form.data.owner_institution} onChange={(e) => form.setData('owner_institution', e.target.value)} />
-                        <input className={inputCls} placeholder={t('apiManagement.contactPerson')} value={form.data.contact_person} onChange={(e) => form.setData('contact_person', e.target.value)} />
-                        <input className={inputCls} type="email" placeholder={t('apiManagement.contactEmail')} value={form.data.contact_email} onChange={(e) => form.setData('contact_email', e.target.value)} />
-                        <input
-                            className={inputCls}
-                            type="number"
-                            min={1}
-                            placeholder={t('apiManagement.rateLimit')}
-                            value={form.data.rate_limit_per_minute}
-                            onChange={(e) => form.setData('rate_limit_per_minute', Number(e.target.value))}
-                        />
-                    </div>
+                    <ApplicationFields values={form.data} onChange={values => form.setData({ ...form.data, ...values })} errors={form.errors} disabled={form.processing} />
 
                     <fieldset>
                         <legend className="mb-2 text-xs font-semibold text-gray-600 dark:text-slate-400">{t('apiManagement.apiScopes')}</legend>

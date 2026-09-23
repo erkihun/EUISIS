@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Cafeteria\ProcessCafeteriaQrScanAction;
 use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
+use App\Enums\AuditEventType;
+use App\Enums\CafeteriaTransactionStatus;
+use App\Exports\Cafeteria\TransactionStatementExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProcessCafeteriaQrScanRequest;
 use App\Http\Requests\ReverseCafeteriaTransactionRequest;
@@ -16,13 +20,17 @@ use App\Models\Employee;
 use App\Services\Cafeteria\CafeteriaCalendarService;
 use App\Services\Cafeteria\CafeteriaProviderAccessService;
 use App\Services\Cafeteria\CafeteriaSettingsService;
+use App\Services\Cafeteria\TransactionStatementService;
+use App\Services\Calendar\CalendarService;
 use App\Services\Nfc\NfcCredentialService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CafeteriaTransactionController extends Controller
 {
@@ -31,26 +39,22 @@ class CafeteriaTransactionController extends Controller
         private readonly CafeteriaCalendarService $calendarService,
     ) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request, TransactionStatementService $statement): Response
     {
         $this->authorize('viewAny', CafeteriaTransaction::class);
 
-        $query = CafeteriaTransaction::query()
+        $filters = $statement->filters($request);
+        $query = $statement->query($request->user(), $filters)
             ->with(['employee.currentAssignment.organization', 'employee.currentAssignment.organizationUnit', 'employee.currentAssignment.position', 'provider', 'consumedDays'])
-            ->when($request->string('provider_id')->toString(), fn ($q, $v) => $q->where('cafeteria_provider_id', $v))
-            ->when($request->string('date')->toString(), fn ($q, $v) => $q->whereDate('transaction_date', $v))
-            ->when($request->string('status')->toString(), fn ($q, $v) => $q->where('status', $v))
-            ->when($request->boolean('extra_only'), fn ($q) => $q->where('is_extra_scan', true))
             ->orderByDesc('scanned_at');
 
-        $this->providerAccess->filterProviderScopedQuery($request->user(), $query);
-
+        $summary = $statement->summary($query);
         $transactions = $query->paginate(30)->withQueryString();
 
         $providers = CafeteriaProvider::query()
             ->with('organization:id,name_en,name_am,code')
             ->where('is_active', true)
-            ->when($this->providerAccess->accessibleProviderIds($request->user()) !== [], function ($query) use ($request): void {
+            ->when(! $this->providerAccess->canAccessAllProviders($request->user()), function ($query) use ($request): void {
                 $query->whereIn('id', $this->providerAccess->accessibleProviderIds($request->user()));
             })
             ->orderBy('name_en')
@@ -75,12 +79,76 @@ class CafeteriaTransactionController extends Controller
                 'total' => $transactions->total(),
                 'per_page' => $transactions->perPage(),
             ],
-            'filters' => $request->only(['provider_id', 'date', 'status', 'extra_only']),
+            'filters' => $filters,
+            'summary' => $summary,
             'providers' => $providers,
             'can' => [
                 'scan' => $request->user()?->can('scan', CafeteriaTransaction::class) ?? false,
+                'export' => $request->user()?->can('export', CafeteriaTransaction::class) ?? false,
             ],
         ]);
+    }
+
+    public function exportStatement(Request $request, string $format, TransactionStatementService $statement, CalendarService $calendar): \Symfony\Component\HttpFoundation\Response
+    {
+        $this->authorize('export', CafeteriaTransaction::class);
+
+        // The statement is rendered server-side, so the reader's locale has to be
+        // applied before any __() call or date is formatted.
+        $locale = $this->exportLocale($request);
+        app()->setLocale($locale);
+
+        $filters = $statement->filters($request);
+        $query = $statement->query($request->user(), $filters);
+        $transactions = $query->with(['employee', 'provider'])->orderBy('transaction_date')->orderBy('scanned_at')->get();
+        // Summarize the exact exported snapshot, including every page.
+        $accepted = $transactions->where('status', CafeteriaTransactionStatus::Accepted);
+        $summary = ['total' => $transactions->count(), 'accepted' => $accepted->count(),
+            'meals' => $accepted->sum('meal_amount'), 'subsidy' => $accepted->sum('subsidy_amount_applied'),
+            'employee_payable' => $accepted->sum('employee_payable_amount'), 'deductions' => $accepted->sum('deduction_amount')];
+        $provider = $filters['provider_id'] ? CafeteriaProvider::find($filters['provider_id']) : null;
+        if ($provider) {
+            abort_unless($this->providerAccess->canAccessProvider($request->user(), $provider), 403);
+        }
+        // Both renderers read the same pre-localized rows so PDF, print and XLSX
+        // never drift apart on names, dates or status labels.
+        $rows = $transactions->map(fn (CafeteriaTransaction $txn): array => [
+            'number' => $txn->transaction_number,
+            'date' => $calendar->formatDate($txn->transaction_date, $locale) ?? $txn->transaction_date?->toDateString() ?? '',
+            'employee_name' => $txn->employee?->full_name ?? '',
+            'employee_number' => $txn->employee?->employee_number ?? '',
+            'provider' => $this->localizedProviderName($txn->provider, $locale) ?? '',
+            'status' => $this->localizedStatus($txn->status?->value),
+            'meal_amount' => (float) $txn->meal_amount,
+            'subsidy_amount_applied' => (float) $txn->subsidy_amount_applied,
+            'employee_payable_amount' => (float) $txn->employee_payable_amount,
+            'deduction_amount' => (float) $txn->deduction_amount,
+        ])->all();
+        $periodLabel = $filters['start_date']
+            ? ($calendar->formatDate($filters['start_date'], $locale) ?? $filters['start_date']).' — '.($calendar->formatDate($filters['end_date'], $locale) ?? $filters['end_date'])
+            : __('cafeteria-statement.all_time');
+        $data = ['transactions' => $transactions, 'rows' => $rows, 'summary' => $summary, 'filters' => $filters,
+            'locale' => $locale,
+            'statusLabel' => $filters['status'] ? $this->localizedStatus($filters['status']) : __('cafeteria-statement.all_statuses'),
+            'providerName' => $this->localizedProviderName($provider, $locale) ?? __('cafeteria-statement.all_providers'),
+            'actor' => $request->user()->name,
+            'generatedAt' => $calendar->formatDateTime(now(), $locale) ?? now()->format('Y-m-d H:i'),
+            'periodLabel' => $periodLabel];
+        $filename = 'cafeteria-statement-'.($filters['start_date'] ?? 'all').'-'.($filters['end_date'] ?? now()->toDateString());
+
+        app(WriteAuditLogAction::class)->execute(
+            AuditEventType::CafeteriaProviderPaymentClaimExported,
+            $request->user(), $provider, $provider?->organization_id, null,
+            ['format' => $format, 'filters' => $filters, 'summary' => $summary], null, $request,
+        );
+
+        if ($format === 'xlsx') {
+            return Excel::download(new TransactionStatementExport($data), $filename.'.xlsx');
+        }
+
+        $pdf = Pdf::loadView('cafeteria.exports.transaction-statement', $data)->setPaper('a4', 'landscape');
+
+        return $format === 'print' ? $pdf->stream($filename.'.pdf') : $pdf->download($filename.'.pdf');
     }
 
     public function show(CafeteriaTransaction $cafeteriaTransaction): Response
@@ -337,6 +405,46 @@ class CafeteriaTransactionController extends Controller
         $action->execute($cafeteriaTransaction, $request->user(), $request->string('reason')->toString() ?: null, $request);
 
         return back()->with('flash', ['message' => __('cafeteria.transactionReversed'), 'type' => 'success']);
+    }
+
+    /**
+     * Resolve the locale the statement is rendered in.
+     * Priority: request query `locale` > session `locale` > app default, limited to supported locales.
+     */
+    private function exportLocale(Request $request): string
+    {
+        $supported = ['en', 'am'];
+        $fromRequest = $request->query('locale');
+        if (is_string($fromRequest) && in_array($fromRequest, $supported, true)) {
+            return $fromRequest;
+        }
+        $fromSession = session('locale');
+        if (is_string($fromSession) && in_array($fromSession, $supported, true)) {
+            return $fromSession;
+        }
+
+        return in_array(app()->getLocale(), $supported, true) ? app()->getLocale() : 'en';
+    }
+
+    private function localizedProviderName(?CafeteriaProvider $provider, string $locale): ?string
+    {
+        if ($provider === null) {
+            return null;
+        }
+
+        return $locale === 'am' ? ($provider->name_am ?: $provider->name_en) : $provider->name_en;
+    }
+
+    /** Translate a transaction status, falling back to the raw value when no translation exists. */
+    private function localizedStatus(?string $status): string
+    {
+        if ($status === null || $status === '') {
+            return '';
+        }
+        $key = 'provider-portal.status_'.$status;
+        $translated = __($key);
+
+        return $translated !== $key ? (string) $translated : $status;
     }
 
     private function todayScansForProvider(Request $request, string $providerId)

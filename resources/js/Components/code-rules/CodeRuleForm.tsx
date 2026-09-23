@@ -1,5 +1,6 @@
 import type { InertiaFormProps } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
+import { isAxiosError } from 'axios';
 import { useLocale } from '@/hooks/useLocale';
 import type { FormEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -67,6 +68,7 @@ export default function CodeRuleForm({
     const { t } = useLocale();
     const [preview, setPreview] = useState(initialPreview);
     const [previewLoading, setPreviewLoading] = useState(false);
+    const [previewError, setPreviewError] = useState<string | null>(null);
     const formatInputRef = useRef<CodeFormatInputHandle>(null);
 
     const inputClassName =
@@ -110,6 +112,7 @@ export default function CodeRuleForm({
 
         const timeout = window.setTimeout(async () => {
             setPreviewLoading(true);
+            setPreviewError(null);
 
             try {
                 const response = await window.axios.post(route('code-rules.preview'), {
@@ -133,8 +136,16 @@ export default function CodeRuleForm({
                 });
 
                 setPreview(response.data.preview ?? '');
-            } catch {
+            } catch (error: unknown) {
                 setPreview('');
+                const responseErrors = isAxiosError(error)
+                    ? error.response?.data?.errors
+                    : null;
+                const firstError = responseErrors
+                    ? Object.values(responseErrors).flat().find((message): message is string => typeof message === 'string')
+                    : null;
+
+                setPreviewError(firstError ?? t('codeRules.previewUnavailable'));
             } finally {
                 setPreviewLoading(false);
             }
@@ -392,7 +403,7 @@ export default function CodeRuleForm({
             </form>
 
             <div className="space-y-6">
-                <CodeRulePreviewCard preview={preview} loading={previewLoading} usesRandomToken={hasRandomToken} />
+                <CodeRulePreviewCard preview={preview} loading={previewLoading} error={previewError} usesRandomToken={hasRandomToken} />
                 <FormatTokenHelper
                     format={form.data.format}
                     onInsert={handleInsertToken}

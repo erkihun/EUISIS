@@ -408,6 +408,26 @@ it('super admin can reset a sequence counter via the HTTP endpoint', function ()
     expect($seq->fresh()->next_number)->toBe(1);
 });
 
+it('manual reset returns a sequence counter to its configured initial number', function (): void {
+    $user = scopeSuperAdmin();
+    $rule = makeScopeRule([
+        'format' => '{PREFIX}-{SEQUENCE_PADDED}',
+        'prefix' => 'RS',
+        'next_number' => 25,
+        'initial_sequence_number' => 25,
+        'sequence_scope_strategy' => CodeRuleScopeStrategy::Global,
+    ]);
+
+    app(CodeGeneratorService::class)->generate($rule);
+    $sequence = CodeRuleSequence::query()->where('code_rule_id', $rule->id)->firstOrFail();
+
+    $this->actingAs($user)
+        ->postJson(route('code-rules.sequences.reset', ['codeRule' => $rule->id, 'sequence' => $sequence->id]))
+        ->assertOk();
+
+    expect($sequence->fresh()->next_number)->toBe(25);
+});
+
 // ─── 12. Reset endpoint rejects wrong codeRule ownership ──────────────────────
 
 it('returns 404 when sequence does not belong to the given code rule', function (): void {

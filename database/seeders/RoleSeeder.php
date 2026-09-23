@@ -26,6 +26,28 @@ class RoleSeeder extends Seeder
         $organizationalAdminPerms = [
             'dashboard.view', 'dashboard.reports',
 
+            /*
+             * An Organizational Admin may also raise change requests. These
+             * are additive and independent of the direct CRUD grants below:
+             * removing the CRUD grants would leave a request-only admin, which
+             * is exactly the Structure Change Requester role.
+             */
+            'organizational-change-requests.view_own',
+            'organizational-change-requests.create',
+            'organizational-change-requests.update_draft',
+            'organizational-change-requests.submit',
+            'organizational-change-requests.cancel_own',
+            'organizational-change-requests.resubmit',
+            'organization-units.request_create',
+            'organization-units.request_update',
+            'organization-units.request_move',
+            'organization-units.request_deactivate',
+            'positions.request_create',
+            'positions.request_update',
+            'positions.request_move',
+            'positions.request_increase',
+            'positions.request_abolish',
+
             // Organization profile/details (scoped by policy)
             'organizations.viewAny', 'organizations.view', 'organizations.manage',
             'organizations.create', 'organizations.update', 'organizations.delete',
@@ -102,6 +124,77 @@ class RoleSeeder extends Seeder
             static fn (string $name): bool => str_starts_with($name, 'public_'),
         ));
 
+        /*
+         * Separation of duties for organizational change requests.
+         *
+         * These three sets are deliberately disjoint on the things that
+         * matter. The requester set contains NO organization-units.* or
+         * positions.* create/update permission: raising a request is
+         * permission to ask, never permission to edit. The implementer set is
+         * the only one that can apply an approved change, and it cannot
+         * approve. The reviewer set can approve but cannot implement.
+         */
+        $structureChangeRequesterPerms = [
+            'dashboard.view',
+            // Read-only sight of the structure being written about.
+            'organizations.viewAny', 'organizations.view',
+            'organization-units.viewAny', 'organization-units.view',
+            'organization-unit-types.viewAny', 'organization-unit-types.view',
+            'positions.viewAny', 'positions.view',
+            'occupations.viewAny', 'occupations.view',
+            // The request workflow, requester side only.
+            'organizational-change-requests.view_own',
+            'organizational-change-requests.create',
+            'organizational-change-requests.update_draft',
+            'organizational-change-requests.submit',
+            'organizational-change-requests.cancel_own',
+            'organizational-change-requests.resubmit',
+            // What they may ask for.
+            'organization-units.request_create',
+            'organization-units.request_update',
+            'organization-units.request_move',
+            'organization-units.request_deactivate',
+            'positions.request_create',
+            'positions.request_update',
+            'positions.request_move',
+            'positions.request_increase',
+            'positions.request_abolish',
+        ];
+
+        $structureChangeReviewerPerms = [
+            'dashboard.view',
+            'organizations.viewAny', 'organizations.view',
+            'organization-units.viewAny', 'organization-units.view',
+            'positions.viewAny', 'positions.view',
+            'organizational-change-requests.view',
+            'organizational-change-requests.review',
+            'organizational-change-requests.request_correction',
+            'organizational-change-requests.approve',
+            'organizational-change-requests.reject',
+        ];
+
+        /*
+         * The implementing unit. This role DOES hold master-data permissions,
+         * because it is the establishment/structure team that legitimately
+         * edits units and positions. The point of the workflow is that the
+         * requester never becomes this role.
+         */
+        $structureImplementationOfficerPerms = [
+            'dashboard.view',
+            'organizations.viewAny', 'organizations.view',
+            'organization-units.viewAny', 'organization-units.view',
+            'organization-units.create', 'organization-units.update',
+            'organization-units.archive', 'organization-units.manageHierarchy',
+            'positions.viewAny', 'positions.view',
+            'positions.create', 'positions.update', 'positions.move',
+            'position-establishments.viewAny', 'position-establishments.view',
+            'organizational-change-requests.view',
+            'organizational-change-requests.view_approved',
+            'organizational-change-requests.assign_implementation',
+            'organizational-change-requests.implement',
+            'organizational-change-requests.complete',
+        ];
+
         $roleMap = [
             'Public Site Manager' => $publicSiteManagerPerms,
             'Super Admin' => $allPermissions,
@@ -110,6 +203,9 @@ class RoleSeeder extends Seeder
             'Public Service Bureau Admin' => $allPermissions,
             'City Admin' => $allPermissions,
             'Organizational Admin' => $organizationalAdminPerms,
+            'Structure Change Requester' => $structureChangeRequesterPerms,
+            'Structure Change Reviewer' => $structureChangeReviewerPerms,
+            'Structure Implementation Officer' => $structureImplementationOfficerPerms,
             'HR Officer' => [
                 'dashboard.view',
                 'employees.view', 'employees.manage', 'employees.viewAny',

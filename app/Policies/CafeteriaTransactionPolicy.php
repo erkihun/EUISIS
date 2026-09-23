@@ -8,8 +8,8 @@ use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaTransaction;
 use App\Models\ProviderUser;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaProviderAccessService;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use App\Services\Cafeteria\CafeteriaProviderAccessService;
 
 readonly class CafeteriaTransactionPolicy
 {
@@ -43,6 +43,13 @@ readonly class CafeteriaTransactionPolicy
     public function scan(User $user): bool
     {
         return $user->can('cafeteria_transactions.scan') || $user->hasRole(['Cafeteria Operator', 'Super Admin', 'City Admin']);
+    }
+
+    public function export(User $user): bool
+    {
+        return $this->viewAny($user) && ($user->can('cafeteria_reports.export')
+            || $user->can('provider-cafeteria-transactions.export')
+            || $user->can('provider-cafeteria-payment-claims.export'));
     }
 
     public function reverse(User $user, CafeteriaTransaction $transaction): bool

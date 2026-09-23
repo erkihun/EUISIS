@@ -13,7 +13,7 @@ export default function CodeRuleActionMenu({ rule }: { rule: RuleRow }) {
     const { confirm } = useConfirm();
 
     return (
-        <div className="flex justify-end gap-3 text-xs font-medium">
+        <div className="flex flex-wrap justify-end gap-x-4 gap-y-3 text-sm font-medium [&>a]:py-1 [&>button]:py-1">
             {rule.can.view && (
                 <Link href={route('code-rules.show', rule.id)} className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                     {t('codeRules.actions.view')}

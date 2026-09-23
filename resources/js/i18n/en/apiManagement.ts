@@ -1,4 +1,8 @@
 export default {
+    copyFailed: 'Copy failed. Select the token and copy it manually.',
+    assignmentDisabled: 'Assignment disabled',
+    allApplications: 'All applications',
+    failedRequests: 'Failed requests',
     title: 'API Management',
     description: 'Register external systems, issue API tokens and review integration activity.',
     externalApplications: 'External Applications',

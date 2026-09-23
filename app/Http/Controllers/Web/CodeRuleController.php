@@ -72,7 +72,15 @@ class CodeRuleController extends Controller
                     'last_page' => $paginator->lastPage(),
                     'per_page' => $paginator->perPage(),
                     'total' => $paginator->total(),
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
                 ],
+            ],
+            'summary' => [
+                'total' => CodeRule::query()->count(),
+                'active' => CodeRule::query()->where('is_active', true)->count(),
+                'scoped' => CodeRule::query()->whereNotNull('scope_type')->count(),
+                'entity_types' => CodeRule::query()->distinct()->count('entity_type'),
             ],
             'filters' => $request->only(['search', 'entity_type', 'scope_type', 'is_active', 'reset_frequency']),
             'options' => $this->formOptions(),
@@ -185,8 +193,10 @@ class CodeRuleController extends Controller
 
         $oldNextNumber = $sequence->next_number;
 
+        $resetNumber = max(1, $codeRule->initial_sequence_number ?? 1);
+
         $sequence->forceFill([
-            'next_number' => 1,
+            'next_number' => $resetNumber,
             'last_number' => null,
             'last_generated_code' => null,
             'last_reset_at' => now(),
@@ -198,7 +208,7 @@ class CodeRuleController extends Controller
             $codeRule,
             null,
             ['next_number' => $oldNextNumber],
-            ['next_number' => 1, 'scope_key' => $sequence->sequence_scope_key],
+            ['next_number' => $resetNumber, 'scope_key' => $sequence->sequence_scope_key],
         );
 
         if ($request->header('X-Inertia')) {

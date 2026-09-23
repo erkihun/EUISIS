@@ -218,6 +218,7 @@ class CodeGeneratorService
     {
         $now = now();
         $lastResetAt = $sequence->last_reset_at;
+        $resetNumber = max(1, $rule->initial_sequence_number ?? 1);
 
         if ($rule->reset_frequency === CodeRuleResetFrequency::Never) {
             return;
@@ -225,7 +226,7 @@ class CodeGeneratorService
 
         if ($lastResetAt === null) {
             $sequence->fill([
-                'next_number' => 1,
+                'next_number' => $resetNumber,
                 'last_reset_at' => $now,
             ]);
 
@@ -244,7 +245,7 @@ class CodeGeneratorService
         }
 
         $sequence->fill([
-            'next_number' => 1,
+            'next_number' => $resetNumber,
             'last_reset_at' => $now,
         ]);
     }

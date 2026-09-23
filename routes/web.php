@@ -79,6 +79,7 @@ use App\Http\Controllers\Web\NfcAdminController;
 use App\Http\Controllers\Web\NfcManagementController;
 use App\Http\Controllers\Web\NfcTerminalController;
 use App\Http\Controllers\Web\OccupationController;
+use App\Http\Controllers\Web\OrganizationalChangeRequestController;
 use App\Http\Controllers\Web\OrganizationController;
 use App\Http\Controllers\Web\OrganizationEdgeController;
 use App\Http\Controllers\Web\OrganizationStructureImportController;
@@ -93,6 +94,7 @@ use App\Http\Controllers\Web\PositionServiceController;
 use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
 use App\Http\Controllers\Web\PublicServiceFeedbackController;
+use App\Http\Controllers\Web\PublicSiteManagementController;
 use App\Http\Controllers\Web\RecycleBinController;
 use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
@@ -418,7 +420,7 @@ Route::get('/verify/card/{publicCardUuid}', fn (string $publicCardUuid) => redir
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
-    Route::prefix('public-site-management')->name('public-site-management.')->controller(\App\Http\Controllers\Web\PublicSiteManagementController::class)->group(function (): void {
+    Route::prefix('public-site-management')->name('public-site-management.')->controller(PublicSiteManagementController::class)->group(function (): void {
         Route::get('/', 'index')->name('index');
         Route::put('/settings', 'settings')->name('settings');
         Route::put('/pages/{page}/{section}', 'section')->name('section');
@@ -474,6 +476,45 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/hierarchy-versions/{hierarchyVersion}/edges', [OrganizationEdgeController::class, 'store'])->name('hierarchy-versions.edges.store');
     Route::patch('/hierarchy-versions/{hierarchyVersion}/edges/{organizationEdge}', [OrganizationEdgeController::class, 'update'])->name('hierarchy-versions.edges.update');
     Route::delete('/hierarchy-versions/{hierarchyVersion}/edges/{organizationEdge}', [OrganizationEdgeController::class, 'destroy'])->name('hierarchy-versions.edges.destroy');
+
+    /*
+     * Organizational Change Requests.
+     *
+     * Ordering matters: the fixed segments (create, review-queue,
+     * pending-implementation, completed) are declared before the
+     * {organizationalChangeRequest} wildcard so they are not swallowed by it.
+     */
+    Route::get('/organizational-change-requests', [OrganizationalChangeRequestController::class, 'index'])->name('organizational-change-requests.index');
+    Route::get('/organizational-change-requests/create', [OrganizationalChangeRequestController::class, 'create'])->name('organizational-change-requests.create');
+    Route::get('/organizational-change-requests/review-queue', [OrganizationalChangeRequestController::class, 'reviewQueue'])->name('organizational-change-requests.review-queue');
+    Route::get('/organizational-change-requests/pending-implementation', [OrganizationalChangeRequestController::class, 'pendingImplementation'])->name('organizational-change-requests.pending-implementation');
+    Route::get('/organizational-change-requests/completed', [OrganizationalChangeRequestController::class, 'completed'])->name('organizational-change-requests.completed');
+    Route::post('/organizational-change-requests', [OrganizationalChangeRequestController::class, 'store'])->name('organizational-change-requests.store');
+    Route::get('/organizational-change-requests/{organizationalChangeRequest}', [OrganizationalChangeRequestController::class, 'show'])->name('organizational-change-requests.show');
+    Route::get('/organizational-change-requests/{organizationalChangeRequest}/edit', [OrganizationalChangeRequestController::class, 'edit'])->name('organizational-change-requests.edit');
+    Route::match(['put', 'patch'], '/organizational-change-requests/{organizationalChangeRequest}', [OrganizationalChangeRequestController::class, 'update'])->name('organizational-change-requests.update');
+    Route::get('/organizational-change-requests/{organizationalChangeRequest}/implementation', [OrganizationalChangeRequestController::class, 'implementation'])->name('organizational-change-requests.implementation');
+
+    // Requester transitions
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/submit', [OrganizationalChangeRequestController::class, 'submit'])->name('organizational-change-requests.submit');
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/resubmit', [OrganizationalChangeRequestController::class, 'resubmit'])->name('organizational-change-requests.resubmit');
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/cancel', [OrganizationalChangeRequestController::class, 'cancel'])->name('organizational-change-requests.cancel');
+
+    // Review transitions
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/start-review', [OrganizationalChangeRequestController::class, 'startReview'])->name('organizational-change-requests.start-review');
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/request-correction', [OrganizationalChangeRequestController::class, 'requestCorrection'])->name('organizational-change-requests.request-correction');
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/approve', [OrganizationalChangeRequestController::class, 'approve'])->name('organizational-change-requests.approve');
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/reject', [OrganizationalChangeRequestController::class, 'reject'])->name('organizational-change-requests.reject');
+
+    // Implementation transitions
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/assign-implementation', [OrganizationalChangeRequestController::class, 'assignImplementation'])->name('organizational-change-requests.assign-implementation');
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/implement', [OrganizationalChangeRequestController::class, 'implement'])->name('organizational-change-requests.implement');
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/complete', [OrganizationalChangeRequestController::class, 'complete'])->name('organizational-change-requests.complete');
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/return-for-amendment', [OrganizationalChangeRequestController::class, 'returnForAmendment'])->name('organizational-change-requests.return-for-amendment');
+
+    // Attachments
+    Route::post('/organizational-change-requests/{organizationalChangeRequest}/attachments', [OrganizationalChangeRequestController::class, 'storeAttachment'])->name('organizational-change-requests.attachments.store');
+    Route::get('/organizational-change-requests/{organizationalChangeRequest}/attachments/{attachment}', [OrganizationalChangeRequestController::class, 'downloadAttachment'])->name('organizational-change-requests.attachments.download');
 
     // Organization Units
     Route::get('/organization-units', [OrganizationUnitController::class, 'index'])->name('organization-units.index');
@@ -916,6 +957,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 
         // Transactions
         Route::get('/transactions', [CafeteriaTransactionController::class, 'index'])->name('transactions.index');
+        Route::get('/transactions/export/{format}', [CafeteriaTransactionController::class, 'exportStatement'])->whereIn('format', ['pdf', 'xlsx', 'print'])->middleware('throttle:10,1')->name('transactions.export');
         Route::get('/transactions/{cafeteriaTransaction}', [CafeteriaTransactionController::class, 'show'])->name('transactions.show');
         Route::post('/transactions/{cafeteriaTransaction}/reverse', [CafeteriaTransactionController::class, 'reverse'])->name('transactions.reverse');
 

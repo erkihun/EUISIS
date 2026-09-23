@@ -1,4 +1,11 @@
 const cafeteria = {
+    statementTitle: 'Payment statement',
+    statementPeriod: 'Reporting period',
+    statementAnchor: 'Date within the period',
+    statementClaim: 'Subsidy payment claim total',
+    statementPeriods: { daily: 'Daily', weekly: 'Weekly (Mon–Sun)', monthly: 'Monthly', yearly: 'Yearly', all: 'All dates' },
+    statementExport: { pdf: 'Download PDF', xlsx: 'Download Excel', print: 'Print statement' },
+    statementNote: 'Totals cover all filtered pages and accepted transactions only. Reversed, rejected and pending transactions are excluded from payment totals. Employee payments and carry-forward deductions are separate from the subsidy claim. Apply filters before exporting. Calendar periods use Gregorian dates; weekly periods run Monday–Sunday.',
     settingHelp: {
     "currency": "Default currency for new subsidy rules; existing rules and transactions are not converted.",
     "default_daily_subsidy_amount": "Prefills new subsidy rules. Scans still require an active applicable subsidy rule.",
@@ -90,6 +97,14 @@ const cafeteria = {
     year: 'Year',
 
     // Transactions
+    transactionDescription: 'Review employee meals, subsidies, and payment details across cafeterias.',
+    transactionFilters: 'Filter transactions',
+    extraScansOnly: 'Extra scans only',
+    transactionRejected: 'Rejected',
+    transactionPendingReview: 'Pending review',
+    transactionResults: 'Showing :from–:to of :total transactions',
+    transactionPage: 'Page :current of :last',
+    transactionPagination: 'Transaction pages',
     transactions: 'Cafeteria Transactions',
     transaction: 'Transaction',
     transactionNumber: 'Transaction #',

@@ -7,9 +7,8 @@ namespace App\Contracts;
 /**
  * Outbound SMS.
  *
- * No provider is integrated yet — see LogSmsGateway and the README blocker.
- * The contract exists so calling code is written once and a real gateway can
- * be bound without touching a caller.
+ * The contract keeps registration and ID-check flows independent of the
+ * configured SMS provider.
  */
 interface SmsGateway
 {

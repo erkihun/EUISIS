@@ -39,6 +39,9 @@ use Inertia\Response;
 
 class PositionController extends Controller
 {
+    /** Largest number of named slices a status breakdown chart shows before the tail rolls into "Other". */
+    private const STATUS_BREAKDOWN_LIMIT = 8;
+
     public function status(Request $request, OrganizationScopeService $organizationScopeService): Response
     {
         $this->authorize('viewAny', Position::class);
@@ -170,12 +173,82 @@ class PositionController extends Controller
             ->values()
             ->all();
 
+        $summaryTotal = (int) $summaryPositions->sum('status_total_positions');
+        $summaryFilled = (int) $summaryPositions->sum('status_filled_positions');
+        $summaryVacant = max(0, $summaryTotal - $summaryFilled);
+
+        // Breakdowns power the status charts. They are derived from the same
+        // unpaginated, filter-aware collection as the summary tiles so the
+        // charts always agree with the headline numbers.
+        $buildBreakdown = function (callable $keyFor, callable $labelsFor) use ($summaryPositions): array {
+            $groups = $summaryPositions
+                ->groupBy($keyFor)
+                ->map(function ($group, $key) use ($labelsFor): array {
+                    $total = (int) $group->sum('status_total_positions');
+                    $filled = (int) $group->sum('status_filled_positions');
+                    [$labelEn, $labelAm] = $labelsFor((string) $key, $group->first());
+
+                    return [
+                        'key' => (string) $key,
+                        'label_en' => $labelEn,
+                        'label_am' => $labelAm,
+                        'total' => $total,
+                        'filled' => $filled,
+                        'vacant' => max(0, $total - $filled),
+                    ];
+                })
+                ->sortByDesc('total')
+                ->values();
+
+            if ($groups->count() <= self::STATUS_BREAKDOWN_LIMIT) {
+                return $groups->all();
+            }
+
+            $top = $groups->take(self::STATUS_BREAKDOWN_LIMIT);
+            $rest = $groups->slice(self::STATUS_BREAKDOWN_LIMIT);
+
+            return $top->push([
+                'key' => '__other__',
+                'label_en' => null,
+                'label_am' => null,
+                'total' => (int) $rest->sum('total'),
+                'filled' => (int) $rest->sum('filled'),
+                'vacant' => (int) $rest->sum('vacant'),
+            ])->all();
+        };
+
+        $groupingKey = $isOrganizationScoped ? 'unit' : 'organization';
+
+        $breakdowns = [
+            'grouping' => $groupingKey,
+            'by_group' => $buildBreakdown(
+                fn (Position $position) => $groupingKey === 'unit'
+                    ? ($position->organization_unit_id ?? '__unassigned__')
+                    : ($position->organization_id ?? '__unassigned__'),
+                function (string $key, Position $position) use ($groupingKey): array {
+                    $related = $groupingKey === 'unit' ? $position->organizationUnit : $position->organization;
+
+                    return [$related?->name_en, $related?->name_am];
+                },
+            ),
+            'by_grade_level' => $buildBreakdown(
+                fn (Position $position) => $position->grade_level ?: '__unassigned__',
+                fn (string $key) => $key === '__unassigned__' ? [null, null] : [$key, $key],
+            ),
+            'by_job_family' => $buildBreakdown(
+                fn (Position $position) => $position->job_family ?: '__unassigned__',
+                fn (string $key) => $key === '__unassigned__' ? [null, null] : [$key, $key],
+            ),
+        ];
+
         return Inertia::render('Positions/Status', [
             'summary' => [
-                'total_positions' => (int) $summaryPositions->sum('status_total_positions'),
-                'filled_positions' => (int) $summaryPositions->sum('status_filled_positions'),
-                'vacant_positions' => max(0, (int) $summaryPositions->sum('status_total_positions') - (int) $summaryPositions->sum('status_filled_positions')),
+                'total_positions' => $summaryTotal,
+                'filled_positions' => $summaryFilled,
+                'vacant_positions' => $summaryVacant,
+                'occupancy_rate' => $summaryTotal > 0 ? round($summaryFilled / $summaryTotal * 100, 1) : 0.0,
             ],
+            'breakdowns' => $breakdowns,
             'positions' => [
                 'data' => $positions->items(),
                 'meta' => [

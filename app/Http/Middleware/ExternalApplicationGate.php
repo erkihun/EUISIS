@@ -107,7 +107,7 @@ readonly class ExternalApplicationGate
     ): void {
         ApiRequestLog::query()->create([
             'external_application_id' => $application->getKey(),
-            'endpoint' => '/'.ltrim($request->path(), '/'),
+            'endpoint' => $this->routeUri($request),
             'method' => $request->method(),
             'ip_address' => $request->ip(),
             'status_code' => $status,

@@ -1,6 +1,7 @@
 import PageHeader from '@/Components/PageHeader';
+import PositionOccupancyBreakdown, { type Breakdowns } from '@/Components/positions/PositionOccupancyBreakdown';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Briefcase, ClipboardCheckIcon, Inbox } from '@/Components/Icons';
+import { Briefcase, ClipboardCheckIcon, Inbox, TrendingUpIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
@@ -9,6 +10,7 @@ type Summary = {
     total_positions: number;
     filled_positions: number;
     vacant_positions: number;
+    occupancy_rate: number;
 };
 
 type PositionStatusRow = {
@@ -52,6 +54,7 @@ type PaginatedPositions = {
 
 type Props = {
     summary: Summary;
+    breakdowns: Breakdowns;
     positions: PaginatedPositions;
     organizations: SelectOption[];
     organizationUnits: SelectOption[];
@@ -64,10 +67,11 @@ function metricTone(index: number): string {
         'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300',
         'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300',
         'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300',
+        'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-300',
     ][index];
 }
 
-export default function PositionStatus({ summary, positions, organizations, organizationUnits, isOrganizationScoped, filters }: Props) {
+export default function PositionStatus({ summary, breakdowns, positions, organizations, organizationUnits, isOrganizationScoped, filters }: Props) {
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
 
@@ -80,10 +84,18 @@ export default function PositionStatus({ summary, positions, organizations, orga
         per_page: filters.per_page ?? String(positions.meta.per_page ?? 15),
     });
 
+    const occupancyRate = Math.min(100, Math.max(0, summary.occupancy_rate));
+
     const metrics = [
-        { label: t('positions.totalJobPositions'), value: summary.total_positions, icon: Briefcase },
-        { label: t('positions.filledPositions'), value: summary.filled_positions, icon: ClipboardCheckIcon },
-        { label: t('positions.vacantPositions'), value: summary.vacant_positions, icon: Inbox },
+        { label: t('positions.totalJobPositions'), value: summary.total_positions.toLocaleString(), icon: Briefcase },
+        { label: t('positions.filledPositions'), value: summary.filled_positions.toLocaleString(), icon: ClipboardCheckIcon },
+        { label: t('positions.vacantPositions'), value: summary.vacant_positions.toLocaleString(), icon: Inbox },
+        {
+            label: t('positions.occupancyRate'),
+            value: `${occupancyRate.toLocaleString()}%`,
+            icon: TrendingUpIcon,
+            progress: occupancyRate,
+        },
     ];
 
     const inputClass = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
@@ -112,25 +124,32 @@ export default function PositionStatus({ summary, positions, organizations, orga
             <Head title={t('positions.newJobPositionsStatus')} />
 
             <div className="space-y-6">
-                <section className="grid gap-4 md:grid-cols-3">
+                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {metrics.map((metric, index) => {
                         const Icon = metric.icon;
 
                         return (
                             <div key={metric.label} className={`rounded-lg border p-5 ${metricTone(index)}`}>
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="min-w-0">
                                         <p className="text-sm font-medium opacity-80">{metric.label}</p>
-                                        <p className="mt-2 text-3xl font-semibold">{metric.value.toLocaleString()}</p>
+                                        <p className="mt-2 text-3xl font-semibold">{metric.value}</p>
                                     </div>
-                                    <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/70 dark:bg-white/10">
+                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white/70 dark:bg-white/10">
                                         <Icon className="h-5 w-5" />
                                     </span>
                                 </div>
+                                {metric.progress !== undefined && (
+                                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/60 dark:bg-white/10">
+                                        <div className="h-full rounded-full bg-current" style={{ width: `${metric.progress}%` }} />
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
                 </section>
+
+                <PositionOccupancyBreakdown breakdowns={breakdowns} />
 
                 <section className="rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
                     <form className={`grid gap-3 ${isOrganizationScoped ? 'lg:grid-cols-4' : 'lg:grid-cols-5'}`} onSubmit={submit}>

@@ -67,6 +67,7 @@ return [
     'status_accepted' => 'ተቀባይነት አግኝቷል',
     'status_reversed' => 'ተመልሷል',
     'status_rejected' => 'ውድቅ ተደርጓል',
+    'status_pending_review' => 'በግምገማ ላይ',
     'usage_single_day' => 'አንድ ቀን',
     'usage_use_remaining_week' => 'የቀረውን ሳምንት ተጠቀም',
     'export_columns_no' => 'ቁ.',

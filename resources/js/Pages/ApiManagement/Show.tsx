@@ -6,6 +6,8 @@ import StatusBadge from '@/Components/StatusBadge';
 import EndpointAssignment, { AssignableEndpoint } from '@/Components/apiManagement/EndpointAssignment';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
+import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 type TokenRow = {
     id: number | string;
@@ -60,6 +62,8 @@ export default function ApiManagementShow({
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [copyFailed, setCopyFailed] = useState(false);
+    const tokenForm = useForm({ name: application.code });
     const flash = (usePage().props as { flash?: { generated_token?: string } }).flash;
 
     const form = useForm({
@@ -78,8 +82,6 @@ export default function ApiManagementShow({
         endpoint_ids: assignedEndpoints.map((endpoint) => endpoint.id),
     });
 
-    const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function toggleScope(scope: string) {
         form.setData(
@@ -92,7 +94,7 @@ export default function ApiManagementShow({
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        form.patch(route('api-management.update', application.id), { onSuccess: () => setEditing(false) });
+        form.patch(route('api-management.update', application.id), { onSuccess: () => { form.setDefaults(form.data); setEditing(false); } });
     }
 
     /** Deleting also revokes every issued token, so confirm explicitly. */
@@ -138,16 +140,22 @@ export default function ApiManagementShow({
                         </code>
                         <button
                             type="button"
-                            onClick={() => {
-                                void navigator.clipboard?.writeText(flash.generated_token ?? '');
-                                setCopied(true);
-                                window.setTimeout(() => setCopied(false), 2000);
+                            onClick={async () => {
+                                setCopied(false);
+                                setCopyFailed(false);
+                                try {
+                                    await navigator.clipboard.writeText(flash.generated_token ?? '');
+                                    setCopied(true);
+                                } catch {
+                                    setCopyFailed(true);
+                                }
                             }}
                             className="shrink-0 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700"
                         >
                             {copied ? t('common.copied') : t('common.copy')}
                         </button>
                     </div>
+                    {copyFailed && <p role="alert" className="mt-2 text-sm text-amber-900 dark:text-amber-200">{t('apiManagement.copyFailed')}</p>}
                     <p className="mt-2 text-xs text-amber-800 dark:text-amber-300">
                         {t('apiManagement.tokenEnvHint')}
                     </p>
@@ -165,7 +173,8 @@ export default function ApiManagementShow({
                     {can.update && (
                         <button
                             type="button"
-                            onClick={() => setEditing((value) => !value)}
+                            disabled={form.processing}
+                            onClick={() => { form.reset(); form.clearErrors(); setEditing((value) => !value); }}
                             className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                         >
                             {editing ? t('common.cancel') : t('common.edit')}
@@ -184,28 +193,7 @@ export default function ApiManagementShow({
 
                 {editing && can.update ? (
                     <form onSubmit={submit} className="space-y-4">
-                        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                            <input className={inputCls} placeholder={t('apiManagement.name')} value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
-                            <input className={inputCls} placeholder={t('apiManagement.code')} value={form.data.code} onChange={(e) => form.setData('code', e.target.value)} />
-                            <input className={inputCls} placeholder={t('apiManagement.ownerInstitution')} value={form.data.owner_institution} onChange={(e) => form.setData('owner_institution', e.target.value)} />
-                            <input className={inputCls} placeholder={t('apiManagement.contactPerson')} value={form.data.contact_person} onChange={(e) => form.setData('contact_person', e.target.value)} />
-                            <input className={inputCls} type="email" placeholder={t('apiManagement.contactEmail')} value={form.data.contact_email} onChange={(e) => form.setData('contact_email', e.target.value)} />
-                            <input className={inputCls} type="number" min={1} value={form.data.rate_limit_per_minute} onChange={(e) => form.setData('rate_limit_per_minute', Number(e.target.value))} />
-                            <select className={inputCls} value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
-                                <option value="active">{t('common.active')}</option>
-                                <option value="suspended">{t('common.suspended')}</option>
-                                <option value="revoked">{t('common.revoked')}</option>
-                            </select>
-                            <input
-                                className={`${inputCls} sm:col-span-2`}
-                                placeholder={t('apiManagement.ipAllowlistHint')}
-                                value={form.data.allowed_ips.join(', ')}
-                                onChange={(e) => form.setData(
-                                    'allowed_ips',
-                                    e.target.value.split(',').map((ip) => ip.trim()).filter(Boolean),
-                                )}
-                            />
-                        </div>
+                        <ApplicationFields values={form.data} onChange={values => form.setData({ ...form.data, ...values })} errors={form.errors} disabled={form.processing} />
 
                         <fieldset>
                             <legend className="mb-2 text-xs font-semibold text-gray-600 dark:text-slate-400">{t('apiManagement.apiScopes')}</legend>
@@ -319,10 +307,10 @@ export default function ApiManagementShow({
                                             {endpoint.required_scope ?? '—'}
                                         </td>
                                         <td className="px-2 py-2 text-xs text-gray-600 dark:text-slate-400">
-                                            {t(`apiManagement.status_${endpoint.status}`)}
+                                            {endpoint.is_enabled ? t(`apiManagement.status_${endpoint.status}`) : t('apiManagement.assignmentDisabled')}
                                         </td>
                                         <td className="px-2 py-2 text-xs text-gray-500 dark:text-slate-400">
-                                            {endpoint.last_used_at ?? '—'}
+                                            <LocalizedDateDisplay value={endpoint.last_used_at} withTime />
                                         </td>
                                     </tr>
                                 ))}
@@ -338,7 +326,8 @@ export default function ApiManagementShow({
                     {can.createTokens && (
                         <button
                             type="button"
-                            onClick={() => router.post(route('api-management.tokens.store', application.id), { name: application.code })}
+                            disabled={tokenForm.processing}
+                            onClick={() => { setCopied(false); setCopyFailed(false); tokenForm.post(route('api-management.tokens.store', application.id), { preserveScroll: true }); }}
                             className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                         >
                             {t('apiManagement.generateToken')}
@@ -363,7 +352,7 @@ export default function ApiManagementShow({
                                 <tr key={token.id}>
                                     <td className="px-4 py-2 text-gray-800 dark:text-slate-200">{token.name}</td>
                                     <td className="px-4 py-2 font-mono text-[10px] text-gray-500 dark:text-slate-400">{(token.abilities ?? []).join(', ')}</td>
-                                    <td className="px-4 py-2 text-xs text-gray-500 dark:text-slate-400">{token.last_used_at ?? '—'}</td>
+                                    <td className="px-4 py-2 text-xs text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={token.last_used_at} withTime /></td>
                                     <td className="px-4 py-2 text-right">
                                         {can.revokeTokens && (
                                             <button

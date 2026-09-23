@@ -59,7 +59,7 @@ class EmployeeImportController extends Controller
         return Inertia::render('Employees/ImportCsv', [
             'batch' => $batch,
             'preview' => $preview,
-            'columns' => EmployeeCsvImportService::COLUMNS,
+            'columns' => EmployeeCsvImportService::templateColumns(),
             // Rows the reader could not take from the uploaded file. Carried
             // in the session beside the batch id so the warning survives a
             // reload of the preview, not just the flash after upload.

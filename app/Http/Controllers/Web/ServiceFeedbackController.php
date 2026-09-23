@@ -35,7 +35,10 @@ class ServiceFeedbackController extends Controller
         'organization_id',
         'organization_unit_id',
         'employee_id',
-        'position_service_id',
+        // Matches the key the query service filters on and the one the
+        // service-type dropdown submits; `position_service_id` is the column,
+        // not the request key.
+        'service_type_id',
         'service_no',
         'rating',
         'status',
@@ -247,6 +250,7 @@ class ServiceFeedbackController extends Controller
             'lowRated' => $lowRated,
             'filters' => $filters,
             'filterOptions' => $this->filterOptions($user),
+            'statuses' => array_column(ServiceFeedbackStatus::cases(), 'value'),
             'can' => ['export' => Auth::user()->can('export', EmployeeServiceFeedback::class)],
         ]);
     }

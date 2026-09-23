@@ -64,6 +64,21 @@ class EmployeeCsvImportService
         'employment_type',
     ];
 
+    public static function templateColumns(): array
+    {
+        $importColumns = array_values(array_filter(
+            self::COLUMNS,
+            static fn (string $column): bool => $column !== 'employee_number',
+        ));
+
+        return [...array_map(static fn (string $column) => match ($column) {
+            'organization_code' => 'organization_name',
+            'organization_unit_code' => 'organization_unit_name',
+            'position_code' => 'position_name',
+            default => $column,
+        }, $importColumns), 'position_reference'];
+    }
+
     /** Guards against a spreadsheet export with a runaway row count. */
     private const MAX_ROWS = 2000;
 
@@ -118,8 +133,8 @@ class EmployeeCsvImportService
         $claimedPositions = [];
 
         /*
-         * Employee numbers supplied in this file, so a duplicate WITHIN the
-         * upload is caught as well as a clash with the database.
+         * Generated numbers reserved for rows in this validation pass. Values
+         * supplied in the CSV are deliberately ignored.
          */
         $claimedNumbers = [];
 
@@ -128,16 +143,19 @@ class EmployeeCsvImportService
         $organizationIds = [];
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2; // Header occupies line 1.
-            $errors = $this->validateRow($row, $allowedOrganizationIds, $claimedPositions, $claimedNumbers);
+            $placementError = $this->resolveTemplatePlacement($row, $allowedOrganizationIds);
+            $errors = $placementError !== null ? [$placementError] : $this->validateRow($row, $allowedOrganizationIds, $claimedPositions, $claimedNumbers);
 
             $resolved = $errors === [] ? $this->resolveRow($row) : null;
 
             if ($resolved !== null) {
-                $manualNumber = trim((string) ($row['employee_number'] ?? ''));
                 $codeContext = ['organization_id' => $resolved['organization']->id];
                 $rule = $this->codeRuleResolver->resolve(CodeRuleEntityType::Employee, $codeContext);
 
-                if ($manualNumber === '' && CodeFormatTokenResolver::usesRandomToken($rule?->format)) {
+                if ($rule === null) {
+                    $errors[] = __('code-rules.no_active_rule');
+                    $resolved = null;
+                } elseif (CodeFormatTokenResolver::usesRandomToken($rule->format)) {
                     $generatedNumber = null;
 
                     for ($attempt = 0; $attempt < self::MAX_RANDOM_CODE_ATTEMPTS; $attempt++) {
@@ -333,7 +351,7 @@ class EmployeeCsvImportService
     /**
      * The template body an importer downloads.
      *
-     * Prefills real placement codes, never fabricated employee details.
+     * Prefills placement names and an unambiguous reference, never employee details.
      * A BOM lets spreadsheet software open Amharic codes as UTF-8.
      */
     public function templateCsv(Organization $organization): string
@@ -343,20 +361,21 @@ class EmployeeCsvImportService
             ->where('is_active', true)
             ->whereDoesntHave('assignments', fn ($query) => $query->where('is_current', true)->where('assignment_status', AssignmentStatus::Active))
             ->where(fn ($query) => $query->whereNull('organization_unit_id')->orWhereHas('organizationUnit', fn ($unit) => $unit->where('organization_id', $organization->id)->where('status', 'active')))
-            ->with('organizationUnit:id,code')
+            ->with('organizationUnit:id,code,name_en,name_am')
             ->orderBy('job_position_code')->orderBy('id')
             ->limit($this->maxRows())
-            ->get(['id', 'organization_unit_id', 'job_position_code', 'code']);
+            ->get(['id', 'organization_unit_id', 'job_position_code', 'code', 'title_en', 'title_am']);
 
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, "\xEF\xBB\xBF");
-        fputcsv($stream, self::COLUMNS, ',', '"', '');
+        fputcsv($stream, self::templateColumns(), ',', '"', '');
         // Empty organizations still get an organization-specific starter row.
         foreach ($positions->isEmpty() ? [null] : $positions as $position) {
-            $row = array_fill_keys(self::COLUMNS, '');
-            $row['organization_code'] = $organization->code;
-            $row['organization_unit_code'] = $position?->organizationUnit?->code ?? '';
-            $row['position_code'] = $position?->job_position_code ?: ($position?->code ?? '');
+            $row = array_fill_keys(self::templateColumns(), '');
+            $row['organization_name'] = $organization->name_en ?: $organization->name_am;
+            $row['organization_unit_name'] = $position?->organizationUnit?->name_en ?: ($position?->organizationUnit?->name_am ?? '');
+            $row['position_name'] = $position?->title_en ?: ($position?->title_am ?? '');
+            $row['position_reference'] = $position?->id ?? '';
             $row['employment_status'] = 'active';
             // Treat codes as text when opened in spreadsheet software.
             $values = array_map(static fn ($value) => preg_match('/^[\s]*[=+@-]/u', (string) $value) ? "'".$value : $value, array_values($row));
@@ -455,7 +474,7 @@ class EmployeeCsvImportService
 
             $row = [];
 
-            foreach (self::COLUMNS as $column) {
+            foreach (array_unique([...self::COLUMNS, ...self::templateColumns()]) as $column) {
                 $position = array_search($column, $header, true);
                 $row[$column] = $position === false ? '' : trim((string) ($line[$position] ?? ''));
             }
@@ -466,6 +485,41 @@ class EmployeeCsvImportService
         fclose($handle);
 
         return $rows;
+    }
+
+    /** Resolve name-based templates by stable position identity, never by guessing a title. */
+    private function resolveTemplatePlacement(array &$row, ?array $allowedOrganizationIds): ?string
+    {
+        $reference = $row['position_reference'] ?? '';
+        if ($reference === '' && ($row['organization_name'] ?? '') === '' && ($row['position_name'] ?? '') === '') {
+            return null; // Existing code-based files remain supported.
+        }
+        if (! Str::isUuid($reference)) {
+            return __('employees.import.errors.templateReference');
+        }
+        $position = Position::query()->with(['organization', 'organizationUnit'])
+            ->when($allowedOrganizationIds !== null, fn ($query) => $query->whereIn('organization_id', $allowedOrganizationIds))
+            ->find($reference);
+        if ($position === null || $position->organization === null || ! $position->is_active) {
+            return __('employees.import.errors.templateReference');
+        }
+        $expected = [
+            'organization_name' => $position->organization->name_en ?: $position->organization->name_am,
+            'organization_unit_name' => $position->organizationUnit?->name_en ?: ($position->organizationUnit?->name_am ?? ''),
+            'position_name' => $position->title_en ?: ($position->title_am ?? ''),
+        ];
+        foreach ($expected as $key => $name) {
+            $name = trim((string) $name);
+            $safeName = preg_match('/^[\s]*[=+@-]/u', $name) ? "'".$name : $name;
+            if (! in_array(trim($row[$key] ?? ''), [$name, $safeName], true)) {
+                return __('employees.import.errors.templateNames');
+            }
+        }
+        $row['organization_code'] = $position->organization->code;
+        $row['organization_unit_code'] = $position->organizationUnit?->code ?? '';
+        $row['position_code'] = $position->job_position_code ?: $position->code;
+
+        return null;
     }
 
     /**
@@ -660,9 +714,9 @@ class EmployeeCsvImportService
         ]);
 
         $employeeAttributes = [
-            // Blank means "generate one" — RegisterEmployeeAction runs the
-            // configured Code Rule when no manual number is supplied.
-            'employee_number' => trim((string) ($row['employee_number'] ?? '')) ?: null,
+            // RegisterEmployeeAction runs the configured Code Rule for every
+            // row; a CSV value can never override identity numbering.
+            'employee_number' => null,
             '_expected_generated_code' => $row['_generated_employee_number'] ?? null,
             'first_name' => trim((string) ($row['first_name'] ?? '')),
             'middle_name' => trim((string) ($row['father_name'] ?? '')) ?: null,
@@ -724,12 +778,6 @@ class EmployeeCsvImportService
     /** @param array<string, mixed> $row */
     private function employeeNumber(array $row): ?string
     {
-        $number = trim((string) ($row['employee_number'] ?? ''));
-
-        if ($number !== '') {
-            return $number;
-        }
-
         $generatedNumber = trim((string) ($row['_generated_employee_number'] ?? ''));
 
         return $generatedNumber !== '' ? $generatedNumber : null;

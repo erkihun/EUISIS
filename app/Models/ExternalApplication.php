@@ -73,6 +73,7 @@ class ExternalApplication extends Model implements AuthenticatableContract
     protected $fillable = [
         'name',
         'code',
+        'owner_institution',
         'contact_person',
         'contact_email',
         'callback_url',
