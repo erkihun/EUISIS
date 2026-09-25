@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Users\AssignRolesAction;
 use App\Actions\Users\CreateUserAction;
 use App\Actions\Users\DeactivateUserAction;
 use App\Actions\Users\RestoreUserAction;
 use App\Actions\Users\UpdateUserAction;
 use App\Actions\Users\UploadUserProfilePhotoAction;
+use App\Enums\AuditEventType;
 use App\Enums\OrganizationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AssignRolesRequest;
@@ -17,8 +19,9 @@ use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Models\Organization;
 use App\Models\User;
+use App\Security\Passwords\PasswordLifecycle;
+use App\Security\Passwords\PasswordPolicy;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\Security\DefaultPasswordPolicyService;
 use App\Services\Users\AssignableUserRoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,7 +36,6 @@ class UserController extends Controller
     public function __construct(
         private readonly OrganizationScopeService $organizationScopeService,
         private readonly AssignableUserRoleService $assignableUserRoleService,
-        private readonly DefaultPasswordPolicyService $defaultPasswordPolicy,
     ) {}
 
     public function index(Request $request): Response
@@ -130,8 +132,6 @@ class UserController extends Controller
             'roles' => $this->assignableRoles($actor),
             'statusOptions' => ['active', 'inactive'],
             'requiresOrganizationScope' => $this->organizationScopeService->isScopedOrganizationalAdmin($actor),
-            'defaultPasswordAvailable' => $this->defaultPasswordPolicy->canSupplyInitialPassword(),
-            'passwordMinimumLength' => $this->defaultPasswordPolicy->minimumLength(),
             'organizations' => Organization::query()
                 ->where('status', 'active')
                 // A scoped actor may only place a new user inside their own orgs.
@@ -170,15 +170,25 @@ class UserController extends Controller
         /** @var User $actor */
         $actor = $request->user();
 
+        // No password typed: a unique random one-time password, never a
+        // shared default and never derived from the account.
+        $temporary = blank($validated['password'] ?? null) ? app(PasswordPolicy::class)->generateTemporaryPassword() : null;
+        if ($temporary !== null) {
+            $validated['password'] = $temporary;
+        }
+
         $user = $action->execute($validated, $actor);
+
+        if ($temporary !== null) {
+            app(WriteAuditLogAction::class)->execute(AuditEventType::TemporaryPasswordAssigned, $actor, $user, reason: 'generated_for_new_account', request: $request);
+        }
 
         if ($request->hasFile('profile_photo')) {
             $path = $photoAction->execute($user, $request->file('profile_photo'), $actor, $request);
             $user->update(['profile_photo_path' => $path]);
         }
 
-        return to_route('users.index')
-            ->with('flash', ['message' => __('users.created'), 'type' => 'success']);
+        return $this->withTemporaryPassword(to_route('users.index'), $temporary, __('users.created'));
     }
 
     public function edit(User $user): Response
@@ -291,13 +301,34 @@ class UserController extends Controller
 
         $action->execute($validated, $user, $actor);
 
+        $temporary = $request->boolean('generate_temporary_password') && ! $actor->is($user)
+            ? app(PasswordLifecycle::class)->assignTemporaryPassword($user, $actor, 'administrator_generated_temporary_password')
+            : null;
+
         if ($request->hasFile('profile_photo')) {
             $path = $photoAction->execute($user, $request->file('profile_photo'), $actor, $request);
             $user->update(['profile_photo_path' => $path]);
         }
 
-        return to_route('users.index')
-            ->with('flash', ['message' => __('users.updated'), 'type' => 'success']);
+        return $this->withTemporaryPassword(to_route('users.index'), $temporary, __('users.updated'));
+    }
+
+    /**
+     * A generated one-time password is flashed for exactly one response to
+     * the administrator who asked for it (it is never stored in plaintext,
+     * logged or shown again).
+     */
+    private function withTemporaryPassword(RedirectResponse $redirect, ?string $temporary, string $message): RedirectResponse
+    {
+        if ($temporary === null) {
+            return $redirect->with('flash', ['message' => $message, 'type' => 'success']);
+        }
+
+        return $redirect->with('flash', [
+            'message' => $message.' '.__('password-policy.temporary_password_created'),
+            'type' => 'success',
+            'temporary_password' => $temporary,
+        ]);
     }
 
     public function deactivate(Request $request, User $user, DeactivateUserAction $action): RedirectResponse

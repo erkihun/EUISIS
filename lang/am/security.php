@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'session_expired' => 'የክፍለ ጊዜዎ አብቅቷል። እባክዎ እንደገና ይግቡ።',
+    'session_expired_idle' => 'በተወሰነው ጊዜ ውስጥ እንቅስቃሴ ስላልነበረ የክፍለ ጊዜዎ ጊዜ አልፏል። እባክዎ እንደገና ይግቡ።',
     'access_denied' => 'ፈቃድ የለዎትም።',
     'scope_denied' => 'የተቋም ወሰንዎ ይህን መዝገብ አይጨምርም።',
     'too_many_attempts' => 'ብዙ የመግቢያ ሙከራዎች። እባክዎ :seconds ሰከንዶች ይጠብቁ።',

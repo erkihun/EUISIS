@@ -1,5 +1,6 @@
 import { FormEvent } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
@@ -13,6 +14,7 @@ import type { JSX } from 'react';
  */
 export default function ForcedPasswordChange(): JSX.Element {
     const { t } = useLocale();
+    const account = (usePage().props as { auth?: { user?: { name?: string; email?: string } } }).auth?.user;
 
     const { data, setData, post, processing, errors, reset } = useForm({
         current_password: '',
@@ -70,6 +72,8 @@ export default function ForcedPasswordChange(): JSX.Element {
                     autoComplete="new-password"
                     onChange={(value) => setData('password_confirmation', value)}
                 />
+
+                <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[account?.name, account?.email]} />
 
                 <button
                     type="submit"

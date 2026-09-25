@@ -6,24 +6,47 @@ namespace App\Http\Controllers\Employee;
 
 use App\Actions\Transfers\SubmitTransferApplicationAction;
 use App\Enums\CardStatus;
+use App\Enums\DailyActivityStatus;
 use App\Enums\EntitlementStatus;
+use App\Enums\Performance\AgreementStatus;
+use App\Enums\Performance\AppealStatus;
+use App\Enums\Performance\KpiAggregation;
+use App\Enums\Performance\KpiHealth;
+use App\Enums\Performance\ResultStatus;
+use App\Enums\Performance\ReviewStatus;
+use App\Enums\Performance\ReviewType;
 use App\Enums\TransferAnnouncementStatus;
 use App\Enums\TransferApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Public\PublicTransferAnnouncementController;
 use App\Http\Requests\Transfers\PublicStoreTransferApplicationRequest;
+use App\Http\Resources\EmployeeSelfServiceResource;
 use App\Models\CafeteriaTransaction;
 use App\Models\CafeteriaTransactionConsumedDay;
+use App\Models\DailyActivityLog;
 use App\Models\Employee;
+use App\Models\EmployeeCorrectionRequest;
+use App\Models\EmployeePerformanceAgreement;
 use App\Models\IdCard;
+use App\Models\PerformanceAppeal;
 use App\Models\ServiceTransaction;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
+use App\Models\TransportPass;
+use App\Models\TransportTransaction;
+use App\Models\User;
 use App\Services\Cafeteria\CafeteriaAvailableSubsidyService;
-use App\Services\Cafeteria\CafeteriaCalendarService;
 use App\Services\Cafeteria\CafeteriaLedgerService;
 use App\Services\Cafeteria\CafeteriaSubsidyRuleResolver;
 use App\Services\Cafeteria\WorkingDayCalendarService;
+use App\Services\DailyActivity\DailyActivityCalendarService;
+use App\Services\DailyActivity\DailyActivitySettings;
+use App\Services\DailyActivity\WorkCalendarService;
+use App\Services\Performance\EmployeeScoreCalculator;
+use App\Services\Performance\EpmsSettings;
+use App\Services\Performance\PerformanceAggregationService;
+use App\Services\Performance\PerformanceReviewService;
+use App\Support\NotificationPresenter;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,13 +58,8 @@ use Throwable;
 
 class EmployeePortalController extends Controller
 {
-    public function index(
-        Request $request,
-        CafeteriaLedgerService $ledgerService,
-        CafeteriaSubsidyRuleResolver $ruleResolver,
-        CafeteriaAvailableSubsidyService $availableSubsidyService,
-        CafeteriaCalendarService $calendarService,
-    ): Response {
+    public function index(Request $request): Response
+    {
         $user = $request->user();
         $employee = $user->employee;
 
@@ -50,10 +68,15 @@ class EmployeePortalController extends Controller
                 'employee' => null,
                 'assignment' => null,
                 'id_card' => null,
-                'cafeteria' => null,
                 'entitlements' => [],
                 'transfer_apps' => [],
                 'open_announcements' => [],
+                'daily_activity' => null,
+                'performance' => null,
+                'notifications' => ['unread' => 0, 'latest' => []],
+                'pending_requests' => 0,
+                'holidays' => [],
+                'requests' => [],
             ]);
         }
 
@@ -79,69 +102,10 @@ class EmployeePortalController extends Controller
                 'expires_at' => $idCard->expires_at?->toDateString(),
                 'activated_at' => $idCard->activated_at?->toDateString(),
                 'is_active' => $idCard->status === CardStatus::Active,
+                // A reprint flag never invalidates the card; it only asks for a new print.
+                'reprint_required' => (bool) $idCard->reprint_required,
+                'issued_at' => $idCard->issued_at?->toDateString(),
             ];
-        }
-
-        // ── Cafeteria ─────────────────────────────────────────────────────────
-        $cafeteriaData = null;
-        try {
-            $today = Carbon::today();
-            $rule = $ruleResolver->resolve($employee, $today);
-
-            $balance = $ledgerService->getBalance($employee);
-            $pending = $ledgerService->getPendingDeduction($employee);
-            $dailyAmount = $rule ? (float) $rule->subsidy_amount : null;
-
-            $available = null;
-            if ($rule) {
-                $available = $availableSubsidyService->calculate($employee, $today, $rule);
-            }
-
-            // Weekly calendar (Mon–Fri only)
-            $calendarDays = $calendarService->getEmployeeWeekCalendar($employee, $today, null);
-            $weekDays = array_values(array_filter($calendarDays, fn ($d) => ! ($d['is_weekend'] ?? false)));
-
-            // Last 5 cafeteria transactions
-            $recentTxns = CafeteriaTransaction::query()
-                ->where('employee_id', $employee->id)
-                ->with('provider:id,name_en,name_am')
-                ->orderByDesc('transaction_date')
-                ->orderByDesc('transaction_time')
-                ->limit(5)
-                ->get()
-                ->map(fn ($t) => [
-                    'date' => $t->transaction_date?->toDateString(),
-                    'subsidy' => (float) $t->subsidy_amount_applied,
-                    'meal_amount' => (float) $t->meal_amount,
-                    'employee_pays' => (float) $t->employee_payable_amount,
-                    'provider' => $t->provider?->name_en,
-                    'provider_am' => $t->provider?->name_am,
-                    'status' => $t->status?->value,
-                    'transaction_type' => $t->transaction_type?->value ?? $t->transaction_type,
-                ])
-                ->all();
-
-            $cafeteriaData = [
-                'balance' => round($balance, 2),
-                'pending_deduction' => round($pending, 2),
-                'daily_amount' => $dailyAmount,
-                'available_days' => $available['available_days_count'] ?? 0,
-                'remaining_subsidy' => $available ? round($available['remaining'], 2) : null,
-                'week_start' => $available['week_start']?->toDateString() ?? $today->copy()->startOfWeek()->toDateString(),
-                'week_end' => $available['week_end']?->toDateString() ?? $today->copy()->endOfWeek()->subDays(2)->toDateString(),
-                'week_days' => $weekDays,
-                'recent_transactions' => $recentTxns,
-            ];
-        } catch (Throwable $exception) {
-            /*
-             * An unconfigured cafeteria is an expected empty state, but this
-             * also catches genuine faults in the subsidy services. Logging it
-             * keeps a real failure from looking identical to "not set up".
-             */
-            Log::warning('Employee portal cafeteria panel unavailable', [
-                'employee_id' => $employee->id,
-                'exception' => $exception->getMessage(),
-            ]);
         }
 
         // ── Entitlements ──────────────────────────────────────────────────────
@@ -216,16 +180,8 @@ class EmployeePortalController extends Controller
             ->all();
 
         return Inertia::render('Employee/Portal', [
-            'employee' => [
-                'id' => $employee->id,
-                'full_name' => $employee->full_name,
-                'employee_number' => $employee->employee_number,
-                'status' => $employee->status?->value,
-                'photo_url' => $employee->photo_url,
-                'email' => $employee->email,
-                'phone' => $employee->phone,
-                'gender' => $employee->gender,
-            ],
+            'portal_labels' => ['en' => trans('employee-portal', [], 'en'), 'am' => trans('employee-portal', [], 'am')],
+            'employee' => (new EmployeeSelfServiceResource($employee))->resolve($request),
             'assignment' => $assignment ? [
                 'organization' => $assignment->organization?->name_en,
                 'organization_am' => $assignment->organization?->name_am,
@@ -238,11 +194,223 @@ class EmployeePortalController extends Controller
                 'status' => $assignment->assignment_status?->value,
             ] : null,
             'id_card' => $idCardData,
-            'cafeteria' => $cafeteriaData,
             'entitlements' => $entitlements,
             'transfer_apps' => $transferApps,
             'open_announcements' => $openAnnouncements,
+            'daily_activity' => $this->dailyActivitySummary($user, $employee),
+            'performance' => $this->performanceSummary($user, $employee),
+            'notifications' => [
+                'unread' => $user->unreadNotifications()->count(),
+                'latest' => $user->notifications()->latest()->limit(3)->get()
+                    ->map(fn ($notification) => NotificationPresenter::present($notification, NotificationPresenter::locale($request)))
+                    ->all(),
+            ],
+            'holidays' => $this->upcomingHolidays(),
+            'requests' => EmployeeCorrectionRequest::query()
+                ->where('employee_id', $employee->id)
+                ->latest()
+                ->limit(3)
+                ->get()
+                // Field key and status only: never the requested value.
+                ->map(fn (EmployeeCorrectionRequest $request) => [
+                    'id' => $request->id,
+                    'field' => $request->field,
+                    'status' => $request->status,
+                    'created_at' => $request->created_at?->toDateString(),
+                ])
+                ->all(),
+            'pending_requests' => EmployeeCorrectionRequest::query()
+                ->where('employee_id', $employee->id)
+                ->where('status', 'pending')
+                ->count(),
         ]);
+    }
+
+    /**
+     * The next public holidays from the shared holiday calendar (recurring
+     * Gregorian and Ethiopian holidays included), for planning ahead.
+     *
+     * @return array<int, array{date: string, name_en: string, name_am: ?string}>
+     */
+    private function upcomingHolidays(): array
+    {
+        try {
+            $today = app(DailyActivitySettings::class)->today();
+            $holidays = app(WorkCalendarService::class)->holidaysBetween($today, $today->copy()->addDays(120));
+
+            return collect($holidays)
+                ->map(fn (array $holiday, string $date): array => ['date' => $date, ...$holiday])
+                ->values()
+                ->take(4)
+                ->all();
+        } catch (Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Daily activity figures for the dashboard: today's state, this week's
+     * days and the counts that call for action. Null when the account may not
+     * use Daily Activity, so the dashboard simply leaves the panel out.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function dailyActivitySummary(User $user, Employee $employee): ?array
+    {
+        if (! $user->can('daily_activities.view_own')) {
+            return null;
+        }
+
+        try {
+            $settings = app(DailyActivitySettings::class);
+            $calendar = app(DailyActivityCalendarService::class);
+            $today = $settings->today();
+            $weekStart = $today->copy()->startOfWeek();
+            $weekEnd = $weekStart->copy()->addDays(6);
+
+            $summary = $calendar->summaries(collect([$employee]), $weekStart, $today)[$employee->id] ?? [];
+
+            return [
+                'today' => $today->toDateString(),
+                'today_status' => $calendar->dayStatus($employee, $today)->value,
+                'week' => array_map(fn (array $day): array => [
+                    'date' => $day['date'],
+                    'status' => $day['status'],
+                    'is_late' => $day['is_late'],
+                    'items_count' => $day['items_count'],
+                ], $calendar->days($employee, $weekStart, $weekEnd)),
+                'required' => (int) ($summary['required'] ?? 0),
+                'submitted' => (int) ($summary['submitted'] ?? 0),
+                'missing' => (int) ($summary['missing'] ?? 0),
+                // All returned days, not just this week: each needs correcting.
+                'recent' => DailyActivityLog::query()
+                    ->where('employee_id', $employee->id)
+                    ->withCount('items')
+                    ->orderByDesc('activity_date')
+                    ->limit(5)
+                    ->get(['id', 'activity_date', 'status', 'is_late'])
+                    ->map(fn (DailyActivityLog $log): array => [
+                        'date' => $log->activityDateString(),
+                        'status' => $log->status->value,
+                        'is_late' => $log->is_late,
+                        'items_count' => (int) $log->items_count,
+                    ])
+                    ->all(),
+                'returned' => DailyActivityLog::query()
+                    ->where('employee_id', $employee->id)
+                    ->where('status', DailyActivityStatus::ReturnedForCorrection->value)
+                    ->count(),
+            ];
+        } catch (Throwable $exception) {
+            Log::warning('Employee dashboard daily activity panel unavailable', [
+                'employee_id' => $employee->id,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * My Performance at a glance: the current agreement, per-KPI progress from
+     * measured actuals (never a preliminary total score), the result once it
+     * is released, and the steps waiting for the employee. Null when EPMS is
+     * off or the account may not use it.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function performanceSummary(User $user, Employee $employee): ?array
+    {
+        $settings = app(EpmsSettings::class);
+        if (! $settings->enabled() || ! $user->can('employee_performance_agreements.view_own')) {
+            return null;
+        }
+
+        try {
+            // The newest agreement that is still running, else the newest one.
+            $agreements = EmployeePerformanceAgreement::query()->where('employee_id', $employee->id)
+                ->with('cycle')->orderByDesc('effective_from')->limit(10)->get();
+            $agreement = $agreements->first(fn (EmployeePerformanceAgreement $a) => $a->status !== AgreementStatus::Closed) ?? $agreements->first();
+            if ($agreement === null) {
+                return ['agreement' => null, 'kpis' => [], 'counts' => null, 'result' => null, 'actions' => []];
+            }
+
+            $aggregation = app(PerformanceAggregationService::class);
+            $asOf = now()->startOfDay();
+            $kpis = collect(app(EmployeeScoreCalculator::class)->trace($agreement)['items'])
+                ->map(fn (array $item): array => [
+                    'code' => $item['kpi_code'],
+                    'name_en' => $item['kpi_name_en'],
+                    'name_am' => $item['kpi_name_am'],
+                    'weight' => $item['weight'],
+                    'achievement' => $item['achievement_status'] === 'OK' ? $item['achievement'] : null,
+                    'health' => $aggregation->healthFor(
+                        $item['achievement_status'] === 'OK' ? $item['achievement'] : null,
+                        KpiAggregation::from($item['aggregation']['method']),
+                        $agreement->effective_from, $agreement->effective_to, $asOf,
+                    )->value,
+                ])
+                ->sortByDesc(fn (array $kpi) => (float) $kpi['weight'])->values();
+
+            $actions = [];
+            if ($agreement->status === AgreementStatus::PendingEmployeeReview) {
+                $actions[] = ['key' => 'acknowledge'];
+            }
+            $reviews = app(PerformanceReviewService::class);
+            foreach ([ReviewType::MidYear, ReviewType::YearEnd] as $type) {
+                if (! $reviews->canSubmitSelfAssessment($agreement, $type, $user)) {
+                    continue;
+                }
+                $status = $agreement->reviews()->where('review_type', $type->value)->value('status');
+                if ($status === ReviewStatus::Returned) {
+                    $actions[] = ['key' => 'review_returned', 'review' => $type->value];
+                } elseif ($reviews->selfAssessmentDue($agreement, $type)) {
+                    $actions[] = ['key' => 'self_assessment', 'review' => $type->value];
+                }
+            }
+
+            // Scores reach the employee only once released (as on My Performance).
+            $result = $agreement->results()->where('is_current', true)->first();
+            $released = $result !== null && $result->status === ResultStatus::Released ? $result : null;
+            if ($released !== null) {
+                $appealUntil = $released->released_at?->copy()->addDays($settings->appealWindowDays())->endOfDay();
+                $appealed = PerformanceAppeal::query()->where('result_id', $released->getKey())
+                    ->whereIn('status', [AppealStatus::Submitted, AppealStatus::UnderReview])->exists();
+                if ($user->can('performance_appeals.create') && ! $appealed && $appealUntil !== null && now()->lte($appealUntil)) {
+                    $actions[] = ['key' => 'result_released'];
+                }
+            }
+
+            return [
+                'agreement' => [
+                    'id' => $agreement->getKey(),
+                    'status' => $agreement->status->value,
+                    'cycle' => ['name_en' => $agreement->cycle?->name_en, 'name_am' => $agreement->cycle?->name_am],
+                    'effective_from' => $agreement->effective_from?->toDateString(),
+                    'effective_to' => $agreement->effective_to?->toDateString(),
+                ],
+                'kpis' => $kpis->take(5)->all(),
+                'counts' => [
+                    'total' => $kpis->count(),
+                    'on_track' => $kpis->where('health', KpiHealth::OnTrack->value)->count(),
+                    'attention' => $kpis->whereIn('health', [KpiHealth::AtRisk->value, KpiHealth::OffTrack->value])->count(),
+                    'not_reported' => $kpis->where('health', KpiHealth::NotReported->value)->count(),
+                ],
+                'result' => $released === null ? null : [
+                    'final_score' => $released->final_score,
+                    'rating_en' => $released->rating_label_en,
+                    'rating_am' => $released->rating_label_am,
+                ],
+                'actions' => $actions,
+            ];
+        } catch (Throwable $exception) {
+            Log::warning('Employee dashboard performance panel unavailable', [
+                'employee_id' => $employee->id,
+                'exception' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
     }
 
     public function myEntitlements(
@@ -289,6 +457,7 @@ class EmployeePortalController extends Controller
                 }
 
                 $isCafeteria = $e->serviceType?->code === 'cafeteria';
+                $isTransport = $e->serviceType?->code === 'transport';
 
                 // Set a non-null empty shell matching the full structure so the
                 // component never crashes even when the real build throws.
@@ -322,7 +491,9 @@ class EmployeePortalController extends Controller
                         'window_end' => $today->copy()->addMonth()->endOfMonth()->toDateString(),
                         'transactions' => [],
                     ]
-                    : ['type' => 'service', 'transactions' => []];
+                    : ($isTransport
+                        ? ['type' => 'transport', 'passes' => [], 'rides_this_month' => 0, 'transactions' => []]
+                        : ['type' => 'service', 'transactions' => []]);
 
                 try {
                     $base['activity'] = $isCafeteria
@@ -331,7 +502,9 @@ class EmployeePortalController extends Controller
                             $ledgerService, $ruleResolver,
                             $availableSubsidyService, $workingDayService,
                         )
-                        : $this->buildServiceActivity($employee->id, $e->service_type_id);
+                        : ($isTransport
+                            ? $this->buildTransportActivity($employee->id, $today)
+                            : $this->buildServiceActivity($employee->id, $e->service_type_id));
                 } catch (Throwable $th) {
                     Log::warning('Employee entitlement activity failed', [
                         'entitlement_id' => $e->id,
@@ -508,12 +681,75 @@ class EmployeePortalController extends Controller
         ];
     }
 
+    /**
+     * Transport lives in its own module (passes and boarding scans), not in
+     * the generic service_transactions table, so it is read from there.
+     * Nothing security-relevant leaves: no QR hashes, nonces or metadata.
+     *
+     * @return array<string, mixed>
+     */
+    private function buildTransportActivity(string $employeeId, Carbon $today): array
+    {
+        $passes = TransportPass::query()
+            ->where('employee_id', $employeeId)
+            ->with(['route:id,route_code,name_en,name_am,origin_en,origin_am,destination_en,destination_am', 'provider:id,name_en,name_am'])
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderByDesc('valid_until')
+            ->limit(5)
+            ->get()
+            ->map(fn (TransportPass $pass) => [
+                'id' => $pass->id,
+                'status' => (string) $pass->status,
+                'route' => $pass->route?->name_en,
+                'route_am' => $pass->route?->name_am,
+                'route_code' => $pass->route?->route_code,
+                'origin' => $pass->route?->origin_en,
+                'origin_am' => $pass->route?->origin_am,
+                'destination' => $pass->route?->destination_en,
+                'destination_am' => $pass->route?->destination_am,
+                'provider' => $pass->provider?->name_en,
+                'provider_am' => $pass->provider?->name_am,
+                'valid_from' => $pass->valid_from?->toDateString(),
+                'valid_until' => $pass->valid_until?->toDateString(),
+            ])
+            ->all();
+
+        $monthStart = $today->copy()->startOfMonth()->toDateString();
+
+        return [
+            'type' => 'transport',
+            'passes' => $passes,
+            'rides_this_month' => TransportTransaction::query()
+                ->where('employee_id', $employeeId)
+                ->where('status', 'accepted')
+                ->where('transaction_date', '>=', $monthStart)
+                ->count(),
+            'transactions' => TransportTransaction::query()
+                ->where('employee_id', $employeeId)
+                ->with(['route:id,route_code,name_en,name_am', 'provider:id,name_en,name_am'])
+                ->orderByDesc('scanned_at')
+                ->limit(15)
+                ->get()
+                ->map(fn (TransportTransaction $tx) => [
+                    'date' => $tx->transaction_date?->toDateString() ?? $tx->scanned_at?->toDateString(),
+                    'time' => $tx->scanned_at?->format('H:i'),
+                    'route' => $tx->route?->name_en,
+                    'route_am' => $tx->route?->name_am,
+                    'provider' => $tx->provider?->name_en,
+                    'provider_am' => $tx->provider?->name_am,
+                    'status' => (string) $tx->status,
+                    'rejection_reason' => $tx->status === 'accepted' ? null : $tx->rejection_reason,
+                ])
+                ->all(),
+        ];
+    }
+
     private function buildServiceActivity(string $employeeId, ?string $serviceTypeId): array
     {
         $txns = ServiceTransaction::query()
             ->where('employee_id', $employeeId)
             ->when($serviceTypeId, fn ($q) => $q->where('service_type_id', $serviceTypeId))
-            ->with('serviceType:id,name_en', 'serviceProvider:id,name')
+            ->with('serviceType:id,name_en,name_am', 'serviceProvider:id,name')
             ->orderByDesc('occurred_at')
             ->limit(15)
             ->get()
@@ -521,6 +757,7 @@ class EmployeePortalController extends Controller
                 'date' => $this->formatNullableDate($t->occurred_at),
                 'time' => $this->formatNullableTime($t->occurred_at),
                 'service' => $t->serviceType?->name_en,
+                'service_am' => $t->serviceType?->name_am,
                 'provider' => $t->serviceProvider?->name,
                 'amount' => $t->amount !== null ? (float) $t->amount : null,
                 'status' => $t->status?->value ?? $t->status,

@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Http\Requests\DailyActivity\UpdateDailyActivitySettingsRequest;
+use App\Http\Requests\Performance\UpdatePerformanceSettingsRequest;
 use App\Http\Requests\PublicSite\UpdatePublicSiteSettingsRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;
 use App\Http\Requests\Settings\UpdateEmailSettingsRequest;
@@ -83,6 +85,8 @@ function settingsGroupRequests(): array
         SystemSettingsRegistry::GROUP_APPEARANCE => UpdateAppearanceSettingsRequest::class,
         SystemSettingsRegistry::GROUP_ID_CARDS => UpdateIdCardSettingsRequest::class,
         SystemSettingsRegistry::GROUP_PUBLIC_SITE => UpdatePublicSiteSettingsRequest::class,
+        SystemSettingsRegistry::GROUP_DAILY_ACTIVITY => UpdateDailyActivitySettingsRequest::class,
+        SystemSettingsRegistry::GROUP_PERFORMANCE => UpdatePerformanceSettingsRequest::class,
     ];
 }
 

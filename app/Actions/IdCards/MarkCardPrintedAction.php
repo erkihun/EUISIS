@@ -31,11 +31,11 @@ readonly class MarkCardPrintedAction
                 if ($item->status === 'pending') {
                     $card = IdCard::query()->find($item->id_card_id);
 
-                    if ($card && $card->status === CardStatus::PendingPrint) {
-                        $card->update([
-                            'status' => CardStatus::Printed,
-                            'printed_at' => $now,
-                        ]);
+                    if ($card && in_array($card->status, [CardStatus::PendingPrint, CardStatus::Printed], true)) {
+                        $snapshot = app(\App\Services\IdCards\IdCardFieldImpactService::class)->latest($card);
+                        if (! $snapshot || $card->status === CardStatus::PendingPrint) {
+                            throw \Illuminate\Validation\ValidationException::withMessages(['printer_notes' => __('employee-portal.confirm_each_card')]);
+                        }
 
                         $item->update(['status' => 'printed']);
                         $printedCount++;

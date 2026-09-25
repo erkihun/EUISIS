@@ -60,12 +60,20 @@ class TransportProviderService
             ]);
 
             if (($data['create_provider_user'] ?? false) && ! empty($data['user_name']) && (! empty($data['user_email']) || ! empty($data['username']))) {
+                // Never a constant fallback: the controller always supplies a
+                // policy-checked or generated one-time password.
+                if (blank($data['user_password'] ?? null)) {
+                    throw new \InvalidArgumentException('A provider portal account needs an initial password.');
+                }
+
                 ProviderUser::query()->create([
                     'provider_id' => $provider->id,
                     'name' => $data['user_name'],
                     'email' => $data['user_email'] ?? null,
                     'username' => $data['username'] ?? null,
-                    'password' => Hash::make((string) ($data['user_password'] ?? 'password')),
+                    'password' => Hash::make((string) $data['user_password']),
+                    // Someone other than the holder knows this password.
+                    'must_change_password' => true,
                     'provider_role' => 'owner',
                     'status' => 'active',
                     'portal_enabled' => true,

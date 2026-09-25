@@ -20,9 +20,10 @@ const auth = {
     emailAddress: 'Email address',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
-    keepSignedIn: 'Keep me signed in',
     signingIn: 'Signing in…',
     signIn: 'Sign in',
+    noAccount: "Don't have an account?",
+    createEmployeeAccount: 'Create employee account',
     securePortal: 'Secure Government Portal',
     systemHeadline1: 'Unified Employee',
     systemHeadlineHighlight: 'Identity',
@@ -73,6 +74,38 @@ const auth = {
     confirmNewPassword: 'Confirm New Password',
     changePasswordAction: 'Change Password',
     changingPassword: 'Changing…',
+    // Session lifecycle (docs/session-management.md)
+    session: {
+        idle_timeout: 'Your session expired due to inactivity. Please sign in again.',
+        password_changed: 'Your password was changed, so this session was signed out. Please sign in again.',
+        page_expired: 'The page had expired, so nothing was submitted. Please try again.',
+        warningTitle: 'Still there?',
+        warningBody: 'Your session will expire soon due to inactivity.',
+        warningCountdown: 'Signing out in {time}.',
+        staySignedIn: 'Stay Signed In',
+        signOut: 'Sign Out',
+    },
+    // Password policy checklist (docs/password-security-policy.md). Advisory;
+    // the server decides. No composition rules by design.
+    passwordPolicy: {
+        guidance: 'Use a long, unique password or passphrase. Spaces and any characters are allowed; do not use your name, employee number, email or a password you used before.',
+        length: '{min}–{max} characters',
+        personal: 'Does not contain your name, username, email, employee number or phone',
+        common: 'Not a common, predictable or breached password',
+        history: 'Not your current password or one of your last {count}',
+        confirmation: 'Matches the confirmation',
+        checkedOnSave: 'checked when you save',
+        state_pass: 'met',
+        state_fail: 'not met yet',
+        state_server: 'checked by the server',
+        temporaryTitle: 'One-time password (shown only now)',
+        temporaryBody: 'Give it to the account holder through a secure channel. It cannot be shown again, and they must replace it when they first sign in.',
+        copy: 'Copy',
+        copied: 'Copied',
+        dismiss: 'Dismiss',
+        generateTemporary: 'Generate a one-time password instead',
+        leaveBlankForTemporary: 'Leave blank to generate a secure one-time password',
+    },
 } as const;
 
 export default auth;

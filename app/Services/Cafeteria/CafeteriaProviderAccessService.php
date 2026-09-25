@@ -60,10 +60,7 @@ class CafeteriaProviderAccessService
 
     public function canAccessAllProviders(User $user): bool
     {
-        return $user->hasRole('Super Admin')
-            || $user->can('cafeteria-providers.viewAll')
-            || $user->can('cafeteria_providers.viewAll')
-            || $user->can('cafeteria-reports.viewAllProviders')
-            || $user->can('cafeteria_reports.viewAllProviders');
+        // Unassigned oversight of every provider; others see their assigned providers only.
+        return $user->can('cafeteria_providers.viewAll');
     }
 }

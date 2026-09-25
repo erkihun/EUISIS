@@ -14,7 +14,7 @@ readonly class EmployeeCafeteriaExclusionPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('cafeteria_employee_exclusions.viewAny');
+        return $user->can('cafeteria_employee_exclusions.view');
     }
 
     public function view(User $user, EmployeeCafeteriaExclusion $exclusion): bool
@@ -39,12 +39,12 @@ readonly class EmployeeCafeteriaExclusionPolicy
 
     public function archive(User $user, EmployeeCafeteriaExclusion $exclusion): bool
     {
-        return $user->can('cafeteria_employee_exclusions.delete')
-            || $user->can('cafeteria_employee_exclusions.archive');
+        return $user->can('cafeteria_employee_exclusions.archive');
     }
 
     public function restore(User $user, EmployeeCafeteriaExclusion $exclusion): bool
     {
-        return $user->can('cafeteria_employee_exclusions.restore');
+        // No restore route exists for exclusions; archiving is final here.
+        return false;
     }
 }

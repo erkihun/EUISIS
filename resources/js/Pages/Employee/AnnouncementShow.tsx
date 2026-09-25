@@ -1,7 +1,6 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PageHeader from '@/Components/PageHeader';
+import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import type { PageProps } from '@/types';
@@ -53,26 +52,21 @@ export default function AnnouncementShow({ announcement, already_applied, has_em
     const canApply = announcement.is_open && has_employee && !already_applied;
 
     return (
-        <AuthenticatedLayout
-            header={
-                <PageHeader
-                    title={position}
-                    description={name(announcement.organization_name_en, announcement.organization_name_am)}
-                    backHref={route('employee.announcements')}
-                    actions={
-                        canApply ? (
-                            <Link
-                                href={route('employee.announcements.apply', { announcement: announcement.id })}
-                                className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
-                            >
-                                {t('transfers.applyForTransfer')}
-                            </Link>
-                        ) : undefined
-                    }
-                />
+        <PortalPage
+            title={position}
+            description={name(announcement.organization_name_en, announcement.organization_name_am)}
+            backHref={route('employee.announcements')}
+            actions={
+                canApply ? (
+                    <Link
+                        href={route('employee.announcements.apply', { announcement: announcement.id })}
+                        className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+                    >
+                        {t('transfers.applyForTransfer')}
+                    </Link>
+                ) : undefined
             }
         >
-            <Head title={position} />
 
             <div className="space-y-4">
                 {already_applied && (
@@ -154,6 +148,6 @@ export default function AnnouncementShow({ announcement, already_applied, has_em
                     </div>
                 )}
             </div>
-        </AuthenticatedLayout>
+        </PortalPage>
     );
 }

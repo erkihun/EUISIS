@@ -21,13 +21,13 @@ use App\Http\Requests\Settings\UpdateSecuritySettingsRequest;
 use App\Http\Requests\Settings\UpdateSmsSettingsRequest;
 use App\Http\Requests\Settings\UpdateTelegramSettingsRequest;
 use App\Models\SystemSetting;
-use App\Services\Security\DefaultPasswordPolicyService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
@@ -49,9 +49,9 @@ class SystemSettingController extends Controller
 
         $groups = [];
         foreach (SystemSettingsRegistry::groups() as $group) {
-            // Edited under Public Site Management; showing it here too would
-            // give one value two editors.
-            if ($group === SystemSettingsRegistry::GROUP_PUBLIC_SITE) {
+            // Edited under Public Site Management / Daily Activities > Settings;
+            // showing them here too would give one value two editors.
+            if (in_array($group, [SystemSettingsRegistry::GROUP_PUBLIC_SITE, SystemSettingsRegistry::GROUP_DAILY_ACTIVITY, SystemSettingsRegistry::GROUP_PERFORMANCE], true)) {
                 continue;
             }
 
@@ -61,15 +61,18 @@ class SystemSettingController extends Controller
                 // The legacy admin-only flag is enforced via backward-compat
                 // mapping but is no longer editable — the role checklist below
                 // replaces it.
+                // The legacy shared default password is likewise read-only.
+                $hidden = ['require_mfa_for_admins', 'default_password_enabled', 'default_password_hash'];
                 $fields = array_values(array_filter(
                     $fields,
-                    fn (array $field): bool => $field['key'] !== 'require_mfa_for_admins',
+                    fn (array $field): bool => ! in_array($field['key'], $hidden, true),
                 ));
             }
 
             $groups[$group] = [
                 'fields' => $fields,
-                'can_manage' => $user?->can('system-settings.manage'.ucfirst($group)) ?? false,
+                // e.g. id_cards → system-settings.manageIdCards (the permission its update request checks).
+                'can_manage' => $user?->can('system-settings.manage'.Str::studly($group)) ?? false,
             ];
         }
 
@@ -190,17 +193,14 @@ class SystemSettingController extends Controller
 
     public function updateSecurity(UpdateSecuritySettingsRequest $request): RedirectResponse
     {
+        /*
+         * The shared default password can no longer be configured: new and
+         * reset accounts get unique generated one-time passwords. A hash that
+         * was saved earlier stays only so accounts still on it are forced to
+         * change at sign-in and cannot choose it again
+         * (docs/password-security-policy.md, "Migration").
+         */
         $validated = $request->validated();
-        $submittedDefaultPassword = $validated['default_password_hash'] ?? null;
-        $wasDefaultPasswordConfigured = app(DefaultPasswordPolicyService::class)->isConfigured();
-
-        unset($validated['default_password_hash_confirmation']);
-
-        if (is_string($submittedDefaultPassword) && $submittedDefaultPassword !== '') {
-            $validated['default_password_hash'] = Hash::make($submittedDefaultPassword);
-        } else {
-            unset($validated['default_password_hash']);
-        }
 
         // Store role ids as strings so json round-trips are type-stable.
         $validated['mfa_required_role_ids'] = array_map(
@@ -219,17 +219,6 @@ class SystemSettingController extends Controller
             $validated,
             $request->user(),
         );
-
-        if (is_string($submittedDefaultPassword) && $submittedDefaultPassword !== '') {
-            $this->writeAuditLogAction->execute(
-                AuditEventType::DefaultPasswordConfigured,
-                $request->user(),
-                reason: $wasDefaultPasswordConfigured
-                    ? 'default_password_updated'
-                    : 'default_password_configured',
-                request: $request,
-            );
-        }
 
         return back()->with('flash', ['message' => __('settings.messages.security_updated'), 'type' => 'success']);
     }

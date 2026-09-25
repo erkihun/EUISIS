@@ -9,6 +9,12 @@ enum AuditEventType: string
     case NfcEvent = 'nfc_event';
     case EmployeeCreated = 'employee_created';
     case EmployeeUpdated = 'employee_updated';
+    case EmployeeProfileUpdated = 'employee_profile_updated';
+    case EmployeeCorrectionRequested = 'employee_correction_requested';
+    case EmployeeCorrectionReviewed = 'employee_correction_reviewed';
+    case CardReprintRequired = 'card_reprint_required';
+    case CardSnapshotCreated = 'card_snapshot_created';
+    case CardReprinted = 'card_reprinted';
     case AssignmentChanged = 'assignment_changed';
     case TransferRequested = 'transfer_requested';
     case TransferSubmitted = 'transfer_submitted';
@@ -71,6 +77,52 @@ enum AuditEventType: string
     case UserPasswordChangeRequired = 'user_password_change_required';
     case UserCreatedWithDefaultPassword = 'user_created_with_default_password';
     case UserLoggedInWithDefaultPassword = 'user_logged_in_with_default_password';
+    /*
+     * Session lifecycle. Reasons only — never a session id, cookie or token.
+     */
+    case UserLoggedIn = 'user_logged_in';
+    case UserLoggedOut = 'user_logged_out';
+    case SessionIdleTimeout = 'session_idle_timeout';
+    case SessionRevoked = 'session_revoked';
+    /*
+     * Password policy events. Never carry a password, hash or reset token.
+     */
+    case PasswordResetRequested = 'password_reset_requested';
+    case PasswordResetCompleted = 'password_reset_completed';
+    case TemporaryPasswordAssigned = 'temporary_password_assigned';
+    case PasswordCompromisedRejected = 'password_compromised_rejected';
+    case PasswordReuseRejected = 'password_reuse_rejected';
+    /*
+     * Employee Performance Management (EPMS). Scores never change silently.
+     */
+    case PerformanceCycleCreated = 'performance_cycle_created';
+    case PerformanceCycleStatusChanged = 'performance_cycle_status_changed';
+    case StrategicGoalCreated = 'strategic_goal_created';
+    case StrategicGoalChanged = 'strategic_goal_changed';
+    case StrategicGoalAllocationChanged = 'strategic_goal_allocation_changed';
+    case StrategicGoalStatusChanged = 'strategic_goal_status_changed';
+    case PerformancePlanCreated = 'performance_plan_created';
+    case PerformancePlanStatusChanged = 'performance_plan_status_changed';
+    case PerformancePlanVersioned = 'performance_plan_versioned';
+    case PerformanceObjectiveChanged = 'performance_objective_changed';
+    case PerformanceCascaded = 'performance_cascaded';
+    case KpiChanged = 'kpi_changed';
+    case KpiTargetChanged = 'kpi_target_changed';
+    case KpiPeriodTargetsChanged = 'kpi_period_targets_changed';
+    case KpiTargetAmended = 'kpi_target_amended';
+    case PerformanceAgreementStatusChanged = 'performance_agreement_status_changed';
+    case KpiActualRecorded = 'kpi_actual_recorded';
+    case KpiActualVerified = 'kpi_actual_verified';
+    case PerformanceEvidenceAdded = 'performance_evidence_added';
+    case PerformanceReviewChanged = 'performance_review_changed';
+    case PerformanceScoreCalculated = 'performance_score_calculated';
+    case PerformanceScoreAdjusted = 'performance_score_adjusted';
+    case PerformanceCalibrated = 'performance_calibrated';
+    case PerformanceResultFinalized = 'performance_result_finalized';
+    case PerformanceResultReleased = 'performance_result_released';
+    case PerformanceAppealFiled = 'performance_appeal_filed';
+    case PerformanceAppealDecided = 'performance_appeal_decided';
+    case PerformanceDevelopmentPlanChanged = 'performance_development_plan_changed';
     case AdminPasswordReset = 'admin_password_reset';
     case DefaultPasswordConfigured = 'default_password_configured';
     case UserDeactivated = 'user_deactivated';
@@ -379,4 +431,17 @@ enum AuditEventType: string
     case OrganizationalChangeRequestImplemented = 'organizational_change_request.implemented';
     case OrganizationalChangeRequestCompleted = 'organizational_change_request.completed';
     case OrganizationalChangeRequestReturnedForAmendment = 'organizational_change_request.returned_for_amendment';
+
+    // Daily activity register
+    case DailyActivityCreated = 'daily_activity.created';
+    case DailyActivityUpdated = 'daily_activity.updated';
+    case DailyActivitySubmitted = 'daily_activity.submitted';
+    case DailyActivityResubmitted = 'daily_activity.resubmitted';
+    case DailyActivityReturned = 'daily_activity.returned';
+    case DailyActivityApproved = 'daily_activity.approved';
+    case DailyActivityReopened = 'daily_activity.reopened';
+    case DailyActivityEvidenceUploaded = 'daily_activity.evidence_uploaded';
+    case DailyActivityEvidenceDeleted = 'daily_activity.evidence_deleted';
+    case DailyActivityReviewerAssigned = 'daily_activity.reviewer_assigned';
+    case DailyActivityReviewerRemoved = 'daily_activity.reviewer_removed';
 }

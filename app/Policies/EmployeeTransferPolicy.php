@@ -7,8 +7,8 @@ namespace App\Policies;
 use App\Enums\TransferStatus;
 use App\Models\EmployeeTransfer;
 use App\Models\User;
-use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use App\Services\OrganizationScope\OrganizationScopeService;
 
 readonly class EmployeeTransferPolicy
 {

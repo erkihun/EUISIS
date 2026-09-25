@@ -6,7 +6,7 @@ namespace App\Http\Requests;
 
 use App\Models\Role;
 use App\Models\User;
-use App\Services\Security\DefaultPasswordPolicyService;
+use App\Security\Passwords\PasswordPolicy;
 use App\Services\Users\AssignableUserRoleService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -33,12 +33,18 @@ class UserUpdateRequest extends FormRequest
     public function rules(): array
     {
         $userId = $this->route('user')?->id;
-        $passwordPolicy = app(DefaultPasswordPolicyService::class);
+        $target = $this->route('user');
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
-            'password' => ['nullable', 'string', 'confirmed', $passwordPolicy->rule()],
+            // An administrator may set a password for someone else (full policy,
+            // against THAT account's personal data and password history), or
+            // have the system generate a one-time one.
+            'password' => $this->filled('password')
+                ? app(PasswordPolicy::class)->rules($target instanceof User ? $target : null)
+                : ['nullable'],
+            'generate_temporary_password' => ['sometimes', 'boolean'],
             'status' => ['in:active,inactive'],
             'roles' => ['array'],
             'roles.*' => ['string', 'exists:roles,name'],
@@ -62,15 +68,15 @@ class UserUpdateRequest extends FormRequest
                 $roleNames = $this->input('roles');
                 $password = $this->input('password');
 
+                // Your own password changes only where the current one is
+                // confirmed (Profile), never through user management.
                 if (
                     $actor !== null
                     && $target instanceof User
                     && $actor->is($target)
-                    && is_string($password)
-                    && $password !== ''
-                    && app(DefaultPasswordPolicyService::class)->matches($password)
+                    && ((is_string($password) && $password !== '') || $this->boolean('generate_temporary_password'))
                 ) {
-                    $validator->errors()->add('password', __('auth.password_cannot_be_default'));
+                    $validator->errors()->add('password', __('password-policy.set_own_password_in_profile'));
                 }
 
                 if ($actor === null || ! $target instanceof User || ! is_array($roleNames)) {

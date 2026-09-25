@@ -15,8 +15,7 @@ class TransferAnnouncementPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('transfers.announcements.view')
-            || $user->can('transfers.announcements.viewAny');
+        return $user->can('transfers.announcements.view');
     }
 
     public function view(User $user, TransferAnnouncement $announcement): bool
@@ -57,19 +56,19 @@ class TransferAnnouncementPolicy
      */
     public function cancel(User $user, TransferAnnouncement $announcement): bool
     {
-        return $user->can('transfers.announcements.cancel')
-            || $user->can('transfers.announcements.close');
+        // Cancelling a draft is part of closing announcements.
+        return $user->can('transfers.announcements.close');
     }
 
     /** Deletion uses the 'update' permission (drafts only). */
     public function delete(User $user, TransferAnnouncement $announcement): bool
     {
-        return $user->can('transfers.announcements.update')
-            || $user->can('transfers.announcements.delete');
+        return $user->can('transfers.announcements.update');
     }
 
     public function restore(User $user, TransferAnnouncement $announcement): bool
     {
-        return $user->can('transfers.announcements.restore');
+        // No restore route exists; a removed announcement is re-created instead.
+        return false;
     }
 }

@@ -1,7 +1,6 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PageHeader from '@/Components/PageHeader';
+import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Head, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { ChangeEvent, FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
@@ -54,16 +53,11 @@ export default function AnnouncementApply({ announcement }: Props) {
     }
 
     return (
-        <AuthenticatedLayout
-            header={
-                <PageHeader
-                    title={t('transfers.applyForTransfer')}
-                    description={position}
-                    backHref={route('employee.announcements.show', { announcement: announcement.id })}
-                />
-            }
+        <PortalPage
+            title={t('transfers.applyForTransfer')}
+            description={position}
+            backHref={route('employee.announcements.show', { announcement: announcement.id })}
         >
-            <Head title={t('transfers.applyForTransfer')} />
 
             <form onSubmit={submit} className="space-y-4">
                 <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
@@ -140,6 +134,6 @@ export default function AnnouncementApply({ announcement }: Props) {
                     </button>
                 </div>
             </form>
-        </AuthenticatedLayout>
+        </PortalPage>
     );
 }

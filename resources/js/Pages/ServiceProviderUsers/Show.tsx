@@ -1,7 +1,8 @@
+import { useLocale } from '@/hooks/useLocale';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
@@ -191,17 +192,16 @@ export default function ShowProviderUser({ providerUser }: { providerUser: Provi
 
 function ResetPasswordForm({ userId }: { userId: string }) {
     const { confirm } = useConfirm();
+    const { t } = useLocale();
+    const errors = (usePage().props as { errors?: Record<string, string> }).errors ?? {};
     const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         const data = new FormData(e.currentTarget);
-        const password = data.get('password') as string;
-
-        if (!password || password.length < 8) {
-            alert('Password must be at least 8 characters.');
-            return;
-        }
+        // Blank: the server generates a one-time password and shows it once.
+        // Typed: the server's central policy decides (no client-side rules).
+        const password = (data.get('password') as string) ?? '';
 
         const { confirmed } = await confirm({
             title: 'Reset Password',
@@ -213,6 +213,7 @@ function ResetPasswordForm({ userId }: { userId: string }) {
 
         if (confirmed) {
             router.post(route('provider-users.reset-password', userId), { password }, {
+                preserveScroll: true,
                 onSuccess: () => (e.target as HTMLFormElement).reset(),
             });
         }
@@ -227,11 +228,11 @@ function ResetPasswordForm({ userId }: { userId: string }) {
                 <input
                     name="password"
                     type="password"
+                    autoComplete="new-password"
                     className={inputCls}
-                    placeholder="Min. 8 characters"
-                    required
-                    minLength={8}
+                    placeholder={t('auth.passwordPolicy.leaveBlankForTemporary')}
                 />
+                {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password}</p>}
             </div>
             <div className="mt-4">
                 <button type="submit" className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700">

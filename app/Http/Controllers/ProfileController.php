@@ -18,10 +18,21 @@ use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    public function edit(Request $request): Response
+    public function edit(Request $request): Response|RedirectResponse
     {
         /** @var User $user */
         $user = $request->user();
+
+        /*
+         * One profile per person. An account linked to an employee record
+         * uses My Profile, which holds both the employee details (with HR and
+         * verification rules) and the account's sign-in settings. Editing the
+         * same name, phone or National ID here too would give each fact two
+         * sources of truth.
+         */
+        if ($user->employee !== null) {
+            return redirect()->route('employee.profile');
+        }
 
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,

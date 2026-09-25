@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Database\Seeders;
 
 use App\Models\User;
+use Database\Seeders\Concerns\DemoPasswords;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
+    use DemoPasswords;
+
     public function run(): void
     {
         $this->call([
@@ -21,7 +23,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Super Admin',
                 'email' => 'super.admin@demo.local',
-                'password' => Hash::make('password'),
+                ...$this->demoPasswordAttributes('super.admin@demo.local'),
                 'status' => 'active',
                 'email_verified_at' => now(),
                 'is_demo' => true,
@@ -30,7 +32,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'City Admin',
                 'email' => 'city.admin@demo.local',
-                'password' => Hash::make('password'),
+                ...$this->demoPasswordAttributes('city.admin@demo.local'),
                 'status' => 'active',
                 'email_verified_at' => now(),
                 'is_demo' => true,
@@ -39,7 +41,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'HR Officer',
                 'email' => 'hr.officer@demo.local',
-                'password' => Hash::make('password'),
+                ...$this->demoPasswordAttributes('hr.officer@demo.local'),
                 'status' => 'active',
                 'email_verified_at' => now(),
                 'is_demo' => true,

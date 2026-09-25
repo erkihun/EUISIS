@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'session_expired' => 'Your session has expired. Please log in again.',
+    'session_expired_idle' => 'Your session expired due to inactivity. Please sign in again.',
     'access_denied' => 'Access denied.',
     'scope_denied' => 'Your organization scope does not include this record.',
     'too_many_attempts' => 'Too many login attempts. Please wait :seconds seconds.',

@@ -34,6 +34,27 @@ class WriteAuditLogAction
         'token_hash',
         'secret',
         'api_key',
+        // One-time codes and bearer credentials (defense in depth: callers
+        // should never pass these, but the log must not keep them if they do).
+        'otp',
+        'otp_code',
+        'otp_hash',
+        'code_hash',
+        'recovery_code',
+        'recovery_codes',
+        'access_token',
+        'refresh_token',
+        'plain_text_token',
+        'client_secret',
+        'authorization',
+        'two_factor_recovery_codes',
+        // Password lifecycle (docs/password-security-policy.md).
+        'new_password',
+        'temporary_password',
+        'user_password',
+        'password_hash',
+        'reset_token',
+        'token',
     ];
 
     public function execute(
@@ -75,9 +96,12 @@ class WriteAuditLogAction
         $redacted = [];
 
         foreach ($values as $key => $value) {
-            $redacted[$key] = in_array(strtolower((string) $key), self::REDACTED_KEYS, true)
-                ? '[REDACTED]'
-                : $value;
+            $redacted[$key] = match (true) {
+                in_array(strtolower((string) $key), self::REDACTED_KEYS, true) => '[REDACTED]',
+                // Nested payloads (item lists, settings groups) are redacted too.
+                is_array($value) => $this->redact($value),
+                default => $value,
+            };
         }
 
         return $redacted;

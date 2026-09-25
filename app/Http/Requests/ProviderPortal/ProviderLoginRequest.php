@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Requests\ProviderPortal;
 
 use App\Models\ProviderUser;
-use Illuminate\Auth\Events\Lockout;
+use App\Security\LoginThrottle;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -28,22 +27,21 @@ class ProviderLoginRequest extends FormRequest
         return [
             'identifier' => ['required', 'string'],
             'password' => ['required', 'string'],
-            'remember' => ['boolean'],
         ];
     }
 
     public function authenticate(): void
     {
-        $this->ensureIsNotRateLimited();
+        $throttle = app(LoginThrottle::class);
+        $throttle->ensureNotLocked($this, 'provider', $this->string('identifier')->toString(), 'identifier');
 
         $identifier = $this->string('identifier')->toString();
         $password = $this->string('password')->toString();
-        $remember = $this->boolean('remember');
 
         $providerUser = $this->resolveProviderUser($identifier);
 
-        if ($providerUser === null || ! password_verify($password, $providerUser->password)) {
-            RateLimiter::hit($this->throttleKey());
+        if ($providerUser === null || ! Hash::check($password, $providerUser->password)) {
+            $throttle->failed($this, 'provider', $identifier);
 
             throw ValidationException::withMessages([
                 'identifier' => __('provider-portal.login_failed'),
@@ -51,7 +49,7 @@ class ProviderLoginRequest extends FormRequest
         }
 
         if (! $providerUser->canLogin()) {
-            RateLimiter::hit($this->throttleKey());
+            $throttle->failed($this, 'provider', $identifier);
 
             $errorKey = ! $providerUser->isPortalEnabled()
                 ? 'provider-portal.portal_disabled'
@@ -62,14 +60,20 @@ class ProviderLoginRequest extends FormRequest
             ]);
         }
 
-        Auth::guard('provider')->login($providerUser, $remember);
+        // A legacy bcrypt hash becomes Argon2id on a successful sign-in.
+        if (Hash::needsRehash($providerUser->password)) {
+            $providerUser->forceFill(['password' => Hash::make($password)])->saveQuietly();
+        }
+
+        // No remember-me cookie: see LoginRequest::authenticate().
+        Auth::guard('provider')->login($providerUser);
 
         $providerUser->forceFill([
             'last_login_at' => now(),
             'last_login_ip' => $this->ip(),
         ])->saveQuietly();
 
-        RateLimiter::clear($this->throttleKey());
+        $throttle->succeeded($this, 'provider', $identifier);
     }
 
     private function resolveProviderUser(string $identifier): ?ProviderUser
@@ -79,26 +83,5 @@ class ProviderLoginRequest extends FormRequest
         return ProviderUser::with('provider.services.serviceType')
             ->where($field, $identifier)
             ->first();
-    }
-
-    public function ensureIsNotRateLimited(): void
-    {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
-        }
-
-        event(new Lockout($this));
-
-        throw ValidationException::withMessages([
-            'identifier' => __('auth.throttle', [
-                'seconds' => RateLimiter::availableIn($this->throttleKey()),
-                'minutes' => ceil(RateLimiter::availableIn($this->throttleKey()) / 60),
-            ]),
-        ]);
-    }
-
-    public function throttleKey(): string
-    {
-        return Str::transliterate(Str::lower($this->string('identifier')->toString()).'|'.$this->ip());
     }
 }

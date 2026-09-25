@@ -52,7 +52,9 @@ class HttpSmsGateway implements SmsGateway
         } catch (Throwable $exception) {
             Log::error('SMS gateway request failed.', [
                 'to' => $this->mask($phoneNumber),
-                'error' => $exception->getMessage(),
+                // Connection errors echo the request URL; a provider key in its
+                // query string must never reach the log (SBH-004).
+                'error' => preg_replace('#(https?://[^\s?]+)\?\S*#i', '$1?[redacted]', $exception->getMessage()),
             ]);
 
             return false;

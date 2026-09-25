@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
 use App\Models\AuditLog;
 use App\Models\CafeteriaDayRule;
@@ -17,7 +18,9 @@ use App\Models\CafeteriaSubsidyRule;
 use App\Models\CafeteriaTransaction;
 use App\Models\CardRequest;
 use App\Models\CodeRule;
+use App\Models\DailyActivityLog;
 use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\EmployeeCafeteriaExclusion;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
@@ -28,9 +31,9 @@ use App\Models\IdCard;
 use App\Models\IsicActivity;
 use App\Models\Occupation;
 use App\Models\Organization;
+use App\Models\OrganizationalChangeRequest;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationType;
-use App\Models\OrganizationalChangeRequest;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Permission;
@@ -39,8 +42,8 @@ use App\Models\PositionEstablishment;
 use App\Models\PositionService;
 use App\Models\PublicHoliday;
 use App\Models\Role;
-use App\Models\ServiceProvider as ServiceProviderModel;
-use App\Models\ServiceTransaction; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\ServiceProvider as ServiceProviderModel; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
 use App\Models\TransferAnnouncement;
@@ -50,6 +53,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
+use App\Observers\EmployeeAssignmentCardImpactObserver;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CafeteriaDayRulePolicy;
 use App\Policies\CafeteriaProviderPolicy;
@@ -62,6 +66,7 @@ use App\Policies\CafeteriaSubsidyRulePolicy;
 use App\Policies\CafeteriaTransactionPolicy;
 use App\Policies\CardRequestPolicy;
 use App\Policies\CodeRulePolicy;
+use App\Policies\DailyActivityLogPolicy;
 use App\Policies\EmployeeCafeteriaExclusionPolicy;
 use App\Policies\EmployeePolicy;
 use App\Policies\EmployeeServiceFeedbackPolicy;
@@ -72,10 +77,10 @@ use App\Policies\GradeLevelPolicy;
 use App\Policies\IdCardPolicy;
 use App\Policies\IsicActivityPolicy;
 use App\Policies\OccupationPolicy;
+use App\Policies\OrganizationalChangeRequestPolicy;
 use App\Policies\OrganizationEdgePolicy;
 use App\Policies\OrganizationPolicy;
 use App\Policies\OrganizationTypePolicy;
-use App\Policies\OrganizationalChangeRequestPolicy;
 use App\Policies\OrganizationUnitPolicy;
 use App\Policies\OrganizationUnitTypePolicy;
 use App\Policies\PermissionPolicy;
@@ -95,10 +100,15 @@ use App\Policies\UserOrganizationScopePolicy;
 use App\Policies\UserPolicy;
 use App\Policies\VacancyAnnouncementPolicy;
 use App\Policies\VacancyApplicationPolicy;
+use App\Security\Hashing\MigratingArgon2IdHasher;
+use App\Security\Passwords\CompromisedPasswordChecker;
+use App\Security\Passwords\HibpCompromisedPasswordChecker;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
-use App\Services\Sms\HttpSmsGateway;
+use App\Services\DailyActivity\NullEmployeeLeaveProvider;
+use App\Services\Security\SessionActivityService;
+use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -121,7 +131,17 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);
 
-        $this->app->bind(SmsGateway::class, HttpSmsGateway::class);
+        // Password policy (docs/password-security-policy.md).
+        $this->app->bind(CompromisedPasswordChecker::class, HibpCompromisedPasswordChecker::class);
+        $this->app->afterResolving('hash', function ($manager): void {
+            $manager->extend('argon2id_migrating', fn ($app) => new MigratingArgon2IdHasher((array) $app['config']->get('hashing.argon', [])));
+        });
+
+        // Every SMS passes the spend cap (SBH-003); HttpSmsGateway does the delivery.
+        $this->app->bind(SmsGateway::class, BudgetedSmsGateway::class);
+
+        // No leave module exists yet; bind the real provider here when one does.
+        $this->app->bind(EmployeeLeaveProvider::class, NullEmployeeLeaveProvider::class);
     }
 
     /**
@@ -129,6 +149,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        EmployeeAssignment::observe(EmployeeAssignmentCardImpactObserver::class);
+        Organization::observe(EmployeeAssignmentCardImpactObserver::class);
+        Position::observe(EmployeeAssignmentCardImpactObserver::class);
         $this->configureViteAssetMode();
         Vite::prefetch(concurrency: 3);
         $this->applyRuntimeSystemSettings();
@@ -153,6 +176,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(AuditLog::class, AuditLogPolicy::class);
         Gate::policy(OrganizationType::class, OrganizationTypePolicy::class);
         Gate::policy(OrganizationalChangeRequest::class, OrganizationalChangeRequestPolicy::class);
+        Gate::policy(DailyActivityLog::class, DailyActivityLogPolicy::class);
         Gate::policy(OrganizationUnit::class, OrganizationUnitPolicy::class);
         Gate::policy(OrganizationUnitType::class, OrganizationUnitTypePolicy::class);
         Gate::policy(Occupation::class, OccupationPolicy::class);
@@ -179,7 +203,24 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(CafeteriaSpecialDay::class, CafeteriaSpecialDayPolicy::class);
         Gate::policy(EmployeeCafeteriaExclusion::class, EmployeeCafeteriaExclusionPolicy::class);
 
-        Gate::before(static fn ($user, string $_ability) => $user instanceof User && $user->hasRole('Super Admin') ? true : null);
+        /*
+         * Super Admin passes every check, except the self-protection rules:
+         * nobody (Super Admin included) deletes, deactivates, archives or
+         * re-roles/re-scopes their own account. Those abilities fall through
+         * to UserPolicy when the target is the acting user.
+         */
+        Gate::before(static function ($user, string $ability, array $arguments = []): ?bool {
+            if (! $user instanceof User || ! $user->hasRole('Super Admin')) {
+                return null;
+            }
+            $target = $arguments[0] ?? null;
+            if ($target instanceof User && $target->is($user)
+                && in_array($ability, ['delete', 'forceDelete', 'archive', 'deactivate', 'assignRoles', 'assignOrganizationScope'], true)) {
+                return null;
+            }
+
+            return true;
+        });
 
         /*
          * Public ID Checker. Keyed on card + IP so one abusive client cannot
@@ -247,6 +288,10 @@ class AppServiceProvider extends ServiceProvider
 
     private function applyRuntimeSystemSettings(): void
     {
+        // Until settings load (or when they cannot), storage still outlives
+        // the fallback idle timeout.
+        config(['session.lifetime' => SessionActivityService::storageLifetimeMinutes((int) config('security.session.idle_timeout_minutes', 120))]);
+
         try {
             if (! Schema::hasTable('system_settings')) {
                 return;
@@ -259,7 +304,10 @@ class AppServiceProvider extends ServiceProvider
             $defaultLocale = (string) $settingsService->get('localization', 'default_locale', config('app.locale', 'en'));
             $fallbackLocale = (string) $settingsService->get('localization', 'fallback_locale', config('app.fallback_locale', 'en'));
             $timezone = (string) $settingsService->get('localization', 'timezone', config('app.timezone', 'UTC'));
-            $sessionLifetime = max(5, (int) $settingsService->get('security', 'session_timeout_minutes', (int) config('session.lifetime', 120)));
+            // Idle timeout is the setting; storage lifetime is derived from it
+            // (idle + grace) so the two can never disagree. See
+            // docs/session-management.md.
+            $idleTimeout = max(5, min(1440, (int) $settingsService->get('security', 'session_timeout_minutes', (int) config('security.session.idle_timeout_minutes', 120))));
             $forceHttps = filter_var($settingsService->get('security', 'force_https', false), FILTER_VALIDATE_BOOLEAN);
 
             config([
@@ -267,7 +315,8 @@ class AppServiceProvider extends ServiceProvider
                 'app.locale' => $defaultLocale,
                 'app.fallback_locale' => $fallbackLocale,
                 'app.timezone' => $timezone,
-                'session.lifetime' => $sessionLifetime,
+                'security.session.idle_timeout_minutes' => $idleTimeout,
+                'session.lifetime' => SessionActivityService::storageLifetimeMinutes($idleTimeout),
                 'mail.default' => (string) $settingsService->get('email', 'mail_mailer', config('mail.default', 'smtp')),
                 'mail.mailers.smtp.host' => (string) $settingsService->get('email', 'mail_host', config('mail.mailers.smtp.host')),
                 'mail.mailers.smtp.port' => (int) $settingsService->get('email', 'mail_port', config('mail.mailers.smtp.port', 587)),

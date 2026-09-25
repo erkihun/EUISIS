@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateTransportProviderRequest;
 use App\Http\Resources\TransportProviderResource;
 use App\Models\Organization;
 use App\Models\Provider;
+use App\Security\Passwords\PasswordPolicy;
 use App\Services\Transport\TransportProviderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -53,9 +54,24 @@ class TransportProviderController extends Controller
 
     public function store(StoreTransportProviderRequest $request, TransportProviderService $service): RedirectResponse
     {
-        $provider = $service->create($request->validated(), $request->user()?->id);
+        $data = $request->validated();
 
-        return to_route('transport.providers.show', $provider)->with('flash', ['type' => 'success', 'message' => __('transport.provider_created')]);
+        // A portal account without a typed password gets a unique one-time
+        // password (never a constant), shown once to this administrator.
+        $temporary = ($data['create_provider_user'] ?? false) && blank($data['user_password'] ?? null)
+            ? app(PasswordPolicy::class)->generateTemporaryPassword()
+            : null;
+        if ($temporary !== null) {
+            $data['user_password'] = $temporary;
+        }
+
+        $provider = $service->create($data, $request->user()?->id);
+
+        return to_route('transport.providers.show', $provider)->with('flash', array_filter([
+            'type' => 'success',
+            'message' => __('transport.provider_created').($temporary ? ' '.__('password-policy.temporary_password_created') : ''),
+            'temporary_password' => $temporary,
+        ]));
     }
 
     public function show(Request $request, Provider $provider): Response

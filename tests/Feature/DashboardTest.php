@@ -180,7 +180,8 @@ it('keeps an admin out of employee-only mode when linked to an employee record',
         'status' => 'active',
     ]);
 
-    expect($admin->employee()->exists())->toBeTrue();
+    // The accessor applies the email fallback for accounts not yet linked by employee_id.
+    expect($admin->employee)->not->toBeNull();
 
     $this->actingAs($admin)
         ->get('/dashboard')
@@ -200,7 +201,7 @@ it('keeps employee self-service mode for a user with no administrative access', 
         'status' => 'active',
     ]);
 
-    expect($employeeUser->employee()->exists())->toBeTrue()
+    expect($employeeUser->employee)->not->toBeNull()
         ->and($employeeUser->can('dashboard.view'))->toBeFalse();
 
     $middleware = app(HandleInertiaRequests::class);

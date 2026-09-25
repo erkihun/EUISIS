@@ -2,6 +2,7 @@ import CafeteriaProviderPortalLayout from '@/Layouts/CafeteriaProviderPortalLayo
 import { router, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 
 type Provider = {
     id: string; code: string; name_en: string; name_am?: string | null;
@@ -144,7 +145,6 @@ function ChangePasswordForm() {
                     value={form.data.password}
                     onChange={e => form.setData('password', e.target.value)}
                     required
-                    minLength={8}
                     autoComplete="new-password"
                 />
                 {form.errors.password && <p className={errorCls}>{form.errors.password}</p>}
@@ -157,11 +157,11 @@ function ChangePasswordForm() {
                     value={form.data.password_confirmation}
                     onChange={e => form.setData('password_confirmation', e.target.value)}
                     required
-                    minLength={8}
                     autoComplete="new-password"
                 />
                 {form.errors.password_confirmation && <p className={errorCls}>{form.errors.password_confirmation}</p>}
             </div>
+            <PasswordPolicyChecklist password={form.data.password} confirmation={form.data.password_confirmation} />
             <div className="flex justify-end pt-1">
                 <button
                     type="submit"

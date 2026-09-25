@@ -73,22 +73,24 @@ final readonly class IdCardRenderDataFactory
             dateOfBirthFormatted: $this->formatCardDate($employee?->date_of_birth),
             nationality: $employee?->nationality,
             phone: $employee?->phone,
-            emergencyContactName: $employee?->emergency_contact_name,
-            emergencyContactPhone: $employee?->emergency_contact_phone,
+            emergencyContactName: $template?->employee_fields === null || in_array('emergency_contact_name', $template->employee_fields, true) ? $employee?->emergency_contact_name : null,
+            emergencyContactPhone: $template?->employee_fields === null || in_array('emergency_contact_phone', $template->employee_fields, true) ? $employee?->emergency_contact_phone : null,
             emergencyContactFields: array_values(array_filter([
                 [
                     (string) $this->line('am', 'emergency_contact_name', 'Emergency Contact Name'),
                     $employee?->emergency_contact_name,
                     (string) $this->line('en', 'emergency_contact_name', 'Emergency Contact Name'),
                     $employee?->emergency_contact_name,
+                    'emergency_contact_name',
                 ],
                 [
                     (string) $this->line('am', 'emergency_contact_phone', 'Emergency Contact Phone'),
                     $employee?->emergency_contact_phone,
                     (string) $this->line('en', 'emergency_contact_phone', 'Emergency Contact Phone'),
                     $employee?->emergency_contact_phone,
+                    'emergency_contact_phone',
                 ],
-            ], fn (array $row): bool => filled($row[1]))),
+            ], fn (array $row): bool => filled($row[1]) && ($template?->employee_fields === null || in_array($row[4], $template->employee_fields, true)))),
             cardNumberLabel: $this->bilingualCaption('card_no'),
             signatureLabel: $this->bilingualCaption('signature'),
             signatureLabelAm: (string) $this->line('am', 'signature', ''),
@@ -133,7 +135,7 @@ final readonly class IdCardRenderDataFactory
             heightMm: $orientation === 'portrait' ? $long : $short,
             textStyles: $this->templates->styleObjects($template, $layout),
             boxes: $this->templates->layoutBoxes($template),
-            bilingualFields: $this->bilingualFields($card, $employee),
+            bilingualFields: $this->bilingualFields($card, $employee, $template?->employee_fields),
             header: $header,
             backPhoto: $this->templates->backPhoto($template),
             organizationLogoDataUri: $organizationLogo,
@@ -150,7 +152,7 @@ final readonly class IdCardRenderDataFactory
      *
      * @return array<int, array{0: string, 1: ?string, 2: string, 3: ?string, 4: string}>
      */
-    private function bilingualFields(IdCard $card, ?Employee $employee): array
+    private function bilingualFields(IdCard $card, ?Employee $employee, ?array $configured = null): array
     {
         $am = fn (string $key, ?string $fallback = null): ?string => $this->line('am', $key, $fallback);
         $en = fn (string $key, ?string $fallback = null): ?string => $this->line('en', $key, $fallback);
@@ -163,7 +165,7 @@ final readonly class IdCardRenderDataFactory
         $nationalityKey = 'nationality_values.'.$this->nationalityKey($nationality);
         $phone = $employee?->phone;
 
-        return [
+        $rows = [
             [$am('name'), $nameAm, $en('name'), $nameEn, 'name'],
             [$am('sex'), $gender ? $am('gender.'.$gender, $gender) : null, $en('sex'), $gender ? $en('gender.'.$gender, $gender) : null, 'sex'],
             [$am('date_of_birth'), $this->formatCardDate($employee?->date_of_birth, 'am'), $en('date_of_birth'), $this->formatCardDate($employee?->date_of_birth, 'en'), 'dob'],
@@ -174,6 +176,15 @@ final readonly class IdCardRenderDataFactory
             // identifies the person, which is what the card face shows.
             [$am('id_number'), $employee?->employee_number, $en('id_number'), $employee?->employee_number, 'idNumber'],
         ];
+        if ($configured !== null) {
+            foreach (['email', 'address'] as $field) {
+                if (in_array($field, $configured, true)) {
+                    $rows[] = [__('employee-portal.fields.'.$field, [], 'am'), $employee?->{$field}, __('employee-portal.fields.'.$field, [], 'en'), $employee?->{$field}, $field];
+                }
+            }
+            $rows = array_values(array_filter($rows, fn ($row) => in_array($row[4], $configured, true)));
+        }
+        return $rows;
     }
 
     /**

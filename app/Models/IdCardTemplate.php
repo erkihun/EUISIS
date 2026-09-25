@@ -19,6 +19,7 @@ class IdCardTemplate extends Model
         'layout_config',
         'header_config',
         'back_photo_config',
+        'employee_fields',
     ];
 
     // Storage paths never reach the client; assets are served through a route.
@@ -36,6 +37,7 @@ class IdCardTemplate extends Model
             'layout_config' => 'array',
             'header_config' => 'array',
             'back_photo_config' => 'array',
+            'employee_fields' => 'array',
         ];
     }
 }

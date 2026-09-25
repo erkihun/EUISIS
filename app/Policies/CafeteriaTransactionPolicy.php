@@ -31,7 +31,7 @@ readonly class CafeteriaTransactionPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('cafeteria_transactions.viewAny');
+        return $user->can('cafeteria_transactions.view');
     }
 
     public function view(User $user, CafeteriaTransaction $transaction): bool

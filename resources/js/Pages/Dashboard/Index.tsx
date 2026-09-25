@@ -180,6 +180,8 @@ export default function Dashboard({
         setRefreshing(true);
         router.reload({
             only: [...REFRESHED_PROPS],
+            // Background refresh: must not keep an idle session alive.
+            headers: { 'X-Activity': 'passive' },
             onFinish: () => {
                 refreshingRef.current = false;
                 setRefreshing(false);

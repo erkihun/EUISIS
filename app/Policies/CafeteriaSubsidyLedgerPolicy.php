@@ -14,7 +14,7 @@ readonly class CafeteriaSubsidyLedgerPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('cafeteria_ledger.viewAny');
+        return $user->can('cafeteria_ledger.view');
     }
 
     public function view(User $user, CafeteriaSubsidyLedger $ledger): bool

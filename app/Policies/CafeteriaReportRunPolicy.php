@@ -14,7 +14,7 @@ readonly class CafeteriaReportRunPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('cafeteria_reports.viewAny');
+        return $user->can('cafeteria_reports.view');
     }
 
     public function view(User $user, CafeteriaReportRun $report): bool

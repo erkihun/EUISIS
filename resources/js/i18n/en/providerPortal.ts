@@ -4,7 +4,6 @@ const providerPortal = {
     staffLogin: 'Staff Login',
     email: 'Email',
     password: 'Password',
-    remember: 'Remember me',
     signIn: 'Sign in',
     logout: 'Logout',
     dashboard: 'Provider Dashboard',

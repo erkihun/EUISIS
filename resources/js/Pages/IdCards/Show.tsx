@@ -14,7 +14,7 @@ import CardPrintExportModal from '@/Components/IdCards/CardPrintExportModal';
 import CardPortraitPrintExportModal from '@/Components/IdCards/CardPortraitPrintExportModal';
 import { formatDateDisplay } from '@/lib/calendar/dateFormat';
 import { useCalendarSystem } from '@/lib/calendar/calendarSystem';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
@@ -70,6 +70,7 @@ type Can = {
     view?: boolean;
     update?: boolean;
     print?: boolean;
+    reprint?: boolean;
     issue?: boolean;
     activate?: boolean;
     reportLost?: boolean;
@@ -80,6 +81,7 @@ type Can = {
 };
 
 type PageProps = {
+    portal_labels: Record<string, string>;
     nfc: NfcStatus;
     card: CardData;
     can: Can;
@@ -262,7 +264,7 @@ const inputCls = 'w-full rounded-card border border-gray-300 bg-white px-3 py-2 
 
 // ── Main component ───────────────────────────────────────────────────────────
 
-export default function IdCardShow({ card, can, nfc }: PageProps) {
+export default function IdCardShow({ card, can, nfc, portal_labels }: PageProps) {
     const { t, locale } = useLocale();
     const calendarSystem = useCalendarSystem();
     const { errors } = usePage().props as { errors: Record<string, string> };
@@ -330,6 +332,7 @@ export default function IdCardShow({ card, can, nfc }: PageProps) {
             }
         >
             <Head title={card.card_number} />
+            {(can.print || can.reprint) && <div className="mb-5 rounded-xl border bg-white p-4 dark:bg-slate-900"><p className="mb-3 text-sm">{portal_labels.print_instructions}</p><button className="rounded-lg bg-blue-700 px-4 py-2 text-sm text-white" onClick={() => router.post(route('id-cards.prepare-print', card.id))}>{portal_labels.prepare_print}</button></div>}
             <NfcStatusPanel cardId={card.id} nfc={nfc} />
 
             {/* Action error banner */}

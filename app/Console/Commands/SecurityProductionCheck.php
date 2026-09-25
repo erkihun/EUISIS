@@ -40,7 +40,10 @@ class SecurityProductionCheck extends Command
             ['Session cookies are HttpOnly', config('session.http_only') === true, 'Without it JavaScript can read the session cookie.'],
             ['Session SameSite is lax or strict', in_array(config('session.same_site'), ['lax', 'strict'], true), 'SameSite=none exposes the session to cross-site requests.'],
             ['Session payload is encrypted', config('session.encrypt') === true, 'Session contents are readable at rest without it.'],
-            ['Public self-registration is off', config('security.registration_enabled') === false, 'Anyone knowing an employee number could open an account.'],
+            ['Session storage is shared (database or redis)', in_array(config('session.driver'), ['database', 'redis'], true), 'File/array sessions live on one server: behind a load balancer users are signed out whenever a request reaches another node.'],
+            ['Session storage outlives the idle timeout', (int) config('session.lifetime') > (int) config('security.session.idle_timeout_minutes'), 'Laravel would drop idle sessions before the application can end them cleanly.'],
+            ['Public self-registration is off', config('security.registration_enabled') === false, 'Registration is OTP-protected, but each attempt sends paid codes; enable it only deliberately.'],
+            ['SMS spend caps are set', (int) config('security.external_usage.sms.daily_cap') > 0 && (int) config('security.external_usage.sms.monthly_cap') > 0, 'Without a cap, distributed OTP requests can run up an unbounded SMS bill.'],
             ['CORS does not allow every origin', ! in_array('*', (array) config('cors.allowed_origins'), true), 'A wildcard origin with credentials exposes the API to any site.'],
             ['Log level is not debug', config('logging.channels.'.config('logging.default').'.level', 'debug') !== 'debug', 'Debug logging records far more request detail than production needs.'],
         ];

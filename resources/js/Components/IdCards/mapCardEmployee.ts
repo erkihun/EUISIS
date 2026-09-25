@@ -10,6 +10,8 @@ export type CardEmployee = {
     nationality?: string | null;
     employment_type?: string | null;
     phone?: string | null;
+    email?: string | null;
+    address?: string | null;
     photo_url?: string | null;
 };
 
@@ -36,6 +38,8 @@ export function mapCardEmployee(card: { card_number: string; employee?: CardEmpl
         nationality: employee?.nationality,
         employmentStatus: employee?.employment_type,
         phoneNumber: employee?.phone,
+        email: employee?.email,
+        address: employee?.address,
         photoUrl: employee?.photo_url,
     };
 }

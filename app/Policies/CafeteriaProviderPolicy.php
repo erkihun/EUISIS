@@ -6,8 +6,8 @@ namespace App\Policies;
 
 use App\Models\CafeteriaProvider;
 use App\Models\User;
-use App\Services\Cafeteria\CafeteriaProviderAccessService;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use App\Services\Cafeteria\CafeteriaProviderAccessService;
 
 readonly class CafeteriaProviderPolicy
 {
@@ -36,16 +36,13 @@ readonly class CafeteriaProviderPolicy
 
     public function updateInstitution(User $user, CafeteriaProvider $_provider): bool
     {
-        return $user->hasRole('Super Admin')
-            || $user->can('cafeteria-providers.assignInstitution')
-            || $user->can('cafeteria-providers.updateInstitution')
-            || $user->can('cafeteria_providers.assignInstitution')
-            || $user->can('cafeteria_providers.updateInstitution');
+        // Which organizations' employees a provider serves: its own permission.
+        return $user->can('cafeteria_providers.assignInstitution');
     }
 
     public function archive(User $user, CafeteriaProvider $_provider): bool
     {
-        return $user->can('cafeteria_providers.delete') || $user->can('cafeteria_providers.archive');
+        return $user->can('cafeteria_providers.archive');
     }
 
     public function restore(User $user, CafeteriaProvider $_provider): bool

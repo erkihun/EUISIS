@@ -21,6 +21,11 @@
         <env name="APP_ENV" value="testing"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
+        <!-- Cheap Argon2id for the suite; production uses config/hashing.php defaults. -->
+        <env name="ARGON_MEMORY" value="1024"/>
+        <env name="ARGON_TIME" value="1"/>
+        <!-- No network in tests; password tests bind a fake breach checker. -->
+        <env name="PASSWORD_BREACH_CHECK" value="false"/>
         <env name="CACHE_STORE" value="array"/>
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>

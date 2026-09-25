@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceProvider;
 use App\Models\ServiceProviderUser;
 use App\Models\ServiceType;
+use App\Security\Passwords\PasswordLifecycle;
+use App\Security\Passwords\PasswordPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -142,10 +145,12 @@ class ServiceProviderUserController extends Controller
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:service_provider_users,email'],
             'username' => ['nullable', 'string', 'max:100', 'unique:service_provider_users,username', 'alpha_dash'],
             'phone_number' => ['nullable', 'string', 'max:30'],
-            'password' => ['required', Password::min(8)],
+            // Blank: a generated one-time password. Typed: the central policy.
+            'password' => $request->filled('password')
+                ? app(PasswordPolicy::class)->rules(null, $request->only(['name', 'email', 'username', 'phone_number']), confirmed: false)
+                : ['nullable'],
             'status' => ['required', 'string', 'in:active,inactive,suspended'],
             'portal_enabled' => ['boolean'],
-            'must_change_password' => ['boolean'],
         ]);
 
         if (empty($validated['email']) && empty($validated['username'])) {
@@ -154,16 +159,24 @@ class ServiceProviderUserController extends Controller
                 ->withInput();
         }
 
+        $temporary = blank($validated['password'] ?? null) ? app(PasswordPolicy::class)->generateTemporaryPassword() : null;
+
         ServiceProviderUser::query()->create([
             ...$validated,
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($temporary ?? $validated['password']),
+            // Someone other than the holder knows this password.
+            'must_change_password' => true,
             'created_by' => $request->user()?->id,
             'updated_by' => $request->user()?->id,
         ]);
 
         return redirect()
             ->route('provider-users.index')
-            ->with('flash', ['message' => __('providers.provider_user_saved'), 'type' => 'success']);
+            ->with('flash', array_filter([
+                'message' => __('providers.provider_user_saved').($temporary ? ' '.__('password-policy.temporary_password_created') : ''),
+                'type' => 'success',
+                'temporary_password' => $temporary,
+            ]));
     }
 
     public function edit(ServiceProviderUser $providerUser): Response
@@ -254,16 +267,25 @@ class ServiceProviderUserController extends Controller
         $this->authorize('create', ServiceProvider::class);
 
         $validated = $request->validate([
-            'password' => ['required', Password::min(8)],
+            'password' => $request->filled('password')
+                ? app(PasswordPolicy::class)->rules($providerUser, confirmed: false)
+                : ['nullable'],
         ]);
 
-        $providerUser->update([
-            'password' => Hash::make($validated['password']),
-            'must_change_password' => true,
-            'updated_by' => $request->user()?->id,
-        ]);
+        $lifecycle = app(PasswordLifecycle::class);
+        $temporary = null;
+        if (blank($validated['password'] ?? null)) {
+            $temporary = $lifecycle->assignTemporaryPassword($providerUser, $request->user(), 'administrator_reset_provider_password');
+        } else {
+            $lifecycle->change($providerUser, $validated['password'], AuditEventType::AdminPasswordReset, PasswordLifecycle::KIND_ADMIN_RESET, mustChange: true, actor: $request->user(), reason: 'administrator_reset_provider_password');
+        }
+        $providerUser->forceFill(['updated_by' => $request->user()?->id])->save();
 
-        return back()->with('flash', ['message' => __('cafeteria.providerUserPasswordReset'), 'type' => 'success']);
+        return back()->with('flash', array_filter([
+            'message' => __('cafeteria.providerUserPasswordReset').($temporary ? ' '.__('password-policy.temporary_password_created') : ''),
+            'type' => 'success',
+            'temporary_password' => $temporary,
+        ]));
     }
 
     public function destroy(ServiceProviderUser $providerUser): RedirectResponse

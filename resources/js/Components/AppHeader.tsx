@@ -5,6 +5,7 @@ import { MenuIcon, ChevronDown, LogOut, SettingsIcon, SearchIcon as Search } fro
 import ThemeToggle from '@/Components/ThemeToggle';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 import UserAvatar from '@/Components/UserAvatar';
+import NotificationBell from '@/Components/NotificationBell';
 import AppCommandPalette from '@/Components/ui/AppCommandPalette';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
@@ -65,6 +66,7 @@ export default function AppHeader({ onMenuClick }: Props) {
                 <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                     <LanguageSwitcher variant="toolbar" />
                     <ThemeToggle variant="toolbar" />
+                    <NotificationBell />
                     <div className="ms-1 border-s border-[color:var(--app-border)] ps-2 sm:ms-2 sm:ps-3">
                         <Menu>
                             <MenuButton

@@ -14,6 +14,8 @@ const settings = {
         saveErrors: 'አብነቱ አልተቀመጠም። እንደገና ከመሞከርዎ በፊት እነዚህን ስህተቶች ያስተካክሉ።',
     },
     templateManager: {
+        printedFields: 'የሚታተሙ የሠራተኛ መረጃዎች',
+        printedFieldsHelp: 'በአዲስ ህትመቶች ላይ ይተገበራል። ከማተምዎ በፊት ሁለቱንም ገጾች ያረጋግጡ። ቀድሞ በተሰጡ መታወቂያዎች ላይ ተጽዕኖ የለውም።',
     "layout_employee_name": "የሰራተኛ ስም",
     "layout_employee_position": "የሰራተኛ የስራ መደብ",
     "front_employee_name_text": "የሰራተኛ ስም ጽሑፍ",

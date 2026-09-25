@@ -42,7 +42,8 @@ class RolePolicy
 
     public function delete(User $user, Role $role): bool
     {
-        if ($role->isProtected()) {
+        // Protected and system-managed (default) roles cannot be deleted; custom roles can.
+        if ($role->isProtected() || $role->isSystem()) {
             return false;
         }
 

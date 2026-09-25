@@ -1,6 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import InputLabel from '@/Components/InputLabel';
+import { useLocale } from '@/hooks/useLocale';
+import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import InputError from '@/Components/InputError';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
@@ -19,6 +21,7 @@ export default function CreateProviderUser({
 }: {
     serviceTypes: ServiceType[];
 }) {
+    const { t } = useLocale();
     const form = useForm({
         service_type_id: serviceTypes[0]?.id ?? '',
         name: '',
@@ -28,7 +31,6 @@ export default function CreateProviderUser({
         password: '',
         status: 'active',
         portal_enabled: true,
-        must_change_password: false,
     });
 
     function submit(e: FormEvent) {
@@ -128,11 +130,19 @@ export default function CreateProviderUser({
                                 id="password"
                                 className={inputCls}
                                 type="password"
+                                autoComplete="new-password"
+                                placeholder={t('auth.passwordPolicy.leaveBlankForTemporary')}
                                 value={form.data.password}
                                 onChange={(e) => form.setData('password', e.target.value)}
-                                required
                             />
                             <InputError message={form.errors.password} className="mt-1" />
+                            {form.data.password !== '' && (
+                                <PasswordPolicyChecklist
+                                    className="mt-2"
+                                    password={form.data.password}
+                                    personal={[form.data.name, form.data.email, form.data.username, form.data.phone_number]}
+                                />
+                            )}
                         </div>
                     </div>
                 </div>
@@ -165,15 +175,6 @@ export default function CreateProviderUser({
                             Portal enabled
                         </label>
 
-                        <label className="flex items-center gap-2 pt-6 text-sm text-gray-700 dark:text-slate-300">
-                            <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)]"
-                                checked={form.data.must_change_password}
-                                onChange={(e) => form.setData('must_change_password', e.target.checked)}
-                            />
-                            Must change password
-                        </label>
                     </div>
                 </div>
 

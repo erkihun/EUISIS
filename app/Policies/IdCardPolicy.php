@@ -51,6 +51,14 @@ readonly class IdCardPolicy
             && $this->organizationScopeService->canAccessEmployee($user, $idCard->employee);
     }
 
+    public function reprint(User $user, IdCard $idCard): bool
+    {
+        return in_array($idCard->status, [CardStatus::Printed, CardStatus::Issued, CardStatus::Active], true)
+            && $idCard->is_current
+            && ($user->can('id-cards.print') || $user->can('cards.manage'))
+            && $this->organizationScopeService->canAccessEmployee($user, $idCard->employee);
+    }
+
     public function issue(User $user, IdCard $idCard): bool
     {
         return $idCard->status === CardStatus::Printed

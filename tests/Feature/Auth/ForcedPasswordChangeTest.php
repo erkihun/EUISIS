@@ -7,6 +7,7 @@ use App\Actions\Users\UpdateUserAction;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Vite;
+use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -227,18 +228,21 @@ it('forces a change when an admin resets someone else password', function (): vo
         ->and($target->password_changed_at)->toBeNull();
 });
 
-it('does not force a change when a user updates their own record', function (): void {
+it('refuses an own-password change through user management (current password is not verified there)', function (): void {
     $user = User::factory()->create([
         'must_change_password' => false,
         'password_changed_at' => now(),
         'status' => 'active',
     ]);
     $user->assignRole('Super Admin');
+    $before = $user->password;
 
-    app(UpdateUserAction::class)->execute(['password' => 'My-Own-Password-1'], $user, $user);
+    expect(fn () => app(UpdateUserAction::class)->execute(['password' => 'Granite orchards under snow 71'], $user, $user))
+        ->toThrow(ValidationException::class);
 
-    // Self-service change must not lock the holder out of their own account.
-    expect($user->fresh()->must_change_password)->toBeFalse();
+    // Nothing changed, and the holder is not locked out either.
+    expect($user->fresh()->password)->toBe($before)
+        ->and($user->fresh()->must_change_password)->toBeFalse();
 });
 
 it('blocks the profile password form while a forced change is pending', function (): void {

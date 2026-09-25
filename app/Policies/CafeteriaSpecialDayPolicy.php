@@ -14,7 +14,7 @@ readonly class CafeteriaSpecialDayPolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('cafeteria_special_days.viewAny');
+        return $user->can('cafeteria_special_days.view');
     }
 
     public function view(User $user, CafeteriaSpecialDay $specialDay): bool
@@ -34,8 +34,7 @@ readonly class CafeteriaSpecialDayPolicy
 
     public function archive(User $user, CafeteriaSpecialDay $specialDay): bool
     {
-        return $user->can('cafeteria_special_days.delete')
-            || $user->can('cafeteria_special_days.archive');
+        return $user->can('cafeteria_special_days.archive');
     }
 
     public function restore(User $user, CafeteriaSpecialDay $specialDay): bool

@@ -53,6 +53,7 @@ final readonly class SaveIdCardTemplateAction
                     $record->fill(Arr::only($data, [
                         'name', 'code', 'description', 'orientation', 'width_mm', 'height_mm', 'status', 'is_default',
                         'text_style_config', 'layout_config', 'header_config', 'back_photo_config',
+                        'employee_fields',
                     ]));
                     // Every piece of template artwork — backgrounds, header
                     // logos, seal and signature — is stored the same way, each

@@ -6,9 +6,16 @@ namespace App\Services\Security;
 
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules\Password;
 use RuntimeException;
 
+/**
+ * LEGACY shared default password — detection only.
+ *
+ * EUISIS no longer assigns one password to many accounts (new and reset
+ * accounts get unique generated one-time passwords; see PasswordPolicy). A
+ * hash configured before that change is kept so that an account still using
+ * it is forced to change at sign-in, and so nobody can choose it again.
+ */
 final readonly class DefaultPasswordPolicyService
 {
     public function __construct(private SystemSettingsService $settings) {}
@@ -48,22 +55,5 @@ final readonly class DefaultPasswordPolicyService
         } catch (RuntimeException) {
             return false;
         }
-    }
-
-    public function minimumLength(): int
-    {
-        return max(8, (int) $this->settings->get('security', 'password_min_length', 12));
-    }
-
-    public function rule(?int $minimumLength = null, ?bool $complexityEnabled = null): Password
-    {
-        $minimumLength ??= $this->minimumLength();
-        $complexityEnabled ??= (bool) $this->settings->get('security', 'password_complexity_enabled', true);
-
-        $rule = Password::min(max(8, $minimumLength));
-
-        return $complexityEnabled
-            ? $rule->letters()->mixedCase()->numbers()->symbols()
-            : $rule;
     }
 }

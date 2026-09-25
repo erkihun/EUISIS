@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
 
@@ -86,7 +87,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                                 <span className="text-orange-400">Password</span>
                             </h1>
                             <p className="text-sm leading-relaxed text-slate-400">
-                                Choose a strong password to secure your account. It must be at least 8 characters long.
+                                Choose a long, unique password or passphrase that you have not used before.
                             </p>
                         </div>
 
@@ -260,6 +261,8 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                                         </p>
                                     )}
                                 </div>
+
+                                <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[data.email]} />
 
                                 <button
                                     type="submit"

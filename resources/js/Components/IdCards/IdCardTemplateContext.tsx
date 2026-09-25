@@ -153,6 +153,7 @@ export type BackPhotoConfig = {
 };
 
 export type TemplatePresentation = {
+    employee_fields?: string[] | null;
     id?: string;
     orientation: 'portrait' | 'landscape';
     width_mm: number;

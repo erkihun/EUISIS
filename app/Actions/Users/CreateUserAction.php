@@ -8,7 +8,6 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Users\Concerns\GuardsSuperAdminAssignment;
 use App\Enums\AuditEventType;
 use App\Models\User;
-use App\Services\Security\DefaultPasswordPolicyService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -19,7 +18,6 @@ readonly class CreateUserAction
 
     public function __construct(
         private WriteAuditLogAction $writeAuditLogAction,
-        private DefaultPasswordPolicyService $defaultPasswordPolicy,
     ) {}
 
     public function execute(array $attributes, User $actor): User
@@ -43,26 +41,19 @@ readonly class CreateUserAction
                 $attributes['default_organization_id'] = $organizationId;
             }
 
+            /*
+             * The shared default password is no longer handed to new accounts:
+             * UserController supplies either the administrator's policy-checked
+             * choice or a unique generated one-time password.
+             */
             $submittedPassword = $attributes['password'] ?? null;
-            $usesDefaultPassword = ! is_string($submittedPassword)
-                || $submittedPassword === ''
-                || $this->defaultPasswordPolicy->matches($submittedPassword);
-
-            if ($usesDefaultPassword) {
-                $defaultHash = $this->defaultPasswordPolicy->canSupplyInitialPassword()
-                    ? $this->defaultPasswordPolicy->configuredHash()
-                    : null;
-
-                if ($defaultHash === null) {
-                    throw ValidationException::withMessages([
-                        'password' => __('users.default_password_unavailable'),
-                    ]);
-                }
-
-                $attributes['password'] = $defaultHash;
-            } else {
-                $attributes['password'] = Hash::make($submittedPassword);
+            if (! is_string($submittedPassword) || $submittedPassword === '') {
+                throw ValidationException::withMessages([
+                    'password' => __('users.default_password_unavailable'),
+                ]);
             }
+
+            $attributes['password'] = Hash::make($submittedPassword);
             $attributes['status'] = $attributes['status'] ?? 'active';
 
             /*
@@ -119,15 +110,6 @@ readonly class CreateUserAction
                     'roles' => $roles,
                 ],
             );
-
-            if ($usesDefaultPassword) {
-                $this->writeAuditLogAction->execute(
-                    AuditEventType::UserCreatedWithDefaultPassword,
-                    $actor,
-                    $user,
-                    reason: 'default_initial_password_applied',
-                );
-            }
 
             return $user;
         });

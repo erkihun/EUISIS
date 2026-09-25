@@ -6,6 +6,8 @@ import { resolveIdCardTemplate } from '@/Components/IdCards/idCardTemplates';
 import IdCardBilingualField, { buildBilingualFields } from '@/Components/IdCards/IdCardBilingualField';
 import enDict from '@/i18n/en';
 import amDict from '@/i18n/am';
+import enEmployees from '@/i18n/en/employees';
+import amEmployees from '@/i18n/am/employees';
 
 // The card face is bilingual by design — captions come from both dictionaries.
 const dateCaption = (key: 'issueDate' | 'expLabel'): string =>
@@ -37,6 +39,8 @@ type IdCardFrontProps = {
     nationality?: string | null;
     nationalityAm?: string | null;
     phoneNumber?: string | null;
+    email?: string | null;
+    address?: string | null;
     photoUrl?: string | null;
     issueDate?: string | null;
     expiryDate?: string | null;
@@ -74,6 +78,8 @@ export default function IdCardFront({
     nationality,
     nationalityAm,
     phoneNumber,
+    email,
+    address,
     photoUrl,
     issueDate,
     expiryDate,
@@ -174,8 +180,12 @@ export default function IdCardFront({
     });
     // Phone sits with the other identity fields; only the ID number is
     // emphasised in its own band near the footer.
-    const identityFields = allFields.filter((field) => field.key !== 'idNumber');
-    const emphasisFields = allFields.filter((field) => field.key === 'idNumber');
+    const configured = cardTemplate?.employee_fields;
+    if (configured?.includes('email')) allFields.push({ key: 'email', labelAm: amEmployees.email, labelEn: enEmployees.email, valueAm: email, valueEn: email });
+    if (configured?.includes('address')) allFields.push({ key: 'address', labelAm: amEmployees.address, labelEn: enEmployees.address, valueAm: address, valueEn: address });
+    const renderedFields = allFields.filter(field => !configured || configured.includes(field.key));
+    const identityFields = renderedFields.filter((field) => field.key !== 'idNumber');
+    const emphasisFields = renderedFields.filter((field) => field.key === 'idNumber');
 
     const watermarkText = status ? WATERMARK_STATUSES[status] : null;
     const background = template === 'modern'

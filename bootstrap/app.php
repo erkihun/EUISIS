@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Middleware\AuthenticateSession;
 use App\Http\Middleware\EnforceIdempotencyKey;
+use App\Http\Middleware\EnforceSessionIdleTimeout;
 use App\Http\Middleware\EnsureAdminAccess;
 use App\Http\Middleware\EnsureApiScope;
 use App\Http\Middleware\EnsureCafeteriaPortalUser;
@@ -20,6 +22,7 @@ use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetCafeteriaPortalContext;
 use App\Http\Middleware\SetProviderPortalContext;
 use App\Services\ErrorLoggingService;
+use App\Services\Security\SessionActivityService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
@@ -48,9 +51,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prepend(RequestCorrelationId::class);
         $middleware->prepend(SecurityHeaders::class);
 
+        /*
+         * Session policy (docs/session-management.md):
+         *  - EnforceSessionIdleTimeout ends idle sessions before any route
+         *    middleware runs, for every guard;
+         *  - AuthenticateSession signs out other sessions after a password
+         *    change. It is last so the priority sort places route `auth`
+         *    after HandleInertiaRequests, as before.
+         */
         $middleware->web(append: [
+            EnforceSessionIdleTimeout::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            AuthenticateSession::class,
         ]);
 
         $middleware->alias([
@@ -146,15 +159,58 @@ return Application::configure(basePath: dirname(__DIR__))
             return $inertiaError($request, 405, 'method_not_allowed');
         });
 
-        // ── CSRF / Session Expired ───────────────────────────────────────────
+        // ── CSRF token mismatch (419) ────────────────────────────────────────
+        // Laravel turns TokenMismatchException into HttpException(419) BEFORE
+        // render callbacks run, so a TokenMismatchException callback never
+        // fires — which is why every 419 used to become "session expired".
+        // The decision lives here and is called from the HttpException
+        // handler below.
+        //
+        // A 419 is NOT automatically "your session expired". Three cases:
+        //  1. signed-in session, stale token (e.g. another tab rotated it):
+        //     the session is fine — send the user back to a fresh page; the
+        //     submission is never replayed;
+        //  2. the session is gone on a route that needs sign-in: it ended
+        //     (inactivity, or the reason recorded when it ended) — go to the
+        //     right login page with that reason;
+        //  3. a public/guest page (login form left open): the page expired —
+        //     back to it with a fresh token.
 
-        $exceptions->render(function (TokenMismatchException $e, Request $request) use ($isApi, $apiError, $inertiaError) {
-            if ($isApi($request)) {
-                return $apiError(__('errors.session_expired'), 419);
+        $csrfMismatch = static function (Request $request) use ($isApi) {
+            $activity = app(SessionActivityService::class);
+            $guards = $request->hasSession() ? $activity->authenticatedGuards() : [];
+
+            if ($guards !== [] && $activity->restoredFromRememberCookie($guards)) {
+                $activity->end($request, SessionActivityService::REASON_IDLE, $guards);
+
+                return $activity->expiredResponse($request, SessionActivityService::REASON_IDLE, $guards);
             }
 
-            return $inertiaError($request, 419, 'session_expired');
-        });
+            $route = $request->route();
+            $needsSignIn = $route !== null && collect($route->gatherMiddleware())
+                ->contains(static fn ($m): bool => is_string($m) && ($m === 'auth' || str_starts_with($m, 'auth:')));
+
+            if ($guards === [] && $needsSignIn && $request->hasSession()) {
+                $reason = (string) $request->session()->get(SessionActivityService::END_REASON_KEY, SessionActivityService::REASON_IDLE);
+                if ($reason === SessionActivityService::REASON_IDLE) {
+                    $request->session()->flash(SessionActivityService::NOTICE_KEY, SessionActivityService::REASON_IDLE);
+                }
+
+                return $activity->expiredResponse($request, $reason);
+            }
+
+            if ($isApi($request) && ! $request->header('X-Inertia')) {
+                return response()->json([
+                    'message' => __('errors.page_expired_retry'),
+                    'status' => 419,
+                    'reason' => SessionActivityService::REASON_PAGE_EXPIRED,
+                ], 419);
+            }
+
+            return redirect()->back()
+                ->with(SessionActivityService::NOTICE_KEY, SessionActivityService::REASON_PAGE_EXPIRED)
+                ->with('warning', __('errors.page_expired_retry'));
+        };
 
         // ── Rate Limiting ────────────────────────────────────────────────────
 
@@ -170,15 +226,18 @@ return Application::configure(basePath: dirname(__DIR__))
         // Handles cases where abort() is called with a plain status code rather
         // than a typed exception subclass (e.g. abort(403), abort(429)).
 
-        $exceptions->render(function (HttpException $e, Request $request) use ($isApi, $apiError, $inertiaError) {
+        $exceptions->render(function (HttpException $e, Request $request) use ($isApi, $apiError, $inertiaError, $csrfMismatch) {
             $status = $e->getStatusCode();
+
+            if ($status === 419) {
+                return $csrfMismatch($request);
+            }
 
             $messageKey = match (true) {
                 $status === 401 => 'unauthorized',
                 $status === 403 => 'forbidden',
                 $status === 404 => 'not_found',
                 $status === 405 => 'method_not_allowed',
-                $status === 419 => 'session_expired',
                 $status === 429 => 'too_many_requests',
                 $status === 503 => 'service_unavailable',
                 $status >= 500 => 'generic',

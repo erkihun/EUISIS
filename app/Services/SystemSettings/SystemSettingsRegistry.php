@@ -37,6 +37,23 @@ class SystemSettingsRegistry
     public const GROUP_PUBLIC_SITE = 'public_site';
 
     /**
+     * Daily Activity Register operating rules (deadline, backdating,
+     * reminders, evidence). Managed from Daily Activities > Settings under
+     * the daily_activity_settings.* permissions, so it is excluded from the
+     * System Settings page the same way public_site is. Holds no access
+     * permissions: who may review or see what is decided by roles and
+     * reviewer assignments, never here.
+     */
+    public const GROUP_DAILY_ACTIVITY = 'daily_activity';
+
+    /**
+     * Employee Performance Management (EPMS) policy. Everything that is a
+     * public-sector policy choice (weights, caps, thresholds, which steps are
+     * required) lives here, not in code (docs/epms-calculation-rules.md).
+     */
+    public const GROUP_PERFORMANCE = 'performance';
+
+    /**
      * @return array<string, array<string, array<string, mixed>>>
      */
     public static function definitions(): array
@@ -403,40 +420,16 @@ class SystemSettingsRegistry
             ],
 
             self::GROUP_SECURITY => [
-                'password_min_length' => self::field(type: 'integer', default: 12, labelEn: 'Password Min Length', labelAm: 'ዝቅተኛ የይለፍ ቃል ርዝመት', isRequired: true, validationRules: ['required', 'integer', 'min:8', 'max:64'], sortOrder: 10),
+                // Password policy (docs/password-security-policy.md). No composition
+                // rules and no periodic expiry: NIST SP 800-63B-4 advises against both.
+                'password_min_length' => self::field(type: 'integer', default: 15, labelEn: 'Minimum Password Length', labelAm: 'ዝቅተኛ የይለፍ ቃል ርዝመት', descriptionEn: 'At least 15 characters (EUISIS floor). Long passphrases are encouraged.', descriptionAm: 'ቢያንስ 15 ቁምፊዎች (የEUISIS ዝቅተኛ ገደብ)። ረጅም የይለፍ ሐረጎች ይበረታታሉ።', isRequired: true, validationRules: ['required', 'integer', 'min:15', 'max:128'], sortOrder: 10),
+                'password_max_length' => self::field(type: 'integer', default: 128, labelEn: 'Maximum Password Length', labelAm: 'ከፍተኛ የይለፍ ቃል ርዝመት', descriptionEn: 'Between 64 and 128 characters. Passwords are never truncated.', descriptionAm: 'ከ64 እስከ 128 ቁምፊዎች። የይለፍ ቃላት አይቆረጡም።', isRequired: true, validationRules: ['required', 'integer', 'min:64', 'max:128'], sortOrder: 11),
+                'password_history_count' => self::field(type: 'integer', default: 5, labelEn: 'Password History Count', labelAm: 'የይለፍ ቃል ታሪክ ብዛት', descriptionEn: 'A new password may not match the current one or any of this many previous ones (0-24).', descriptionAm: 'አዲስ የይለፍ ቃል ከአሁኑ ወይም ከዚህ ቁጥር በፊት ከነበሩት ጋር መመሳሰል የለበትም (0-24)።', isRequired: true, validationRules: ['required', 'integer', 'min:0', 'max:24'], sortOrder: 12),
+                'password_block_personal_info' => self::field(type: 'boolean', default: true, labelEn: 'Block Personal Information', labelAm: 'የግል መረጃን አግድ', descriptionEn: 'Reject passwords containing the holder\'s name, username, email, employee number or phone.', descriptionAm: 'የባለቤቱን ስም፣ የተጠቃሚ ስም፣ ኢሜይል፣ የሰራተኛ ቁጥር ወይም ስልክ የያዙ የይለፍ ቃላትን ውድቅ አድርግ።', validationRules: ['required', 'boolean'], sortOrder: 13),
+                'password_block_common' => self::field(type: 'boolean', default: true, labelEn: 'Block Common Passwords', labelAm: 'የተለመዱ የይለፍ ቃላትን አግድ', descriptionEn: 'Reject common, predictable and service-specific passwords.', descriptionAm: 'የተለመዱ፣ የሚገመቱ እና አገልግሎት-ተኮር የይለፍ ቃላትን ውድቅ አድርግ።', validationRules: ['required', 'boolean'], sortOrder: 14),
+                'password_breach_check' => self::field(type: 'boolean', default: true, labelEn: 'Breached Password Check', labelAm: 'የተጋለጡ የይለፍ ቃላት ፍተሻ', descriptionEn: 'Reject passwords found in known data breaches (privacy-preserving range check; the password never leaves the server).', descriptionAm: 'በታወቁ የመረጃ ጥሰቶች ውስጥ የተገኙ የይለፍ ቃላትን ውድቅ አድርግ (የይለፍ ቃሉ ከአገልጋዩ አይወጣም)።', validationRules: ['required', 'boolean'], sortOrder: 15),
                 'session_timeout_minutes' => self::field(type: 'integer', default: 120, labelEn: 'Session Timeout Minutes', labelAm: 'የክፍለ-ጊዜ ጊዜ ማብቂያ ደቂቃዎች', isRequired: true, validationRules: ['required', 'integer', 'min:5', 'max:1440'], sortOrder: 20),
                 'max_upload_size_mb' => self::field(type: 'integer', default: 10, labelEn: 'Max Upload Size MB', labelAm: 'ከፍተኛ የመጫኛ መጠን MB', isRequired: true, validationRules: ['required', 'integer', 'min:1', 'max:50'], sortOrder: 30),
-                'password_complexity_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Password Complexity Enabled', labelAm: 'የይለፍ ቃል ጥንካሬ ነቅቷል', validationRules: ['required', 'boolean'], sortOrder: 40),
-                'default_password_enabled' => self::field(
-                    type: 'boolean',
-                    default: false,
-                    labelEn: 'Enable Default Password',
-                    labelAm: 'ነባሪ የይለፍ ቃል አንቃ',
-                    descriptionEn: 'Use the configured default only when an administrator leaves a new user password blank.',
-                    descriptionAm: 'አስተዳዳሪው ለአዲስ ተጠቃሚ የይለፍ ቃል ባያስገባ የተዋቀረውን ነባሪ የይለፍ ቃል ይጠቀሙ።',
-                    validationRules: ['required', 'boolean'],
-                    sortOrder: 42,
-                ),
-                'default_password_hash' => self::field(
-                    type: 'password',
-                    default: null,
-                    labelEn: 'New Default Password',
-                    labelAm: 'አዲስ ነባሪ የይለፍ ቃል',
-                    descriptionEn: 'The saved password is one-way hashed and is never displayed again.',
-                    descriptionAm: 'የተቀመጠው የይለፍ ቃል በአንድ አቅጣጫ ይሰበራል እና ዳግም አይታይም።',
-                    validationRules: ['nullable', 'string', 'confirmed'],
-                    sortOrder: 44,
-                ),
-                'force_change_default_password' => self::field(
-                    type: 'boolean',
-                    default: true,
-                    labelEn: 'Force users to change default password on login',
-                    labelAm: 'ተጠቃሚዎች ሲገቡ ነባሪ የይለፍ ቃላቸውን እንዲቀይሩ አስገድድ',
-                    descriptionEn: 'Users authenticated with the configured default are restricted to changing it or logging out.',
-                    descriptionAm: 'በተዋቀረው ነባሪ የይለፍ ቃል የገቡ ተጠቃሚዎች የይለፍ ቃሉን መቀየር ወይም መውጣት ብቻ ይችላሉ።',
-                    validationRules: ['required', 'boolean'],
-                    sortOrder: 46,
-                ),
                 'maintenance_banner_enabled' => self::field(type: 'boolean', default: false, labelEn: 'Maintenance Banner Enabled', labelAm: 'የጥገና ባነር ነቅቷል', isPublic: true, validationRules: ['required', 'boolean'], sortOrder: 50),
                 'maintenance_banner_message_en' => self::field(type: 'text', default: null, labelEn: 'Maintenance Banner Message English', labelAm: 'የጥገና ባነር መልዕክት እንግሊዝኛ', isPublic: true, validationRules: ['nullable', 'string', 'max:500'], sortOrder: 60),
                 'maintenance_banner_message_am' => self::field(type: 'text', default: null, labelEn: 'Maintenance Banner Message Amharic', labelAm: 'የጥገና ባነር መልዕክት አማርኛ', isPublic: true, validationRules: ['nullable', 'string', 'max:500'], sortOrder: 70),
@@ -476,9 +469,14 @@ class SystemSettingsRegistry
                 // existing rows/env; hidden from the settings UI and mapped to
                 // config('security.mfa_privileged_roles') during enforcement.
                 'require_mfa_for_admins' => self::field(type: 'boolean', default: false, labelEn: 'Require MFA For Admins (Legacy)', labelAm: 'ለአስተዳዳሪዎች MFA አስፈልጋል (የቆየ)', validationRules: ['required', 'boolean'], sortOrder: 100),
+                // LEGACY shared default password — read-only, hidden from the
+                // settings UI and not accepted on save. Kept only so accounts
+                // still on it are forced to change at sign-in and nobody can
+                // choose it again (docs/password-security-policy.md, Migration).
+                'default_password_enabled' => self::field(type: 'boolean', default: false, labelEn: 'Default Password (Legacy)', labelAm: 'ነባሪ የይለፍ ቃል (የቆየ)', validationRules: ['required', 'boolean'], sortOrder: 101),
+                'default_password_hash' => self::field(type: 'password', default: null, labelEn: 'Default Password Hash (Legacy)', labelAm: 'የነባሪ የይለፍ ቃል ሃሽ (የቆየ)', validationRules: ['nullable', 'string'], sortOrder: 102),
                 'max_login_attempts' => self::field(type: 'integer', default: 5, labelEn: 'Max Login Attempts', labelAm: 'ከፍተኛ የመግቢያ ሙከራዎች', validationRules: ['required', 'integer', 'min:1', 'max:20'], sortOrder: 110),
                 'lockout_minutes' => self::field(type: 'integer', default: 15, labelEn: 'Lockout Minutes', labelAm: 'የመቆለፊያ ደቂቃዎች', validationRules: ['required', 'integer', 'min:1', 'max:1440'], sortOrder: 120),
-                'password_expiry_days' => self::field(type: 'integer', default: 90, labelEn: 'Password Expiry Days', labelAm: 'የይለፍ ቃል ማለቂያ ቀናት', validationRules: ['required', 'integer', 'min:0', 'max:365'], sortOrder: 130),
                 'force_https' => self::field(type: 'boolean', default: false, labelEn: 'Force HTTPS', labelAm: 'HTTPS አስገድድ', validationRules: ['required', 'boolean'], sortOrder: 140),
                 'audit_retention_days' => self::field(type: 'integer', default: 365, labelEn: 'Audit Retention Days', labelAm: 'የኦዲት ማቆያ ቀናት', validationRules: ['required', 'integer', 'min:30', 'max:3650'], sortOrder: 150),
                 'sensitive_export_requires_reason' => self::field(type: 'boolean', default: true, labelEn: 'Sensitive Export Requires Reason', labelAm: 'ስሜታዊ ማውጫ ምክንያት ይፈልጋል', validationRules: ['required', 'boolean'], sortOrder: 160),
@@ -816,6 +814,24 @@ class SystemSettingsRegistry
                     templateManaged: true,
                 ),
             ],
+            self::GROUP_DAILY_ACTIVITY => [
+                'enabled' => self::field(type: 'boolean', default: true, labelEn: 'Module Enabled', labelAm: 'ሞጁሉ ነቅቷል', descriptionEn: 'When off, employees cannot register new daily activity and no reminders are sent.', descriptionAm: 'ሲጠፋ ሠራተኞች አዲስ ዕለታዊ እንቅስቃሴ መመዝገብ አይችሉም፤ ማስታወሻም አይላክም።', validationRules: ['required', 'boolean'], sortOrder: 10),
+                'require_daily_submission' => self::field(type: 'boolean', default: true, labelEn: 'Require Daily Submission', labelAm: 'ዕለታዊ ማስገባት ግዴታ ነው', descriptionEn: 'Unsubmitted required working days are reported as missing.', descriptionAm: 'ያልቀረቡ የግዴታ የሥራ ቀናት እንደጎደሉ ይመዘገባሉ።', validationRules: ['required', 'boolean'], sortOrder: 20),
+                'work_week_days' => self::field(type: 'multiselect', default: ['1', '2', '3', '4', '5'], labelEn: 'Working Days of the Week', labelAm: 'የሳምንቱ የሥራ ቀናት', descriptionEn: 'ISO weekdays (1 = Monday, 7 = Sunday) on which activity is required. Other days are non-working.', descriptionAm: 'እንቅስቃሴ የሚጠየቅባቸው ቀናት (1 = ሰኞ፣ 7 = እሑድ)። ሌሎቹ የሥራ ያልሆኑ ቀናት ናቸው።', options: ['1', '2', '3', '4', '5', '6', '7'], validationRules: ['required', 'array', 'min:1'], sortOrder: 30),
+                'tracking_start_date' => self::field(type: 'date', default: null, labelEn: 'Tracking Start Date', labelAm: 'ክትትል የሚጀመርበት ቀን', descriptionEn: 'Days before this date are never counted as missing.', descriptionAm: 'ከዚህ ቀን በፊት ያሉ ቀናት እንደጎደሉ አይቆጠሩም።', validationRules: ['nullable', 'date_format:Y-m-d'], sortOrder: 40),
+                'submission_deadline' => self::field(type: 'string', default: '18:00', labelEn: 'Submission Deadline', labelAm: 'የማስገቢያ ጊዜ ገደብ', descriptionEn: 'Local time on the activity date. Submissions after it are marked late.', descriptionAm: 'በእንቅስቃሴው ቀን ያለ የአካባቢ ሰዓት። ከዚህ በኋላ የሚገቡ እንደዘገዩ ይመዘገባሉ።', validationRules: ['required', 'date_format:H:i'], sortOrder: 50),
+                'reject_late_submission' => self::field(type: 'boolean', default: false, labelEn: 'Reject Late Submissions', labelAm: 'የዘገዩ ማስገቢያዎችን አትቀበል', descriptionEn: 'Off: late submissions are accepted and flagged late. On: they are refused.', descriptionAm: 'ሲጠፋ፡ የዘገዩ ይቀበላሉ እና ዘግይተዋል ተብለው ይመዘገባሉ። ሲበራ፡ አይቀበሉም።', validationRules: ['required', 'boolean'], sortOrder: 60),
+                'allow_backdated_submission' => self::field(type: 'boolean', default: true, labelEn: 'Allow Backdated Submission', labelAm: 'ወደኋላ ማስገባት ይፈቀድ', descriptionEn: 'Whether employees may register activity for past working days.', descriptionAm: 'ሠራተኞች ላለፉ የሥራ ቀናት እንቅስቃሴ መመዝገብ ይችሉ እንደሆነ።', validationRules: ['required', 'boolean'], sortOrder: 70),
+                'max_backdate_days' => self::field(type: 'integer', default: 3, labelEn: 'Maximum Backdate Days', labelAm: 'ከፍተኛ ወደኋላ የሚፈቀዱ ቀናት', descriptionEn: 'Calendar days before today that may still be registered.', descriptionAm: 'ከዛሬ በፊት አሁንም መመዝገብ የሚቻልባቸው የቀን መቁጠሪያ ቀናት።', validationRules: ['required', 'integer', 'min:0', 'max:60'], sortOrder: 80),
+                'require_late_reason' => self::field(type: 'boolean', default: true, labelEn: 'Require Late Submission Reason', labelAm: 'የመዘግየት ምክንያት ግዴታ ነው', validationRules: ['required', 'boolean'], sortOrder: 90),
+                'require_output_result' => self::field(type: 'boolean', default: true, labelEn: 'Require Result / Output', labelAm: 'ውጤት ግዴታ ነው', descriptionEn: 'Every activity must state its result before the day can be submitted.', descriptionAm: 'ቀኑ ከመቅረቡ በፊት እያንዳንዱ እንቅስቃሴ ውጤቱን መግለጽ አለበት።', validationRules: ['required', 'boolean'], sortOrder: 100),
+                'manager_review_required' => self::field(type: 'boolean', default: true, labelEn: 'Manager Review Required', labelAm: 'የኃላፊ ግምገማ ያስፈልጋል', descriptionEn: 'Off: submitted days need no approval and do not appear in review queues.', descriptionAm: 'ሲጠፋ፡ የቀረቡ ቀናት ማጽደቅ አያስፈልጋቸውም፤ በግምገማ ወረፋም አይታዩም።', validationRules: ['required', 'boolean'], sortOrder: 110),
+                'notify_on_approval' => self::field(type: 'boolean', default: false, labelEn: 'Notify Employee On Approval', labelAm: 'ሲጸድቅ ሠራተኛውን አሳውቅ', validationRules: ['required', 'boolean'], sortOrder: 120),
+                'auto_reminder_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Automatic Reminders', labelAm: 'ራስ-ሰር ማስታወሻዎች', validationRules: ['required', 'boolean'], sortOrder: 130),
+                'reminder_time' => self::field(type: 'string', default: '17:00', labelEn: 'End-of-Day Reminder Time', labelAm: 'የቀኑ መጨረሻ ማስታወሻ ሰዓት', validationRules: ['required', 'date_format:H:i'], sortOrder: 140),
+                'evidence_attachments_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Evidence Attachments Enabled', labelAm: 'የማስረጃ አባሪዎች ነቅተዋል', validationRules: ['required', 'boolean'], sortOrder: 150),
+                'max_attachment_size_kb' => self::field(type: 'integer', default: 5120, labelEn: 'Maximum Attachment Size (KB)', labelAm: 'ከፍተኛ የአባሪ መጠን (KB)', validationRules: ['required', 'integer', 'min:100', 'max:20480'], sortOrder: 160),
+            ],
             self::GROUP_PUBLIC_SITE => [
                 // Off: Home, Announcements, Services and Support show the notice
                 // below. Verify ID Cards and the ID checker keep working — they
@@ -833,6 +849,27 @@ class SystemSettingsRegistry
                 'footer_description_am' => self::field(type: 'text', default: '', labelEn: 'Footer Description (Amharic)', labelAm: 'የግርጌ መግለጫ (አማርኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:300'], sortOrder: 110),
                 'copyright_text_en' => self::field(type: 'string', default: '', labelEn: 'Copyright Text (English)', labelAm: 'የቅጂ መብት ጽሑፍ (እንግሊዝኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:160'], sortOrder: 120),
                 'copyright_text_am' => self::field(type: 'string', default: '', labelEn: 'Copyright Text (Amharic)', labelAm: 'የቅጂ መብት ጽሑፍ (አማርኛ)', isPublic: true, validationRules: ['nullable', 'string', 'max:160'], sortOrder: 130),
+            ],
+            self::GROUP_PERFORMANCE => [
+                'enabled' => self::field(type: 'boolean', default: true, labelEn: 'Module Enabled', labelAm: 'ሞጁሉ ነቅቷል', descriptionEn: 'When off, performance pages are hidden and no notifications are sent.', descriptionAm: 'ሲጠፋ የአፈጻጸም ገጾች ይደበቃሉ፤ ማሳወቂያም አይላክም።', validationRules: ['required', 'boolean'], sortOrder: 10),
+                'results_weight' => self::field(type: 'integer', default: 80, labelEn: 'Results (KPI) Weight %', labelAm: 'የውጤት (KPI) ክብደት %', descriptionEn: 'Share of the final score from KPI results. Results + competency must equal 100.', descriptionAm: 'ከመጨረሻው ውጤት የKPI ውጤቶች ድርሻ። ውጤት + ብቃት 100 መሆን አለበት።', validationRules: ['required', 'integer', 'min:0', 'max:100'], sortOrder: 20),
+                'competency_weight' => self::field(type: 'integer', default: 20, labelEn: 'Competency Weight %', labelAm: 'የብቃት ክብደት %', descriptionEn: 'Share of the final score from competency ratings.', descriptionAm: 'ከመጨረሻው ውጤት የብቃት ምዘና ድርሻ።', validationRules: ['required', 'integer', 'min:0', 'max:100'], sortOrder: 30),
+                'default_achievement_cap' => self::field(type: 'integer', default: 120, labelEn: 'Default KPI Achievement Cap %', labelAm: 'ነባሪ የKPI ስኬት ጣሪያ %', descriptionEn: 'Maximum achievement a KPI can score unless the KPI or target sets its own (100-200).', descriptionAm: 'KPI ወይም ዒላማው የራሱ ካልሰጠ አንድ KPI ሊያገኝ የሚችለው ከፍተኛ ስኬት (100-200)።', validationRules: ['required', 'integer', 'min:100', 'max:200'], sortOrder: 40),
+                'require_employee_acknowledgement' => self::field(type: 'boolean', default: true, labelEn: 'Require Employee Acknowledgement', labelAm: 'የሠራተኛ ማረጋገጫ ያስፈልጋል', descriptionEn: 'Agreements need the employee to acknowledge before manager approval.', descriptionAm: 'ስምምነቶች ከኃላፊ ማጽደቅ በፊት የሠራተኛ ማረጋገጫ ያስፈልጋቸዋል።', validationRules: ['required', 'boolean'], sortOrder: 50),
+                'require_midyear_review' => self::field(type: 'boolean', default: true, labelEn: 'Require Mid-Year Review', labelAm: 'የአጋማሽ ዓመት ግምገማ ያስፈልጋል', descriptionEn: 'A completed mid-year review is required before year-end.', descriptionAm: 'ከዓመት መጨረሻ በፊት የተጠናቀቀ የአጋማሽ ዓመት ግምገማ ያስፈልጋል።', validationRules: ['required', 'boolean'], sortOrder: 60),
+                'require_yearend_self_assessment' => self::field(type: 'boolean', default: true, labelEn: 'Require Year-End Self-Assessment', labelAm: 'የዓመት መጨረሻ ራስ-ግምገማ ያስፈልጋል', descriptionEn: 'The employee must submit a self-assessment before the manager appraisal.', descriptionAm: 'ከኃላፊው ምዘና በፊት ሠራተኛው ራስ-ግምገማ ማቅረብ አለበት።', validationRules: ['required', 'boolean'], sortOrder: 70),
+                'require_calibration' => self::field(type: 'boolean', default: false, labelEn: 'Require Calibration', labelAm: 'ማስተካከያ (ካሊብሬሽን) ያስፈልጋል', descriptionEn: 'Results are finalized only through a calibration session.', descriptionAm: 'ውጤቶች የሚጸድቁት በካሊብሬሽን ስብሰባ ብቻ ነው።', validationRules: ['required', 'boolean'], sortOrder: 80),
+                'require_result_release' => self::field(type: 'boolean', default: true, labelEn: 'Require Result Release', labelAm: 'ውጤት መልቀቅ ያስፈልጋል', descriptionEn: 'Finalized results reach the employee only after an explicit release.', descriptionAm: 'የጸደቁ ውጤቶች ለሠራተኛው የሚደርሱት በግልጽ ከተለቀቁ በኋላ ነው።', validationRules: ['required', 'boolean'], sortOrder: 90),
+                'allow_manual_kpi_actual' => self::field(type: 'boolean', default: true, labelEn: 'Allow Manual KPI Actuals', labelAm: 'በእጅ የሚገባ የKPI ትክክለኛ ውጤት ፍቀድ', descriptionEn: 'Off: only daily activity and system sources may supply actuals.', descriptionAm: 'ሲጠፋ፡ ትክክለኛ ውጤቶች ከዕለታዊ እንቅስቃሴ እና ከሥርዓት ብቻ ይመጣሉ።', validationRules: ['required', 'boolean'], sortOrder: 100),
+                'allow_score_adjustment' => self::field(type: 'boolean', default: false, labelEn: 'Allow Score Adjustment', labelAm: 'የውጤት ማስተካከያ ፍቀድ', descriptionEn: 'Managers may request an adjustment with a reason; a different authorized user approves it.', descriptionAm: 'ኃላፊዎች በምክንያት ማስተካከያ መጠየቅ ይችላሉ፤ ሌላ የተፈቀደለት ተጠቃሚ ያጸድቃል።', validationRules: ['required', 'boolean'], sortOrder: 110),
+                'appeal_window_days' => self::field(type: 'integer', default: 15, labelEn: 'Appeal Window (days)', labelAm: 'የይግባኝ ጊዜ (ቀናት)', descriptionEn: 'Days after release during which the employee may appeal.', descriptionAm: 'ከተለቀቀ በኋላ ሠራተኛው ይግባኝ ሊል የሚችልባቸው ቀናት።', validationRules: ['required', 'integer', 'min:0', 'max:90'], sortOrder: 120),
+                'checkin_frequency' => self::field(type: 'select', default: 'monthly', labelEn: 'Check-in Frequency', labelAm: 'የክትትል ውይይት ድግግሞሽ', descriptionEn: 'How often check-ins are expected.', descriptionAm: 'የክትትል ውይይቶች የሚጠበቁበት ድግግሞሽ።', options: ['monthly', 'quarterly'], validationRules: ['required', 'in:monthly,quarterly'], sortOrder: 130),
+                'pip_threshold' => self::field(type: 'integer', default: 60, labelEn: 'Improvement Plan Threshold %', labelAm: 'የማሻሻያ ዕቅድ ገደብ %', descriptionEn: 'Final scores below this recommend (never impose) a performance improvement plan.', descriptionAm: 'ከዚህ በታች ያሉ ውጤቶች የማሻሻያ ዕቅድ ይመክራሉ (አያስገድዱም)።', validationRules: ['required', 'integer', 'min:0', 'max:100'], sortOrder: 140),
+                'at_risk_threshold' => self::field(type: 'integer', default: 80, labelEn: 'At-Risk Threshold %', labelAm: 'የስጋት ገደብ %', descriptionEn: 'KPI achievement below this is shown as at risk.', descriptionAm: 'ከዚህ በታች ያለ የKPI ስኬት በስጋት ላይ ተብሎ ይታያል።', validationRules: ['required', 'integer', 'min:1', 'max:100'], sortOrder: 150),
+                'off_track_threshold' => self::field(type: 'integer', default: 60, labelEn: 'Off-Track Threshold %', labelAm: 'ከመስመር የወጣ ገደብ %', descriptionEn: 'KPI achievement below this is shown as off track.', descriptionAm: 'ከዚህ በታች ያለ የKPI ስኬት ከመስመር ወጥቷል ተብሎ ይታያል።', validationRules: ['required', 'integer', 'min:0', 'max:100'], sortOrder: 160),
+                'amendment_requires_approval' => self::field(type: 'boolean', default: true, labelEn: 'Target Amendments Require Approval', labelAm: 'የዒላማ ማሻሻያ ማጽደቅ ያስፈልገዋል', descriptionEn: 'Target changes after publication go through an approved amendment.', descriptionAm: 'ከታተመ በኋላ የዒላማ ለውጦች በጸደቀ ማሻሻያ ያልፋሉ።', validationRules: ['required', 'boolean'], sortOrder: 170),
+                'allow_self_approval' => self::field(type: 'boolean', default: false, labelEn: 'Allow Self-Approval', labelAm: 'ራስን ማጽደቅ ፍቀድ', descriptionEn: 'Off (recommended): the person who prepared a plan or requested a change cannot also approve it.', descriptionAm: 'ሲጠፋ (ይመከራል)፡ ዕቅድ ያዘጋጀ ወይም ለውጥ የጠየቀ ሰው ራሱ ማጽደቅ አይችልም።', validationRules: ['required', 'boolean'], sortOrder: 180),
+                'prorate_transfer_results' => self::field(type: 'boolean', default: true, labelEn: 'Prorate Results Across Transfers', labelAm: 'በዝውውር ውጤቶችን በቀናት አከፋፍል', descriptionEn: 'An employee with several agreements in a cycle gets a day-weighted combined score.', descriptionAm: 'በአንድ ዑደት ብዙ ስምምነት ያለው ሠራተኛ በቀናት የተመዘነ ጥምር ውጤት ያገኛል።', validationRules: ['required', 'boolean'], sortOrder: 190),
             ],
         ];
     }

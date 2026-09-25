@@ -8,9 +8,8 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Users\Concerns\GuardsSuperAdminAssignment;
 use App\Enums\AuditEventType;
 use App\Models\User;
-use App\Services\Security\DefaultPasswordPolicyService;
+use App\Security\Passwords\PasswordLifecycle;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 readonly class UpdateUserAction
@@ -19,7 +18,7 @@ readonly class UpdateUserAction
 
     public function __construct(
         private WriteAuditLogAction $writeAuditLogAction,
-        private DefaultPasswordPolicyService $defaultPasswordPolicy,
+        private PasswordLifecycle $passwordLifecycle,
     ) {}
 
     public function execute(array $attributes, User $user, User $actor): User
@@ -52,46 +51,33 @@ readonly class UpdateUserAction
                 ]);
             }
 
-            if (isset($attributes['password']) && $attributes['password'] !== '') {
-                $resetToDefaultPassword = $this->defaultPasswordPolicy->matches($attributes['password']);
-
-                if ($resetToDefaultPassword && $actor->getKey() === $user->getKey()) {
-                    throw ValidationException::withMessages([
-                        'password' => __('auth.password_cannot_be_default'),
-                    ]);
-                }
-
-                $attributes['password'] = Hash::make($attributes['password']);
-
-                /*
-                 * An administrator resetting someone's password puts the
-                 * account back into the shared-credential state, so the holder
-                 * must choose a new one at their next login.
-                 *
-                 * A user changing their OWN password does not come through
-                 * here — that is PasswordController / the forced-change flow —
-                 * so this never re-locks someone who just set their password.
-                 */
-                if ($actor->getKey() !== $user->getKey()) {
-                    $attributes['must_change_password'] = true;
-                    $attributes['password_changed_at'] = null;
-                }
-            } else {
-                $resetToDefaultPassword = false;
-                unset($attributes['password']);
-            }
+            $newPassword = $attributes['password'] ?? null;
+            unset($attributes['password'], $attributes['generate_temporary_password']);
 
             $user->update($attributes);
 
-            if (isset($attributes['password']) && $actor->getKey() !== $user->getKey()) {
-                $this->writeAuditLogAction->execute(
-                    AuditEventType::AdminPasswordReset,
-                    $actor,
+            /*
+             * An administrator setting someone's password: the central policy
+             * has validated it against that account; PasswordLifecycle adds it
+             * to history, forces a change at next sign-in, rotates the
+             * remember token, audits (AdminPasswordReset) and notifies the
+             * holder. Your OWN password is changed only in Profile, where the
+             * current one is confirmed.
+             */
+            if (is_string($newPassword) && $newPassword !== '') {
+                if ($actor->is($user)) {
+                    throw ValidationException::withMessages([
+                        'password' => __('password-policy.set_own_password_in_profile'),
+                    ]);
+                }
+
+                $this->passwordLifecycle->change(
                     $user,
-                    newValues: [
-                        'must_change_password' => true,
-                        'used_default_password' => $resetToDefaultPassword,
-                    ],
+                    $newPassword,
+                    AuditEventType::AdminPasswordReset,
+                    PasswordLifecycle::KIND_ADMIN_RESET,
+                    mustChange: true,
+                    actor: $actor,
                     reason: 'administrator_reset_user_password',
                 );
             }

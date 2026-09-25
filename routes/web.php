@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
 use App\Http\Controllers\Employee\EmployeePortalController;
+use App\Http\Controllers\Employee\EmployeeSelfServiceController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
 use App\Http\Controllers\ProviderPortal\ProviderDashboardController;
@@ -57,11 +60,15 @@ use App\Http\Controllers\Web\CafeteriaTransactionController;
 use App\Http\Controllers\Web\CardPrintBatchController;
 use App\Http\Controllers\Web\CardRequestController;
 use App\Http\Controllers\Web\CodeRuleController;
+use App\Http\Controllers\Web\DailyActivityAttachmentController;
+use App\Http\Controllers\Web\DailyActivityController;
+use App\Http\Controllers\Web\DailyActivitySettingController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
 use App\Http\Controllers\Web\EmployeeImportController;
+use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
 use App\Http\Controllers\Web\EntitlementRuleController;
 use App\Http\Controllers\Web\GradeLevelController;
@@ -252,7 +259,7 @@ Route::middleware(['auth:provider', 'provider.portal', 'provider.portal.context'
         });
         Route::get('/profile', [ProviderProfileController::class, 'show'])->name('profile.show');
         Route::patch('/profile', [ProviderProfileController::class, 'update'])->name('profile.update');
-        Route::patch('/profile/password', [ProviderProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::patch('/profile/password', [ProviderProfileController::class, 'updatePassword'])->middleware('throttle:6,1')->name('profile.password');
     });
 
 // Legacy cafeteria/portal aliases — all redirect to the general provider portal.
@@ -305,10 +312,26 @@ Route::get('/announcements/transfer/{announcement}', [PublicTransferAnnouncement
 
 // Employee portal + apply routes — auth required, no MFA/verification gate
 Route::middleware(['auth', 'force.password', 'admin.access'])->group(function (): void {
+    Route::get('/notifications/feed', [NotificationController::class, 'index'])->name('notifications.feed');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->whereUuid('notification')->name('notifications.read');
     Route::get('/my-portal', [EmployeePortalController::class, 'index'])
         ->name('employee.portal');
 
-    Route::get('/my-portal/entitlements', [EmployeePortalController::class, 'myEntitlements'])
+    foreach (['profile', 'employment', 'organization', 'position', 'id-card', 'service-tasks', 'documents', 'requests', 'notifications', 'security'] as $section) {
+        Route::get('/my-portal/'.$section, [EmployeeSelfServiceController::class, 'page'])->defaults('section', $section)->name('employee.'.$section);
+    }
+    Route::get('/my-portal/services', [EmployeePortalController::class, 'myEntitlements'])->name('employee.services');
+    Route::get('/my-portal/profile/photo', [EmployeeSelfServiceController::class, 'photo'])->name('employee.photo');
+    Route::post('/my-portal/profile', [EmployeeSelfServiceController::class, 'update'])->middleware('throttle:30,1')->name('employee.profile.update');
+    Route::post('/my-portal/profile/contact', [EmployeeSelfServiceController::class, 'requestContact'])->middleware('throttle:3,10')->name('employee.contact.request');
+    Route::post('/my-portal/profile/contact/confirm', [EmployeeSelfServiceController::class, 'confirmContact'])->middleware('throttle:10,10')->name('employee.contact.confirm');
+    Route::post('/my-portal/requests', [EmployeeSelfServiceController::class, 'correction'])->middleware('throttle:10,60')->name('employee.corrections.store');
+    Route::get('/my-portal/documents/{document}/download', [EmployeeSelfServiceController::class, 'document'])->whereUuid('document')->name('employee.documents.download');
+    Route::post('/my-portal/notifications/{notification}/read', [EmployeeSelfServiceController::class, 'readNotification'])->whereUuid('notification')->name('employee.notifications.read');
+
+    // Old address for My Services; kept so existing links and bookmarks still work.
+    Route::get('/my-portal/entitlements', fn () => redirect()->route('employee.services'))
         ->name('employee.entitlements');
 
     Route::get('/my-portal/transfer-applications', [EmployeePortalController::class, 'myTransferApplications'])
@@ -342,6 +365,25 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
 
     Route::post('/announcements/transfer/{announcement}/apply', [PublicTransferAnnouncementController::class, 'storeApply'])
         ->name('public.transfer-announcements.apply.store');
+
+    /*
+     * My Work > Daily Activity. The employee is always the signed-in user's
+     * own record; no route here accepts an employee id. Dates are Gregorian
+     * ISO (Y-m-d) whatever the display calendar.
+     */
+    Route::prefix('my-portal/daily-activity')->name('employee.daily-activity.')->controller(EmployeeDailyActivityController::class)->group(function (): void {
+        Route::get('/', 'entry')->name('entry');
+        Route::get('/calendar', 'calendar')->name('calendar');
+        Route::get('/history', 'history')->name('history');
+        Route::post('/{date}', 'save')->where('date', '\d{4}-\d{2}-\d{2}')->middleware('throttle:60,1')->name('save');
+        Route::post('/logs/{log}/attachments', 'uploadAttachment')->whereUuid('log')->middleware('throttle:30,1')->name('attachments.store');
+        Route::delete('/attachments/{attachment}', 'destroyAttachment')->whereUuid('attachment')->name('attachments.destroy');
+    });
+
+    // Evidence download: owner, reviewer and scoped oversight, per the log policy.
+    Route::get('/daily-activities/attachments/{attachment}/download', [DailyActivityAttachmentController::class, 'download'])
+        ->whereUuid('attachment')
+        ->name('daily-activities.attachments.download');
 });
 
 // Announcement detail by slug. Registered after every fixed /announcements/*
@@ -484,6 +526,27 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
      * pending-implementation, completed) are declared before the
      * {organizationalChangeRequest} wildcard so they are not swallowed by it.
      */
+    /*
+     * Daily Activity Register — management side. Each action re-checks its
+     * own permission and the record policy; static paths come before {log}.
+     */
+    Route::prefix('daily-activities')->name('daily-activities.')->group(function (): void {
+        Route::get('/dashboard', [DailyActivityController::class, 'dashboard'])->name('dashboard');
+        Route::get('/', [DailyActivityController::class, 'index'])->name('index');
+        Route::get('/missing', [DailyActivityController::class, 'missing'])->name('missing');
+        Route::get('/review-queue', [DailyActivityController::class, 'reviewQueue'])->name('review-queue');
+        Route::get('/reports', [DailyActivityController::class, 'reports'])->name('reports');
+        Route::get('/reports/export', [DailyActivityController::class, 'export'])->middleware('throttle:20,1')->name('reports.export');
+        Route::get('/settings', [DailyActivitySettingController::class, 'index'])->name('settings');
+        Route::put('/settings', [DailyActivitySettingController::class, 'update'])->name('settings.update');
+        Route::post('/settings/reviewers', [DailyActivitySettingController::class, 'storeReviewer'])->name('settings.reviewers.store');
+        Route::delete('/settings/reviewers/{assignment}', [DailyActivitySettingController::class, 'destroyReviewer'])->whereUuid('assignment')->name('settings.reviewers.destroy');
+        Route::get('/{log}', [DailyActivityController::class, 'show'])->whereUuid('log')->name('show');
+        Route::post('/{log}/approve', [DailyActivityController::class, 'approve'])->whereUuid('log')->name('approve');
+        Route::post('/{log}/return', [DailyActivityController::class, 'returnForCorrection'])->whereUuid('log')->name('return');
+        Route::post('/{log}/reopen', [DailyActivityController::class, 'reopen'])->whereUuid('log')->name('reopen');
+    });
+
     Route::get('/organizational-change-requests', [OrganizationalChangeRequestController::class, 'index'])->name('organizational-change-requests.index');
     Route::get('/organizational-change-requests/create', [OrganizationalChangeRequestController::class, 'create'])->name('organizational-change-requests.create');
     Route::get('/organizational-change-requests/review-queue', [OrganizationalChangeRequestController::class, 'reviewQueue'])->name('organizational-change-requests.review-queue');
@@ -677,6 +740,14 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 
     // ID Cards
     Route::get('/id-cards', [IdCardController::class, 'index'])->name('id-cards.index');
+    Route::get('/id-cards/reprint-required', [EmployeePortalReviewController::class, 'reprints'])->name('id-cards.reprint-required');
+    Route::get('/employee-corrections', [EmployeePortalReviewController::class, 'corrections'])->name('employee-corrections.index');
+    Route::get('/employees/{employee}/private-photo', [EmployeePortalReviewController::class, 'photo'])->name('employees.private-photo');
+    Route::post('/employee-corrections/{correction}/review', [EmployeePortalReviewController::class, 'review'])->name('employee-corrections.review');
+    Route::post('/id-cards/{card}/prepare-print', [EmployeePortalReviewController::class, 'prepare'])->name('id-cards.prepare-print');
+    Route::get('/id-cards/{card}/print/{snapshot}', [EmployeePortalReviewController::class, 'preparation'])->name('id-cards.print-preparation');
+    Route::get('/id-cards/{card}/print/{snapshot}/{side}', [EmployeePortalReviewController::class, 'artifact'])->whereIn('side', ['front', 'back'])->name('id-cards.print-artifact');
+    Route::post('/id-cards/{card}/print/{snapshot}/confirm', [EmployeePortalReviewController::class, 'confirm'])->name('id-cards.confirm-print');
     Route::get('/id-cards/{card}', [IdCardController::class, 'show'])->name('id-cards.show');
     Route::get('/id-cards/{card}/preview', [IdCardController::class, 'preview'])->name('id-cards.preview');
     Route::post('/id-cards/{card}/issue', [IdCardController::class, 'issue'])->name('id-cards.issue');
@@ -889,7 +960,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::get('/providers/{provider}/edit', [TransportProviderController::class, 'edit'])->middleware('can:transport-providers.update')->name('providers.edit');
         Route::match(['put', 'patch'], '/providers/{provider}', [TransportProviderController::class, 'update'])->name('providers.update');
         Route::delete('/providers/{provider}', [TransportProviderController::class, 'destroy'])->name('providers.destroy');
-        Route::get('/scan', [TransportScanController::class, 'index'])->name('scan');
+        // The scan screen lists every provider, route and today's trips: operators only.
+        Route::get('/scan', [TransportScanController::class, 'index'])->middleware('can:transport-scan.create')->name('scan');
         Route::post('/scan', [TransportScanController::class, 'store'])->middleware('throttle:60,1')->name('scan.store');
         Route::get('/settings', [TransportSettingsController::class, 'index'])->middleware('can:transport-settings.view')->name('settings.index');
         Route::patch('/settings', [TransportSettingsController::class, 'update'])->middleware('can:transport-settings.update')->name('settings.update');
@@ -1137,5 +1209,8 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Employee Performance Management (EPMS).
+require __DIR__.'/performance.php';
 
 require __DIR__.'/auth.php';

@@ -11,7 +11,8 @@ use App\Models\Employee;
 use App\Models\EmployeeRegistrationOtp;
 use App\Models\User;
 use App\Notifications\EmployeeRegistrationOtpNotification;
-use App\Services\Security\DefaultPasswordPolicyService;
+use App\Security\Passwords\PasswordPolicy;
+use App\Support\DailyActivity\DailyActivityRoles;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,15 +21,17 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
 use Throwable;
 
 class RegisteredUserController extends Controller
 {
     public function __construct(
-        private readonly DefaultPasswordPolicyService $defaultPasswordPolicy,
+        private readonly PasswordPolicy $passwordPolicy,
         private readonly SmsGateway $smsGateway,
     ) {}
 
@@ -132,14 +135,10 @@ class RegisteredUserController extends Controller
         $validated = $request->validate([
             'employee_number' => ['required', 'string', 'max:255'],
             'otp' => ['required', 'string', 'regex:/^\d{6}$/'],
-            'password' => ['required', 'confirmed', $this->defaultPasswordPolicy->rule()],
+            // Account-independent rules only: whose name to check is not
+            // known (or proved) until the OTP below is verified.
+            'password' => $this->passwordPolicy->rules(),
         ]);
-
-        if ($this->defaultPasswordPolicy->matches((string) $validated['password'])) {
-            throw ValidationException::withMessages([
-                'password' => __('auth.password_cannot_be_default'),
-            ]);
-        }
 
         $pendingEmployeeId = $request->session()->get('registration_employee_id');
         $pendingEmployeeNumber = $request->session()->get('registration_employee_number');
@@ -150,7 +149,7 @@ class RegisteredUserController extends Controller
             ]);
         }
 
-        $result = DB::transaction(function () use ($pendingEmployeeId, $validated): User|string {
+        $result = DB::transaction(function () use ($pendingEmployeeId, $validated, $request): User|string {
             $employee = Employee::query()->lockForUpdate()->find($pendingEmployeeId);
 
             if ($employee === null || $employee->status !== EmployeeStatus::Active) {
@@ -188,6 +187,21 @@ class RegisteredUserController extends Controller
                     : __('auth.registration_otp_invalid');
             }
 
+            /*
+             * Only now — possession of the employee's contact proved — may the
+             * password be checked against their name, number and contacts.
+             * Earlier, the error message would reveal those to anyone who knew
+             * an employee number. A failure rolls the whole step back.
+             */
+            Validator::make(
+                ['password' => (string) $validated['password'], 'password_confirmation' => (string) $request->input('password_confirmation')],
+                ['password' => $this->passwordPolicy->rules(null, [
+                    'first_name' => $employee->first_name, 'middle_name' => $employee->middle_name, 'last_name' => $employee->last_name,
+                    'full_name' => $employee->full_name, 'name_en' => $employee->name_en, 'email' => $employee->email,
+                    'phone_number' => $employee->phone, 'employee_number' => $employee->employee_number,
+                ])],
+            )->validate();
+
             $otp->forceFill(['verified_at' => now()])->save();
 
             return User::query()->create([
@@ -207,6 +221,11 @@ class RegisteredUserController extends Controller
         }
 
         $user = $result;
+
+        // Self-service role: own daily activity and nothing administrative.
+        if (Role::query()->where('name', DailyActivityRoles::EMPLOYEE_ROLE)->where('guard_name', 'web')->exists()) {
+            $user->assignRole(DailyActivityRoles::EMPLOYEE_ROLE);
+        }
 
         $request->session()->forget(['registration_employee_id', 'registration_employee_number']);
         event(new Registered($user));
@@ -242,6 +261,7 @@ class RegisteredUserController extends Controller
     {
         if (User::query()
             ->where('employee_reference', $employee->employee_number)
+            ->orWhere('employee_id', $employee->id)
             ->orWhere('email', $employee->email)
             ->exists()) {
             throw ValidationException::withMessages([

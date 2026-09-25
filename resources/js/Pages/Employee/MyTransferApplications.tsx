@@ -1,7 +1,6 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PageHeader from '@/Components/PageHeader';
+import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 
@@ -41,23 +40,18 @@ export default function MyTransferApplications({ applications, has_employee }: P
     const { t } = useLocale();
 
     return (
-        <AuthenticatedLayout
-            header={
-                <PageHeader
-                    title={t('transfers.myApplications')}
-                    backHref={route('employee.portal')}
-                    actions={
-                        <Link
-                            href={route('employee.announcements')}
-                            className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
-                        >
-                            Browse Announcements
-                        </Link>
-                    }
-                />
+        <PortalPage
+            title={t('transfers.myApplications')}
+            actions={
+                // With Announcements out of the menu, this is how an employee finds open posts.
+                <Link
+                    href={route('employee.announcements')}
+                    className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+                >
+                    {t('employeePortal.browseAnnouncements')}
+                </Link>
             }
         >
-            <Head title={t('transfers.myApplications')} />
 
             {!has_employee ? (
                 <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
@@ -116,6 +110,6 @@ export default function MyTransferApplications({ applications, has_employee }: P
                     })}
                 </div>
             )}
-        </AuthenticatedLayout>
+        </PortalPage>
     );
 }

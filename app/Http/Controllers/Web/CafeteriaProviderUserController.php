@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaProviderUser;
-use App\Models\User;
+use App\Security\Passwords\PasswordLifecycle;
+use App\Security\Passwords\PasswordPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -71,25 +72,31 @@ class CafeteriaProviderUserController extends Controller
             'email' => ['nullable', 'string', 'email', 'max:255', 'unique:cafeteria_provider_users,email'],
             'username' => ['nullable', 'string', 'max:100', 'unique:cafeteria_provider_users,username', 'alpha_dash'],
             'phone_number' => ['nullable', 'string', 'max:30'],
-            'password' => ['required', Password::min(8)],
+            // Blank: a generated one-time password. Typed: the central policy.
+            'password' => $request->filled('password')
+                ? app(PasswordPolicy::class)->rules(null, $request->only(['name', 'email', 'username', 'phone_number']), confirmed: false)
+                : ['nullable'],
             'status' => ['required', 'string', 'in:active,inactive,suspended'],
             'portal_enabled' => ['boolean'],
-            'must_change_password' => ['boolean'],
         ]);
 
         $this->requiresEmailOrUsername($validated);
 
+        $temporary = blank($validated['password'] ?? null) ? app(PasswordPolicy::class)->generateTemporaryPassword() : null;
+
         CafeteriaProviderUser::create([
             ...$validated,
             'cafeteria_provider_id' => $provider->id,
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make($temporary ?? $validated['password']),
+            'must_change_password' => true,
             'created_by' => $request->user()?->id,
             'updated_by' => $request->user()?->id,
         ]);
 
         return redirect()
             ->route('cafeteria.providers.users.index', $provider)
-            ->with('success', __('cafeteria.providerUserSaved'));
+            ->with('success', __('cafeteria.providerUserSaved').($temporary ? ' '.__('password-policy.temporary_password_created') : ''))
+            ->with('flash', array_filter(['temporary_password' => $temporary]));
     }
 
     public function edit(Request $request, CafeteriaProvider $provider, CafeteriaProviderUser $providerUser): Response
@@ -147,16 +154,23 @@ class CafeteriaProviderUserController extends Controller
         $this->abortIfWrongProvider($provider, $providerUser);
 
         $validated = $request->validate([
-            'password' => ['required', Password::min(8)],
+            'password' => $request->filled('password')
+                ? app(PasswordPolicy::class)->rules($providerUser, confirmed: false)
+                : ['nullable'],
         ]);
 
-        $providerUser->forceFill([
-            'password' => Hash::make($validated['password']),
-            'must_change_password' => true,
-            'updated_by' => $request->user()?->id,
-        ])->save();
+        $lifecycle = app(PasswordLifecycle::class);
+        $temporary = null;
+        if (blank($validated['password'] ?? null)) {
+            $temporary = $lifecycle->assignTemporaryPassword($providerUser, $request->user(), 'administrator_reset_cafeteria_provider_password');
+        } else {
+            $lifecycle->change($providerUser, $validated['password'], AuditEventType::AdminPasswordReset, PasswordLifecycle::KIND_ADMIN_RESET, mustChange: true, actor: $request->user(), reason: 'administrator_reset_cafeteria_provider_password');
+        }
+        $providerUser->forceFill(['updated_by' => $request->user()?->id])->save();
 
-        return back()->with('success', __('cafeteria.providerUserPasswordReset'));
+        return back()
+            ->with('success', __('cafeteria.providerUserPasswordReset').($temporary ? ' '.__('password-policy.temporary_password_created') : ''))
+            ->with('flash', array_filter(['temporary_password' => $temporary]));
     }
 
     public function suspend(Request $request, CafeteriaProvider $provider, CafeteriaProviderUser $providerUser): RedirectResponse

@@ -5,6 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import FormSection from '@/Components/FormSection';
 import UserAvatar from '@/Components/UserAvatar';
 import OrganizationScopesCard from '@/Components/Users/OrganizationScopesCard';
+import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 
@@ -102,6 +103,7 @@ export default function EditUser({
         email: string;
         password: string;
         password_confirmation: string;
+        generate_temporary_password: boolean;
         status: string;
         roles: string[];
         profile_photo: File | null;
@@ -113,6 +115,7 @@ export default function EditUser({
         email: user.email,
         password: '',
         password_confirmation: '',
+        generate_temporary_password: false,
         status: user.status,
         roles: userRoles,
         profile_photo: null,
@@ -150,8 +153,12 @@ export default function EditUser({
         fd.append('_method', 'PATCH');
         fd.append('name', form.data.name);
         fd.append('email', form.data.email);
-        fd.append('password', form.data.password);
-        fd.append('password_confirmation', form.data.password_confirmation);
+        if (form.data.generate_temporary_password) {
+            fd.append('generate_temporary_password', '1');
+        } else {
+            fd.append('password', form.data.password);
+            fd.append('password_confirmation', form.data.password_confirmation);
+        }
         fd.append('status', form.data.status);
         form.data.roles.forEach((r) => fd.append('roles[]', r));
         fd.append('national_id', form.data.national_id);
@@ -262,6 +269,8 @@ export default function EditUser({
                                         <input
                                             type="password"
                                             className={inputCls}
+                                            autoComplete="new-password"
+                                            disabled={form.data.generate_temporary_password}
                                             placeholder={t('users.newPasswordPlaceholder')}
                                             value={form.data.password}
                                             onChange={(e) => form.setData('password', e.target.value)}
@@ -274,12 +283,30 @@ export default function EditUser({
                                         <input
                                             type="password"
                                             className={inputCls}
+                                            autoComplete="new-password"
+                                            disabled={form.data.generate_temporary_password}
                                             placeholder={t('users.repeatNewPasswordPlaceholder')}
                                             value={form.data.password_confirmation}
                                             onChange={(e) => form.setData('password_confirmation', e.target.value)}
                                         />
                                     </Field>
                                 </div>
+                                <label className="mt-3 flex items-center gap-2 text-xs text-gray-700 dark:text-slate-300">
+                                    <input
+                                        type="checkbox"
+                                        checked={form.data.generate_temporary_password}
+                                        onChange={(e) => form.setData((data) => ({ ...data, generate_temporary_password: e.target.checked, password: '', password_confirmation: '' }))}
+                                    />
+                                    {t('auth.passwordPolicy.generateTemporary')}
+                                </label>
+                                {!form.data.generate_temporary_password && form.data.password !== '' && (
+                                    <PasswordPolicyChecklist
+                                        className="mt-3"
+                                        password={form.data.password}
+                                        confirmation={form.data.password_confirmation}
+                                        personal={[form.data.name, form.data.email, form.data.phone_number]}
+                                    />
+                                )}
                             </div>
                         </FormSection>
 

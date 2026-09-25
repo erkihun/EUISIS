@@ -14,6 +14,8 @@ const settings = {
         saveErrors: 'The template was not saved. Correct these errors before trying again.',
     },
     templateManager: {
+        printedFields: 'Printed employee fields',
+        printedFieldsHelp: 'Applied to frozen server prints. Confirm both faces before printing. Changes affect future prints, not cards already issued.',
     "layout_card_number": "Card Number",
     "layout_signature_label": "Signature label",
     "layout_signature": "Signature",

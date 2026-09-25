@@ -20,8 +20,8 @@ use App\Services\IdCards\CardQrPayloadService;
 use App\Services\IdCards\IdCardPngExporter;
 use App\Services\IdCards\IdCardRenderDataFactory;
 use App\Services\IdCards\IdCardSvgRenderer;
-use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\IdCards\IdCardTemplateService;
+use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Event;
@@ -223,7 +223,11 @@ it('serves active artwork to card consumers and restricts drafts and traversal',
     ]))->assertSessionHasNoErrors();
     $template = IdCardTemplate::query()->sole();
     $url = route('id-card-templates.background', [$template, 'front']);
-    $this->actingAs(User::factory()->create())->get($url)->assertOk()->assertHeader('Content-Type', 'image/png')
+    // SBH-002: being signed in is not enough; the artwork carries the seal and signature.
+    $this->actingAs(User::factory()->create())->get($url)->assertForbidden();
+    $cardStaff = User::factory()->create();
+    $cardStaff->givePermissionTo(Permission::findOrCreate('cards.view', 'web'));
+    $this->actingAs($cardStaff)->get($url)->assertOk()->assertHeader('Content-Type', 'image/png')
         ->assertHeader('X-Content-Type-Options', 'nosniff');
     $template->update(['is_default' => false]);
     $this->get($url)->assertForbidden();

@@ -5,9 +5,9 @@ import { useLocale } from '@/hooks/useLocale';
 import ThemeToggle from '@/Components/ThemeToggle';
 import LanguageSwitcher from '@/Components/LanguageSwitcher';
 
-export default function Login() {
+export default function Login({ sessionNotice }: { sessionNotice?: 'idle_timeout' | 'password_changed' | 'page_expired' | null }) {
     const { t } = useLocale();
-    const form = useForm({ identifier: '', password: '', remember: false });
+    const form = useForm({ identifier: '', password: '' });
 
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -76,6 +76,11 @@ export default function Login() {
                         {t('providerPortal.loginSubtitle') || 'Sign in to your cafeteria provider account'}
                     </p>
 
+                    {sessionNotice && (
+                        <p role="status" className="mb-5 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-900/20 dark:text-amber-300">
+                            {t(`auth.session.${sessionNotice}`)}
+                        </p>
+                    )}
                     <form onSubmit={submit} className="space-y-5">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
@@ -109,16 +114,6 @@ export default function Login() {
                             />
                             <InputError message={form.errors.password} className="mt-2" />
                         </div>
-
-                        <label className="flex items-center gap-2.5 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-400"
-                                checked={form.data.remember}
-                                onChange={e => form.setData('remember', e.target.checked)}
-                            />
-                            <span className="text-sm text-gray-600 dark:text-slate-400">{t('providerPortal.remember')}</span>
-                        </label>
 
                         <button
                             type="submit"

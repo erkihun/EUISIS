@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import FormSection from '@/Components/FormSection';
 import UserAvatar from '@/Components/UserAvatar';
+import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { useLocale } from '@/hooks/useLocale';
 
 type Role = { id: number; name: string; scope: 'organization' | 'global' };
@@ -44,15 +45,11 @@ export default function CreateUser({
     statusOptions,
     organizations = [],
     requiresOrganizationScope,
-    defaultPasswordAvailable = false,
-    passwordMinimumLength = 12,
 }: {
     roles: Role[];
     statusOptions: string[];
     organizations?: OrgOption[];
     requiresOrganizationScope: boolean;
-    defaultPasswordAvailable?: boolean;
-    passwordMinimumLength?: number;
 }) {
     const { t } = useLocale();
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -231,29 +228,31 @@ export default function CreateUser({
                                 <input
                                     type="password"
                                     className={inputCls}
-                                    placeholder={defaultPasswordAvailable
-                                        ? t('users.defaultPasswordOptional')
-                                        : `${t('users.passwordMinimum')} ${passwordMinimumLength}`}
+                                    autoComplete="new-password"
+                                    placeholder={t('auth.passwordPolicy.leaveBlankForTemporary')}
                                     value={form.data.password}
                                     onChange={(e) => form.setData('password', e.target.value)}
                                 />
                             </Field>
 
-                            {defaultPasswordAvailable && (
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
-                                    {t('users.defaultPasswordWillBeUsed')}
-                                </p>
-                            )}
-
                             <Field label={t('users.confirmPassword')} error={form.errors.password_confirmation}>
                                 <input
                                     type="password"
                                     className={inputCls}
+                                    autoComplete="new-password"
                                     placeholder={t('users.repeatPassword')}
                                     value={form.data.password_confirmation}
                                     onChange={(e) => form.setData('password_confirmation', e.target.value)}
                                 />
                             </Field>
+
+                            {form.data.password !== '' && (
+                                <PasswordPolicyChecklist
+                                    password={form.data.password}
+                                    confirmation={form.data.password_confirmation}
+                                    personal={[form.data.name, form.data.email, form.data.phone_number]}
+                                />
+                            )}
                         </FormSection>
 
                         {/* ── Personal Details ──────────────────────────── */}

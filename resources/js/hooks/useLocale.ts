@@ -6,6 +6,8 @@ import amAuditLogs from '@/i18n/am/auditLogs';
 import amCalendar from '@/i18n/am/calendar';
 import amCafeteria from '@/i18n/am/cafeteria';
 import amCommon from '@/i18n/am/common';
+import amDailyActivities from '@/i18n/am/dailyActivities';
+import amPerformance from '@/i18n/am/performance';
 import amAuth from '@/i18n/am/auth';
 import amConfirmations from '@/i18n/am/confirmations';
 import amEntitlements from '@/i18n/am/entitlements';
@@ -54,6 +56,8 @@ import enAuditLogs from '@/i18n/en/auditLogs';
 import enCalendar from '@/i18n/en/calendar';
 import enCafeteria from '@/i18n/en/cafeteria';
 import enCommon from '@/i18n/en/common';
+import enDailyActivities from '@/i18n/en/dailyActivities';
+import enPerformance from '@/i18n/en/performance';
 import enAuth from '@/i18n/en/auth';
 import enConfirmations from '@/i18n/en/confirmations';
 import enEntitlements from '@/i18n/en/entitlements';
@@ -114,6 +118,8 @@ const translations: Record<Locale, TranslationTree> = {
         dashboard: { ...((en.dashboard as TranslationTree | undefined) ?? {}), ...enDashboard },
         employees: { ...((en.employees as TranslationTree | undefined) ?? {}), ...enEmployees },
         employeePortal: enEmployeePortal,
+        dailyActivities: enDailyActivities,
+        performance: enPerformance,
         entitlements: enEntitlements,
         gradeLevels: enGradeLevels,
         idCards: { ...((en.idCards as TranslationTree | undefined) ?? {}), ...enIdCards },
@@ -165,6 +171,8 @@ const translations: Record<Locale, TranslationTree> = {
         dashboard: { ...(((am as { dashboard?: TranslationTree }).dashboard) ?? {}), ...amDashboard },
         employees: { ...(((am as { employees?: TranslationTree }).employees) ?? {}), ...amEmployees },
         employeePortal: amEmployeePortal,
+        dailyActivities: amDailyActivities,
+        performance: amPerformance,
         entitlements: amEntitlements,
         gradeLevels: amGradeLevels,
         idCards: { ...(((am as { idCards?: TranslationTree }).idCards) ?? {}), ...amIdCards },
@@ -224,16 +232,26 @@ function getNestedValue(tree: TranslationTree, path: string): string {
     return typeof current === 'string' ? current : path;
 }
 
-export function useLocale() {
+/**
+ * Locale + translator without Inertia page props, for components mounted
+ * outside <App> (e.g. SessionTimeoutManager), where usePage() throws.
+ */
+export function useTranslator() {
     const { locale, setLocale } = useLocaleContext();
-    const page = usePage<PageProps<{ locale?: string; settings?: Record<string, unknown> }>>();
-    const supportedLocales = ((page.props.settings?.['localization.supported_locales'] as string[] | undefined) ?? ['en', 'am'])
-        .filter((code): code is Locale => code === 'en' || code === 'am');
 
     const t = useCallback(
         (key: string): string => getNestedValue(translations[locale] ?? translations.en, key),
         [locale],
     );
+
+    return { locale, setLocale, t };
+}
+
+export function useLocale() {
+    const { locale, setLocale, t } = useTranslator();
+    const page = usePage<PageProps<{ locale?: string; settings?: Record<string, unknown> }>>();
+    const supportedLocales = ((page.props.settings?.['localization.supported_locales'] as string[] | undefined) ?? ['en', 'am'])
+        .filter((code): code is Locale => code === 'en' || code === 'am');
 
     const localeOptions = useMemo(
         () => supportedLocales.map((code) => ({ value: code, label: code === 'am' ? 'አማ' : 'EN' })),

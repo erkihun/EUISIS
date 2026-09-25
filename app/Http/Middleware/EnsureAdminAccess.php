@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Services\Security\SessionActivityService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,9 +26,7 @@ class EnsureAdminAccess
 
         // Deny inactive/suspended admin accounts even if they hold a valid session.
         if ($user !== null && method_exists($user, 'isActive') && ! $user->isActive()) {
-            auth()->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            app(SessionActivityService::class)->end($request, SessionActivityService::REASON_ACCOUNT_DISABLED, ['web']);
 
             return redirect()->route('login')->withErrors(['email' => __('auth.account_inactive')]);
         }

@@ -13,13 +13,23 @@ class Role extends SpatieRole
         'name',
         'guard_name',
         'scope_type',
+        'description_en',
+        'description_am',
+        'is_system',
     ];
 
     protected function casts(): array
     {
         return [
             'scope_type' => RoleScopeType::class,
+            'is_system' => 'boolean',
         ];
+    }
+
+    /** Seeded from App\Support\Rbac\DefaultRoleMatrix; reseeding keeps its permissions equal to the matrix. */
+    public function isSystem(): bool
+    {
+        return (bool) ($this->is_system ?? false);
     }
 
     public function isScoped(): bool

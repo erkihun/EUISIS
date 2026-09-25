@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Users\UpdateUserAction;
 use App\Enums\AuditEventType;
+use App\Models\AuditLog;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Services\SystemSettings\SystemSettingsService;
@@ -30,7 +31,12 @@ function defaultPasswordAdmin(): User
 function defaultPasswordSecurityPayload(array $overrides = []): array
 {
     return array_merge([
-        'password_min_length' => 12,
+        'password_min_length' => 15,
+        'password_max_length' => 128,
+        'password_history_count' => 5,
+        'password_block_personal_info' => true,
+        'password_block_common' => true,
+        'password_breach_check' => true,
         'session_timeout_minutes' => 120,
         'max_upload_size_mb' => 10,
         'password_complexity_enabled' => true,
@@ -73,47 +79,42 @@ function seedDefaultPassword(string $plain = 'Default-Start-928!', bool $enabled
     app(SystemSettingsService::class)->clearCache();
 }
 
-test('admin can configure a default password and only its hash is stored', function (): void {
+test('the shared default password can no longer be configured', function (): void {
     $admin = defaultPasswordAdmin();
 
     $this->actingAs($admin)
-        ->patch(route('system-settings.security.update'), defaultPasswordSecurityPayload())
-        ->assertSessionHasNoErrors()
-        ->assertRedirect();
+        ->patch(route('system-settings.security.update'), defaultPasswordSecurityPayload([
+            'default_password_enabled' => true,
+            'default_password_hash' => 'Default-Start-928!',
+            'default_password_hash_confirmation' => 'Default-Start-928!',
+        ]))
+        ->assertSessionHasErrors(['default_password_enabled', 'default_password_hash']);
 
-    $stored = (string) SystemSetting::query()
-        ->where('group', 'security')
-        ->where('key', 'default_password_hash')
-        ->value('value');
-
-    expect($stored)->not->toBe('Default-Start-928!')
-        ->and(Hash::check('Default-Start-928!', $stored))->toBeTrue();
-
-    $this->assertDatabaseHas('audit_logs', [
-        'actor_user_id' => $admin->id,
-        'event_type' => AuditEventType::DefaultPasswordConfigured->value,
-    ]);
+    expect(SystemSetting::query()->where('group', 'security')->where('key', 'default_password_hash')->exists())->toBeFalse();
+    $this->assertDatabaseMissing('audit_logs', ['event_type' => AuditEventType::DefaultPasswordConfigured->value]);
 });
 
-test('settings page reports configuration without exposing the saved hash', function (): void {
+test('the settings page offers no default password and never exposes a stored hash', function (): void {
     seedDefaultPassword();
 
     $this->actingAs(defaultPasswordAdmin())
         ->get(route('system-settings.index'))
         ->assertInertia(function ($page): void {
-            $field = collect($page->toArray()['props']['settingGroups']['security']['fields'])
-                ->firstWhere('key', 'default_password_hash');
+            $keys = collect($page->toArray()['props']['settingGroups']['security']['fields'])->pluck('key');
 
-            expect($field['configured'])->toBeTrue()
-                ->and($field['value'])->toBeNull();
+            expect($keys)->not->toContain('default_password_hash')
+                ->and($keys)->not->toContain('default_password_enabled')
+                ->and($keys)->not->toContain('password_complexity_enabled')
+                ->and($keys)->not->toContain('password_expiry_days')
+                ->and($keys)->toContain('password_history_count');
         });
 });
 
-test('new user without a custom password receives the configured default and is forced to change it', function (): void {
+test('a new user without a typed password gets a unique one-time password, never the shared default', function (): void {
     seedDefaultPassword();
     $admin = defaultPasswordAdmin();
 
-    $this->actingAs($admin)
+    $response = $this->actingAs($admin)
         ->post(route('users.store'), [
             'name' => 'Default Password User',
             'email' => 'default.user@example.test',
@@ -124,27 +125,36 @@ test('new user without a custom password receives the configured default and is 
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('users.index'));
 
+    $temporary = (string) session('flash.temporary_password');
     $user = User::query()->where('email', 'default.user@example.test')->firstOrFail();
 
-    expect(Hash::check('Default-Start-928!', $user->password))->toBeTrue()
+    expect($temporary)->toMatch('/^[A-Za-z0-9]{5}(-[A-Za-z0-9]{5}){3}$/')
+        ->and(Hash::check($temporary, $user->password))->toBeTrue()
+        ->and(Hash::check('Default-Start-928!', $user->password))->toBeFalse()
         ->and($user->must_change_password)->toBeTrue();
 
     $this->assertDatabaseHas('audit_logs', [
         'auditable_id' => $user->id,
-        'event_type' => AuditEventType::UserCreatedWithDefaultPassword->value,
+        'event_type' => AuditEventType::TemporaryPasswordAssigned->value,
     ]);
+
+    // The one-time password is in no audit row.
+    expect(json_encode(AuditLog::query()->get()->toArray()))->not->toContain($temporary);
 });
 
-test('blank user password is rejected when no enabled default is configured', function (): void {
-    $this->actingAs(defaultPasswordAdmin())
-        ->post(route('users.store'), [
-            'name' => 'Missing Password User',
-            'email' => 'missing.password@example.test',
-            'password' => '',
-            'password_confirmation' => '',
-            'status' => 'active',
-        ])
-        ->assertSessionHasErrors('password');
+test('two accounts created without a password never share one', function (): void {
+    $admin = defaultPasswordAdmin();
+    $passwords = [];
+
+    foreach (['first', 'second'] as $who) {
+        $this->actingAs($admin)->post(route('users.store'), [
+            'name' => ucfirst($who).' Person', 'email' => "{$who}.person@example.test",
+            'password' => '', 'password_confirmation' => '', 'status' => 'active',
+        ])->assertSessionHasNoErrors();
+        $passwords[] = (string) session('flash.temporary_password');
+    }
+
+    expect($passwords[0])->not->toBe($passwords[1]);
 });
 
 test('login with the configured default records login state and redirects immediately', function (): void {

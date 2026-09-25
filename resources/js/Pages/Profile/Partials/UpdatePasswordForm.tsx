@@ -1,13 +1,15 @@
 import InputError from '@/Components/InputError';
+import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 export default function UpdatePasswordForm({ className = '' }: { className?: string }) {
     const { t } = useLocale();
+    const account = (usePage().props as { auth?: { user?: { name?: string; email?: string } } }).auth?.user;
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
 
@@ -87,6 +89,8 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                         <InputError message={errors.password_confirmation} className="mt-2" />
                     </div>
                 </div>
+
+                <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[account?.name, account?.email]} />
 
                 <div className="flex items-center justify-end gap-4 border-t border-gray-100 pt-5 dark:border-slate-800">
                     <Transition show={recentlySuccessful} enter="transition ease-in-out" enterFrom="opacity-0" leave="transition ease-in-out" leaveTo="opacity-0">

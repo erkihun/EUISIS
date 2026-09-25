@@ -27,8 +27,11 @@ class TransportRouteController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(Request $request, ProviderPortalContext $context): Response
     {
+        $this->provider($request, $context);
+        abort_unless(auth('provider')->user()?->canUseServicePermission('provider.transport.routes.manage') ?? false, 403);
+
         return Inertia::render('ProviderPortal/Transport/Routes/Create');
     }
 

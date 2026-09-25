@@ -55,14 +55,14 @@ const allEntries: NavEntry[] = [
     { routeName: 'transfer-applications.index', labelKey: 'nav.transferApplications', groupKey: 'nav.transferManagement', icon: Inbox,            permission: 'transfers.applications.view' },
     // Identity
     { routeName: 'id-cards.index', labelKey: 'nav.idCards', groupKey: 'nav.groupIdentity', icon: CreditCard,       permission: 'cards.view' },
-    { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', groupKey: 'nav.groupIdentity', icon: ClipboardCheck,   permission: 'card-requests.viewAny' },
+    { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', groupKey: 'nav.groupIdentity', icon: ClipboardCheck,   permission: 'id-cards.viewAny' },
     // Services
     { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', groupKey: 'nav.groupServices', icon: Layers,           permission: 'service-types.viewAny' },
     { routeName: 'entitlement-rules.index', labelKey: 'nav.entitlementRules', groupKey: 'nav.groupServices', icon: ReceiptText,      permission: 'entitlement-rules.viewAny' },
     // Cafeteria
-    { routeName: 'cafeteria.dashboard', labelKey: 'nav.cafeteriaDashboard', groupKey: 'nav.groupCafeteria', icon: LayoutDashboard,  permission: 'cafeteria_transactions.viewAny' },
-    { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', groupKey: 'nav.groupCafeteria', icon: ReceiptText,      permission: 'cafeteria_transactions.viewAny' },
-    { routeName: 'cafeteria.reports.index', labelKey: 'nav.cafeteriaReports', groupKey: 'nav.groupCafeteria', icon: Activity,         permission: 'cafeteria_reports.viewAny' },
+    { routeName: 'cafeteria.dashboard', labelKey: 'nav.cafeteriaDashboard', groupKey: 'nav.groupCafeteria', icon: LayoutDashboard,  permission: 'cafeteria_transactions.view' },
+    { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', groupKey: 'nav.groupCafeteria', icon: ReceiptText,      permission: 'cafeteria_transactions.view' },
+    { routeName: 'cafeteria.reports.index', labelKey: 'nav.cafeteriaReports', groupKey: 'nav.groupCafeteria', icon: Activity,         permission: 'cafeteria_reports.view' },
     { routeName: 'cafeteria.settings.index', labelKey: 'nav.cafeteriaSettings', groupKey: 'nav.groupCafeteria', icon: Settings,         permission: 'cafeteria_settings.view' },
     // Transport
     { routeName: 'transport.providers.index', labelKey: 'nav.transportProviders', groupKey: 'nav.groupTransport', icon: Handshake,        permission: 'transport-providers.viewAny' },

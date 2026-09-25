@@ -4,47 +4,39 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
-use App\Services\Security\DefaultPasswordPolicyService;
+use App\Security\Passwords\PasswordLifecycle;
+use App\Security\Passwords\PasswordPolicy;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 
+/**
+ * Voluntary password change from the profile screen. The current password is
+ * verified server-side (the route is throttled), the new one goes through the
+ * central policy, and the change through PasswordLifecycle.
+ */
 class PasswordController extends Controller
 {
-    public function __construct(private readonly DefaultPasswordPolicyService $defaultPasswordPolicy) {}
+    public function __construct(
+        private readonly PasswordPolicy $policy,
+        private readonly PasswordLifecycle $lifecycle,
+    ) {}
 
-    /**
-     * Update the user's password.
-     */
     public function update(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', $this->defaultPasswordPolicy->rule(), 'confirmed'],
-        ]);
-
         $user = $request->user();
 
-        if (Hash::check($validated['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'password' => __('auth.password_must_differ'),
-            ]);
-        }
-
-        if ($this->defaultPasswordPolicy->matches($validated['password'])) {
-            throw ValidationException::withMessages([
-                'password' => __('auth.password_cannot_be_default'),
-            ]);
-        }
-
-        $user->update([
-            'password' => Hash::make($validated['password']),
+        $validated = $request->validate([
+            'current_password' => ['required', 'current_password'],
+            'password' => $this->policy->rules($user),
         ]);
 
-        // Record the holder-chosen credential and its lifecycle timestamp.
-        $user->markPasswordChanged();
+        $this->lifecycle->change($user, $validated['password'], AuditEventType::UserPasswordChanged, reason: 'user_changed_own_password');
+
+        // New session id for this browser; every other session is signed out
+        // by AuthenticateSession on its next request.
+        $request->session()->regenerate();
 
         return back();
     }

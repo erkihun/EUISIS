@@ -30,10 +30,11 @@ use App\Models\User;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
+use App\Support\EmployeePhotoStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -693,11 +694,8 @@ class EmployeeController extends Controller
         );
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store(
-                'employees/photos/'.$employee->id,
-                'public'
-            );
-            $employee->update(['photo_path' => $path]);
+            // Private disk: photos are personal data (SEC-013).
+            $employee->update(['photo_path' => EmployeePhotoStorage::store($request->file('photo'))]);
         }
 
         return to_route('employees.show', $employee)
@@ -721,21 +719,17 @@ class EmployeeController extends Controller
         ])));
 
         if ($request->boolean('remove_photo') && $employee->photo_path) {
-            Storage::disk('public')->delete($employee->photo_path);
+            EmployeePhotoStorage::delete($employee->photo_path);
             $attributes['photo_path'] = null;
         }
 
         if ($request->hasFile('photo')) {
-            if ($employee->photo_path) {
-                Storage::disk('public')->delete($employee->photo_path);
-            }
-            $attributes['photo_path'] = $request->file('photo')->store(
-                'employees/photos/'.$employee->id,
-                'public'
-            );
+            EmployeePhotoStorage::delete($employee->photo_path);
+            // Private disk: photos are personal data (SEC-013).
+            $attributes['photo_path'] = EmployeePhotoStorage::store($request->file('photo'));
         }
 
-        $employee->update($attributes);
+        DB::transaction(fn () => $employee->update($attributes));
 
         $writeAuditLogAction->execute(
             AuditEventType::EmployeeUpdated,

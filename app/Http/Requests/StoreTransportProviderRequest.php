@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Security\Passwords\PasswordPolicy;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -43,7 +44,10 @@ class StoreTransportProviderRequest extends FormRequest
             'user_name' => ['nullable', 'string', 'max:255'],
             'user_email' => ['nullable', 'email', 'max:255', 'unique:provider_users,email'],
             'username' => ['nullable', 'string', 'max:100', 'alpha_dash', 'unique:provider_users,username'],
-            'user_password' => ['nullable', 'string', 'min:8'],
+            // Blank: a generated one-time password. Typed: the central policy.
+            'user_password' => $this->filled('user_password')
+                ? app(PasswordPolicy::class)->rules(null, $this->only(['user_name', 'user_email', 'username']), confirmed: false)
+                : ['nullable'],
         ];
     }
 }

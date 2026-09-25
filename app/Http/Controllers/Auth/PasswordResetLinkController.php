@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Audit\WriteAuditLogAction;
+use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class PasswordResetLinkController extends Controller
 {
@@ -23,9 +26,10 @@ class PasswordResetLinkController extends Controller
     }
 
     /**
-     * Handle an incoming password reset link request.
-     *
-     * @throws ValidationException
+     * Send a reset link — and answer identically whether or not the account
+     * exists, and whether or not the per-account resend throttle applied, so
+     * the form cannot be used to discover which emails have accounts.
+     * The route is rate-limited per IP; the broker throttles per account.
      */
     public function store(Request $request): RedirectResponse
     {
@@ -33,19 +37,30 @@ class PasswordResetLinkController extends Controller
             'email' => 'required|email',
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $status = Password::sendResetLink($request->only('email'));
 
-        if ($status == Password::RESET_LINK_SENT) {
-            return back()->with('status', __($status));
+        if ($status === Password::RESET_LINK_SENT) {
+            $this->audit($request);
         }
 
-        throw ValidationException::withMessages([
-            'email' => [trans($status)],
-        ]);
+        return back()->with('status', __('password-policy.reset_link_sent'));
+    }
+
+    private function audit(Request $request): void
+    {
+        try {
+            $user = User::query()->where('email', (string) $request->input('email'))->first();
+            if ($user !== null) {
+                app(WriteAuditLogAction::class)->execute(
+                    AuditEventType::PasswordResetRequested,
+                    null,
+                    $user,
+                    reason: 'password_reset_link_emailed',
+                    request: $request,
+                );
+            }
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 }

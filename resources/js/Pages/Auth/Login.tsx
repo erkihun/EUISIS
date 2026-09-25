@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { PageProps } from '@/types';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
@@ -7,19 +8,24 @@ import { useSystemSettings } from '@/hooks/useSystemSettings';
 export default function Login({
     status,
     canResetPassword,
+    sessionNotice,
 }: {
     status?: string;
     canResetPassword: boolean;
+    /** Why the previous session ended; a code localized here. */
+    sessionNotice?: 'idle_timeout' | 'password_changed' | 'page_expired' | null;
 }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
-        remember: false as boolean,
     });
 
     const [showPassword, setShowPassword] = useState(false);
     const { t, locale } = useLocale();
     const { getString } = useSystemSettings();
+    const { registration_enabled: registrationEnabled = false } = usePage<
+        PageProps<{ registration_enabled?: boolean }>
+    >().props;
 
     // Branding pulled from system settings
     const systemName  = getString('app.short_name', 'EUISIS');
@@ -185,6 +191,15 @@ export default function Login({
                                 </p>
                             </div>
 
+                            {sessionNotice && (
+                                <div role="status" className="mb-5 flex items-center gap-2.5 rounded-card border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/50 dark:bg-amber-900/20 dark:text-amber-300">
+                                    <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                    </svg>
+                                    {t(`auth.session.${sessionNotice}`)}
+                                </div>
+                            )}
+
                             {/* Status */}
                             {status && (
                                 <div className="mb-5 flex items-center gap-2.5 rounded-card border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-800/50 dark:bg-emerald-900/20 dark:text-emerald-400">
@@ -298,18 +313,6 @@ export default function Login({
                                     )}
                                 </div>
 
-                                {/* Remember me */}
-                                <label className="flex cursor-pointer items-center gap-2.5 py-0.5">
-                                    <input
-                                        type="checkbox"
-                                        name="remember"
-                                        checked={data.remember}
-                                        onChange={(e) => setData('remember', e.target.checked as false)}
-                                        className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800"
-                                    />
-                                    <span className="text-sm text-gray-600 dark:text-slate-400">{t('auth.keepSignedIn')}</span>
-                                </label>
-
                                 {/* Submit */}
                                 <button
                                     type="submit"
@@ -334,6 +337,23 @@ export default function Login({
                                     )}
                                 </button>
                             </form>
+
+                            {registrationEnabled && (
+                                <div className="mt-6 border-t border-gray-200 pt-6 dark:border-slate-800">
+                                    <p className="mb-3 text-center text-sm text-gray-500 dark:text-slate-400">
+                                        {t('auth.noAccount')}
+                                    </p>
+                                    <Link
+                                        href={route('register')}
+                                        className="flex w-full items-center justify-center gap-2 rounded-card border border-[color:var(--color-primary)] bg-transparent px-4 py-2.5 text-sm font-semibold text-[color:var(--color-primary)] transition-colors hover:bg-[color:var(--color-primary)]/5 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 dark:hover:bg-[color:var(--color-primary)]/10 dark:focus:ring-offset-slate-900"
+                                    >
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21C7.043 21 4.862 20.355 3 19.234Z" />
+                                        </svg>
+                                        {t('auth.createEmployeeAccount')}
+                                    </Link>
+                                </div>
+                            )}
                         </div>
 
                         {/* Footer */}

@@ -34,25 +34,25 @@ use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationNameHistory;
 use App\Models\OrganizationType;
-use App\Models\Permission;
 use App\Models\Position;
-use App\Models\Role;
 use App\Models\ServiceProvider;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use Database\Seeders\Concerns\DemoPasswords;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use RuntimeException;
-use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
 {
+    use DemoPasswords;
+
     public function run(PublishHierarchyVersionAction $publishHierarchyVersionAction): void
     {
         $this->ensureRequiredTablesExist();
@@ -185,7 +185,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'super.admin@demo.local'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('password'),
+                ...$this->demoPasswordAttributes('super.admin@demo.local'),
                 'status' => 'active',
                 'is_demo' => true,
             ],
@@ -195,7 +195,7 @@ class DatabaseSeeder extends Seeder
         $cityAdmin = User::factory()->create([
             'name' => 'City Admin',
             'email' => 'city.admin@demo.local',
-            'password' => Hash::make('password'),
+            ...$this->demoPasswordAttributes('city.admin@demo.local'),
             'default_organization_id' => $root->id,
             'is_demo' => true,
         ]);
@@ -205,7 +205,7 @@ class DatabaseSeeder extends Seeder
         $hrOfficer = User::factory()->create([
             'name' => 'HR Officer',
             'email' => 'hr.officer@demo.local',
-            'password' => Hash::make('password'),
+            ...$this->demoPasswordAttributes('hr.officer@demo.local'),
             'default_organization_id' => $publicServiceBureau->id,
             'is_demo' => true,
         ]);
@@ -214,7 +214,7 @@ class DatabaseSeeder extends Seeder
         $providerUser = User::factory()->create([
             'name' => 'Transport Provider User',
             'email' => 'provider.transport@demo.local',
-            'password' => Hash::make('password'),
+            ...$this->demoPasswordAttributes('provider.transport@demo.local'),
             'default_organization_id' => $root->id,
             'is_demo' => true,
         ]);
@@ -519,346 +519,13 @@ class DatabaseSeeder extends Seeder
         HierarchyVersion::where('is_demo', true)->delete();
     }
 
+    /**
+     * Default permissions and roles come from the RBAC catalog and matrix
+     * (App\Support\Rbac); this seeder never keeps its own copy.
+     */
     private function seedPermissionsAndRoles(): void
     {
-        $permissions = [
-            'dashboard.view',
-            'dashboard.reports',
-            // Legacy (kept for backward compatibility with existing tests/policies)
-            'organizations.view',
-            'organizations.manage',
-            'organizations.create',
-            'organizations.update',
-            'organizations.delete',
-            'organizations.import',
-            'employees.view',
-            'employees.manage',
-            'cards.view',
-            'cards.manage',
-            'entitlements.view',
-            'entitlements.manage',
-            'transactions.view',
-            'transactions.manage',
-            'audit.view',
-            'reports.view',
-            'reports.export',
-
-            // Organization Types
-            'organization-types.viewAny',
-            'organization-types.view',
-            'organization-types.create',
-            'organization-types.update',
-            'organization-types.delete',
-            'organization-types.restore',
-            'organization-types.viewDeleted',
-            'organizations.viewAny',
-            'hierarchy-versions.viewAny',
-            'hierarchy-versions.view',
-            'hierarchy-versions.create',
-            'hierarchy-versions.update',
-            'hierarchy-versions.archive',
-            'hierarchy-versions.publish',
-            'hierarchy-versions.manageTree',
-            'organization-edges.view',
-            'organization-edges.create',
-            'organization-edges.update',
-            'organization-edges.remove',
-
-            // Users
-            'users.viewAny',
-            'users.view',
-            'users.create',
-            'users.update',
-            'users.delete',
-            'users.archive',
-            'users.restore',
-            'users.assignRoles',
-            'users.resetPassword',
-            'users.deactivate',
-            'users.updateProfilePhoto',
-            'users.viewSensitive',
-            'users.assignOrganizationScopes',
-
-            // User Organization Scopes
-            'user-organization-scopes.viewAny',
-            'user-organization-scopes.create',
-            'user-organization-scopes.update',
-            'user-organization-scopes.delete',
-            'user-organization-scopes.restore',
-
-            // Roles
-            'roles.viewAny',
-            'roles.view',
-            'roles.create',
-            'roles.update',
-            'roles.delete',
-            'roles.assignPermissions',
-
-            // Permissions
-            'permissions.viewAny',
-            'permissions.view',
-
-            // System Settings
-            'system-settings.view',
-            'system-settings.update',
-            'system-settings.manageUi',
-            'system-settings.manageGeneral',
-            'system-settings.manageLocalization',
-            'system-settings.manageNotifications',
-            'system-settings.manageEmail',
-            'system-settings.manageSms',
-            'system-settings.manageTelegram',
-            'system-settings.manageSecurity',
-            'system-settings.manageAppearance',
-            'system-settings.manageIdCards',
-            'system-settings.clearCache',
-            'system-settings.testNotificationChannels',
-            'system-settings.uploadAssets',
-
-            // ID Cards (granular)
-            'id-cards.viewAny',
-            'id-cards.view',
-            'id-cards.create',
-            'id-cards.update',
-            'id-cards.archive',
-            'id-cards.submitRequest',
-            'id-cards.verifyRequest',
-            'id-cards.approveRequest',
-            'id-cards.rejectRequest',
-            'id-cards.createPrintBatch',
-            'id-cards.print',
-            'id-cards.issue',
-            'id-cards.activate',
-            'id-cards.reportLost',
-            'id-cards.reportDamaged',
-            'id-cards.replace',
-            'id-cards.revoke',
-            'id-cards.verify',
-            'id-cards.export',
-            'id-cards.exportPng',
-            'id-cards.previewSvg',
-            'card-verifications.viewAny',
-            'employees.viewAny',
-            'entitlements.viewAny',
-            'providers.viewAny',
-            'service-transactions.viewAny',
-            'audit-logs.viewAny',
-            'occupations.viewAny',
-            'occupations.view',
-            'occupations.create',
-            'occupations.update',
-            'occupations.archive',
-            'occupations.delete',
-            'occupations.restore',
-            'occupations.export',
-            'isic-activities.viewAny',
-            'isic-activities.view',
-            'isic-activities.create',
-            'isic-activities.update',
-            'isic-activities.archive',
-            'isic-activities.delete',
-            'isic-activities.restore',
-            'isic-activities.export',
-            'positions.viewAny',
-            'positions.view',
-            'positions.create',
-            'positions.update',
-            'positions.archive',
-            'positions.delete',
-            'positions.restore',
-            'positions.viewDeleted',
-            'positions.export',
-            'transfers.viewAny',
-            'transfers.view',
-            'transfers.create',
-            'transfers.update',
-            'transfers.submit',
-            'transfers.confirmCurrentOrganization',
-            'transfers.confirmReceivingOrganization',
-            'transfers.approve',
-            'transfers.reject',
-            'transfers.cancel',
-            'transfers.complete',
-            'transfers.export',
-            'service-types.viewAny',
-            'service-types.view',
-            'service-types.create',
-            'service-types.update',
-            'service-types.archive',
-            'service-types.delete',
-            'service-types.restore',
-            'service-types.viewDeleted',
-            'service-types.export',
-            'entitlement-rules.viewAny',
-            'entitlement-rules.view',
-            'entitlement-rules.create',
-            'entitlement-rules.update',
-            'entitlement-rules.archive',
-            'entitlement-rules.delete',
-            'entitlement-rules.restore',
-            'entitlement-rules.viewDeleted',
-            'entitlement-rules.export',
-            'code-rules.viewAny',
-            'code-rules.view',
-            'code-rules.create',
-            'code-rules.update',
-            'code-rules.archive',
-            'code-rules.delete',
-            'code-rules.restore',
-            'code-rules.viewDeleted',
-            'code-rules.preview',
-            'code-rules.generate',
-            'code-rules.export',
-            'code-rules.manageOverrides',
-            'code-rules.viewSequences',
-            'code-rules.manageSequences',
-            'code-rules.resetSequence',
-
-            'transport-providers.viewAny',
-            'transport-providers.view',
-            'transport-providers.create',
-            'transport-providers.update',
-            'transport-providers.delete',
-            'transport-providers.restore',
-            'transport-routes.viewAny',
-            'transport-routes.view',
-            'transport-routes.create',
-            'transport-routes.update',
-            'transport-routes.delete',
-            'transport-vehicles.viewAny',
-            'transport-vehicles.view',
-            'transport-vehicles.create',
-            'transport-vehicles.update',
-            'transport-vehicles.delete',
-            'transport-drivers.viewAny',
-            'transport-drivers.view',
-            'transport-drivers.create',
-            'transport-drivers.update',
-            'transport-drivers.delete',
-            'transport-passes.viewAny',
-            'transport-passes.view',
-            'transport-passes.create',
-            'transport-passes.update',
-            'transport-passes.cancel',
-            'transport-transactions.viewAny',
-            'transport-transactions.view',
-            'transport-transactions.export',
-            'transport-reports.view',
-            'transport-reports.export',
-            'transport-settings.view',
-            'transport-settings.update',
-
-            // Organization Units
-            'organization-units.viewAny',
-            'organization-units.view',
-            'organization-units.create',
-            'organization-units.update',
-            'organization-units.archive',
-            'organization-units.delete',
-            'organization-units.restore',
-            'organization-units.viewDeleted',
-            'organization-units.manageHierarchy',
-            'organization-units.export',
-
-            // Organization Unit Types
-            'organization-unit-types.viewAny',
-            'organization-unit-types.view',
-            'organization-unit-types.create',
-            'organization-unit-types.update',
-            'organization-unit-types.archive',
-            'organization-unit-types.delete',
-            'organization-unit-types.restore',
-            'organization-unit-types.viewDeleted',
-            'recycle-bin.view',
-            'recycle-bin.restore',
-            'recycle-bin.viewDetails',
-            'recycle-bin.forceDelete',
-        ];
-
-        $catalog = require database_path('seeders/data/permissions.php');
-        foreach ($catalog as $entry) {
-            Permission::updateOrCreate(
-                ['name' => $entry['name'], 'guard_name' => 'web'],
-                array_diff_key($entry, ['name' => 1]),
-            );
-        }
-
-        // Ensure any permissions in the legacy list that are not yet in the catalog are also seeded.
-        foreach ($permissions as $permission) {
-            Permission::findOrCreate($permission, 'web');
-        }
-
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
-
-        $allPermissions = Permission::all()->pluck('name')->toArray();
-
-        $institutionAdminPerms = [
-            'dashboard.view',
-            'organizations.view', 'organizations.manage', 'organizations.create',
-            'organizations.update', 'organizations.delete',
-            'organizations.import',
-            'organizations.viewAny',
-            'organization-types.viewAny', 'organization-types.view',
-            'hierarchy-versions.viewAny', 'hierarchy-versions.view',
-            'organization-edges.view',
-            'service-types.viewAny', 'service-types.view',
-            'entitlement-rules.viewAny', 'entitlement-rules.view',
-            'code-rules.viewAny', 'code-rules.view', 'code-rules.preview',
-            'employees.view', 'employees.viewAny', 'employees.manage',
-            'cards.view', 'cards.manage',
-            'id-cards.viewAny',
-            'audit.view', 'reports.view',
-        ];
-
-        $roleMap = [
-            'Super Admin' => $allPermissions,
-            'System Admin' => $allPermissions,
-            'Public Service Bureau Admin' => $allPermissions,
-            'City Admin' => $allPermissions,
-            'Institution Admin' => $institutionAdminPerms,
-            'Sub-city Admin' => ['dashboard.view', 'organizations.view', 'organizations.viewAny', 'organization-types.viewAny', 'service-types.viewAny', 'entitlement-rules.viewAny', 'employees.view', 'employees.viewAny', 'employees.manage', 'cards.view', 'id-cards.viewAny', 'audit.view', 'reports.view'],
-            'Woreda Admin' => ['dashboard.view', 'organizations.view', 'organizations.viewAny', 'organization-types.viewAny', 'service-types.viewAny', 'entitlement-rules.viewAny', 'employees.view', 'employees.viewAny', 'employees.manage', 'cards.view', 'id-cards.viewAny', 'reports.view'],
-            'HR Officer' => [
-                'dashboard.view',
-                'employees.view', 'employees.manage',
-                'employees.viewAny',
-                'cards.view', 'cards.manage',
-                'id-cards.viewAny', 'id-cards.view', 'id-cards.submitRequest', 'id-cards.verifyRequest',
-                'id-cards.exportPng', 'id-cards.previewSvg',
-                'entitlements.view', 'entitlements.viewAny',
-                'service-types.viewAny', 'service-types.view',
-                'entitlement-rules.viewAny', 'entitlement-rules.view',
-                'occupations.viewAny', 'occupations.view', 'occupations.create', 'occupations.update',
-                'isic-activities.viewAny', 'isic-activities.view',
-                'positions.viewAny', 'positions.view', 'positions.create', 'positions.update',
-                'transfers.viewAny', 'transfers.view', 'transfers.create', 'transfers.update', 'transfers.submit',
-            ],
-            'ID Card Officer' => [
-                'dashboard.view',
-                'cards.view', 'cards.manage',
-                'id-cards.viewAny', 'id-cards.view', 'id-cards.create', 'id-cards.update',
-                'service-types.viewAny', 'service-types.view',
-                'id-cards.submitRequest', 'id-cards.verifyRequest', 'id-cards.approveRequest', 'id-cards.rejectRequest',
-                'id-cards.createPrintBatch', 'id-cards.print', 'id-cards.issue', 'id-cards.activate',
-                'id-cards.reportLost', 'id-cards.reportDamaged', 'id-cards.replace', 'id-cards.revoke',
-                'card-verifications.viewAny',
-                'id-cards.export', 'id-cards.exportPng', 'id-cards.previewSvg',
-            ],
-            'Service Provider User' => ['dashboard.view', 'transactions.manage', 'service-transactions.viewAny', 'providers.viewAny', 'service-types.viewAny', 'service-types.view'],
-            'Settlement Officer' => ['dashboard.view', 'transactions.view', 'service-transactions.viewAny', 'providers.viewAny', 'reports.view'],
-            'Auditor' => ['dashboard.view', 'audit.view', 'audit-logs.viewAny', 'reports.view', 'occupations.viewAny', 'occupations.view', 'positions.viewAny', 'positions.view', 'transfers.viewAny', 'transfers.view', 'card-verifications.viewAny', 'service-types.viewAny', 'entitlement-rules.viewAny', 'hierarchy-versions.viewAny', 'hierarchy-versions.view', 'organization-edges.view', 'code-rules.viewAny', 'code-rules.view', 'code-rules.preview'],
-            'Report Viewer' => ['dashboard.view', 'reports.view', 'dashboard.reports'],
-        ];
-
-        $globalRoles = ['Super Admin', 'System Admin', 'City Admin', 'Public Service Bureau Admin'];
-
-        foreach ($roleMap as $role => $grantedPermissions) {
-            $roleModel = Role::query()->updateOrCreate(
-                ['name' => $role, 'guard_name' => 'web'],
-                ['scope_type' => in_array($role, $globalRoles, true) ? 'global' : 'scoped'],
-            );
-            $roleModel->syncPermissions($grantedPermissions);
-        }
+        $this->call([PermissionSeeder::class, RoleSeeder::class]);
     }
 
     private function seedSystemSettings(): void

@@ -79,10 +79,6 @@
     transition: translate 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
 }
 
-@media (min-width: 1024px) {
-    .public-home .home-platform-panel { rotate: -1deg; }
-}
-
 @media (max-width: 1023px) {
     .public-home #hero-heading { margin-inline: auto; }
 }

@@ -5,6 +5,7 @@ import AppSidebar from '@/Components/AppSidebar';
 import AppHeader from '@/Components/AppHeader';
 import Breadcrumbs from '@/Components/Breadcrumbs';
 import AppToaster from '@/Components/ui/AppToaster';
+import TemporaryPasswordNotice from '@/Components/TemporaryPasswordNotice';
 import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
@@ -15,7 +16,8 @@ const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 export default function Authenticated({
     header,
     children,
-}: PropsWithChildren<{ header?: ReactNode }>) {
+    variant = 'default',
+}: PropsWithChildren<{ header?: ReactNode; variant?: 'default' | 'portal' }>) {
     const { locale, t } = useLocale();
     const { getBoolean, getString } = useSystemSettings();
     const { url: pageUrl } = usePage();
@@ -107,7 +109,7 @@ export default function Authenticated({
 
     return (
         <LocalizedUiProvider>
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+        <div className={`${variant === 'portal' ? 'portal-shell ' : ''}min-h-screen bg-gray-50 dark:bg-slate-950`}>
             <a
                 href="#main-content"
                 className="sr-only fixed left-4 top-4 z-[60] rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg focus:not-sr-only"
@@ -170,7 +172,7 @@ export default function Authenticated({
                 )}
 
                 {header && (
-                    <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-4 sm:px-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="app-page-heading shrink-0 border-b border-gray-200 bg-white px-4 py-4 sm:px-6 dark:border-slate-800 dark:bg-slate-900">
                         {header}
                     </div>
                 )}
@@ -178,6 +180,7 @@ export default function Authenticated({
                 {showBreadcrumbs && <Breadcrumbs />}
 
                 <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-5 outline-none sm:px-6 sm:py-6 lg:px-8">
+                    <TemporaryPasswordNotice />
                     {children}
                 </main>
             </div>

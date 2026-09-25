@@ -8,10 +8,12 @@ use App\Enums\CalendarSystem;
 use App\Enums\TransferAnnouncementStatus;
 use App\Models\TransferAnnouncement;
 use App\Models\User;
+use App\Security\Passwords\PasswordPolicy;
 use App\Services\Calendar\CalendarService;
-use App\Services\SystemSettings\SystemSettingsService;
 use App\Services\IdCards\IdCardTemplateService;
 use App\Services\PublicSite\PublicSiteContent;
+use App\Services\Security\SessionActivityService;
+use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -64,8 +66,9 @@ class HandleInertiaRequests extends Middleware
                 'mode' => $calendarMode,
             ],
             'settings' => $settings,
+            // Card artwork (seal, signature) only reaches people who render cards.
             'idCardTemplate' => function () use ($user): ?array {
-                if ($user === null) {
+                if (! $this->rendersIdCards($user)) {
                     return null;
                 }
                 $templates = app(IdCardTemplateService::class);
@@ -81,7 +84,7 @@ class HandleInertiaRequests extends Middleware
              * orientation has no template.
              */
             'idCardTemplates' => function () use ($user): ?array {
-                if ($user === null) {
+                if (! $this->rendersIdCards($user)) {
                     return null;
                 }
                 $templates = app(IdCardTemplateService::class);
@@ -106,6 +109,11 @@ class HandleInertiaRequests extends Middleware
                 'footerLinks' => app(PublicSiteContent::class)->footerLinks(),
             ],
             'is_employee_user' => $user !== null && $this->resolveIsEmployeeUser($user),
+            // Whether the account is linked to an employee record at all
+            // (admin or not). Self-service links are pointless without one.
+            'has_employee_record' => $user !== null && $this->resolveHasEmployeeRecord($user),
+            // Idle policy for the browser's warning/heartbeat; null when signed out.
+            'session_policy' => fn (): ?array => $this->sessionPolicy($request),
             'flash' => [
                 // Individual-key form (preferred) — set via session('success'), etc.
                 'success' => session('success'),
@@ -117,8 +125,34 @@ class HandleInertiaRequests extends Middleware
                 'type' => session('flash.type'),
                 // One-time API token, shown once immediately after generation.
                 // Never persisted — only this single response carries it.
-                'generated_token' => session('flash.generated_token'),
+                'generated_token' => $request->is('my-portal', 'my-portal/*') ? null : session('flash.generated_token'),
+                // A generated one-time password, shown once to the administrator
+                // who created/reset the account. Never persisted beyond the flash.
+                'temporary_password' => $request->is('my-portal', 'my-portal/*') ? null : session('flash.temporary_password'),
             ],
+            // Length limits and toggles for the (advisory) password checklist.
+            // Nothing about any account: no hashes, no history.
+            'password_policy' => fn (): array => app(PasswordPolicy::class)->forClient(),
+        ];
+    }
+
+    /** @return array<string, int|string>|null */
+    private function sessionPolicy(Request $request): ?array
+    {
+        $activity = app(SessionActivityService::class);
+        $guards = $activity->authenticatedGuards();
+        if ($guards === []) {
+            return null;
+        }
+
+        $providerOnly = ! in_array('web', $guards, true);
+
+        return [
+            'idle_timeout_seconds' => $activity->idleTimeoutSeconds(),
+            'warning_seconds' => $activity->warningSeconds(),
+            'heartbeat_seconds' => $activity->heartbeatSeconds(),
+            'login_url' => $activity->loginUrl($request, $guards),
+            'logout_url' => $providerOnly ? route('provider.portal.logout') : route('logout'),
         ];
     }
 
@@ -158,7 +192,26 @@ class HandleInertiaRequests extends Middleware
             return Cache::remember(
                 "user_{$user->id}_is_employee_v2",
                 300, // 5 minutes
-                fn (): bool => $user->employee()->exists() && ! $this->hasAdministrativeAccess($user),
+                fn (): bool => $user->employee !== null && ! $this->hasAdministrativeAccess($user),
+            );
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    private function rendersIdCards(?User $user): bool
+    {
+        return $user !== null
+            && ($user->can('id-cards.view') || $user->can('cards.view') || $user->can('id_card_templates.view'));
+    }
+
+    private function resolveHasEmployeeRecord(User $user): bool
+    {
+        try {
+            return Cache::remember(
+                "user_{$user->id}_has_employee_v1",
+                300, // 5 minutes
+                fn (): bool => $user->employee !== null,
             );
         } catch (Throwable) {
             return false;

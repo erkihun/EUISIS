@@ -39,6 +39,9 @@ import {
     SearchIcon,
     ChevronRight,
     ChevronDown,
+    CalendarIcon,
+    HistoryIcon,
+    AlertTriangle,
 } from '@/Components/Icons';
 import { type CSSProperties, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
@@ -53,6 +56,8 @@ type NavSubItem = {
     icon: (p: SVGProps<SVGSVGElement>) => JSX.Element;
     permission?: string;
     tab?: string;
+    /** Also listed in an admin group, so staff see it there and not twice. */
+    listedInAdmin?: boolean;
 };
 
 /** A nav item — either a plain link OR a parent with expandable children. */
@@ -69,6 +74,102 @@ type NavGroup = {
 };
 
 /*
+ * My Portal navigation, categorized like the admin sidebar: labeled sections,
+ * collapsible groups, pages. Employee-only accounts get exactly this; staff
+ * who are also employees get the same pages as one "Self-service" group
+ * (selfServiceNav below), so every page is defined once.
+ *
+ * Deliberately absent (the routes still work when linked from a page):
+ * My Profile (the account menu and the dashboard's profile card open it),
+ * transfer announcements (reached from My Applications and the dashboard),
+ * /my-portal/organization and /my-portal/position (subsets of My Employment),
+ * /my-portal/service-tasks (only points to Daily Activity) and
+ * /my-portal/security (redirects to the sign-in block of My Profile).
+ */
+const portalDashboard: NavItem = { routeName: 'employee.portal', labelKey: 'nav.myPortal', icon: LayoutDashboard };
+
+const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
+    {
+        // Day-to-day work: what the employee records and is measured on.
+        labelKey: 'nav.portalSectionWork',
+        groups: [
+            {
+                key: 'portalDailyActivity',
+                labelKey: 'nav.myDailyActivity',
+                icon: ClipboardListIcon,
+                items: [
+                    { routeName: 'employee.daily-activity.entry', labelKey: 'nav.registerActivity', icon: ClipboardListIcon, permission: 'daily_activities.view_own' },
+                    { routeName: 'employee.daily-activity.calendar', labelKey: 'nav.myActivityCalendar', icon: CalendarIcon, permission: 'daily_activities.view_own' },
+                    { routeName: 'employee.daily-activity.history', labelKey: 'nav.myActivityHistory', icon: HistoryIcon, permission: 'daily_activities.view_own' },
+                ],
+            },
+            {
+                key: 'portalPerformance',
+                labelKey: 'nav.myPerformance',
+                icon: TrendingUpIcon,
+                items: [
+                    { routeName: 'employee.performance.index', labelKey: 'nav.myPerformance', icon: TrendingUpIcon, permission: 'employee_performance_agreements.view_own' },
+                ],
+            },
+        ],
+    },
+    {
+        // What HR holds about the employee.
+        labelKey: 'nav.portalSectionRecords',
+        groups: [
+            {
+                key: 'portalRecords',
+                labelKey: 'nav.groupMyRecords',
+                icon: UserIcon,
+                items: [
+                    { routeName: 'employee.employment', labelKey: 'nav.myEmployment', icon: Briefcase },
+                    { routeName: 'employee.id-card', labelKey: 'nav.myIdCard', icon: CreditCard },
+                    { routeName: 'employee.documents', labelKey: 'nav.myDocuments', icon: ScrollText },
+                ],
+            },
+        ],
+    },
+    {
+        // What the employee can use, apply for or ask for.
+        labelKey: 'nav.portalSectionServices',
+        groups: [
+            {
+                key: 'portalServices',
+                labelKey: 'nav.myEntitlements',
+                icon: BadgeCheckIcon,
+                items: [
+                    { routeName: 'employee.services', labelKey: 'nav.myEntitlements', icon: BadgeCheckIcon },
+                ],
+            },
+            {
+                key: 'portalCareer',
+                labelKey: 'nav.groupCareer',
+                icon: ArrowLeftRightIcon,
+                items: [
+                    { routeName: 'employee.transfer-applications', labelKey: 'nav.myTransferApplications', icon: Inbox },
+                ],
+            },
+            {
+                key: 'portalRequests',
+                labelKey: 'nav.groupRequestsMessages',
+                icon: MessageSquareIcon,
+                items: [
+                    { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: ClipboardCheckIcon },
+                    { routeName: 'grievances.my', labelKey: 'nav.myGrievances', icon: ScrollText, listedInAdmin: true },
+                    { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: MessageSquareIcon },
+                ],
+            },
+        ],
+    },
+];
+
+/** Staff with an employee record: the same pages as one group, in the same order. */
+const selfServiceNav: NavItem[] = [
+    portalDashboard,
+    ...portalSections.flatMap((section) => section.groups.flatMap((group) => group.items)).filter((item) => !item.listedInAdmin),
+];
+
+/*
  * Sidebar categories.
  *
  * Grouped by what an administrator is trying to DO, not by which table a page
@@ -82,6 +183,13 @@ type NavGroup = {
  * deliberately absent: they are for citizens, not administrators.
  */
 const navGroups: NavGroup[] = [
+    {
+        // The same entries as employee-only mode, never a second list.
+        key: 'myWork',
+        labelKey: 'nav.groupSelfService',
+        icon: UserIcon,
+        items: selfServiceNav,
+    },
     {
         key: 'organization',
         labelKey: 'nav.groupOrganization',
@@ -128,6 +236,27 @@ const navGroups: NavGroup[] = [
             { routeName: 'isic-activities.index', labelKey: 'nav.isicActivities', icon: ActivityIcon,       permission: 'isic-activities.viewAny' },
         ],
     },
+    /*
+     * Employee Performance Management (EPMS). Each entry is gated by the
+     * permission its page checks; the pages re-check scope server-side.
+     */
+    {
+        key: 'performance',
+        labelKey: 'nav.groupPerformance',
+        icon: TrendingUpIcon,
+        items: [
+            { routeName: 'performance.dashboard', labelKey: 'nav.performanceDashboard', icon: LayoutDashboard, permission: 'performance_reports.view' },
+            { routeName: 'performance.cycles.index', labelKey: 'nav.performanceCycles', icon: CalendarIcon, permission: 'performance_cycles.view' },
+            { routeName: 'performance.strategic-goals.index', labelKey: 'nav.strategicGoals', icon: TrendingUpIcon, permission: 'strategic_goals.view' },
+            { routeName: 'performance.plans.index', labelKey: 'nav.performancePlans', icon: GitForkIcon, permission: 'performance_plans.view' },
+            { routeName: 'performance.kpis.index', labelKey: 'nav.kpiLibrary', icon: HashIcon, permission: 'kpis.view' },
+            { routeName: 'performance.agreements.index', labelKey: 'nav.performanceAgreements', icon: HandshakeIcon, permission: 'employee_performance_agreements.manage' },
+            { routeName: 'performance.calibration.index', labelKey: 'nav.performanceCalibration', icon: BadgeCheckIcon, permission: 'performance_calibration.view' },
+            { routeName: 'performance.appeals.index', labelKey: 'nav.performanceAppeals', icon: MessageSquareIcon, permission: 'performance_appeals.review' },
+            { routeName: 'performance.reports.index', labelKey: 'nav.performanceReports', icon: ReceiptTextIcon, permission: 'performance_reports.view' },
+            { routeName: 'performance.settings.index', labelKey: 'nav.performanceSettings', icon: SettingsIcon, permission: 'performance_settings.view' },
+        ],
+    },
     {
         key: 'employeeManagement',
         labelKey: 'nav.groupEmployeeManagement',
@@ -135,6 +264,17 @@ const navGroups: NavGroup[] = [
         items: [
             { routeName: 'employees.index', labelKey: 'nav.employees', icon: Users,              permission: 'employees.view' },
             { routeName: 'employees.import.create', labelKey: 'nav.employeeImport', icon: ClipboardListIcon,  permission: 'employees.import.view' },
+            /*
+             * Daily Activities. The dashboard and missing list are gated by the
+             * broadest permission that reaches them; each page re-checks the
+             * exact permission server-side.
+             */
+            { routeName: 'daily-activities.dashboard', labelKey: 'nav.dailyActivityDashboard', icon: ActivityIcon, permission: 'daily_activities.view_reports' },
+            { routeName: 'daily-activities.index', labelKey: 'nav.dailyActivityRegister', icon: ClipboardListIcon, permission: 'daily_activities.view_scoped' },
+            { routeName: 'daily-activities.missing', labelKey: 'nav.dailyActivityMissing', icon: AlertTriangle, permission: 'daily_activities.view_scoped' },
+            { routeName: 'daily-activities.review-queue', labelKey: 'nav.dailyActivityReviewQueue', icon: ClipboardCheckIcon, permission: 'daily_activities.review' },
+            { routeName: 'daily-activities.reports', labelKey: 'nav.dailyActivityReports', icon: ReceiptTextIcon, permission: 'daily_activities.view_reports' },
+            { routeName: 'daily-activities.settings', labelKey: 'nav.dailyActivitySettings', icon: SettingsIcon, permission: 'daily_activity_settings.view' },
             { routeName: 'vacancy-announcements.index', labelKey: 'nav.vacancyAnnouncements', icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
             { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',        icon: Inbox },
             { routeName: 'transfers.dashboard', labelKey: 'nav.transferDashboard', icon: ArrowLeftRightIcon, permission: 'transfers.view' },
@@ -149,7 +289,9 @@ const navGroups: NavGroup[] = [
         icon: CreditCard,
         items: [
             { routeName: 'id-cards.index', labelKey: 'nav.idCards', icon: CreditCard,         permission: 'cards.view' },
-            { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', icon: ClipboardCheckIcon, permission: 'card-requests.viewAny' },
+            { routeName: 'id-cards.reprint-required', labelKey: 'nav.reprintRequired', icon: CreditCard, permission: 'cards.view' },
+            { routeName: 'employee-corrections.index', labelKey: 'nav.employeeCorrections', icon: ClipboardCheckIcon, permission: 'employees.manage' },
+            { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', icon: ClipboardCheckIcon, permission: 'id-cards.viewAny' },
             { routeName: 'nfc-management.dashboard', labelKey: 'nav.nfcManagement', icon: NfcIcon,       permission: 'nfc_credentials.view' },
             { routeName: 'nfc-management.terminals.index', labelKey: 'nav.nfcTerminals', icon: RouterIcon,     permission: 'nfc_terminals.view' },
             { routeName: 'nfc-management.logs.index', labelKey: 'nav.nfcVerificationLogs', icon: ScrollText,     permission: 'nfc_logs.view' },
@@ -191,11 +333,11 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupCafeteria',
         icon: QrCodeIcon,
         items: [
-            { routeName: 'cafeteria.dashboard', labelKey: 'nav.cafeteriaDashboard', icon: LayoutDashboard, permission: 'cafeteria_transactions.viewAny' },
+            { routeName: 'cafeteria.dashboard', labelKey: 'nav.cafeteriaDashboard', icon: LayoutDashboard, permission: 'cafeteria_transactions.view' },
             { routeName: 'cafeteria.scan', labelKey: 'nav.cafeteriaScan', icon: QrCodeIcon,      permission: 'cafeteria_transactions.scan' },
-            { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', icon: ReceiptTextIcon, permission: 'cafeteria_transactions.viewAny' },
-            { routeName: 'cafeteria.ledger.index', labelKey: 'nav.cafeteriaLedger', icon: ScrollText,      permission: 'cafeteria_ledger.viewAny' },
-            { routeName: 'cafeteria.reports.index', labelKey: 'nav.cafeteriaReports', icon: ActivityIcon,    permission: 'cafeteria_reports.viewAny' },
+            { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', icon: ReceiptTextIcon, permission: 'cafeteria_transactions.view' },
+            { routeName: 'cafeteria.ledger.index', labelKey: 'nav.cafeteriaLedger', icon: ScrollText,      permission: 'cafeteria_ledger.view' },
+            { routeName: 'cafeteria.reports.index', labelKey: 'nav.cafeteriaReports', icon: ActivityIcon,    permission: 'cafeteria_reports.view' },
             { routeName: 'cafeteria.providers.index', labelKey: 'nav.cafeteriaProviders', icon: HandshakeIcon,   permission: 'cafeteria_providers.viewAny' },
             { routeName: 'cafeteria.settings.index', labelKey: 'nav.cafeteriaSettings', icon: SettingsIcon,    permission: 'cafeteria_settings.view' },
         ],
@@ -206,7 +348,7 @@ const navGroups: NavGroup[] = [
         icon: ActivityIcon,
         items: [
             { routeName: 'transport.providers.index', labelKey: 'nav.transportProviders', icon: HandshakeIcon, permission: 'transport-providers.viewAny' },
-            { routeName: 'transport.scan', labelKey: 'nav.transportScan', icon: QrCodeIcon,      permission: 'transport-passes.viewAny' },
+            { routeName: 'transport.scan', labelKey: 'nav.transportScan', icon: QrCodeIcon,      permission: 'transport-scan.create' },
             { routeName: 'transport.routes.index', labelKey: 'nav.transportRoutes', icon: ScrollText,      permission: 'transport-routes.viewAny' },
             { routeName: 'transport.vehicles.index', labelKey: 'nav.transportVehicles', icon: ActivityIcon,    permission: 'transport-vehicles.viewAny' },
             { routeName: 'transport.drivers.index', labelKey: 'nav.transportDrivers', icon: UserIcon,        permission: 'transport-drivers.viewAny' },
@@ -244,12 +386,6 @@ const dashboardNav: NavItem = {
     icon: LayoutDashboard,
 };
 
-const employeeNav: NavItem[] = [
-    { routeName: 'employee.portal', labelKey: 'nav.myPortal',             icon: UserIcon },
-    { routeName: 'employee.entitlements', labelKey: 'nav.myEntitlements',       icon: BadgeCheckIcon },
-    { routeName: 'employee.transfer-applications', labelKey: 'nav.transferApplications', icon: Inbox },
-    { routeName: 'public.transfer-announcements', labelKey: 'nav.announcements',         icon: MegaphoneIcon },
-];
 
 /** Administration is split into labeled sub-clusters so unrelated concerns stay scannable. */
 const adminGroups: { labelKey: string; items: NavItem[] }[] = [
@@ -278,7 +414,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
 const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 
 const sections = [
-    { labelKey: 'nav.sidebarPeople', keys: ['employeeManagement', 'organization', 'hrMasterData', 'identity'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'employeeManagement', 'organization', 'hrMasterData', 'identity'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];
@@ -293,11 +429,10 @@ const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible
 const hoverSurface = 'hover:bg-[color:var(--sidebar-hover)]';
 const selectedSurface = 'bg-[color:var(--sidebar-accent-wash)] text-[color:var(--sidebar-accent)]';
 
-/** Exact routes win; otherwise select the nearest permitted module index. */
+/** Exact routes win; otherwise select the nearest permitted module (index or a page's own sub-routes). */
 function activeRoute(items: NavSubItem[], current: string): string | undefined {
     if (items.some((item) => item.routeName === current)) return current;
     return items
-        .filter((item) => /\.(index|dashboard)$/.test(item.routeName))
         .map((item) => ({ name: item.routeName, prefix: item.routeName.replace(/\.(index|dashboard)$/, '') }))
         .filter((item) => current.startsWith(item.prefix + '.'))
         .sort((a, b) => b.prefix.length - a.prefix.length)[0]?.name;
@@ -309,6 +444,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const { getString } = useSystemSettings();
     const { props: pageProps, url: pageUrl } = usePage();
     const isEmployeeUser = pageProps.is_employee_user === true;
+    const hasEmployeeRecord = pageProps.has_employee_record === true;
     const instanceId = useId();
     const searchRef = useRef<HTMLInputElement>(null);
     const focusSearchAfterExpand = useRef(false);
@@ -331,18 +467,29 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         .flatMap((item) => item.children
             ? item.children.filter((child) => !child.permission || can(child.permission))
             : [item]);
-    const visibleGroups = navGroups.map((group) => ({ ...group, items: allowedItems(group.items) }))
+    const visibleGroups = navGroups
+        // "My Work" is self-service: an account with no employee record has
+        // no activity of its own to register, whatever its permissions.
+        .filter((group) => group.key !== 'myWork' || hasEmployeeRecord)
+        .map((group) => ({ ...group, items: allowedItems(group.items) }))
         .filter((group) => group.items.length > 0);
     const visibleAdminGroups = adminGroups.map((group) => ({ ...group, items: allowedItems(group.items) }))
         .filter((group) => group.items.length > 0);
     const visibleAdminNav = visibleAdminGroups.flatMap((group) => group.items);
     const adminGroup: NavGroup = { key: 'admin', labelKey: 'nav.admin', icon: ShieldCheck, items: visibleAdminNav };
-    const allGroups = [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
+    const visiblePortalSections = portalSections
+        .map((section) => ({
+            ...section,
+            groups: section.groups.map((group) => ({ ...group, items: allowedItems(group.items) })).filter((group) => group.items.length > 0),
+        }))
+        .filter((section) => section.groups.length > 0);
+    // Employee-only accounts see My Portal; everyone else the admin structure.
+    const allGroups = isEmployeeUser
+        ? visiblePortalSections.flatMap((section) => section.groups)
+        : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
+    const homeNav = isEmployeeUser ? portalDashboard : dashboardNav;
     const currentRoute = String(route().current() ?? '');
-    const currentItem = activeRoute(
-        isEmployeeUser ? employeeNav : [dashboardNav, ...allGroups.flatMap((group) => group.items)],
-        currentRoute,
-    );
+    const currentItem = activeRoute([homeNav, ...allGroups.flatMap((group) => group.items)], currentRoute);
     const activeGroupKeys = allGroups.filter((group) => group.items.some((item) => item.routeName === currentItem)).map((group) => group.key);
     const activeGroupSignature = activeGroupKeys.join(',');
 
@@ -415,12 +562,22 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         );
     }
 
+    function renderSection(labelKey: string, groups: NavGroup[]) {
+        if (!groups.some((group) => matchingItems(group).length)) return null;
+        return <div key={labelKey} className="mb-4 last:mb-0">
+            {collapsed
+                ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
+                : <p className="px-3 pb-2 pt-1 text-[11px] font-semibold leading-relaxed tracking-wide text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
+            <div className="space-y-1">{groups.map(renderGroup)}</div>
+        </div>;
+    }
+
     function renderGroup(group: NavGroup) {
         const items = matchingItems(group);
         if (!items.length) return null;
         const Icon = group.icon;
         const selected = activeGroupKeys.includes(group.key);
-        const isOpen = Boolean(normalizedQuery || openGroups[group.key]);
+        const isOpen = Boolean(normalizedQuery || (openGroups[group.key] ?? isEmployeeUser));
         const panelId = instanceId + '-group-' + group.key;
         const label = t(group.labelKey);
         if (group.items.length === 1 && group.key !== 'admin') {
@@ -520,23 +677,15 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             </div>
 
             <nav className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3" aria-label={t('publicSite.mainNavigation')}>
-                {isEmployeeUser ? (
-                    <ul className="space-y-1">{employeeNav.filter(matches).map((item) => renderLink(item))}</ul>
-                ) : <>
-                    {(!normalizedQuery || matches(dashboardNav)) && <ul className="mb-3">{renderLink(dashboardNav)}</ul>}
-                    {sections.map((section) => {
+                {(!normalizedQuery || matches(homeNav)) && <ul className="mb-3">{renderLink(homeNav)}</ul>}
+                {isEmployeeUser
+                    ? visiblePortalSections.map((section) => renderSection(section.labelKey, section.groups))
+                    : sections.map((section) => {
                         const groups = section.keys.flatMap((key) => visibleGroups.filter((group) => group.key === key));
                         if (section.labelKey === 'nav.sidebarGovernance' && visibleAdminNav.length) groups.push(adminGroup);
-                        if (!groups.some((group) => matchingItems(group).length)) return null;
-                        return <div key={section.labelKey} className="mb-4 last:mb-0">
-                            {collapsed
-                                ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
-                                : <p className="px-3 pb-2 pt-1 text-[11px] font-semibold leading-relaxed tracking-wide text-[color:var(--sidebar-muted)]">{t(section.labelKey)}</p>}
-                            <div className="space-y-1">{groups.map(renderGroup)}</div>
-                        </div>;
+                        return renderSection(section.labelKey, groups);
                     })}
-                </>}
-                {normalizedQuery && (isEmployeeUser ? !employeeNav.some(matches) : !matchingGroups.length && !matches(dashboardNav)) && (
+                {normalizedQuery && !matchingGroups.length && !matches(homeNav) && (
                     <p role="status" className="px-3 py-5 text-sm leading-relaxed text-[color:var(--sidebar-muted)]">{t('nav.noResults')}</p>
                 )}
             </nav>

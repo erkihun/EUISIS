@@ -30,6 +30,10 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
     const { t, locale } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
     const cardTemplate = useIdCardTemplate('landscape');
+    if (cardTemplate?.employee_fields) {
+        if (!cardTemplate.employee_fields.includes('emergency_contact_name')) emergencyContactName = null;
+        if (!cardTemplate.employee_fields.includes('emergency_contact_phone')) emergencyContactPhone = null;
+    }
     const backgroundUrl = cardTemplate?.back_background_url;
     const dimensions = useCardDimensions('landscape');
 

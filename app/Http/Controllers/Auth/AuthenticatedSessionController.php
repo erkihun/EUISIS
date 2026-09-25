@@ -11,10 +11,10 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use App\Services\Dashboard\DashboardDataService;
 use App\Services\Security\DefaultPasswordPolicyService;
+use App\Services\Security\SessionActivityService;
 use App\Services\SystemSettings\PublicSettingsService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -24,6 +24,7 @@ class AuthenticatedSessionController extends Controller
     public function __construct(
         private readonly DefaultPasswordPolicyService $defaultPasswordPolicy,
         private readonly WriteAuditLogAction $writeAuditLog,
+        private readonly SessionActivityService $sessionActivity,
     ) {}
 
     /**
@@ -34,6 +35,9 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            // Why the last session ended (idle timeout, password changed,
+            // page expired). A code; the page localizes it.
+            'sessionNotice' => session(SessionActivityService::NOTICE_KEY),
         ]);
     }
 
@@ -45,9 +49,12 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        $this->sessionActivity->startAuthenticatedSession($request->session());
 
         $user = $request->user();
         if ($user !== null) {
+            $this->writeAuditLog->execute(AuditEventType::UserLoggedIn, $user, $user, request: $request);
+
             $loggedInWithDefaultPassword = $this->defaultPasswordPolicy->matches(
                 (string) $request->validated('password'),
             );
@@ -131,11 +138,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
+        // Signs out, destroys the session and its CSRF token, and records the
+        // reason so other tabs are never told this was an inactivity timeout.
+        $this->sessionActivity->end($request, SessionActivityService::REASON_LOGGED_OUT, ['web']);
 
         return redirect('/');
     }

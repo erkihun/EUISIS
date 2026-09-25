@@ -9,6 +9,9 @@
 .env
 .env.backup
 .env.production
+# Every environment variant holds secrets (SBH-006); only the example is shared.
+.env.*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 Homestead.json

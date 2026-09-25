@@ -41,6 +41,8 @@ class IdCardResource extends JsonResource
                 'employment_type' => $this->employee->employment_type?->value,
                 'employment_type_label' => $this->employee->employment_type?->label(),
                 'phone' => $this->employee->phone,
+                'email' => $this->employee->email,
+                'address' => $this->employee->address,
                 'status' => $this->employee->status?->value,
                 'photo_path' => $this->employee->photo_path,
                 'photo_url' => $this->employee->photo_url,

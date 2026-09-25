@@ -6,8 +6,8 @@ namespace App\Policies;
 
 use App\Models\Employee;
 use App\Models\User;
-use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use App\Services\OrganizationScope\OrganizationScopeService;
 
 readonly class EmployeePolicy
 {

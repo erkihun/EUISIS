@@ -40,9 +40,15 @@ return [
     |   CORS_ALLOWED_ORIGINS=https://euisis.addisababa.gov.et
     |   CORS_ALLOWED_ORIGINS=https://euisis.addisababa.gov.et,https://admin.euisis.example
     */
-    'allowed_origins' => array_filter(
-        array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', '')))
-    ),
+    /*
+    | '*' is dropped on purpose: with supports_credentials the CORS layer would
+    | reflect ANY origin and let every website make signed-in requests. Name
+    | each allowed origin explicitly.
+    */
+    'allowed_origins' => array_values(array_filter(
+        array_map('trim', explode(',', (string) env('CORS_ALLOWED_ORIGINS', ''))),
+        static fn (string $origin): bool => $origin !== '' && $origin !== '*',
+    )),
 
     'allowed_origins_patterns' => [],
 

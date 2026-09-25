@@ -24,10 +24,10 @@ class MfaController extends Controller
     public function __construct(
         private readonly Google2FA $google2fa,
         private readonly WriteAuditLogAction $writeAuditLog,
-    ) {
-    }
+    ) {}
 
     public const SESSION_VERIFIED_AT = 'mfa_verified_at';
+
     public const SESSION_RECOVERY_CODES = 'mfa_recovery_codes_once';
 
     /**
@@ -61,15 +61,15 @@ class MfaController extends Controller
         $accountLabel = $user->email ?? ('user-'.$user->getKey());
         $otpauthUri = $this->google2fa->getQRCodeUrl($issuer, $accountLabel, $user->two_factor_secret);
 
-        $renderer = new ImageRenderer(new RendererStyle(220), new SvgImageBackEnd());
+        $renderer = new ImageRenderer(new RendererStyle(220), new SvgImageBackEnd);
         $svg = (new Writer($renderer))->writeString($otpauthUri);
         $qrCodeUri = 'data:image/svg+xml;base64,'.base64_encode($svg);
 
         return Inertia::render('Auth/MfaSetup', [
             'qrCodeUri' => $qrCodeUri,
             'secretKey' => $user->two_factor_secret,
-            'user'      => ['name' => $user->name, 'email' => $user->email],
-            'issuer'    => $issuer,
+            'user' => ['name' => $user->name, 'email' => $user->email],
+            'issuer' => $issuer,
         ]);
     }
 
@@ -159,7 +159,7 @@ class MfaController extends Controller
         $user = $request->user();
 
         $data = $request->validate([
-            'code'          => ['nullable', 'string', 'regex:/^[0-9]{6}$/'],
+            'code' => ['nullable', 'string', 'regex:/^[0-9]{6}$/'],
             'recovery_code' => ['nullable', 'string', 'max:32'],
         ]);
 

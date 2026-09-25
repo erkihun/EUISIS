@@ -97,6 +97,7 @@ final class IdCardTemplateService
         return [
             'id' => $template->id,
             'orientation' => $template->orientation,
+            'employee_fields' => $template->employee_fields,
             'width_mm' => $template->width_mm ?? ($portrait ? 54 : 85.6),
             'height_mm' => $template->height_mm ?? ($portrait ? 85.6 : 54),
             'front_background_url' => $this->url($template, 'front'),

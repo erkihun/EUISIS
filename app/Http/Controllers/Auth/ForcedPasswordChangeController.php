@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
+use App\Security\Passwords\PasswordLifecycle;
+use App\Security\Passwords\PasswordPolicy;
 use App\Services\Dashboard\DashboardDataService;
-use App\Services\Security\DefaultPasswordPolicyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,8 +25,8 @@ use Inertia\Response;
 class ForcedPasswordChangeController extends Controller
 {
     public function __construct(
-        private readonly WriteAuditLogAction $writeAuditLog,
-        private readonly DefaultPasswordPolicyService $defaultPasswordPolicy,
+        private readonly PasswordPolicy $policy,
+        private readonly PasswordLifecycle $lifecycle,
     ) {}
 
     public function create(Request $request): Response|RedirectResponse
@@ -53,52 +51,23 @@ class ForcedPasswordChangeController extends Controller
             // The temporary password still has to be proved, so a hijacked
             // session cannot quietly take ownership of the account.
             'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', $this->defaultPasswordPolicy->rule()],
+            // The central policy also refuses the temporary password itself
+            // (it is the current password) and the legacy shared default.
+            'password' => $this->policy->rules($user),
         ]);
 
-        /*
-         * Reusing the temporary password would leave the credential exactly as
-         * shared as it was before, which is the whole thing this flow exists to
-         * end. `current_password` above has already proved the old one, so this
-         * comparison is a straight re-check.
-         */
-        if (Hash::check($validated['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'password' => __('auth.password_must_differ'),
-            ]);
-        }
-
-        if ($this->defaultPasswordPolicy->matches($validated['password'])) {
-            throw ValidationException::withMessages([
-                'password' => __('auth.password_cannot_be_default'),
-            ]);
-        }
-
-        // The model casts `password` as hashed, so assigning the plain value is
-        // correct here; hashing it first would double-hash.
-        $user->forceFill(['password' => $validated['password']])->save();
-        $user->markPasswordChanged();
+        $this->lifecycle->change($user, $validated['password'], AuditEventType::UserPasswordChanged, reason: 'forced_password_change_completed');
 
         /*
          * Rotate the session id so the identifier that existed while the shared
          * temporary password was in use is no longer valid.
          *
-         * Laravel's `logoutOtherDevices()` is deliberately NOT called: it works
-         * by rehashing the password and relies on the `AuthenticateSession`
-         * middleware to compare hashes on every request. That middleware is not
-         * enabled here, so the call would rehash the freshly saved password for
-         * no benefit. Invalidating other devices properly needs that middleware
-         * turned on first — see the handoff note.
+         * Other browsers/devices signed in with the temporary password are
+         * signed out on their next request by the AuthenticateSession
+         * middleware (the stored password hash no longer matches); this
+         * session re-stores the new hash on the way out and stays signed in.
          */
         $request->session()->regenerate();
-
-        $this->writeAuditLog->execute(
-            eventType: AuditEventType::UserPasswordChanged,
-            actor: $user,
-            auditable: $user,
-            reason: 'Forced password change completed on first login',
-            request: $request,
-        );
 
         $destination = $dashboardService->canViewDashboard($user)
             ? route('dashboard', absolute: false)

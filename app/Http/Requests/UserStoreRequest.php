@@ -6,8 +6,8 @@ namespace App\Http\Requests;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Security\Passwords\PasswordPolicy;
 use App\Services\OrganizationScope\OrganizationScopeService;
-use App\Services\Security\DefaultPasswordPolicyService;
 use App\Services\Users\AssignableUserRoleService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -65,18 +65,18 @@ class UserStoreRequest extends FormRequest
         $selectedRoles = Role::query()->whereIn('id', $this->input('role_ids', []))->get();
         $requiresScope = $selectedRoles->contains(fn (Role $role): bool => $role->isScoped())
             || ($actor !== null && $scopeService->isScopedOrganizationalAdmin($actor));
-        $defaultPasswordPolicy = app(DefaultPasswordPolicyService::class);
 
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => [
-                Rule::requiredIf(! $defaultPasswordPolicy->canSupplyInitialPassword()),
-                'nullable',
-                'string',
-                'confirmed',
-                $defaultPasswordPolicy->rule(),
-            ],
+            /*
+             * Blank: the system generates a unique one-time password, shown
+             * once to this administrator. Typed: the full central policy,
+             * checked against the new holder's name, email and phone.
+             */
+            'password' => $this->filled('password')
+                ? app(PasswordPolicy::class)->rules(null, $this->only(['name', 'email', 'phone_number']))
+                : ['nullable'],
             'status' => ['in:active,inactive'],
             'roles' => ['array'],
             'roles.*' => ['string', 'exists:roles,name'],
@@ -125,13 +125,6 @@ class UserStoreRequest extends FormRequest
 
                 if ($actor === null) {
                     return;
-                }
-
-                $password = $this->input('password');
-                $defaultPasswordPolicy = app(DefaultPasswordPolicyService::class);
-
-                if (is_string($password) && $password !== '' && $defaultPasswordPolicy->matches($password) && ! $defaultPasswordPolicy->isEnabled()) {
-                    $validator->errors()->add('password', __('auth.password_cannot_be_default'));
                 }
 
                 $unassignable = app(AssignableUserRoleService::class)

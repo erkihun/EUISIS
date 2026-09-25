@@ -1,0 +1,63 @@
+/* Scoped to the employee workspace; administration keeps its existing layout. */
+.portal-shell {
+    background: #f3f6fb;
+}
+.portal-shell .app-page-heading {
+    position: relative;
+    padding-block: 1.75rem;
+    background: linear-gradient(115deg, #fff 35%, #eef2fa);
+    border-bottom-color: #e2e8f0;
+}
+.portal-shell .app-page-heading::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--color-primary);
+}
+.portal-shell .app-page-heading h1 {
+    font-size: clamp(1.5rem, 2.3vw, 2rem);
+    font-weight: 700;
+    letter-spacing: -.025em;
+    line-height: 1.35;
+}
+.portal-shell .app-page-heading p { max-width: 65ch; line-height: 1.7; }
+.portal-shell .app-page-heading > div { gap: 1rem; }
+.portal-content { color: #334155; overflow-wrap: anywhere; }
+.portal-content .portal-panel {
+    min-width: 0;
+    border-color: #e2e8f0;
+    box-shadow: 0 2px 4px -2px rgb(15 23 42 / .05), 0 8px 24px -16px rgb(15 23 42 / .12);
+}
+.portal-content .portal-panel.p-4 { padding: 1.25rem; }
+.portal-section-icon { background: #eef2ff; color: var(--color-primary); }
+.portal-service-accent {
+    color: var(--color-primary);
+    background-color: color-mix(in srgb, var(--color-primary) 9%, transparent);
+    border-color: color-mix(in srgb, var(--color-primary) 24%, transparent);
+}
+.portal-content input:not([type=checkbox]):not([type=radio]):not([type=file]),
+.portal-content select { min-height: 2.75rem; }
+.portal-content textarea { line-height: 1.65; }
+.portal-content :is(a, button, input, select, textarea):focus-visible,
+.portal-shell .app-page-heading :is(a, button):focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+}
+.portal-content a.portal-panel:hover { border-color: var(--color-primary); }
+.dark .portal-shell { background: #080f1e; }
+.dark .portal-shell .app-page-heading {
+    background: linear-gradient(115deg, #0f172a, #15213a);
+    border-bottom-color: #25334a;
+}
+.dark .portal-content { color: #cbd5e1; }
+.dark .portal-content .portal-panel { border-color: #25334a; box-shadow: none; }
+.dark .portal-section-icon { background: #1e2c46; }
+@media (min-width: 1024px) {
+    .portal-shell .app-page-heading { padding-inline: 2rem; }
+    .portal-content .portal-panel.p-4 { padding: 1.5rem; }
+}
+@media print {
+    .portal-shell, .portal-shell .app-page-heading { background: white; }
+    .portal-content .portal-panel { box-shadow: none; }
+}

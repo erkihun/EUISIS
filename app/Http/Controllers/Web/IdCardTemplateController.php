@@ -59,8 +59,15 @@ class IdCardTemplateController extends Controller
 
     public function background(Request $request, IdCardTemplate $template, string $side, IdCardTemplateService $templates): StreamedResponse
     {
-        // Active artwork is available to authenticated card consumers; drafts require template access.
-        abort_unless(($template->is_default && $template->status === 'active') || $request->user()->can('id_card_templates.view'), 403);
+        /*
+         * Card artwork includes the official seal and authorizing signature,
+         * which are forgery material. Only people who work with cards may
+         * fetch it: card staff for the active template, template managers for
+         * any template. Being signed in is not enough.
+         */
+        $user = $request->user();
+        $cardStaff = $user->can('id-cards.view') || $user->can('cards.view');
+        abort_unless(($cardStaff && $template->is_default && $template->status === 'active') || $user->can('id_card_templates.view'), 403);
         abort_unless(in_array($side, ['front', 'back', 'logo-primary', 'logo-secondary', 'seal', 'signature'], true), 404);
         $path = match (true) {
             str_starts_with($side, 'logo-') => $template->{'logo_'.substr($side, 5).'_path'},

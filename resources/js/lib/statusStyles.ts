@@ -74,6 +74,15 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     cancelled: ['Cancelled', 'neutral'],
     canceled: ['Canceled', 'neutral'],
     unknown: ['Unknown', 'neutral'],
+    // Daily activity: exempt or untracked days need nothing from anyone.
+    weekend: ['Non-working day', 'neutral'],
+    public_holiday: ['Public holiday', 'neutral'],
+    leave: ['Leave', 'neutral'],
+    not_tracked: ['Not tracked', 'neutral'],
+    not_employed: ['Not employed', 'neutral'],
+    not_assigned: ['Not assigned', 'neutral'],
+    future: ['Future', 'neutral'],
+    carried_forward: ['Carried forward', 'neutral'],
 
     /* ── Good terminal states ─────────────────────────────── */
     active: ['Active', 'success'],
@@ -99,6 +108,8 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     queued: ['Queued', 'info'],
     open: ['Open', 'info'],
     scheduled: ['Scheduled', 'info'],
+    resubmitted: ['Resubmitted', 'info'],
+    required: ['Required', 'info'],
 
     /* ── Needs a person to act ────────────────────────────── */
     suspended: ['Suspended', 'warning'],
@@ -110,6 +121,8 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     damaged: ['Damaged', 'warning'],
     warning: ['Warning', 'warning'],
     expiring_soon: ['Expiring Soon', 'warning'],
+    returned_for_correction: ['Returned for correction', 'warning'],
+    returned: ['Returned', 'warning'],
 
     /* ── Blocked / refused / lost ─────────────────────────── */
     revoked: ['Revoked', 'danger'],
@@ -119,6 +132,7 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     dissolved: ['Dissolved', 'danger'],
     failed: ['Failed', 'danger'],
     blocked: ['Blocked', 'danger'],
+    missing: ['Missing', 'danger'],
     error: ['Error', 'danger'],
 };
 

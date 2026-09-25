@@ -6,6 +6,7 @@ namespace App\Http\Requests\IdCards;
 
 use App\Models\IdCardTemplate;
 use App\Services\IdCards\IdCardBackPhoto;
+use App\Services\IdCards\IdCardFieldImpactService;
 use App\Services\IdCards\IdCardHeaderContent;
 use App\Services\IdCards\IdCardLayoutElement;
 use App\Services\IdCards\IdCardTextStyle;
@@ -43,6 +44,8 @@ class SaveIdCardTemplateRequest extends FormRequest
             'height_mm' => ['nullable', 'numeric', 'between:30,200'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'is_default' => ['required', 'boolean'],
+            'employee_fields' => ['sometimes', 'nullable', 'array'],
+            'employee_fields.*' => ['string', 'distinct', Rule::in(array_keys(IdCardFieldImpactService::ROW_FIELDS))],
             'front_background' => $png,
             'back_background' => $png,
             'logo_primary' => $logoPng,

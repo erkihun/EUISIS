@@ -26,10 +26,10 @@ class CafeteriaDayRuleSeeder extends Seeder
             CafeteriaDayRule::query()->updateOrCreate(
                 ['day_of_week' => $d['day']],
                 [
-                    'id'             => (string) Str::uuid(),
-                    'is_open'        => $d['open'],
+                    'id' => (string) Str::uuid(),
+                    'is_open' => $d['open'],
                     'is_subsidy_day' => $d['subsidy'],
-                    'is_active'      => true,
+                    'is_active' => true,
                 ],
             );
         }

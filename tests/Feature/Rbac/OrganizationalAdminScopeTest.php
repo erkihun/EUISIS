@@ -435,15 +435,14 @@ test('Super Admin sees the full organization unit and position structure on the 
     actingAs($superAdmin)->get(route('employees.index'))
         ->assertOk()
         ->assertInertia(function (Assert $page) use ($a, $b, $unit, $position): void {
+            // The index now sends flat option lists instead of a nested tree.
             $props = $page->toArray()['props'];
-            $structure = collect($props['organizationStructure']);
-            $organization = $structure->firstWhere('id', $a->id);
 
             expect($props['isOrganizationScoped'])->toBeFalse()
-                ->and($structure->pluck('id'))->toContain($a->id)
-                ->and($structure->pluck('id'))->toContain($b->id)
-                ->and(data_get($organization, 'units.0.id'))->toBe($unit->id)
-                ->and(data_get($organization, 'units.0.positions.0.id'))->toBe($position->id);
+                ->and(collect($props['organizations'])->pluck('id'))->toContain($a->id)
+                ->and(collect($props['organizations'])->pluck('id'))->toContain($b->id)
+                ->and(collect($props['organizationUnits'])->pluck('id'))->toContain($unit->id)
+                ->and(collect($props['positions'])->pluck('id'))->toContain($position->id);
         });
 });
 
@@ -467,15 +466,19 @@ test('Organizational Admin employee index contains only its organization unit an
 
     actingAs($admin)->get(route('employees.index'))
         ->assertOk()
-        ->assertInertia(function (Assert $page) use ($own, $other, $ownUnit, $ownPosition): void {
+        ->assertInertia(function (Assert $page) use ($own, $ownUnit, $ownPosition): void {
+            // The index now sends flat option lists instead of a nested tree;
+            // every list must still stop at the admin's organization.
             $props = $page->toArray()['props'];
-            $structure = collect($props['organizationStructure']);
+            $units = collect($props['organizationUnits']);
+            $positions = collect($props['positions']);
 
             expect($props['isOrganizationScoped'])->toBeTrue()
-                ->and($structure->pluck('id'))->toContain($own->id)
-                ->and($structure->pluck('id'))->not->toContain($other->id)
-                ->and(data_get($structure->first(), 'units.0.id'))->toBe($ownUnit->id)
-                ->and(data_get($structure->first(), 'units.0.positions.0.id'))->toBe($ownPosition->id);
+                ->and(collect($props['organizations'])->pluck('id')->all())->toBe([$own->id])
+                ->and($units->pluck('id'))->toContain($ownUnit->id)
+                ->and($units->pluck('organization_id')->unique()->all())->toBe([$own->id])
+                ->and($positions->pluck('id'))->toContain($ownPosition->id)
+                ->and($positions->pluck('organization_id')->unique()->all())->toBe([$own->id]);
         });
 });
 

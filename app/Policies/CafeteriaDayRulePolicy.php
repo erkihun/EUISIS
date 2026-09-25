@@ -14,7 +14,7 @@ readonly class CafeteriaDayRulePolicy
 
     public function viewAny(User $user): bool
     {
-        return $user->can('cafeteria_day_rules.viewAny');
+        return $user->can('cafeteria_day_rules.view');
     }
 
     public function view(User $user, CafeteriaDayRule $rule): bool

@@ -169,7 +169,9 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Unset: Secure whenever the application is served over HTTPS, so a
+    // production deployment is safe by default and local HTTP still works.
+    'secure' => env('SESSION_SECURE_COOKIE', str_starts_with((string) env('APP_URL', ''), 'https://')),
 
     /*
     |--------------------------------------------------------------------------
@@ -199,6 +201,11 @@ return [
     |
     */
 
+    // "lax", not "strict": with strict, opening EUISIS from an email or
+    // another site sends no cookie, so the response replaces the signed-in
+    // session cookie and every open tab is signed out. Lax still withholds
+    // the cookie from cross-site POST/PUT/DELETE, and every state-changing
+    // request also needs the CSRF token. See docs/session-management.md.
     'same_site' => env('SESSION_SAME_SITE', 'lax'),
 
     /*

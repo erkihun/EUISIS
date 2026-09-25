@@ -48,12 +48,18 @@ class IdCard extends Model
         'qr_version',
         'qr_error_correction',
         'qr_payload_hash',
+        'reprint_required',
+        'reprint_reasons',
+        'reprint_required_at',
     ];
 
     protected function casts(): array
     {
         return [
             'status' => CardStatus::class,
+            'reprint_required' => 'boolean',
+            'reprint_reasons' => 'array',
+            'reprint_required_at' => 'datetime',
             'token_version' => 'integer',
             'token_last_rotated_at' => 'datetime',
             'printed_at' => 'datetime',

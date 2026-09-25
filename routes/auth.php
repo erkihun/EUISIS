@@ -10,6 +10,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\SessionActivityController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -64,7 +65,10 @@ Route::middleware(['auth', 'force.password'])->group(function () {
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
-    Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+    // Current-password verification: throttled like a login.
+    Route::put('password', [PasswordController::class, 'update'])
+        ->middleware('throttle:6,1')
+        ->name('password.update');
 
     /*
      * Forced password change on first login.
@@ -98,3 +102,17 @@ Route::middleware(['auth', 'force.password'])->group(function () {
         ->middleware('throttle:10,1')
         ->name('mfa.disable');
 });
+
+/*
+ * Session idle clock (docs/session-management.md). Any signed-in guard.
+ * `force.password` still applies: a heartbeat cannot open anything, and an
+ * account under a forced change stays confined to that screen. `status` is a
+ * passive route and never counts as activity.
+ */
+Route::middleware(['auth:web,provider', 'force.password', 'throttle:60,1'])
+    ->prefix('session')
+    ->name('session.')
+    ->group(function (): void {
+        Route::post('activity', [SessionActivityController::class, 'heartbeat'])->name('activity');
+        Route::get('status', [SessionActivityController::class, 'status'])->name('status');
+    });

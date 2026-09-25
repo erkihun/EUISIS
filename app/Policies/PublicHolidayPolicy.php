@@ -34,6 +34,6 @@ readonly class PublicHolidayPolicy
 
     public function archive(User $user, PublicHoliday $holiday): bool
     {
-        return $user->can('public_holidays.delete') || $user->can('public_holidays.archive');
+        return $user->can('public_holidays.archive');
     }
 }

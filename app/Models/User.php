@@ -95,6 +95,18 @@ class User extends Authenticatable
         // Maintain a deterministic hash of the encrypted national_id so we can
         // run uniqueness lookups without leaking the plaintext.
         static::saving(function (User $user): void {
+            if (! $user->exists && $user->email) {
+                $matches = Employee::query()->where('email', $user->email)->pluck('id');
+                if ($matches->count() === 1) {
+                    $user->employee_id = $matches->first();
+                    $user->employee_link_locked = true;
+                }
+            }
+            if ($user->exists && $user->isDirty('email') && ! $user->employee_link_locked) {
+                $matches = Employee::query()->where('email', $user->getOriginal('email'))->pluck('id');
+                $user->employee_id ??= $matches->count() === 1 ? $matches->first() : null;
+                $user->employee_link_locked = true;
+            }
             if ($user->isDirty('national_id')) {
                 $value = $user->getAttribute('national_id');
                 $user->national_id_hash = $value !== null && $value !== ''
@@ -159,7 +171,17 @@ class User extends Authenticatable
      */
     public function employee(): HasOne
     {
-        return $this->hasOne(Employee::class, 'email', 'email');
+        return $this->hasOne(Employee::class, 'id', 'employee_id');
+    }
+
+    public function getEmployeeAttribute(): ?Employee
+    {
+        if ($this->employee_id !== null || $this->employee_link_locked) {
+            return $this->getRelationValue('employee');
+        }
+        // Compatibility for newly provisioned accounts awaiting an employee record.
+        $matches = Employee::query()->where('email', $this->email)->limit(2)->get();
+        return $matches->count() === 1 ? $matches->first() : null;
     }
 
     public function organizationScopes(): HasMany

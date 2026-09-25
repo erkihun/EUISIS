@@ -25,7 +25,6 @@ class PreviewCodeForEntityRequest extends FormRequest
         return $user->can('code-rules.preview')
             || $user->can('organizations.manage')
             || $user->can('organization-units.create')
-            || $user->can('organization-units.manage')
             || $user->can('employees.manage')
             || $user->can('positions.create')
             || $user->can('service-types.create')

@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useEffect, useState } from 'react';
 
@@ -116,6 +117,8 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                                         <input id="password_confirmation" type={showPassword ? 'text' : 'password'} value={form.data.password_confirmation} onChange={(e) => form.setData('password_confirmation', e.target.value)} autoComplete="new-password" className={inputClass(Boolean(form.errors.password_confirmation))} />
                                         {form.errors.password_confirmation && <p className="mt-1 text-xs text-red-500">{form.errors.password_confirmation}</p>}
                                     </div>
+
+                                    <PasswordPolicyChecklist password={form.data.password} confirmation={form.data.password_confirmation} personal={[form.data.employee_number]} />
 
                                     <button type="submit" disabled={form.processing} className="w-full rounded-lg bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-60">
                                         {form.processing ? 'Verifying…' : 'Verify and create account'}

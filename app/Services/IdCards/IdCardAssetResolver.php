@@ -66,6 +66,16 @@ final class IdCardAssetResolver
      */
     public function resolvePhotoPath(?string $photoPath): ?string
     {
+        if ($photoPath && preg_match('#^employee-photos/[a-zA-Z0-9-]+\.(jpg|jpeg|png|webp)$#D', $photoPath)) {
+            $disk = Storage::disk('local');
+            if ($disk->exists($photoPath) && $disk->size($photoPath) <= 4 * 1024 * 1024) {
+                $mime = $disk->mimeType($photoPath);
+                if (in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+                    return 'data:'.$mime.';base64,'.base64_encode($disk->get($photoPath));
+                }
+            }
+            return null;
+        }
         // Employee create/update accepts photos up to 4096 KB.
         return $this->resolveStoragePath($photoPath, 4 * 1024 * 1024);
     }

@@ -1,7 +1,6 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import PageHeader from '@/Components/PageHeader';
+import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Head, Link, router } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import type { PageProps } from '@/types';
@@ -48,23 +47,18 @@ export default function Announcements({ announcements, applied_ids, has_employee
     }
 
     return (
-        <AuthenticatedLayout
-            header={
-                <PageHeader
-                    title={t('employeePortal.openAnnouncements')}
-                    backHref={route('employee.portal')}
-                    actions={
+        <PortalPage
+            title={t('employeePortal.openAnnouncements')}
+            backHref={route('employee.transfer-applications')}
+            actions={
                         <Link
                             href={route('employee.transfer-applications')}
                             className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
                         >
                             {t('transfers.myApplications')}
                         </Link>
-                    }
-                />
             }
         >
-            <Head title={t('employeePortal.openAnnouncements')} />
 
             {!has_employee && (
                 <div className="mb-4 rounded-panel border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-300">
@@ -159,6 +153,6 @@ export default function Announcements({ announcements, applied_ids, has_employee
                     </div>
                 </nav>
             )}
-        </AuthenticatedLayout>
+        </PortalPage>
     );
 }

@@ -25,7 +25,12 @@ function mfaSecurityAdmin(): User
 function mfaSecurityPayload(array $overrides = []): array
 {
     return array_merge([
-        'password_min_length' => 12,
+        'password_min_length' => 15,
+        'password_max_length' => 128,
+        'password_history_count' => 5,
+        'password_block_personal_info' => true,
+        'password_block_common' => true,
+        'password_breach_check' => true,
         'session_timeout_minutes' => 120,
         'max_upload_size_mb' => 10,
         'password_complexity_enabled' => true,

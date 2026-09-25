@@ -20,6 +20,11 @@ class Employee extends Model
 {
     use HasUuidPrimaryKey;
 
+    protected static function booted(): void
+    {
+        static::observe(\App\Observers\EmployeeCardImpactObserver::class);
+    }
+
     protected $fillable = [
         'employee_number',
         'current_assignment_id',
@@ -39,6 +44,9 @@ class Employee extends Model
         'address',
         'emergency_contact_name',
         'emergency_contact_phone',
+        'emergency_contact_relationship',
+        'preferred_language',
+        'notification_preferences',
         'photo_path',
         'signature_path',
         'status',
@@ -62,6 +70,7 @@ class Employee extends Model
             'employment_type' => EmploymentType::class,
             'data_quality_score' => 'float',
             'metadata' => 'array',
+            'notification_preferences' => 'array',
             'is_demo' => 'bool',
         ];
     }
@@ -87,6 +96,9 @@ class Employee extends Model
 
     public function getPhotoUrlAttribute(): ?string
     {
+        if ($this->photo_path && str_starts_with($this->photo_path, 'employee-photos/')) {
+            return route('employees.private-photo', $this, false);
+        }
         return $this->photo_path ? '/storage/'.$this->photo_path : null;
     }
 

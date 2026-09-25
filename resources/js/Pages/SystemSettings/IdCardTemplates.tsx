@@ -42,6 +42,7 @@ type Template = TemplatePresentation & {
     description: string | null;
     status: 'active' | 'inactive';
     is_default: boolean;
+    employee_fields?: string[] | null;
     /**
      * What the template itself stores, as opposed to header_config which is
      * already resolved against the system settings. The editor edits these so a
@@ -155,6 +156,7 @@ function TemplateForm({
         height_mm: template?.height_mm ?? 54,
         status: template?.status ?? ('active' as 'active' | 'inactive'),
         is_default: template?.is_default ?? false,
+        employee_fields: template?.employee_fields ?? ['name', 'sex', 'dob', 'nationality', 'employment', 'phone', 'idNumber', 'emergency_contact_name', 'emergency_contact_phone'],
         front_background: null as File | null,
         back_background: null as File | null,
         logo_primary: null as File | null,
@@ -243,6 +245,7 @@ function TemplateForm({
         form.data.remove_signature,
     );
     const presentation: TemplatePresentation = {
+        employee_fields: form.data.employee_fields,
         orientation: form.data.orientation,
         width_mm: form.data.width_mm || 85.6,
         height_mm: form.data.height_mm || 54,
@@ -441,6 +444,7 @@ function TemplateForm({
 
                 {/* Identity — the fields an admin always fills in. */}
                 {step === 0 && <TemplateEditorSection title={label(template ? 'edit' : 'create')}>
+                {form.data.orientation === 'landscape' && <fieldset className="rounded-lg border p-3"><legend className="px-2 text-sm font-semibold">{label('printedFields')}</legend><p className="mb-3 text-xs text-gray-500">{label('printedFieldsHelp')}</p><div className="grid grid-cols-2 gap-2">{Object.entries({ name: 'fullName', sex: 'gender', dob: 'dateOfBirth', nationality: 'nationality', employment: 'employmentType', phone: 'phone', idNumber: 'employeeNumber', email: 'email', address: 'address', emergency_contact_name: 'emergencyContactName', emergency_contact_phone: 'emergencyContactPhone' }).map(([key, textKey]) => <label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.employee_fields.includes(key)} onChange={e => form.setData('employee_fields', e.target.checked ? [...form.data.employee_fields, key] : form.data.employee_fields.filter(item => item !== key))} />{t(`employees.${textKey}`)}</label>)}</div></fieldset>}
                 {(['name', 'code', 'description'] as const).map((field) => (
                     <label key={field} className="block text-sm font-medium">
                         {label(field)}

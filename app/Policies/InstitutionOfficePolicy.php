@@ -44,7 +44,8 @@ readonly class InstitutionOfficePolicy
 
     public function forceDelete(User $user, InstitutionOffice $office): bool
     {
-        return $user->can('institution-offices.forceDelete');
+        // Permanent deletion is a recycle-bin action for every module.
+        return $user->can('recycle-bin.forceDelete');
     }
 
     public function move(User $user, InstitutionOffice $office): bool

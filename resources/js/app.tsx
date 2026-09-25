@@ -10,6 +10,7 @@ import ConfirmProvider from '@/Components/ConfirmProvider';
 import { initTheme, type ThemePreference } from '@/lib/theme';
 import AppErrorBoundary from '@/Components/errors/AppErrorBoundary';
 import AppPageLoader from '@/Components/ui/AppPageLoader';
+import SessionTimeoutManager, { type SessionPolicy } from '@/Components/SessionTimeoutManager';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 const pages = import.meta.glob('./Pages/**/*.tsx');
@@ -57,6 +58,7 @@ createInertiaApp({
                         <Suspense fallback={<AppPageLoader />}>
                             <App {...props} />
                         </Suspense>
+                        <SessionTimeoutManager initialPolicy={(initialProps.session_policy as SessionPolicy | null | undefined) ?? null} />
                     </ConfirmProvider>
                 </AppErrorBoundary>
             </LocaleProvider>,

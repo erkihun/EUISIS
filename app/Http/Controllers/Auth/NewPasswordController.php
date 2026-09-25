@@ -4,25 +4,41 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
-use App\Services\Security\DefaultPasswordPolicyService;
+use App\Security\Passwords\PasswordLifecycle;
+use App\Security\Passwords\PasswordPolicy;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
+/**
+ * Forgot-password reset. Same central policy as every other flow, in two
+ * stages so the form is never an oracle:
+ *
+ *  1. before the token is checked: only rules that know nothing about the
+ *     account (length, common, breached) — anyone can submit this form with
+ *     any email;
+ *  2. after the broker has verified the token (inside its callback): the
+ *     account-specific rules — personal information and the current/last N
+ *     passwords. Asking "is this their current password?" therefore needs a
+ *     valid, unexpired, single-use token for that account.
+ *
+ * Tokens are random, stored hashed, expire (auth.passwords.users.expire) and
+ * are deleted on use by Laravel's broker; the route is throttled.
+ */
 class NewPasswordController extends Controller
 {
-    public function __construct(private readonly DefaultPasswordPolicyService $defaultPasswordPolicy) {}
+    public function __construct(
+        private readonly PasswordPolicy $policy,
+        private readonly PasswordLifecycle $lifecycle,
+    ) {}
 
-    /**
-     * Display the password reset view.
-     */
     public function create(Request $request): Response
     {
         return Inertia::render('Auth/ResetPassword', [
@@ -32,8 +48,6 @@ class NewPasswordController extends Controller
     }
 
     /**
-     * Handle an incoming new password request.
-     *
      * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
@@ -41,41 +55,29 @@ class NewPasswordController extends Controller
         $request->validate([
             'token' => 'required',
             'email' => 'required|email',
-            'password' => ['required', 'confirmed', $this->defaultPasswordPolicy->rule()],
+            'password' => $this->policy->rules(),
         ]);
 
-        // Here we will attempt to reset the user's password. If it is successful we
-        // will update the password on an actual user model and persist it to the
-        // database. Otherwise we will parse the error and return the response.
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user) use ($request) {
-                if (Hash::check((string) $request->password, $user->password)) {
-                    throw ValidationException::withMessages([
-                        'password' => __('auth.password_must_differ'),
-                    ]);
-                }
+            function ($user) use ($request): void {
+                Validator::make(
+                    ['password' => (string) $request->password, 'password_confirmation' => (string) $request->password_confirmation],
+                    ['password' => $this->policy->rules($user)],
+                )->validate();
 
-                if ($this->defaultPasswordPolicy->matches((string) $request->password)) {
-                    throw ValidationException::withMessages([
-                        'password' => __('auth.password_cannot_be_default'),
-                    ]);
-                }
-
-                $user->forceFill([
-                    'password' => Hash::make($request->password),
-                    'remember_token' => Str::random(60),
-                ])->save();
-
-                $user->markPasswordChanged();
+                $this->lifecycle->change(
+                    $user,
+                    (string) $request->password,
+                    AuditEventType::PasswordResetCompleted,
+                    PasswordLifecycle::KIND_RESET,
+                    reason: 'password_reset_with_emailed_token',
+                );
 
                 event(new PasswordReset($user));
             }
         );
 
-        // If the password was successfully reset, we will redirect the user back to
-        // the application's home authenticated view. If there is an error we can
-        // redirect them back to where they came from with their error message.
         if ($status == Password::PASSWORD_RESET) {
             return redirect()->route('login')->with('status', __($status));
         }

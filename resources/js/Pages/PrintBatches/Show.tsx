@@ -194,6 +194,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     </svg>
                                     {t('idCards.markAsPrinted')}
                                 </button>
+                                <p role="alert" className="text-sm text-red-700">{markForm.errors.printer_notes}</p>
                             </div>
                         )}
                     </div>

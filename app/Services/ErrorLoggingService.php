@@ -53,6 +53,13 @@ class ErrorLoggingService
         'client_secret',
         'api_key',
         'remember_token',
+        // Password lifecycle (docs/password-security-policy.md).
+        'temporary_password',
+        'user_password',
+        'password_hash',
+        'default_password_hash',
+        'default_password_hash_confirmation',
+        'reset_token',
     ];
 
     /**

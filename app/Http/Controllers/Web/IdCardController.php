@@ -135,6 +135,7 @@ class IdCardController extends Controller
         $card->makeVisible('qr_payload');
 
         return Inertia::render('IdCards/Show', [
+            'portal_labels' => __('employee-portal'),
             'nfc' => app(NfcAccess::class)->cardPayload($user, $card),
             'card' => [
                 ...$card->toArray(),
@@ -145,6 +146,7 @@ class IdCardController extends Controller
                 'view' => $user?->can('view', $card),
                 'update' => $user?->can('update', $card),
                 'print' => $card->status === CardStatus::PendingPrint && $user?->can('print', $card),
+                'reprint' => $user?->can('reprint', $card),
                 'issue' => $card->status === CardStatus::Printed && $user?->can('issue', $card),
                 'activate' => $card->status === CardStatus::Issued && $user?->can('activate', $card),
                 'reportLost' => in_array($card->status, [CardStatus::Active, CardStatus::Issued], true) && $user?->can('reportLost', $card),

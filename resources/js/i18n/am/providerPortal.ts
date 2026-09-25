@@ -4,7 +4,6 @@ const providerPortal = {
     staffLogin: 'የሰራተኛ መግቢያ',
     email: 'ኢሜይል',
     password: 'የይለፍ ቃል',
-    remember: 'አስታውሰኝ',
     signIn: 'ግባ',
     logout: 'ውጣ',
     dashboard: 'የአቅራቢ ዳሽቦርድ',

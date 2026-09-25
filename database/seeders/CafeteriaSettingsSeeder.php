@@ -34,7 +34,7 @@ class CafeteriaSettingsSeeder extends Seeder
             ['key' => 'max_transaction_amount_per_scan', 'value' => null,                'value_type' => 'numeric',  'group' => 'scan',     'label_en' => 'Max Amount per Scan'],
             ['key' => 'max_extra_amount_per_week',       'value' => null,                'value_type' => 'numeric',  'group' => 'scan',     'label_en' => 'Max Extra Amount per Week'],
             ['key' => 'report_default_format',           'value' => 'csv',               'value_type' => 'string',   'group' => 'reports',  'label_en' => 'Default Report Format'],
-            ['key' => 'report_timezone',                 'value' => 'Africa/Addis_Ababa','value_type' => 'string',   'group' => 'reports',  'label_en' => 'Report Timezone'],
+            ['key' => 'report_timezone',                 'value' => 'Africa/Addis_Ababa', 'value_type' => 'string',   'group' => 'reports',  'label_en' => 'Report Timezone'],
             ['key' => 'payroll_cutoff_day',              'value' => null,                'value_type' => 'integer',  'group' => 'reports',  'label_en' => 'Payroll Cutoff Day'],
         ];
 
