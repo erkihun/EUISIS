@@ -14,6 +14,7 @@ use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\User;
+use App\Services\Employees\CardRequestEligibility;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -58,6 +59,17 @@ readonly class ApproveCardRequestAction
              * RegisterEmployeeAction already uses for position occupancy.
              */
             Employee::query()->whereKey($employee->id)->lockForUpdate()->first();
+
+            if ($cardRequest->request_type === CardRequestType::Correction) {
+                $cards = IdCard::query()->where('employee_id', $employee->id)->lockForUpdate()->get();
+                $eligibility = new CardRequestEligibility;
+                $previousCard = $eligibility->previousCard($cards);
+                if (! $eligibility->allows($employee, CardRequestType::Correction, $cards, false)
+                    || $previousCard?->id !== $cardRequest->previous_card_id) {
+                    throw new DomainException(__('id-cards.request_type_ineligible'));
+                }
+                $previousCard->update(['status' => CardStatus::Replaced, 'is_current' => false]);
+            }
 
             if (! in_array($cardRequest->request_type, [CardRequestType::Replacement, CardRequestType::Lost, CardRequestType::Damaged], true)) {
                 $hasActiveCard = IdCard::query()

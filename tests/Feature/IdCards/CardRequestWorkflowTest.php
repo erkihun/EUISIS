@@ -18,6 +18,7 @@ use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
+use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -64,6 +65,187 @@ function makeActiveEmployee(): Employee
 }
 
 // Test 1: Active employee with assignment can submit card request
+it('scopes the card request picker list and submissions to accessible organizations', function (): void {
+    Permission::findOrCreate('employees.view', 'web');
+    $actor = User::factory()->create();
+    $actor->assignRole('HR Officer');
+    $actor->givePermissionTo('employees.view');
+    $inside = makeActiveEmployee();
+    $outside = makeActiveEmployee();
+    $otherOrganization = Organization::query()->create([
+        'organization_type_id' => $inside->currentAssignment->organization->organization_type_id,
+        'code' => 'OTHER-ORG', 'name_en' => 'Other Organization', 'status' => 'active',
+    ]);
+    $outside->currentAssignment->update(['organization_id' => $otherOrganization->id]);
+    $actor->organizationScopes()->create([
+        'organization_id' => $inside->currentAssignment->organization_id,
+        'scope_type' => 'self', 'is_active' => true,
+    ]);
+    $insideRequest = app(SubmitCardRequestAction::class)->execute($inside, $actor);
+    $outsideRequest = app(SubmitCardRequestAction::class)->execute($outside->fresh(), $actor);
+
+    $this->actingAs($actor)->get(route('card-requests.create'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('employees', 1)->where('employees.0.id', $inside->id));
+    $this->get(route('card-requests.index'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('cardRequests.data', 1)->where('cardRequests.data.0.id', $insideRequest->id));
+    $this->get(route('card-requests.show', $outsideRequest))->assertForbidden();
+    $this->post(route('card-requests.store'), ['employee_ids' => [$inside->id, $outside->id]])->assertForbidden();
+    $this->post(route('card-requests.store'), ['employee_id' => $outside->id])->assertForbidden();
+    $this->assertDatabaseCount('card_requests', 2);
+
+    $inactiveActor = User::factory()->create();
+    $inactiveActor->assignRole('HR Officer');
+    $inactiveActor->organizationScopes()->create([
+        'organization_id' => $inside->currentAssignment->organization_id,
+        'scope_type' => 'self', 'is_active' => false,
+    ]);
+    $this->actingAs($inactiveActor)->get(route('card-requests.create'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->has('employees', 0));
+    $this->get(route('card-requests.index'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->has('cardRequests.data', 0));
+
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Admin');
+    $this->actingAs($admin)->get(route('card-requests.create'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->has('employees', 2));
+    $this->get(route('card-requests.index'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->has('cardRequests.data', 2));
+});
+
+it('filters eligibility by request type and rejects mismatched submissions', function (?string $status, array $types): void {
+    $actor = User::factory()->create();
+    $actor->assignRole('Super Admin');
+    $employee = makeActiveEmployee();
+    $card = $status === null ? null : IdCard::query()->create([
+        'employee_id' => $employee->id, 'card_number' => 'ELIG-'.uniqid(),
+        'status' => $status, 'expires_at' => now()->addYear(),
+        'reprint_required' => $status === 'active',
+    ]);
+    $this->actingAs($actor)->get(route('card-requests.create'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('employees.0.eligible_request_types', $types));
+    foreach (array_diff(['new', 'renewal', 'replacement', 'lost', 'damaged', 'correction'], $types) as $type) {
+        $this->post(route('card-requests.store'), ['employee_ids' => [$employee->id], 'request_type' => $type])
+            ->assertSessionHasErrors('employee_ids');
+    }
+    $this->assertDatabaseCount('card_requests', 0);
+    if ($types !== []) {
+        $this->post(route('card-requests.store'), ['employee_ids' => [$employee->id], 'request_type' => $types[0]])
+            ->assertSessionHasNoErrors()->assertRedirect(route('card-requests.index'));
+        $this->assertDatabaseHas('card_requests', ['employee_id' => $employee->id, 'previous_card_id' => $card?->id]);
+        $this->get(route('card-requests.create'))->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('employees.0.eligible_request_types', []));
+    }
+})->with([
+    'no card' => [null, ['new']],
+    'expired' => ['expired', ['renewal', 'replacement']],
+    'lost' => ['lost', ['replacement', 'lost']],
+    'damaged' => ['damaged', ['replacement', 'damaged']],
+    'revoked' => ['revoked', ['replacement']],
+    'suspended' => ['suspended', ['replacement']],
+    'correction' => ['active', ['correction']],
+    'printing' => ['pending_print', []],
+    'replaced' => ['replaced', []],
+]);
+
+it('replaces the linked card only when a correction is approved', function (): void {
+    $actor = User::factory()->create();
+    $actor->assignRole('Super Admin');
+    $employee = makeActiveEmployee();
+    $card = IdCard::query()->create([
+        'employee_id' => $employee->id, 'card_number' => 'CORRECTION-1',
+        'status' => CardStatus::Active, 'reprint_required' => true, 'is_current' => true,
+        'expires_at' => now()->addYear(),
+    ]);
+    $this->actingAs($actor)->post(route('card-requests.store'), [
+        'employee_ids' => [$employee->id], 'request_type' => 'correction',
+    ])->assertSessionHasNoErrors();
+    expect($card->fresh()->status)->toBe(CardStatus::Active);
+    $request = $employee->cardRequests()->firstOrFail();
+    $result = app(ApproveCardRequestAction::class)->execute($request, $actor);
+    expect($card->fresh()->status)->toBe(CardStatus::Replaced)
+        ->and($card->fresh()->is_current)->toBeFalse()
+        ->and($result['card']->previous_card_id)->toBe($card->id);
+});
+
+it('rejects a stale selection and rolls back earlier eligible employees', function (): void {
+    $actor = User::factory()->create();
+    $actor->assignRole('Super Admin');
+    $employees = collect([makeActiveEmployee(), makeActiveEmployee()])->sortBy('id')->values();
+    $this->actingAs($actor)->get(route('card-requests.create'))->assertOk();
+    IdCard::query()->create([
+        'employee_id' => $employees[1]->id, 'card_number' => 'STALE-1',
+        'status' => CardStatus::Active, 'expires_at' => now()->addYear(),
+    ]);
+    $this->post(route('card-requests.store'), [
+        'employee_ids' => $employees->pluck('id')->all(), 'request_type' => 'new',
+    ])->assertSessionHasErrors('employee_ids');
+    $this->assertDatabaseCount('card_requests', 0);
+});
+
+it('submits one card request per selected employee through the form', function (): void {
+    $actor = User::factory()->create();
+    $actor->assignRole('Super Admin');
+    $employees = [makeActiveEmployee(), makeActiveEmployee()];
+
+    $this->actingAs($actor)->post(route('card-requests.store'), [
+        'employee_ids' => array_map(fn ($employee) => $employee->id, $employees),
+        'request_type' => 'new',
+        'reason' => 'Team cards',
+    ])->assertRedirect(route('card-requests.index'))->assertSessionHasNoErrors();
+
+    foreach ($employees as $employee) {
+        $this->assertDatabaseHas('card_requests', ['employee_id' => $employee->id, 'request_reason' => 'Team cards', 'status' => 'submitted']);
+    }
+    $this->assertDatabaseCount('card_requests', 2);
+});
+
+it('rolls back the whole selection when a later employee already has a pending request', function (): void {
+    $actor = User::factory()->create();
+    $actor->assignRole('Super Admin');
+    $employees = collect([makeActiveEmployee(), makeActiveEmployee()])->sortBy('id')->values();
+    app(SubmitCardRequestAction::class)->execute($employees[1], $actor);
+
+    $this->actingAs($actor)->post(route('card-requests.store'), [
+        'employee_ids' => $employees->pluck('id')->all(),
+    ])->assertSessionHasErrors('employee_ids');
+
+    $this->assertDatabaseCount('card_requests', 1);
+    $this->assertDatabaseMissing('card_requests', ['employee_id' => $employees[0]->id]);
+});
+
+it('rejects duplicate employee selections', function (): void {
+    $actor = User::factory()->create();
+    $actor->assignRole('Super Admin');
+    $employee = makeActiveEmployee();
+    $this->actingAs($actor)->post(route('card-requests.store'), [
+        'employee_ids' => [$employee->id, $employee->id],
+    ])->assertSessionHasErrors('employee_ids.0');
+    $this->assertDatabaseCount('card_requests', 0);
+});
+
+it('preserves single employee request submissions', function (): void {
+    $actor = User::factory()->create();
+    $actor->assignRole('Super Admin');
+    $employee = makeActiveEmployee();
+    $this->actingAs($actor)->post(route('card-requests.store'), [
+        'employee_id' => $employee->id,
+    ])->assertRedirect(route('card-requests.index'))->assertSessionHasNoErrors();
+    $this->assertDatabaseCount('card_requests', 1);
+});
+
+it('does not create requests when a selected employee is unauthorized', function (): void {
+    Permission::findOrCreate('employees.view', 'web');
+    $actor = User::factory()->create();
+    $actor->assignRole('HR Officer');
+    $employees = [makeActiveEmployee(), makeActiveEmployee()];
+    $this->actingAs($actor)->post(route('card-requests.store'), [
+        'employee_ids' => array_map(fn ($employee) => $employee->id, $employees),
+    ])->assertForbidden();
+    $this->assertDatabaseCount('card_requests', 0);
+});
+
 it('allows active employee with assignment to submit card request', function (): void {
     $employee = makeActiveEmployee();
     $actor = User::factory()->create();

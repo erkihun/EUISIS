@@ -18,17 +18,26 @@ use App\Http\Requests\IdCards\StoreCardRequestRequest;
 use App\Http\Requests\IdCards\VerifyCardRequestRequest;
 use App\Models\CardRequest;
 use App\Models\Employee;
+use App\Models\IdCard;
+use App\Services\Employees\CardRequestEligibility;
+use App\Services\OrganizationScope\OrganizationScopeService;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class CardRequestController extends Controller
 {
+    public function __construct(private readonly OrganizationScopeService $organizationScopeService) {}
+
     public function index(): Response
     {
         $this->authorize('viewAny', CardRequest::class);
 
         $cardRequests = CardRequest::query()
+            ->whereHas('employee.currentAssignment', fn ($query) => $this->organizationScopeService->applyOrganizationScope($query, request()->user()))
             ->with(['employee.currentAssignment.organization', 'requester', 'reviewer', 'approver', 'rejecter'])
             ->orderByDesc('created_at')
             ->paginate(25);
@@ -41,15 +50,26 @@ class CardRequestController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(CardRequestEligibility $eligibility): Response
     {
         $this->authorize('create', CardRequest::class);
 
         $employees = Employee::query()
+            ->whereHas('currentAssignment', fn ($query) => $this->organizationScopeService->applyOrganizationScope($query, request()->user()))
             ->with('currentAssignment.organization')
             ->where('status', 'active')
             ->orderBy('full_name')
             ->get(['id', 'employee_number', 'full_name', 'status', 'current_assignment_id']);
+
+        $cards = IdCard::query()->whereIn('employee_id', $employees->modelKeys())->get()->groupBy('employee_id');
+        $pending = CardRequest::query()->whereIn('employee_id', $employees->modelKeys())
+            ->whereIn('status', $eligibility->pendingStatuses())->pluck('employee_id')->flip();
+        $employees->each(function (Employee $employee) use ($eligibility, $cards, $pending): void {
+            $employee->setAttribute('eligible_request_types', array_values(array_map(
+                fn (CardRequestType $type) => $type->value,
+                array_filter(CardRequestType::cases(), fn (CardRequestType $type) => $eligibility->allows($employee, $type, $cards->get($employee->id, collect()), $pending->has($employee->id))),
+            )));
+        });
 
         return Inertia::render('CardRequests/Create', [
             'employees' => $employees,
@@ -57,21 +77,37 @@ class CardRequestController extends Controller
         ]);
     }
 
-    public function store(StoreCardRequestRequest $request, SubmitCardRequestAction $submitCardRequestAction): RedirectResponse
+    public function store(StoreCardRequestRequest $request, SubmitCardRequestAction $submitCardRequestAction, CardRequestEligibility $eligibility): RedirectResponse
     {
-        $employee = Employee::query()->findOrFail($request->string('employee_id')->toString());
-        $this->authorize('view', $employee);
-
         $requestType = $request->filled('request_type')
             ? CardRequestType::from($request->string('request_type')->toString())
             : CardRequestType::New;
 
-        $submitCardRequestAction->execute(
-            $employee,
-            $request->user(),
-            $request->input('reason'),
-            $requestType,
-        );
+        $employeeIds = $request->validated('employee_ids') ?? [$request->validated('employee_id')];
+        $employees = Employee::query()->whereIn('id', $employeeIds)->orderBy('id')->get();
+        foreach ($employees as $employee) {
+            $this->authorize('view', $employee);
+        }
+
+        DB::transaction(function () use ($employees, $request, $requestType, $submitCardRequestAction, $eligibility): void {
+            foreach ($employees as $employee) {
+                try {
+                    $employee = Employee::query()->lockForUpdate()->findOrFail($employee->id);
+                    $this->authorize('view', $employee);
+                    $cards = IdCard::query()->where('employee_id', $employee->id)->lockForUpdate()->get();
+                    $pending = $employee->cardRequests()->whereIn('status', $eligibility->pendingStatuses())->exists();
+                    if (! $eligibility->allows($employee, $requestType, $cards, $pending)) {
+                        throw new DomainException(__('id-cards.request_type_ineligible'));
+                    }
+                    $previousCard = $requestType === CardRequestType::New ? null : $eligibility->previousCard($cards);
+                    $submitCardRequestAction->execute($employee, $request->user(), $request->input('reason'), $requestType, $previousCard);
+                } catch (DomainException $exception) {
+                    throw ValidationException::withMessages([
+                        $request->has('employee_ids') ? 'employee_ids' : 'employee_id' => $employee->employee_number.': '.$exception->getMessage(),
+                    ]);
+                }
+            }
+        });
 
         return redirect()->route('card-requests.index')->with('success', __('id-cards.request_submitted'));
     }

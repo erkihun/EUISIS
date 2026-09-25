@@ -21,7 +21,9 @@ class StoreCardRequestRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'employee_id' => ['required', 'uuid', 'exists:employees,id'],
+            'employee_id' => ['required_without:employee_ids', 'prohibits:employee_ids', 'uuid', 'exists:employees,id'],
+            'employee_ids' => ['required_without:employee_id', 'array', 'min:1', 'max:500'],
+            'employee_ids.*' => ['required', 'uuid', 'distinct', 'exists:employees,id'],
             'request_type' => ['nullable', Rule::enum(CardRequestType::class)],
             'reason' => ['nullable', 'string', 'max:1000'],
             'previous_card_id' => ['nullable', 'uuid', 'exists:id_cards,id'],

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'request_type_ineligible' => 'ሠራተኛው ለዚህ የጥያቄ ዓይነት ብቁ አይደለም ወይም በመጠባበቅ ላይ ያለ ጥያቄ አለው። ዝርዝሩን ያድሱና የካርዱን ሁኔታ ያረጋግጡ።',
     'title' => 'መታወቂያ ካርዶች',
     'id_card' => 'መታወቂያ ካርድ',
     'card_number' => 'የካርድ ቁጥር',

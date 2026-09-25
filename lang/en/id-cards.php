@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'request_type_ineligible' => 'Employee is not eligible for this request type or already has a pending request. Refresh the list and check the card status.',
     'title' => 'ID Cards',
     'id_card' => 'ID Card',
     'card_number' => 'Card Number',
