@@ -647,9 +647,12 @@ it('does not suggest inactive positions and keeps an organization starter when n
     expect($lines)->toHaveCount(2)->and($row['organization_name'])->toBe($this->alpha['org']->name_en)->and($row['position_name'])->toBe('');
 });
 
-it('imports filled name templates and rejects mismatched names', function (): void {
+it('imports filled name templates and rejects mismatched names', function (string $locale): void {
+    $this->alpha['org']->update(['name_am' => 'አልፋ ተቋም']);
+    $this->alpha['unit']->update(['name_am' => 'አልፋ ክፍል']);
+    $this->alpha['positions'][1]->update(['title_am' => 'አልፋ የሥራ መደብ']);
     $this->alpha['positions'][2]->update(['title_en' => $this->alpha['positions'][1]->title_en]);
-    $csv = $this->service->templateCsv($this->alpha['org']);
+    $csv = $this->service->templateCsv($this->alpha['org'], $locale);
     $lines = explode("\n", trim(substr($csv, 3)));
     $row = array_combine(EmployeeCsvImportService::templateColumns(), str_getcsv($lines[1]));
     $row['first_name'] = 'Test';
@@ -678,7 +681,7 @@ it('imports filled name templates and rejects mismatched names', function (): vo
     expect($result['imported'])->toBe(1);
     expect(EmployeeAssignment::where('position_id', $this->alpha['positions'][1]->id)->exists())->toBeTrue();
     expect(EmployeeAssignment::where('position_id', $this->alpha['positions'][2]->id)->exists())->toBeFalse();
-});
+})->with(['en', 'am']);
 
 /*
  * Preview used to re-query the organization and the unit for every single row,

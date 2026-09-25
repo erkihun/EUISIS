@@ -523,14 +523,24 @@ class EmployeeCsvImportService
             return __('employees.import.errors.templateReference');
         }
         $expected = [
-            'organization_name' => $position->organization->name_en ?: $position->organization->name_am,
-            'organization_unit_name' => $position->organizationUnit?->name_en ?: ($position->organizationUnit?->name_am ?? ''),
-            'position_name' => $position->title_en ?: ($position->title_am ?? ''),
+            'organization_name' => [$position->organization->name_en, $position->organization->name_am],
+            'organization_unit_name' => [$position->organizationUnit?->name_en, $position->organizationUnit?->name_am],
+            'position_name' => [$position->title_en, $position->title_am],
         ];
-        foreach ($expected as $key => $name) {
-            $name = trim((string) $name);
-            $safeName = preg_match('/^[\s]*[=+@-]/u', $name) ? "'".$name : $name;
-            if (! in_array(trim($row[$key] ?? ''), [$name, $safeName], true)) {
+        foreach ($expected as $key => $translations) {
+            // Accept either template language regardless of the current UI locale.
+            // A missing translation must not allow a populated name to be erased.
+            $names = array_values(array_filter(
+                array_map(static fn ($name): string => trim((string) $name), $translations),
+                static fn (string $name): bool => $name !== '',
+            ));
+            $acceptedNames = $names === [] ? [''] : $names;
+            foreach ($names as $name) {
+                if (preg_match('/^[\s]*[=+@-]/u', $name)) {
+                    $acceptedNames[] = "'".$name;
+                }
+            }
+            if (! in_array(trim($row[$key] ?? ''), $acceptedNames, true)) {
                 return __('employees.import.errors.templateNames');
             }
         }
