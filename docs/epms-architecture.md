@@ -34,7 +34,7 @@ These rules hold everywhere:
 | "Who manages whom" | Daily Activity reviewer assignments: `DailyActivityReviewerResolver::coverage()` and `DailyActivityCoverage::apply()` |
 | Organization scope | `OrganizationScopeService` (`applyOrganizationScope`, `allowedOrganizationIds`, `canExercisePermission`, `isUnrestricted`) |
 | Committees (appeal, calibration) | `GrievanceCommittee` / `GrievanceCommitteeMember`, new `CommitteeType` cases `performance_appeal` and `performance_calibration` |
-| Audit | `WriteAuditLogAction` via `EpmsAudit`; 23 `AuditEventType::Performance*` cases |
+| Audit | `WriteAuditLogAction` via `EpmsAudit`; the `AuditEventType` performance, strategic-goal and KPI cases |
 | Notifications | `PerformanceNotification` (module `performance`), rendered by `NotificationPresenter`; channels follow the existing notification settings |
 | Settings | `SystemSettingsRegistry::GROUP_PERFORMANCE` (19 fields), typed by `EpmsSettings` |
 | Files | private `local` disk under random names; downloads are authorized and sent with `nosniff` and `no-store` |
@@ -64,7 +64,7 @@ app/Services/Performance/
 app/Http/Controllers/Performance/       thin controllers (validate → one service call → redirect/render)
 app/Http/Controllers/Employee/MyPerformanceController.php   My Portal (own records only)
 app/Jobs/Performance/RecalculatePlanScore.php               queued, unique per plan and date
-routes/performance.php                  76 routes; no API routes
+routes/performance.php                  web routes only; no API routes
 resources/js/Pages/Performance/**       Dashboard, Cycles, KPIs, Plans, Agreements, Calibration, Appeals, Reports, Settings
 resources/js/Pages/Employee/MyPerformance.tsx
 resources/js/Components/performance/    ui kit, shared agreement views, forms, server-side lookup
@@ -109,11 +109,12 @@ The migration also adds `performance_objective_id` and `employee_performance_ite
 - Pages paginate (20–50 rows). Employee, unit and position pickers query `/performance/lookups/*` on the server: 2+ characters for employees, at most 20 rows, scoped.
 - Organization roll-ups run in `RecalculatePlanScore` (queued, `ShouldBeUnique` per plan and date, rate-limited trigger). Page loads read the cached `performance_plan_scores` row.
 - The CSV export streams in chunks of 500, with a UTF-8 BOM and a formula-injection guard, and is audited as `export_performed`.
+- 15 reports: results, rating distribution, plan scores, plan KPI targets, agreement completion, review completion, check-ins, missing actuals, unverified actuals, target amendments, score adjustments, calibration, appeals, improvement plans and development plans. Each is scoped, filterable by cycle and exportable. Statuses are labelled in the viewer's language, and organization, unit and KPI names follow it.
 
 ## 6. Known gaps
 
 - Exports are CSV only; PDF and Excel are not implemented. The CSV opens in Excel.
-- 7 of the 15 requested reports are implemented: results, distribution, agreement completion, missing actuals, appeals, calibration, improvement plans.
+- Organization pickers on the create forms (cycles, KPIs, plans, strategic goals, calibration) list up to 200 organizations in scope. Unit, position and employee pickers search on the server and have no such limit.
 - There are no browser (Dusk) tests. The UI contract is covered by Inertia page tests.
 - The PostgreSQL CHECK constraints are not exercised by the SQLite test suite.
 - System KPI sources: `id_cards.issued`, `employee_transfers.completed`, `service_feedback.average_rating`. To add more, register them in `SystemKpiSourceRegistry`.

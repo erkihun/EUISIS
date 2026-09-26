@@ -2,7 +2,9 @@
 
 // Employee Performance Management (EPMS) — server messages.
 return [
+    'band_attributes' => ['min_score' => 'minimum score', 'max_score' => 'maximum score', 'label_en' => 'English label', 'label_am' => 'Amharic label'],
     'errors' => [
+        'band_range_invalid' => 'The maximum score must be greater than or equal to the minimum score.',
         'forbidden' => 'You are not authorized for this performance action.',
         'separation_of_duties' => 'The person who prepared or requested this cannot also :step it.',
         'invalid_transition' => 'A cycle cannot move from :from to :to.',
@@ -69,6 +71,10 @@ return [
         'amend_only_published' => 'Only targets of a published plan are amended; edit draft plans directly.',
         'amend_only_active' => 'Only an agreed or active agreement is amended; edit drafts directly.',
         'item_not_in_agreement' => 'The KPI does not belong to your active agreement.',
+        'kpi_in_use' => 'This KPI is used by submitted plans or agreements, so how it is measured and scored can no longer change. Create a new KPI for a different rule.',
+        'band_overlap' => 'This range overlaps the band ":label". Bands of one scale must not overlap.',
+        'cycle_period_locked' => 'Plans are being cascaded into this cycle: its code, period and planning window can no longer change.',
+        'calibration_cycle_invalid' => 'Choose an open cycle of this organization, or a city-wide cycle.',
     ],
     'validation' => [
         'goal_has_objectives' => 'Remove or reassign this goal’s objectives before deleting it.',
@@ -113,6 +119,26 @@ return [
         'review_returned' => 'Your self-assessment was returned for changes.',
         'result_released' => 'Your performance result has been released.',
         'appeal_decided' => 'A decision was made on your performance appeal.',
+    ],
+    'attributes' => [
+        'cycle' => 'cycle',
+        'organization' => 'organization',
+        'code' => 'code',
+        'name_en' => 'English name',
+        'name_am' => 'Amharic name',
+        'description_en' => 'English description',
+        'description_am' => 'Amharic description',
+        'weight' => 'weight',
+        'shared' => 'shared goal',
+        'sort_order' => 'display order',
+        'effective_from' => 'start date',
+        'effective_to' => 'end date',
+        'unit' => 'unit',
+        'contribution' => 'unit contribution',
+        'allocation_type' => 'allocation type',
+        'lead' => 'lead unit',
+        'notes' => 'notes',
+        'reason' => 'reason',
     ],
     'saved' => 'Saved.',
     'settings_updated' => 'Performance settings updated.',

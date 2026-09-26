@@ -2,16 +2,13 @@
 
 use App\Models\ApiEndpointDefinition;
 use App\Models\CafeteriaProvider;
-use App\Models\CafeteriaSubsidyRule;
 use App\Models\CafeteriaTransaction;
 use App\Models\Employee;
 use App\Models\ExternalApplication;
 use App\Models\IdCard;
 use App\Models\NfcCredential;
 use App\Models\NfcVerificationLog;
-use App\Models\ServiceProvider;
 use App\Models\ServiceTerminal;
-use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\ApiEndpointCatalogService;
 use App\Services\Cafeteria\CafeteriaQrScanService;
@@ -20,6 +17,7 @@ use App\Services\Nfc\SecureCardAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Tests\Support\CafeteriaScenario;
 
 // Test-only adapter models a signed transcript, not a production card protocol.
 final class TestNfcAdapter implements SecureCardAdapter
@@ -157,11 +155,13 @@ it('does not allow ordinary users to provision or administer terminals', functio
 function nfcCafeteriaFixture($test): CafeteriaProvider
 {
     $test->travelTo(Carbon::parse('2026-09-14 10:00:00'));
-    $service = ServiceType::firstOrCreate(['code' => 'cafeteria'], ['name_en' => 'Cafeteria']);
-    $provider = ServiceProvider::create(['code' => 'NFC-CAFE', 'name' => 'NFC Cafe', 'service_type_id' => $service->id, 'status' => 'active']);
-    $cafeteria = CafeteriaProvider::create(['code' => 'NFC-CAFE', 'name_en' => 'NFC Cafe', 'service_provider_id' => $provider->id, 'is_active' => true]);
-    CafeteriaSubsidyRule::create(['code' => 'NFC-SUBSIDY', 'name_en' => 'Subsidy', 'subsidy_amount' => 100, 'currency' => 'ETB', 'effective_from' => '2026-01-01', 'applies_to' => 'all_employees', 'is_active' => true]);
-    $test->terminal->update(['provider_id' => $provider->id, 'cafeteria_provider_id' => $cafeteria->id, 'service_type' => 'cafeteria']);
+    // The employee's organization is enrolled in the terminal cafeteria's network (100 ETB policy).
+    $scenario = CafeteriaScenario::make('NFC');
+    $organization = $scenario->organization('NFC Organization');
+    $scenario->enroll($organization, '100.00', $scenario->main);
+    $scenario->assignEmployee($test->employee, $organization, '2026-01-01');
+    $cafeteria = $scenario->main;
+    $test->terminal->update(['provider_id' => $cafeteria->service_provider_id, 'cafeteria_provider_id' => $cafeteria->id, 'service_type' => 'cafeteria']);
 
     return $cafeteria;
 }
@@ -195,6 +195,22 @@ it('uses the same cafeteria records for QR and NFC', function () {
     $payload = signedNfcPayload($this, 'record', ['service_type' => 'cafeteria', 'reference' => (string) Str::uuid()]);
     $this->postJson('/api/v1/nfc/service-transactions/verify-and-record', $payload)->assertForbidden()->assertJsonPath('reason_code', 'ALREADY_SERVED');
     expect(CafeteriaTransaction::count())->toBe(1);
+});
+
+it('48 records at the terminal\'s own cafeteria and prices from policy, whatever the payload claims', function () {
+    $cafeteria = nfcCafeteriaFixture($this);
+    $elsewhere = CafeteriaScenario::make('SPOOF')->main;
+
+    $payload = signedNfcPayload($this, 'record', [
+        'service_type' => 'cafeteria', 'reference' => (string) Str::uuid(),
+        'meal_amount' => '1.00', 'cafeteria_provider_id' => $elsewhere->id,
+    ]);
+    $this->postJson('/api/v1/nfc/service-transactions/verify-and-record', $payload)->assertOk()->assertJsonPath('eligible', true);
+
+    $transaction = CafeteriaTransaction::query()->sole();
+    expect($transaction->cafeteria_provider_id)->toBe($cafeteria->id)
+        ->and((string) $transaction->subsidy_amount_applied)->toBe('100.00')
+        ->and($transaction->service_terminal_id)->toBe($this->terminal->id);
 });
 
 it('rejects proof reused for another purpose or transaction reference', function () {

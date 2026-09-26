@@ -20,6 +20,7 @@ use App\Models\PerformanceResult;
 use App\Models\PerformanceScoreAdjustment;
 use App\Models\PerformanceTargetAmendment;
 use App\Models\User;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Performance\DevelopmentPlanService;
 use App\Services\Performance\EmployeeAgreementService;
 use App\Services\Performance\EpmsAccess;
@@ -52,6 +53,7 @@ class EmployeeAgreementController extends PerformanceController
         private readonly PerformancePresenter $presenter,
         private readonly EpmsAccess $access,
         private readonly EpmsSettings $settings,
+        private readonly OrganizationScopeService $scope,
     ) {}
 
     public function index(Request $request): Response
@@ -65,7 +67,7 @@ class EmployeeAgreementController extends PerformanceController
             ->with(['employee:id,full_name,name_en,employee_number', 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'cycle:id,name_en,name_am'])
             ->when($request->query('cycle_id'), fn ($q, $v) => $q->where('cycle_id', $v))
             ->when($request->query('status'), fn ($q, $v) => $q->where('status', $v))
-            ->when($search !== '', fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('employee_number', 'like', "%{$search}%")->orWhere('full_name', 'like', "%{$search}%")->orWhere('name_en', 'like', "%{$search}%")));
+            ->when($search !== '', fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('employee_number', ci_like_operator(), "%{$search}%")->orWhere('full_name', ci_like_operator(), "%{$search}%")->orWhere('name_en', ci_like_operator(), "%{$search}%")));
 
         return Inertia::render('Performance/Agreements/Index', [
             'agreements' => $query->orderByDesc('updated_at')->paginate(25)->withQueryString()->through(fn (EmployeePerformanceAgreement $a) => [
@@ -78,7 +80,10 @@ class EmployeeAgreementController extends PerformanceController
             ]),
             'filters' => ['search' => $search, 'cycle_id' => $request->query('cycle_id'), 'status' => $request->query('status')],
             'statuses' => AgreementStatus::values(),
-            'cycles' => PerformanceCycle::query()->whereNotIn('status', ['CLOSED', 'CANCELLED', 'DRAFT'])->orderByDesc('start_date')->get(['id', 'name_en', 'name_am', 'status'])->toArray(),
+            // Only the viewer's organizations' cycles (and city-wide ones), as on every other EPMS page.
+            'cycles' => PerformanceCycle::query()->whereNotIn('status', ['CLOSED', 'CANCELLED', 'DRAFT'])
+                ->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $this->scope->allowedOrganizationIds($user)))
+                ->orderByDesc('start_date')->get(['id', 'name_en', 'name_am', 'status'])->toArray(),
             'can' => ['create' => $user->can('employee_performance_agreements.manage')],
         ]);
     }
@@ -112,7 +117,7 @@ class EmployeeAgreementController extends PerformanceController
             'agreement' => $this->presenter->agreement($agreement, $user),
             'planTargets' => in_array($status, [AgreementStatus::Draft, AgreementStatus::Returned], true) && $agreement->performance_plan_id !== null
                 ? KpiTarget::query()->whereIn('performance_plan_id', array_filter([$agreement->performance_plan_id, $agreement->plan?->parent_plan_id]))->where('is_current', true)->with('kpi:id,code,name_en,name_am')->get()
-                    ->map(fn ($t) => ['id' => $t->getKey(), 'kpi_id' => $t->kpi_id, 'kpi_code' => $t->kpi->code, 'kpi_name_en' => $t->kpi->name_en, 'target_value' => $t->target_value, 'objective_id' => $t->objective_id])->all()
+                    ->map(fn ($t) => ['id' => $t->getKey(), 'kpi_id' => $t->kpi_id, 'kpi_code' => $t->kpi->code, 'kpi_name_en' => $t->kpi->name_en, 'kpi_name_am' => $t->kpi->name_am, 'target_value' => $t->target_value, 'objective_id' => $t->objective_id])->all()
                 : [],
             'validation' => in_array($status, [AgreementStatus::Draft, AgreementStatus::Returned, AgreementStatus::PendingManagerApproval], true) ? $this->agreements->validate($agreement) : [],
             'pendingAdjustments' => PerformanceScoreAdjustment::query()->where('status', 'PENDING')

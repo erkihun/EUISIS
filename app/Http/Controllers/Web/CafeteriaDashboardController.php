@@ -9,6 +9,8 @@ use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaTransaction;
 use App\Services\Cafeteria\CafeteriaProviderAccessService;
 use App\Services\Cafeteria\CafeteriaReportService;
+use App\Services\Cafeteria\Policy\CafeteriaConfigurationHealthService;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -43,6 +45,15 @@ class CafeteriaDashboardController extends Controller
         $todayTotal = (clone $todayQuery)->count();
         $todayExtra = (clone $todayQuery)->where('is_extra_scan', true)->count();
 
+        // Missing / expiring / mismatched policy and access, for those who can act on it.
+        $health = null;
+        if ($request->user()->can('cafeteria_policies.view')) {
+            $scope = app(OrganizationScopeService::class);
+            $health = app(CafeteriaConfigurationHealthService::class)->summary(
+                $scope->isUnrestricted($request->user()) ? null : array_values(array_map('strval', $scope->allowedOrganizationIds($request->user()))),
+            );
+        }
+
         return Inertia::render('Cafeteria/Dashboard', [
             'stats' => [
                 'active_providers' => $activeProviders,
@@ -52,6 +63,7 @@ class CafeteriaDashboardController extends Controller
                 'month_transactions' => $monthSummary['total_transactions'],
             ],
             'today_by_provider' => $todaySummary,
+            'health' => $health,
         ]);
     }
 }

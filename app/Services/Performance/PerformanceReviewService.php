@@ -16,6 +16,7 @@ use App\Models\PerformanceCheckin;
 use App\Models\PerformanceReview;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -35,7 +36,30 @@ final class PerformanceReviewService
         private readonly EpmsAudit $audit,
         private readonly EpmsSettings $settings,
         private readonly PerformanceNotifier $notifier,
+        private readonly EmployeeScoreCalculator $calculator,
     ) {}
+
+    /**
+     * Ratings keyed by competency, each a whole number on the active
+     * competency scale (1..its highest level). The score is rating ÷ that
+     * level, so a rating above it would score over 100%.
+     *
+     * @param  array<array-key, mixed>  $ratings
+     * @return array<string, int>
+     */
+    private function validRatings(array $ratings, string $field): array
+    {
+        $max = $this->calculator->competencyScaleMax();
+        $valid = [];
+        foreach ($ratings as $competencyId => $rating) {
+            if (! is_numeric($rating) || (int) $rating != $rating || (int) $rating < 1 || (int) $rating > $max) {
+                throw ValidationException::withMessages(["{$field}.{$competencyId}" => __('performance.errors.rating_range')]);
+            }
+            $valid[(string) $competencyId] = (int) $rating;
+        }
+
+        return $valid;
+    }
 
     /** @param array<string, mixed> $data */
     public function addCheckin(EmployeePerformanceAgreement $agreement, array $data, User $actor): PerformanceCheckin
@@ -78,15 +102,18 @@ final class PerformanceReviewService
         if (! in_array($review->status, [ReviewStatus::Draft, ReviewStatus::Returned], true)) {
             throw ValidationException::withMessages(['review' => __('performance.errors.stale')]);
         }
-
-        $review->fill(array_intersect_key($data, array_flip(['employee_self_assessment', 'achievements', 'challenges', 'contributions', 'development_needs'])));
-        $review->forceFill(['status' => ReviewStatus::EmployeeSubmitted, 'employee_submitted_at' => now(), 'return_reason' => null])->save();
-
         // Self-ratings of competencies (the manager's rating is the one that counts).
-        foreach ((array) ($data['self_ratings'] ?? []) as $competencyId => $rating) {
-            EmployeeCompetencyAssessment::query()->where('agreement_id', $agreement->getKey())->where('competency_id', $competencyId)
-                ->update(['self_rating' => (int) $rating]);
-        }
+        $selfRatings = $this->validRatings((array) ($data['self_ratings'] ?? []), 'self_ratings');
+
+        DB::transaction(function () use ($review, $data, $agreement, $selfRatings): void {
+            $review->fill(array_intersect_key($data, array_flip(['employee_self_assessment', 'achievements', 'challenges', 'contributions', 'development_needs'])));
+            $review->forceFill(['status' => ReviewStatus::EmployeeSubmitted, 'employee_submitted_at' => now(), 'return_reason' => null])->save();
+
+            foreach ($selfRatings as $competencyId => $rating) {
+                EmployeeCompetencyAssessment::query()->where('agreement_id', $agreement->getKey())->where('competency_id', $competencyId)
+                    ->update(['self_rating' => $rating]);
+            }
+        });
 
         $this->audit->record(AuditEventType::PerformanceReviewChanged, $actor, $review, ['type' => $type->value, 'status' => ReviewStatus::EmployeeSubmitted->value]);
         $this->notifier->toUser($agreement->manager, 'review_submitted', '/performance/agreements/'.$agreement->getKey());
@@ -109,26 +136,24 @@ final class PerformanceReviewService
 
         $itemIds = $agreement->items()->pluck('id')->all();
         $atRisk = array_values(array_intersect((array) ($data['at_risk_item_ids'] ?? []), $itemIds));
+        // Competency ratings count only at year-end (one manager rating per competency).
+        $ratings = $type === ReviewType::YearEnd ? $this->validRatings((array) ($data['ratings'] ?? []), 'ratings') : [];
 
-        $review->fill([
-            'manager_comment' => $data['manager_comment'] ?? null,
-            'manager_private_note' => $data['manager_private_note'] ?? null,
-            'at_risk_item_ids' => $atRisk,
-            'improvement_actions' => $data['improvement_actions'] ?? null,
-        ]);
-        $review->forceFill(['status' => ReviewStatus::Completed, 'manager_user_id' => $actor->getKey(), 'manager_reviewed_at' => now(), 'completed_at' => now()])->save();
+        // Checked before anything is written: a refused rating leaves the review as it was.
+        DB::transaction(function () use ($review, $data, $atRisk, $ratings, $agreement, $actor): void {
+            $review->fill([
+                'manager_comment' => $data['manager_comment'] ?? null,
+                'manager_private_note' => $data['manager_private_note'] ?? null,
+                'at_risk_item_ids' => $atRisk,
+                'improvement_actions' => $data['improvement_actions'] ?? null,
+            ]);
+            $review->forceFill(['status' => ReviewStatus::Completed, 'manager_user_id' => $actor->getKey(), 'manager_reviewed_at' => now(), 'completed_at' => now()])->save();
 
-        if ($type === ReviewType::YearEnd) {
-            $max = 10;
-            foreach ((array) ($data['ratings'] ?? []) as $competencyId => $rating) {
-                $rating = (int) $rating;
-                if ($rating < 1 || $rating > $max) {
-                    throw ValidationException::withMessages(["ratings.{$competencyId}" => __('performance.errors.rating_range')]);
-                }
+            foreach ($ratings as $competencyId => $rating) {
                 EmployeeCompetencyAssessment::query()->where('agreement_id', $agreement->getKey())->where('competency_id', $competencyId)
                     ->update(['manager_rating' => $rating, 'rated_by' => $actor->getKey(), 'rated_at' => now()]);
             }
-        }
+        });
 
         $this->audit->record(AuditEventType::PerformanceReviewChanged, $actor, $review, ['type' => $type->value, 'status' => ReviewStatus::Completed->value, 'at_risk_items' => count($atRisk)]);
 

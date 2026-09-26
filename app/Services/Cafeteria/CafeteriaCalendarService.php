@@ -6,11 +6,14 @@ namespace App\Services\Cafeteria;
 
 use App\Enums\CafeteriaTransactionStatus;
 use App\Models\CafeteriaProvider;
+use App\Models\CafeteriaServicePolicy;
 use App\Models\CafeteriaSpecialDay;
 use App\Models\CafeteriaTransaction;
 use App\Models\CafeteriaTransactionConsumedDay;
 use App\Models\Employee;
 use App\Models\EmployeeCafeteriaExclusion;
+use App\Services\Cafeteria\Policy\CafeteriaEntitlementService;
+use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
 use Illuminate\Support\Carbon;
 
 class CafeteriaCalendarService
@@ -23,11 +26,22 @@ class CafeteriaCalendarService
         $weekStart = $this->weekWindow->weekStart($date);
         $weekEnd = $weekStart->copy()->addDays(6);
         $consumed = $employee === null ? [] : $this->getConsumedDatesForWeek($employee, $weekStart, $weekEnd);
+
+        // For a known employee at a known cafeteria, entitlement days are the
+        // employee organization's policy; with no policy nothing is available.
+        $policy = null;
+        $blocked = false;
+        if ($employee !== null && $provider !== null) {
+            $resolution = app(CafeteriaPolicyResolver::class)->resolve($employee, $provider, $date);
+            $policy = $resolution->policy;
+            $blocked = ! $resolution->resolved();
+        }
+
         $days = [];
         $current = $weekStart->copy();
 
         while ($current->lte($weekEnd)) {
-            $days[] = $this->buildDay($current, $employee, $provider, $consumed);
+            $days[] = $this->buildDay($current, $employee, $provider, $consumed, $policy, $blocked);
             $current->addDay();
         }
 
@@ -65,7 +79,7 @@ class CafeteriaCalendarService
      * @param  array<string, CafeteriaTransactionConsumedDay>  $consumed
      * @return array<string, mixed>
      */
-    private function buildDay(Carbon $date, ?Employee $employee, ?CafeteriaProvider $provider, array $consumed): array
+    private function buildDay(Carbon $date, ?Employee $employee, ?CafeteriaProvider $provider, array $consumed, ?CafeteriaServicePolicy $policy = null, bool $blocked = false): array
     {
         $dateString = $date->toDateString();
         $holiday = $this->workingDays->getHolidayForDate($date);
@@ -85,7 +99,9 @@ class CafeteriaCalendarService
                 ->first();
 
         $isOpen = $this->workingDays->isCafeteriaOpen($date, $provider);
-        $isSubsidyDay = $this->workingDays->isSubsidyDay($date, $provider);
+        $isSubsidyDay = $policy !== null && $provider !== null
+            ? $isOpen && app(CafeteriaEntitlementService::class)->nonEntitlementReason($policy, $date, $provider) === null
+            : ! $blocked && $this->workingDays->isSubsidyDay($date, $provider);
         $isInWindow = $date->lte($this->weekWindow->weekEnd($date));
         $excludesLeave = $exclusion !== null && $this->settings->getBool('exclude_leave_days_from_subsidy');
         $isConsumed = isset($consumed[$dateString]);
@@ -93,6 +109,7 @@ class CafeteriaCalendarService
 
         $reasonCode = match (true) {
             $isConsumed => 'consumed',
+            $blocked => 'no_policy',
             $excludesLeave => 'employee_leave',
             $special !== null && ! $special->is_open => 'special_closed_day',
             $special !== null && ! $special->is_subsidy_day => 'special_no_subsidy_day',

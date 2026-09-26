@@ -11,7 +11,7 @@ type Kpi = {
     id: string; code: string; name_en: string; name_am: string | null; description_en: string | null; description_am: string | null;
     organization_id: string | null; unit_of_measure: string | null; system_source_key: string | null; calculation_formula: string | null;
     baseline: string | null; allow_overachievement: boolean; achievement_cap: string | null; target_tolerance: string | null; zero_score_deviation: string | null;
-    milestones: Milestone[] | null; is_active: boolean;
+    milestones: Milestone[] | null; is_active: boolean; in_use: boolean;
     measurement_type: string; direction: string; aggregation_method: string; data_source_type: string; frequency: string;
 };
 
@@ -49,6 +49,8 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
     const defaultOrg = can.global ? '' : (organizations[0]?.id ?? '');
     const form = useForm(blank(defaultOrg));
     const errors = form.errors as Record<string, string | undefined>;
+    // A KPI used by submitted plans or agreements keeps its scoring rules; only wording and status change.
+    const locked = editing !== null && editing !== 'new' && editing.in_use;
 
     function startEdit(kpi: Kpi | 'new') {
         form.clearErrors();
@@ -80,7 +82,7 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
 
     const select = (key: 'measurement_type' | 'direction' | 'aggregation_method' | 'data_source_type' | 'frequency', group: string, values: string[], text: string) => (
         <Field label={text} htmlFor={`k-${key}`} error={errors[key]}>
-            <select id={`k-${key}`} className={inputCls} value={form.data[key]} onChange={(e) => form.setData(key, e.target.value)}>
+            <select id={`k-${key}`} className={inputCls} value={form.data[key]} disabled={locked && key !== 'frequency'} onChange={(e) => form.setData(key, e.target.value)}>
                 {values.map((v) => <option key={v} value={v}>{label(group, v)}</option>)}
             </select>
         </Field>
@@ -97,9 +99,9 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
             <Head title={t('performance.kpis.title')} />
             <div className={pageCls}>
                 {editing && (
-                    <Section title={editing === 'new' ? t('performance.kpis.create') : `${t('performance.actions.edit')}: ${editing.code}`}>
+                    <Section title={editing === 'new' ? t('performance.kpis.create') : `${t('performance.actions.edit')}: ${editing.code}`} description={locked ? t('performance.kpis.inUseNote') : undefined}>
                         <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            {text('code', t('performance.fields.code'), { required: true })}
+                            {text('code', t('performance.fields.code'), { required: true, disabled: locked })}
                             {text('name_en', t('performance.fields.nameEn'), { required: true })}
                             {text('name_am', t('performance.fields.nameAm'))}
                             <Field label={t('performance.fields.organization')} htmlFor="k-org" error={errors.organization_id}>
@@ -115,7 +117,7 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                             {select('data_source_type', 'source', options.sources, t('performance.fields.source'))}
                             {form.data.data_source_type === 'SYSTEM_TRANSACTION' && (
                                 <Field label={t('performance.fields.systemSource')} htmlFor="k-sys" error={errors.system_source_key}>
-                                    <select id="k-sys" className={inputCls} value={form.data.system_source_key} onChange={(e) => form.setData('system_source_key', e.target.value)} required>
+                                    <select id="k-sys" className={inputCls} value={form.data.system_source_key} disabled={locked} onChange={(e) => form.setData('system_source_key', e.target.value)} required>
                                         <option value="">—</option>
                                         {Object.entries(options.system_sources).map(([key, source]) => <option key={key} value={key}>{(locale === 'am' && source.label_am) || source.label_en}</option>)}
                                     </select>
@@ -123,20 +125,23 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                             )}
                             {select('frequency', 'frequency', options.frequencies, t('performance.fields.frequency'))}
                             {text('baseline', t('performance.fields.baseline'), { numeric: true })}
-                            {text('achievement_cap', t('performance.fields.cap'), { numeric: true })}
-                            {form.data.direction === 'TARGET_IS_BEST' && text('target_tolerance', t('performance.fields.tolerance'), { numeric: true })}
-                            {form.data.direction === 'TARGET_IS_BEST' && text('zero_score_deviation', t('performance.fields.zeroScore'), { numeric: true })}
+                            {text('achievement_cap', t('performance.fields.cap'), { numeric: true, disabled: locked })}
+                            {form.data.direction === 'TARGET_IS_BEST' && text('target_tolerance', t('performance.fields.tolerance'), { numeric: true, disabled: locked })}
+                            {form.data.direction === 'TARGET_IS_BEST' && text('zero_score_deviation', t('performance.fields.zeroScore'), { numeric: true, disabled: locked })}
                             <div className="sm:col-span-2">{text('calculation_formula', t('performance.fields.formula'))}</div>
-                            <Field label={t('performance.fields.description')} htmlFor="k-desc" className="sm:col-span-2" error={errors.description_en}>
+                            <Field label={t('performance.fields.descriptionEn')} htmlFor="k-desc" className="sm:col-span-2" error={errors.description_en}>
                                 <textarea id="k-desc" rows={2} className={inputCls} value={form.data.description_en} onChange={(e) => form.setData('description_en', e.target.value)} />
+                            </Field>
+                            <Field label={t('performance.fields.descriptionAm')} htmlFor="k-desc-am" className="sm:col-span-2" error={errors.description_am}>
+                                <textarea id="k-desc-am" rows={2} className={inputCls} value={form.data.description_am} onChange={(e) => form.setData('description_am', e.target.value)} />
                             </Field>
                             {form.data.direction === 'MILESTONE' && (
                                 <Field label={t('performance.fields.milestone')} htmlFor="k-ms" className="sm:col-span-2 lg:col-span-4" help={t('performance.kpis.milestonesHelp')} error={errors.milestones ?? Object.entries(errors).find(([k]) => k.startsWith('milestones.'))?.[1]}>
-                                    <textarea id="k-ms" rows={4} className={`${inputCls} font-mono`} value={form.data.milestones_text} onChange={(e) => form.setData('milestones_text', e.target.value)} />
+                                    <textarea id="k-ms" rows={4} className={`${inputCls} font-mono`} disabled={locked} value={form.data.milestones_text} onChange={(e) => form.setData('milestones_text', e.target.value)} />
                                 </Field>
                             )}
                             <div className="flex flex-wrap items-center gap-4 sm:col-span-2 lg:col-span-4">
-                                <label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" checked={form.data.allow_overachievement} onChange={(e) => form.setData('allow_overachievement', e.target.checked)} />{t('performance.fields.allowOver')}</label>
+                                <label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" checked={form.data.allow_overachievement} disabled={locked} onChange={(e) => form.setData('allow_overachievement', e.target.checked)} />{t('performance.fields.allowOver')}</label>
                                 <label className="flex min-h-10 items-center gap-2 text-sm"><input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />{t('performance.fields.active')}</label>
                                 <div className="ml-auto flex gap-2">
                                     <button type="button" className={secondaryBtn} onClick={() => setEditing(null)}>{t('performance.actions.cancel')}</button>
@@ -170,7 +175,7 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                                 <tr key={kpi.id}>
                                     <td className={tdCls}>
                                         <p className="font-medium text-gray-900 dark:text-slate-100"><span className="font-mono text-xs text-gray-500 dark:text-slate-400">{kpi.code}</span> {nameOf(kpi, locale)}</p>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">{label('measurement', kpi.measurement_type)}{kpi.unit_of_measure ? ` · ${kpi.unit_of_measure}` : ''}{kpi.organization_id === null ? ` · ${t('performance.kpis.globalOwner')}` : ''}</p>
+                                        <p className="text-xs text-gray-500 dark:text-slate-400">{label('measurement', kpi.measurement_type)}{kpi.unit_of_measure ? ` · ${kpi.unit_of_measure}` : ''}{kpi.organization_id === null ? ` · ${t('performance.kpis.globalOwner')}` : ''}{kpi.in_use ? ` · ${t('performance.kpis.inUse')}` : ''}</p>
                                     </td>
                                     <td className={tdCls}>{label('direction', kpi.direction)}</td>
                                     <td className={tdCls}>{label('aggregation', kpi.aggregation_method)}</td>

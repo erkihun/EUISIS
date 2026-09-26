@@ -32,9 +32,24 @@ class StrategicGoalController extends PerformanceController
         $this->ensureEnabled();
         $user = $request->user();
         abort_unless($user->can('strategic_goals.view'), 403);
-        $cycleId = $request->string('cycle_id')->toString();
-        $organizationId = $request->string('organization_id')->toString();
         $allowedOrganizationIds = $this->scope->allowedOrganizationIds($user);
+        $organizations = $this->scope->applyOrganizationScope(Organization::query(), $user, 'id')->orderBy('name_en')->limit(200)->get(['id', 'name_en', 'name_am']);
+        $cycles = PerformanceCycle::query()->whereNotIn('status', ['CLOSED', 'CANCELLED'])
+            ->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $allowedOrganizationIds))
+            ->orderByDesc('is_current')->orderByDesc('start_date')
+            ->get(['id', 'code', 'name_en', 'name_am', 'organization_id', 'status', 'is_current', 'start_date', 'end_date']);
+
+        // A first visit opens on the viewer's only organization and its current (or only) open cycle.
+        $organizationId = $request->string('organization_id')->toString();
+        if (! $request->has('organization_id') && $organizations->count() === 1) {
+            $organizationId = (string) $organizations->first()->getKey();
+        }
+        $cycleId = $request->string('cycle_id')->toString();
+        if (! $request->has('cycle_id') && $organizationId !== '') {
+            $candidates = $cycles->filter(fn (PerformanceCycle $c) => $c->organization_id === null || $c->organization_id === $organizationId);
+            $cycleId = (string) ($candidates->firstWhere('is_current', true) ?? ($candidates->count() === 1 ? $candidates->first() : null))?->getKey();
+        }
+
         abort_if($organizationId !== '' && ! in_array($organizationId, $allowedOrganizationIds, true), 403);
         if ($cycleId !== '') {
             $cycle = PerformanceCycle::query()->whereKey($cycleId)
@@ -42,30 +57,53 @@ class StrategicGoalController extends PerformanceController
             abort_if($organizationId !== '' && $cycle->organization_id !== null && $cycle->organization_id !== $organizationId, 404);
         }
 
-        $goals = StrategicGoal::query()->with(['allocations.unit:id,name_en,name_am,organization_id'])->withCount(['objectives' => fn ($query) => $query->whereHas('plan', fn ($plan) => $plan->whereNotIn('status', ['SUPERSEDED', 'CLOSED']))])
+        // The objectives that count toward a goal: active, in a plan that is still in force.
+        $countedObjectives = fn ($query) => $query->where('status', 'ACTIVE')->whereHas('plan', fn ($plan) => $plan->whereNotIn('status', ['SUPERSEDED', 'CLOSED']));
+        $goals = StrategicGoal::query()
+            ->with(['allocations.unit:id,name_en,name_am,organization_id', 'objectives' => fn ($query) => $countedObjectives($query)
+                ->with('plan:id,title,status,version_no')->orderBy('code')])
+            ->withCount(['objectives' => fn ($query) => $query->whereHas('plan', fn ($plan) => $plan->whereNotIn('status', ['SUPERSEDED', 'CLOSED']))])
             ->whereIn('organization_id', $allowedOrganizationIds)
             ->when($cycleId, fn ($q) => $q->where('cycle_id', $cycleId))
             ->when($organizationId, fn ($q) => $q->where('organization_id', $organizationId))
             ->orderBy('sort_order')->orderBy('code')->paginate(50)->withQueryString();
 
+        $summary = null;
+        if ($cycleId !== '' && $organizationId !== '') {
+            $summary = [
+                ...$this->planning->organizationReadiness($cycleId, $organizationId),
+                'status_counts' => StrategicGoal::query()->where('cycle_id', $cycleId)->where('organization_id', $organizationId)
+                    ->toBase()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status')->map(fn ($n) => (int) $n)->all(),
+            ];
+        }
+
         return Inertia::render('Performance/StrategicGoals/Index', [
             'goals' => $goals->through(fn (StrategicGoal $goal) => [
-                ...$goal->only(['id', 'cycle_id', 'organization_id', 'code', 'name_en', 'name_am', 'description_en', 'description_am', 'weight_percent', 'is_shared', 'sort_order']),
+                ...$goal->only(['id', 'cycle_id', 'organization_id', 'code', 'name_en', 'name_am', 'description_en', 'description_am', 'weight_percent', 'is_shared', 'sort_order', 'return_reason']),
+                'effective_from' => $goal->effective_from?->toDateString(),
+                'effective_to' => $goal->effective_to?->toDateString(),
                 'status' => $goal->status->value,
                 'readiness' => $this->planning->readiness($goal),
                 'objectives_count' => $goal->objectives_count,
+                'objectives' => $goal->objectives->map(fn ($objective) => [
+                    ...$objective->only(['id', 'code', 'title_en', 'title_am', 'weight', 'absolute_weight_percent']),
+                    'plan' => $objective->plan ? ['id' => $objective->plan->getKey(), 'title' => $objective->plan->title, 'status' => $objective->plan->status->value, 'version' => $objective->plan->version_no] : null,
+                ])->all(),
                 'allocations' => $goal->allocations->map(fn ($row) => [
                     ...$row->only(['id', 'organization_unit_id', 'organization_contribution_percent', 'is_lead', 'notes']),
                     'allocation_type' => $row->allocation_type->value,
                     'unit' => $row->unit?->only(['id', 'name_en', 'name_am']),
                 ])->all(),
             ]),
-            'summary' => $cycleId !== '' && $organizationId !== '' ? $this->planning->organizationReadiness($cycleId, $organizationId) : null,
+            'summary' => $summary,
             'filters' => ['cycle_id' => $cycleId, 'organization_id' => $organizationId],
-            'cycles' => PerformanceCycle::query()->whereNotIn('status', ['CLOSED', 'CANCELLED'])
-                ->where(fn ($q) => $q->whereNull('organization_id')->orWhereIn('organization_id', $allowedOrganizationIds))
-                ->orderByDesc('start_date')->get(['id', 'code', 'name_en', 'name_am', 'organization_id'])->toArray(),
-            'organizations' => $this->scope->applyOrganizationScope(Organization::query(), $user, 'id')->orderBy('name_en')->limit(200)->get(['id', 'name_en', 'name_am'])->toArray(),
+            'cycles' => $cycles->map(fn (PerformanceCycle $c) => [
+                ...$c->only(['id', 'code', 'name_en', 'name_am', 'organization_id', 'is_current']),
+                'status' => $c->status->value,
+                'start_date' => $c->start_date?->toDateString(),
+                'end_date' => $c->end_date?->toDateString(),
+            ])->values()->all(),
+            'organizations' => $organizations->toArray(),
             'units' => OrganizationUnit::query()->whereIn('organization_id', $allowedOrganizationIds)
                 ->when($organizationId, fn ($q) => $q->where('organization_id', $organizationId))->orderBy('name_en')->limit(500)->get(['id', 'organization_id', 'name_en', 'name_am'])->toArray(),
             'allocationTypes' => GoalAllocationType::values(),
@@ -123,6 +161,14 @@ class StrategicGoalController extends PerformanceController
     {
         $data = $request->validate(['status' => ['required', Rule::enum(StrategicGoalStatus::class)]]);
         $this->planning->transition($strategicGoal, StrategicGoalStatus::from($data['status']), $request->user());
+
+        return $this->saved();
+    }
+
+    public function returnToDraft(Request $request, StrategicGoal $strategicGoal): RedirectResponse
+    {
+        $data = $request->validate(['reason' => ['required', 'string', 'max:2000']], [], ['reason' => __('performance.attributes.reason')]);
+        $this->planning->returnToDraft($strategicGoal, $data['reason'], $request->user());
 
         return $this->saved();
     }

@@ -153,6 +153,8 @@ class PerformancePlanController extends PerformanceController
                 'enterActual' => $plan->status === PlanStatus::Published && $user->can('kpi_actuals.enter'),
                 'amend' => $plan->status === PlanStatus::Published && $user->can('kpi_targets.manage'),
                 'decideAmendment' => $user->can('performance_plans.approve'),
+                // Same check as recalculate(): a queued roll-up for someone who may read the scores.
+                'recalculate' => $plan->status === PlanStatus::Published && $this->access->inScope($user, 'performance_reports.view', $plan->organization_id),
             ],
         ]);
     }

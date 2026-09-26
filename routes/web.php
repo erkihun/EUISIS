@@ -8,6 +8,7 @@ use App\Http\Controllers\Employee\EmployeeSelfServiceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
+use App\Http\Controllers\ProviderPortal\Auth\ProviderPasswordResetController;
 use App\Http\Controllers\ProviderPortal\ProviderDashboardController;
 use App\Http\Controllers\ProviderPortal\ProviderFoodOrderController;
 use App\Http\Controllers\ProviderPortal\ProviderLedgerController;
@@ -45,6 +46,13 @@ use App\Http\Controllers\Transport\TransportVehicleController;
 use App\Http\Controllers\Web\AdministrativeTribunalController;
 use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
+use App\Http\Controllers\Web\Cafeteria\CafeteriaAccessController;
+use App\Http\Controllers\Web\Cafeteria\CafeteriaAnalyticsController;
+use App\Http\Controllers\Web\Cafeteria\CafeteriaNetworkController;
+use App\Http\Controllers\Web\Cafeteria\CafeteriaPayeeController;
+use App\Http\Controllers\Web\Cafeteria\CafeteriaServiceAssignmentController;
+use App\Http\Controllers\Web\Cafeteria\CafeteriaServicePolicyController;
+use App\Http\Controllers\Web\Cafeteria\CafeteriaSettlementController;
 use App\Http\Controllers\Web\CafeteriaDashboardController;
 use App\Http\Controllers\Web\CafeteriaDayRuleController;
 use App\Http\Controllers\Web\CafeteriaProviderBranchController;
@@ -98,6 +106,7 @@ use App\Http\Controllers\Web\PermissionController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
+use App\Http\Controllers\Web\ProviderUserController;
 use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
 use App\Http\Controllers\Web\PublicServiceFeedbackController;
@@ -107,7 +116,6 @@ use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
-use App\Http\Controllers\Web\ServiceProviderUserController;
 use App\Http\Controllers\Web\ServiceTypeController;
 use App\Http\Controllers\Web\SystemSettingController;
 use App\Http\Controllers\Web\UserController;
@@ -153,6 +161,16 @@ Route::middleware('guest:provider')->prefix('provider/portal')->name('provider.p
     Route::post('/login', [ProviderLoginController::class, 'store'])
         ->middleware('throttle:5,1')
         ->name('login.store');
+
+    // Self-service reset: a code sent to the account's email or phone.
+    Route::get('/forgot-password', [ProviderPasswordResetController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [ProviderPasswordResetController::class, 'send'])
+        ->middleware('throttle:5,1')
+        ->name('password.send');
+    Route::delete('/forgot-password', [ProviderPasswordResetController::class, 'cancel'])->name('password.cancel');
+    Route::post('/reset-password', [ProviderPasswordResetController::class, 'reset'])
+        ->middleware('throttle:10,1')
+        ->name('password.reset');
 });
 
 // Cafeteria Provider Portal — authenticated pages (cafeteria_provider guard)
@@ -935,17 +953,18 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/system-settings/clear-cache', [SystemSettingController::class, 'clearCache'])->name('system-settings.clear-cache');
     Route::patch('/system-settings/{setting}', [SystemSettingController::class, 'update'])->name('system-settings.update');
 
-    // Provider Users — standalone service provider credential accounts
-    Route::get('/provider-users', ServiceProviderUserController::class)->name('provider-users.index');
-    Route::get('/provider-users/create', [ServiceProviderUserController::class, 'create'])->name('provider-users.create');
-    Route::post('/provider-users', [ServiceProviderUserController::class, 'store'])->name('provider-users.store');
-    Route::get('/provider-users/{providerUser}', [ServiceProviderUserController::class, 'show'])->name('provider-users.show');
-    Route::get('/provider-users/{providerUser}/edit', [ServiceProviderUserController::class, 'edit'])->name('provider-users.edit');
-    Route::patch('/provider-users/{providerUser}', [ServiceProviderUserController::class, 'update'])->name('provider-users.update');
-    Route::delete('/provider-users/{providerUser}', [ServiceProviderUserController::class, 'destroy'])->name('provider-users.destroy');
-    Route::post('/provider-users/{providerUser}/suspend', [ServiceProviderUserController::class, 'suspend'])->name('provider-users.suspend');
-    Route::post('/provider-users/{providerUser}/activate', [ServiceProviderUserController::class, 'activate'])->name('provider-users.activate');
-    Route::post('/provider-users/{providerUser}/reset-password', [ServiceProviderUserController::class, 'resetPassword'])->name('provider-users.reset-password');
+    // Provider Users — provider portal sign-in accounts (/provider/portal/login)
+    Route::get('/provider-users', [ProviderUserController::class, 'index'])->name('provider-users.index');
+    Route::get('/provider-users/create', [ProviderUserController::class, 'create'])->name('provider-users.create');
+    Route::post('/provider-users', [ProviderUserController::class, 'store'])->name('provider-users.store');
+    Route::get('/provider-users/{providerUser}', [ProviderUserController::class, 'show'])->withTrashed()->name('provider-users.show');
+    Route::get('/provider-users/{providerUser}/edit', [ProviderUserController::class, 'edit'])->name('provider-users.edit');
+    Route::patch('/provider-users/{providerUser}', [ProviderUserController::class, 'update'])->name('provider-users.update');
+    Route::delete('/provider-users/{providerUser}', [ProviderUserController::class, 'destroy'])->name('provider-users.destroy');
+    Route::post('/provider-users/{providerUser}/suspend', [ProviderUserController::class, 'suspend'])->name('provider-users.suspend');
+    Route::post('/provider-users/{providerUser}/activate', [ProviderUserController::class, 'activate'])->name('provider-users.activate');
+    Route::post('/provider-users/{providerUser}/reset-password', [ProviderUserController::class, 'resetPassword'])->middleware('throttle:20,1')->name('provider-users.reset-password');
+    Route::post('/provider-users/{providerUser}/restore', [ProviderUserController::class, 'restore'])->withTrashed()->name('provider-users.restore');
 
     // Transport Provider Module
     // Admin-side transport pages are gated by the `transport-*` permission set.
@@ -1107,6 +1126,72 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::patch('/special-days/{cafeteriaSpecialDay}', [CafeteriaSpecialDayController::class, 'update'])->name('special-days.update');
         Route::delete('/special-days/{cafeteriaSpecialDay}', [CafeteriaSpecialDayController::class, 'archive'])->name('special-days.archive');
         Route::post('/special-days/{cafeteriaSpecialDay}/restore', [CafeteriaSpecialDayController::class, 'restore'])->name('special-days.restore');
+
+        // ── Networks, access, assignments, policies, settlements (docs/cafeteria-policy-architecture.md) ──
+        Route::middleware('can:cafeteria_providers.viewAny')->group(function (): void {
+            Route::get('/payees', [CafeteriaPayeeController::class, 'index'])->name('payees.index');
+        });
+        Route::middleware('can:cafeteria_providers.create')->group(function (): void {
+            Route::get('/payees/create', [CafeteriaPayeeController::class, 'create'])->name('payees.create');
+            Route::post('/payees', [CafeteriaPayeeController::class, 'store'])->name('payees.store');
+            Route::get('/payees/{payee}/edit', [CafeteriaPayeeController::class, 'edit'])->name('payees.edit');
+            Route::patch('/payees/{payee}', [CafeteriaPayeeController::class, 'update'])->name('payees.update');
+        });
+
+        Route::middleware('can:cafeteria_networks.view')->group(function (): void {
+            Route::get('/networks', [CafeteriaNetworkController::class, 'index'])->name('networks.index');
+        });
+        Route::middleware('can:cafeteria_networks.manage')->group(function (): void {
+            Route::get('/networks/create', [CafeteriaNetworkController::class, 'create'])->name('networks.create');
+            Route::post('/networks', [CafeteriaNetworkController::class, 'store'])->name('networks.store');
+            Route::get('/networks/{network}/edit', [CafeteriaNetworkController::class, 'edit'])->name('networks.edit');
+            Route::patch('/networks/{network}', [CafeteriaNetworkController::class, 'update'])->name('networks.update');
+        });
+        Route::get('/networks/{network}', [CafeteriaNetworkController::class, 'show'])->middleware('can:cafeteria_networks.view')->name('networks.show');
+
+        Route::get('/organization-access', [CafeteriaAccessController::class, 'index'])->middleware('can:cafeteria_access.view')->name('access.index');
+        Route::middleware('can:cafeteria_access.manage')->group(function (): void {
+            Route::get('/organization-access/create', [CafeteriaAccessController::class, 'create'])->name('access.create');
+            Route::post('/organization-access', [CafeteriaAccessController::class, 'store'])->name('access.store');
+            Route::get('/organization-access/{access}/edit', [CafeteriaAccessController::class, 'edit'])->name('access.edit');
+            Route::patch('/organization-access/{access}', [CafeteriaAccessController::class, 'update'])->name('access.update');
+            Route::post('/organization-access/{access}/end', [CafeteriaAccessController::class, 'end'])->name('access.end');
+        });
+        Route::post('/organization-access/{access}/approve', [CafeteriaAccessController::class, 'approve'])->middleware('can:cafeteria_access.approve')->name('access.approve');
+
+        Route::get('/service-assignments', [CafeteriaServiceAssignmentController::class, 'index'])->middleware('can:cafeteria_assignments.view')->name('assignments.index');
+        Route::get('/service-assignments/create', [CafeteriaServiceAssignmentController::class, 'create'])->middleware('can:cafeteria_assignments.create')->name('assignments.create');
+        Route::post('/service-assignments', [CafeteriaServiceAssignmentController::class, 'store'])->middleware('can:cafeteria_assignments.create')->name('assignments.store');
+        Route::get('/service-assignments/{assignment}/edit', [CafeteriaServiceAssignmentController::class, 'edit'])->middleware('can:cafeteria_assignments.update')->name('assignments.edit');
+        Route::patch('/service-assignments/{assignment}', [CafeteriaServiceAssignmentController::class, 'update'])->middleware('can:cafeteria_assignments.update')->name('assignments.update');
+        Route::post('/service-assignments/{assignment}/approve', [CafeteriaServiceAssignmentController::class, 'approve'])->middleware('can:cafeteria_assignments.approve')->name('assignments.approve');
+        Route::post('/service-assignments/{assignment}/end', [CafeteriaServiceAssignmentController::class, 'end'])->middleware('can:cafeteria_assignments.end')->name('assignments.end');
+
+        Route::get('/service-policies', [CafeteriaServicePolicyController::class, 'index'])->middleware('can:cafeteria_policies.view')->name('policies.index');
+        Route::get('/service-policies/create', [CafeteriaServicePolicyController::class, 'create'])->middleware('can:cafeteria_policies.create')->name('policies.create');
+        Route::post('/service-policies', [CafeteriaServicePolicyController::class, 'store'])->middleware('can:cafeteria_policies.create')->name('policies.store');
+        Route::get('/service-policies/{policy}', [CafeteriaServicePolicyController::class, 'show'])->middleware('can:cafeteria_policies.view')->name('policies.show');
+        Route::get('/service-policies/{policy}/edit', [CafeteriaServicePolicyController::class, 'edit'])->middleware('can:cafeteria_policies.update_draft')->name('policies.edit');
+        Route::patch('/service-policies/{policy}', [CafeteriaServicePolicyController::class, 'update'])->middleware('can:cafeteria_policies.update_draft')->name('policies.update');
+        Route::post('/service-policies/{policy}/submit', [CafeteriaServicePolicyController::class, 'submit'])->middleware('can:cafeteria_policies.submit')->name('policies.submit');
+        Route::post('/service-policies/{policy}/return', [CafeteriaServicePolicyController::class, 'returnToDraft'])->middleware('can:cafeteria_policies.review')->name('policies.return');
+        Route::post('/service-policies/{policy}/approve', [CafeteriaServicePolicyController::class, 'approve'])->middleware('can:cafeteria_policies.approve')->name('policies.approve');
+        Route::post('/service-policies/{policy}/activate', [CafeteriaServicePolicyController::class, 'activate'])->middleware('can:cafeteria_policies.activate')->name('policies.activate');
+        Route::post('/service-policies/{policy}/end', [CafeteriaServicePolicyController::class, 'end'])->middleware('can:cafeteria_policies.end')->name('policies.end');
+        Route::post('/service-policies/{policy}/cancel', [CafeteriaServicePolicyController::class, 'cancel'])->middleware('can:cafeteria_policies.end')->name('policies.cancel');
+        Route::post('/service-policies/{policy}/new-version', [CafeteriaServicePolicyController::class, 'newVersion'])->middleware('can:cafeteria_policies.create')->name('policies.new-version');
+
+        Route::get('/settlements', [CafeteriaSettlementController::class, 'index'])->middleware('can:cafeteria_settlements.view')->name('settlements.index');
+        Route::middleware('can:cafeteria_settlements.manage')->group(function (): void {
+            Route::get('/settlements/create', [CafeteriaSettlementController::class, 'create'])->name('settlements.create');
+            Route::post('/settlements', [CafeteriaSettlementController::class, 'store'])->name('settlements.store');
+            Route::post('/settlements/{settlement}/finalize', [CafeteriaSettlementController::class, 'finalize'])->name('settlements.finalize');
+            Route::post('/settlements/{settlement}/cancel', [CafeteriaSettlementController::class, 'cancel'])->name('settlements.cancel');
+        });
+        Route::get('/settlements/{settlement}', [CafeteriaSettlementController::class, 'show'])->middleware('can:cafeteria_settlements.view')->name('settlements.show');
+
+        Route::get('/analytics', [CafeteriaAnalyticsController::class, 'index'])->middleware('can:cafeteria_reports.view')->name('analytics.index');
+        Route::get('/analytics/export', [CafeteriaAnalyticsController::class, 'export'])->middleware(['can:cafeteria_transactions.export', 'throttle:10,1'])->name('analytics.export');
 
         // Employee Cafeteria Exclusions
         Route::get('/employee-exclusions', [EmployeeCafeteriaExclusionController::class, 'index'])->name('employee-exclusions.index');

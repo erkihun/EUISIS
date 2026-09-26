@@ -114,6 +114,7 @@ return [
     'calendar_special_open_day' => 'Special Open Day',
     'calendar_special_closed_day' => 'Special Closed Day',
     'calendar_special_no_subsidy_day' => 'Special Day',
+    'calendar_no_policy' => 'No active policy',
     'calendarDaysCheckedSuccessfully' => 'Calendar days checked successfully.',
     'weeklyWindowTitle' => 'Available Subsidy This Week',
     'weekWindowMonFri' => 'Monday to Friday',

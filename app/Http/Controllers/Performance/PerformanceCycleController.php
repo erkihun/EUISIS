@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Performance;
 
 use App\Enums\Performance\CycleStatus;
 use App\Http\Requests\Performance\StorePerformanceCycleRequest;
+use App\Http\Requests\Performance\UpdatePerformanceCycleRequest;
 use App\Models\Organization;
 use App\Models\PerformanceCycle;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -35,10 +36,12 @@ class PerformanceCycleController extends PerformanceController
                 'id' => $c->getKey(), 'code' => $c->code, 'name_en' => $c->name_en, 'name_am' => $c->name_am,
                 'organization' => $c->organization ? ['name_en' => $c->organization->name_en, 'name_am' => $c->organization->name_am] : null,
                 'start_date' => $c->start_date->toDateString(), 'end_date' => $c->end_date->toDateString(),
+                'planning' => [$c->planning_start_date?->toDateString(), $c->planning_end_date?->toDateString()],
                 'midyear' => [$c->midyear_review_start_date?->toDateString(), $c->midyear_review_end_date?->toDateString()],
                 'yearend' => [$c->yearend_review_start_date?->toDateString(), $c->yearend_review_end_date?->toDateString()],
                 'status' => $c->status->value, 'is_current' => $c->is_current,
                 'read_only' => PerformanceCycleService::isReadOnly($c),
+                'period_editable' => PerformanceCycleService::periodEditable($c),
                 'next' => PerformanceCycleService::nextStatuses($c),
             ]),
             'statuses' => CycleStatus::values(),
@@ -57,6 +60,14 @@ class PerformanceCycleController extends PerformanceController
     {
         $this->ensureEnabled();
         $this->cycles->create($request->validated(), $request->user());
+
+        return $this->saved();
+    }
+
+    public function update(UpdatePerformanceCycleRequest $request, PerformanceCycle $cycle): RedirectResponse
+    {
+        $this->ensureEnabled();
+        $this->cycles->update($cycle, $request->validated(), $request->user());
 
         return $this->saved();
     }

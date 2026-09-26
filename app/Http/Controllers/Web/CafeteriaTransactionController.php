@@ -258,7 +258,8 @@ class CafeteriaTransactionController extends Controller
 
         abort_unless($this->providerAccess->canAccessProvider($request->user(), $provider), 403, __('cafeteria.providerAccessDenied'));
 
-        $scannedAt = $request->filled('scanned_at') ? Carbon::parse($request->validated('scanned_at')) : Carbon::now();
+        // Server time only: a client-chosen time could claim past entitlement days.
+        $scannedAt = Carbon::now();
 
         // An NFC tap resolves to the same ID card a QR scan would produce, and
         // is then handed to the same action - one set of cafeteria rules for
@@ -293,7 +294,6 @@ class CafeteriaTransactionController extends Controller
             [
                 'usage_mode' => $request->validated('usage_mode'),
                 'scan_nonce' => $request->validated('scan_nonce'),
-                'meal_amount' => $request->validated('meal_amount'),
             ],
         );
 

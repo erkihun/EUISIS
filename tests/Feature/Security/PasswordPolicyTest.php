@@ -11,7 +11,6 @@ use App\Models\PasswordHistory;
 use App\Models\Provider;
 use App\Models\ProviderType;
 use App\Models\ProviderUser;
-use App\Models\ServiceProviderUser;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -460,22 +459,20 @@ test('37 employee self-registration applies the policy against the employee reco
 
 test('38 provider accounts get the same policy: creation, reset and their own change', function (): void {
     $admin = ppSuperAdmin();
-    $serviceTypeId = ServiceType::query()->firstOrCreate(['code' => 'transport'], ['name_en' => 'Transport', 'is_active' => true])->id;
+    $provider = ppProviderUser();
+    $account = fn (string $password) => [
+        'provider_id' => $provider->provider_id, 'name' => 'Dawit Driver', 'username' => 'dawit_driver',
+        'provider_role' => 'operator', 'portal_enabled' => true, 'status' => 'active', 'password' => $password,
+    ];
 
-    $this->actingAs($admin)->post(route('provider-users.store'), [
-        'service_type_id' => $serviceTypeId, 'name' => 'Dawit Driver', 'username' => 'dawit_driver', 'status' => 'active',
-        'password' => 'password',
-    ])->assertSessionHasErrors('password');
+    $this->actingAs($admin)->post(route('provider-users.store'), $account('password'))->assertSessionHasErrors('password');
 
-    $this->actingAs($admin)->post(route('provider-users.store'), [
-        'service_type_id' => $serviceTypeId, 'name' => 'Dawit Driver', 'username' => 'dawit_driver', 'status' => 'active', 'password' => '',
-    ])->assertSessionHasNoErrors();
-    $account = ServiceProviderUser::query()->where('username', 'dawit_driver')->firstOrFail();
-    expect(Hash::check((string) session('flash.temporary_password'), $account->password))->toBeTrue()
-        ->and($account->must_change_password)->toBeTrue();
+    $this->actingAs($admin)->post(route('provider-users.store'), $account(''))->assertSessionHasNoErrors();
+    $created = ProviderUser::query()->where('username', 'dawit_driver')->firstOrFail();
+    expect(Hash::check((string) session('flash.temporary_password'), $created->password))->toBeTrue()
+        ->and($created->must_change_password)->toBeTrue();
 
     // Provider portal: own change needs the current password and passes the policy.
-    $provider = ppProviderUser();
     $this->actingAs($provider, 'provider')->patch(route('provider.portal.profile.password'), [
         'current_password' => 'Provider start phrase 77', 'password' => 'selamawit.ops harbor 26', 'password_confirmation' => 'selamawit.ops harbor 26',
     ])->assertSessionHasErrors('password');

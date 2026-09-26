@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CafeteriaLocationType;
+use App\Enums\CafeteriaOperationalStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * A cafeteria LOCATION (main, branch or service point) inside a provider's
+ * service network. The historical table name is kept: transactions, menus,
+ * orders, terminals and special days all point here. `organization_id` is only
+ * the organization it primarily serves — never access and never subsidy.
+ */
 class CafeteriaProvider extends Model
 {
     use HasUuidPrimaryKey;
@@ -18,6 +26,13 @@ class CafeteriaProvider extends Model
     protected $fillable = [
         'service_provider_id',
         'provider_id',
+        'cafeteria_service_network_id',
+        'parent_cafeteria_id',
+        'location_type',
+        'operational_status',
+        'opening_time',
+        'closing_time',
+        'capacity',
         'code',
         'name_en',
         'name_am',
@@ -38,7 +53,37 @@ class CafeteriaProvider extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'metadata' => 'array',
+        'location_type' => CafeteriaLocationType::class,
+        'operational_status' => CafeteriaOperationalStatus::class,
+        'capacity' => 'integer',
     ];
+
+    public function network(): BelongsTo
+    {
+        return $this->belongsTo(CafeteriaServiceNetwork::class, 'cafeteria_service_network_id');
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_cafeteria_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_cafeteria_id');
+    }
+
+    /**
+     * Whether the location can serve at all: active, not archived, not closed.
+     * A temporary closure is also "not serving" — employees use another
+     * allowed location instead.
+     */
+    public function isServing(): bool
+    {
+        return $this->is_active
+            && ! $this->trashed()
+            && ($this->operational_status ?? CafeteriaOperationalStatus::Open) === CafeteriaOperationalStatus::Open;
+    }
 
     public function serviceProvider(): BelongsTo
     {

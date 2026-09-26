@@ -190,7 +190,8 @@ final class EmployeeScoreCalculator
         return [$weights->isZero() ? null : Dec::div($weighted, $weights), $rows, $complete];
     }
 
-    private function competencyScaleMax(): int
+    /** The highest level of the active competency scale: ratings run 1..this, and score as rating ÷ this × 100. */
+    public function competencyScaleMax(): int
     {
         $scale = PerformanceRatingScale::query()->where('scale_type', 'COMPETENCY')->where('is_active', true)->orderByDesc('is_default')->first();
 

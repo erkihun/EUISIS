@@ -16,6 +16,10 @@ DRAFT → PLANNING → CASCADED → AGREEMENT → ACTIVE ⇄ MID_YEAR_REVIEW →
 - Cycles cannot overlap in the same scope.
 - CLOSED and CANCELLED cycles are read-only.
 - The mid-year and year-end windows limit when employees can submit self-assessments.
+- **Correcting a cycle** (`performance_cycles.update`, `PerformanceCycleService::update`):
+  - the code, period and planning window change only while the cycle is DRAFT or PLANNING, because plans, targets and agreements are dated inside it;
+  - names and review windows can change until the cycle is closed or cancelled (for example, to extend a year-end review);
+  - the organization never changes, and every change is audited as `performance_cycle_updated`.
 
 ## 2. Plan (`PerformancePlanService`)
 
@@ -64,7 +68,8 @@ DRAFT → EMPLOYEE_SUBMITTED → COMPLETED
 
 - Mid-year review: required only when `require_midyear_review` is on.
 - The employee writes the self-assessment, achievements, challenges, contributions, development needs and competency self-ratings. **The employee never picks a score.**
-- The manager completes the review with a comment, a private note, improvement actions, at-risk items and competency ratings (1–5).
+- The manager completes the review with a comment, a private note, improvement actions and at-risk items; at year-end also the competency ratings.
+- Ratings (the manager's and the employee's self-ratings) are whole numbers from 1 to the highest level of the active competency scale (5 by default). The forms offer exactly that range and the server refuses anything else, because the competency score is rating ÷ that level × 100. A refused rating leaves the review as it was.
 - When `require_yearend_self_assessment` is off, the manager can complete the review without an employee submission.
 
 ## 6. Result (`PerformanceResultService`)
@@ -86,7 +91,7 @@ calculate → CALCULATED (or PENDING_CALIBRATION when require_calibration)
 
 ## 7. Calibration (`PerformanceCalibrationService`)
 
-1. Create a session (cycle, organization, optional unit, optional `performance_calibration` committee).
+1. Create a session (cycle, organization, optional unit, optional `performance_calibration` committee). The cycle must be open and belong to the organization (or be city-wide), the unit must be one of the organization's, and the committee must be the organization's own calibration committee.
 2. Add CALCULATED or PENDING_CALIBRATION results in scope.
 3. Committee members decide a calibrated score with a reason for each item. Without a committee, a scoped user with `performance_calibration.manage` decides.
 4. Finalizing the session (`performance_calibration.finalize`, in scope) writes CALIBRATION adjustments, sets `calibrated_score` and freezes every result.
@@ -123,7 +128,8 @@ Messages render at read time in the recipient's language (`performance.notificat
 | Screen | Route |
 |---|---|
 | Performance dashboard | `performance.dashboard` |
-| Cycles | `performance.cycles.index` |
+| Cycles (create, correct, move) | `performance.cycles.index`, `performance.cycles.update` |
+| Strategic goals (return to draft) | `performance.strategic-goals.index`, `performance.strategic-goals.return` |
 | KPI library | `performance.kpis.index` |
 | Plans and cascading | `performance.plans.index`, `performance.plans.show` |
 | Employee agreements | `performance.agreements.index`, `performance.agreements.show` |

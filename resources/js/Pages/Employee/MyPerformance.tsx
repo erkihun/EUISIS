@@ -1,6 +1,6 @@
 import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { CheckinList, DevelopmentPlans, EvidenceList, ItemsTable, ResultPanel, ReviewSummary, agreementHeading, type AgreementView } from '@/Components/performance/agreement';
+import { CheckinList, DevelopmentPlans, EvidenceList, ItemsTable, ResultPanel, ReviewSummary, agreementHeading, ratingLevels, type AgreementView } from '@/Components/performance/agreement';
 import { DevelopmentPlanForm, EvidenceForm } from '@/Components/performance/forms';
 import { Field, Pill, Section, fill, formatScore, inputCls, nameOf, primaryBtn, secondaryBtn, smallBtn, useEnumLabel } from '@/Components/performance/ui';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -157,6 +157,7 @@ function PerformanceBody({ agreements, agreement, appeals, appealWindowDays, can
 function SelfAssessmentForm({ agreement, type }: { agreement: AgreementView; type: 'MID_YEAR' | 'YEAR_END' }) {
     const { t, locale } = useLocale();
     const review = agreement.reviews[type];
+    const levels = ratingLevels(agreement.competency_scale_max);
     const form = useForm<{ employee_self_assessment: string; achievements: string; challenges: string; contributions: string; development_needs: string; self_ratings: Record<string, number> }>({
         employee_self_assessment: review?.employee_self_assessment ?? '', achievements: review?.achievements ?? '', challenges: review?.challenges ?? '',
         contributions: review?.contributions ?? '', development_needs: review?.development_needs ?? '',
@@ -182,7 +183,7 @@ function SelfAssessmentForm({ agreement, type }: { agreement: AgreementView; typ
             {area('development_needs', t('performance.fields.developmentNeeds'))}
             {agreement.competencies.length > 0 && (
                 <fieldset className="grid gap-2 sm:grid-cols-2">
-                    <legend className="mb-1 text-xs font-medium text-gray-600 dark:text-slate-400">{t('performance.fields.selfRating')} (1–5)</legend>
+                    <legend className="mb-1 text-xs font-medium text-gray-600 dark:text-slate-400">{t('performance.fields.selfRating')} (1–{levels.length})</legend>
                     {agreement.competencies.map((c) => (
                         <label key={c.competency_id} className="flex items-center justify-between gap-2 text-xs">
                             <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en}</span>
@@ -193,7 +194,7 @@ function SelfAssessmentForm({ agreement, type }: { agreement: AgreementView; typ
                                 form.setData('self_ratings', ratings);
                             }}>
                                 <option value="">—</option>
-                                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
+                                {levels.map((n) => <option key={n} value={n}>{n}</option>)}
                             </select>
                         </label>
                     ))}

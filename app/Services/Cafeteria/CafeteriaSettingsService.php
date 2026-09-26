@@ -26,6 +26,8 @@ class CafeteriaSettingsService
         'payroll_cutoff_day' => 'notImplemented',
         'report_default_format' => 'reportActions',
         'report_timezone' => 'applicationTimezone',
+        // Financial values come only from organization Service Policies; never a global fallback.
+        'default_daily_subsidy_amount' => 'policyOnly',
     ];
 
     public function editableKeys(): array

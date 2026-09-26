@@ -26,7 +26,8 @@ class ProviderScanRequest extends FormRequest
             'provider_id' => ['nullable', 'uuid', 'exists:cafeteria_providers,id'],
             'qr_token' => ['required', 'string', 'min:10'],
             'scan_nonce' => ['required', 'uuid'],
-            'scanned_at' => ['nullable', 'date'],
+            // The server sets the time: a client time could claim past days.
+            'scanned_at' => ['prohibited'],
             'usage_mode' => ['required', Rule::in([
                 CafeteriaUsageMode::SingleDay->value,
                 CafeteriaUsageMode::UseRemainingWeek->value,

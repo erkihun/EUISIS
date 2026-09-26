@@ -37,6 +37,8 @@ import amOrganizations from '@/i18n/am/organizations';
 import amPositions from '@/i18n/am/positions';
 import amProfile from '@/i18n/am/profile';
 import amProviderPortal from '@/i18n/am/providerPortal';
+import amCafeteriaPolicy from '@/i18n/am/cafeteriaPolicy';
+import amProviderUsers from '@/i18n/am/providerUsers';
 import amRecycleBin from '@/i18n/am/recycleBin';
 import amServiceTypes from '@/i18n/am/serviceTypes';
 import amServiceFeedback from '@/i18n/am/serviceFeedback';
@@ -91,6 +93,8 @@ import enPermissions from '@/i18n/en/permissions';
 import enPositions from '@/i18n/en/positions';
 import enProfile from '@/i18n/en/profile';
 import enProviderPortal from '@/i18n/en/providerPortal';
+import enCafeteriaPolicy from '@/i18n/en/cafeteriaPolicy';
+import enProviderUsers from '@/i18n/en/providerUsers';
 import enRecycleBin from '@/i18n/en/recycleBin';
 import enServiceTypes from '@/i18n/en/serviceTypes';
 import enServiceFeedback from '@/i18n/en/serviceFeedback';
@@ -145,6 +149,8 @@ const translations: Record<Locale, TranslationTree> = {
         positions: enPositions,
         profile: enProfile,
         providerPortal: enProviderPortal,
+        cafeteriaPolicy: enCafeteriaPolicy,
+        providerUsers: enProviderUsers,
         recycleBin: enRecycleBin,
         serviceTypes: enServiceTypes,
         serviceFeedback: enServiceFeedback,
@@ -198,6 +204,8 @@ const translations: Record<Locale, TranslationTree> = {
         positions: amPositions,
         profile: amProfile,
         providerPortal: amProviderPortal,
+        cafeteriaPolicy: amCafeteriaPolicy,
+        providerUsers: amProviderUsers,
         recycleBin: amRecycleBin,
         serviceTypes: amServiceTypes,
         serviceFeedback: amServiceFeedback,

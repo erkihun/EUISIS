@@ -1042,3 +1042,227 @@ test('strategic goal page is scoped and renders its readiness ledger', function 
 
     $this->actingAs($this->adminB)->get(route('performance.strategic-goals.index', ['cycle_id' => $this->cycle->id, 'organization_id' => $this->orgA->id]))->assertForbidden();
 });
+
+// ── Hardening (audit of 2026-09-26) ─────────────────────────────────────────
+
+test('competency ratings must be on the active scale; a refused rating changes nothing', function (): void {
+    epCascade();
+    epActivateCycle();
+    $agreement = epAgreement($this->e1);
+    app(KpiActualService::class)->recordForItem($agreement->items()->first(), ['period_start' => '2026-01-01', 'period_end' => '2026-06-30', 'actual_value' => '900'], $this->manager);
+    $user = User::query()->where('email', 'e1@ep.test')->firstOrFail();
+    $reviews = app(PerformanceReviewService::class);
+    $max = app(EmployeeScoreCalculator::class)->competencyScaleMax();
+    $competencyId = $agreement->competencyAssessments()->value('competency_id');
+    expect($max)->toBe(5)->and($competencyId)->not->toBeNull();
+
+    // The employee's self-rating is checked before anything is saved.
+    expect(fn () => $reviews->employeeSubmit($agreement, ReviewType::YearEnd, ['employee_self_assessment' => 'Done.', 'self_ratings' => [$competencyId => $max + 1]], $user))
+        ->toThrow(ValidationException::class);
+    expect($reviews->reviewFor($agreement, ReviewType::YearEnd)->status->value)->toBe('DRAFT');
+    $reviews->employeeSubmit($agreement, ReviewType::YearEnd, ['employee_self_assessment' => 'Done.', 'self_ratings' => [$competencyId => $max]], $user);
+
+    // Above the scale a rating would score over 100%: refused, and the review stays open with no rating.
+    expect(fn () => $reviews->managerComplete($agreement, ReviewType::YearEnd, ['ratings' => [$competencyId => $max + 1]], $this->manager))
+        ->toThrow(ValidationException::class);
+    expect($reviews->reviewFor($agreement, ReviewType::YearEnd)->status->value)->toBe('EMPLOYEE_SUBMITTED')
+        ->and($agreement->competencyAssessments()->where('competency_id', $competencyId)->value('manager_rating'))->toBeNull();
+
+    // The forms offer exactly the scale's levels.
+    $this->actingAs($this->manager)->get(route('performance.agreements.show', $agreement))
+        ->assertInertia(fn (AssertableInertia $p) => $p->where('agreement.competency_scale_max', $max));
+});
+
+test('a KPI keeps its scoring rules once a submitted plan or an agreement uses it', function (): void {
+    $kpi = epKpi('ORG-KPI', 'HIGHER_IS_BETTER', 'SUM', extra: ['organization_id' => $this->orgA->id, 'achievement_cap' => 120]);
+    $payload = fn (array $changes = []) => [
+        ...$kpi->fresh()->only(['code', 'name_en', 'name_am', 'unit_of_measure', 'baseline', 'allow_overachievement', 'achievement_cap', 'target_tolerance', 'zero_score_deviation', 'milestones', 'is_active']),
+        'measurement_type' => $kpi->fresh()->measurement_type->value, 'direction' => $kpi->fresh()->direction->value, 'aggregation_method' => $kpi->fresh()->aggregation_method->value,
+        'data_source_type' => $kpi->fresh()->data_source_type->value, 'frequency' => $kpi->fresh()->frequency->value, ...$changes,
+    ];
+    $plans = app(PerformancePlanService::class);
+    $plan = $plans->create(['cycle_id' => $this->cycle->id, 'plan_type' => 'ORGANIZATION', 'organization_id' => $this->orgA->id, 'title' => 'KPI rules plan'], $this->admin);
+    $objective = $plans->addObjective($plan, ['code' => 'K1', 'title_en' => 'Deliver', 'weight' => 100], $this->admin);
+    $plans->addTarget($objective, ['kpi_id' => $kpi->id, 'target_value' => 10, 'weight' => 100], $this->admin);
+
+    // Used by a draft plan only: planners can still correct it.
+    $this->actingAs($this->admin)->put(route('performance.kpis.update', $kpi), $payload(['aggregation_method' => 'AVERAGE']))->assertSessionHasNoErrors();
+
+    $plans->submit($plan->fresh(), $this->admin);
+    $this->actingAs($this->admin)->put(route('performance.kpis.update', $kpi), $payload(['direction' => 'LOWER_IS_BETTER']))->assertSessionHasErrors(['direction' => __('performance.errors.kpi_in_use')]);
+    $this->actingAs($this->admin)->put(route('performance.kpis.update', $kpi), $payload(['achievement_cap' => 150]))->assertSessionHasErrors('achievement_cap');
+    expect($kpi->fresh()->direction->value)->toBe('HIGHER_IS_BETTER')->and((string) $kpi->fresh()->achievement_cap)->toBe('120.0000');
+
+    // Wording, frequency and status still change; the same cap written as "120" is no change.
+    $this->actingAs($this->admin)->put(route('performance.kpis.update', $kpi), $payload(['name_en' => 'Files delivered', 'frequency' => 'QUARTERLY', 'achievement_cap' => '120']))->assertSessionHasNoErrors();
+    expect($kpi->fresh()->name_en)->toBe('Files delivered');
+
+    $this->actingAs($this->admin)->get(route('performance.kpis.index', ['search' => 'org-kpi']))
+        ->assertInertia(fn (AssertableInertia $p) => $p->has('kpis.data', 1)->where('kpis.data.0.in_use', true));
+});
+
+test('rating bands of one scale cannot overlap; competency levels only change their labels', function (): void {
+    $good = PerformanceRatingBand::query()->where('label_en', 'Good')->firstOrFail();
+    $this->actingAs($this->admin)->put(route('performance.settings.bands.update', $good->id), ['min_score' => 70, 'max_score' => 85, 'label_en' => 'Good', 'label_am' => $good->label_am])
+        ->assertSessionHasErrors('min_score');
+    expect((string) $good->fresh()->max_score)->toBe('79.9999');
+
+    $level = PerformanceRatingBand::query()->whereNotNull('level_value')->orderBy('level_value')->firstOrFail();
+    $this->actingAs($this->admin)->put(route('performance.settings.bands.update', $level->id), ['min_score' => 0, 'max_score' => 50, 'label_en' => 'Below expectations', 'label_am' => $level->label_am])
+        ->assertSessionHasNoErrors();
+    expect($level->fresh())->label_en->toBe('Below expectations')->min_score->toBeNull()->max_score->toBeNull();
+});
+
+test('rating band label edits preserve limits and reject precision that storage would round', function (): void {
+    $band = PerformanceRatingBand::query()->where('label_en', 'Good')->firstOrFail();
+    $this->actingAs($this->admin)->put(route('performance.settings.bands.update', $band->id), ['label_en' => 'Updated good'])
+        ->assertSessionHasNoErrors();
+    expect($band->fresh())->label_en->toBe('Updated good')->min_score->toBe($band->min_score)->max_score->toBe($band->max_score);
+    $this->put(route('performance.settings.bands.update', $band->id), ['label_en' => 'Invalid', 'min_score' => 70, 'max_score' => '79.99999'])
+        ->assertSessionHasErrors('max_score');
+    expect($band->fresh()->label_en)->toBe('Updated good');
+});
+
+test('rating band open limits are accepted but partial edits cannot invert a range', function (): void {
+    $band = PerformanceRatingBand::query()->whereNull('level_value')->orderBy('min_score')->firstOrFail();
+    $this->actingAs($this->admin)->put(route('performance.settings.bands.update', $band->id), ['label_en' => $band->label_en, 'min_score' => null, 'max_score' => $band->max_score])
+        ->assertSessionHasNoErrors();
+    expect($band->fresh()->min_score)->toBeNull();
+    $good = PerformanceRatingBand::query()->where('label_en', 'Good')->firstOrFail();
+    $this->put(route('performance.settings.bands.update', $good->id), ['label_en' => 'Invalid', 'max_score' => 65])
+        ->assertSessionHasErrors('max_score');
+    expect($good->fresh()->label_en)->toBe('Good');
+});
+
+test('performance settings stay accessible when disabled and enforce localized validation and write permissions', function (): void {
+    epSetting('enabled', false);
+    $this->actingAs($this->admin)->get(route('performance.settings.index'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->component('Performance/Settings')->has('fields', 19)->has('scales')->where('can.update', true));
+    $fields = collect(app(SystemSettingsService::class)->getGroupForAdmin('performance'))->mapWithKeys(fn ($f) => [$f['key'] => $f['value']])->all();
+    $this->withUnencryptedCookie('euisis_locale', 'am')->patch(route('performance.settings.update'), [...$fields, 'appeal_window_days' => 91])
+        ->assertSessionHasErrors('appeal_window_days');
+    expect(session('errors')->first('appeal_window_days'))->toContain(SystemSettingsRegistry::definition('performance', 'appeal_window_days')['label_am']);
+    $this->actingAs($this->manager)->patch(route('performance.settings.update'), [...$fields, 'enabled' => true])->assertForbidden();
+    $this->actingAs($this->admin)->patch(route('performance.settings.update'), [...$fields, 'enabled' => true])->assertSessionHasNoErrors();
+    expect(app(SystemSettingsService::class)->getGroupForAdmin('performance')[0]['value'])->toBeTrue();
+});
+
+test('rating band edits require settings permission', function (): void {
+    $band = PerformanceRatingBand::query()->firstOrFail();
+    $this->actingAs($this->manager)->put(route('performance.settings.bands.update', $band->id), ['label_en' => 'Unauthorized'])
+        ->assertForbidden();
+    expect($band->fresh()->label_en)->toBe($band->label_en);
+});
+
+test('a cycle is corrected in place: its period until plans cascade, names and review windows until it closes', function (): void {
+    $update = fn (array $data) => $this->actingAs($this->admin)->put(route('performance.cycles.update', $this->cycle), [
+        'code' => 'FY2026', 'name_en' => 'FY 2026', 'start_date' => '2026-01-01', 'end_date' => '2026-12-31', ...$data,
+    ]);
+
+    $update(['name_en' => 'Fiscal year 2026', 'end_date' => '2026-12-30', 'planning_start_date' => '2025-11-01', 'planning_end_date' => '2025-12-31'])->assertSessionHasNoErrors();
+    expect($this->cycle->fresh())->name_en->toBe('Fiscal year 2026')
+        ->and($this->cycle->fresh()->end_date->toDateString())->toBe('2026-12-30')
+        ->and(AuditLog::query()->where('event_type', 'performance_cycle_updated')->exists())->toBeTrue();
+
+    $cycles = app(PerformanceCycleService::class);
+    foreach ([CycleStatus::Planning, CycleStatus::Cascaded] as $status) {
+        $cycles->transition($this->cycle->fresh(), $status, $this->admin);
+    }
+
+    // Plans are cascading into it now: the period is fixed ...
+    $update(['end_date' => '2026-12-31'])->assertSessionHasErrors(['end_date' => __('performance.errors.cycle_period_locked')]);
+    $update(['code' => 'FY26', 'end_date' => '2026-12-30'])->assertSessionHasErrors('code');
+    // ... while names and review windows still move.
+    $update(['name_en' => 'FY 2026 (final)', 'end_date' => '2026-12-30', 'yearend_review_start_date' => '2026-12-01', 'yearend_review_end_date' => '2027-01-20'])->assertSessionHasNoErrors();
+    expect($this->cycle->fresh()->yearend_review_end_date->toDateString())->toBe('2027-01-20');
+
+    // Organization B's administrator cannot touch it; a cancelled cycle is read-only.
+    $this->actingAs($this->adminB)->put(route('performance.cycles.update', $this->cycle), ['code' => 'FY2026', 'name_en' => 'x', 'start_date' => '2026-01-01', 'end_date' => '2026-12-30'])->assertForbidden();
+    $cycles->transition($this->cycle->fresh(), CycleStatus::Agreement, $this->admin);
+    $cycles->transition($this->cycle->fresh(), CycleStatus::Cancelled, $this->admin);
+    $update(['name_en' => 'Too late', 'end_date' => '2026-12-30'])->assertSessionHasErrors('status');
+});
+
+test('a reviewer returns a strategic goal to its drafter with a reason; published goals stay fixed', function (): void {
+    $strategic = app(StrategicPlanningService::class);
+    $plans = app(PerformancePlanService::class);
+    $goal = $strategic->createGoal(['cycle_id' => $this->cycle->id, 'organization_id' => $this->orgA->id, 'code' => 'SG-R', 'name_en' => 'Service quality', 'name_am' => 'የአገልግሎት ጥራት', 'weight_percent' => '100.0000'], $this->admin);
+    $strategic->addAllocation($goal, ['organization_unit_id' => $this->directorate->id, 'organization_contribution_percent' => '100.0000', 'allocation_type' => 'PRIMARY', 'is_lead' => true], $this->admin);
+    $plan = $plans->create(['cycle_id' => $this->cycle->id, 'plan_type' => 'ORGANIZATION', 'organization_id' => $this->orgA->id, 'title' => 'Quality plan'], $this->admin);
+    $plans->addObjective($plan, ['strategic_goal_id' => $goal->id, 'code' => 'OBJ-R', 'title_en' => 'Improve quality', 'weight' => 100, 'absolute_weight_percent' => 100], $this->admin);
+    $strategic->transition($goal->fresh(), StrategicGoalStatus::UnderReview, $this->admin);
+
+    $this->actingAs($this->approver)->post(route('performance.strategic-goals.return', $goal), [])->assertSessionHasErrors('reason');
+    $this->actingAs($this->approver)->post(route('performance.strategic-goals.return', $goal), ['reason' => 'Name the service standard.'])->assertSessionHasNoErrors();
+    expect($goal->fresh())->status->toBe(StrategicGoalStatus::Draft)->return_reason->toBe('Name the service standard.')->approved_by->toBeNull();
+
+    // The drafter corrects it; submitting again clears the objection.
+    $strategic->updateGoal($goal->fresh(), ['name_en' => 'Service quality standard'], $this->admin);
+    $strategic->transition($goal->fresh(), StrategicGoalStatus::UnderReview, $this->admin);
+    expect($goal->fresh()->return_reason)->toBeNull();
+
+    expect(fn () => $strategic->returnToDraft($goal->fresh(), 'No authority', $this->manager))->toThrow(AuthorizationException::class);
+    $strategic->transition($goal->fresh(), StrategicGoalStatus::Approved, $this->approver);
+    $strategic->transition($goal->fresh(), StrategicGoalStatus::Published, $this->admin);
+    expect(fn () => $strategic->returnToDraft($goal->fresh(), 'Too late', $this->approver))->toThrow(ValidationException::class)
+        ->and(AuditLog::query()->where('event_type', 'strategic_goal_status_changed')->count())->toBe(5);
+});
+
+test('a calibration session uses its organization\'s own committee, an open cycle and one of its units', function (): void {
+    $calibration = app(PerformanceCalibrationService::class);
+    $panelA = GrievanceCommittee::query()->create(['organization_id' => $this->orgA->id, 'committee_type' => CommitteeType::PerformanceCalibration->value, 'name_en' => 'Bureau panel', 'status' => 'active']);
+    $panelB = GrievanceCommittee::query()->create(['organization_id' => $this->orgB->id, 'committee_type' => CommitteeType::PerformanceCalibration->value, 'name_en' => 'Health panel', 'status' => 'active']);
+    $cycleB = app(PerformanceCycleService::class)->create(['code' => 'FY2026-B', 'name_en' => 'FY 2026 B', 'organization_id' => $this->orgB->id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-31'], $this->adminB);
+
+    $session = $calibration->createSession($this->cycle, ['organization_id' => $this->orgA->id, 'organization_unit_id' => $this->team->id, 'committee_id' => $panelA->id, 'title' => 'Team panel'], $this->admin);
+    expect($session)->committee_id->toBe($panelA->id)->organization_unit_id->toBe($this->team->id);
+
+    expect(fn () => $calibration->createSession($this->cycle, ['organization_id' => $this->orgA->id, 'committee_id' => $panelB->id, 'title' => 'Wrong committee'], $this->admin))->toThrow(ValidationException::class)
+        ->and(fn () => $calibration->createSession($cycleB, ['organization_id' => $this->orgA->id, 'title' => 'Wrong cycle'], $this->admin))->toThrow(ValidationException::class)
+        ->and(fn () => $calibration->createSession($this->cycle, ['organization_id' => $this->orgA->id, 'organization_unit_id' => $this->unitB->id, 'title' => 'Wrong unit'], $this->admin))->toThrow(ValidationException::class);
+
+    app(PerformanceCycleService::class)->transition($this->cycle->fresh(), CycleStatus::Cancelled, $this->admin);
+    expect(fn () => $calibration->createSession($this->cycle->fresh(), ['organization_id' => $this->orgA->id, 'title' => 'Closed cycle'], $this->admin))->toThrow(ValidationException::class);
+});
+
+test('all fifteen reports render and export inside the viewer\'s scope', function (): void {
+    $w = epCascade();
+    epActivateCycle();
+    $agreement = epAgreement($this->e1);
+    epYearEnd($agreement);
+    app(PerformanceAggregationService::class)->planScore($w['org']->fresh(), Carbon::parse('2026-06-15'));
+    app(PerformanceReviewService::class)->addCheckin($agreement->fresh(), ['checkin_date' => '2026-03-01', 'progress_status' => 'ON_TRACK'], $this->manager);
+    app(DevelopmentPlanService::class)->createImprovementPlan($agreement->fresh(), ['identified_gap' => 'Accuracy', 'required_improvement' => 'Fewer returns', 'start_date' => '2026-07-01', 'end_date' => '2026-09-30'], $this->manager);
+    $nextCycle = app(PerformanceCycleService::class)->create(['code' => 'FY2027', 'name_en' => 'FY 2027', 'organization_id' => $this->orgA->id, 'start_date' => '2027-01-01', 'end_date' => '2027-12-31'], $this->admin);
+    $reports = ['results', 'distribution', 'plan_scores', 'plan_targets', 'agreement_completion', 'review_completion', 'checkins', 'missing_actuals',
+        'pending_verification', 'amendments', 'adjustments', 'calibration', 'appeals', 'improvement_plans', 'development_plans'];
+    $rows = fn (string $report, ?string $cycle = null) => $this->get(route('performance.reports.index', array_filter(['report' => $report, 'cycle_id' => $cycle])))->viewData('page')['props']['rows']['data'];
+
+    $this->actingAs($this->admin);
+    $this->get(route('performance.reports.index'))->assertInertia(fn (AssertableInertia $p) => $p->where('reports', $reports)->where('formats.status', 'enum:result'));
+    foreach ($reports as $report) {
+        $this->get(route('performance.reports.index', ['report' => $report, 'cycle_id' => $this->cycle->id]))->assertOk()
+            ->assertInertia(fn (AssertableInertia $p) => $p->where('report', $report)->has('columns')->has('formats'));
+    }
+    // The export is throttled to 10 a minute; the new reports stream the same way as the old ones.
+    foreach (['plan_scores', 'plan_targets', 'review_completion', 'checkins', 'pending_verification', 'amendments', 'adjustments', 'development_plans'] as $report) {
+        expect($this->get(route('performance.reports.export', ['report' => $report]))->assertOk()->streamedContent())->toStartWith("\xEF\xBB\xBF");
+    }
+
+    expect($rows('plan_scores'))->not->toBeEmpty()
+        ->and($rows('plan_targets'))->not->toBeEmpty()
+        ->and(collect($rows('review_completion'))->pluck('review_type')->all())->toContain('YEAR_END')
+        ->and($rows('checkins')[0]['checkins'])->toBe(1)
+        ->and($rows('pending_verification'))->toHaveCount(1)
+        // The cycle filter now applies to improvement plans too.
+        ->and($rows('improvement_plans', $this->cycle->id))->toHaveCount(1)
+        ->and($rows('improvement_plans', $nextCycle->id))->toHaveCount(0);
+
+    // Organization B sees none of organization A's rows, and none of its cycles in the agreement filter.
+    $this->actingAs($this->adminB);
+    foreach (['plan_scores', 'plan_targets', 'review_completion', 'checkins', 'pending_verification', 'improvement_plans'] as $report) {
+        expect($rows($report))->toBeEmpty();
+    }
+    $this->get(route('performance.agreements.index'))
+        ->assertInertia(fn (AssertableInertia $p) => $p->where('cycles', fn ($cycles) => collect($cycles)->pluck('id')->doesntContain($this->cycle->id)));
+});

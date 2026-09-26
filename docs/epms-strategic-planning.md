@@ -10,7 +10,7 @@ The strategic planning layer sits between a performance cycle and the organizati
 
 ## Workflow and immutability
 
-Strategic goals move `DRAFT → UNDER_REVIEW → APPROVED → PUBLISHED`. Only drafts in an open cycle can be changed. Every transition locks the organization's goal rows and recomputes the complete readiness ledger inside one database transaction. Published goals are immutable; later changes should use the existing plan-version workflow.
+Strategic goals move `DRAFT → UNDER_REVIEW → APPROVED → PUBLISHED`. Only drafts in an open cycle can be changed. A reviewer with `strategic_goals.approve` can **return** a goal that is under review, or approved but not yet published, to DRAFT with a reason (`performance.strategic-goals.return`); the reason stays on the goal until it is submitted again. Every transition locks the organization's goal rows and recomputes the complete readiness ledger inside one database transaction. Published goals are immutable; later changes should use the existing plan-version workflow.
 
 Organization-plan validation reuses the same readiness checks, so a plan cannot be published while goal weights, unit allocations, lead ownership, or linked objective weights are incomplete.
 

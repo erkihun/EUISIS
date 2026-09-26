@@ -40,6 +40,7 @@ use App\Models\Permission;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\PositionService;
+use App\Models\ProviderUser;
 use App\Models\PublicHoliday;
 use App\Models\Role;
 use App\Models\ServiceProvider as ServiceProviderModel; // alias to avoid clash with Illuminate\Support\ServiceProvider
@@ -87,6 +88,7 @@ use App\Policies\PermissionPolicy;
 use App\Policies\PositionEstablishmentPolicy;
 use App\Policies\PositionPolicy;
 use App\Policies\PositionServicePolicy;
+use App\Policies\ProviderUserPolicy;
 use App\Policies\PublicHolidayPolicy;
 use App\Policies\RolePolicy;
 use App\Policies\ServiceProviderPolicy;
@@ -193,6 +195,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(SystemSetting::class, SystemSettingPolicy::class);
         Gate::policy(CafeteriaProvider::class, CafeteriaProviderPolicy::class);
         Gate::policy(CafeteriaProviderUser::class, CafeteriaProviderUserPolicy::class);
+        Gate::policy(ProviderUser::class, ProviderUserPolicy::class);
         Gate::policy(CafeteriaSubsidyRule::class, CafeteriaSubsidyRulePolicy::class);
         Gate::policy(PublicHoliday::class, PublicHolidayPolicy::class);
         Gate::policy(CafeteriaTransaction::class, CafeteriaTransactionPolicy::class);

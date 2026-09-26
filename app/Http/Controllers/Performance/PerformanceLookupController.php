@@ -30,28 +30,31 @@ class PerformanceLookupController extends PerformanceController
 
     public function organizations(Request $request): JsonResponse
     {
+        $like = ci_like_operator();
         $this->authorizeLookup($request);
         $q = $this->term($request);
 
         return response()->json($this->scope->applyOrganizationScope(Organization::query(), $request->user(), 'id')
-            ->when($q !== '', fn ($query) => $query->where(fn ($s) => $s->where('name_en', 'like', "%{$q}%")->orWhere('name_am', 'like', "%{$q}%")))
+            ->when($q !== '', fn ($query) => $query->where(fn ($s) => $s->where('name_en', $like, "%{$q}%")->orWhere('name_am', $like, "%{$q}%")))
             ->orderBy('name_en')->limit(self::LIMIT)->get(['id', 'name_en', 'name_am']));
     }
 
     public function units(Request $request): JsonResponse
     {
+        $like = ci_like_operator();
         $this->authorizeLookup($request);
         $organizationId = (string) $request->query('organization_id');
         abort_unless($this->scope->canAccessOrganization($request->user(), $organizationId), 403);
         $q = $this->term($request);
 
         return response()->json(OrganizationUnit::query()->where('organization_id', $organizationId)
-            ->when($q !== '', fn ($query) => $query->where(fn ($s) => $s->where('name_en', 'like', "%{$q}%")->orWhere('name_am', 'like', "%{$q}%")))
+            ->when($q !== '', fn ($query) => $query->where(fn ($s) => $s->where('name_en', $like, "%{$q}%")->orWhere('name_am', $like, "%{$q}%")))
             ->orderBy('name_en')->limit(self::LIMIT)->get(['id', 'name_en', 'name_am', 'parent_unit_id']));
     }
 
     public function positions(Request $request): JsonResponse
     {
+        $like = ci_like_operator();
         $this->authorizeLookup($request);
         $organizationId = (string) $request->query('organization_id');
         abort_unless($this->scope->canAccessOrganization($request->user(), $organizationId), 403);
@@ -59,13 +62,14 @@ class PerformanceLookupController extends PerformanceController
 
         return response()->json(Position::query()->where('organization_id', $organizationId)
             ->when($request->query('organization_unit_id'), fn ($query, $unit) => $query->where('organization_unit_id', $unit))
-            ->when($q !== '', fn ($query) => $query->where(fn ($s) => $s->where('title_en', 'like', "%{$q}%")->orWhere('title_am', 'like', "%{$q}%")->orWhere('job_position_code', 'like', "%{$q}%")))
+            ->when($q !== '', fn ($query) => $query->where(fn ($s) => $s->where('title_en', $like, "%{$q}%")->orWhere('title_am', $like, "%{$q}%")->orWhere('job_position_code', $like, "%{$q}%")))
             ->orderBy('title_en')->limit(self::LIMIT)->get(['id', 'title_en', 'title_am', 'job_position_code', 'organization_unit_id']));
     }
 
     /** Employees with their assignments, inside the user's organization scope only. */
     public function employees(Request $request): JsonResponse
     {
+        $like = ci_like_operator();
         $this->authorizeLookup($request);
         $q = $this->term($request);
         if (mb_strlen($q) < 2) {
@@ -76,13 +80,14 @@ class PerformanceLookupController extends PerformanceController
         $assignments = EmployeeAssignment::query()
             ->with(['employee:id,full_name,name_en,employee_number', 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am', 'position:id,title_en,title_am'])
             ->when($allowed !== null, fn ($query) => $query->whereIn('organization_id', $allowed))
-            ->whereHas('employee', fn ($e) => $e->where('employee_number', 'like', "%{$q}%")->orWhere('full_name', 'like', "%{$q}%")->orWhere('name_en', 'like', "%{$q}%"))
+            ->whereHas('employee', fn ($e) => $e->where('employee_number', $like, "%{$q}%")->orWhere('full_name', $like, "%{$q}%")->orWhere('name_en', $like, "%{$q}%"))
             ->orderByDesc('is_current')->limit(self::LIMIT)->get();
 
         return response()->json($assignments->map(fn (EmployeeAssignment $a) => [
             'assignment_id' => $a->getKey(), 'employee_id' => $a->employee_id, 'is_current' => (bool) $a->is_current,
             'name' => $a->employee?->full_name, 'name_en' => $a->employee?->name_en, 'number' => $a->employee?->employee_number,
             'organization' => $a->organization?->name_en, 'unit' => $a->organizationUnit?->name_en, 'position' => $a->position?->title_en,
+            'organization_am' => $a->organization?->name_am, 'unit_am' => $a->organizationUnit?->name_am, 'position_am' => $a->position?->title_am,
             'effective_from' => $a->effective_from?->toDateString(), 'effective_to' => $a->effective_to?->toDateString(),
         ]));
     }

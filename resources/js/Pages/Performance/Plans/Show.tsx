@@ -42,7 +42,7 @@ type Props = {
     parentTargets: { id: string; kpi_id: string; kpi_code: string }[];
     strategicGoals: { id: string; code: string; name_en: string; name_am: string | null; weight_percent: string }[];
     options: { objective_types: string[]; cascade_modes: string[] };
-    can: { edit: boolean; submit: boolean; review: boolean; approve: boolean; publish: boolean; newVersion: boolean; enterActual: boolean; amend: boolean; decideAmendment: boolean };
+    can: { edit: boolean; submit: boolean; review: boolean; approve: boolean; publish: boolean; newVersion: boolean; enterActual: boolean; amend: boolean; decideAmendment: boolean; recalculate: boolean };
 };
 
 
@@ -131,7 +131,7 @@ export default function PlanShow(props: Props) {
                 )}
 
                 <Section title={t('performance.plans.score')} description={score ? <>{t('performance.dashboard.asOf')} <LocalizedDateDisplay value={score.as_of} /></> : undefined}
-                    actions={plan.status === 'PUBLISHED' && <button type="button" className={smallBtn} onClick={() => router.post(route('performance.plans.recalculate', plan.id), {}, { preserveScroll: true })}>{t('performance.actions.recalculate')}</button>}>
+                    actions={can.recalculate && <button type="button" className={smallBtn} onClick={() => router.post(route('performance.plans.recalculate', plan.id), {}, { preserveScroll: true })}>{t('performance.actions.recalculate')}</button>}>
                     {!score ? <Empty>{t('performance.notCalculated')}</Empty> : <PlanTraceView trace={score.trace} />}
                 </Section>
 
@@ -280,7 +280,7 @@ function PeriodTargetsForm({ target, onDone }: { target: Target; onDone: () => v
     }
     return <form onSubmit={submit} className="mt-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-semibold">{t('performance.plans.periodTargets')}</p><select className={`${inputCls} w-auto`} value={periodType} onChange={(e) => switchType(e.target.value as 'QUARTER' | 'MONTH')}><option value="QUARTER">{t('performance.plans.quarterly')}</option><option value="MONTH">{t('performance.plans.monthly')}</option></select></div>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{form.data.period_targets.map((row, index) => <Field key={row.period_number} label={`${periodType === 'QUARTER' ? 'Q' : 'M'}${row.period_number}`} error={(form.errors as Record<string, string>)[`period_targets.${index}.target_value`]}><input className={inputCls} inputMode="decimal" value={row.target_value} onChange={(e) => form.setData('period_targets', form.data.period_targets.map((item, i) => i === index ? { ...item, target_value: e.target.value } : item))} required /></Field>)}</div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{form.data.period_targets.map((row, index) => <Field key={row.period_number} label={`${periodType === 'QUARTER' ? t('performance.plans.quarterShort') : t('performance.plans.monthShort')}${row.period_number}`} error={(form.errors as Record<string, string>)[`period_targets.${index}.target_value`]}><input className={inputCls} inputMode="decimal" value={row.target_value} onChange={(e) => form.setData('period_targets', form.data.period_targets.map((item, i) => i === index ? { ...item, target_value: e.target.value } : item))} required /></Field>)}</div>
         <p className="mt-2 text-xs text-gray-500">{t('performance.plans.periodTargetsHelp')}</p>
         <div className="mt-3 flex justify-end gap-2"><button type="button" className={secondaryBtn} onClick={onDone}>{t('performance.actions.cancel')}</button><button className={primaryBtn} disabled={form.processing}>{t('performance.actions.save')}</button></div>
     </form>;

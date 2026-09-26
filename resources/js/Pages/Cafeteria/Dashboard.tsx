@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import DashboardSection from '@/Components/dashboard/DashboardSection';
 import KpiCard from '@/Components/dashboard/KpiCard';
 import MetricGrid from '@/Components/dashboard/MetricGrid';
+import { ConfigurationHealthPanel, type Health } from '@/Components/Cafeteria/PolicyUi';
 
 type ProviderSummary = {
     provider_id: string;
@@ -27,9 +28,12 @@ type Stats = {
 export default function CafeteriaDashboard({
     stats,
     today_by_provider,
+    health,
 }: {
     stats: Stats;
     today_by_provider: ProviderSummary[];
+    /** Present for users who may view policies. */
+    health?: Health | null;
 }) {
     const { t } = useLocale();
     const money = new Intl.NumberFormat(undefined, {
@@ -54,6 +58,8 @@ export default function CafeteriaDashboard({
             <Head title={t('cafeteria.dashboard')} />
 
             <div className="space-y-6">
+                {health && <ConfigurationHealthPanel health={health} />}
+
                 <DashboardSection
                     title={t('cafeteria.dashboard')}
                     actions={(

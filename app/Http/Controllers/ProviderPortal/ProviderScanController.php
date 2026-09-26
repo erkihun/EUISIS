@@ -54,7 +54,7 @@ class ProviderScanController extends Controller
         $provider = $context->selectedProvider($request);
         abort_if($provider === null, 403, __('provider-portal.not_assigned'));
 
-        $scannedAt = $request->filled('scanned_at') ? Carbon::parse($request->validated('scanned_at')) : Carbon::now();
+        $scannedAt = Carbon::now();
 
         $result = $action->execute(
             $request->validated('qr_token'),

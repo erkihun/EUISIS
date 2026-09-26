@@ -46,7 +46,7 @@ export default function CalibrationIndex({ sessions, cycles, organizations, comm
                             <Field label={t('performance.fields.committee')} error={form.errors.committee_id}>
                                 <select className={inputCls} value={form.data.committee_id} onChange={(e) => form.setData('committee_id', e.target.value)}>
                                     <option value="">—</option>
-                                    {committees.filter((c) => !c.organization_id || c.organization_id === form.data.organization_id).map((c) => <option key={c.id} value={c.id}>{nameOf(c, locale)}</option>)}
+                                    {committees.filter((c) => c.organization_id === form.data.organization_id).map((c) => <option key={c.id} value={c.id}>{nameOf(c, locale)}</option>)}
                                 </select>
                             </Field>
                             <Field label={t('performance.fields.sessionDate')} error={form.errors.session_date}><LocalizedDatePicker value={form.data.session_date} onChange={(v) => form.setData('session_date', v)} /></Field>

@@ -1,6 +1,14 @@
 const performance = {
     title: 'Performance Management',
     strategicGoals: {
+        workflow: 'Build the strategic plan',
+        registerStep: 'Register goals with a combined weight of 100%.',
+        allocateStep: 'Allocate each goal to responsible units and link plan objectives.',
+        reviewStep: 'Resolve readiness checks, submit for review, approve and publish.',
+        selectOrganization: 'Select an organization', selectCycle: 'Select a performance cycle', selectUnit: 'Select a unit',
+        noAvailableUnits: 'No unallocated units are available for this organization. Edit an existing allocation or add a unit to the organization.',
+        editGoal: 'Edit goal', editAllocation: 'Edit allocation', remainingHint: 'Not yet registered: {value}% of 100%', allocationRemainingHint: 'Not yet allocated: {value}%', codeHelp: 'Letters, numbers, dashes and underscores.', periodHelp: 'Leave the dates empty to use the whole cycle:', noObjectives: 'No objective of a plan in force is linked to this goal yet. Link objectives to it on the organization plan.', byStatus: 'Goals by status',
+        returned: 'Returned for correction', removeAllocation: 'Remove allocation',
         title: 'Strategic goals', description: 'Register organization priorities, allocate ownership, and confirm the full 100% plan before publishing.',
         create: 'Register goal', empty: 'No strategic goals match this cycle and organization.', total: 'Registered weight', remaining: 'Remaining weight',
         ready: 'Ready to publish', needsWork: 'Needs attention', allocations: 'Unit ownership', addAllocation: 'Allocate unit', lead: 'Lead unit', shared: 'Shared goal',
@@ -23,6 +31,8 @@ const performance = {
         addResults: 'Add to session', open: 'Open', appeal: 'Appeal this result', upload: 'Upload evidence', search: 'Search',
     },
     fields: {
+        notes: 'Notes', plan: 'Plan',
+        planning: 'Planning window', descriptionEn: 'Description (English)', descriptionAm: 'Description (Amharic)',
         code: 'Code', name: 'Name', nameEn: 'Name (English)', nameAm: 'Name (Amharic)', title: 'Title', titleEn: 'Title (English)', titleAm: 'Title (Amharic)',
         description: 'Description', weight: 'Weight %', target: 'Target', actual: 'Actual', baseline: 'Baseline', period: 'Period',
         from: 'From', to: 'To', reason: 'Reason', comment: 'Comment', organization: 'Organization', unit: 'Unit', position: 'Position',
@@ -71,6 +81,8 @@ const performance = {
         session: { DRAFT: 'Draft', IN_PROGRESS: 'In progress', FINALIZED: 'Finalized' },
         kpiStatus: { ACTIVE: 'Active', INACTIVE: 'Inactive' },
         development: { DRAFT: 'Draft', ACTIVE: 'Active', COMPLETED: 'Completed', CANCELLED: 'Cancelled' },
+        reviewType: { MID_YEAR: 'Mid-year', YEAR_END: 'Year-end' },
+        subjectType: { TARGET: 'Plan target', ITEM: 'Agreement KPI' },
     },
     dashboard: {
         title: 'Performance Dashboard', description: 'Monitor plan coverage, KPI health, agreement progress, reviews, and finalized results for each cycle.',
@@ -97,12 +109,14 @@ const performance = {
         agreementPipeline: 'Agreement pipeline', agreementPipelineHelp: 'Employee agreements grouped by their current workflow status.',
         noFinalizedResults: 'No finalized ratings are available yet.',
     },
-    cycles: { title: 'Performance Cycles', description: 'Periods, review windows and the phase each cycle is in.', create: 'New cycle', current: 'Current', readOnly: 'Read-only', moveTo: 'Move to', empty: 'No cycles yet.', global: 'City-wide' },
+    cycles: { title: 'Performance Cycles', description: 'Periods, review windows and the phase each cycle is in.', create: 'New cycle', current: 'Current', readOnly: 'Read-only', moveTo: 'Move to', empty: 'No cycles yet.', global: 'City-wide', periodLocked: 'Plans are being cascaded into this cycle, so its code, period and planning window stay fixed. Names and review windows can still change.' },
     kpis: {
+        inUse: 'In use', inUseNote: 'Submitted plans or agreements use this KPI, so how it is measured and scored stays fixed. Names, descriptions, unit, baseline, frequency and status can still change; create a new KPI for a different rule.',
         title: 'KPI Library', description: 'How each measure is expressed, which direction is good, and how it aggregates. No KPI sums percentages.',
         create: 'New KPI', empty: 'No KPIs yet.', milestonesHelp: 'One per line: key | label | percent | verify (yes/no)', globalOwner: 'City-wide (no organization)',
     },
     plans: {
+        quarterShort: 'Q', monthShort: 'M',
         title: 'Plans & Cascading', description: 'Organization → unit → child unit → position plans. Published plans change only by new version.',
         create: 'New plan', empty: 'No plans yet.', objectives: 'Objectives & KPIs', addObjective: 'Add objective', addTarget: 'Add KPI target',
         cascadeFromParent: 'Cascade from the parent plan', alreadyCascaded: 'Cascaded', childPlans: 'Child plans', lineage: 'From', versions: 'Versions',
@@ -121,16 +135,19 @@ const performance = {
         systemGenerated: 'System generated — not editable', validation: 'Before this agreement can be sent',
     },
     result: {
+        revision: 'Revision {n}',
         howCalculated: 'How this score was calculated', results: 'Results (KPIs)', competency: 'Competency', final: 'Final score',
         weighted: 'Weighted', formula: 'Formula', calculated: 'Calculated', adjusted: 'Adjusted', calibrated: 'Calibrated', hidden: 'Your result will appear here once it is released.',
         adjustments: 'Adjustments', trace: 'Trace',
     },
-    calibration: { title: 'Calibration', description: 'Panels review calculated results for consistency. Every change keeps its before/after and reason.', create: 'New session', empty: 'No sessions yet.', candidates: 'Calculated results in scope', managerScore: 'Manager score', calibratedScore: 'Calibrated', finalizeNote: 'Finalizing locks every result in this session.' },
+    calibration: { title: 'Calibration', description: 'Panels review calculated results for consistency. Every change keeps its before/after and reason.', create: 'New session', empty: 'No sessions yet.', candidates: 'Calculated results in scope', managerScore: 'Manager score', calibratedScore: 'Calibrated', finalizeNote: 'Finalizing locks every result in this session.', selectAll: 'Select all', clearSelection: 'Clear selection' },
     appeals: { title: 'Performance Appeals', description: 'Appeals assigned to your committee or scope.', empty: 'No appeals.', windowNote: 'You may appeal within {days} days of release.', mine: 'My appeals' },
     reports: {
+        help: { results: 'The current result of each employee, with its components and rating.', distribution: 'How finalized and released results spread across the rating bands.', plan_scores: 'The latest calculated score of each published organization and unit plan.', plan_targets: 'Every KPI target of the published plans, with its weight and period.', agreement_completion: 'Agreements by organization, unit and status.', review_completion: 'Mid-year and year-end reviews by organization, unit and status.', checkins: 'Check-ins held on each live agreement; the fewest first.', missing_actuals: 'KPIs of active agreements that have no measured actual yet.', pending_verification: 'Entered actuals that nobody has verified yet.', amendments: 'Requested changes to targets and agreement KPIs, with their decision.', adjustments: 'Manager, calibration and appeal changes to scores, with the original score.', calibration: 'Scores reviewed in calibration sessions, before and after.', appeals: 'Appeals against released results and their decisions.', improvement_plans: 'Performance improvement plans (confidential).', development_plans: 'Individual development plans and their status.' },
         title: 'Performance Reports', description: 'Scoped to your organizations. Exports are logged.',
-        names: { results: 'Employee results', distribution: 'Rating distribution', agreement_completion: 'Agreement completion', missing_actuals: 'Missing KPI actuals', appeals: 'Appeals', calibration: 'Calibration', improvement_plans: 'Improvement plans' },
+        names: { results: 'Employee results', distribution: 'Rating distribution', agreement_completion: 'Agreement completion', missing_actuals: 'Missing KPI actuals', appeals: 'Appeals', calibration: 'Calibration', improvement_plans: 'Improvement plans', plan_scores: 'Plan scores', plan_targets: 'Plan KPI targets', review_completion: 'Review completion', checkins: 'Check-ins', pending_verification: 'Unverified actuals', amendments: 'Target amendments', adjustments: 'Score adjustments', development_plans: 'Development plans' },
         columns: {
+            type: 'Type', version: 'Version', score: 'Score', as_of: 'As of', plan: 'Plan', objective: 'Objective', target: 'Target', period_start: 'Period start', period_end: 'Period end', review_type: 'Review', checkins: 'Check-ins', last_checkin: 'Last check-in', value: 'Value', source: 'Source', subject: 'Changed', effective_date: 'Effective', requested_at: 'Requested', adjustment_type: 'Type', original_score: 'Original score', adjusted_score: 'Adjusted score', development_objective: 'Development objective', due_date: 'Due',
             employee_number: 'Employee No.', employee: 'Employee', results_score: 'Results', competency_score: 'Competency', final_score: 'Final score',
             rating_en: 'Rating (EN)', rating_am: 'Rating (AM)', status: 'Status', count: 'Count', organization: 'Organization', unit: 'Unit',
             kpi_code: 'KPI code', kpi: 'KPI', weight: 'Weight %', appeal_no: 'Appeal No.', decision: 'Decision', decided_score: 'Decided score',
@@ -139,7 +156,8 @@ const performance = {
         },
         empty: 'No rows.',
     },
-    settings: { title: 'Performance Settings', description: 'Policy lives here, not in code: weights, caps, thresholds and required steps.', scales: 'Rating scales', saved: 'Saved' },
+    settings: { title: 'Performance Settings', description: 'Policy lives here, not in code: weights, caps, thresholds and required steps.', scales: 'Rating scales', saved: 'Saved', scaleTypes: { RESULT: 'Result scale', COMPETENCY: 'Competency scale' }, defaultScale: 'default', bandsHelp: 'A score belongs to the band whose range contains it. Ranges include both ends and must not overlap; leave a limit empty for no limit.', levelsHelp: 'Competencies are rated on these levels. Only the labels can change here.', level: 'Level', bandMin: 'From score', bandMax: 'To score' },
+    lookup: { clear: 'Clear selection', searching: 'Searching…', typeMore: 'Type at least {count} characters.', noResults: 'No matches.' },
     my: {
         noAgreementHelp: 'Ask your manager or HR to prepare and send your performance agreement. Your KPIs and review actions will appear here once it is assigned.',
         agreeStep: 'Agree on your targets', agreeStepHelp: 'Your manager prepares the agreement. Review the KPIs and acknowledge them, or request corrections.',

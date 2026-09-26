@@ -20,8 +20,11 @@ use App\Http\Middleware\RequestCorrelationId;
 use App\Http\Middleware\RequireMfa;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetCafeteriaPortalContext;
+use App\Http\Middleware\SetClientLocale;
 use App\Http\Middleware\SetProviderPortalContext;
+use App\Models\ProviderUser;
 use App\Services\ErrorLoggingService;
+use App\Services\ProviderPortal\ProviderPortalContext;
 use App\Services\Security\SessionActivityService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -59,7 +62,11 @@ return Application::configure(basePath: dirname(__DIR__))
          *    change. It is last so the priority sort places route `auth`
          *    after HandleInertiaRequests, as before.
          */
+        // Server text in the language chosen in the browser (a plain display-preference cookie).
+        $middleware->encryptCookies(except: [SetClientLocale::COOKIE]);
+
         $middleware->web(append: [
+            SetClientLocale::class,
             EnforceSessionIdleTimeout::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
@@ -84,6 +91,19 @@ return Application::configure(basePath: dirname(__DIR__))
             'mfa.setup' => EnsureMfaNotRequired::class,
             'public.site' => EnsurePublicSiteEnabled::class,
         ]);
+
+        /*
+         * `guest` sends a signed-in visitor to the admin dashboard. A provider
+         * opening the portal login goes to their portal home instead: the
+         * admin dashboard would bounce them on to the staff login.
+         */
+        $middleware->redirectUsersTo(static function (Request $request): string {
+            $providerUser = $request->is('provider/portal*', 'cafeteria/portal*') ? auth('provider')->user() : null;
+
+            return $providerUser instanceof ProviderUser
+                ? app(ProviderPortalContext::class)->homeUrl($providerUser)
+                : route('dashboard');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions) {
 

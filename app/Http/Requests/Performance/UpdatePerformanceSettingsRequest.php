@@ -4,10 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Performance;
 
+use App\Services\SystemSettings\SystemSettingsRegistry;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdatePerformanceSettingsRequest extends FormRequest
 {
+    public function attributes(): array
+    {
+        $locale = app()->getLocale() === 'am' ? 'am' : 'en';
+
+        return collect(SystemSettingsRegistry::group('performance'))
+            ->mapWithKeys(fn (array $field, string $key) => [$key => $field['label_'.$locale]])->all();
+    }
+
     public function authorize(): bool
     {
         return $this->user()?->can('performance_settings.update') ?? false;

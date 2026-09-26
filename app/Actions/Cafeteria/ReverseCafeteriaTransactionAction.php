@@ -6,6 +6,7 @@ namespace App\Actions\Cafeteria;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
+use App\Enums\CafeteriaSettlementStatus;
 use App\Enums\CafeteriaTransactionStatus;
 use App\Models\CafeteriaTransaction;
 use App\Models\User;
@@ -32,15 +33,24 @@ readonly class ReverseCafeteriaTransactionAction
             throw ValidationException::withMessages(['transaction' => [__('cafeteria.cannotReverseStatus')]]);
         }
 
+        // A finalized settlement is final: reversing would change what was paid.
+        if ($transaction->cafeteria_settlement_id !== null
+            && $transaction->settlement()->where('status', CafeteriaSettlementStatus::Finalized->value)->exists()) {
+            throw ValidationException::withMessages(['transaction' => [__('cafeteria-policy.validation.settlement_not_draft')]]);
+        }
+
         DB::transaction(function () use ($transaction, $actor): void {
             $transaction->forceFill(['status' => CafeteriaTransactionStatus::Reversed])->save();
 
+            // Clearing active_key frees the entitlement at every cafeteria again.
             $transaction->consumedDays()
                 ->whereNull('reversed_at')
                 ->update([
                     'reversed_at' => now(),
                     'reversed_by' => $actor->id,
                     'reversal_transaction_id' => $transaction->id,
+                    'status' => 'reversed',
+                    'active_key' => null,
                 ]);
 
             // Write a reversal ledger entry to restore the ledger balance
@@ -63,7 +73,7 @@ readonly class ReverseCafeteriaTransactionAction
             AuditEventType::CafeteriaTransactionReversed,
             $actor,
             $transaction,
-            $transaction->provider?->organization_id,
+            $transaction->employee_organization_id ?? $transaction->provider?->organization_id,
             newValues: [
                 'transaction_number' => $transaction->transaction_number,
                 'employee_id' => $transaction->employee_id,

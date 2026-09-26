@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Empty, Pill, Section, Table, employeeName, formatScore, inputCls, pageCls, primaryBtn, smallBtn, tdCls, thCls } from '@/Components/performance/ui';
+import { Empty, Pill, Section, Table, employeeName, formatScore, inputCls, nameOf, pageCls, primaryBtn, smallBtn, tdCls, thCls, type Bilingual } from '@/Components/performance/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, router, useForm } from '@inertiajs/react';
@@ -10,7 +10,7 @@ import { useState } from 'react';
 type Item = { id: string; employee: { name: string | null; name_en: string | null; number: string | null }; manager_score: string | null; proposed_score: string | null; calibrated_score: string | null; reason: string | null; decided_at: string | null };
 
 type Props = {
-    session: { id: string; title: string; status: string; session_date: string | null; committee: string | null };
+    session: { id: string; title: string; status: string; session_date: string | null; committee: Bilingual };
     items: Item[];
     candidates: { id: string; employee: string | null; employee_en: string | null; final_score: string | null; rating_en: string | null; rating_am: string | null }[];
     can: { manage: boolean; decide: boolean; finalize: boolean };
@@ -29,7 +29,7 @@ export default function CalibrationShow({ session, items, candidates, can }: Pro
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={session.title} description={[session.committee, session.session_date].filter(Boolean).join(' · ')} backHref={route('performance.calibration.index')}
+        <AuthenticatedLayout header={<PageHeader title={session.title} description={session.committee ? nameOf(session.committee, locale) : undefined} backHref={route('performance.calibration.index')}
             actions={can.finalize && !finalized && items.length > 0 && <button type="button" className={primaryBtn} onClick={finalize}>{t('performance.actions.finalize')}</button>} />}>
             <Head title={session.title} />
             <div className={pageCls}>
@@ -50,10 +50,17 @@ export default function CalibrationShow({ session, items, candidates, can }: Pro
                 </Section>
 
                 {can.manage && !finalized && (
-                    <Section title={t('performance.calibration.candidates')} actions={selected.length > 0 && (
-                        <button type="button" className={smallBtn} onClick={() => router.post(route('performance.calibration.results.store', session.id), { result_ids: selected }, { preserveScroll: true, onSuccess: () => setSelected([]) })}>
-                            {t('performance.actions.addResults')} ({selected.length})
-                        </button>
+                    <Section title={t('performance.calibration.candidates')} actions={candidates.length > 0 && (
+                        <>
+                            <button type="button" className={smallBtn} onClick={() => setSelected(selected.length === candidates.length ? [] : candidates.map((c) => c.id))}>
+                                {selected.length === candidates.length ? t('performance.calibration.clearSelection') : t('performance.calibration.selectAll')}
+                            </button>
+                            {selected.length > 0 && (
+                                <button type="button" className={smallBtn} onClick={() => router.post(route('performance.calibration.results.store', session.id), { result_ids: selected }, { preserveScroll: true, onSuccess: () => setSelected([]) })}>
+                                    {t('performance.actions.addResults')} ({selected.length})
+                                </button>
+                            )}
+                        </>
                     )}>
                         {candidates.length === 0 ? <Empty>—</Empty> : (
                             <ul className="divide-y divide-gray-100 text-sm dark:divide-slate-800">

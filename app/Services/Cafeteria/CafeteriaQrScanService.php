@@ -8,65 +8,59 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\CafeteriaTransactionStatus;
 use App\Enums\CafeteriaUsageMode;
-use App\Enums\TransactionStatus;
 use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaTransaction;
-use App\Models\CafeteriaTransactionConsumedDay;
 use App\Models\Employee;
-use App\Models\EmployeeCafeteriaExclusion;
 use App\Models\IdCard;
-use App\Models\ServiceTransaction;
-use App\Models\ServiceType;
 use App\Models\User;
+use App\Services\Cafeteria\Policy\CafeteriaEntitlementService;
+use App\Services\Cafeteria\Policy\CafeteriaPolicyResolver;
+use App\Services\Cafeteria\Policy\CafeteriaPricing;
+use App\Services\Cafeteria\Policy\CafeteriaTransactionPricingService;
+use App\Services\Cafeteria\Policy\CafeteriaTransactionService;
+use App\Services\Cafeteria\Policy\EntitlementAlreadyConsumed;
 use App\Services\EmployeeServiceEligibilityService;
 use App\Services\IdCards\CardQrPayloadService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
+/**
+ * One cafeteria scan, whatever the credential: a QR token string, or an
+ * IdCard a server-side NFC verifier already resolved. Only credential
+ * verification differs; eligibility, policy, entitlement, pricing and
+ * persistence are the same services for both (docs/cafeteria-policy-architecture.md).
+ *
+ *  card → employee eligibility → policy of the EMPLOYEE organization for the
+ *  scanned cafeteria on the service date → cafeteria availability and
+ *  employee entitlement → price from the policy → claim the entitlement
+ *  across all branches → transaction with its snapshot.
+ *
+ * Money comes only from the resolved policy; any client amount is ignored.
+ */
 class CafeteriaQrScanService
 {
+    /** Resolution failures that mean "this organization may not eat here". */
+    private const ACCESS_DENIALS = ['no_cafeteria_access', 'location_not_allowed', 'no_service_assignment', 'cafeteria_not_in_network'];
+
     public function __construct(
         private readonly CafeteriaEligibilityService $eligibility,
-        private readonly WorkingDayCalendarService $calendar,
-        private readonly CafeteriaSubsidyRuleResolver $ruleResolver,
-        private readonly CafeteriaLedgerService $ledger,
-        private readonly CafeteriaAvailableSubsidyService $availabilityService,
         private readonly CardQrPayloadService $qrPayloadService,
         private readonly CafeteriaSettingsService $settings,
-        private readonly CafeteriaInstitutionAccessService $institutionAccess,
         private readonly WriteAuditLogAction $auditLog,
         private readonly EmployeeServiceEligibilityService $serviceEligibility,
+        private readonly CafeteriaPolicyResolver $policyResolver,
+        private readonly CafeteriaEntitlementService $entitlements,
+        private readonly CafeteriaTransactionPricingService $pricing,
+        private readonly CafeteriaTransactionService $transactions,
     ) {}
 
     /**
-     * Process a QR scan from a cafeteria terminal using the weekly window model.
+     * Any amount in $options (e.g. a terminal's `meal_amount`) is ignored.
      *
-     * Business rules:
-     *  - Cafeteria is open Mon–Fri only.  Weekend scans are rejected by default.
-     *  - Public holidays are excluded from available subsidy days.
-     *  - Employees may consume subsidy for any remaining working days from
-     *    today through Friday of the current week.
-     *  - Past days (before today) cannot be claimed retroactively.
-     *  - Next week's subsidy cannot be borrowed.
-     *
-     * @param  array{usage_mode?: string, meal_amount?: float|null, scan_nonce?: string|null}  $options
-     * @return array{
-     *   allowed: bool,
-     *   result_code: string,
-     *   transaction: CafeteriaTransaction|null,
-     *   denial_reason: string|null,
-     *   is_extra_scan: bool,
-     *   usage_mode: string,
-     *   available_amount_before: float,
-     *   subsidy_applied: float,
-     *   employee_payable: float,
-     *   available_days_count: int,
-     *   consumed_days_count: int,
-     *   week_start: string|null,
-     *   week_end: string|null,
-     * }
+     * @param  array{usage_mode?: string|null, scan_nonce?: string|null, service_terminal_id?: string|null}  $options
+     * @return array<string, mixed>
      */
     public function process(
         string|IdCard $qrToken,
@@ -80,6 +74,7 @@ class CafeteriaQrScanService
         return DB::transaction(function () use ($qrToken, $provider, $scannedAt, $actor, $options, $request, $dryRun): array {
             $resolved = $qrToken instanceof IdCard ? $qrToken : $this->resolveCard($qrToken);
             if ($resolved !== null) {
+                // Serializes every scanner working on this employee, at any branch.
                 IdCard::whereKey($resolved->id)->lockForUpdate()->first();
                 Employee::whereKey($resolved->employee_id)->lockForUpdate()->first();
             }
@@ -90,345 +85,151 @@ class CafeteriaQrScanService
 
     private function processResolvedInput(
         string|IdCard $qrToken,
-        CafeteriaProvider $provider,
+        CafeteriaProvider $cafeteria,
         Carbon $scannedAt,
-        ?User $actor = null,
-        array $options = [],
-        ?Request $request = null,
-        bool $dryRun = false,
+        ?User $actor,
+        array $options,
+        ?Request $request,
+        bool $dryRun,
     ): array {
         $scanNonce = (string) ($options['scan_nonce'] ?? '');
 
-        if ($scanNonce !== '') {
-            $existing = CafeteriaTransaction::query()
-                ->with(['employee.currentAssignment.organization', 'employee.currentAssignment.position', 'idCard', 'consumedDays'])
-                ->where('scan_nonce', $scanNonce)
-                ->first();
-
-            if ($existing !== null) {
-                return $this->existingScanResult($existing);
-            }
+        if ($scanNonce !== '' && ($existing = $this->existingTransaction('scan_nonce', $scanNonce)) !== null) {
+            return $this->existingScanResult($existing);
         }
 
-        // ── Step 1: Resolve card ─────────────────────────────────────────────
-
-        // An IdCard may only be supplied by a server-side credential verifier.
+        // ── Credential → card → employee ─────────────────────────────────────
         $card = $qrToken instanceof IdCard ? $qrToken : $this->resolveCard($qrToken);
         if ($card === null) {
             return $this->deny('invalid_token_format');
         }
 
-        // ── Step 2: Card validity ────────────────────────────────────────────
-
-        // ── Step 3: Employee eligibility ─────────────────────────────────────
-
         $employee = $card->employee;
-        $serviceEligibility = $this->serviceEligibility->check(
-            $employee,
-            $card,
-            'cafeteria',
-            $actor,
-            $provider->id,
-            $request,
-        );
-
+        $serviceEligibility = $this->serviceEligibility->check($employee, $card, 'cafeteria', $actor, $cafeteria->id, $request);
         if (! $serviceEligibility['eligible']) {
-            return $this->deny(
-                $serviceEligibility['reason_code'],
-                $employee,
-                $card,
-                $serviceEligibility['message'],
-            );
+            return $this->deny($serviceEligibility['reason_code'], $employee, $card, $serviceEligibility['message']);
         }
-        $eligibilityCheck = $this->eligibility->check($employee, $card);
 
+        $eligibilityCheck = $this->eligibility->check($employee, $card);
         if (! $eligibilityCheck['eligible']) {
             return $this->deny($eligibilityCheck['reason'] ?? 'not_eligible');
         }
 
-        // ── Step 3b: Institution access check ────────────────────────────────
-        // Enforce that the employee belongs to the cafeteria provider's assigned institution.
+        $serviceAt = $scannedAt->copy()->setTimezone(config('app.timezone'));
 
-        if (! $this->institutionAccess->canEmployeeUseProvider($employee, $provider)) {
-            $this->auditLog->execute(
-                AuditEventType::CafeteriaScanRejectedWrongInstitution,
-                $actor,
-                $provider,
-                $provider->organization_id,
-                newValues: [
-                    'denial_reason' => 'wrong_institution',
-                    'provider_id' => $provider->id,
-                    'provider_organization_id' => $provider->organization_id,
-                    'employee_id' => $employee->id,
-                    'employee_organization_id' => $this->institutionAccess->employeeOrganizationId($employee),
-                    'assigned_scope_type' => $provider->assigned_scope_type ?? 'self',
-                ],
-                request: $request,
-            );
-
-            return $this->deny('wrong_institution');
-        }
-
-        // ── Step 4: Transaction date in app timezone ─────────────────────────
-
-        $transactionDate = $scannedAt->copy()->setTimezone(config('app.timezone'));
-
-        // ── Step 5: Weekend gate ─────────────────────────────────────────────
-
-        if (! $this->calendar->isCafeteriaOpen($transactionDate, $provider)) {
-            return $this->deny($transactionDate->isWeekend() ? 'cafeteria_closed_weekend' : 'cafeteria_closed');
-        }
-
-        // ── Step 6: Public holiday gate ──────────────────────────────────────
-
-        $isSubsidyDay = $this->calendar->isSubsidyDay($transactionDate, $provider);
-        $serviceEmployeePayable = ! $isSubsidyDay && (
-            ($transactionDate->isWeekend() && $this->settings->get('weekend_scan_mode') === 'employee_payable')
-            || ($this->calendar->isHoliday($transactionDate) && $this->settings->get('holiday_scan_mode') === 'employee_payable')
-        );
-        if (! $isSubsidyDay && ! $serviceEmployeePayable) {
-            return $this->deny('cafeteria_closed_holiday');
-        }
-
-        // ── Step 7: Subsidy rule ─────────────────────────────────────────────
-
-        $rule = $this->ruleResolver->resolve($employee, $transactionDate);
-
-        if ($rule === null) {
-            return $this->deny('no_subsidy_rule');
-        }
-
-        // ── Step 8: Availability calculation ────────────────────────────────
-
-        $availability = $this->availabilityService->calculate($employee, $transactionDate, $rule, $provider);
-        $dailyAmount = $availability['daily_amount'];
-        $availableDays = $this->withoutEmployeeExcludedDays($employee, $availability['available_days']);
-        $availableDayCount = count($availableDays);
-        $remainingSubsidy = min((float) $availability['remaining'], round($dailyAmount * $availableDayCount, 2));
-        $weekStart = $availability['week_start'];
-        $weekEnd = $availability['week_end'];
-
-        // ── Step 8b: Employee leave / exclusion gate ─────────────────────────
-
-        $leaveEmployeePayable = false;
-
-        if ($this->settings->getBool('block_cafeteria_during_employee_leave')) {
-            if ($this->isEmployeeOnLeave($employee, $transactionDate)) {
-                $leaveScanMode = (string) $this->settings->get('leave_scan_mode', 'reject');
-
-                if ($leaveScanMode === 'employee_payable') {
-                    $leaveEmployeePayable = true;
-                } else {
-                    return $this->deny('employee_on_leave');
-                }
+        // ── Policy of the employee organization for this cafeteria ───────────
+        $resolution = $this->policyResolver->resolve($employee, $cafeteria, $serviceAt);
+        if (! $resolution->resolved()) {
+            if (in_array($resolution->reason, self::ACCESS_DENIALS, true)) {
+                $this->auditLog->execute(
+                    AuditEventType::CafeteriaScanRejectedWrongInstitution,
+                    $actor,
+                    $cafeteria,
+                    $resolution->employeeOrganizationId(),
+                    newValues: ['denial_reason' => $resolution->reason, ...$resolution->toAuditArray()],
+                    request: $request,
+                );
             }
+
+            return $this->deny($resolution->reason, $employee, $card, $this->denialMessage($resolution->reason));
         }
 
-        // ── Step 9: Determine requested subsidy ──────────────────────────────
-
-        $usageModeRaw = $options['usage_mode'] ?? $this->settings->defaultUsageMode();
-        $usageMode = CafeteriaUsageMode::tryFrom($usageModeRaw) ?? CafeteriaUsageMode::SingleDay;
-        if ($usageMode === CafeteriaUsageMode::UseRemainingWeek && ! $this->settings->getBool('allow_upfront_weekday_usage')) {
-            return $this->deny('upfront_usage_disabled', $employee, $card, __('cafeteria.upfrontUsageDisabled'));
-        }
-        $scanRequestHash = $this->scanRequestHash($qrToken instanceof IdCard ? 'nfc:'.$card->id : $qrToken, $provider, $scannedAt, $usageMode->value);
-
-        $existingByRequestHash = CafeteriaTransaction::query()
-            ->with(['employee.currentAssignment.organization', 'employee.currentAssignment.position', 'idCard', 'consumedDays'])
-            ->where('scan_request_hash', $scanRequestHash)
-            ->first();
-
-        if ($existingByRequestHash !== null) {
-            return $this->existingScanResult($existingByRequestHash);
+        // ── Cafeteria availability + employee entitlement ────────────────────
+        $usageMode = CafeteriaUsageMode::tryFrom((string) ($options['usage_mode'] ?? $this->settings->defaultUsageMode()))
+            ?? CafeteriaUsageMode::SingleDay;
+        $decision = $this->entitlements->evaluate($employee, $cafeteria, $serviceAt, $resolution, $usageMode);
+        if (! $decision->eligible) {
+            return $this->deny($decision->reason, $employee, $card, $decision->message ?? $this->denialMessage($decision->reason));
         }
 
-        $requestedSubsidy = match ($usageMode) {
-            CafeteriaUsageMode::SingleDay => $dailyAmount,
-            CafeteriaUsageMode::UseRemainingWeek => $remainingSubsidy,
-        };
-
-        // ── Step 10: Apply subsidy up to remaining balance ───────────────────
-
-        $mealAmount = isset($options['meal_amount']) ? (float) $options['meal_amount'] : (($leaveEmployeePayable || $serviceEmployeePayable) ? $dailyAmount : $requestedSubsidy);
-
-        if ($leaveEmployeePayable || $serviceEmployeePayable) {
-            // Employee is on leave and leave_scan_mode = employee_payable:
-            // scan is permitted but no subsidy is applied.
-            $subsidyApplied = 0.0;
-            $employeePayable = $mealAmount > 0 ? $mealAmount : $dailyAmount;
-        } else {
-            $subsidyApplied = min($requestedSubsidy, $remainingSubsidy);
-            $employeePayable = max(0.0, $requestedSubsidy - $subsidyApplied);
+        $scanRequestHash = $this->scanRequestHash($qrToken instanceof IdCard ? 'nfc:'.$card->id : $qrToken, $cafeteria, $scannedAt, $usageMode->value);
+        if (($existing = $this->existingTransaction('scan_request_hash', $scanRequestHash)) !== null) {
+            return $this->existingScanResult($existing);
         }
 
-        // ── Step 11: Determine consumed dates ────────────────────────────────
-
-        $consumedDates = ($leaveEmployeePayable || $serviceEmployeePayable)
-            ? []
-            : $this->resolveConsumedDates($usageMode, $availableDays, $dailyAmount, $subsidyApplied);
-        $consumedDayCount = count($consumedDates);
-
-        // ── Step 12: Zero-subsidy check ──────────────────────────────────────
-        // If nothing was applied AND no employee payable either, reject.
-
-        if ($subsidyApplied <= 0 && $employeePayable <= 0) {
-            return $this->deny('no_available_subsidy');
-        }
-
-        // ── Step 13: Scan sequence for the day ───────────────────────────────
-
-        $dateStr = $transactionDate->toDateString();
-        $scanSequence = CafeteriaTransaction::query()
-            ->where('employee_id', $employee->id)
-            // whereDate keeps the guard engine-portable: a datetime-serialised
-            // value never matches a bare date string on SQLite.
-            ->whereDate('transaction_date', $dateStr)
-            ->where('status', CafeteriaTransactionStatus::Accepted)
-            ->count() + 1;
-
-        $isExtraScan = $scanSequence > 1;
+        // ── Price from the policy; system-wide safety limits ─────────────────
+        $pricing = $this->pricing->price($resolution->policy, count($decision->entitlements), $decision->isEmployeePaid());
 
         $maxTransaction = $this->settings->get('max_transaction_amount_per_scan');
-        if ($maxTransaction !== null && max($mealAmount, $subsidyApplied + $employeePayable) > (float) $maxTransaction) {
+        if ($maxTransaction !== null && $pricing->totalCents() > CafeteriaPricing::toCents((string) $maxTransaction)) {
             return $this->deny('transaction_limit_exceeded', $employee, $card, __('cafeteria.transactionLimitExceeded'));
         }
 
-        if ($employeePayable > 0 && ! $leaveEmployeePayable && ! $serviceEmployeePayable && $this->settings->get('excess_amount_mode') === 'reject') {
-            return $this->deny('excess_amount_rejected', $employee, $card, __('cafeteria.excessAmountRejected'));
-        }
-
         $maxExtra = $this->settings->get('max_extra_amount_per_week');
-        if ($isExtraScan && $maxExtra !== null) {
+        if ($decision->isExtraScan && $decision->isEmployeePaid() && $maxExtra !== null) {
             $usedExtra = CafeteriaTransaction::query()
                 ->where('employee_id', $employee->id)
                 ->where('status', CafeteriaTransactionStatus::Accepted)
                 ->where('is_extra_scan', true)
-                ->whereDate('transaction_date', '>=', $weekStart->toDateString())
-                ->whereDate('transaction_date', '<=', $weekStart->copy()->addDays(6)->toDateString())
-                ->sum('meal_amount');
-            if ((float) $usedExtra + $mealAmount > (float) $maxExtra) {
+                ->whereDate('transaction_date', '>=', $decision->weekStart->toDateString())
+                ->whereDate('transaction_date', '<=', $decision->weekStart->copy()->addDays(6)->toDateString())
+                ->sum('employee_payable_amount');
+
+            if (CafeteriaPricing::toCents((string) $usedExtra) + $pricing->employeeCents > CafeteriaPricing::toCents((string) $maxExtra)) {
                 return $this->deny('weekly_extra_limit_exceeded', $employee, $card, __('cafeteria.weeklyExtraLimitExceeded'));
             }
         }
-
-        // SingleDay mode: one scan per employee per day — reject duplicates.
-        if ($isExtraScan && $usageMode === CafeteriaUsageMode::SingleDay) {
-            return $this->deny('already_scanned_today');
-        }
-
-        // ── Step 14: Persist transaction + ledger ────────────────────────────
 
         if ($dryRun) {
             return ['allowed' => true, 'result_code' => 'eligible', 'transaction' => null, 'duplicate' => false];
         }
 
-        $transaction = DB::transaction(function () use (
-            $employee, $card, $provider,
-            $transactionDate, $scannedAt, $dateStr,
-            $mealAmount, $subsidyApplied, $employeePayable,
-            $usageMode, $weekStart, $weekEnd,
-            $availableDayCount, $consumedDayCount, $consumedDates, $dailyAmount,
-            $isExtraScan, $scanSequence, $actor,
-            $availability, $scanNonce, $scanRequestHash,
-            $isSubsidyDay,
-        ): CafeteriaTransaction {
-            $transactionNumber = $this->generateTransactionNumber();
-            $serviceType = ServiceType::query()
-                ->where('code', 'cafeteria')
-                ->firstOrFail();
-
-            $serviceTransaction = ServiceTransaction::query()->create([
-                'employee_id' => $employee->id,
-                'id_card_id' => $card->id,
-                'service_type_id' => $serviceType->id,
-                'service_provider_id' => $provider->service_provider_id,
-                'status' => TransactionStatus::Authorized,
-                'occurred_at' => $scannedAt,
-                'reference' => $transactionNumber,
-                'amount' => $mealAmount,
-                'metadata' => [
-                    'source' => 'cafeteria_scan',
-                    'usage_mode' => $usageMode->value,
+        // ── Claim the entitlement and record the transaction ─────────────────
+        try {
+            $transaction = $this->transactions->record(
+                $employee,
+                $card,
+                $scannedAt,
+                $serviceAt,
+                $resolution,
+                $decision,
+                $pricing,
+                $usageMode,
+                $actor,
+                [
+                    'scan_nonce' => $scanNonce,
+                    'scan_request_hash' => $scanRequestHash,
+                    'service_terminal_id' => $options['service_terminal_id'] ?? null,
                 ],
-            ]);
+            );
+        } catch (EntitlementAlreadyConsumed) {
+            return $this->deny('entitlement_already_consumed', $employee, $card, $this->denialMessage('entitlement_already_consumed'));
+        } catch (UniqueConstraintViolationException $exception) {
+            // A retry of the same scan raced this one: answer with its result.
+            $existing = ($scanNonce !== '' ? $this->existingTransaction('scan_nonce', $scanNonce) : null)
+                ?? $this->existingTransaction('scan_request_hash', $scanRequestHash);
 
-            $txn = CafeteriaTransaction::query()->create([
-                'service_transaction_id' => $serviceTransaction->id,
-                'transaction_number' => $transactionNumber,
-                'employee_id' => $employee->id,
-                'id_card_id' => $card->id,
-                'cafeteria_provider_id' => $provider->id,
-                'transaction_date' => $dateStr,
-                'transaction_time' => $transactionDate->toTimeString(),
-                'scanned_at' => $scannedAt,
-                'meal_amount' => $mealAmount,
-                'subsidy_amount_applied' => $subsidyApplied,
-                'employee_payable_amount' => $employeePayable,
-                'deduction_amount' => 0.0,
-                'transaction_type' => 'scan',
-                'status' => CafeteriaTransactionStatus::Accepted,
-                'scan_sequence_for_day' => $scanSequence,
-                'is_extra_scan' => $isExtraScan,
-                'is_holiday' => $this->calendar->isHoliday($transactionDate),
-                'is_working_day' => $isSubsidyDay,
-                'usage_mode' => $usageMode->value,
-                'available_amount_before' => $availability['remaining'],
-                'week_start_date' => $weekStart->toDateString(),
-                'week_end_date' => $weekEnd->toDateString(),
-                'available_days_count' => $availableDayCount,
-                'consumed_days_count' => $consumedDayCount,
-                'qr_reference' => Str::uuid()->toString(),
-                'scan_nonce' => $scanNonce !== '' ? $scanNonce : null,
-                'scan_request_hash' => $scanRequestHash,
-                'fulfilled_at' => now(),
-                'created_by' => $actor?->id,
-            ]);
-
-            foreach ($consumedDates as $consumedDate) {
-                CafeteriaTransactionConsumedDay::query()->create([
-                    'cafeteria_transaction_id' => $txn->id,
-                    'employee_id' => $employee->id,
-                    'consumed_date' => $consumedDate,
-                    'subsidy_amount' => $dailyAmount,
-                    'is_working_day' => true,
-                    'source' => 'scan',
-                ]);
+            if ($existing === null) {
+                throw $exception;
             }
 
-            // Create one ledger usage entry per consumed working day
-            if (count($consumedDates) > 0) {
-                $this->ledger->recordWeeklyUsage(
-                    $employee,
-                    $dailyAmount,
-                    $consumedDates,
-                    $transactionDate,
-                    $txn,
-                    $weekStart,
-                    $weekEnd,
-                    $usageMode,
-                    $actor,
-                );
-            }
+            return $this->existingScanResult($existing);
+        }
 
-            return $txn;
-        });
+        $subsidy = (float) $pricing->subsidy();
+        $availableBefore = (float) $transaction->available_amount_before;
 
         return [
             'allowed' => true,
-            'result_code' => $isExtraScan ? 'extra_scan_accepted' : 'scan_accepted',
+            'result_code' => $decision->isExtraScan ? 'extra_scan_accepted' : 'scan_accepted',
             'transaction' => $transaction,
-            'is_extra_scan' => $isExtraScan,
+            'is_extra_scan' => $decision->isExtraScan,
             'denial_reason' => null,
             'usage_mode' => $usageMode->value,
-            'available_amount_before' => $availability['remaining'],
-            'subsidy_applied' => $subsidyApplied,
-            'employee_payable' => $employeePayable,
-            'available_days_count' => $availableDayCount,
-            'consumed_days_count' => $consumedDayCount,
-            'remaining_after' => max(0.0, $availability['remaining'] - $subsidyApplied),
-            'week_start' => $weekStart->toDateString(),
-            'week_end' => $weekEnd->toDateString(),
-            'consumed_dates' => $consumedDates,
+            'available_amount_before' => $availableBefore,
+            'subsidy_applied' => $subsidy,
+            'employee_payable' => (float) $pricing->employeeAmount(),
+            'total_amount' => (float) $pricing->total(),
+            'available_days_count' => count($decision->availableDates),
+            'consumed_days_count' => count($decision->entitlements),
+            'remaining_after' => max(0.0, round($availableBefore - $subsidy, 2)),
+            'week_start' => $decision->weekStart?->toDateString(),
+            'week_end' => $decision->weekEnd?->toDateString(),
+            'consumed_dates' => $decision->consumedDates(),
+            'employee_organization_id' => $resolution->employeeOrganizationId(),
+            'provider_id' => $resolution->provider?->id,
+            'cafeteria_service_policy_id' => $resolution->policy->id,
+            'policy_version' => $resolution->policy->version_no,
         ];
     }
 
@@ -439,16 +240,10 @@ class CafeteriaQrScanService
         // (a/b) Stable public_card_uuid
         $publicUuid = $this->qrPayloadService->resolvePublicUuidFromScanValue($qrToken);
         if ($publicUuid !== null) {
-            $card = IdCard::query()
+            return IdCard::query()
                 ->with('employee.currentAssignment')
                 ->where('public_card_uuid', $publicUuid)
                 ->first();
-
-            if ($card === null) {
-                return null;
-            }
-
-            return $card;
         }
 
         // (c) Token format: "<card_primary_id>|<raw_token>"
@@ -474,64 +269,31 @@ class CafeteriaQrScanService
         return null;
     }
 
-    /**
-     * Given the usage mode and available days, return which specific date
-     * strings should have ledger entries created.
-     *
-     * @param  list<string>  $availableDays
-     * @return list<string>
-     */
-    private function resolveConsumedDates(
-        CafeteriaUsageMode $mode,
-        array $availableDays,
-        float $dailyAmount,
-        float $subsidyApplied,
-    ): array {
-        if ($subsidyApplied <= 0 || empty($availableDays)) {
-            return [];
-        }
-
-        return match ($mode) {
-            CafeteriaUsageMode::SingleDay => array_slice($availableDays, 0, 1),
-            CafeteriaUsageMode::UseRemainingWeek => $availableDays,
-        };
-    }
-
-    /** @param list<string> $availableDays @return list<string> */
-    private function withoutEmployeeExcludedDays(Employee $employee, array $availableDays): array
+    private function denialMessage(?string $reason): ?string
     {
-        if (! $this->settings->getBool('exclude_leave_days_from_subsidy')) {
-            return $availableDays;
-        }
-        if ($availableDays === []) {
-            return [];
+        if ($reason === null) {
+            return null;
         }
 
-        $excludedDates = EmployeeCafeteriaExclusion::query()
-            ->where('employee_id', $employee->id)
-            ->where('status', 'active')
-            ->whereDate('starts_on', '<=', max($availableDays))
-            ->where(function ($query) use ($availableDays): void {
-                $query->whereNull('ends_on')->orWhereDate('ends_on', '>=', min($availableDays));
-            })
-            ->get()
-            ->flatMap(function (EmployeeCafeteriaExclusion $exclusion) use ($availableDays): array {
-                return array_values(array_filter(
-                    $availableDays,
-                    fn (string $date): bool => $exclusion->isActiveOn(Carbon::parse($date)),
-                ));
-            })
-            ->unique()
-            ->all();
+        $key = 'cafeteria-policy.denial.'.$reason;
+        $message = __($key);
 
-        return array_values(array_diff($availableDays, $excludedDates));
+        return $message === $key ? null : $message;
     }
 
-    private function scanRequestHash(string $qrToken, CafeteriaProvider $provider, Carbon $scannedAt, string $usageMode): string
+    private function existingTransaction(string $column, string $value): ?CafeteriaTransaction
+    {
+        return CafeteriaTransaction::query()
+            ->with(['employee.currentAssignment.organization', 'employee.currentAssignment.position', 'idCard', 'consumedDays'])
+            ->where($column, $value)
+            ->first();
+    }
+
+    private function scanRequestHash(string $qrToken, CafeteriaProvider $cafeteria, Carbon $scannedAt, string $usageMode): string
     {
         return hash('sha256', implode('|', [
             hash('sha256', $qrToken),
-            $provider->id,
+            $cafeteria->id,
             $usageMode,
             $scannedAt->copy()->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'),
         ]));
@@ -557,6 +319,7 @@ class CafeteriaQrScanService
             'available_amount_before' => (float) $transaction->available_amount_before,
             'subsidy_applied' => (float) $transaction->subsidy_amount_applied,
             'employee_payable' => (float) $transaction->employee_payable_amount,
+            'total_amount' => (float) ($transaction->total_amount_applied ?? $transaction->meal_amount),
             'available_days_count' => (int) $transaction->available_days_count,
             'consumed_days_count' => (int) $transaction->consumed_days_count,
             'remaining_after' => max(0.0, (float) $transaction->available_amount_before - (float) $transaction->subsidy_amount_applied),
@@ -567,29 +330,15 @@ class CafeteriaQrScanService
         ];
     }
 
-    private function isEmployeeOnLeave(Employee $employee, Carbon $date): bool
-    {
-        return EmployeeCafeteriaExclusion::query()
-            ->where('employee_id', $employee->id)
-            ->where('status', 'active')
-            ->whereDate('starts_on', '<=', $date->toDateString())
-            ->where(function ($query) use ($date): void {
-                $query->whereNull('return_to_work_on')->orWhereDate('return_to_work_on', '>', $date->toDateString());
-            })
-            ->where(function ($query) use ($date): void {
-                $query->whereNull('ends_on')
-                    ->orWhereDate('ends_on', '>=', $date->toDateString());
-            })
-            ->exists();
-    }
-
-    /** @return array{allowed: false, result_code: string, transaction: null, denial_reason: string, is_extra_scan: false, usage_mode: string, available_amount_before: float, subsidy_applied: float, employee_payable: float, available_days_count: int, consumed_days_count: int, remaining_after: float, week_start: null, week_end: null} */
+    /** @return array<string, mixed> */
     private function deny(
-        string $reason,
+        ?string $reason,
         ?Employee $employee = null,
         ?IdCard $card = null,
         ?string $message = null,
     ): array {
+        $reason ??= 'not_eligible';
+
         return [
             'allowed' => false,
             'result_code' => 'rejected',
@@ -610,17 +359,5 @@ class CafeteriaQrScanService
             'week_start' => null,
             'week_end' => null,
         ];
-    }
-
-    private function generateTransactionNumber(): string
-    {
-        $prefix = 'CAF';
-        $date = now()->format('Ymd');
-        $seq = str_pad(
-            (string) (CafeteriaTransaction::query()->whereDate('created_at', today())->count() + 1),
-            5, '0', STR_PAD_LEFT,
-        );
-
-        return "{$prefix}-{$date}-{$seq}";
     }
 }

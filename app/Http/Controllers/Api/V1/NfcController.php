@@ -70,11 +70,14 @@ class NfcController extends Controller
                         // Run the exact QR rules; dry-run stops before persistence.
                         DB::beginTransaction();
                         try {
+                            // The cafeteria comes from the registered terminal, never from the
+                            // request. A terminal's meal_amount stays in the signed context
+                            // but is not money: the employee organization's policy prices it.
                             $scan = app(CafeteriaQrScanService::class)->process($card, $cafeteria, now(), null, [
                                 'usage_mode' => $payload['usage_mode'] ?? 'single_day',
-                                'meal_amount' => $payload['meal_amount'] ?? null,
                                 // Bound by secure challenge; namespace prevents cross-terminal collisions.
                                 'scan_nonce' => hash('sha256', $terminal->id.($payload['reference'] ?? bin2hex(random_bytes(16)))),
+                                'service_terminal_id' => $terminal->id,
                             ], $request, $purpose === 'eligibility');
                             $allowed = $scan['allowed'] && ! ($scan['duplicate'] ?? false);
                             // Denials carry result_code 'rejected'; the specific
@@ -127,7 +130,7 @@ class NfcController extends Controller
     private function reason(string $reason): string
     {
         return match ($reason) {
-            'already_scanned_today', 'no_available_subsidy', 'duplicate_transaction' => 'ALREADY_SERVED',
+            'already_scanned_today', 'no_available_subsidy', 'duplicate_transaction', 'entitlement_already_consumed' => 'ALREADY_SERVED',
             'employee_inactive' => 'EMPLOYEE_INACTIVE',
             'id_card_expired' => 'CARD_EXPIRED', 'id_card_lost' => 'CARD_LOST',
             'id_card_replaced' => 'CARD_REPLACED', 'id_card_revoked' => 'CARD_REVOKED',

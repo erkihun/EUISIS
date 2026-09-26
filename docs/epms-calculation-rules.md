@@ -113,6 +113,13 @@ The health of a target (dashboard "KPIs needing attention") is based on its achi
 
 Bands are inclusive at both edges and stored to 4 decimal places, so 89.9999 is *Very Good* and 90 is *Exceptional*. Band edits apply to new calculations only; finalized results keep the label in their snapshot. Band edits are audited as `setting_updated`.
 
+- **No overlaps:** a score belongs to the first band that contains it, so an edit that would make two bands of one scale overlap is refused. An empty limit means "no limit" on that side.
+- **Competency levels:** the COMPETENCY scale's bands are levels (1..N) without a score range; only their labels can be edited. N is the highest level and bounds every competency rating.
+
+## 6a. KPI definitions in use
+
+Once a plan past DRAFT or any agreement item uses a KPI, the fields that decide how it is measured and scored are fixed: code, measurement type, direction, aggregation, data source, system source, over-achievement, cap, tolerance, zero-score deviation and milestones (their keys, percentages and verification; labels can be reworded). Its names, descriptions, unit, baseline, frequency and active status can still change. A different rule is a new KPI, so everyone measured against the old one keeps being scored the same way. KPIs used only in draft plans stay fully editable.
+
 The seeded bands have no forced distribution or quota.
 
 ## 7. Reproducibility

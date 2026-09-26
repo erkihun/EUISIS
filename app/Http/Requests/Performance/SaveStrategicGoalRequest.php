@@ -32,4 +32,23 @@ class SaveStrategicGoalRequest extends FormRequest
             'effective_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:effective_from'],
         ];
     }
+
+    /** Field names inside validation messages, in the viewer's language. */
+    public function attributes(): array
+    {
+        return [
+            'cycle_id' => __('performance.attributes.cycle'),
+            'organization_id' => __('performance.attributes.organization'),
+            'code' => __('performance.attributes.code'),
+            'name_en' => __('performance.attributes.name_en'),
+            'name_am' => __('performance.attributes.name_am'),
+            'description_en' => __('performance.attributes.description_en'),
+            'description_am' => __('performance.attributes.description_am'),
+            'weight_percent' => __('performance.attributes.weight'),
+            'is_shared' => __('performance.attributes.shared'),
+            'sort_order' => __('performance.attributes.sort_order'),
+            'effective_from' => __('performance.attributes.effective_from'),
+            'effective_to' => __('performance.attributes.effective_to'),
+        ];
+    }
 }

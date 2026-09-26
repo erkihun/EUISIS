@@ -52,7 +52,7 @@ type Props = {
     agreementTotal: number;
     reviews: Record<string, Record<string, number>>;
     distribution: { rating_label_en: string | null; rating_label_am: string | null; total: number }[];
-    can: { recalculate: boolean };
+    can: { recalculate: boolean; reports: boolean };
 };
 
 type MetricProps = {
@@ -203,9 +203,9 @@ export default function PerformanceDashboard({ cycles, cycleId, organizationPlan
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap gap-2 pl-2 lg:pl-0">
-                                    <Link href={route('performance.reports.index')} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+                                    {can.reports && <Link href={route('performance.reports.index')} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
                                         <LayoutDashboard className="h-4 w-4" aria-hidden="true" />{t('performance.dashboard.openReports')}
-                                    </Link>
+                                    </Link>}
                                     <Link href={route('performance.agreements.index', { cycle_id: cycleId })} className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
                                         <Users className="h-4 w-4" aria-hidden="true" />{t('performance.dashboard.openAgreements')}
                                     </Link>

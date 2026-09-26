@@ -49,6 +49,21 @@ class CafeteriaTransaction extends Model
         'notes',
         'created_by',
         'metadata',
+        'employee_assignment_id',
+        'employee_organization_id',
+        'cafeteria_service_network_id',
+        'provider_id',
+        'cafeteria_service_assignment_id',
+        'cafeteria_service_policy_id',
+        'cafeteria_policy_version',
+        'employee_contribution_applied',
+        'provider_price_applied',
+        'total_amount_applied',
+        'currency_code',
+        'pricing_source',
+        'policy_snapshot',
+        'service_terminal_id',
+        'cafeteria_settlement_id',
     ];
 
     protected $casts = [
@@ -70,7 +85,39 @@ class CafeteriaTransaction extends Model
         'consumed_days_count' => 'integer',
         'fulfilled_at' => 'datetime',
         'metadata' => 'array',
+        'cafeteria_policy_version' => 'integer',
+        'employee_contribution_applied' => 'decimal:2',
+        'provider_price_applied' => 'decimal:2',
+        'total_amount_applied' => 'decimal:2',
+        'policy_snapshot' => 'array',
     ];
+
+    /** The billing owner: the employee's organization on the service date. */
+    public function employeeOrganization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'employee_organization_id');
+    }
+
+    /** The payee: the provider that delivered the service. */
+    public function payee(): BelongsTo
+    {
+        return $this->belongsTo(Provider::class, 'provider_id');
+    }
+
+    public function network(): BelongsTo
+    {
+        return $this->belongsTo(CafeteriaServiceNetwork::class, 'cafeteria_service_network_id');
+    }
+
+    public function policy(): BelongsTo
+    {
+        return $this->belongsTo(CafeteriaServicePolicy::class, 'cafeteria_service_policy_id');
+    }
+
+    public function settlement(): BelongsTo
+    {
+        return $this->belongsTo(CafeteriaSettlement::class, 'cafeteria_settlement_id');
+    }
 
     public function employee(): BelongsTo
     {

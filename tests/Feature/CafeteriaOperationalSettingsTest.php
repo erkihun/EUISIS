@@ -2,19 +2,15 @@
 
 declare(strict_types=1);
 
-use App\Enums\CardStatus;
-use App\Enums\EmployeeStatus;
 use App\Models\CafeteriaDayRule;
 use App\Models\CafeteriaProvider;
+use App\Models\CafeteriaServicePolicy;
 use App\Models\CafeteriaSpecialDay;
-use App\Models\CafeteriaSubsidyRule;
 use App\Models\CafeteriaTransaction;
 use App\Models\Employee;
 use App\Models\EmployeeCafeteriaExclusion;
 use App\Models\IdCard;
 use App\Models\PublicHoliday;
-use App\Models\ServiceProvider;
-use App\Models\ServiceType;
 use App\Services\Cafeteria\CafeteriaCalendarService;
 use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Services\Cafeteria\CafeteriaSettingsService;
@@ -22,17 +18,22 @@ use App\Services\Cafeteria\CafeteriaWeekWindowService;
 use App\Services\Cafeteria\WorkingDayCalendarService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Tests\Support\CafeteriaScenario;
 
+/**
+ * An employee whose organization may eat anywhere in the network under a
+ * 40 ETB/day policy (Mon–Fri, advance use allowed, extra scans blocked).
+ *
+ * @return array{0: Employee, 1: IdCard, 2: CafeteriaProvider, 3: CafeteriaScenario}
+ */
 function operationalScanFixture(): array
 {
-    $serviceType = ServiceType::query()->firstOrCreate(['code' => 'cafeteria'], ['name_en' => 'Cafeteria', 'is_active' => true]);
-    $serviceProvider = ServiceProvider::query()->create(['service_type_id' => $serviceType->id, 'name' => 'Test cafeteria', 'code' => 'SP-'.Str::random(8), 'status' => 'active']);
-    $employee = Employee::query()->create(['employee_number' => 'SET-'.Str::random(8), 'first_name' => 'Test', 'last_name' => 'Employee', 'full_name' => 'Test Employee', 'status' => EmployeeStatus::Active]);
-    $card = IdCard::query()->create(['employee_id' => $employee->id, 'card_number' => 'CARD-'.Str::random(8), 'status' => CardStatus::Active, 'expires_at' => now()->addYear(), 'activated_at' => now(), 'is_current' => true, 'qr_status' => 'active', 'public_card_uuid' => Str::uuid()]);
-    $provider = CafeteriaProvider::query()->create(['service_provider_id' => $serviceProvider->id, 'code' => 'CAF-'.Str::random(8), 'name_en' => 'Test cafeteria', 'is_active' => true]);
-    CafeteriaSubsidyRule::query()->create(['code' => 'RULE-'.Str::random(8), 'name_en' => 'Test subsidy', 'subsidy_amount' => 40, 'currency' => 'ETB', 'effective_from' => '2026-01-01', 'applies_to' => 'all_employees', 'is_active' => true]);
+    $scenario = CafeteriaScenario::make();
+    $organization = $scenario->organization('Operational Test Organization');
+    $scenario->enroll($organization, '40.00', $scenario->main, crossLocation: true);
+    [$employee, $card] = $scenario->employee($organization);
 
-    return [$employee, $card, $provider];
+    return [$employee, $card, $scenario->main, $scenario];
 }
 
 test('weekend fallback honors closure day flags and scan mode', function (): void {
@@ -95,9 +96,15 @@ test('scan defaults and upfront restriction are enforced server side', function 
     $settings->set('default_usage_mode', 'use_remaining_week');
     $scan = app(CafeteriaQrScanService::class)->process($card, $provider, Carbon::parse('2026-09-21 12:00'), options: ['scan_nonce' => (string) Str::uuid()]);
     expect($scan['allowed'])->toBeTrue()->and($scan['usage_mode'])->toBe('use_remaining_week')->and($scan['subsidy_applied'])->toBe(200.0);
+
+    // Whether advance use is allowed is the employee organization's policy, not a global switch.
+    CafeteriaServicePolicy::query()->update(['allow_advance_usage' => false]);
+    $denied = app(CafeteriaQrScanService::class)->process($card, $provider, Carbon::parse('2026-09-22 12:01'), options: ['usage_mode' => 'use_remaining_week']);
+    expect($denied['denial_reason'])->toBe('upfront_usage_disabled');
+
+    // The system setting stays the scanner's default mode.
     $settings->set('allow_upfront_weekday_usage', false);
-    $denied = app(CafeteriaQrScanService::class)->process($card, $provider, Carbon::parse('2026-09-21 12:01'), options: ['usage_mode' => 'use_remaining_week']);
-    expect($denied['denial_reason'])->toBe('upfront_usage_disabled')->and($settings->scanOptions()['default_usage_mode'])->toBe('single_day');
+    expect($settings->scanOptions()['default_usage_mode'])->toBe('single_day');
 });
 
 test('transaction limits reject before creating transactions', function (): void {
@@ -143,9 +150,9 @@ test('return to work resumes scans and calendar availability on the same date', 
     expect($scan['allowed'])->toBeTrue();
 });
 
-test('weekly extra limit applies across providers while employee payable leave scans never consume subsidy', function (): void {
-    [$employee, $card, $provider] = operationalScanFixture();
-    [, , $otherProvider] = operationalScanFixture();
+test('weekly extra limit applies across cafeterias while employee payable leave scans never consume subsidy', function (): void {
+    [$employee, $card, $provider, $scenario] = operationalScanFixture();
+    $otherProvider = $scenario->branch;
     EmployeeCafeteriaExclusion::query()->create(['employee_id' => $employee->id, 'exclusion_type' => 'leave', 'starts_on' => '2026-09-01', 'ends_on' => '2026-09-30', 'status' => 'active']);
     app(CafeteriaSettingsService::class)->setMany(['leave_scan_mode' => 'employee_payable', 'max_extra_amount_per_week' => 40]);
     $scanner = app(CafeteriaQrScanService::class);
@@ -156,11 +163,12 @@ test('weekly extra limit applies across providers while employee payable leave s
         ->and($third['denial_reason'])->toBe('weekly_extra_limit_exceeded')->and(CafeteriaTransaction::query()->count())->toBe(2);
 });
 
-test('excess mode rejects an exhausted single day subsidy', function (): void {
+test('an entitlement already used in advance is refused under a blocking extra-scan policy', function (): void {
+    // What happens once the day is used is the organization policy's extra_scan_policy
+    // (it replaces the global excess_amount_mode, now only a default for new policies).
     [, $card, $provider] = operationalScanFixture();
-    app(CafeteriaSettingsService::class)->set('excess_amount_mode', 'reject');
     $scanner = app(CafeteriaQrScanService::class);
     $scanner->process($card, $provider, Carbon::parse('2026-09-21 12:00'), options: ['usage_mode' => 'use_remaining_week']);
     $scan = $scanner->process($card, $provider, Carbon::parse('2026-09-22 12:00'));
-    expect($scan['denial_reason'])->toBe('excess_amount_rejected')->and(CafeteriaTransaction::query()->count())->toBe(1);
+    expect($scan['denial_reason'])->toBe('entitlement_already_consumed')->and(CafeteriaTransaction::query()->count())->toBe(1);
 });

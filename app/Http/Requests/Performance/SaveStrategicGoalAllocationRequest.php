@@ -25,4 +25,16 @@ class SaveStrategicGoalAllocationRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
+
+    /** Field names inside validation messages, in the viewer's language. */
+    public function attributes(): array
+    {
+        return [
+            'organization_unit_id' => __('performance.attributes.unit'),
+            'organization_contribution_percent' => __('performance.attributes.contribution'),
+            'allocation_type' => __('performance.attributes.allocation_type'),
+            'is_lead' => __('performance.attributes.lead'),
+            'notes' => __('performance.attributes.notes'),
+        ];
+    }
 }

@@ -10,10 +10,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\GenerateCafeteriaReportRequest;
 use App\Http\Resources\CafeteriaReportRunResource;
 use App\Models\CafeteriaReportRun;
+use App\Models\Organization;
 use App\Services\Cafeteria\CafeteriaProviderAccessService;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -21,11 +25,13 @@ class CafeteriaReportController extends Controller
 {
     public function __construct(private readonly CafeteriaProviderAccessService $providerAccess) {}
 
-    public function index(Request $request): Response
+    public function index(Request $request, OrganizationScopeService $scope): Response
     {
         $this->authorize('viewAny', CafeteriaReportRun::class);
 
-        $reports = CafeteriaReportRun::query()
+        $request->validate(['type' => ['nullable', 'in:daily,weekly,monthly'], 'organization_id' => ['nullable', 'uuid'], 'page' => ['nullable', 'integer', 'min:1']]);
+        $query = CafeteriaReportRun::query()
+            ->with('organization:id,name_en,name_am')
             ->when($request->string('type')->toString(), fn ($q, $v) => $q->where('report_type', $v))
             ->when($request->string('organization_id')->toString(), fn ($q, $v) => $q->where('organization_id', $v))
             ->when($this->providerAccess->accessibleProviderIds($request->user()) !== [], function ($query) use ($request): void {
@@ -37,9 +43,11 @@ class CafeteriaReportController extends Controller
                     }
                 });
             })
-            ->orderByDesc('generated_at')
-            ->paginate(20)
-            ->withQueryString();
+            ->orderByDesc('generated_at')->orderByDesc('id');
+        // Saved totals cannot be redacted: require access to every provider in the snapshot.
+        $visible = $query->get()->filter(fn ($report) => $request->user()->can('view', $report))->values();
+        $page = (int) $request->input('page', 1);
+        $reports = new LengthAwarePaginator($visible->forPage($page, 20)->values(), $visible->count(), 20, $page, ['path' => $request->url(), 'query' => $request->query()]);
 
         return Inertia::render('Cafeteria/Reports/Index', [
             'reports' => CafeteriaReportRunResource::collection($reports)->resolve(),
@@ -49,6 +57,8 @@ class CafeteriaReportController extends Controller
                 'total' => $reports->total(),
             ],
             'filters' => $request->only(['type', 'organization_id']),
+            'organizations' => $scope->applyOrganizationScope(Organization::query(), $request->user(), 'id')->orderBy('name_en')->get(['id', 'name_en', 'name_am']),
+            'requiresOrganization' => ! $scope->isUnrestricted($request->user()),
             'can' => [
                 'generate' => $request->user()?->can('generate', CafeteriaReportRun::class) ?? false,
             ],
@@ -67,14 +77,19 @@ class CafeteriaReportController extends Controller
     public function generate(GenerateCafeteriaReportRequest $request, GenerateDailyReportAction $daily, GenerateMonthlyReportAction $monthly): RedirectResponse
     {
         $from = Carbon::parse($request->validated('period_start'));
-        $to = Carbon::parse($request->validated('period_end'));
         $type = $request->validated('report_type');
-        $orgId = $request->validated('organization_id');
+        $orgId = $request->validated('organization_id') ?: null;
+        if ($orgId !== null) {
+            abort_unless(app(OrganizationScopeService::class)->canAccessOrganization($request->user(), $orgId), 403);
+        }
+        $expectedEnd = $type === 'daily' ? $from->copy() : $from->copy()->endOfMonth();
+        if ($request->filled('period_end') && $request->validated('period_end') !== $expectedEnd->toDateString()) {
+            throw ValidationException::withMessages(['period_end' => __('cafeteria.reportPeriodMismatch')]);
+        }
 
         $report = match ($type) {
             'daily' => $daily->execute($from, $request->user(), $orgId, $request),
             'monthly' => $monthly->execute($from->year, $from->month, $request->user(), $orgId, $request),
-            default => $monthly->execute($from->year, $from->month, $request->user(), $orgId, $request),
         };
 
         return to_route('cafeteria.reports.show', $report)

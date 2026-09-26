@@ -10,6 +10,7 @@ use App\Enums\Performance\AdjustmentStatus;
 use App\Enums\Performance\CalibrationStatus;
 use App\Enums\Performance\ResultStatus;
 use App\Models\GrievanceCommittee;
+use App\Models\OrganizationUnit;
 use App\Models\PerformanceCalibrationItem;
 use App\Models\PerformanceCalibrationSession;
 use App\Models\PerformanceCycle;
@@ -41,6 +42,17 @@ final class PerformanceCalibrationService
     public function createSession(PerformanceCycle $cycle, array $data, User $actor): PerformanceCalibrationSession
     {
         $this->access->authorize($this->access->inScope($actor, 'performance_calibration.manage', $data['organization_id'] ?? null));
+
+        // An open cycle of this organization, or a city-wide cycle (committees always belong to one organization).
+        $cycleFits = ($cycle->organization_id === null || $cycle->organization_id === $data['organization_id'])
+            && ! PerformanceCycleService::isReadOnly($cycle);
+        if (! $cycleFits) {
+            throw ValidationException::withMessages(['cycle_id' => __('performance.errors.calibration_cycle_invalid')]);
+        }
+        if (! empty($data['organization_unit_id'])
+            && ! OrganizationUnit::query()->whereKey($data['organization_unit_id'])->where('organization_id', $data['organization_id'])->exists()) {
+            throw ValidationException::withMessages(['organization_unit_id' => __('performance.errors.unit_outside_organization')]);
+        }
 
         if (! empty($data['committee_id'])) {
             $committee = GrievanceCommittee::query()->find($data['committee_id']);

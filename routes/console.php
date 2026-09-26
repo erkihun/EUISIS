@@ -14,6 +14,10 @@ Schedule::command('api:prune-logs')->dailyAt('02:30');
 // Challenge nonces are only meaningful until they expire; keep a short tail.
 Schedule::command('nfc:prune-challenges')->dailyAt('02:45');
 
+// Cafeteria policy status bookkeeping (approved → active, ended → expired).
+// Scans follow policy dates, so this only keeps the labels current.
+Schedule::command('cafeteria:sync-policy-statuses')->dailyAt('00:05');
+
 // Daily activity reminders. Idempotent, so a frequent cadence only means
 // reminders land close to the configured time; each is sent at most once.
 Schedule::command('daily-activities:send-reminders')->everyFifteenMinutes()->withoutOverlapping();

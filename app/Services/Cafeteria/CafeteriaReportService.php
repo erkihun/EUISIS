@@ -9,6 +9,7 @@ use App\Enums\CafeteriaTransactionStatus;
 use App\Models\CafeteriaReportRun;
 use App\Models\CafeteriaTransaction;
 use App\Models\User;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -37,7 +38,9 @@ class CafeteriaReportService
             ->where('status', CafeteriaTransactionStatus::Accepted);
 
         if ($user !== null) {
-            $this->providerAccess->filterProviderScopedQuery($user, $query);
+            if (! $this->providerAccess->canAccessAllProviders($user)) {
+                $query->whereIn('cafeteria_provider_id', $this->providerAccess->accessibleProviderIds($user));
+            }
         }
 
         return $query
@@ -73,7 +76,9 @@ class CafeteriaReportService
         }
 
         if ($user !== null) {
-            $this->providerAccess->filterProviderScopedQuery($user, $query);
+            if (! $this->providerAccess->canAccessAllProviders($user)) {
+                $query->whereIn('cafeteria_provider_id', $this->providerAccess->accessibleProviderIds($user));
+            }
         }
 
         $totals = (clone $query)
@@ -166,6 +171,9 @@ class CafeteriaReportService
         User $generatedBy,
         ?string $organizationId = null,
     ): CafeteriaReportRun {
+        $scope = app(OrganizationScopeService::class);
+        abort_unless($scope->isUnrestricted($generatedBy) || ($organizationId !== null && $scope->canAccessOrganization($generatedBy, $organizationId)), 403);
+        abort_unless($this->providerAccess->canAccessAllProviders($generatedBy) || $this->providerAccess->accessibleProviderIds($generatedBy) !== [], 403);
         $summary = $this->getPeriodSummary($from, $to, $organizationId, $generatedBy);
         $providerIds = $this->providerAccess->accessibleProviderIds($generatedBy);
 

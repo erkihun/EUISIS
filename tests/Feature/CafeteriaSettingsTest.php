@@ -84,10 +84,13 @@ test('a failed settings audit rolls back all changed values', function (): void 
 test('all settings have editability metadata and fixed rules show their effective values', function (): void {
     $settings = app(CafeteriaSettingsService::class);
     $settings->setMany(['allow_future_week_borrowing' => true, 'require_active_employee' => false]);
-    expect($settings->editableKeys())->toHaveCount(18);
+    // The global daily subsidy is read-only: financial values come only from
+    // organization service policies (docs/cafeteria-policy-architecture.md).
+    expect($settings->editableKeys())->toHaveCount(17)->not->toContain('default_daily_subsidy_amount');
     $this->actingAs(cafeteriaSettingsUser(false))->get(route('cafeteria.settings.index'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('editableSettingKeys', 18)->has('readOnlySettingReasons', 10)
+            ->has('editableSettingKeys', 17)->has('readOnlySettingReasons', 11)
+            ->where('readOnlySettingReasons.default_daily_subsidy_amount', 'policyOnly')
             ->where('cafeteriaSettings.allow_future_week_borrowing', false)
             ->where('cafeteriaSettings.require_active_employee', true)
             ->where('providerUsers', [])->where('userOptions', []));

@@ -275,7 +275,7 @@ return [
     ['name' => 'roles.view', 'group' => 'roles', 'sort_order' => 20, 'is_system' => true,
         'label_en' => 'View Role', 'label_am' => 'ሚና ይመልከቱ',
         'description_en' => 'Allows viewing the detail and permissions of a specific role.',
-        'description_am' => 'የተወሰነ ሚና ዝርዝር እና ፈቃዶቹን ማየት ያስችላል።'],
+        'description_am' => 'በተቋም የተወሰነ ሚና ዝርዝር እና ፈቃዶቹን ማየት ያስችላል።'],
     ['name' => 'roles.create', 'group' => 'roles', 'sort_order' => 30, 'is_system' => true,
         'label_en' => 'Create Roles', 'label_am' => 'ሚናዎችን ፍጠሩ',
         'description_en' => 'Allows defining new roles in the system.',
@@ -1455,6 +1455,9 @@ return [
 
     // Employee Performance Management (EPMS) — docs/epms-permissions.md.
     ...require database_path('seeders/data/performance-permissions.php'),
+
+    // Cafeteria networks, access, policies and settlements — docs/cafeteria-policy-architecture.md.
+    ...require database_path('seeders/data/cafeteria-policy-permissions.php'),
 
     // API Management
     ['name' => 'api_management.view', 'group' => 'api_management', 'sort_order' => 10, 'is_system' => true,

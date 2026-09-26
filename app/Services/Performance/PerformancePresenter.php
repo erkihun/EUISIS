@@ -102,6 +102,8 @@ final class PerformancePresenter
                 'weight' => $a->weight, 'self_rating' => $a->self_rating,
                 'manager_rating' => $own && ! $resultVisible ? null : $a->manager_rating,
             ])->all(),
+            // Ratings run 1..this (the active competency scale); the forms offer exactly that range.
+            'competency_scale_max' => $this->calculator->competencyScaleMax(),
             'result' => $resultVisible ? $this->result($result, $own) : null,
             'result_hidden' => $result !== null && ! $resultVisible,
             // PIPs are confidential HR records: managers/HR only.

@@ -73,7 +73,8 @@ class PerformanceCalibrationController extends PerformanceController
             ->whereNotIn('id', $session->items()->select('result_id'))->with('employee:id,full_name,name_en,employee_number')->limit(200)->get();
 
         return Inertia::render('Performance/Calibration/Show', [
-            'session' => ['id' => $session->getKey(), 'title' => $session->title, 'status' => $session->status->value, 'session_date' => $session->session_date?->toDateString(), 'committee' => $session->committee?->name_en],
+            'session' => ['id' => $session->getKey(), 'title' => $session->title, 'status' => $session->status->value, 'session_date' => $session->session_date?->toDateString(),
+                'committee' => $session->committee ? ['name_en' => $session->committee->name_en, 'name_am' => $session->committee->name_am] : null],
             'items' => $session->items()->with('employee:id,full_name,name_en,employee_number')->get()->map(fn (PerformanceCalibrationItem $i) => [
                 'id' => $i->getKey(), 'employee' => ['name' => $i->employee?->full_name, 'name_en' => $i->employee?->name_en, 'number' => $i->employee?->employee_number],
                 'manager_score' => $i->manager_score, 'proposed_score' => $i->proposed_score, 'calibrated_score' => $i->calibrated_score, 'reason' => $i->reason, 'decided_at' => $i->decided_at?->toIso8601String(),

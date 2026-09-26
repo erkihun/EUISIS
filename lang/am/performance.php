@@ -2,7 +2,9 @@
 
 // የሰራተኞች የአፈጻጸም አስተዳደር ሥርዓት (EPMS) — የአገልጋይ መልዕክቶች።
 return [
+    'band_attributes' => ['min_score' => 'ዝቅተኛ ውጤት', 'max_score' => 'ከፍተኛ ውጤት', 'label_en' => 'የእንግሊዝኛ መለያ', 'label_am' => 'የአማርኛ መለያ'],
     'errors' => [
+        'band_range_invalid' => 'ከፍተኛው ውጤት ከዝቅተኛው ውጤት በላይ ወይም እኩል መሆን አለበት።',
         'forbidden' => 'ይህን የአፈጻጸም ተግባር ለማከናወን ፈቃድ የለዎትም።',
         'separation_of_duties' => 'ይህን ያዘጋጀ ወይም የጠየቀ ሰው ራሱ ሊያጸድቀው (:step) አይችልም።',
         'invalid_transition' => 'ዑደት ከ:from ወደ :to መሸጋገር አይችልም።',
@@ -69,6 +71,10 @@ return [
         'amend_only_published' => 'የሚሻሻሉት የታተመ ዕቅድ ዒላማዎች ብቻ ናቸው፤ ረቂቆችን በቀጥታ ያስተካክሉ።',
         'amend_only_active' => 'የሚሻሻለው የተስማማ ወይም ንቁ ስምምነት ብቻ ነው፤ ረቂቆችን በቀጥታ ያስተካክሉ።',
         'item_not_in_agreement' => 'KPIው የንቁ ስምምነትዎ አካል አይደለም።',
+        'kpi_in_use' => 'ይህ KPI በቀረቡ ዕቅዶች ወይም ስምምነቶች ጥቅም ላይ ስለዋለ የሚለካበትና የሚመዘንበት መንገድ ሊቀየር አይችልም። ለተለየ ደንብ አዲስ KPI ይፍጠሩ።',
+        'band_overlap' => 'ይህ ክልል ከ":label" ደረጃ ጋር ይደራረባል። የአንድ መለኪያ ደረጃዎች መደራረብ የለባቸውም።',
+        'cycle_period_locked' => 'ዕቅዶች ወደዚህ ዑደት እየተዘረጉ ነው፤ ኮዱ፣ ጊዜውና የዕቅድ ዝግጅት ጊዜው ሊቀየሩ አይችሉም።',
+        'calibration_cycle_invalid' => 'የዚህን ተቋም ክፍት ዑደት ወይም ከተማ-አቀፍ ዑደት ይምረጡ።',
     ],
     'validation' => [
         'goal_has_objectives' => 'ግቡን ከመሰረዝዎ በፊት ዓላማዎቹን ያስወግዱ ወይም ያዛውሩ።',
@@ -113,6 +119,26 @@ return [
         'review_returned' => 'ራስ-ግምገማዎ ለማስተካከያ ተመልሷል።',
         'result_released' => 'የአፈጻጸም ውጤትዎ ተለቋል።',
         'appeal_decided' => 'በአፈጻጸም ይግባኝዎ ላይ ውሳኔ ተሰጥቷል።',
+    ],
+    'attributes' => [
+        'cycle' => 'ዑደት',
+        'organization' => 'ተቋም',
+        'code' => 'ኮድ',
+        'name_en' => 'እንግሊዝኛ ስም',
+        'name_am' => 'አማርኛ ስም',
+        'description_en' => 'እንግሊዝኛ መግለጫ',
+        'description_am' => 'አማርኛ መግለጫ',
+        'weight' => 'ክብደት',
+        'shared' => 'ጋራ ግብ',
+        'sort_order' => 'ማሳያ ቅደም ተከተል',
+        'effective_from' => 'መጀመሪያ ቀን',
+        'effective_to' => 'ማብቂያ ቀን',
+        'unit' => 'ሥራ ክፍል',
+        'contribution' => 'ክፍሉ ድርሻ',
+        'allocation_type' => 'ምደባ ዓይነት',
+        'lead' => 'መሪ ክፍል',
+        'notes' => 'ማስታወሻ',
+        'reason' => 'ምክንያት',
     ],
     'saved' => 'ተቀምጧል።',
     'settings_updated' => 'የአፈጻጸም ቅንብሮች ተሻሽለዋል።',

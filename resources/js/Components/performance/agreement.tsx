@@ -1,5 +1,5 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Bar, Empty, Pill, ScoreTraceView, Table, formatScore, nameOf, smallBtn, tdCls, thCls, titleOf, useEnumLabel, type Bilingual, type ItemTrace, type ScoreTrace } from '@/Components/performance/ui';
+import { Bar, Empty, Pill, ScoreTraceView, Table, fill, formatScore, nameOf, smallBtn, tdCls, thCls, titleOf, useEnumLabel, type Bilingual, type ItemTrace, type ScoreTrace } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
@@ -38,11 +38,19 @@ export type AgreementView = {
     checkins: { id: string; date: string; progress_status: string; employee_summary: string | null; manager_comment: string | null; manager_private_note: string | null; blockers: string | null; support_required: string | null; learning_needs: string | null; next_actions: string | null }[];
     reviews: Partial<Record<'MID_YEAR' | 'YEAR_END', Review>>;
     competencies: { competency_id: string; code: string | null; name_en: string | null; name_am: string | null; weight: string; self_rating: number | null; manager_rating: number | null }[];
+    /** Highest level of the active competency scale; ratings run 1..this. */
+    competency_scale_max: number;
     result: Result | null;
     result_hidden: boolean;
     improvement_plans: { id: string; identified_gap: string; required_improvement: string; support_action: string | null; start_date: string; end_date: string; status: string }[];
     development_plans: { id: string; development_objective: string; training: string | null; coaching: string | null; expected_outcome: string | null; due_date: string | null; status: string }[];
 };
+
+/** 1..max, the levels of the competency scale (5 when the server sends none). */
+export function ratingLevels(max: number | null | undefined): number[] {
+    const top = Number.isInteger(max) && (max as number) > 0 ? (max as number) : 5;
+    return Array.from({ length: top }, (_, index) => index + 1);
+}
 
 export function targetText(item: Pick<AgreementItem, 'target_value' | 'target_numerator' | 'target_denominator'>, unit?: string | null): string {
     const value = item.target_numerator !== null ? `${formatScore(item.target_numerator)} / ${formatScore(item.target_denominator)}` : formatScore(item.target_value);
@@ -196,7 +204,7 @@ export function ResultPanel({ result, hidden, children }: { result: Result | nul
                 <span className="text-3xl font-semibold tabular-nums text-gray-900 dark:text-slate-100">{formatScore(result.final_score)}</span>
                 <span className="text-sm">{(locale === 'am' && result.rating_am) || result.rating_en}</span>
                 <Pill group="result" value={result.status} />
-                {result.revision > 1 && <span className="text-xs text-gray-500">rev. {result.revision}</span>}
+                {result.revision > 1 && <span className="text-xs text-gray-500">{fill(t('performance.result.revision'), { n: result.revision })}</span>}
             </div>
             <dl className="flex flex-wrap gap-4 text-xs text-gray-600 dark:text-slate-400">
                 <div>{t('performance.result.calculated')}: <span className="tabular-nums">{formatScore(result.calculated_score)}</span></div>

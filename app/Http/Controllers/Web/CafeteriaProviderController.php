@@ -15,7 +15,9 @@ use App\Http\Requests\UpdateCafeteriaProviderRequest;
 use App\Http\Resources\CafeteriaProviderResource;
 use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaProviderAssignment;
+use App\Models\CafeteriaServiceNetwork;
 use App\Models\Organization;
+use App\Models\Provider;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -66,8 +68,20 @@ class CafeteriaProviderController extends Controller
     {
         $this->authorize('create', CafeteriaProvider::class);
 
+        $networkId = $request->string('network_id')->toString();
+        $network = $networkId !== '' ? CafeteriaServiceNetwork::query()->find($networkId) : null;
+
         return Inertia::render('Cafeteria/Providers/Create', [
             'organizations' => $this->organizationOptions($request),
+            ...$this->placementOptions(),
+            // "Add Branch" / "Add Service Point" from a network page arrive prefilled.
+            'defaults' => [
+                'provider_id' => $network?->provider_id ?? $request->string('provider_id')->toString(),
+                'cafeteria_service_network_id' => $network?->id,
+                'location_type' => in_array($request->string('location_type')->toString(), ['main', 'branch', 'service_point'], true)
+                    ? $request->string('location_type')->toString()
+                    : ($network !== null ? 'branch' : 'main'),
+            ],
         ]);
     }
 
@@ -149,11 +163,12 @@ class CafeteriaProviderController extends Controller
     {
         $this->authorize('update', $cafeteriaProvider);
 
-        $cafeteriaProvider->load('organization:id,name_en,name_am,code');
+        $cafeteriaProvider->load(['organization:id,name_en,name_am,code', 'provider:id,provider_code,name_en,name_am', 'network:id,code,name_en,name_am']);
 
         return Inertia::render('Cafeteria/Providers/Edit', [
             'provider' => (new CafeteriaProviderResource($cafeteriaProvider))->resolve(),
             'organizations' => $this->organizationOptions($request),
+            ...$this->placementOptions(),
         ]);
     }
 
@@ -184,6 +199,36 @@ class CafeteriaProviderController extends Controller
         $action->execute($provider, $request->user(), $request);
 
         return back()->with('flash', ['message' => __('cafeteria.providerRestored'), 'type' => 'success']);
+    }
+
+    /** @return array<string, list<array<string, mixed>>> providers, networks and possible parent cafeterias */
+    private function placementOptions(): array
+    {
+        return [
+            'payees' => Provider::query()
+                ->whereHas('providerType', fn ($q) => $q->where('code', 'CAFETERIA'))
+                ->orderBy('name_en')
+                ->get(['id', 'provider_code', 'name_en', 'name_am', 'status'])
+                ->toArray(),
+            'networks' => CafeteriaServiceNetwork::query()
+                ->orderBy('name_en')
+                ->get(['id', 'provider_id', 'code', 'name_en', 'name_am', 'status'])
+                ->toArray(),
+            'parents' => CafeteriaProvider::query()
+                ->whereNotNull('cafeteria_service_network_id')
+                ->orderBy('name_en')
+                ->get(['id', 'provider_id', 'cafeteria_service_network_id', 'code', 'name_en', 'name_am', 'location_type'])
+                ->map(fn (CafeteriaProvider $c) => [
+                    'id' => $c->id,
+                    'provider_id' => $c->provider_id,
+                    'cafeteria_service_network_id' => $c->cafeteria_service_network_id,
+                    'code' => $c->code,
+                    'name_en' => $c->name_en,
+                    'name_am' => $c->name_am,
+                    'location_type' => $c->location_type?->value,
+                ])
+                ->all(),
+        ];
     }
 
     /** @return array<int, array<string, string|null>> */

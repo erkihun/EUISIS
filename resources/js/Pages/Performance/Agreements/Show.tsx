@@ -3,7 +3,8 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import Lookup from '@/Components/performance/Lookup';
-import { ActualsList, CheckinList, DevelopmentPlans, EvidenceList, ItemsTable, ResultPanel, ReviewSummary, agreementHeading, type AgreementItem, type AgreementView } from '@/Components/performance/agreement';
+import { assignmentPlace } from '@/Pages/Performance/Agreements/Index';
+import { ActualsList, CheckinList, DevelopmentPlans, EvidenceList, ItemsTable, ResultPanel, ReviewSummary, agreementHeading, ratingLevels, type AgreementItem, type AgreementView } from '@/Components/performance/agreement';
 import { ActualForm, AmendmentDiff, AmendmentForm, DevelopmentPlanForm, EvidenceForm, nullify } from '@/Components/performance/forms';
 import { Field, Pill, Problems, Section, employeeName, formatScore, inputCls, pageCls, primaryBtn, secondaryBtn, smallBtn, useEnumLabel } from '@/Components/performance/ui';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -13,7 +14,7 @@ import { useState, type FormEvent } from 'react';
 
 type Props = {
     agreement: AgreementView;
-    planTargets: { id: string; kpi_id: string; kpi_code: string; kpi_name_en: string; target_value: string | null; objective_id: string | null }[];
+    planTargets: { id: string; kpi_id: string; kpi_code: string; kpi_name_en: string; kpi_name_am: string | null; target_value: string | null; objective_id: string | null }[];
     validation: string[];
     pendingAdjustments: { id: string; original_score: string | null; adjusted_score: string | null; reason: string; requested_by: number }[];
     pendingAmendments: { id: string; subject_id: string; original_values: Record<string, unknown> | null; proposed_values: Record<string, unknown> | null; reason: string; effective_date: string }[];
@@ -39,7 +40,8 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
 
     async function workflow(action: 'submit' | 'approve' | 'return') {
         const needsReason = action === 'return';
-        const { confirmed, reason } = await confirm({ title: t(action === 'submit' ? 'performance.actions.submitToEmployee' : `performance.actions.${action}`), description: employeeName(agreement.employee, locale), confirmLabel: t('performance.actions.save'), cancelLabel: t('performance.actions.cancel'), requireReason: needsReason, reasonLabel: t('performance.fields.reason') });
+        const title = t(action === 'submit' ? 'performance.actions.submitToEmployee' : `performance.actions.${action}`);
+        const { confirmed, reason } = await confirm({ title, description: employeeName(agreement.employee, locale), confirmLabel: title, cancelLabel: t('performance.actions.cancel'), requireReason: needsReason, reasonLabel: t('performance.fields.reason'), variant: needsReason ? 'danger' : undefined });
         if (confirmed) router.post(route('performance.agreements.workflow', [agreement.id, action]), needsReason ? { reason } : {}, { preserveScroll: true });
     }
 
@@ -216,7 +218,7 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
 }
 
 function ItemForm({ agreementId, item, planTargets, onDone }: { agreementId: string; item?: AgreementItem; planTargets: Props['planTargets']; onDone: () => void }) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const form = useForm({
         kpi_id: item?.kpi.id ?? '', position_target_id: '', objective_id: '', expected_output: item?.expected_output ?? '', weight: item?.weight ?? '',
         target_value: item?.target_value ?? '', target_numerator: item?.target_numerator ?? '', target_denominator: item?.target_denominator ?? '', baseline_value: '',
@@ -245,7 +247,7 @@ function ItemForm({ agreementId, item, planTargets, onDone }: { agreementId: str
                 <Field label={t('performance.fields.kpi')} error={errors.kpi_id ?? errors.position_target_id} className="sm:col-span-2">
                     <select className={inputCls} value={form.data.position_target_id} onChange={(e) => pickTarget(e.target.value)} required>
                         <option value="">—</option>
-                        {planTargets.map((p) => <option key={p.id} value={p.id}>{p.kpi_code} — {p.kpi_name_en} ({formatScore(p.target_value)})</option>)}
+                        {planTargets.map((p) => <option key={p.id} value={p.id}>{p.kpi_code} — {(locale === 'am' && p.kpi_name_am) || p.kpi_name_en} ({formatScore(p.target_value)})</option>)}
                     </select>
                 </Field>
             )}
@@ -277,7 +279,7 @@ function CloseForm({ agreementId, onDone }: { agreementId: string; onDone: () =>
     );
 }
 
-type AssignmentHit = { assignment_id: string; employee_id: string; is_current: boolean; name: string | null; name_en: string | null; number: string | null; organization: string | null; unit: string | null; position: string | null; effective_from: string | null };
+type AssignmentHit = { assignment_id: string; employee_id: string; is_current: boolean; name: string | null; name_en: string | null; number: string | null; organization: string | null; unit: string | null; position: string | null; organization_am?: string | null; unit_am?: string | null; position_am?: string | null; effective_from: string | null };
 
 function TransferForm({ agreementId, employeeNumber, onDone }: { agreementId: string; employeeNumber: string; onDone: () => void }) {
     const { t, locale } = useLocale();
@@ -288,8 +290,8 @@ function TransferForm({ agreementId, employeeNumber, onDone }: { agreementId: st
             <form onSubmit={(e) => { e.preventDefault(); form.post(route('performance.agreements.transfer', agreementId)); }} className="grid gap-3 sm:grid-cols-3">
                 <Field label={`${t('performance.fields.position')} (${employeeNumber})`} error={form.errors.employee_assignment_id} className="sm:col-span-2">
                     <Lookup<AssignmentHit> url={route('performance.lookups.employees')} minChars={2} value={form.data.employee_assignment_id} display={picked} keyOf={(a) => a.assignment_id}
-                        render={(a) => `${employeeName(a, locale)} (${a.number ?? ''}) · ${[a.organization, a.unit, a.position].filter(Boolean).join(' › ')}`}
-                        onChange={(id, a) => { form.setData('employee_assignment_id', id); setPicked(a ? `${a.position ?? ''} · ${a.unit ?? ''}` : ''); }} placeholder={employeeNumber} />
+                        render={(a) => `${employeeName(a, locale)} (${a.number ?? ''}) · ${assignmentPlace(a, locale)}`}
+                        onChange={(id, a) => { form.setData('employee_assignment_id', id); setPicked(a ? `${(locale === 'am' && a.position_am) || a.position || ''} · ${(locale === 'am' && a.unit_am) || a.unit || ''}` : ''); }} placeholder={employeeNumber} />
                 </Field>
                 <label className="flex min-h-10 items-end gap-2 pb-2 text-sm"><input type="checkbox" checked={form.data.is_temporary} onChange={(e) => form.setData('is_temporary', e.target.checked)} />{t('performance.fields.temporary')}</label>
                 <div className="flex justify-end gap-2 sm:col-span-3">
@@ -334,6 +336,7 @@ function ReviewForm({ agreement, type }: { agreement: AgreementView; type: 'MID_
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const slug = type.toLowerCase();
+    const levels = ratingLevels(agreement.competency_scale_max);
     const form = useForm<{ manager_comment: string; manager_private_note: string; improvement_actions: string; at_risk_item_ids: string[]; ratings: Record<string, number> }>({
         manager_comment: '', manager_private_note: '', improvement_actions: '', at_risk_item_ids: [],
         ratings: Object.fromEntries(agreement.competencies.filter((c) => c.manager_rating !== null).map((c) => [c.competency_id, c.manager_rating as number])),
@@ -361,15 +364,16 @@ function ReviewForm({ agreement, type }: { agreement: AgreementView; type: 'MID_
                     ))}
                 </div>
             </fieldset>
-            {agreement.competencies.length > 0 && (
+            {/* Competency ratings are part of the year-end result only. */}
+            {type === 'YEAR_END' && agreement.competencies.length > 0 && (
                 <fieldset className="grid gap-2 sm:grid-cols-2">
-                    <legend className="mb-1 text-xs font-medium text-gray-600 dark:text-slate-400">{t('performance.fields.managerRating')} (1–5)</legend>
+                    <legend className="mb-1 text-xs font-medium text-gray-600 dark:text-slate-400">{t('performance.fields.managerRating')} (1–{levels.length})</legend>
                     {agreement.competencies.map((c) => (
                         <label key={c.competency_id} className="flex items-center justify-between gap-2 text-xs">
                             <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en}{c.self_rating !== null && <span className="text-gray-500"> ({t('performance.fields.selfRating')}: {c.self_rating})</span>}</span>
                             <select className="rounded-lg border border-gray-300 px-2 py-1 dark:border-slate-700 dark:bg-slate-950" value={form.data.ratings[c.competency_id] ?? ''} onChange={(e) => form.setData('ratings', { ...form.data.ratings, [c.competency_id]: Number(e.target.value) })}>
                                 <option value="">—</option>
-                                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}
+                                {levels.map((n) => <option key={n} value={n}>{n}</option>)}
                             </select>
                             {errors[`ratings.${c.competency_id}`] && <span className="text-red-700">{errors[`ratings.${c.competency_id}`]}</span>}
                         </label>

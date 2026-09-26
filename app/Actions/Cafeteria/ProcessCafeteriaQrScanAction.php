@@ -38,7 +38,9 @@ readonly class ProcessCafeteriaQrScanAction
         $result = $this->scanService->process($qrToken, $provider, $scannedAt, $actor, $options, $request);
 
         $transaction = $result['transaction'];
-        $orgId = $provider->organization_id;
+        // Scan events belong to the billing owner: the employee organization,
+        // not the organization the cafeteria primarily serves.
+        $orgId = $transaction?->employee_organization_id ?? ($result['employee_organization_id'] ?? null);
 
         if ($result['allowed'] && $transaction !== null) {
             $usageMode = $result['usage_mode'] ?? 'single_day';
@@ -69,6 +71,10 @@ readonly class ProcessCafeteriaQrScanAction
                     'scan_nonce' => $options['scan_nonce'] ?? null,
                     'consumed_dates' => $result['consumed_dates'] ?? [],
                     'duplicate' => $result['duplicate'] ?? false,
+                    'employee_organization_id' => $transaction->employee_organization_id,
+                    'payee_provider_id' => $transaction->provider_id,
+                    'cafeteria_service_policy_id' => $transaction->cafeteria_service_policy_id,
+                    'cafeteria_policy_version' => $transaction->cafeteria_policy_version,
                 ],
                 request: $request,
             );

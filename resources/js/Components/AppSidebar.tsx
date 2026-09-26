@@ -55,6 +55,8 @@ type NavSubItem = {
     labelKey: string;
     icon: (p: SVGProps<SVGSVGElement>) => JSX.Element;
     permission?: string;
+    /** Shown when the user holds any one of these (for pages that accept several). */
+    anyPermission?: string[];
     tab?: string;
     /** Also listed in an admin group, so staff see it there and not twice. */
     listedInAdmin?: boolean;
@@ -245,14 +247,15 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupPerformance',
         icon: TrendingUpIcon,
         items: [
-            { routeName: 'performance.dashboard', labelKey: 'nav.performanceDashboard', icon: LayoutDashboard, permission: 'performance_reports.view' },
+            // Line managers (agreements) use the dashboard for their teams, as the page allows.
+            { routeName: 'performance.dashboard', labelKey: 'nav.performanceDashboard', icon: LayoutDashboard, anyPermission: ['performance_reports.view', 'employee_performance_agreements.manage'] },
             { routeName: 'performance.cycles.index', labelKey: 'nav.performanceCycles', icon: CalendarIcon, permission: 'performance_cycles.view' },
             { routeName: 'performance.strategic-goals.index', labelKey: 'nav.strategicGoals', icon: TrendingUpIcon, permission: 'strategic_goals.view' },
             { routeName: 'performance.plans.index', labelKey: 'nav.performancePlans', icon: GitForkIcon, permission: 'performance_plans.view' },
             { routeName: 'performance.kpis.index', labelKey: 'nav.kpiLibrary', icon: HashIcon, permission: 'kpis.view' },
             { routeName: 'performance.agreements.index', labelKey: 'nav.performanceAgreements', icon: HandshakeIcon, permission: 'employee_performance_agreements.manage' },
             { routeName: 'performance.calibration.index', labelKey: 'nav.performanceCalibration', icon: BadgeCheckIcon, permission: 'performance_calibration.view' },
-            { routeName: 'performance.appeals.index', labelKey: 'nav.performanceAppeals', icon: MessageSquareIcon, permission: 'performance_appeals.review' },
+            { routeName: 'performance.appeals.index', labelKey: 'nav.performanceAppeals', icon: MessageSquareIcon, anyPermission: ['performance_appeals.review', 'performance_appeals.decide'] },
             { routeName: 'performance.reports.index', labelKey: 'nav.performanceReports', icon: ReceiptTextIcon, permission: 'performance_reports.view' },
             { routeName: 'performance.settings.index', labelKey: 'nav.performanceSettings', icon: SettingsIcon, permission: 'performance_settings.view' },
         ],
@@ -333,13 +336,24 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupCafeteria',
         icon: QrCodeIcon,
         items: [
+            // Cafeteria Management (docs/cafeteria-policy-architecture.md): who operates,
+            // where, who may eat where, on which terms, and what is owed.
             { routeName: 'cafeteria.dashboard', labelKey: 'nav.cafeteriaDashboard', icon: LayoutDashboard, permission: 'cafeteria_transactions.view' },
             { routeName: 'cafeteria.scan', labelKey: 'nav.cafeteriaScan', icon: QrCodeIcon,      permission: 'cafeteria_transactions.scan' },
+            { routeName: 'cafeteria.payees.index', labelKey: 'cafeteriaPolicy.navProviders', icon: HandshakeIcon, permission: 'cafeteria_providers.viewAny' },
+            { routeName: 'cafeteria.networks.index', labelKey: 'cafeteriaPolicy.navNetworks', icon: NetworkIcon, permission: 'cafeteria_networks.view' },
+            { routeName: 'cafeteria.providers.index', labelKey: 'cafeteriaPolicy.navCafeterias', icon: Building2, permission: 'cafeteria_providers.viewAny' },
+            { routeName: 'cafeteria.access.index', labelKey: 'cafeteriaPolicy.navAccess', icon: KeyIcon, permission: 'cafeteria_access.view' },
+            { routeName: 'cafeteria.assignments.index', labelKey: 'cafeteriaPolicy.navAssignments', icon: ClipboardListIcon, permission: 'cafeteria_assignments.view' },
+            { routeName: 'cafeteria.policies.index', labelKey: 'cafeteriaPolicy.navPolicies', icon: ClipboardCheckIcon, permission: 'cafeteria_policies.view' },
+            { routeName: 'cafeteria.day-rules.index', labelKey: 'cafeteriaPolicy.navWorkingDays', icon: CalendarIcon, permission: 'cafeteria_day_rules.view' },
+            { routeName: 'cafeteria.holidays.index', labelKey: 'cafeteriaPolicy.navHolidays', icon: CalendarIcon, permission: 'public_holidays.viewAny' },
             { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', icon: ReceiptTextIcon, permission: 'cafeteria_transactions.view' },
             { routeName: 'cafeteria.ledger.index', labelKey: 'nav.cafeteriaLedger', icon: ScrollText,      permission: 'cafeteria_ledger.view' },
+            { routeName: 'cafeteria.settlements.index', labelKey: 'cafeteriaPolicy.navSettlements', icon: BadgeCheckIcon, permission: 'cafeteria_settlements.view' },
             { routeName: 'cafeteria.reports.index', labelKey: 'nav.cafeteriaReports', icon: ActivityIcon,    permission: 'cafeteria_reports.view' },
-            { routeName: 'cafeteria.providers.index', labelKey: 'nav.cafeteriaProviders', icon: HandshakeIcon,   permission: 'cafeteria_providers.viewAny' },
-            { routeName: 'cafeteria.settings.index', labelKey: 'nav.cafeteriaSettings', icon: SettingsIcon,    permission: 'cafeteria_settings.view' },
+            { routeName: 'cafeteria.analytics.index', labelKey: 'cafeteriaPolicy.navAnalytics', icon: TrendingUpIcon, permission: 'cafeteria_reports.view' },
+            { routeName: 'cafeteria.settings.index', labelKey: 'cafeteriaPolicy.navSystemDefaults', icon: SettingsIcon,    permission: 'cafeteria_settings.view' },
         ],
     },
     {
@@ -462,11 +476,11 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         : undefined;
 
     // Keep the existing permission contract, including independently permitted child links.
+    const permitted = (item: NavSubItem) => (!item.permission || can(item.permission))
+        && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
     const allowedItems = (items: NavItem[]): NavSubItem[] => items
-        .filter((item) => !item.permission || can(item.permission))
-        .flatMap((item) => item.children
-            ? item.children.filter((child) => !child.permission || can(child.permission))
-            : [item]);
+        .filter(permitted)
+        .flatMap((item) => item.children ? item.children.filter(permitted) : [item]);
     const visibleGroups = navGroups
         // "My Work" is self-service: an account with no employee record has
         // no activity of its own to register, whatever its permissions.

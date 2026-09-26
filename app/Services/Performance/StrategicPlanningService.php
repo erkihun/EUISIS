@@ -55,6 +55,12 @@ final class StrategicPlanningService
     public function updateGoal(StrategicGoal $goal, array $data, User $actor): StrategicGoal
     {
         $this->assertDraft($goal, $actor, 'strategic_goals.update');
+        // An emptied date means "the whole cycle", exactly as when the goal was created.
+        foreach (['effective_from' => $goal->cycle->start_date, 'effective_to' => $goal->cycle->end_date] as $field => $cycleDate) {
+            if (array_key_exists($field, $data) && blank($data[$field])) {
+                $data[$field] = $cycleDate?->toDateString();
+            }
+        }
         $this->assertDatesInsideCycle($goal->cycle, $data['effective_from'] ?? $goal->effective_from?->toDateString(), $data['effective_to'] ?? $goal->effective_to?->toDateString());
         if (isset($data['code']) && StrategicGoal::query()->where('cycle_id', $goal->cycle_id)->where('organization_id', $goal->organization_id)->where('code', $data['code'])->where('id', '!=', $goal->getKey())->exists()) {
             throw ValidationException::withMessages(['code' => __('performance.errors.code_taken')]);
@@ -203,10 +209,40 @@ final class StrategicPlanningService
                 'status' => $to,
                 'approved_by' => $to === StrategicGoalStatus::Approved ? $actor->getKey() : $goal->approved_by,
                 'published_at' => $to === StrategicGoalStatus::Published ? now() : $goal->published_at,
+                // A resubmitted goal no longer carries the reviewer's earlier objection.
+                'return_reason' => $to === StrategicGoalStatus::UnderReview ? null : $goal->return_reason,
             ])->save();
             $this->audit->record(AuditEventType::StrategicGoalStatusChanged, $actor, $goal, ['status' => $to->value], ['status' => $old]);
 
             return $goal;
+        });
+    }
+
+    /**
+     * Send a goal under review, or approved but not yet published, back to
+     * its drafter with a reason. Only drafts can be corrected, so without
+     * this a goal with a mistake would be stuck. Published goals stay
+     * immutable (change them through a plan version).
+     */
+    public function returnToDraft(StrategicGoal $goal, string $reason, User $actor): StrategicGoal
+    {
+        $this->access->authorize($this->access->inScope($actor, 'strategic_goals.approve', $goal->organization_id));
+        if (PerformanceCycleService::isReadOnly($goal->cycle)) {
+            throw ValidationException::withMessages(['goal' => __('performance.validation.goal_not_editable')]);
+        }
+
+        return DB::transaction(function () use ($goal, $reason, $actor): StrategicGoal {
+            /** @var StrategicGoal $locked */
+            $locked = StrategicGoal::query()->whereKey($goal->getKey())->lockForUpdate()->firstOrFail();
+            if (! in_array($locked->status, [StrategicGoalStatus::UnderReview, StrategicGoalStatus::Approved], true)) {
+                throw ValidationException::withMessages(['status' => __('performance.validation.goal_transition_invalid')]);
+            }
+
+            $old = $locked->status->value;
+            $locked->forceFill(['status' => StrategicGoalStatus::Draft, 'approved_by' => null, 'return_reason' => $reason])->save();
+            $this->audit->record(AuditEventType::StrategicGoalStatusChanged, $actor, $locked, ['status' => StrategicGoalStatus::Draft->value, 'reason' => $reason], ['status' => $old]);
+
+            return $locked;
         });
     }
 

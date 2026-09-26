@@ -8,6 +8,7 @@ use App\Models\CafeteriaProvider;
 use App\Models\Provider;
 use App\Models\ProviderUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class ProviderPortalContext
 {
@@ -28,19 +29,63 @@ class ProviderPortalContext
             : null;
     }
 
+    /**
+     * Where a signed-in provider user lands: the cafeteria dashboard, or the
+     * transport dashboard when the provider runs transport but no cafeteria
+     * (the cafeteria dashboard would answer them with a 403).
+     */
+    public function homeUrl(ProviderUser $providerUser): string
+    {
+        if (! $providerUser->hasService('cafeteria') && $providerUser->hasService('transport')) {
+            return route('provider.portal.transport.dashboard');
+        }
+
+        return route('provider.portal.dashboard');
+    }
+
+    private const SELECTED_CAFETERIA = 'provider_portal.cafeteria_id';
+
+    /**
+     * The cafeteria location the portal is working at. A provider may run
+     * several; the user may pick any of their OWN provider's active ones
+     * (?provider_id=… from the switcher, remembered in the session). A
+     * location of another provider can never be selected.
+     */
     public function selectedProvider(Request $request): ?CafeteriaProvider
+    {
+        $cafeterias = $this->cafeterias($request);
+        if ($cafeterias->isEmpty()) {
+            return null;
+        }
+
+        $requested = $request->query('provider_id');
+        if (is_string($requested) && $cafeterias->contains('id', $requested) && $request->hasSession()) {
+            $request->session()->put(self::SELECTED_CAFETERIA, $requested);
+        }
+
+        $remembered = $request->hasSession() ? $request->session()->get(self::SELECTED_CAFETERIA) : null;
+
+        return $cafeterias->firstWhere('id', $remembered) ?? $cafeterias->first();
+    }
+
+    /**
+     * Active cafeteria locations of the signed-in user's provider, main first.
+     *
+     * @return Collection<int, CafeteriaProvider>
+     */
+    public function cafeterias(Request $request): Collection
     {
         $provider = $this->provider($request);
 
         if ($provider === null || ! $provider->hasService('cafeteria')) {
-            return null;
+            return collect();
         }
 
-        $cafeteriaProvider = $provider->cafeteriaProvider;
-
-        return $cafeteriaProvider instanceof CafeteriaProvider && $cafeteriaProvider->is_active
-            ? $cafeteriaProvider
-            : null;
+        return $provider->cafeterias()
+            ->where('is_active', true)
+            ->orderByRaw("case when location_type = 'main' then 0 else 1 end")
+            ->orderBy('name_en')
+            ->get();
     }
 
     /** @return array<string, mixed> */
@@ -50,7 +95,7 @@ class ProviderPortalContext
         $cafeteriaProvider = $this->selectedProvider($request);
 
         return [
-            'providers' => $cafeteriaProvider ? [$this->formatCafeteriaProvider($cafeteriaProvider)] : [],
+            'providers' => $this->cafeterias($request)->map(fn (CafeteriaProvider $c): array => $this->formatCafeteriaProvider($c))->values()->all(),
             'selected_provider_id' => $cafeteriaProvider?->id,
             'providerPortal' => $provider ? $this->formatProviderPortal($request, $provider) : null,
         ];

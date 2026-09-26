@@ -97,6 +97,7 @@ enum AuditEventType: string
      */
     case PerformanceCycleCreated = 'performance_cycle_created';
     case PerformanceCycleStatusChanged = 'performance_cycle_status_changed';
+    case PerformanceCycleUpdated = 'performance_cycle_updated';
     case StrategicGoalCreated = 'strategic_goal_created';
     case StrategicGoalChanged = 'strategic_goal_changed';
     case StrategicGoalAllocationChanged = 'strategic_goal_allocation_changed';
@@ -252,6 +253,41 @@ enum AuditEventType: string
     case EmployeeCafeteriaExclusionEnded = 'employee_cafeteria_exclusion_ended';
     case EmployeeCafeteriaExclusionArchived = 'employee_cafeteria_exclusion_archived';
     case EmployeeCafeteriaExclusionRestored = 'employee_cafeteria_exclusion_restored';
+
+    // ── Cafeteria networks, access, assignments, policies, settlements ─────
+    case CafeteriaNetworkCreated = 'cafeteria_network.created';
+    case CafeteriaNetworkUpdated = 'cafeteria_network.updated';
+    case CafeteriaLocationAdded = 'cafeteria_network.location_added';
+    case CafeteriaLocationUpdated = 'cafeteria_network.location_updated';
+    case CafeteriaAccessGranted = 'cafeteria_access.granted';
+    case CafeteriaAccessUpdated = 'cafeteria_access.updated';
+    case CafeteriaAccessApproved = 'cafeteria_access.approved';
+    case CafeteriaAccessEnded = 'cafeteria_access.ended';
+    case CafeteriaAssignmentCreated = 'cafeteria_assignment.created';
+    case CafeteriaAssignmentUpdated = 'cafeteria_assignment.updated';
+    case CafeteriaAssignmentApproved = 'cafeteria_assignment.approved';
+    case CafeteriaAssignmentEnded = 'cafeteria_assignment.ended';
+    case CafeteriaPolicyCreated = 'cafeteria_policy.created';
+    case CafeteriaPolicyUpdated = 'cafeteria_policy.updated';
+    case CafeteriaPolicyRevised = 'cafeteria_policy.revised';
+    case CafeteriaPolicySubmitted = 'cafeteria_policy.submitted';
+    case CafeteriaPolicyReturned = 'cafeteria_policy.returned';
+    case CafeteriaPolicyApproved = 'cafeteria_policy.approved';
+    case CafeteriaPolicyActivated = 'cafeteria_policy.activated';
+    case CafeteriaPolicySuperseded = 'cafeteria_policy.superseded';
+    case CafeteriaPolicyEnded = 'cafeteria_policy.ended';
+    case CafeteriaPolicyCancelled = 'cafeteria_policy.cancelled';
+    case CafeteriaSettlementCreated = 'cafeteria_settlement.created';
+    case CafeteriaSettlementFinalized = 'cafeteria_settlement.finalized';
+    case CafeteriaSettlementCancelled = 'cafeteria_settlement.cancelled';
+
+    // ── Provider portal accounts (/provider-users) ─────────────────────────
+    case ProviderUserCreated = 'provider_user.created';
+    case ProviderUserUpdated = 'provider_user.updated';
+    case ProviderUserSuspended = 'provider_user.suspended';
+    case ProviderUserActivated = 'provider_user.activated';
+    case ProviderUserDeleted = 'provider_user.deleted';
+    case ProviderUserRestored = 'provider_user.restored';
 
     // ── Organization Structure Import ──────────────────────────────────────
     case OrganizationStructureImportPreviewed = 'organization_structure_import_previewed';

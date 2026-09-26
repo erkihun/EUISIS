@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 
         Route::get('/cycles', [PerformanceCycleController::class, 'index'])->name('cycles.index');
         Route::post('/cycles', [PerformanceCycleController::class, 'store'])->name('cycles.store');
+        Route::put('/cycles/{cycle}', [PerformanceCycleController::class, 'update'])->whereUuid('cycle')->name('cycles.update');
         Route::post('/cycles/{cycle}/transition', [PerformanceCycleController::class, 'transition'])->whereUuid('cycle')->name('cycles.transition');
 
         Route::get('/strategic-goals', [StrategicGoalController::class, 'index'])->name('strategic-goals.index');
@@ -42,6 +43,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::put('/strategic-goal-allocations/{allocation}', [StrategicGoalController::class, 'updateAllocation'])->whereUuid('allocation')->name('strategic-goal-allocations.update');
         Route::delete('/strategic-goal-allocations/{allocation}', [StrategicGoalController::class, 'destroyAllocation'])->whereUuid('allocation')->name('strategic-goal-allocations.destroy');
         Route::post('/strategic-goals/{strategicGoal}/transition', [StrategicGoalController::class, 'transition'])->whereUuid('strategicGoal')->name('strategic-goals.transition');
+        Route::post('/strategic-goals/{strategicGoal}/return', [StrategicGoalController::class, 'returnToDraft'])->whereUuid('strategicGoal')->name('strategic-goals.return');
 
         Route::get('/kpis', [KpiController::class, 'index'])->name('kpis.index');
         Route::post('/kpis', [KpiController::class, 'store'])->name('kpis.store');

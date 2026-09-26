@@ -16,7 +16,14 @@ type Row = {
 type AssignmentHit = {
     assignment_id: string; employee_id: string; is_current: boolean; name: string | null; name_en: string | null; number: string | null;
     organization: string | null; unit: string | null; position: string | null; effective_from: string | null; effective_to: string | null;
+    organization_am?: string | null; unit_am?: string | null; position_am?: string | null;
 };
+
+/** Organization › unit › position of an assignment hit, in the viewer's language. */
+export function assignmentPlace(a: { organization: string | null; unit: string | null; position: string | null; organization_am?: string | null; unit_am?: string | null; position_am?: string | null }, locale: string): string {
+    const pick = (en: string | null, am?: string | null) => (locale === 'am' && am) || en;
+    return [pick(a.organization, a.organization_am), pick(a.unit, a.unit_am), pick(a.position, a.position_am)].filter(Boolean).join(' › ');
+}
 
 type Props = {
     agreements: Paginator<Row>;
@@ -54,8 +61,8 @@ export default function AgreementsIndex({ agreements, filters, statuses, cycles,
                             <Field label={t('performance.agreements.findEmployee')} htmlFor="a-emp" error={form.errors.employee_assignment_id} className="sm:col-span-2">
                                 <Lookup<AssignmentHit> id="a-emp" url={route('performance.lookups.employees')} minChars={2} value={form.data.employee_assignment_id} display={picked}
                                     keyOf={(a) => a.assignment_id}
-                                    render={(a) => `${employeeName(a, locale)} (${a.number ?? ''}) · ${[a.organization, a.unit, a.position].filter(Boolean).join(' › ')}${a.is_current ? '' : ' · —'}`}
-                                    onChange={(id, a) => { form.setData('employee_assignment_id', id); setPicked(a ? `${employeeName(a, locale)} (${a.number ?? ''}) · ${a.position ?? ''}` : ''); }}
+                                    render={(a) => `${employeeName(a, locale)} (${a.number ?? ''}) · ${assignmentPlace(a, locale)}${a.is_current ? '' : ' · —'}`}
+                                    onChange={(id, a) => { form.setData('employee_assignment_id', id); setPicked(a ? `${employeeName(a, locale)} (${a.number ?? ''}) · ${(locale === 'am' && a.position_am) || a.position || ''}` : ''); }}
                                     placeholder={t('performance.agreements.findEmployee')} />
                             </Field>
                             <Field label={t('performance.fields.cycle')} htmlFor="a-cycle" error={form.errors.cycle_id}>

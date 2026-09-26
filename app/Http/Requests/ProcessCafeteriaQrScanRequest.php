@@ -25,12 +25,13 @@ class ProcessCafeteriaQrScanRequest extends FormRequest
             'nfc_credential' => ['required_without:qr_token', 'nullable', 'string', 'regex:/\Anfc_[a-f0-9]{64}\z/'],
             'provider_id' => ['required', 'uuid', 'exists:cafeteria_providers,id'],
             'scan_nonce' => ['required', 'uuid'],
-            'scanned_at' => ['nullable', 'date'],
+            // The server sets the time and every amount (docs/cafeteria-policy-architecture.md).
+            'scanned_at' => ['prohibited'],
             'usage_mode' => ['required', Rule::in([
                 CafeteriaUsageMode::SingleDay->value,
                 CafeteriaUsageMode::UseRemainingWeek->value,
             ])],
-            'meal_amount' => ['nullable', 'numeric', 'min:0'],
+            'meal_amount' => ['prohibited'],
             'source' => ['nullable', 'in:desktop,mobile'],
             'requested_subsidy_amount' => ['prohibited'],
         ];

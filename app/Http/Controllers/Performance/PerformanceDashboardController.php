@@ -91,7 +91,7 @@ class PerformanceDashboardController extends PerformanceController
             'distribution' => PerformanceResult::query()->whereIn('agreement_id', $agreementIds)->where('is_current', true)
                 ->whereIn('status', [ResultStatus::Finalized->value, ResultStatus::PendingRelease->value, ResultStatus::Released->value])
                 ->selectRaw('rating_label_en, rating_label_am, count(*) as total')->groupBy('rating_label_en', 'rating_label_am')->get()->toArray(),
-            'can' => ['recalculate' => $user->can('performance_reports.view')],
+            'can' => ['recalculate' => $user->can('performance_reports.view'), 'reports' => $user->can('performance_reports.view')],
         ]);
     }
 }

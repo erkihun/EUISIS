@@ -1,6 +1,14 @@
 const performance = {
     title: 'የአፈጻጸም አስተዳደር',
     strategicGoals: {
+        workflow: 'ስትራቴጂያዊ ዕቅዱን ያዘጋጁ',
+        registerStep: 'ድምር ክብደታቸው 100% የሆኑ ግቦችን ይመዝግቡ።',
+        allocateStep: 'እያንዳንዱን ግብ ለኃላፊ ክፍሎች ይመድቡ፣ የዕቅድ ዓላማዎችንም ያያይዙ።',
+        reviewStep: 'የዝግጁነት ችግሮችን ያስተካክሉ፣ ለግምገማ ያቅርቡ፣ ያጽድቁ እና ያትሙ።',
+        selectOrganization: 'ተቋም ይምረጡ', selectCycle: 'የአፈጻጸም ዑደት ይምረጡ', selectUnit: 'ክፍል ይምረጡ',
+        noAvailableUnits: 'ለዚህ ተቋም ያልተመደቡ ክፍሎች የሉም። ያለውን ምደባ ያስተካክሉ ወይም ለተቋሙ ክፍል ይጨምሩ።',
+        editGoal: 'ግቡን አሻሽል', editAllocation: 'ምደባውን አሻሽል', remainingHint: 'ገና ያልተመዘገበ፦ ከ100% {value}%', allocationRemainingHint: 'ገና ያልተመደበ፦ {value}%', codeHelp: 'ፊደላት፣ ቁጥሮች፣ ሰረዞች እና የታች ሰረዞች።', periodHelp: 'ሙሉውን ዑደት ለመጠቀም ቀኖቹን ባዶ ይተዉ፦', noObjectives: 'በሥራ ላይ ካለ ዕቅድ ውስጥ ከዚህ ግብ ጋር የተያያዘ ዓላማ ገና የለም። በተቋሙ ዕቅድ ላይ ዓላማዎችን ከዚህ ግብ ጋር ያያይዙ።', byStatus: 'ግቦች በሁኔታ',
+        returned: 'ለእርማት ተመልሷል', removeAllocation: 'ምደባውን አስወግድ',
         title: 'ስትራቴጂያዊ ግቦች', description: 'የተቋሙን ቅድሚያዎች ይመዝግቡ፣ የክፍል ኃላፊነት ይመድቡ እና 100% ዕቅዱን ከማተምዎ በፊት ያረጋግጡ።',
         create: 'ግብ መዝግብ', empty: 'ለዚህ ዑደትና ተቋም ስትራቴጂያዊ ግብ የለም።', total: 'የተመዘገበ ክብደት', remaining: 'ቀሪ ክብደት',
         ready: 'ለማተም ዝግጁ', needsWork: 'ማስተካከያ ያስፈልጋል', allocations: 'የክፍል ኃላፊነት', addAllocation: 'ክፍል መድብ', lead: 'መሪ ክፍል', shared: 'የጋራ ግብ',
@@ -23,6 +31,8 @@ const performance = {
         addResults: 'ወደ ስብሰባው አክል', open: 'ክፈት', appeal: 'በዚህ ውጤት ላይ ይግባኝ በል', upload: 'ማስረጃ ጫን', search: 'ፈልግ',
     },
     fields: {
+        notes: 'ማስታወሻ', plan: 'ዕቅድ',
+        planning: 'የዕቅድ ዝግጅት ጊዜ', descriptionEn: 'መግለጫ (እንግሊዝኛ)', descriptionAm: 'መግለጫ (አማርኛ)',
         code: 'ኮድ', name: 'ስም', nameEn: 'ስም (እንግሊዝኛ)', nameAm: 'ስም (አማርኛ)', title: 'ርዕስ', titleEn: 'ርዕስ (እንግሊዝኛ)', titleAm: 'ርዕስ (አማርኛ)',
         description: 'መግለጫ', weight: 'ክብደት %', target: 'ዒላማ', actual: 'ክንውን', baseline: 'መነሻ', period: 'ጊዜ',
         from: 'ከ', to: 'እስከ', reason: 'ምክንያት', comment: 'አስተያየት', organization: 'ተቋም', unit: 'ክፍል', position: 'የሥራ መደብ',
@@ -71,6 +81,8 @@ const performance = {
         session: { DRAFT: 'ረቂቅ', IN_PROGRESS: 'በሂደት ላይ', FINALIZED: 'ጸድቋል' },
         kpiStatus: { ACTIVE: 'ንቁ', INACTIVE: 'ንቁ ያልሆነ' },
         development: { DRAFT: 'ረቂቅ', ACTIVE: 'ንቁ', COMPLETED: 'ተጠናቋል', CANCELLED: 'ተሰርዟል' },
+        reviewType: { MID_YEAR: 'የአጋማሽ ዓመት', YEAR_END: 'የዓመት መጨረሻ' },
+        subjectType: { TARGET: 'የዕቅድ ዒላማ', ITEM: 'የስምምነት KPI' },
     },
     dashboard: {
         title: 'የአፈጻጸም ዳሽቦርድ', description: 'ለእያንዳንዱ ዑደት የዕቅድ ሽፋን፣ የKPI ሁኔታ፣ የስምምነት ሂደት፣ ግምገማዎችና የጸደቁ ውጤቶችን ይከታተሉ።',
@@ -97,12 +109,14 @@ const performance = {
         agreementPipeline: 'የስምምነት ሂደት', agreementPipelineHelp: 'የሠራተኛ ስምምነቶች በአሁኑ የሥራ ሂደት ሁኔታቸው ተመድበዋል።',
         noFinalizedResults: 'እስካሁን የጸደቀ የደረጃ ውጤት የለም።',
     },
-    cycles: { title: 'የአፈጻጸም ዑደቶች', description: 'ጊዜዎች፣ የግምገማ ጊዜ ገደቦች እና እያንዳንዱ ዑደት ያለበት ምዕራፍ።', create: 'አዲስ ዑደት', current: 'የአሁኑ', readOnly: 'ለንባብ ብቻ', moveTo: 'ወደ', empty: 'እስካሁን ዑደት የለም።', global: 'ከተማ-አቀፍ' },
+    cycles: { title: 'የአፈጻጸም ዑደቶች', description: 'ጊዜዎች፣ የግምገማ ጊዜ ገደቦች እና እያንዳንዱ ዑደት ያለበት ምዕራፍ።', create: 'አዲስ ዑደት', current: 'የአሁኑ', readOnly: 'ለንባብ ብቻ', moveTo: 'ወደ', empty: 'እስካሁን ዑደት የለም።', global: 'ከተማ-አቀፍ', periodLocked: 'ዕቅዶች ወደዚህ ዑደት እየተዘረጉ ስለሆነ ኮዱ፣ ጊዜውና የዕቅድ ዝግጅት ጊዜው አይቀየሩም። ስሞችና የግምገማ ጊዜዎች ግን ሊቀየሩ ይችላሉ።' },
     kpis: {
+        inUse: 'በጥቅም ላይ', inUseNote: 'የቀረቡ ዕቅዶች ወይም ስምምነቶች ይህን KPI ስለሚጠቀሙ የሚለካበትና የሚመዘንበት መንገድ አይቀየርም። ስሞች፣ መግለጫዎች፣ መለኪያ አሃዱ፣ መነሻው፣ ድግግሞሹና ሁኔታው ግን ሊቀየሩ ይችላሉ፤ ለተለየ ደንብ አዲስ KPI ይፍጠሩ።',
         title: 'የKPI ቤተ-መጽሐፍት', description: 'እያንዳንዱ መለኪያ እንዴት እንደሚገለጽ፣ የትኛው አቅጣጫ ጥሩ እንደሆነ እና እንዴት እንደሚደመር። ምንም KPI መቶኛዎችን አይደምርም።',
         create: 'አዲስ KPI', empty: 'እስካሁን KPI የለም።', milestonesHelp: 'በእያንዳንዱ መስመር አንድ፡ ቁልፍ | ስያሜ | መቶኛ | ማረጋገጫ (yes/no)', globalOwner: 'ከተማ-አቀፍ (ተቋም የለውም)',
     },
     plans: {
+        quarterShort: 'ሩብ ', monthShort: 'ወር ',
         title: 'ዕቅዶች እና ማስተላለፍ', description: 'ተቋም → ክፍል → ንዑስ ክፍል → የሥራ መደብ ዕቅዶች። የታተሙ ዕቅዶች የሚቀየሩት በአዲስ ስሪት ብቻ ነው።',
         create: 'አዲስ ዕቅድ', empty: 'እስካሁን ዕቅድ የለም።', objectives: 'ግቦች እና KPIዎች', addObjective: 'ግብ አክል', addTarget: 'የKPI ዒላማ አክል',
         cascadeFromParent: 'ከወላጅ ዕቅዱ አስተላልፍ', alreadyCascaded: 'ተላልፏል', childPlans: 'ንዑስ ዕቅዶች', lineage: 'ከ', versions: 'ስሪቶች',
@@ -121,16 +135,19 @@ const performance = {
         systemGenerated: 'በሥርዓቱ የመነጨ — ሊስተካከል አይችልም', validation: 'ይህ ስምምነት ከመላኩ በፊት',
     },
     result: {
+        revision: 'ክለሳ {n}',
         howCalculated: 'ይህ ውጤት እንዴት እንደተሰላ', results: 'ውጤቶች (KPI)', competency: 'ብቃት', final: 'የመጨረሻ ውጤት',
         weighted: 'የተመዘነ', formula: 'ቀመር', calculated: 'የተሰላ', adjusted: 'የተስተካከለ', calibrated: 'የተመጣጠነ', hidden: 'ውጤትዎ ሲለቀቅ እዚህ ይታያል።',
         adjustments: 'ማስተካከያዎች', trace: 'ዝርዝር ስሌት',
     },
-    calibration: { title: 'ካሊብሬሽን', description: 'ኮሚቴዎች የተሰሉ ውጤቶችን ለወጥነት ይገመግማሉ። እያንዳንዱ ለውጥ ከበፊት/በኋላ እና ምክንያቱ ጋር ይቀመጣል።', create: 'አዲስ ስብሰባ', empty: 'እስካሁን ስብሰባ የለም።', candidates: 'በወሰን ውስጥ ያሉ የተሰሉ ውጤቶች', managerScore: 'የኃላፊ ውጤት', calibratedScore: 'የተመጣጠነ', finalizeNote: 'ማጽደቅ በዚህ ስብሰባ ያሉትን ሁሉንም ውጤቶች ይቆልፋል።' },
+    calibration: { title: 'ካሊብሬሽን', description: 'ኮሚቴዎች የተሰሉ ውጤቶችን ለወጥነት ይገመግማሉ። እያንዳንዱ ለውጥ ከበፊት/በኋላ እና ምክንያቱ ጋር ይቀመጣል።', create: 'አዲስ ስብሰባ', empty: 'እስካሁን ስብሰባ የለም።', candidates: 'በወሰን ውስጥ ያሉ የተሰሉ ውጤቶች', managerScore: 'የኃላፊ ውጤት', calibratedScore: 'የተመጣጠነ', finalizeNote: 'ማጽደቅ በዚህ ስብሰባ ያሉትን ሁሉንም ውጤቶች ይቆልፋል።', selectAll: 'ሁሉንም ምረጥ', clearSelection: 'ምርጫውን አጽዳ' },
     appeals: { title: 'የአፈጻጸም ይግባኞች', description: 'ለኮሚቴዎ ወይም ለወሰንዎ የተመደቡ ይግባኞች።', empty: 'ይግባኝ የለም።', windowNote: 'ውጤቱ ከተለቀቀ በኋላ በ{days} ቀናት ውስጥ ይግባኝ ማለት ይችላሉ።', mine: 'የእኔ ይግባኞች' },
     reports: {
+        help: { results: 'የእያንዳንዱ ሠራተኛ የአሁኑ ውጤት ከክፍሎቹና ከደረጃው ጋር።', distribution: 'የጸደቁና የተለቀቁ ውጤቶች በደረጃዎቹ እንዴት እንደተሰራጩ።', plan_scores: 'የእያንዳንዱ የታተመ የተቋምና የክፍል ዕቅድ የመጨረሻ የተሰላ ውጤት።', plan_targets: 'የታተሙ ዕቅዶች ሁሉም የKPI ዒላማዎች ከክብደታቸውና ከጊዜያቸው ጋር።', agreement_completion: 'ስምምነቶች በተቋም፣ በክፍልና በሁኔታ።', review_completion: 'የአጋማሽ ዓመትና የዓመት መጨረሻ ግምገማዎች በተቋም፣ በክፍልና በሁኔታ።', checkins: 'በእያንዳንዱ ንቁ ስምምነት ላይ የተካሄዱ የክትትል ውይይቶች፤ ትንሹ መጀመሪያ።', missing_actuals: 'የተለካ ክንውን ገና የሌላቸው የንቁ ስምምነቶች KPIዎች።', pending_verification: 'ገና ያልተረጋገጡ የገቡ ክንውኖች።', amendments: 'ለዒላማዎችና ለስምምነት KPIዎች የተጠየቁ ለውጦች ከውሳኔያቸው ጋር።', adjustments: 'የኃላፊ፣ የካሊብሬሽንና የይግባኝ የውጤት ለውጦች ከመጀመሪያው ውጤት ጋር።', calibration: 'በካሊብሬሽን ስብሰባዎች የተገመገሙ ውጤቶች፣ በፊትና በኋላ።', appeals: 'በተለቀቁ ውጤቶች ላይ የቀረቡ ይግባኞችና ውሳኔዎቻቸው።', improvement_plans: 'የአፈጻጸም ማሻሻያ ዕቅዶች (ሚስጥራዊ)።', development_plans: 'የግል የልማት ዕቅዶችና ሁኔታቸው።' },
         title: 'የአፈጻጸም ሪፖርቶች', description: 'በተቋማትዎ ወሰን የተገደበ። የሚላኩ ሪፖርቶች ይመዘገባሉ።',
-        names: { results: 'የሠራተኛ ውጤቶች', distribution: 'የደረጃ ስርጭት', agreement_completion: 'የስምምነት ሁኔታ', missing_actuals: 'የጎደሉ የKPI ክንውኖች', appeals: 'ይግባኞች', calibration: 'ካሊብሬሽን', improvement_plans: 'የማሻሻያ ዕቅዶች' },
+        names: { results: 'የሠራተኛ ውጤቶች', distribution: 'የደረጃ ስርጭት', agreement_completion: 'የስምምነት ሁኔታ', missing_actuals: 'የጎደሉ የKPI ክንውኖች', appeals: 'ይግባኞች', calibration: 'ካሊብሬሽን', improvement_plans: 'የማሻሻያ ዕቅዶች', plan_scores: 'የዕቅድ ውጤቶች', plan_targets: 'የዕቅድ KPI ዒላማዎች', review_completion: 'የግምገማ አፈጻጸም', checkins: 'የክትትል ውይይቶች', pending_verification: 'ያልተረጋገጡ ክንውኖች', amendments: 'የዒላማ ማሻሻያዎች', adjustments: 'የውጤት ማስተካከያዎች', development_plans: 'የልማት ዕቅዶች' },
         columns: {
+            type: 'ዓይነት', version: 'ስሪት', score: 'ውጤት', as_of: 'እስከ', plan: 'ዕቅድ', objective: 'ግብ', target: 'ዒላማ', period_start: 'የጊዜው መጀመሪያ', period_end: 'የጊዜው ማብቂያ', review_type: 'ግምገማ', checkins: 'የክትትል ውይይቶች', last_checkin: 'የመጨረሻ ውይይት', value: 'እሴት', source: 'ምንጭ', subject: 'የተቀየረው', effective_date: 'ተፈጻሚ የሚሆንበት', requested_at: 'የተጠየቀበት', adjustment_type: 'ዓይነት', original_score: 'የመጀመሪያ ውጤት', adjusted_score: 'የተስተካከለ ውጤት', development_objective: 'የልማት ዓላማ', due_date: 'የማብቂያ ቀን',
             employee_number: 'የሠራተኛ ቁጥር', employee: 'ሠራተኛ', results_score: 'ውጤቶች', competency_score: 'ብቃት', final_score: 'የመጨረሻ ውጤት',
             rating_en: 'ደረጃ (እንግሊዝኛ)', rating_am: 'ደረጃ (አማርኛ)', status: 'ሁኔታ', count: 'ብዛት', organization: 'ተቋም', unit: 'ክፍል',
             kpi_code: 'የKPI ኮድ', kpi: 'KPI', weight: 'ክብደት %', appeal_no: 'የይግባኝ ቁጥር', decision: 'ውሳኔ', decided_score: 'የተወሰነ ውጤት',
@@ -139,7 +156,8 @@ const performance = {
         },
         empty: 'ምንም መረጃ የለም።',
     },
-    settings: { title: 'የአፈጻጸም ቅንብሮች', description: 'ፖሊሲው በኮድ ሳይሆን እዚህ ይኖራል፡ ክብደቶች፣ ጣሪያዎች፣ ገደቦች እና የሚያስፈልጉ ደረጃዎች።', scales: 'የምዘና መለኪያዎች', saved: 'ተቀምጧል' },
+    settings: { title: 'የአፈጻጸም ቅንብሮች', description: 'ፖሊሲው በኮድ ሳይሆን እዚህ ይኖራል፡ ክብደቶች፣ ጣሪያዎች፣ ገደቦች እና የሚያስፈልጉ ደረጃዎች።', scales: 'የምዘና መለኪያዎች', saved: 'ተቀምጧል', scaleTypes: { RESULT: 'የውጤት መለኪያ', COMPETENCY: 'የብቃት መለኪያ' }, defaultScale: 'ነባሪ', bandsHelp: 'አንድ ውጤት ክልሉ የሚያካትተው ደረጃ ውስጥ ይገባል። ክልሎች ሁለቱንም ጫፎች ያካትታሉ፤ መደራረብ የለባቸውም። ገደብ የሌለውን ጫፍ ባዶ ይተዉት።', levelsHelp: 'ብቃቶች በነዚህ ደረጃዎች ይመዘናሉ። እዚህ የሚቀየሩት መለያዎቹ ብቻ ናቸው።', level: 'ደረጃ', bandMin: 'ከውጤት', bandMax: 'እስከ ውጤት' },
+    lookup: { clear: 'ምርጫውን አጽዳ', searching: 'በመፈለግ ላይ…', typeMore: 'ቢያንስ {count} ፊደሎች ይጻፉ።', noResults: 'ምንም አልተገኘም።' },
     my: {
         noAgreementHelp: 'አስተዳዳሪዎ ወይም የሰው ሀብት ክፍል የአፈጻጸም ስምምነትዎን አዘጋጅቶ እንዲልክልዎ ይጠይቁ። ከተመደበ በኋላ KPIዎች እና የግምገማ ተግባራት እዚህ ይታያሉ።',
         agreeStep: 'በዒላማዎች ላይ ይስማሙ', agreeStepHelp: 'አስተዳዳሪዎ ስምምነቱን ያዘጋጃል። KPIዎችን ገምግመው ያረጋግጡ ወይም እርማት ይጠይቁ።',

@@ -69,6 +69,70 @@ final class PerformanceCycleService
         return $cycle;
     }
 
+    /** Fields that define a cycle's period: fixed once plans are being cascaded into it. */
+    private const PERIOD_FIELDS = ['code', 'start_date', 'end_date', 'planning_start_date', 'planning_end_date'];
+
+    /** Whether the period (code, dates, planning window) may still change. */
+    public static function periodEditable(PerformanceCycle $cycle): bool
+    {
+        return in_array($cycle->status, [CycleStatus::Draft, CycleStatus::Planning], true);
+    }
+
+    /**
+     * Correct a cycle. Names and review windows can change until the cycle is
+     * closed; the code, period and planning window only while it is a draft or
+     * in planning, because plans, targets and agreements are dated inside it.
+     * The organization never changes.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function update(PerformanceCycle $cycle, array $data, User $actor): PerformanceCycle
+    {
+        $this->access->authorize($cycle->organization_id === null
+            ? $actor->can('performance_cycles.update') && $actor->hasAnyRole(['Super Admin', 'City Admin', 'System Admin'])
+            : $this->access->inScope($actor, 'performance_cycles.update', $cycle->organization_id));
+
+        return DB::transaction(function () use ($cycle, $data, $actor): PerformanceCycle {
+            /** @var PerformanceCycle $locked */
+            $locked = PerformanceCycle::query()->whereKey($cycle->getKey())->lockForUpdate()->firstOrFail();
+            if (self::isReadOnly($locked)) {
+                throw ValidationException::withMessages(['status' => __('performance.errors.cycle_read_only')]);
+            }
+
+            unset($data['organization_id']);
+            $current = self::dates($locked);
+            if (! self::periodEditable($locked)) {
+                foreach (self::PERIOD_FIELDS as $field) {
+                    $stored = $field === 'code' ? $locked->code : $current[$field];
+                    if (array_key_exists($field, $data) && ($data[$field] ?: null) !== $stored) {
+                        throw ValidationException::withMessages([$field => __('performance.errors.cycle_period_locked')]);
+                    }
+                }
+            }
+
+            $merged = [...$current, ...array_intersect_key($data, $current)];
+            $this->assertDates($merged);
+            if ($merged['start_date'] !== $current['start_date'] || $merged['end_date'] !== $current['end_date']) {
+                $this->assertNoOverlap($locked->organization_id, $merged['start_date'], $merged['end_date'], $locked->getKey());
+            }
+
+            $old = ['code' => $locked->code, 'name_en' => $locked->name_en, 'name_am' => $locked->name_am, ...$current];
+            $locked->fill(array_intersect_key($data, array_flip(['code', 'name_en', 'name_am', ...array_keys($current)])))->save();
+            $new = ['code' => $locked->code, 'name_en' => $locked->name_en, 'name_am' => $locked->name_am, ...self::dates($locked)];
+            $this->audit->record(AuditEventType::PerformanceCycleUpdated, $actor, $locked, array_diff_assoc($new, $old), array_intersect_key($old, array_diff_assoc($new, $old)));
+
+            return $locked;
+        });
+    }
+
+    /** @return array<string, ?string> the cycle's dates as Y-m-d */
+    private static function dates(PerformanceCycle $cycle): array
+    {
+        $fields = ['start_date', 'end_date', 'planning_start_date', 'planning_end_date', 'midyear_review_start_date', 'midyear_review_end_date', 'yearend_review_start_date', 'yearend_review_end_date'];
+
+        return array_combine($fields, array_map(fn (string $field): ?string => $cycle->getAttribute($field)?->toDateString(), $fields));
+    }
+
     public function transition(PerformanceCycle $cycle, CycleStatus $to, User $actor): PerformanceCycle
     {
         $permission = match ($to) {
@@ -137,10 +201,11 @@ final class PerformanceCycleService
         }
     }
 
-    private function assertNoOverlap(?string $organizationId, string $start, string $end): void
+    private function assertNoOverlap(?string $organizationId, string $start, string $end, ?string $exceptId = null): void
     {
         $overlap = PerformanceCycle::query()
             ->when($organizationId === null, fn ($q) => $q->whereNull('organization_id'), fn ($q) => $q->where('organization_id', $organizationId))
+            ->when($exceptId !== null, fn ($q) => $q->whereKeyNot($exceptId))
             ->whereNotIn('status', [CycleStatus::Cancelled->value])
             ->where('start_date', '<=', $end)
             ->where('end_date', '>=', $start)

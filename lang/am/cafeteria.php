@@ -95,6 +95,7 @@ return [
     'calendar_special_open_day' => 'ልዩ ክፍት ቀን',
     'calendar_special_closed_day' => 'ልዩ ዝግ ቀን',
     'calendar_special_no_subsidy_day' => 'ልዩ ቀን',
+    'calendar_no_policy' => 'ንቁ ፖሊሲ የለም',
     'calendarDaysCheckedSuccessfully' => 'የቀን መቁጠሪያ ቀናት ተምልክተዋል።',
     'weeklyWindowTitle' => 'በዚህ ሳምንት ያለው ድጎማ',
     'weekWindowMonFri' => 'ሰኞ እስከ አርብ',
