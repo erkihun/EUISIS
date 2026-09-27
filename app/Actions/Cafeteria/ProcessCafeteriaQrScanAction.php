@@ -9,6 +9,7 @@ use App\Enums\AuditEventType;
 use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaTransaction;
 use App\Models\IdCard;
+use App\Models\ProviderUser;
 use App\Models\User;
 use App\Services\Cafeteria\CafeteriaQrScanService;
 use Illuminate\Http\Request;
@@ -22,6 +23,10 @@ readonly class ProcessCafeteriaQrScanAction
     ) {}
 
     /**
+     * The actor is a staff user (back office, terminals) or a provider portal
+     * operator. Only a staff user can be written to the users-keyed actor
+     * columns; an operator is recorded by id in the transaction and audit.
+     *
      * @param  array{usage_mode?: string|null, meal_amount?: float|null, scan_nonce?: string|null}  $options
      * @return array{allowed: bool, result_code: string, transaction: CafeteriaTransaction|null, denial_reason: string|null}
      */
@@ -29,13 +34,15 @@ readonly class ProcessCafeteriaQrScanAction
         string|IdCard $qrToken,
         CafeteriaProvider $provider,
         ?Carbon $scannedAt = null,
-        ?User $actor = null,
+        User|ProviderUser|null $actor = null,
         ?Request $request = null,
         array $options = [],
     ): array {
         $scannedAt ??= Carbon::now();
+        $operatorId = $actor instanceof ProviderUser ? $actor->getKey() : null;
+        $actor = $actor instanceof User ? $actor : null;
 
-        $result = $this->scanService->process($qrToken, $provider, $scannedAt, $actor, $options, $request);
+        $result = $this->scanService->process($qrToken, $provider, $scannedAt, $actor, [...$options, 'provider_user_id' => $operatorId], $request);
 
         $transaction = $result['transaction'];
         // Scan events belong to the billing owner: the employee organization,
@@ -75,6 +82,7 @@ readonly class ProcessCafeteriaQrScanAction
                     'payee_provider_id' => $transaction->provider_id,
                     'cafeteria_service_policy_id' => $transaction->cafeteria_service_policy_id,
                     'cafeteria_policy_version' => $transaction->cafeteria_policy_version,
+                    'scanned_by_provider_user_id' => $operatorId,
                 ],
                 request: $request,
             );
@@ -95,6 +103,7 @@ readonly class ProcessCafeteriaQrScanAction
                     'result_code' => $result['result_code'],
                     'denial_reason' => $denialReason,
                     'provider_id' => $provider->id,
+                    'scanned_by_provider_user_id' => $operatorId,
                 ],
                 request: $request,
             );

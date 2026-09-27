@@ -103,7 +103,13 @@ test('access, assignment and a two-person approved policy built through the page
     $policy = CafeteriaServicePolicy::query()->sole();
 
     $this->actingAs($this->maker)->post(route('cafeteria.policies.submit', $policy))->assertSessionHasNoErrors();
-    // Maker-checker: the drafter cannot approve.
+    // Maker-checker: the drafter cannot approve, and the page says why instead
+    // of offering a button that can only fail; the second person gets the button.
+    $this->actingAs($this->maker)->get(route('cafeteria.policies.show', $policy))
+        ->assertInertia(fn ($page) => $page->where('can.approve', false)
+            ->where('approvalBlocked', __('cafeteria-policy.validation.policy_same_approver')));
+    $this->actingAs($this->checker)->get(route('cafeteria.policies.show', $policy))
+        ->assertInertia(fn ($page) => $page->where('can.approve', true)->where('approvalBlocked', null));
     $this->actingAs($this->maker)->post(route('cafeteria.policies.approve', $policy))->assertSessionHasErrors('status');
     $this->actingAs($this->checker)->post(route('cafeteria.policies.approve', $policy))->assertSessionHasNoErrors();
     $this->actingAs($this->checker)->get(route('cafeteria.policies.show', $policy))->assertOk()

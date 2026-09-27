@@ -25,21 +25,26 @@ readonly class ReverseCafeteriaTransactionAction
 
     public function execute(CafeteriaTransaction $transaction, User $actor, ?string $reason = null, ?Request $request = null): CafeteriaTransaction
     {
-        if ($transaction->isReversed()) {
-            throw ValidationException::withMessages(['transaction' => [__('cafeteria.alreadyReversed')]]);
-        }
+        $transaction = DB::transaction(function () use ($transaction, $actor): CafeteriaTransaction {
+            // Checked on the locked row, not the caller's copy: two reversals of
+            // one meal (a double click, two supervisors) each passed a check made
+            // before the lock and each refunded the subsidy.
+            $transaction = CafeteriaTransaction::query()->whereKey($transaction->getKey())->lockForUpdate()->firstOrFail();
 
-        if (! $transaction->isAccepted()) {
-            throw ValidationException::withMessages(['transaction' => [__('cafeteria.cannotReverseStatus')]]);
-        }
+            if ($transaction->isReversed()) {
+                throw ValidationException::withMessages(['transaction' => [__('cafeteria.alreadyReversed')]]);
+            }
 
-        // A finalized settlement is final: reversing would change what was paid.
-        if ($transaction->cafeteria_settlement_id !== null
-            && $transaction->settlement()->where('status', CafeteriaSettlementStatus::Finalized->value)->exists()) {
-            throw ValidationException::withMessages(['transaction' => [__('cafeteria-policy.validation.settlement_not_draft')]]);
-        }
+            if (! $transaction->isAccepted()) {
+                throw ValidationException::withMessages(['transaction' => [__('cafeteria.cannotReverseStatus')]]);
+            }
 
-        DB::transaction(function () use ($transaction, $actor): void {
+            // A finalized settlement is final: reversing would change what was paid.
+            if ($transaction->cafeteria_settlement_id !== null
+                && $transaction->settlement()->where('status', CafeteriaSettlementStatus::Finalized->value)->exists()) {
+                throw ValidationException::withMessages(['transaction' => [__('cafeteria-policy.validation.settlement_not_draft')]]);
+            }
+
             $transaction->forceFill(['status' => CafeteriaTransactionStatus::Reversed])->save();
 
             // Clearing active_key frees the entitlement at every cafeteria again.
@@ -67,6 +72,8 @@ readonly class ReverseCafeteriaTransactionAction
                     $actor,
                 );
             }
+
+            return $transaction;
         });
 
         $this->writeAuditLogAction->execute(

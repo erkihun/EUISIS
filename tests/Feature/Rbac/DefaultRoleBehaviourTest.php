@@ -19,6 +19,7 @@ use App\Models\UserOrganizationScope;
 use App\Services\Performance\EpmsAccess;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /*
@@ -233,8 +234,9 @@ test('34 35 ID card preparation and approval are separate duties', function (): 
 
 test('38 39 40 41 provider staff stay in their portal and only operators with a grant use a service', function (): void {
     // Provider accounts live in their own table and guard; no admin role applies to them.
-    $operator = (new ProviderUser)->forceFill(['id' => 900001, 'name' => 'Scanner', 'provider_role' => 'operator']);
-    $owner = (new ProviderUser)->forceFill(['id' => 900002, 'name' => 'Owner', 'provider_role' => 'owner']);
+    // provider_users keys are uuids (an integer id is invalid input on PostgreSQL).
+    $operator = (new ProviderUser)->forceFill(['id' => (string) Str::uuid(), 'name' => 'Scanner', 'provider_role' => 'operator']);
+    $owner = (new ProviderUser)->forceFill(['id' => (string) Str::uuid(), 'name' => 'Owner', 'provider_role' => 'owner']);
 
     expect($operator->canUseServicePermission('provider.transport.routes.manage'))->toBeFalse()
         ->and($owner->canUseServicePermission('provider.transport.routes.manage'))->toBeTrue();

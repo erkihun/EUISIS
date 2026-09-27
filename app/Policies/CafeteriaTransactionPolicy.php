@@ -61,10 +61,13 @@ readonly class CafeteriaTransactionPolicy
     public function exportProviderTransactions(User|ProviderUser $user, CafeteriaProvider $provider): bool
     {
         if ($user instanceof ProviderUser) {
+            // Any cafeteria of the operator's provider — main or branch — not only
+            // the provider's first (main) cafeteria.
             return $provider->is_active
                 && $user->canLogin()
                 && $user->hasService('cafeteria')
-                && $user->provider?->cafeteriaProvider?->id === $provider->id;
+                && $provider->provider_id !== null
+                && $provider->provider_id === $user->provider_id;
         }
 
         return $provider->is_active

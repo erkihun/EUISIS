@@ -87,6 +87,17 @@ test('scoped hr officer receives scoped dashboard counts', function (): void {
     expect($props['recentActivity'])->toBeArray()->toHaveCount(0);
 });
 
+test('reports.view alone does not open the audit activity feed', function (): void {
+    // The feed names actors and actions; it follows the audit log policy.
+    $user = User::factory()->create();
+    $user->givePermissionTo(['dashboard.view', 'reports.view']);
+
+    $response = $this->actingAs($user)->get(route('dashboard'))->assertOk();
+
+    $response->assertInertia(fn (Assert $page) => $page->where('can.audit', false));
+    expect($response->viewData('page')['props']['recentActivity'])->toHaveCount(0);
+});
+
 test('provider user does not receive hr sections', function (): void {
     $user = User::where('email', 'provider.transport@demo.local')->firstOrFail();
 

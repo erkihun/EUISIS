@@ -34,9 +34,12 @@ class CafeteriaReportController extends Controller
             ->with('organization:id,name_en,name_am')
             ->when($request->string('type')->toString(), fn ($q, $v) => $q->where('report_type', $v))
             ->when($request->string('organization_id')->toString(), fn ($q, $v) => $q->where('organization_id', $v))
-            ->when($this->providerAccess->accessibleProviderIds($request->user()) !== [], function ($query) use ($request): void {
+            ->when(! $this->providerAccess->canAccessAllProviders($request->user()), function ($query) use ($request): void {
                 $providerIds = $this->providerAccess->accessibleProviderIds($request->user());
                 $query->where(function ($nested) use ($providerIds): void {
+                    if ($providerIds === []) {
+                        $nested->whereRaw('1 = 0'); // no assigned cafeteria: no reports
+                    }
                     foreach ($providerIds as $providerId) {
                         $nested->orWhereJsonContains('filters->provider_ids', $providerId)
                             ->orWhereJsonContains('filters->provider_id', $providerId);

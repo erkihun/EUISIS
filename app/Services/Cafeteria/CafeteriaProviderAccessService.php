@@ -12,7 +12,13 @@ use Illuminate\Support\Carbon;
 
 class CafeteriaProviderAccessService
 {
-    /** @return list<string> Empty means all providers. */
+    /**
+     * Assigned cafeteria ids. Empty for BOTH an oversight user (all) and a user
+     * with no assignment (none): callers must decide with canAccessAllProviders(),
+     * never by testing for an empty list.
+     *
+     * @return list<string>
+     */
     public function accessibleProviderIds(User $user): array
     {
         if ($this->canAccessAllProviders($user)) {
@@ -49,13 +55,13 @@ class CafeteriaProviderAccessService
     /** @param Builder<Model> $query */
     public function filterProviderScopedQuery(User $user, Builder $query, string $providerColumn = 'cafeteria_provider_id'): Builder
     {
-        $providerIds = $this->accessibleProviderIds($user);
-
-        if ($providerIds === []) {
+        // accessibleProviderIds() is also empty for a user with no assigned
+        // cafeteria; that must mean none, not all. Only oversight sees all.
+        if ($this->canAccessAllProviders($user)) {
             return $query;
         }
 
-        return $query->whereIn($providerColumn, $providerIds);
+        return $query->whereIn($providerColumn, $this->accessibleProviderIds($user));
     }
 
     public function canAccessAllProviders(User $user): bool

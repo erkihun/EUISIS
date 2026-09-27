@@ -60,13 +60,71 @@ final class QrPayloadSecurityValidator
             }
         }
 
-        $lower = mb_strtolower($trimmed);
+        // Only what could carry employee data is searched for field names. The
+        // configured origin is operator-chosen (a host such as "*.org" or
+        // "civilservice.gov.et" is not PII), and a recognised public route
+        // contributes only its opaque reference — "/service-feedback/{token}"
+        // would otherwise be refused for naming "service".
+        $lower = mb_strtolower($this->searchablePart($trimmed));
 
         foreach (self::FORBIDDEN_KEYS as $key) {
             if (str_contains($lower, $key)) {
                 throw QrPayloadContainsPiiException::forbiddenField($key);
             }
         }
+    }
+
+    /**
+     * The part of a payload that is checked for field names: the opaque
+     * reference of a recognised public route on a trusted origin, the path of
+     * any other URL on a trusted origin, and the whole payload otherwise.
+     */
+    private function searchablePart(string $payload): string
+    {
+        foreach ($this->trustedOrigins() as $origin) {
+            if (strcasecmp(substr($payload, 0, strlen($origin)), $origin) !== 0) {
+                continue;
+            }
+            $path = substr($payload, strlen($origin));
+            if ($path !== '' && $path[0] !== '/') {
+                continue; // "https://app.example.org.evil.test" is not the trusted origin.
+            }
+            foreach ($this->publicRoutePrefixes() as $prefix) {
+                if (preg_match('#^/'.preg_quote($prefix, '#').'/([A-Za-z0-9-]{8,128})$#', $path, $match) === 1) {
+                    return $match[1];
+                }
+            }
+
+            return $path;
+        }
+
+        return $payload;
+    }
+
+    /** @return list<string> scheme://host[:port] of APP_URL and the QR base URL */
+    private function trustedOrigins(): array
+    {
+        $origins = [];
+        foreach ([config('app.url'), config('id_cards.qr.base_url')] as $url) {
+            $parts = is_string($url) ? parse_url(trim($url)) : false;
+            if (is_array($parts) && isset($parts['scheme'], $parts['host'])) {
+                $origins[] = $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
+            }
+        }
+
+        return array_values(array_unique($origins));
+    }
+
+    /** @return list<string> single-segment public routes a card QR may point at */
+    private function publicRoutePrefixes(): array
+    {
+        $base = parse_url(trim((string) config('id_cards.qr.base_url', '')), PHP_URL_PATH);
+
+        return array_values(array_filter(array_unique([
+            'id-checker', 'verify/card', 'service-feedback',
+            trim((string) config('id_cards.qr.short_path', 'c'), '/'),
+            is_string($base) ? trim($base, '/') : '',
+        ]), static fn (string $prefix): bool => $prefix !== ''));
     }
 
     /**

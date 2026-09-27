@@ -20,7 +20,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('cafeteria_service_policies', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and a self-reference then has no key.
+            $table->primary('id');
             $table->uuid('policy_group_id')->index();
             $table->unsignedInteger('version_no')->default(1);
             $table->uuid('cafeteria_service_assignment_id');

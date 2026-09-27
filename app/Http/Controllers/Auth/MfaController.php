@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Auth;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
@@ -171,7 +172,7 @@ class MfaController extends Controller
         $usedRecovery = false;
 
         if (! empty($data['code'])) {
-            $verified = $this->google2fa->verifyKey($user->two_factor_secret, $data['code']);
+            $verified = $this->verifyFreshCode($user, $data['code']);
         }
 
         if (! $verified && ! empty($data['recovery_code'])) {
@@ -219,6 +220,14 @@ class MfaController extends Controller
             'password' => ['required', 'current_password'],
         ]);
 
+        // The password alone is the first factor: a session that has not yet
+        // passed the MFA challenge must not be able to remove the second one.
+        if ($user->hasMfaEnabled() && ! self::sessionVerified($request)) {
+            return back()->withErrors([
+                'password' => __('security.mfa_challenge_required'),
+            ]);
+        }
+
         if ($user->requiresMfa()) {
             $this->writeAuditLog->execute(
                 AuditEventType::MfaDisabled,
@@ -253,6 +262,24 @@ class MfaController extends Controller
     }
 
     /**
+     * Accept a TOTP code only once: its 30-second step must be newer than the
+     * step of the last successful verification, so a code seen over someone's
+     * shoulder (or intercepted) cannot be replayed while it is still valid.
+     */
+    private function verifyFreshCode(User $user, string $code): bool
+    {
+        $lastStep = $user->two_factor_last_used_at !== null
+            ? intdiv($user->two_factor_last_used_at->getTimestamp(), $this->google2fa->getKeyRegeneration())
+            : null;
+
+        if ($lastStep === null) {
+            return (bool) $this->google2fa->verifyKey($user->two_factor_secret, $code);
+        }
+
+        return $this->google2fa->verifyKeyNewer($user->two_factor_secret, $code, $lastStep) !== false;
+    }
+
+    /**
      * Whether the current session has a valid MFA verification timestamp.
      * Lifetime defaults to the configured session lifetime.
      */
@@ -279,7 +306,8 @@ class MfaController extends Controller
             return null;
         }
 
-        if (! $user->requiresMfa()) {
+        // Same rule as RequireMfa: a role that requires MFA, or voluntary enrolment.
+        if (! $user->requiresMfa() && ! $user->hasMfaEnabled()) {
             return null;
         }
 

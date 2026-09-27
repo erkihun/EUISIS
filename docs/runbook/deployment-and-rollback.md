@@ -1,0 +1,111 @@
+# Deployment and rollback runbook
+
+For the operator deploying EUISIS to staging or production. Commands assume a
+Linux host, the application in `/var/www/euisis/current` (a symlink to the
+active release), PHP-FPM, a queue worker under a process supervisor, and cron.
+Adjust paths to the real host. No command here prints a secret.
+
+Related: [go-live checklist](../go-live-checklist.md) ·
+[backup and disaster recovery](../backup-and-disaster-recovery.md) ·
+[incident response](../incident-response-plan.md) ·
+[production readiness assessment](../production-readiness-assessment.md)
+
+## 0. Before the window
+
+1. The release is a tagged commit that passed CI: `php artisan test`, `npx tsc --noEmit`, `npm run build`, `composer audit --locked`, `npm audit --omit=dev`.
+2. The release has been deployed to **staging on the production database engine and version** and passed steps 3–6 there, including the UAT script in the go-live checklist.
+3. Announce the window. Scanning at cafeteria counters stops while the site is in maintenance mode; agree the time with providers (outside meal hours).
+
+## 1. Back up (mandatory)
+
+```bash
+# Database — see backup-and-disaster-recovery.md for the exact dump command and
+# where dumps are kept. Record the dump file name in the change ticket.
+# Files — storage/app (private: employee photos, card templates, exports).
+tar -czf /backups/euisis-storage-$(date +%Y%m%d%H%M).tar.gz -C /var/www/euisis/shared storage/app
+```
+
+Verify the dump restores (backup-and-disaster-recovery.md §1 "Backup Verification") before continuing.
+
+## 2. Build the new release (site still up)
+
+```bash
+RELEASE=/var/www/euisis/releases/$(date +%Y%m%d%H%M)
+git clone --depth 1 --branch <tag> <repo-url> "$RELEASE"
+cd "$RELEASE"
+ln -s /var/www/euisis/shared/.env .env
+ln -s /var/www/euisis/shared/storage storage
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+npm ci && npm run build          # or copy public/build from the CI artefact
+php artisan migrate:status        # read: which migrations are Pending
+php artisan migrate --pretend     # read the SQL; stop if anything is unexpected
+php artisan production:readiness  # must end "No blocking items"
+```
+
+## 3. Switch
+
+```bash
+cd /var/www/euisis/current && php artisan down --retry=60
+cd "$RELEASE"
+php artisan migrate --force
+php artisan optimize               # config, routes, views and events cached
+php artisan permission:cache-reset
+ln -sfn "$RELEASE" /var/www/euisis/current
+sudo systemctl reload php8.2-fpm
+php artisan queue:restart
+php artisan up
+```
+
+## 4. Verify (within 15 minutes)
+
+```bash
+scripts/smoke-test.sh https://<production-host>          # must print SMOKE TEST PASSED
+php artisan production:readiness                          # no FAIL
+php artisan data:audit-duplicates
+php artisan structure:audit
+php artisan cafeteria:audit-configuration
+php artisan queue:failed                                  # empty
+tail -n 100 storage/logs/laravel-$(date +%F).log          # no new errors
+```
+
+Then one real counter scan at one cafeteria, watched by the provider, and the
+transaction visible in both the provider portal and the back office.
+
+## 5. Roll back
+
+Roll back when a smoke check fails, the counter scan fails, or error rates rise
+and a fix is not ready within the window.
+
+**Code only** (no migration ran in step 3, or the migrations only added tables/columns):
+
+```bash
+php artisan down --retry=60
+ln -sfn /var/www/euisis/releases/<previous> /var/www/euisis/current
+cd /var/www/euisis/current && php artisan optimize && php artisan permission:cache-reset
+sudo systemctl reload php8.2-fpm && php artisan queue:restart && php artisan up
+scripts/smoke-test.sh https://<production-host>
+```
+
+**Code and data**: several migrations in this release move data and have no
+exact inverse (`2026_09_20_120000_remove_direct_card_print_permission`,
+`2026_09_22_140000_align_change_request_permission_names`,
+`2026_09_27_000300_add_entitlement_ledger_and_transaction_snapshots`, the
+permission registrations). **Do not use `migrate:rollback` on production.**
+Restore the step 1 dump instead:
+
+1. `php artisan down`.
+2. Export every cafeteria transaction, card status change and settlement made since the switch (back-office exports), so they can be re-entered or reconciled — a restore discards them.
+3. Restore the database dump and, if needed, `storage/app`.
+4. Point `current` at the previous release, `php artisan optimize`, `permission:cache-reset`, reload PHP-FPM, `queue:restart`, `up`.
+5. Smoke test, then reconcile the exported records with the providers before the next settlement.
+
+Record what happened in the incident log (incident-response-plan.md).
+
+## Scheduled and background processes
+
+| Process | Requirement |
+|---|---|
+| Cron | `* * * * * cd /var/www/euisis/current && php artisan schedule:run >> /dev/null 2>&1` |
+| Queue worker | `php artisan queue:work --tries=3 --max-time=3600` under supervisor; restarted by `queue:restart` on every deploy |
+| Scheduled jobs | `cafeteria:sync-policy-statuses` 00:05, `api:prune-logs` 02:30, `nfc:prune-challenges` 02:45, `daily-activities:send-reminders` every 15 min |
+| Load balancer | health check `GET /up` (fails when the database or cache is unreachable); set `APP_TRUSTED_PROXIES` to the balancer addresses |

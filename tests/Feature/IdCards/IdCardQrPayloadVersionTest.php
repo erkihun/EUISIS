@@ -8,7 +8,7 @@ use App\Services\IdCards\CardQrPayloadService;
 use App\Services\IdCards\IdCardRenderDataFactory;
 use App\Services\IdCards\IdCardSvgRenderer;
 
-require_once __DIR__.'/IdCardFrontFieldsTest.php';
+require_once __DIR__.'/IdCardFrontHelpers.php';
 
 /**
  * The QR payload version is metadata about which payload shape a card was

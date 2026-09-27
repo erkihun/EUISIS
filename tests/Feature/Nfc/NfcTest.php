@@ -17,6 +17,7 @@ use App\Services\Nfc\SecureCardAdapter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Ramsey\Uuid\Uuid;
 use Tests\Support\CafeteriaScenario;
 
 // Test-only adapter models a signed transcript, not a production card protocol.
@@ -210,7 +211,11 @@ it('48 records at the terminal\'s own cafeteria and prices from policy, whatever
     $transaction = CafeteriaTransaction::query()->sole();
     expect($transaction->cafeteria_provider_id)->toBe($cafeteria->id)
         ->and((string) $transaction->subsidy_amount_applied)->toBe('100.00')
-        ->and($transaction->service_terminal_id)->toBe($this->terminal->id);
+        ->and($transaction->service_terminal_id)->toBe($this->terminal->id)
+        // scan_nonce is a uuid column: the nonce must be one (a sha256 hex did not
+        // fit on MySQL or PostgreSQL), and the same for the same terminal + reference.
+        ->and(Str::isUuid($transaction->scan_nonce))->toBeTrue()
+        ->and($transaction->scan_nonce)->toBe(Uuid::uuid5(Uuid::NAMESPACE_URL, 'urn:euisis:nfc-scan:'.$this->terminal->id.':'.$payload['reference'])->toString());
 });
 
 it('rejects proof reused for another purpose or transaction reference', function () {

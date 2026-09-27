@@ -10,10 +10,11 @@ import { usageRule, type PolicySummary } from './Index';
 type Terms = Record<string, string | number | boolean | null>;
 type Side = { id: string; version_no: number; effective_from: string | null; effective_to: string | null; terms: Terms } | null;
 
-export default function PolicyShow({ policy, versions, preview, can }: {
+export default function PolicyShow({ policy, versions, preview, approvalBlocked, can }: {
     policy: PolicySummary & { notes: string | null; supersedes: { id: string; version_no: number } | null; cancellation_reason: string | null };
     versions: Array<{ id: string; version_no: number; daily_subsidy_amount: string; effective_from: string | null; effective_to: string | null; status: string }>;
     preview: { current: Side; proposed: Side; changes: Record<string, { from: unknown; to: unknown }>; warnings: string[] };
+    approvalBlocked: string | null;
     can: { edit: boolean; submit: boolean; review: boolean; approve: boolean; activate: boolean; end: boolean; cancel: boolean; newVersion: boolean };
 }) {
     const { t } = useLocale();
@@ -47,6 +48,7 @@ export default function PolicyShow({ policy, versions, preview, can }: {
             )} />}>
             <Head title={`${tt('policy')} v${policy.version_no}`} />
             <div className="space-y-6">
+                {approvalBlocked && <Alert tone="warning">{approvalBlocked}</Alert>}
                 {isFinancialLocked && <Alert tone="info">{tt('financialLocked')}</Alert>}
                 {preview.warnings.length > 0 && (
                     <Alert tone="warning">

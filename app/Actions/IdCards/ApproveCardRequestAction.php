@@ -60,6 +60,15 @@ readonly class ApproveCardRequestAction
              */
             Employee::query()->whereKey($employee->id)->lockForUpdate()->first();
 
+            // The status check above ran on the caller's copy, before any lock.
+            // Two approvals of one replacement/lost/damaged request (a double
+            // submit, or two approvers) skip the active-card check below, so
+            // without re-reading the request here each would issue a new card.
+            $cardRequest = CardRequest::query()->whereKey($cardRequest->getKey())->lockForUpdate()->firstOrFail();
+            if (! in_array($cardRequest->status, [CardRequestStatus::Submitted, CardRequestStatus::Verified], true)) {
+                throw new DomainException('Card request must be in submitted or verified status to be approved. Current status: '.$cardRequest->status->value);
+            }
+
             if ($cardRequest->request_type === CardRequestType::Correction) {
                 $cards = IdCard::query()->where('employee_id', $employee->id)->lockForUpdate()->get();
                 $eligibility = new CardRequestEligibility;

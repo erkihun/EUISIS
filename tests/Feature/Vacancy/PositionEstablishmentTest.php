@@ -9,6 +9,7 @@ use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\User;
+use App\Services\Vacancy\PositionCapacityService;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -150,4 +151,15 @@ it('super admin can view establishment index', function (): void {
 
     $response->assertOk();
     $response->assertInertia(fn ($page) => $page->component('PositionEstablishments/Index'));
+});
+
+it('counts approved slots for today by default, including the last effective day', function (): void {
+    $establishment = makeEstablishment([
+        'status' => EstablishmentStatus::Approved->value, 'approved_slots' => 3,
+        'effective_from' => now()->subMonth()->toDateString(), 'effective_to' => now()->toDateString(),
+    ]);
+    $capacity = app(PositionCapacityService::class);
+
+    expect($capacity->approvedSlotsForPosition($establishment->position_id))->toBe(3)
+        ->and($capacity->approvedSlotsForPosition($establishment->position_id, now()->addDay()))->toBe(0);
 });

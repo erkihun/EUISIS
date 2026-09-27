@@ -26,7 +26,9 @@ class RequireMfa
         }
 
         $user = $request->user();
-        if (! $user || ! $user->requiresMfa()) {
+        // Challenged when the role requires MFA, and also when the user enrolled
+        // voluntarily: an enrolled factor that is never asked for protects nothing.
+        if (! $user || (! $user->requiresMfa() && ! $user->hasMfaEnabled())) {
             return $next($request);
         }
 

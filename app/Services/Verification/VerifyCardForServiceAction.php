@@ -15,6 +15,7 @@ use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\EmployeeServiceEligibilityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 readonly class VerifyCardForServiceAction
 {
@@ -30,7 +31,9 @@ readonly class VerifyCardForServiceAction
 
         // Lookup by SHA-256 hash (deterministic, non-bcrypt)
         $tokenHash = $rawToken !== null ? hash('sha256', $rawToken) : null;
-        $card = ($cardId !== null && $tokenHash !== null)
+        // A malformed id is simply not a card: never send it to the uuid key,
+        // which PostgreSQL would reject with an error instead of "no match".
+        $card = ($cardId !== null && $tokenHash !== null && Str::isUuid($cardId))
             ? IdCard::query()
                 ->with('employee.currentAssignment')
                 ->where('id', $cardId)

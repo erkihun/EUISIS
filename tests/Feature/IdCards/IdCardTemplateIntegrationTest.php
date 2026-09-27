@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 
-require_once __DIR__.'/IdCardFrontFieldsTest.php';
+require_once __DIR__.'/IdCardFrontHelpers.php';
 
 /**
  * End-to-end checks that an uploaded template actually reaches every consumer:

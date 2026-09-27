@@ -7,7 +7,7 @@ use App\Services\IdCards\CardQrPayloadService;
 use App\Services\IdCards\QrPayloadParser;
 use App\Services\Transport\TransportQrScanService;
 
-require_once __DIR__.'/IdCardFrontFieldsTest.php';
+require_once __DIR__.'/IdCardFrontHelpers.php';
 
 it('resolves the card uuid from every payload a scanner can deliver', function (string $build): void {
     $card = frontCard();

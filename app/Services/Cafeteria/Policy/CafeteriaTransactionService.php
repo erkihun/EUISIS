@@ -115,6 +115,11 @@ class CafeteriaTransactionService
                     'service_terminal_id' => $references['service_terminal_id'] ?? null,
                     'fulfilled_at' => now(),
                     'created_by' => $actor?->id,
+                    // A provider portal operator is not a staff user (created_by
+                    // references users); who scanned is kept here instead.
+                    'metadata' => ($references['provider_user_id'] ?? null) !== null
+                        ? ['scanned_by_provider_user_id' => $references['provider_user_id']]
+                        : null,
                 ]);
 
                 foreach ($decision->entitlements as $claim) {

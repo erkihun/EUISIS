@@ -54,7 +54,7 @@ class EmployeeCafeteriaExclusionController extends Controller
 
         return Inertia::render('Cafeteria/EmployeeExclusions/Create', [
             'exclusion_types' => collect(CafeteriaExclusionType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
-            'employees'       => Employee::query()->where('status', 'active')->select('id', 'first_name_en', 'last_name_en', 'employee_number')->get()->map(fn ($e) => ['id' => $e->id, 'name' => $e->first_name_en . ' ' . $e->last_name_en, 'number' => $e->employee_number]),
+            'employees'       => Employee::query()->where('status', 'active')->select('id', 'full_name', 'employee_number')->get()->map(fn ($e) => ['id' => $e->id, 'name' => $e->full_name, 'number' => $e->employee_number]),
         ]);
     }
 

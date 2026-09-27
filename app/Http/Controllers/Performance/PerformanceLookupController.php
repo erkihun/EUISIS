@@ -43,6 +43,8 @@ class PerformanceLookupController extends PerformanceController
     {
         $like = ci_like_operator();
         $this->authorizeLookup($request);
+        // Validated first: PostgreSQL rejects comparing a uuid key with '' or other text.
+        $request->validate(['organization_id' => ['required', 'uuid']]);
         $organizationId = (string) $request->query('organization_id');
         abort_unless($this->scope->canAccessOrganization($request->user(), $organizationId), 403);
         $q = $this->term($request);
@@ -56,6 +58,7 @@ class PerformanceLookupController extends PerformanceController
     {
         $like = ci_like_operator();
         $this->authorizeLookup($request);
+        $request->validate(['organization_id' => ['required', 'uuid'], 'organization_unit_id' => ['nullable', 'uuid']]);
         $organizationId = (string) $request->query('organization_id');
         abort_unless($this->scope->canAccessOrganization($request->user(), $organizationId), 403);
         $q = $this->term($request);

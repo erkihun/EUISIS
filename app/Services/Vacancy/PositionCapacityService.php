@@ -16,14 +16,16 @@ class PositionCapacityService
 {
     public function approvedSlotsForPosition(string $positionId, ?Carbon $onDate = null): int
     {
-        $onDate ??= now()->toDateObject();
+        // Compared as a date: a timestamp would drop the last effective day on
+        // databases that compare the date column as text.
+        $day = ($onDate ?? now())->toDateString();
 
-        return PositionEstablishment::query()
+        return (int) PositionEstablishment::query()
             ->where('position_id', $positionId)
             ->where('status', EstablishmentStatus::Approved->value)
-            ->where('effective_from', '<=', $onDate)
-            ->where(function ($q) use ($onDate): void {
-                $q->whereNull('effective_to')->orWhere('effective_to', '>=', $onDate);
+            ->whereDate('effective_from', '<=', $day)
+            ->where(function ($q) use ($day): void {
+                $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $day);
             })
             ->sum('approved_slots');
     }
@@ -114,7 +116,7 @@ class PositionCapacityService
             $created[] = $assignment->id;
 
             if (! $dryRun) {
-                $this->recordOccupancy($establishment, $assignment, $assignment->effective_from ?? now()->toDateObject());
+                $this->recordOccupancy($establishment, $assignment, $assignment->effective_from ?? now()->startOfDay());
             }
         }
 

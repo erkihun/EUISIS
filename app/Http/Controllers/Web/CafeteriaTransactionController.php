@@ -169,9 +169,7 @@ class CafeteriaTransactionController extends Controller
         $providers = CafeteriaProvider::query()
             ->with('organization:id,name_en,name_am,code')
             ->where('is_active', true)
-            ->when($this->providerAccess->accessibleProviderIds($request->user()) !== [], function ($query) use ($request): void {
-                $query->whereIn('id', $this->providerAccess->accessibleProviderIds($request->user()));
-            })
+            ->tap(fn ($query) => $this->providerAccess->filterProviderScopedQuery($request->user(), $query, 'id'))
             ->orderBy('name_en')
             ->get(['id', 'organization_id', 'name_en', 'name_am', 'code', 'contact_person', 'phone_number', 'email', 'location', 'is_active']);
 
@@ -198,9 +196,7 @@ class CafeteriaTransactionController extends Controller
         $providers = CafeteriaProvider::query()
             ->with('organization:id,name_en,name_am,code')
             ->where('is_active', true)
-            ->when($this->providerAccess->accessibleProviderIds($request->user()) !== [], function ($query) use ($request): void {
-                $query->whereIn('id', $this->providerAccess->accessibleProviderIds($request->user()));
-            })
+            ->tap(fn ($query) => $this->providerAccess->filterProviderScopedQuery($request->user(), $query, 'id'))
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_am', 'code', 'is_active']);
 
@@ -224,6 +220,8 @@ class CafeteriaTransactionController extends Controller
     public function today(Request $request): JsonResponse
     {
         $this->authorize('viewAny', CafeteriaTransaction::class);
+        // Validated first: PostgreSQL rejects comparing a uuid key with '' or other text.
+        $request->validate(['provider_id' => ['required', 'uuid']]);
 
         $provider = CafeteriaProvider::query()->findOrFail($request->string('provider_id')->toString());
 
@@ -237,6 +235,7 @@ class CafeteriaTransactionController extends Controller
     public function calendar(Request $request): JsonResponse
     {
         $this->authorize('scan', CafeteriaTransaction::class);
+        $request->validate(['provider_id' => ['required', 'uuid'], 'employee_id' => ['nullable', 'uuid'], 'date' => ['nullable', 'date']]);
 
         $provider = CafeteriaProvider::query()->findOrFail($request->string('provider_id')->toString());
 

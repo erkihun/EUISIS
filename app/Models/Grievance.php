@@ -104,7 +104,8 @@ class Grievance extends Model
 
     public function latestResponse(): HasOne
     {
-        return $this->hasOne(GrievanceResponse::class)->latestOfMany();
+        // Ordered, not latestOfMany(): PostgreSQL has no MAX for uuid keys.
+        return $this->hasOne(GrievanceResponse::class)->latest('created_at')->latest('id');
     }
 
     public function escalations(): HasMany

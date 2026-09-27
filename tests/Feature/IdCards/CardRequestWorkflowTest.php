@@ -9,6 +9,7 @@ use App\Actions\IdCards\RejectCardRequestAction;
 use App\Actions\IdCards\SubmitCardRequestAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\CardRequestStatus;
+use App\Enums\CardRequestType;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
@@ -387,4 +388,25 @@ it('throws when approving a second request when employee already has active card
 
     expect(fn () => app(ApproveCardRequestAction::class)->execute($request->fresh(), $actor))
         ->toThrow(DomainException::class, 'active card');
+});
+
+it('issues one card when two approvers approve the same lost-card request', function (): void {
+    $employee = makeActiveEmployee();
+    $actor = User::factory()->create();
+    $actor->assignRole('City Admin');
+    $lost = IdCard::query()->create([
+        'employee_id' => $employee->id, 'card_number' => 'CARD-LOST-1', 'status' => CardStatus::Lost,
+        'token_hash' => hash('sha256', 'lost-token'), 'issued_at' => now()->subYear(), 'expires_at' => now()->addYear(),
+        'token_version' => 1, 'is_current' => false,
+    ]);
+    $request = app(SubmitCardRequestAction::class)->execute($employee, $actor, 'Lost on the bus', CardRequestType::Lost, $lost);
+
+    // Both approvers loaded the request while it was still submitted.
+    $first = $request->fresh();
+    $second = $request->fresh();
+    app(ApproveCardRequestAction::class)->execute($first, $actor);
+
+    expect(fn () => app(ApproveCardRequestAction::class)->execute($second, $actor))->toThrow(DomainException::class, 'approved')
+        ->and(IdCard::query()->where('employee_id', $employee->id)->where('card_request_id', $request->id)->count())->toBe(1)
+        ->and(IdCard::query()->where('employee_id', $employee->id)->where('is_current', true)->count())->toBe(1);
 });

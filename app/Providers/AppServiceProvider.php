@@ -113,7 +113,11 @@ use App\Services\Security\SessionActivityService;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
@@ -157,6 +161,14 @@ class AppServiceProvider extends ServiceProvider
         $this->configureViteAssetMode();
         Vite::prefetch(concurrency: 3);
         $this->applyRuntimeSystemSettings();
+
+        // GET /up is the load balancer health check. It also proves the database
+        // and the cache store answer: a listener that throws turns it into a 500,
+        // so a node that lost its database is taken out of rotation.
+        Event::listen(DiagnosingHealth::class, function (): void {
+            DB::connection()->select('select 1');
+            Cache::store()->get('health:probe');
+        });
 
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);

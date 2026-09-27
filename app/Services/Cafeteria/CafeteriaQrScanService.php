@@ -25,6 +25,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * One cafeteria scan, whatever the credential: a QR token string, or an
@@ -190,6 +191,7 @@ class CafeteriaQrScanService
                     'scan_nonce' => $scanNonce,
                     'scan_request_hash' => $scanRequestHash,
                     'service_terminal_id' => $options['service_terminal_id'] ?? null,
+                    'provider_user_id' => $options['provider_user_id'] ?? null,
                 ],
             );
         } catch (EntitlementAlreadyConsumed) {
@@ -249,7 +251,8 @@ class CafeteriaQrScanService
         // (c) Token format: "<card_primary_id>|<raw_token>"
         if (str_contains($qrToken, '|')) {
             [$cardId, $rawToken] = array_pad(explode('|', $qrToken, 2), 2, null);
-            if ($cardId !== null && $rawToken !== null) {
+            // A non-uuid id is not a card (and PostgreSQL rejects comparing it).
+            if ($cardId !== null && $rawToken !== null && Str::isUuid($cardId)) {
                 return IdCard::query()
                     ->with('employee.currentAssignment')
                     ->where('id', $cardId)

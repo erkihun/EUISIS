@@ -11,6 +11,7 @@ use App\Enums\Performance\PlanStatus;
 use App\Enums\Performance\ResultStatus;
 use App\Enums\Performance\ReviewType;
 use App\Enums\Performance\StrategicGoalStatus;
+use App\Http\Middleware\SetClientLocale;
 use App\Models\AuditLog;
 use App\Models\Competency;
 use App\Models\DailyActivityItem;
@@ -1124,7 +1125,9 @@ test('rating band label edits preserve limits and reject precision that storage 
 });
 
 test('rating band open limits are accepted but partial edits cannot invert a range', function (): void {
-    $band = PerformanceRatingBand::query()->whereNull('level_value')->orderBy('min_score')->firstOrFail();
+    // The lowest band, whose lower limit is already open. Named rather than
+    // orderBy('min_score'): PostgreSQL sorts that NULL last, SQLite/MySQL first.
+    $band = PerformanceRatingBand::query()->whereNull('level_value')->where('label_en', 'Unsatisfactory')->firstOrFail();
     $this->actingAs($this->admin)->put(route('performance.settings.bands.update', $band->id), ['label_en' => $band->label_en, 'min_score' => null, 'max_score' => $band->max_score])
         ->assertSessionHasNoErrors();
     expect($band->fresh()->min_score)->toBeNull();
@@ -1265,4 +1268,60 @@ test('all fifteen reports render and export inside the viewer\'s scope', functio
     }
     $this->get(route('performance.agreements.index'))
         ->assertInertia(fn (AssertableInertia $p) => $p->where('cycles', fn ($cycles) => collect($cycles)->pluck('id')->doesntContain($this->cycle->id)));
+});
+
+test('strategic goal page defaults to the only organization and cycle and lists linked objectives', function (): void {
+    $strategic = app(StrategicPlanningService::class);
+    $plans = app(PerformancePlanService::class);
+    $goal = $strategic->createGoal(['cycle_id' => $this->cycle->id, 'organization_id' => $this->orgA->id, 'code' => 'SG-OBJ', 'name_en' => 'Linked goal', 'name_am' => 'የተያያዘ ግብ', 'weight_percent' => '100.0000'], $this->admin);
+    $plan = $plans->create(['cycle_id' => $this->cycle->id, 'plan_type' => 'ORGANIZATION', 'organization_id' => $this->orgA->id, 'title' => 'Linked plan'], $this->admin);
+    $plans->addObjective($plan, ['strategic_goal_id' => $goal->id, 'code' => 'OBJ-L', 'title_en' => 'Linked objective', 'weight' => 100, 'absolute_weight_percent' => 100], $this->admin);
+
+    // No filters in the URL: a user scoped to one organization lands on it and its cycle.
+    $this->actingAs($this->admin)->get(route('performance.strategic-goals.index'))
+        ->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('filters.organization_id', $this->orgA->id)
+        ->where('filters.cycle_id', $this->cycle->id)
+        ->where('goals.data.0.code', 'SG-OBJ')
+        ->where('goals.data.0.objectives.0.code', 'OBJ-L')
+        ->where('goals.data.0.objectives.0.plan.id', $plan->id)
+        ->has('summary.status_counts'));
+});
+
+test('strategic goal allocations are editable and emptied goal dates fall back to the cycle', function (): void {
+    $strategic = app(StrategicPlanningService::class);
+    $goal = $strategic->createGoal(['cycle_id' => $this->cycle->id, 'organization_id' => $this->orgA->id, 'code' => 'SG-EDIT', 'name_en' => 'Editable goal', 'name_am' => 'የሚስተካከል ግብ', 'weight_percent' => '50.0000', 'effective_from' => '2026-02-01', 'effective_to' => '2026-11-30'], $this->admin);
+    $allocation = $strategic->addAllocation($goal, ['organization_unit_id' => $this->directorate->id, 'organization_contribution_percent' => '20.0000', 'allocation_type' => 'PRIMARY', 'is_lead' => true], $this->admin);
+
+    $this->actingAs($this->admin)->put(route('performance.strategic-goal-allocations.update', $allocation), [
+        'organization_contribution_percent' => '35.5000', 'allocation_type' => 'PRIMARY', 'is_lead' => true, 'notes' => 'Revised split',
+    ])->assertSessionHasNoErrors();
+    expect($allocation->fresh())->organization_contribution_percent->toBe('35.5000')->notes->toBe('Revised split');
+
+    // The unit of an allocation is fixed once created.
+    $this->put(route('performance.strategic-goal-allocations.update', $allocation), [
+        'organization_unit_id' => $this->team->id, 'organization_contribution_percent' => '35.5000', 'allocation_type' => 'PRIMARY',
+    ])->assertSessionHasErrors('organization_unit_id');
+
+    $this->put(route('performance.strategic-goals.update', $goal), ['effective_from' => null, 'effective_to' => null])->assertSessionHasNoErrors();
+    expect($goal->fresh()->effective_from->toDateString())->toBe('2026-01-01')
+        ->and($goal->fresh()->effective_to->toDateString())->toBe('2026-12-31');
+});
+
+test('validation messages follow the client locale cookie and header', function (): void {
+    $goal = app(StrategicPlanningService::class)->createGoal(['cycle_id' => $this->cycle->id, 'organization_id' => $this->orgA->id, 'code' => 'SG-LOC', 'name_en' => 'Localized goal', 'name_am' => 'ግብ', 'weight_percent' => '10.0000'], $this->admin);
+    $am = __('validation.gt.numeric', ['attribute' => __('performance.attributes.weight', [], 'am'), 'value' => 0], 'am');
+
+    $this->actingAs($this->admin)->withUnencryptedCookie(SetClientLocale::COOKIE, 'am')
+        ->put(route('performance.strategic-goals.update', $goal), ['weight_percent' => 0])
+        ->assertSessionHasErrors(['weight_percent' => $am]);
+
+    $this->withHeader('X-Locale', 'am')->put(route('performance.strategic-goals.update', $goal), ['weight_percent' => 0])
+        ->assertSessionHasErrors(['weight_percent' => $am]);
+
+    // An unsupported value is ignored rather than trusted.
+    $this->withUnencryptedCookie(SetClientLocale::COOKIE, '../../etc')->withHeader('X-Locale', 'xx')
+        ->put(route('performance.strategic-goals.update', $goal), ['weight_percent' => 0])
+        ->assertSessionHasErrors('weight_percent');
+    expect(app()->getLocale())->toBeIn(SetClientLocale::SUPPORTED);
 });

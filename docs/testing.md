@@ -52,7 +52,55 @@
 php artisan test
 ```
 
-Current automated suite runs against SQLite in memory through `phpunit.xml.dist`. PostgreSQL-specific constraints such as partial indexes still need separate integration coverage.
+By default the suite runs against SQLite in memory through `phpunit.xml.dist`.
+
+### On PostgreSQL (the production engine)
+
+SQLite accepts things PostgreSQL rejects — comparing a uuid column with `''`,
+`MAX()` over uuids, over-long values in a uuid column, NULL ordering — so run
+the suite on PostgreSQL before every release (go-live condition C1).
+
+```bash
+# Once: an empty database used only by tests. Every run wipes it; never point
+# this at the application's own database.
+#   CREATE DATABASE aaemployeedb_test ENCODING 'UTF8';
+DB_CONNECTION=pgsql DB_DATABASE=aaemployeedb_test php artisan test --parallel
+```
+
+Host, port, user and password come from `.env`; the variables above override
+`phpunit.xml.dist` because it does not force them. Parallel runs create one
+`<database>_test_<n>` database per worker, so the user needs `CREATEDB`.
+A default PostgreSQL (`max_locks_per_transaction = 64`) runs out of shared
+memory with many workers rebuilding the schema at once: use `--processes=4` or
+fewer, or raise that setting.
+
+### Coverage
+
+Needs the PCOV extension. On Windows, keep it out of the PHP installation and
+load it through an extra ini directory, which parallel workers inherit:
+
+```bash
+# conf.d/pcov.ini:
+#   extension="C:/path/to/php_pcov.dll"   (PECL build matching PHP version, NTS/TS, vs16, x64)
+#   pcov.enabled=1
+#   pcov.directory="C:/…/EUISIS/app"
+PHP_INI_SCAN_DIR="C:/path/to/conf.d" php artisan test --parallel --coverage-clover=coverage.xml
+```
+
+Baseline 2026-09-27 (SQLite, 2 470 tests): **71.9 % of executable lines in `app/`**.
+Lowest-covered risk areas at that date: `MfaController` 5 %, organization scope
+service 60 %, policies 52 %, cafeteria back-office transactions controller 36 %,
+cafeteria module 57 %, transfers 45 %, grievances 50 %, transport 4 %.
+Line coverage is not path coverage: a covered line may still hide untested
+combinations of role, organization, date and state.
+
+After the risk-first round (2026-09-27, 2 500 tests): **72.7 %** overall.
+MFA controller 94 %, MFA middleware 93 %, cafeteria provider access 91 %,
+print-batch policy 100 %, cafeteria transactions controller 66 %, sensitive-data
+encryption command 81 %. The round found and fixed 7 defects (readiness
+assessment PRA-29 … PRA-35). Still low and not yet addressed: transfers,
+grievances, vacancies and transport (only if in the go-live scope); the
+organization scope service stays at 66 % because `buildVersionTree()` is unused.
 
 ## Remaining Gaps
 
