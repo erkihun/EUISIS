@@ -46,6 +46,7 @@ use App\Http\Controllers\Transport\TransportVehicleController;
 use App\Http\Controllers\Web\AdministrativeTribunalController;
 use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
+use App\Http\Controllers\Web\BackupRecoveryController;
 use App\Http\Controllers\Web\Cafeteria\CafeteriaAccessController;
 use App\Http\Controllers\Web\Cafeteria\CafeteriaAnalyticsController;
 use App\Http\Controllers\Web\Cafeteria\CafeteriaNetworkController;
@@ -478,6 +479,12 @@ Route::get('/verify/card/{publicCardUuid}', fn (string $publicCardUuid) => redir
     ->middleware('throttle:30,1');
 
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
+    Route::prefix('system/backup-recovery')->name('backups.')->middleware('throttle:30,1')->group(function (): void {
+        Route::get('/', [BackupRecoveryController::class, 'index'])->name('index');
+        Route::post('/refresh', [BackupRecoveryController::class, 'refresh'])->middleware('throttle:6,1')->name('refresh');
+        Route::post('/requests', [BackupRecoveryController::class, 'store'])->name('requests.store');
+        Route::post('/requests/{restoreRequest}', [BackupRecoveryController::class, 'transition'])->whereUuid('restoreRequest')->name('requests.transition');
+    });
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::prefix('public-site-management')->name('public-site-management.')->controller(PublicSiteManagementController::class)->group(function (): void {

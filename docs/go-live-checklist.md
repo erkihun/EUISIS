@@ -1,5 +1,31 @@
 # EUISIS go-live checklist
 
+## Backup and recovery gates (required evidence)
+
+See [architecture](backup-recovery-architecture.md). Current status: **NOT_READY**;
+the following require actual deployment evidence, not passing application unit tests.
+
+- [ ] pgBackRest installed with pinned compatible version and reviewed configuration
+- [ ] Full backups successful in both repositories
+- [ ] Differential/incremental backups successful in both repositories
+- [ ] WAL archive enabled/healthy with measured lag and capacity monitoring
+- [ ] Independent/off-site storage and failure domains verified (not two directories on primary)
+- [ ] Both repositories encrypted; SSH/TLS and private access verified
+- [ ] Verification successful; corruption resolved; retention/WAL dependencies reviewed
+- [ ] Isolated PITR tests passed from each repository; target/timeline and duration recorded
+- [ ] APP_KEY and historical/repository key recovery verified separately
+- [ ] Private/public file/object storage recovered with consistency/checksum checks
+- [ ] Retention/holds configured; expiry reviewed and audited
+- [ ] Backup/WAL/capacity/staleness/restore failure alerts tested, including independent dead-man alerts
+- [ ] Protected atomic status feed and isolated journal transport deployed; app cannot write reports
+- [ ] Backup operator, security/key custodian and separate restore approver assigned
+- [ ] PITR, full DR, file/key and pre-migration runbooks rehearsed
+- [ ] RPO/RTO approved by business owner; measured against drills (currently NEEDS_DECISION)
+- [ ] `production:readiness --strict` backup gate passes on deployed infrastructure
+
+No recoverable independent backup, tested restore, working required WAL, recoverable key/file
+storage, private repository or resolved integrity failure is a **production blocker**.
+
 Sign each line with name and date. A line that cannot be ticked blocks
 go-live unless the system owner accepts the risk in writing next to it.
 Evidence and finding IDs (PRA-nn, D-n) refer to
@@ -31,15 +57,15 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 - [ ] TLS certificate valid; HTTP redirects to HTTPS; HSTS present (smoke test)
 - [ ] Load balancer health check on `GET /up`
 - [ ] Cron runs `schedule:run` every minute; queue worker supervised
-- [ ] Database backups scheduled and one restore rehearsed (backup-and-disaster-recovery.md)
-- [ ] `storage/app` on persistent, backed-up storage (employee photos and card templates are private files)
+- [ ] Backup and recovery gates at the top of this checklist signed (pgBackRest, WAL/PITR, isolated restore test)
+- [ ] `storage/app` on persistent, backed-up storage (employee photos and card templates are private files; see runbooks/object-storage-recovery.md)
 - [ ] Database not reachable from the internet; application DB user has no superuser rights
 
 ## D. Release
 
 - [ ] Tagged release; CI green (tests, type check, build, `composer audit --locked`, `npm audit --omit=dev`)
 - [ ] `migrate --pretend` output reviewed; includes the pending `2026_09_26_000000_add_rbac_metadata_and_register_permission_catalog`
-- [ ] Pre-deploy backup taken and verified
+- [ ] Pre-deploy recovery evidence recorded: verified pgBackRest backup labels in both repositories and a current isolated restore test (runbook/deployment-and-rollback.md §1)
 - [ ] Rollback owner named; runbook read (runbook/deployment-and-rollback.md)
 
 ## E. Master data and access

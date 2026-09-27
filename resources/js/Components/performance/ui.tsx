@@ -1,4 +1,5 @@
 import LocalizedEmptyState from '@/Components/EmptyState';
+import { Inbox } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { Pagination, StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
 import { router } from '@inertiajs/react';
@@ -168,7 +169,7 @@ export function Field({ label, htmlFor, error, help, children, className = '' }:
 
 /** The shared EmptyState; `compact` for small side panels. */
 export function Empty({ children, compact = false }: { children?: ReactNode; compact?: boolean }) {
-    return <LocalizedEmptyState title={typeof children === 'string' ? children : undefined} className={compact ? 'py-6' : ''} />;
+    return <LocalizedEmptyState icon={<Inbox className={compact ? 'h-6 w-6' : 'h-8 w-8'} />} title={typeof children === 'string' ? children : undefined} className={compact ? 'py-6' : ''} />;
 }
 
 /** Server-computed problems that block the next step (validation before submit). */

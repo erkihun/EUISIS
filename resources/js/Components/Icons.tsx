@@ -719,3 +719,31 @@ export function HistoryIcon(p: IconProps) {
         </svg>
     );
 }
+
+/** Camera — scan terminal camera controls */
+export function CameraIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+            <circle cx="12" cy="13" r="3" />
+        </svg>
+    );
+}
+
+/** Keyboard — manual code entry */
+export function KeyboardIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <rect x="2" y="5" width="20" height="14" rx="2" />
+            <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M9 17h6M10 13h4" />
+        </svg>
+    );
+}
+
+export function ChevronLeft(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <polyline points="15 18 9 12 15 6" />
+        </svg>
+    );
+}

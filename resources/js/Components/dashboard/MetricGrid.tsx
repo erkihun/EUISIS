@@ -15,15 +15,17 @@ interface Props {
  * rendered it at half the page width, floating out of alignment with the six
  * tiles directly above it.
  *
- * The featured overview deliberately mixes widths at desktop sizes so the
- * primary metric leads without sacrificing scanability for supporting data.
+ * The featured overview leads with its first metric through the card's accent
+ * border, not a wider track: with up to four tiles every tile gets an equal
+ * share, because narrower tracks wrapped labels and misaligned the values.
+ * Mixed widths remain only where a row would otherwise leave a gap.
  */
 function featuredSpan(count: number, index: number): string {
     const patterns: Record<number, string[]> = {
         1: ['xl:col-span-12'],
-        2: ['xl:col-span-7', 'xl:col-span-5'],
-        3: ['xl:col-span-6', 'xl:col-span-3', 'xl:col-span-3'],
-        4: ['xl:col-span-4', 'xl:col-span-3', 'xl:col-span-3', 'xl:col-span-2'],
+        2: ['xl:col-span-6', 'xl:col-span-6'],
+        3: ['xl:col-span-4', 'xl:col-span-4', 'xl:col-span-4'],
+        4: ['xl:col-span-3', 'xl:col-span-3', 'xl:col-span-3', 'xl:col-span-3'],
         5: [
             'xl:col-span-6',
             'xl:col-span-3',

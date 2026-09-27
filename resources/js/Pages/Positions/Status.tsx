@@ -1,8 +1,11 @@
 import PageHeader from '@/Components/PageHeader';
 import PositionOccupancyBreakdown, { type Breakdowns } from '@/Components/positions/PositionOccupancyBreakdown';
+import StatusBadge from '@/Components/StatusBadge';
+import AppMetricCard from '@/Components/ui/AppMetricCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Briefcase, ClipboardCheckIcon, Inbox, TrendingUpIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { Button, Card, EmptyState, Input, Pagination, Select, StatusBadge as UiStatusBadge, cx } from '@euisis/ui';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
@@ -62,15 +65,6 @@ type Props = {
     filters: Record<string, string>;
 };
 
-function metricTone(index: number): string {
-    return [
-        'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300',
-        'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300',
-        'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300',
-        'border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-300',
-    ][index];
-}
-
 export default function PositionStatus({ summary, breakdowns, positions, organizations, organizationUnits, isOrganizationScoped, filters }: Props) {
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
@@ -85,20 +79,6 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
     });
 
     const occupancyRate = Math.min(100, Math.max(0, summary.occupancy_rate));
-
-    const metrics = [
-        { label: t('positions.totalJobPositions'), value: summary.total_positions.toLocaleString(), icon: Briefcase },
-        { label: t('positions.filledPositions'), value: summary.filled_positions.toLocaleString(), icon: ClipboardCheckIcon },
-        { label: t('positions.vacantPositions'), value: summary.vacant_positions.toLocaleString(), icon: Inbox },
-        {
-            label: t('positions.occupancyRate'),
-            value: `${occupancyRate.toLocaleString()}%`,
-            icon: TrendingUpIcon,
-            progress: occupancyRate,
-        },
-    ];
-
-    const inputClass = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
     function optionLabel(option: SelectOption): string {
         return (useAmharic ? option.name_am : option.name_en) ?? option.name_en ?? option.id;
@@ -117,6 +97,13 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
         router.get(route('positions.status'), { ...form.data, page }, { preserveState: true, preserveScroll: true });
     }
 
+    function changePageSize(size: number) {
+        form.setData('per_page', String(size));
+        router.get(route('positions.status'), { ...form.data, per_page: size, page: 1 }, { preserveState: true, preserveScroll: true });
+    }
+
+    const cell = 'px-4 py-3';
+
     return (
         <AuthenticatedLayout
             header={<PageHeader title={t('positions.newJobPositionsStatus')} description={t('positions.newJobPositionsStatusDescription')} />}
@@ -125,158 +112,94 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
 
             <div className="space-y-6">
                 <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    {metrics.map((metric, index) => {
-                        const Icon = metric.icon;
-
-                        return (
-                            <div key={metric.label} className={`rounded-lg border p-5 ${metricTone(index)}`}>
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-medium opacity-80">{metric.label}</p>
-                                        <p className="mt-2 text-3xl font-semibold">{metric.value}</p>
-                                    </div>
-                                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white/70 dark:bg-white/10">
-                                        <Icon className="h-5 w-5" />
-                                    </span>
-                                </div>
-                                {metric.progress !== undefined && (
-                                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/60 dark:bg-white/10">
-                                        <div className="h-full rounded-full bg-current" style={{ width: `${metric.progress}%` }} />
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                    <AppMetricCard label={t('positions.totalJobPositions')} value={summary.total_positions.toLocaleString()} variant="primary" icon={<Briefcase className="h-5 w-5" />} />
+                    <AppMetricCard label={t('positions.filledPositions')} value={summary.filled_positions.toLocaleString()} variant="success" icon={<ClipboardCheckIcon className="h-5 w-5" />} />
+                    <AppMetricCard label={t('positions.vacantPositions')} value={summary.vacant_positions.toLocaleString()} variant={summary.vacant_positions > 0 ? 'warning' : 'neutral'} icon={<Inbox className="h-5 w-5" />} />
+                    <AppMetricCard label={t('positions.occupancyRate')} value={`${occupancyRate.toLocaleString()}%`} variant="neutral" icon={<TrendingUpIcon className="h-5 w-5" />}
+                        detail={
+                            <span className="block h-1.5 w-40 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]" role="img" aria-label={`${occupancyRate}%`}>
+                                <span className="block h-full rounded-full bg-emerald-500 dark:bg-emerald-400" style={{ width: `${occupancyRate}%` }} />
+                            </span>
+                        } />
                 </section>
 
                 <PositionOccupancyBreakdown breakdowns={breakdowns} />
 
-                <section className="rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <form className={`grid gap-3 ${isOrganizationScoped ? 'lg:grid-cols-4' : 'lg:grid-cols-5'}`} onSubmit={submit}>
-                        <input
-                            className={`${inputClass} lg:col-span-2`}
-                            value={form.data.search}
-                            placeholder={t('positions.searchPositions')}
-                            onChange={(event) => form.setData('search', event.target.value)}
-                        />
+                <Card className="p-4">
+                    <form className="grid gap-3 md:grid-cols-2 lg:grid-cols-4" onSubmit={submit}>
+                        <Input className="md:col-span-2" value={form.data.search} aria-label={t('positions.searchPositions')} placeholder={t('positions.searchPositions')}
+                            onChange={(event) => form.setData('search', event.target.value)} />
                         {!isOrganizationScoped && (
-                            <select
-                                className={inputClass}
-                                value={form.data.organization_id}
-                                onChange={(event) => {
-                                    form.setData('organization_id', event.target.value);
-                                    form.setData('organization_unit_id', '');
-                                }}
-                            >
+                            <Select aria-label={t('positions.organization')} value={form.data.organization_id}
+                                onChange={(event) => form.setData({ ...form.data, organization_id: event.target.value, organization_unit_id: '' })}>
                                 <option value="">{t('positions.organization')}</option>
-                                {organizations.map((organization) => (
-                                    <option key={organization.id} value={organization.id}>{optionLabel(organization)}</option>
-                                ))}
-                            </select>
+                                {organizations.map((organization) => <option key={organization.id} value={organization.id}>{optionLabel(organization)}</option>)}
+                            </Select>
                         )}
-                        <select
-                            className={inputClass}
-                            value={form.data.organization_unit_id}
-                            onChange={(event) => form.setData('organization_unit_id', event.target.value)}
-                        >
+                        <Select aria-label={t('positions.organizationUnit')} value={form.data.organization_unit_id} onChange={(event) => form.setData('organization_unit_id', event.target.value)}>
                             <option value="">{t('positions.organizationUnit')}</option>
-                            {organizationUnits.map((unit) => (
-                                <option key={unit.id} value={unit.id}>{optionLabel(unit)}</option>
-                            ))}
-                        </select>
-                        <div className="flex gap-2">
-                            <select className={`${inputClass} min-w-0 flex-1`} value={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.value)}>
-                                <option value="">{t('common.status')}</option>
-                                <option value="1">{t('common.active')}</option>
-                                <option value="0">{t('common.inactive')}</option>
-                            </select>
-                            <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
-                                {t('common.filter')}
-                            </button>
-                        </div>
-                        <div className={`flex gap-2 ${isOrganizationScoped ? 'lg:col-span-4' : 'lg:col-span-5'}`}>
-                            <input
-                                className={`${inputClass} max-w-xs`}
-                                value={form.data.grade_level}
-                                placeholder={t('positions.gradeLevel')}
-                                onChange={(event) => form.setData('grade_level', event.target.value)}
-                            />
-                            <select className={`${inputClass} max-w-[120px]`} value={form.data.per_page} onChange={(event) => form.setData('per_page', event.target.value)}>
-                                {[10, 15, 25, 50].map((size) => <option key={size} value={size}>{size}</option>)}
-                            </select>
-                            <button type="button" className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800" onClick={clearFilters}>
-                                {t('common.clear')}
-                            </button>
+                            {organizationUnits.map((unit) => <option key={unit.id} value={unit.id}>{optionLabel(unit)}</option>)}
+                        </Select>
+                        <Input aria-label={t('positions.gradeLevel')} value={form.data.grade_level} placeholder={t('positions.gradeLevel')}
+                            onChange={(event) => form.setData('grade_level', event.target.value)} />
+                        <Select aria-label={t('common.status')} value={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.value)}>
+                            <option value="">{t('common.status')}</option>
+                            <option value="1">{t('common.active')}</option>
+                            <option value="0">{t('common.inactive')}</option>
+                        </Select>
+                        <div className={cx('flex gap-2', isOrganizationScoped ? 'md:col-span-2 lg:col-span-1' : 'md:col-span-2')}>
+                            <Button type="submit" variant="primary" className="flex-1 lg:flex-none">{t('common.filter')}</Button>
+                            <Button variant="outline" onClick={clearFilters}>{t('common.clear')}</Button>
                         </div>
                     </form>
-                </section>
+                </Card>
 
-                <section className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <Card className="overflow-hidden p-0">
                     {positions.data.length === 0 ? (
-                        <div className="p-10 text-center text-sm text-gray-500 dark:text-slate-400">{t('positions.noPositionStatusFound')}</div>
+                        <EmptyState icon={<Briefcase className="h-8 w-8" />} title={t('positions.noPositionStatusFound')} />
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-left text-sm">
-                                <thead className="bg-gray-50 dark:bg-slate-950">
+                                <thead className="bg-[color:var(--app-surface-muted)] text-xs text-[color:var(--app-muted-foreground)]">
                                     <tr>
-                                        {[
-                                            ...(isOrganizationScoped ? [] : [t('positions.organization')]),
-                                            t('positions.organizationUnit'),
-                                            t('positions.jobPositionCode'),
-                                            t('positions.positionTitle'),
-                                            t('positions.gradeLevel'),
-                                            t('common.status'),
-                                            t('positions.occupancy'),
-                                            '',
-                                        ].map((heading, index) => (
-                                            <th key={index} className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">
-                                                {heading}
-                                            </th>
-                                        ))}
+                                        <th scope="col" className={cx(cell, 'font-medium')}>{isOrganizationScoped ? t('positions.organizationUnit') : `${t('positions.organizationUnit')} / ${t('positions.organization')}`}</th>
+                                        <th scope="col" className={cx(cell, 'font-medium')}>{t('positions.positionTitle')}</th>
+                                        <th scope="col" className={cx(cell, 'font-medium')}>{t('positions.gradeLevel')}</th>
+                                        <th scope="col" className={cx(cell, 'font-medium')}>{t('common.status')}</th>
+                                        <th scope="col" className={cx(cell, 'font-medium')}>{t('positions.occupancy')}</th>
+                                        <th scope="col" className={cell}><span className="sr-only">{t('vacancies.announceVacancy')}</span></th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className="divide-y divide-[color:var(--app-border)]">
                                     {positions.data.map((position) => {
-                                        const organizationName = (useAmharic ? position.organization_name_am : position.organization_name_en) ?? position.organization_name_en ?? '-';
+                                        const organizationName = (useAmharic ? position.organization_name_am : position.organization_name_en) ?? position.organization_name_en ?? '—';
                                         const departmentName = (useAmharic ? position.department_name_am : position.department_name_en) ?? position.department_name_en ?? t('positions.unassignedDepartment');
+                                        const title = (useAmharic ? position.title_am : position.title_en) ?? position.title_en ?? '—';
 
                                         return (
-                                            <tr key={position.id} className="text-gray-700 dark:text-slate-200">
-                                                {!isOrganizationScoped && (
-                                                    <td className="whitespace-nowrap px-4 py-3">{organizationName}</td>
-                                                )}
-                                                <td className="whitespace-nowrap px-4 py-3">{departmentName}</td>
-                                                <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">
-                                                    <Link href={route('positions.show', position.position_id)} className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
-                                                        {position.job_position_code ?? position.establishment_number ?? '-'}
-                                                    </Link>
+                                            <tr key={position.id} className="text-[color:var(--app-foreground)]">
+                                                <td className={cx(cell, 'min-w-[14rem]')}>
+                                                    <p>{departmentName}</p>
+                                                    {!isOrganizationScoped && organizationName !== departmentName && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{organizationName}</p>}
                                                 </td>
-                                                <td className="px-4 py-3">{(useAmharic ? position.title_am : position.title_en) ?? position.title_en ?? '-'}</td>
-                                                <td className="whitespace-nowrap px-4 py-3">{position.grade_level ?? '-'}</td>
-                                                <td className="whitespace-nowrap px-4 py-3">
-                                                    <span className={`rounded-full px-2 py-1 text-xs font-medium ${position.is_active ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-300'}`}>
-                                                        {position.is_active ? t('common.active') : t('common.inactive')}
-                                                    </span>
+                                                <td className={cx(cell, 'min-w-[12rem]')}>
+                                                    <Link href={route('positions.show', position.position_id)} className="font-medium hover:text-[color:var(--color-primary)] hover:underline">{title}</Link>
+                                                    <p className="mt-0.5 font-mono text-xs text-[color:var(--app-muted-foreground)]">{position.job_position_code ?? position.establishment_number ?? '—'}</p>
                                                 </td>
-                                                <td className="whitespace-nowrap px-4 py-3">
-                                                    {position.vacant_positions > 0 ? (
-                                                        <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
-                                                            {t('positions.vacant')}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-                                                            {t('positions.filled')}
-                                                        </span>
-                                                    )}
+                                                <td className={cx(cell, 'whitespace-nowrap')}>{position.grade_level ?? '—'}</td>
+                                                <td className={cx(cell, 'whitespace-nowrap')}>
+                                                    <StatusBadge status={position.is_active ? 'active' : 'inactive'} label={position.is_active ? t('common.active') : t('common.inactive')} />
                                                 </td>
-                                                <td className="whitespace-nowrap px-4 py-3">
+                                                <td className={cx(cell, 'whitespace-nowrap')}>
+                                                    <UiStatusBadge tone={position.vacant_positions > 0 ? 'warning' : 'success'}>
+                                                        {position.vacant_positions > 0 ? t('positions.vacant') : t('positions.filled')}
+                                                    </UiStatusBadge>
+                                                </td>
+                                                <td className={cx(cell, 'whitespace-nowrap text-right')}>
                                                     {position.vacant_positions > 0 && position.establishment_id && (
-                                                        <Link
-                                                            href={route('vacancy-announcements.create', { establishment: position.establishment_id })}
-                                                            className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
-                                                        >
+                                                        <Button as={Link} size="sm" variant="outline" href={route('vacancy-announcements.create', { establishment: position.establishment_id })}>
                                                             {t('vacancies.announceVacancy')}
-                                                        </Link>
+                                                        </Button>
                                                     )}
                                                 </td>
                                             </tr>
@@ -287,31 +210,11 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
                         </div>
                     )}
 
-                    <div className="flex flex-col gap-3 border-t border-gray-100 px-4 py-3 text-sm text-gray-500 dark:border-slate-800 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between">
-                        <span>
-                            {positions.meta.from ?? 0}-{positions.meta.to ?? 0} / {positions.meta.total}
-                        </span>
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                disabled={positions.meta.current_page <= 1}
-                                onClick={() => goToPage(positions.meta.current_page - 1)}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700"
-                            >
-                                {t('common.previous')}
-                            </button>
-                            <span>{t('common.page')} {positions.meta.current_page} {t('common.of')} {positions.meta.last_page}</span>
-                            <button
-                                type="button"
-                                disabled={positions.meta.current_page >= positions.meta.last_page}
-                                onClick={() => goToPage(positions.meta.current_page + 1)}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700"
-                            >
-                                {t('common.next')}
-                            </button>
-                        </div>
+                    <div className="border-t border-[color:var(--app-border)] px-4 py-3">
+                        <Pagination meta={{ currentPage: positions.meta.current_page, lastPage: positions.meta.last_page, perPage: positions.meta.per_page, total: positions.meta.total }}
+                            onPageChange={goToPage} onPerPageChange={changePageSize} pageSizes={[10, 15, 25, 50]} />
                     </div>
-                </section>
+                </Card>
             </div>
         </AuthenticatedLayout>
     );

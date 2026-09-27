@@ -41,12 +41,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
 
     return (
         <section className={className}>
-            <header>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{t('profile.securityPassword')}</h2>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">{t('profile.passwordHelp')}</p>
-            </header>
-
-            <form onSubmit={updatePassword} className="mt-6 space-y-4">
+            <form onSubmit={updatePassword} className="space-y-4">
                 <div>
                     <label htmlFor="current_password" className="block text-xs font-medium text-gray-600 dark:text-slate-400">{t('profile.currentPassword')}</label>
                     <TextInput

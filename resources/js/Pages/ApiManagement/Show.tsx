@@ -7,6 +7,7 @@ import EndpointAssignment, { AssignableEndpoint } from '@/Components/apiManageme
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
+import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 type TokenRow = {
@@ -61,8 +62,6 @@ export default function ApiManagementShow({
     const { t } = useLocale();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState(false);
-    const [copied, setCopied] = useState(false);
-    const [copyFailed, setCopyFailed] = useState(false);
     const tokenForm = useForm({ name: application.code });
     const flash = (usePage().props as { flash?: { generated_token?: string } }).flash;
 
@@ -132,34 +131,7 @@ export default function ApiManagementShow({
 
             {/* The plaintext token exists only in this one response. */}
             {flash?.generated_token && (
-                <div className="mb-4 rounded-card border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/40">
-                    <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">{t('apiManagement.copyTokenNow')}</p>
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <code className="min-w-0 flex-1 break-all rounded-lg bg-white px-3 py-2 font-mono text-xs text-gray-900 dark:bg-slate-950 dark:text-slate-100">
-                            {flash.generated_token}
-                        </code>
-                        <button
-                            type="button"
-                            onClick={async () => {
-                                setCopied(false);
-                                setCopyFailed(false);
-                                try {
-                                    await navigator.clipboard.writeText(flash.generated_token ?? '');
-                                    setCopied(true);
-                                } catch {
-                                    setCopyFailed(true);
-                                }
-                            }}
-                            className="shrink-0 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700"
-                        >
-                            {copied ? t('common.copied') : t('common.copy')}
-                        </button>
-                    </div>
-                    {copyFailed && <p role="alert" className="mt-2 text-sm text-amber-900 dark:text-amber-200">{t('apiManagement.copyFailed')}</p>}
-                    <p className="mt-2 text-xs text-amber-800 dark:text-amber-300">
-                        {t('apiManagement.tokenEnvHint')}
-                    </p>
-                </div>
+                <div className="mb-4"><TokenReveal key={flash.generated_token} token={flash.generated_token} hint={t('apiManagement.tokenEnvHint')} /></div>
             )}
 
             <div className="mb-4">
@@ -327,7 +299,7 @@ export default function ApiManagementShow({
                         <button
                             type="button"
                             disabled={tokenForm.processing}
-                            onClick={() => { setCopied(false); setCopyFailed(false); tokenForm.post(route('api-management.tokens.store', application.id), { preserveScroll: true }); }}
+                            onClick={() => { tokenForm.post(route('api-management.tokens.store', application.id), { preserveScroll: true }); }}
                             className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
                         >
                             {t('apiManagement.generateToken')}

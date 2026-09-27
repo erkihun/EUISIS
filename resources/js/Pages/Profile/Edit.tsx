@@ -5,25 +5,26 @@ import UserAvatar from '@/Components/UserAvatar';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { formatRelative, toDate } from '@/lib/relativeTime';
 import type { PageProps } from '@/types';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const COUNTRY_CODES = [
-    { code: '+251', label: '🇪🇹 +251' },
-    { code: '+1', label: '🇺🇸 +1'   },
-    { code: '+44', label: '🇬🇧 +44'  },
-    { code: '+971', label: '🇦🇪 +971' },
-    { code: '+966', label: '🇸🇦 +966' },
-    { code: '+254', label: '🇰🇪 +254' },
-    { code: '+255', label: '🇹🇿 +255' },
-    { code: '+256', label: '🇺🇬 +256' },
-    { code: '+20', label: '🇪🇬 +20'  },
-    { code: '+27', label: '🇿🇦 +27'  },
-    { code: '+49', label: '🇩🇪 +49'  },
-    { code: '+33', label: '🇫🇷 +33'  },
-    { code: '+86', label: '🇨🇳 +86'  },
-    { code: '+91', label: '🇮🇳 +91'  },
+    { code: '+251', label: '+251 ET' },
+    { code: '+1', label: '+1 US' },
+    { code: '+44', label: '+44 GB' },
+    { code: '+971', label: '+971 AE' },
+    { code: '+966', label: '+966 SA' },
+    { code: '+254', label: '+254 KE' },
+    { code: '+255', label: '+255 TZ' },
+    { code: '+256', label: '+256 UG' },
+    { code: '+20', label: '+20 EG' },
+    { code: '+27', label: '+27 ZA' },
+    { code: '+49', label: '+49 DE' },
+    { code: '+33', label: '+33 FR' },
+    { code: '+86', label: '+86 CN' },
+    { code: '+91', label: '+91 IN' },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
 export default function Edit({
     mustVerifyEmail, status, profile,
 }: PageProps<{ mustVerifyEmail: boolean; status?: string; profile: Profile }>) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
     const parsedPhone = parsePhone(profile.phone_number);
@@ -147,6 +148,8 @@ export default function Edit({
 
     const currentPhoto = photoPreview ?? profile.profile_photo_url;
     const isActive     = profile.status === 'active';
+    const statusLabel  = t(`common.${profile.status}`) === `common.${profile.status}` ? profile.status : t(`common.${profile.status}`);
+    const lastLogin    = toDate(profile.last_login_at);
 
     return (
         <AuthenticatedLayout>
@@ -157,10 +160,17 @@ export default function Edit({
                 <div className="flex flex-col items-center gap-5 px-6 py-6 sm:flex-row sm:items-center">
                     {/* Avatar with camera button */}
                     <div className="group relative shrink-0">
-                        <div className="h-20 w-20 overflow-hidden rounded-card ring-1 ring-gray-200 sm:h-24 sm:w-24 dark:ring-slate-700">
-                            <UserAvatar src={currentPhoto} name={form.data.name || profile.name} size={112} />
+                        <div className="h-20 w-20 overflow-hidden rounded-full ring-4 ring-[color:var(--app-surface-muted)] sm:h-24 sm:w-24">
+                            <UserAvatar src={currentPhoto} name={form.data.name || profile.name} size={96} />
                         </div>
-                        <label className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-card bg-black/0 transition group-hover:bg-black/40">
+                        <label title={t('profile.changePhoto')} className="absolute inset-0 flex cursor-pointer items-center justify-center rounded-full bg-black/0 transition focus-within:bg-black/40 group-hover:bg-black/40">
+                            <span className="sr-only">{t('profile.changePhoto')}</span>
+                            <span aria-hidden="true" className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[color:var(--app-surface)] bg-[color:var(--color-primary)] text-white shadow-sm transition group-hover:opacity-0">
+                                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </span>
                             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/0 text-white opacity-0 transition group-hover:bg-white/20 group-hover:opacity-100">
                                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -173,8 +183,9 @@ export default function Edit({
                             <button
                                 type="button"
                                 onClick={() => { form.setData('profile_photo', null); setPhotoPreview(null); }}
-                                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:bg-red-600"
-                                title="Remove"
+                                className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:bg-red-600"
+                                title={t('common.remove')}
+                                aria-label={t('common.remove')}
                             >
                                 <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -201,7 +212,7 @@ export default function Edit({
 
                     {/* Account status — same badge vocabulary as everywhere else. */}
                     <div className="shrink-0">
-                        <StatusBadge status={isActive ? 'active' : 'inactive'} label={profile.status} />
+                        <StatusBadge status={isActive ? 'active' : 'inactive'} label={statusLabel} />
                     </div>
                 </div>
 
@@ -228,7 +239,7 @@ export default function Edit({
                                     </svg>
                                     {t('profile.status')}
                                 </span>
-                                <StatusBadge status={isActive ? 'active' : 'inactive'} label={profile.status} />
+                                <StatusBadge status={isActive ? 'active' : 'inactive'} label={statusLabel} />
                             </li>
                             <li className="flex items-start justify-between gap-3 text-sm">
                                 <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
@@ -237,8 +248,8 @@ export default function Edit({
                                     </svg>
                                     {t('profile.lastLogin')}
                                 </span>
-                                <span className="text-right text-xs font-medium text-gray-700 dark:text-slate-300">
-                                    {profile.last_login_at ?? t('profile.notAvailable')}
+                                <span className="text-right text-xs font-medium text-gray-700 dark:text-slate-300" title={lastLogin?.toLocaleString()}>
+                                    {lastLogin ? formatRelative(profile.last_login_at, locale) : t('profile.notAvailable')}
                                 </span>
                             </li>
                         </ul>
@@ -302,7 +313,8 @@ export default function Edit({
                                 <Field label={t('profile.phoneNumber')} error={form.errors.phone_number}>
                                     <div className="flex overflow-hidden rounded-card border border-gray-200 bg-gray-50 focus-within:border-[color:var(--color-primary)] focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-800/60">
                                         <select
-                                            className="border-0 bg-transparent py-2.5 pl-3 pr-1 text-sm text-gray-700 focus:outline-none dark:text-slate-300"
+                                            aria-label={t('profile.countryCode')}
+                                            className="w-28 shrink-0 border-0 bg-transparent py-2.5 pl-3 pr-8 text-sm tabular-nums text-gray-700 focus:outline-none focus:ring-0 dark:text-slate-300"
                                             value={phoneCountry}
                                             onChange={(e) => handlePhoneCountry(e.target.value)}
                                         >
@@ -342,7 +354,7 @@ export default function Edit({
                                 </Field>
 
                                 <div className="sm:col-span-2">
-                                    <Field label={t('profile.nationalId')} error={form.errors.national_id} hint="16-digit national ID number">
+                                    <Field label={t('profile.nationalId')} error={form.errors.national_id} hint={t('profile.nationalIdHint')}>
                                         <div className="relative">
                                             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
                                                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

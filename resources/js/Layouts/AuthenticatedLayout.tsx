@@ -12,6 +12,9 @@ import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
 
 const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
+// Page chrome and content share one measure, so titles line up with the content below them
+// and very wide screens keep a readable line length.
+const CONTENT_WIDTH = 'mx-auto w-full max-w-[1600px]';
 
 export default function Authenticated({
     header,
@@ -109,7 +112,7 @@ export default function Authenticated({
 
     return (
         <LocalizedUiProvider>
-        <div className={`${variant === 'portal' ? 'portal-shell ' : ''}min-h-screen bg-gray-50 dark:bg-slate-950`}>
+        <div className={`${variant === 'portal' ? 'portal-shell ' : ''}min-h-screen bg-[color:var(--app-background)]`}>
             <a
                 href="#main-content"
                 className="sr-only fixed left-4 top-4 z-[60] rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg focus:not-sr-only"
@@ -171,17 +174,22 @@ export default function Authenticated({
                     </div>
                 )}
 
+                {/* Breadcrumbs sit above the title they lead to, in the same band. */}
                 {header && (
-                    <div className="app-page-heading shrink-0 border-b border-gray-200 bg-white px-4 py-4 sm:px-6 dark:border-slate-800 dark:bg-slate-900">
-                        {header}
+                    <div className="app-page-heading shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                        <div className={CONTENT_WIDTH + ' px-4 py-4 sm:px-6 lg:px-8'}>
+                            {showBreadcrumbs && <Breadcrumbs className="mb-3" />}
+                            {header}
+                        </div>
                     </div>
                 )}
 
-                {showBreadcrumbs && <Breadcrumbs />}
-
                 <main id="main-content" tabIndex={-1} className="min-w-0 flex-1 px-4 py-5 outline-none sm:px-6 sm:py-6 lg:px-8">
-                    <TemporaryPasswordNotice />
-                    {children}
+                    <div className={CONTENT_WIDTH}>
+                        {!header && showBreadcrumbs && <Breadcrumbs className="mb-4" />}
+                        <TemporaryPasswordNotice />
+                        {children}
+                    </div>
                 </main>
             </div>
         </div>

@@ -6,6 +6,26 @@ namespace App\Enums;
 
 enum AuditEventType: string
 {
+    case BackupStatusViewed = 'BACKUP_STATUS_VIEWED';
+    case BackupStarted = 'BACKUP_STARTED';
+    case BackupCompleted = 'BACKUP_COMPLETED';
+    case BackupFailed = 'BACKUP_FAILED';
+    case BackupVerificationStarted = 'BACKUP_VERIFICATION_STARTED';
+    case BackupVerified = 'BACKUP_VERIFIED';
+    case BackupVerificationFailed = 'BACKUP_VERIFICATION_FAILED';
+    case RestoreTestStarted = 'RESTORE_TEST_STARTED';
+    case RestoreTestPassed = 'RESTORE_TEST_PASSED';
+    case RestoreTestFailed = 'RESTORE_TEST_FAILED';
+    case RestoreRequested = 'RESTORE_REQUESTED';
+    case RestoreReviewed = 'RESTORE_REVIEWED';
+    case RestoreApproved = 'RESTORE_APPROVED';
+    case RestoreRejected = 'RESTORE_REJECTED';
+    case RestoreCancelled = 'RESTORE_CANCELLED';
+    case ProductionRestoreAuthorized = 'PRODUCTION_RESTORE_AUTHORIZED';
+    case ProductionRestoreStarted = 'PRODUCTION_RESTORE_STARTED';
+    case ProductionRestoreCompleted = 'PRODUCTION_RESTORE_COMPLETED';
+    case ProductionRestoreFailed = 'PRODUCTION_RESTORE_FAILED';
+    case RetentionCleanup = 'RETENTION_CLEANUP';
     case NfcEvent = 'nfc_event';
     case EmployeeCreated = 'employee_created';
     case EmployeeUpdated = 'employee_updated';

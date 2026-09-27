@@ -1,5 +1,6 @@
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
+import { FormField, Input, Select } from '@euisis/ui';
 
 type Values = {
     name: string; code: string; owner_institution: string; contact_person: string;
@@ -7,38 +8,55 @@ type Values = {
     status: string; allowed_ips: string[];
 };
 
+/** Application details shared by the create (index) and edit (show) forms. */
 export default function ApplicationFields({ values, onChange, errors, disabled }: {
     values: Values; onChange: (values: Values) => void; errors: Record<string, string>; disabled: boolean;
 }) {
     const { t } = useLocale();
-    const id = useId();
     const [ipText, setIpText] = useState(values.allowed_ips.join(', '));
-    const cls = 'w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
     const fields = [
         ['name', 'name', 'text', 255], ['code', 'code', 'text', 64],
         ['owner_institution', 'ownerInstitution', 'text', 255], ['contact_person', 'contactPerson', 'text', 255],
         ['contact_email', 'contactEmail', 'email', 255], ['callback_url', 'callbackUrl', 'url', 2048],
     ] as const;
-    return <fieldset disabled={disabled} className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {fields.map(([key, label, type, max]) => <div key={key} className="min-w-0">
-            <label htmlFor={`${id}-${key}`} className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{t(`apiManagement.${label}`)}</label>
-            <input id={`${id}-${key}`} className={cls} type={type} maxLength={max} required={key === 'name' || key === 'code'} value={values[key]} onChange={e => onChange({ ...values, [key]: e.target.value })} aria-invalid={Boolean(errors[key])} aria-describedby={errors[key] ? `${id}-${key}-error` : undefined} />
-            {errors[key] && <p id={`${id}-${key}-error`} className="mt-1 text-xs text-red-600 dark:text-red-400">{errors[key]}</p>}
-        </div>)}
-        <label className="space-y-1 text-sm font-medium text-gray-700 dark:text-slate-300">{t('apiManagement.rateLimit')}
-            <input className={cls} type="number" required min={1} max={10000} value={values.rate_limit_per_minute} onChange={e => onChange({ ...values, rate_limit_per_minute: Number(e.target.value) })} />
-        </label>
-        <label className="space-y-1 text-sm font-medium text-gray-700 dark:text-slate-300">{t('common.status')}
-            <select className={cls} value={values.status} onChange={e => onChange({ ...values, status: e.target.value })}>
-                {['active', 'suspended', 'revoked'].map(status => <option key={status} value={status}>{t(`common.${status}`)}</option>)}
-            </select>
-        </label>
-        <label className="space-y-1 text-sm font-medium text-gray-700 dark:text-slate-300 sm:col-span-2 xl:col-span-3">{t('apiManagement.ipAllowlist')}
-            <input className={cls} value={ipText} placeholder={t('apiManagement.ipAllowlistHint')} onChange={e => {
-                setIpText(e.target.value);
-                onChange({ ...values, allowed_ips: e.target.value.split(',').map(ip => ip.trim()).filter(Boolean) });
-            }} />
-            <span className="block text-xs font-normal text-gray-500 dark:text-slate-400">{t('apiManagement.anyIp')}</span>
-        </label>
-    </fieldset>;
+    // allowed_ips errors arrive per entry (allowed_ips.0); show the first one under the field.
+    const ipError = errors.allowed_ips ?? Object.entries(errors).find(([key]) => key.startsWith('allowed_ips.'))?.[1];
+
+    return (
+        <fieldset disabled={disabled} className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {fields.map(([key, label, type, max]) => {
+                const required = key === 'name' || key === 'code';
+                return (
+                    <FormField key={key} label={t(`apiManagement.${label}`)} required={required} error={errors[key]}>
+                        {({ id, describedBy, invalid }) => (
+                            <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} type={type} maxLength={max} required={required}
+                                className={key === 'code' ? 'font-mono' : undefined} value={values[key]} onChange={(event) => onChange({ ...values, [key]: event.target.value })} />
+                        )}
+                    </FormField>
+                );
+            })}
+            <FormField label={t('apiManagement.rateLimit')} required description={t('apiManagement.rateLimitHint')} error={errors.rate_limit_per_minute}>
+                {({ id, describedBy, invalid }) => (
+                    <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} type="number" required min={1} max={10000} className="tabular-nums"
+                        value={values.rate_limit_per_minute} onChange={(event) => onChange({ ...values, rate_limit_per_minute: Number(event.target.value) })} />
+                )}
+            </FormField>
+            <FormField label={t('common.status')} error={errors.status}>
+                {({ id, describedBy, invalid }) => (
+                    <Select id={id} aria-describedby={describedBy} aria-invalid={invalid} value={values.status} onChange={(event) => onChange({ ...values, status: event.target.value })}>
+                        {['active', 'suspended', 'revoked'].map((status) => <option key={status} value={status}>{t(`common.${status}`)}</option>)}
+                    </Select>
+                )}
+            </FormField>
+            <FormField className="sm:col-span-2 xl:col-span-3" label={t('apiManagement.ipAllowlist')} description={t('apiManagement.anyIp')} error={ipError}>
+                {({ id, describedBy, invalid }) => (
+                    <Input id={id} aria-describedby={describedBy} aria-invalid={invalid} className="font-mono" value={ipText} placeholder={t('apiManagement.ipAllowlistHint')}
+                        onChange={(event) => {
+                            setIpText(event.target.value);
+                            onChange({ ...values, allowed_ips: event.target.value.split(',').map((ip) => ip.trim()).filter(Boolean) });
+                        }} />
+                )}
+            </FormField>
+        </fieldset>
+    );
 }

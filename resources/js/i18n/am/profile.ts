@@ -14,6 +14,8 @@ const profile = {
     accountSummary: 'የመለያ ማጠቃለያ',
     status: 'ሁኔታ',
     lastLogin: 'የመጨረሻ ግቢ',
+    countryCode: 'የአገር ኮድ',
+    nationalIdHint: 'ባለ 16 አሃዝ ብሔራዊ መታወቂያ ቁጥር',
     notAvailable: 'አይገኝም',
     name: 'ስም',
     email: 'ኢሜይል',

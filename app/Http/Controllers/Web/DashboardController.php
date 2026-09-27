@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Services\Backup\BackupStatusService;
 use App\Services\Dashboard\DashboardDataService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,6 +33,8 @@ class DashboardController extends Controller
 
         return Inertia::render('Dashboard/Index', [
             ...$dashboardDataService->build($request->user(), $filters),
+            'backupHealth' => $request->user()->can('backups.view_status')
+                ? app(BackupStatusService::class)->summary() : null,
         ]);
     }
 }

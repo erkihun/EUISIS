@@ -77,6 +77,7 @@ const allEntries: NavEntry[] = [
     { routeName: 'roles.index', labelKey: 'nav.roles', groupKey: 'nav.groupConfiguration', icon: ShieldCheck,      permission: 'roles.viewAny' },
     { routeName: 'permissions.index', labelKey: 'nav.permissions', groupKey: 'nav.groupConfiguration', icon: Key,              permission: 'permissions.viewAny' },
     { routeName: 'system-settings.index', labelKey: 'nav.systemSettings', groupKey: 'nav.groupConfiguration', icon: Settings,         permission: 'system-settings.view' },
+    { routeName: 'backups.index', labelKey: 'nav.backupRecovery', groupKey: 'nav.groupConfiguration', icon: Settings, permission: 'backups.view_status' },
     { routeName: 'recycle-bin.index', labelKey: 'nav.recycleBin', groupKey: 'nav.groupConfiguration', icon: Trash2,           permission: 'recycle-bin.view' },
 ];
 

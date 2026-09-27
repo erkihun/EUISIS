@@ -14,6 +14,8 @@ const profile = {
     accountSummary: 'Account Summary',
     status: 'Status',
     lastLogin: 'Last Login',
+    countryCode: 'Country code',
+    nationalIdHint: '16-digit national ID number',
     notAvailable: 'Not available',
     name: 'Name',
     email: 'Email',

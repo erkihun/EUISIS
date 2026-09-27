@@ -50,8 +50,8 @@ export function Pagination({ meta, onPageChange, onPerPageChange, pageSizes = [1
     return (
         <nav aria-label={`${messages.results} pagination`} className="flex flex-wrap items-center justify-between gap-3 text-sm text-[color:var(--app-muted-foreground)]">
             <div className="flex items-center gap-3">
-                <span>{start}–{end} / {meta.total} {messages.results}</span>
-                {onPerPageChange && <select aria-label={messages.results} value={meta.perPage} onChange={(event) => onPerPageChange(Number(event.target.value))} className={cx(controlClassName, 'h-[var(--control-h-sm)] w-auto py-0')}>{pageSizes.map((size) => <option key={size} value={size}>{size}</option>)}</select>}
+                <span className="whitespace-nowrap">{start}–{end} / {meta.total} {messages.results}</span>
+                {onPerPageChange && <select aria-label={messages.results} value={meta.perPage} onChange={(event) => onPerPageChange(Number(event.target.value))} className={cx(controlClassName, 'h-[var(--control-h-sm)] w-auto py-0 pr-8')}>{pageSizes.map((size) => <option key={size} value={size}>{size}</option>)}</select>}
             </div>
             {meta.lastPage > 1 && <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" disabled={meta.currentPage <= 1} onClick={() => onPageChange(meta.currentPage - 1)} aria-label={messages.previous}>‹</Button>

@@ -105,6 +105,10 @@ use App\Policies\VacancyApplicationPolicy;
 use App\Security\Hashing\MigratingArgon2IdHasher;
 use App\Security\Passwords\CompromisedPasswordChecker;
 use App\Security\Passwords\HibpCompromisedPasswordChecker;
+use App\Services\Backup\Infrastructure\BackupInfrastructureAdapter;
+use App\Services\Backup\Infrastructure\DisabledBackupAdapter;
+use App\Services\Backup\Infrastructure\PgBackRestBackupAdapter;
+use App\Services\Backup\Infrastructure\ReportBackupAdapter;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
@@ -136,6 +140,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);
+
+        // Backup status source (docs/backup-recovery-architecture.md). Disabled never reports healthy.
+        $this->app->bind(BackupInfrastructureAdapter::class, fn ($app) => ! config('backup.enabled') ? new DisabledBackupAdapter
+            : match (config('backup.driver')) {
+                'pgbackrest' => $app->make(PgBackRestBackupAdapter::class),
+                'report' => $app->make(ReportBackupAdapter::class),
+                default => new DisabledBackupAdapter('INVALID_CONFIGURATION'),
+            });
 
         // Password policy (docs/password-security-policy.md).
         $this->app->bind(CompromisedPasswordChecker::class, HibpCompromisedPasswordChecker::class);

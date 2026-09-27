@@ -181,6 +181,16 @@ const cafeteria = {
     processingScan: 'Processing scanned QR code...',
     selectProviderFirst: 'Select a cafeteria provider before starting the camera.',
     scanAgainIn: 'Next scan starts in {{count}}s',
+    scanTerminalDescription: 'Scan employee ID cards to record cafeteria meals and apply the subsidy.',
+    mobileScanner: 'Full-screen scanner',
+    fullTerminal: 'Full terminal',
+    processing: 'Processing…',
+    startingCamera: 'Starting camera…',
+    holdQrInFrame: 'Hold the QR code inside the frame',
+    lastScan: 'Last scan',
+    scanNext: 'Scan next',
+    enterCode: 'Enter code',
+    tryAgain: 'Try again',
 
     // Ledger
     ledger: 'Subsidy Ledger',

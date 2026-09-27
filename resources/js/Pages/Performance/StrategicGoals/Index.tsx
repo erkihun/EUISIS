@@ -1,7 +1,8 @@
 import PageHeader from '@/Components/PageHeader';
+import { CalendarIcon, CheckCircle, ChevronDown, Layers, Plus } from '@/Components/Icons';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
-import { Bar, Field, Pager, Pill, Problems, Section, Stat, dangerLinkBtn, fill, formatScore, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallPrimaryBtn, useEnumLabel, type Paginator } from '@/Components/performance/ui';
+import { Bar, Field, Pager, Pill, Problems, Section, dangerLinkBtn, fill, formatScore, inputCls, linkBtn, nameOf, primaryBtn, secondaryBtn, smallPrimaryBtn, useEnumLabel, type Paginator } from '@/Components/performance/ui';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -179,61 +180,73 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
     }
 
     const contextSelected = Boolean(filters.cycle_id && filters.organization_id);
+    // Keep organization-wide and off-page issues here; visible goals own their checks.
+    const visibleGoalProblems = new Set(goals.data.flatMap((goal) => goal.readiness.problems.map((problem) => `${goal.code}: ${problem}`)));
+    const summaryProblems = [...new Set(summary?.problems ?? [])].filter((problem) => !visibleGoalProblems.has(problem));
     const statusCounts = summary ? GOAL_STATUSES.filter((status) => (summary.status_counts[status] ?? 0) > 0) : [];
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('performance.strategicGoals.title')} description={t('performance.strategicGoals.description')}
-            actions={can.create && contextSelected ? <button type="button" className={primaryBtn} onClick={() => (editing === 'new' ? setEditing(null) : start('new'))}>{t('performance.strategicGoals.create')}</button> : undefined} />}>
+        <AuthenticatedLayout header={<PageHeader title={t('performance.strategicGoals.title')}
+            actions={can.create && contextSelected ? <button type="button" className={primaryBtn} onClick={() => (editing === 'new' ? setEditing(null) : start('new'))}><Plus className="h-4 w-4" aria-hidden="true" />{t('performance.strategicGoals.create')}</button> : undefined} />}>
             <Head title={t('performance.strategicGoals.title')} />
-            <div className={pageCls}>
-                <section className="rounded-panel border border-blue-100 bg-blue-50 p-5 dark:border-blue-900 dark:bg-blue-950/30" aria-label={t('performance.strategicGoals.workflow')}>
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{t('performance.strategicGoals.workflow')}</h2>
-                    <ol className="mt-3 grid gap-3 text-sm text-gray-600 dark:text-slate-300 sm:grid-cols-3">
-                        {['registerStep', 'allocateStep', 'reviewStep'].map((step, index) => (
-                            <li key={step} className="flex items-start gap-2"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-blue-700 dark:bg-slate-900 dark:text-blue-300">{index + 1}</span><span>{t(`performance.strategicGoals.${step}`)}</span></li>
-                        ))}
-                    </ol>
-                </section>
-                <section className="grid gap-4 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:grid-cols-2" aria-label={t('performance.strategicGoals.selectContext')}>
-                    <Field label={t('performance.fields.organization')} htmlFor="sg-organization">
-                        <select id="sg-organization" className={inputCls} value={filters.organization_id} onChange={(e) => filter('organization_id', e.target.value)}>
-                            <option value="">{t('performance.strategicGoals.selectOrganization')}</option>
-                            {organizations.map((o) => <option key={o.id} value={o.id}>{nameOf(o, locale)}</option>)}
-                        </select>
-                    </Field>
-                    <Field label={t('performance.fields.cycle')} htmlFor="sg-cycle">
-                        <select id="sg-cycle" className={inputCls} value={filters.cycle_id} onChange={(e) => filter('cycle_id', e.target.value)}>
-                            <option value="">{t('performance.strategicGoals.selectCycle')}</option>
-                            {cycleOptions.map((c) => (
-                                <option key={c.id} value={c.id}>{c.code} · {nameOf(c, locale)} ({label('cycle', c.status)}{c.is_current ? ` · ${t('performance.cycles.current')}` : ''})</option>
-                            ))}
-                        </select>
-                    </Field>
-                    {cycle && (
-                        <p className="text-xs text-gray-500 dark:text-slate-400 sm:col-span-2">
-                            {t('performance.fields.period')}: <LocalizedDateDisplay value={cycle.start_date} /> – <LocalizedDateDisplay value={cycle.end_date} />
-                        </p>
+            <div className="min-w-0 space-y-6">
+                <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-label={t('performance.strategicGoals.selectContext')}>
+                    <div className="grid gap-4 p-5 sm:grid-cols-2 lg:p-6">
+                        <Field label={t('performance.fields.organization')} htmlFor="sg-organization">
+                            <select id="sg-organization" className={inputCls} value={filters.organization_id} onChange={(e) => filter('organization_id', e.target.value)}>
+                                <option value="">{t('performance.strategicGoals.selectOrganization')}</option>
+                                {organizations.map((o) => <option key={o.id} value={o.id}>{nameOf(o, locale)}</option>)}
+                            </select>
+                        </Field>
+                        <Field label={t('performance.fields.cycle')} htmlFor="sg-cycle">
+                            <select id="sg-cycle" className={inputCls} value={filters.cycle_id} onChange={(e) => filter('cycle_id', e.target.value)}>
+                                <option value="">{t('performance.strategicGoals.selectCycle')}</option>
+                                {cycleOptions.map((c) => (
+                                    <option key={c.id} value={c.id}>{c.code} · {nameOf(c, locale)} ({label('cycle', c.status)}{c.is_current ? ` · ${t('performance.cycles.current')}` : ''})</option>
+                                ))}
+                            </select>
+                        </Field>
+                        {cycle && (
+                            <p className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-slate-400 sm:col-span-2">
+                                <CalendarIcon className="h-4 w-4" aria-hidden="true" />
+                                {t('performance.fields.period')}: <LocalizedDateDisplay value={cycle.start_date} /> – <LocalizedDateDisplay value={cycle.end_date} />
+                            </p>
+                        )}
+                    </div>
+
+                    {summary && (
+                        <div className="border-t border-gray-100 dark:border-slate-800">
+                            <dl className="grid divide-y divide-gray-100 dark:divide-slate-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                                <div className="bg-gray-50/60 p-5 dark:bg-slate-950/30 lg:p-6">
+                                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.total')}</dt>
+                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 tabular-nums dark:text-white">{formatScore(summary.total)}<span className="ml-1 text-lg font-normal text-gray-400">%</span></dd>
+                                    <div className="mt-3"><Bar value={summary.total} /></div>
+                                </div>
+                                <div className="p-5 lg:p-6">
+                                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.remaining')}</dt>
+                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 tabular-nums dark:text-white">{formatScore(summary.remaining)}<span className="ml-1 text-lg font-normal text-gray-400">%</span></dd>
+                                </div>
+                                <div className="p-5 lg:p-6">
+                                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.readiness')}</dt>
+                                    <dd className={`mt-3 flex items-center gap-2 text-base font-semibold ${summary.ready ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                                        {summary.ready ? <CheckCircle className="h-5 w-5 shrink-0" aria-hidden="true" /> : <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden="true" />}
+                                        {summary.ready ? t('performance.strategicGoals.ready') : t('performance.strategicGoals.needsWork')}
+                                    </dd>
+                                </div>
+                            </dl>
+                            {statusCounts.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 px-5 py-3 text-xs text-gray-500 dark:border-slate-800 dark:text-slate-400 lg:px-6">
+                                    <span>{t('performance.strategicGoals.byStatus')}:</span>
+                                    {statusCounts.map((status) => (
+                                        <span key={status} className="inline-flex items-center gap-2"><Pill group="goal" value={status} /><span className="font-semibold tabular-nums">{summary.status_counts[status]}</span></span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     )}
                 </section>
 
-                {summary && (
-                    <>
-                        <div className="grid gap-4 sm:grid-cols-3">
-                            <Stat label={t('performance.strategicGoals.total')} value={summary.total} suffix="%" hint={<div className="mt-2"><Bar value={summary.total} /></div>} />
-                            <Stat label={t('performance.strategicGoals.remaining')} value={summary.remaining} suffix="%" />
-                            <Stat label={t('performance.strategicGoals.readiness')} value={summary.ready ? t('performance.strategicGoals.ready') : t('performance.strategicGoals.needsWork')} />
-                        </div>
-                        {statusCounts.length > 0 && (
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-slate-400">
-                                <span>{t('performance.strategicGoals.byStatus')}:</span>
-                                {statusCounts.map((status) => (
-                                    <span key={status} className="inline-flex items-center gap-1.5"><Pill group="goal" value={status} /><span className="tabular-nums">{summary.status_counts[status]}</span></span>
-                                ))}
-                            </div>
-                        )}
-                        <Problems title={t('performance.strategicGoals.readiness')} problems={summary.problems} />
-                    </>
-                )}
+                <Problems title={t('performance.strategicGoals.readiness')} problems={summaryProblems} />
 
                 {editing && (
                     <Section title={existing ? `${t('performance.strategicGoals.editGoal')}: ${existing.code}` : t('performance.strategicGoals.create')}>
@@ -288,28 +301,34 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                 {!contextSelected && <div className="rounded-panel border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">{t('performance.strategicGoals.selectContext')}</div>}
                 {contextSelected && goals.data.length === 0 && <div className="rounded-panel border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">{t('performance.strategicGoals.empty')}</div>}
 
-                <div className="space-y-4">
+                {contextSelected && goals.data.length > 0 && <div className="flex items-center gap-3">
+                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('performance.strategicGoals.title')}</h2>
+                    <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium tabular-nums text-gray-600 dark:bg-slate-800 dark:text-slate-300">{goals.total}</span>
+                    <div className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
+                </div>}
+                <div className="space-y-5">
                     {goals.data.map((goal) => {
                         const description = (locale === 'am' && goal.description_am) || goal.description_en || goal.description_am;
+                        const title = (locale === 'am' && goal.name_am) || goal.name_en;
+                        const hasDescription = description?.trim().replace(/\s+/g, ' ') !== title.trim().replace(/\s+/g, ' ');
+                        const problems = [...new Set(goal.readiness.problems)];
                         const draft = goal.status === 'DRAFT';
                         return (
-                            <article key={goal.id} className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900" aria-labelledby={`sg-${goal.id}-name`}>
-                                <div className="flex flex-wrap items-start justify-between gap-4 p-5">
+                            <article key={goal.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-labelledby={`sg-${goal.id}-name`}>
+                                <div className="flex flex-col items-start justify-between gap-5 p-5 lg:flex-row lg:p-6">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <span className="font-mono text-xs text-gray-500 dark:text-slate-400">{goal.code}</span>
+                                            <span className="rounded-md bg-gray-100 px-2 py-1 font-mono text-xs font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">{goal.code}</span>
                                             <Pill group="goal" value={goal.status} />
                                             {goal.is_shared && <span className="rounded-full bg-violet-50 px-2 py-1 text-xs font-medium text-violet-700 dark:bg-violet-950 dark:text-violet-300">{t('performance.strategicGoals.shared')}</span>}
                                         </div>
-                                        <h2 id={`sg-${goal.id}-name`} className="mt-2 text-base font-semibold text-gray-900 dark:text-white">{(locale === 'am' && goal.name_am) || goal.name_en}</h2>
-                                        {description && <p className="mt-1 whitespace-pre-line text-sm text-gray-600 dark:text-slate-300">{description}</p>}
+                                        <h3 id={`sg-${goal.id}-name`} className="mt-3 break-words text-lg font-semibold leading-relaxed tracking-tight text-gray-900 dark:text-white">{title}</h3>
                                         <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-slate-400">
                                             <span className="tabular-nums">{t('performance.fields.weight')}: {formatScore(goal.weight_percent)}%</span>
                                             {(goal.effective_from || goal.effective_to) && <span><LocalizedDateDisplay value={goal.effective_from} /> – <LocalizedDateDisplay value={goal.effective_to} /></span>}
-                                            <span>{t('performance.strategicGoals.objectives')}: <span className="tabular-nums">{goal.objectives.length}</span></span>
                                         </p>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex shrink-0 flex-wrap items-center gap-2 lg:max-w-xs lg:justify-end">
                                         {draft && can.update && <button type="button" className={secondaryBtn} onClick={() => start(goal)}>{t('performance.actions.edit')}</button>}
                                         {draft && can.update && <button type="button" className={primaryBtn} onClick={() => transition(goal, 'UNDER_REVIEW')}>{t('performance.actions.submit')}</button>}
                                         {['UNDER_REVIEW', 'APPROVED'].includes(goal.status) && can.approve && <button type="button" className={secondaryBtn} onClick={() => returnGoal(goal)}>{t('performance.actions.return')}</button>}
@@ -320,93 +339,113 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                 </div>
                                 {draft && goal.return_reason && <div className="px-5 pb-4"><Problems title={t('performance.strategicGoals.returned')} problems={[goal.return_reason]} /></div>}
 
-                                <div className="border-t border-gray-100 bg-gray-50/70 px-5 py-4 dark:border-slate-800 dark:bg-slate-950/40">
-                                    <dl className="grid gap-4 sm:grid-cols-3">
-                                        <div className="text-sm">
-                                            <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.allocations')}</dt>
-                                            <dd className="mt-1 font-semibold tabular-nums">{formatScore(goal.readiness.allocation_total)} / {formatScore(goal.weight_percent)}%</dd>
-                                            <div className="mt-1.5"><Bar value={share(goal.readiness.allocation_total, goal.weight_percent)} /></div>
-                                        </div>
-                                        <div className="text-sm">
-                                            <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.objectives')}</dt>
-                                            <dd className="mt-1 font-semibold tabular-nums">{formatScore(goal.readiness.objective_total)} / {formatScore(goal.weight_percent)}%</dd>
-                                            <div className="mt-1.5"><Bar value={share(goal.readiness.objective_total, goal.weight_percent)} /></div>
-                                        </div>
-                                        <div className="text-sm">
-                                            <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.readiness')}</dt>
-                                            <dd className={`mt-1 font-semibold ${goal.readiness.ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
-                                                {goal.readiness.ready ? t('performance.strategicGoals.ready') : t('performance.strategicGoals.needsWork')}
-                                            </dd>
-                                        </div>
-                                    </dl>
+                                <details className="group/goal border-t border-gray-100 dark:border-slate-800">
+                                    <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-blue-500 dark:text-slate-300 lg:px-6 [&::-webkit-details-marker]:hidden">
+                                        <span className="font-medium text-gray-700 dark:text-slate-200">{t('common.details')}</span>
+                                        <span className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.allocations')} <span className="font-medium tabular-nums">{goal.allocations.length}</span></span>
+                                        <span className={`ml-auto flex items-center gap-2 font-medium ${goal.readiness.ready ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                                            {goal.readiness.ready ? <CheckCircle className="h-4 w-4" aria-hidden="true" /> : <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />}
+                                            {goal.readiness.ready ? t('performance.strategicGoals.ready') : t('performance.strategicGoals.needsWork')}
+                                            {problems.length > 0 && <span className="tabular-nums">({problems.length})</span>}
+                                        </span>
+                                        <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open/goal:rotate-180" aria-hidden="true" />
+                                    </summary>
+                                    <div className="space-y-4 border-t border-gray-100 bg-gray-50/50 p-5 dark:border-slate-800 dark:bg-slate-950/30 lg:p-6">
+                                        {problems.length > 0 && (
+                                            <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-700 dark:text-amber-300">
+                                                {problems.map((problem, index) => <li key={index}>{problem}</li>)}
+                                            </ul>
+                                        )}
 
-                                    {goal.allocations.length > 0 && (
-                                        <ul className="mt-4 flex flex-wrap gap-2" aria-label={t('performance.strategicGoals.allocations')}>
-                                            {goal.allocations.map((row) => (
-                                                <li key={row.id} className="inline-flex max-w-full flex-col gap-1 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-900">
-                                                    <span className="flex flex-wrap items-center gap-2">
-                                                        <strong>{nameOf(row.unit, locale)}</strong>
-                                                        <span className="tabular-nums">{formatScore(row.organization_contribution_percent)}%</span>
-                                                        <span className="text-gray-500 dark:text-slate-400">{label('allocation', row.allocation_type)}</span>
-                                                        {row.is_lead && <span className="font-medium text-[color:var(--color-primary)]">{t('performance.strategicGoals.lead')}</span>}
-                                                        {draft && can.allocate && (
-                                                            <>
-                                                                <button type="button" className={linkBtn} aria-label={`${t('performance.strategicGoals.editAllocation')}: ${nameOf(row.unit, locale)}`}
-                                                                    onClick={() => setAllocating({ goal: goal.id, allocation: row.id })}>{t('performance.actions.edit')}</button>
-                                                                <button type="button" className={dangerLinkBtn} aria-label={`${t('performance.strategicGoals.removeAllocation')}: ${nameOf(row.unit, locale)}`}
-                                                                    title={t('performance.strategicGoals.removeAllocation')} onClick={() => removeAllocation(goal, row)}>×</button>
-                                                            </>
-                                                        )}
-                                                    </span>
-                                                    {row.notes && <span className="whitespace-pre-line text-gray-500 dark:text-slate-400">{row.notes}</span>}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
+                                        {description && hasDescription && <p className="max-w-3xl whitespace-pre-line break-words text-sm leading-relaxed text-gray-600 dark:text-slate-300">{description}</p>}
+                                        <dl className="grid gap-5 rounded-xl border border-gray-100 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:grid-cols-2 sm:gap-8">
+                                            <div className="text-sm">
+                                                <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.allocations')}</dt>
+                                                <dd className="mt-1 font-semibold tabular-nums">{formatScore(goal.readiness.allocation_total)} / {formatScore(goal.weight_percent)}%</dd>
+                                                <div className="mt-1.5"><Bar value={share(goal.readiness.allocation_total, goal.weight_percent)} /></div>
+                                            </div>
+                                            <div className="text-sm">
+                                                <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.objectives')}</dt>
+                                                <dd className="mt-1 font-semibold tabular-nums">{formatScore(goal.readiness.objective_total)} / {formatScore(goal.weight_percent)}%</dd>
+                                                <div className="mt-1.5"><Bar value={share(goal.readiness.objective_total, goal.weight_percent)} /></div>
+                                            </div>
+                                        </dl>
 
-                                    {goal.readiness.problems.length > 0 && (
-                                        <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-700 dark:text-amber-300">
-                                            {goal.readiness.problems.map((problem, index) => <li key={index}>{problem}</li>)}
-                                        </ul>
-                                    )}
-
-                                    {draft && can.allocate && allocating?.goal !== goal.id && (
-                                        <button type="button" className={`${linkBtn} mt-3`} onClick={() => setAllocating({ goal: goal.id, allocation: null })}>{t('performance.strategicGoals.addAllocation')}</button>
-                                    )}
-                                    {allocating?.goal === goal.id && (
-                                        <AllocationForm key={allocating.allocation ?? 'new'} goal={goal} allocation={goal.allocations.find((row) => row.id === allocating.allocation)} units={units} types={allocationTypes} onClose={() => setAllocating(null)} />
-                                    )}
-
-                                    <details className="mt-4 rounded-lg border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-                                        <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-gray-700 dark:text-slate-200">
-                                            {t('performance.strategicGoals.objectives')} ({goal.objectives.length})
-                                        </summary>
-                                        {goal.objectives.length === 0 ? (
-                                            <p className="px-3 pb-3 text-sm text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.noObjectives')}</p>
-                                        ) : (
-                                            <ul className="divide-y divide-gray-100 border-t border-gray-100 text-sm dark:divide-slate-800 dark:border-slate-800">
-                                                {goal.objectives.map((objective) => (
-                                                    <li key={objective.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
-                                                        <div className="min-w-0">
-                                                            <p className="font-medium text-gray-900 dark:text-slate-100"><span className="font-mono text-xs text-gray-500">{objective.code}</span> {(locale === 'am' && objective.title_am) || objective.title_en}</p>
-                                                            {objective.plan && (
-                                                                <p className="text-xs text-gray-500 dark:text-slate-400">
-                                                                    {t('performance.fields.plan')}: <Link href={route('performance.plans.show', objective.plan.id)} className="text-[color:var(--color-primary)] hover:underline">{objective.plan.title}</Link> · {t('performance.fields.version')} {objective.plan.version} · {label('plan', objective.plan.status)}
-                                                                </p>
+                                        {goal.allocations.length > 0 && (
+                                            <ul className="mt-5 grid gap-3 md:grid-cols-2" aria-label={t('performance.strategicGoals.allocations')}>
+                                                {goal.allocations.map((row) => (
+                                                    <li key={row.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-gray-200 bg-white p-3 text-xs leading-relaxed dark:border-slate-700 dark:bg-slate-900">
+                                                        <span className="flex flex-wrap items-center gap-2">
+                                                            <strong className="break-words">{nameOf(row.unit, locale)}</strong>
+                                                            <span className="tabular-nums">{formatScore(row.organization_contribution_percent)}%</span>
+                                                            <span className="text-gray-500 dark:text-slate-400">{label('allocation', row.allocation_type)}</span>
+                                                            {row.is_lead && <span className="font-medium text-[color:var(--color-primary)]">{t('performance.strategicGoals.lead')}</span>}
+                                                            {draft && can.allocate && (
+                                                                <>
+                                                                    <button type="button" className={linkBtn} aria-label={`${t('performance.strategicGoals.editAllocation')}: ${nameOf(row.unit, locale)}`}
+                                                                        onClick={() => setAllocating({ goal: goal.id, allocation: row.id })}>{t('performance.actions.edit')}</button>
+                                                                    <button type="button" className={dangerLinkBtn} aria-label={`${t('performance.strategicGoals.removeAllocation')}: ${nameOf(row.unit, locale)}`}
+                                                                        title={t('performance.strategicGoals.removeAllocation')} onClick={() => removeAllocation(goal, row)}>×</button>
+                                                                </>
                                                             )}
-                                                        </div>
-                                                        <span className="text-xs tabular-nums text-gray-600 dark:text-slate-300">{t('performance.fields.absoluteWeight')}: {formatScore(objective.absolute_weight_percent ?? objective.weight)}%</span>
+                                                        </span>
+                                                        {row.notes && <span className="whitespace-pre-line text-gray-500 dark:text-slate-400">{row.notes}</span>}
                                                     </li>
                                                 ))}
                                             </ul>
                                         )}
-                                    </details>
-                                </div>
+
+                                        {draft && can.allocate && allocating?.goal !== goal.id && (
+                                            <button type="button" className={`${secondaryBtn} mt-4`} onClick={() => setAllocating({ goal: goal.id, allocation: null })}><Plus className="h-4 w-4" aria-hidden="true" />{t('performance.strategicGoals.addAllocation')}</button>
+                                        )}
+                                        {allocating?.goal === goal.id && (
+                                            <AllocationForm key={allocating.allocation ?? 'new'} goal={goal} allocation={goal.allocations.find((row) => row.id === allocating.allocation)} units={units} types={allocationTypes} onClose={() => setAllocating(null)} />
+                                        )}
+
+                                        <details className="group/objectives mt-5 rounded-xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
+                                                {t('performance.strategicGoals.objectives')} ({goal.objectives.length})
+                                                <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open/objectives:rotate-180" aria-hidden="true" />
+                                            </summary>
+                                            {goal.objectives.length === 0 ? (
+                                                <p className="px-3 pb-3 text-sm text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.noObjectives')}</p>
+                                            ) : (
+                                                <ul className="divide-y divide-gray-100 border-t border-gray-100 text-sm dark:divide-slate-800 dark:border-slate-800">
+                                                    {goal.objectives.map((objective) => (
+                                                        <li key={objective.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
+                                                            <div className="min-w-0">
+                                                                <p className="font-medium text-gray-900 dark:text-slate-100"><span className="font-mono text-xs text-gray-500">{objective.code}</span> {(locale === 'am' && objective.title_am) || objective.title_en}</p>
+                                                                {objective.plan && (
+                                                                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                                                                        {t('performance.fields.plan')}: <Link href={route('performance.plans.show', objective.plan.id)} className="text-[color:var(--color-primary)] hover:underline">{objective.plan.title}</Link> · {t('performance.fields.version')} {objective.plan.version} · {label('plan', objective.plan.status)}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                            <span className="text-xs tabular-nums text-gray-600 dark:text-slate-300">{t('performance.fields.absoluteWeight')}: {formatScore(objective.absolute_weight_percent ?? objective.weight)}%</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </details>
+                                    </div>
+                                </details>
                             </article>
                         );
                     })}
                 </div>
                 {goals.last_page > 1 && <Pager page={goals} />}
+                <details className="group rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
+                        <Layers className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                        {t('performance.strategicGoals.workflow')}
+                        <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+                    </summary>
+                    <ol className="grid gap-4 border-t border-gray-100 p-5 text-sm leading-relaxed text-gray-600 dark:border-slate-800 dark:text-slate-300 md:grid-cols-3">
+                        {['registerStep', 'allocateStep', 'reviewStep'].map((step, index) => (
+                            <li key={step} className="flex items-start gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-slate-800 dark:text-slate-300">{index + 1}</span><span>{t(`performance.strategicGoals.${step}`)}</span></li>
+                        ))}
+                    </ol>
+                </details>
             </div>
         </AuthenticatedLayout>
     );

@@ -224,7 +224,7 @@ export default function PerformanceDashboard({ cycles, cycleId, organizationPlan
                                 icon={ClipboardCheckIcon} tone="neutral" />
                             <MetricCard label={t('performance.dashboard.needsAttention')} value={atRisk.length + reviewBacklog}
                                 detail={`${atRisk.length} ${t('performance.dashboard.riskKpis')} · ${reviewBacklog} ${t('performance.dashboard.pendingReviews')}`}
-                                icon={AlertTriangle} tone={atRisk.length + reviewBacklog > 0 ? 'warning' : 'success'} />
+                                icon={atRisk.length + reviewBacklog > 0 ? AlertTriangle : CheckCircle} tone={atRisk.length + reviewBacklog > 0 ? 'warning' : 'success'} />
                         </section>
 
                         <div className="grid gap-4 xl:grid-cols-5">

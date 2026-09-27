@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Services\Backup\BackupStatusService;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
@@ -78,6 +79,16 @@ class ProductionReadiness extends Command
         $this->check('imagick (card PNG export)', extension_loaded('imagick'), false, 'Without it PNG card export is refused; SVG and PDF still work.');
 
         $this->section('Operations');
+        // --strict evaluates backups under production rules even outside production.
+        $backup = app(BackupStatusService::class)->status(fresh: true, enforce: $production ?: null);
+        $when = fn (?int $time) => $time ? gmdate('Y-m-d H:i', $time).' UTC' : 'none recorded';
+        $this->info_('Backup & Recovery', $backup['overall_status']);
+        $this->info_('Backup reason', ($backup['reason_code'] ?? 'NONE').' ('.$backup['driver'].')');
+        $this->info_('Backup infrastructure / repository', $backup['infrastructure_status'].' / '.$backup['repository_status']);
+        $this->info_('WAL archive / PITR', $backup['wal_status']);
+        $this->info_('Last passed restore test', $when($backup['latest_restore_test_at']));
+        $this->info_('Backup production blocker', $backup['production_blocker'] ? 'YES' : ($backup['enforced'] ? 'NO' : 'NO for this environment'));
+        $this->check('Backup and recovery ready', $backup['readiness'] === 'READY', $production, $backup['message']);
         $this->check('Configuration cached', app()->configurationIsCached(), false, 'Run php artisan config:cache on deploy.');
         $this->check('Routes cached', app()->routesAreCached(), false, 'Run php artisan route:cache on deploy.');
         $this->info_('Scheduled tasks', count($schedule->events()).' — needs a cron entry running schedule:run every minute');

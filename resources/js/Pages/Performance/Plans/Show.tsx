@@ -4,6 +4,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { Bar, Empty, Field, Pill, Problems, Section, Table, formatScore, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, titleOf, useEnumLabel } from '@/Components/performance/ui';
 import { ActualForm, AmendmentDiff, AmendmentForm, nullify } from '@/Components/performance/forms';
+import { ActionPlanTable, quarterLabel, useCycleMonths } from '@/Components/performance/actionPlan';
 import type { PlanSummary } from '@/Pages/Performance/Plans/Index';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -15,7 +16,7 @@ type Target = {
     weight: string; achievement_cap: string | null; tolerance: string | null; zero_score_deviation: string | null; version_no: number; parent_target_id: string | null;
     period: [string, string];
     period_targets: { period_type: 'QUARTER' | 'MONTH'; period_number: number; target_value: string | null; target_numerator: string | null; target_denominator: string | null; is_cumulative: boolean }[];
-    kpi: { id: string; code: string; name_en: string; name_am: string | null; direction: string; aggregation: string; source: string; unit: string | null };
+    kpi: { id: string; code: string; name_en: string; name_am: string | null; direction: string; aggregation: string; source: string; unit: string | null; measurement: string };
 };
 
 type Objective = {
@@ -29,7 +30,7 @@ type TraceTarget = { target_id: string; kpi_code: string; kpi_name_en: string; k
 type PlanTrace = { formula?: Record<string, string>; score: string | null; objectives: { objective_id: string; code: string; title_en: string; title_am?: string | null; weight: string; score: string | null; contribution: string | null; targets: TraceTarget[] }[] };
 
 type Props = {
-    plan: PlanSummary & { change_reason: string | null; return_reason: string | null; parent: { id: string; title: string } | null; supersedes_plan_id: string | null; effective_from: string | null; effective_to: string | null; editable: boolean };
+    plan: PlanSummary & { change_reason: string | null; return_reason: string | null; parent: { id: string; title: string } | null; supersedes_plan_id: string | null; effective_from: string | null; effective_to: string | null; editable: boolean; cycle_period: [string | null, string | null] };
     objectives: Objective[];
     parentObjectives: { id: string; code: string; title_en: string; title_am: string | null; weight: string; is_mandatory: boolean; cascaded: boolean }[];
     childPlans: PlanSummary[];
@@ -90,6 +91,12 @@ export default function PlanShow(props: Props) {
                 {plan.return_reason && plan.status === 'DRAFT' && <Problems title={t('performance.enums.plan.DRAFT')} problems={[plan.return_reason]} />}
                 {!plan.editable && plan.status === 'PUBLISHED' && <p className="text-xs text-gray-500 dark:text-slate-400">{t('performance.plans.editLocked')}</p>}
                 <Problems title={t('performance.plans.validation')} problems={validation} />
+
+                {objectives.length > 0 && (
+                    <Section title={t('performance.plans.actionPlan')} description={t('performance.plans.actionPlanHelp')} flush>
+                        <ActionPlanTable objectives={objectives} goals={props.strategicGoals} cycleStart={plan.cycle_period[0]} />
+                    </Section>
+                )}
 
                 <Section title={t('performance.plans.objectives')} description={t('performance.plans.mandatoryNote')}
                     actions={can.edit && <button type="button" className={smallBtn} onClick={() => setAddingObjective((v) => !v)}>{t('performance.plans.addObjective')}</button>}>
@@ -234,7 +241,7 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
                                     {targetPanel?.id === target.id && targetPanel.kind === 'actual' && <ActualForm url={route('performance.targets.actuals.store', target.id)} period={target.period} onDone={() => setTargetPanel(null)} />}
                                     {targetPanel?.id === target.id && targetPanel.kind === 'amend' && <AmendmentForm url={route('performance.targets.amendments.store', target.id)} onDone={() => setTargetPanel(null)} />}
                                     {targetPanel?.id === target.id && targetPanel.kind === 'edit' && <TargetForm target={target} kpis={kpis} parentTargets={parentTargets} onDone={() => setTargetPanel(null)} />}
-                                    {targetPanel?.id === target.id && targetPanel.kind === 'periods' && <PeriodTargetsForm target={target} onDone={() => setTargetPanel(null)} />}
+                                    {targetPanel?.id === target.id && targetPanel.kind === 'periods' && <PeriodTargetsForm target={target} cycleStart={plan.cycle_period[0]} onDone={() => setTargetPanel(null)} />}
                                 </td>
                                 <td className={`${tdCls} tabular-nums`}>
                                     {target.target_numerator !== null ? `${formatScore(target.target_numerator)} / ${formatScore(target.target_denominator)}` : formatScore(target.target_value)} {target.kpi.unit ?? ''}
@@ -260,8 +267,9 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
     );
 }
 
-function PeriodTargetsForm({ target, onDone }: { target: Target; onDone: () => void }) {
+function PeriodTargetsForm({ target, cycleStart, onDone }: { target: Target; cycleStart: string | null; onDone: () => void }) {
     const { t } = useLocale();
+    const months = useCycleMonths(cycleStart);
     const initialType = target.period_targets[0]?.period_type ?? 'QUARTER';
     const [periodType, setPeriodType] = useState<'QUARTER' | 'MONTH'>(initialType);
     const makeRows = (type: 'QUARTER' | 'MONTH') => Array.from({ length: type === 'QUARTER' ? 4 : 12 }, (_, index) => {
@@ -275,12 +283,13 @@ function PeriodTargetsForm({ target, onDone }: { target: Target; onDone: () => v
     }
     function submit(e: FormEvent) {
         e.preventDefault();
-        form.transform((data) => ({ period_targets: data.period_targets.map((row) => nullify(row)) }));
+        // Empty periods are left out: nothing is planned for them (as the plan's "—").
+        form.transform((data) => ({ period_targets: data.period_targets.filter((row) => String(row.target_value ?? '').trim() !== '').map((row) => nullify(row)) }));
         form.put(route('performance.targets.period-targets.replace', target.id), { preserveScroll: true, onSuccess: onDone });
     }
     return <form onSubmit={submit} className="mt-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
         <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-semibold">{t('performance.plans.periodTargets')}</p><select className={`${inputCls} w-auto`} value={periodType} onChange={(e) => switchType(e.target.value as 'QUARTER' | 'MONTH')}><option value="QUARTER">{t('performance.plans.quarterly')}</option><option value="MONTH">{t('performance.plans.monthly')}</option></select></div>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{form.data.period_targets.map((row, index) => <Field key={row.period_number} label={`${periodType === 'QUARTER' ? t('performance.plans.quarterShort') : t('performance.plans.monthShort')}${row.period_number}`} error={(form.errors as Record<string, string>)[`period_targets.${index}.target_value`]}><input className={inputCls} inputMode="decimal" value={row.target_value} onChange={(e) => form.setData('period_targets', form.data.period_targets.map((item, i) => i === index ? { ...item, target_value: e.target.value } : item))} required /></Field>)}</div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{form.data.period_targets.map((row, index) => <Field key={row.period_number} label={periodType === 'QUARTER' ? quarterLabel(t, row.period_number) : months[row.period_number - 1]} error={(form.errors as Record<string, string>)[`period_targets.${index}.target_value`]}><input className={inputCls} inputMode="decimal" value={row.target_value} onChange={(e) => form.setData('period_targets', form.data.period_targets.map((item, i) => i === index ? { ...item, target_value: e.target.value } : item))} /></Field>)}</div>
         <p className="mt-2 text-xs text-gray-500">{t('performance.plans.periodTargetsHelp')}</p>
         <div className="mt-3 flex justify-end gap-2"><button type="button" className={secondaryBtn} onClick={onDone}>{t('performance.actions.cancel')}</button><button className={primaryBtn} disabled={form.processing}>{t('performance.actions.save')}</button></div>
     </form>;

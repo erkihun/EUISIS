@@ -34,6 +34,27 @@ const auditLogs = {
     eventPlaceholder: 'e.g. card_issued',
     // Event type labels — all AuditEventType values
     events: {
+        // Backup & Recovery
+        BACKUP_STATUS_VIEWED: 'Backup Status Viewed',
+        BACKUP_STARTED: 'Backup Started',
+        BACKUP_COMPLETED: 'Backup Completed',
+        BACKUP_FAILED: 'Backup Failed',
+        BACKUP_VERIFICATION_STARTED: 'Backup Verification Started',
+        BACKUP_VERIFIED: 'Backup Verified',
+        BACKUP_VERIFICATION_FAILED: 'Backup Verification Failed',
+        RESTORE_TEST_STARTED: 'Restore Test Started',
+        RESTORE_TEST_PASSED: 'Restore Test Passed',
+        RESTORE_TEST_FAILED: 'Restore Test Failed',
+        RESTORE_REQUESTED: 'Recovery Requested',
+        RESTORE_REVIEWED: 'Recovery Under Review',
+        RESTORE_APPROVED: 'Recovery Approved',
+        RESTORE_REJECTED: 'Recovery Rejected',
+        RESTORE_CANCELLED: 'Recovery Cancelled',
+        PRODUCTION_RESTORE_AUTHORIZED: 'Production Restore Authorized',
+        PRODUCTION_RESTORE_STARTED: 'Production Restore Started',
+        PRODUCTION_RESTORE_COMPLETED: 'Production Restore Completed',
+        PRODUCTION_RESTORE_FAILED: 'Production Restore Failed',
+        RETENTION_CLEANUP: 'Backup Retention Cleanup',
         // Employee
         employee_created: 'Employee Created',
         employee_updated: 'Employee Updated',

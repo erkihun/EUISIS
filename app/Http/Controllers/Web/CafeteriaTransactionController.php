@@ -200,7 +200,8 @@ class CafeteriaTransactionController extends Controller
             ->orderBy('name_en')
             ->get(['id', 'name_en', 'name_am', 'code', 'is_active']);
 
-        $selectedProvider = $providers->first();
+        // The scanner returns here after every scan with its provider, so the count follows the operator's choice.
+        $selectedProvider = $providers->firstWhere('id', $request->query('provider_id')) ?? $providers->first();
         $todayCount = $selectedProvider
             ? CafeteriaTransaction::query()
                 ->where('cafeteria_provider_id', $selectedProvider->id)
@@ -212,6 +213,7 @@ class CafeteriaTransactionController extends Controller
             'scanOptions' => app(CafeteriaSettingsService::class)->scanOptions(),
             'providers' => $providers,
             'provider_locked' => $providers->count() === 1 && ! $this->providerAccess->canAccessAllProviders($request->user()),
+            'selected_provider_id' => $selectedProvider?->id,
             'today_scan_count' => $todayCount,
             'scan_result' => $request->session()->get('scan_result'),
         ]);
@@ -266,12 +268,15 @@ class CafeteriaTransactionController extends Controller
         // scan service; it is denied here with its own reason code.
         $credential = $request->validated('nfc_credential');
         $scanInput = $request->validated('qr_token');
+        $backToScanner = $request->validated('source') === 'mobile'
+            ? redirect()->route('cafeteria.scan.mobile', ['provider_id' => $provider->id])
+            : redirect()->route('cafeteria.scan');
 
         if ($credential !== null) {
             $resolved = $nfcCredentials->resolveForAttendedScan($credential);
 
             if ($resolved['card'] === null) {
-                return redirect()->route($request->validated('source') === 'mobile' ? 'cafeteria.scan.mobile' : 'cafeteria.scan')
+                return $backToScanner
                     ->with(['scan_result' => [
                         'allowed' => false,
                         'is_extra_scan' => false,
@@ -296,9 +301,6 @@ class CafeteriaTransactionController extends Controller
             ],
         );
 
-        $isMobile = $request->validated('source') === 'mobile';
-        $scanRoute = $isMobile ? 'cafeteria.scan.mobile' : 'cafeteria.scan';
-
         if (! $result['allowed']) {
             $employee = $result['employee'] ?? null;
             $card = $result['id_card'] ?? null;
@@ -311,7 +313,7 @@ class CafeteriaTransactionController extends Controller
                 'organization_unit' => $employee->currentAssignment?->organizationUnit?->name_en,
             ] : null;
 
-            return redirect()->route($scanRoute)->with([
+            return $backToScanner->with([
                 'scan_result' => [
                     'allowed' => false,
                     'is_extra_scan' => false,
@@ -369,7 +371,7 @@ class CafeteriaTransactionController extends Controller
             $cardNumber = $transaction->idCard?->card_number;
         }
 
-        return redirect()->route($scanRoute)->with([
+        return $backToScanner->with([
             'scan_result' => [
                 'allowed' => true,
                 'is_extra_scan' => $isExtraScan,

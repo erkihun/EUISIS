@@ -1,0 +1,30 @@
+{
+  "stanza": "euisis",
+  "pgbackrest": "/usr/bin/pgbackrest",
+  "pgbackrest_config": "/etc/pgbackrest/pgbackrest.conf",
+  "psql": "/usr/bin/psql",
+  "postgres_service": "euisis_backup_monitor",
+  "report_path": "/var/lib/euisis-backup/status.json",
+  "journal_dir": "/var/lib/euisis-backup/journal",
+  "controls_file": "/etc/euisis-backup/controls.json",
+  "capacity_paths": {},
+  "operation_timeout_seconds": 86400,
+  "logical_backup": {
+    "pg_dump": "/REPLACE_POSTGRES_MATCHING_MAJOR/bin/pg_dump",
+    "postgres_service": "euisis_logical_backup",
+    "output_dir": "/REPLACE_PRIVATE_INDEPENDENT_LOGICAL_ARCHIVE",
+    "encrypt_command": ["/REPLACE_APPROVED_ENCRYPTOR", "REPLACE_PUBLIC_RECIPIENT_ARGUMENTS"],
+    "retain_count": 12
+  },
+  "restore_test": {
+    "isolated": false,
+    "root": "/REPLACE_PRIVATE_RESTORE_SCRATCH",
+    "pg_ctl": "/REPLACE_POSTGRES_MATCHING_MAJOR/bin/pg_ctl",
+    "php": "/usr/bin/php",
+    "application_path": "/REPLACE_ISOLATED_MATCHING_RELEASE",
+    "files_root": "/REPLACE_RECOVERED_STORAGE/app",
+    "database": "REPLACE_DATABASE",
+    "database_user": "REPLACE_RESTORED_OPERATOR_ROLE",
+    "target_lag_seconds": 900
+  }
+}

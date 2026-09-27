@@ -18,14 +18,13 @@ Related: [go-live checklist](../go-live-checklist.md) ·
 
 ## 1. Back up (mandatory)
 
-```bash
-# Database — see backup-and-disaster-recovery.md for the exact dump command and
-# where dumps are kept. Record the dump file name in the change ticket.
-# Files — storage/app (private: employee photos, card templates, exports).
-tar -czf /backups/euisis-storage-$(date +%Y%m%d%H%M).tar.gz -C /var/www/euisis/shared storage/app
-```
-
-Verify the dump restores (backup-and-disaster-recovery.md §1 "Backup Verification") before continuing.
+Before a destructive/high-risk migration, require a recent pgBackRest full chain plus
+WAL in both independent encrypted repositories, successful verification and a current
+isolated restore test. Follow [database backup operations](../runbooks/database-backup.md).
+Record backup labels, repository/timeline, validation evidence and the matching versioned
+file snapshot in the change ticket. Escrow keys separately. Do not take an unencrypted
+storage tarball or rely only on a logical dump. Do not run backup commands automatically
+from Laravel migrations. Missing recovery evidence blocks the deployment.
 
 ## 2. Build the new release (site still up)
 
@@ -91,11 +90,11 @@ exact inverse (`2026_09_20_120000_remove_direct_card_print_permission`,
 `2026_09_22_140000_align_change_request_permission_names`,
 `2026_09_27_000300_add_entitlement_ledger_and_transaction_snapshots`, the
 permission registrations). **Do not use `migrate:rollback` on production.**
-Restore the step 1 dump instead:
+Use the controlled [PITR workflow](../runbooks/postgresql-pitr.md) with the step 1 recovery evidence:
 
 1. `php artisan down`.
 2. Export every cafeteria transaction, card status change and settlement made since the switch (back-office exports), so they can be re-entered or reconciled — a restore discards them.
-3. Restore the database dump and, if needed, `storage/app`.
+3. Preserve current state; restore database/WAL and matching files/keys in isolation. Validate, obtain independent approval, then perform controlled cutover.
 4. Point `current` at the previous release, `php artisan optimize`, `permission:cache-reset`, reload PHP-FPM, `queue:restart`, `up`.
 5. Smoke test, then reconcile the exported records with the providers before the next settlement.
 
