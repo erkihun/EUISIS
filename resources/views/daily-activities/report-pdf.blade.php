@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="{{ app()->getLocale() }}" dir="ltr"><head><meta charset="utf-8"><title>{{ $title }}</title>
+@include('pdf.partials.typography', ['variant' => 'report'])
 <style>
-@font-face { font-family: NotoEth; src: url("{{ storage_path('fonts/NotoSansEthiopic-Regular.ttf') }}") format('truetype'); }
 @page { margin: 14mm 10mm; }
-body { font-family: NotoEth, 'DejaVu Sans', sans-serif; font-size: 8.5px; color: #172033; }
+body { font-size: 8.5px; color: #172033; }
 h1 { font-size: 18px; font-weight: normal; margin: 0 0 6px; color: #173b63; }
 .header { border-bottom: 3px solid #173b63; padding-bottom: 10px; }
 .meta { line-height: 1.7; margin: 10px 0; }

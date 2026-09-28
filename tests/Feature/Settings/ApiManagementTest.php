@@ -343,12 +343,12 @@ it('renders api management as a settings tab beside security', function (): void
     $page = file_get_contents(dirname(__DIR__, 3).'/resources/js/Pages/SystemSettings/Index.tsx');
 
     expect($page)
-        // Inserted directly after the Security tab.
-        ->toContain("findIndex((tab) => tab.id === 'security')")
+        // Listed in the security group, after the Security section.
+        ->toContain("{ id: 'security', routeName: 'system-settings.security.update'")
         ->toContain("id: 'api_management'")
         ->toContain("href: route('api-management.index')")
         // Hidden unless the user may open the module.
-        ->toContain('if (!can.apiManagement)');
+        ->toContain("group === 'security' && can.apiManagement");
 
     foreach (['en', 'am'] as $locale) {
         $settings = file_get_contents(dirname(__DIR__, 3)."/resources/js/i18n/{$locale}/settings.ts");

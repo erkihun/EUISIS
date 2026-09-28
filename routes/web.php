@@ -119,6 +119,7 @@ use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceTypeController;
 use App\Http\Controllers\Web\SystemSettingController;
+use App\Http\Controllers\Web\TypographyTestController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\UserOrganizationScopeController;
 use App\Http\Controllers\Web\VacancyAnnouncementController;
@@ -1301,6 +1302,14 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Typography check sheet for the PDF renderer (docs/ui-typography.md).
+// Never registered in production; a cached production route table omits it.
+if (! app()->isProduction()) {
+    Route::middleware(['auth'])
+        ->get('/dev/typography-test', TypographyTestController::class)
+        ->name('dev.typography-test');
+}
 
 // Employee Performance Management (EPMS).
 require __DIR__.'/performance.php';

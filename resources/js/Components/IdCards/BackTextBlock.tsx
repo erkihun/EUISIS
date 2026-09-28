@@ -9,7 +9,6 @@ export const BACK_STYLE_DEFAULTS: Record<BackRole, TextStyle> = {
 
 export type BackTextRow = { role: BackRole; text: string | null | undefined };
 type StyledRow = { role: BackRole; text: string; style: TextStyle };
-const FONT = "'Abyssinica SIL','Noto Sans Ethiopic','Noto Serif Ethiopic','DejaVu Sans',Arial,sans-serif";
 
 /** Conservative glyph widths, mirrored by IdCardBackTextLayout for server export. */
 function textWidth(text: string, size: number): number {
@@ -75,10 +74,10 @@ export default function BackTextBlock({ rows, width, height, template, center = 
     }));
     return (
         <svg data-back-text-block="" width="100%" height="100%" viewBox={`0 0 ${width} ${height}`}
-            xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', overflow: 'hidden' }}>
+            xmlns="http://www.w3.org/2000/svg" style={{ display: 'block', overflow: 'hidden', fontFamily: 'var(--font-id-card)' }}>
             {layoutBackText(styled, width, height).map((line, index) => (
                 <text key={index} data-back-role={line.role} x={center ? width / 2 : 0} y={line.y}
-                    textAnchor={center ? 'middle' : 'start'} fontFamily={FONT}
+                    textAnchor={center ? 'middle' : 'start'}
                     fill={line.style.color} fontSize={line.size} fontWeight={line.style.font_weight}>
                     {line.text}
                 </text>

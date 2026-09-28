@@ -12,8 +12,9 @@
         the page the code opens identifies the desk rather than the person, so
         printing a name here would defeat that.
     --}}
+    @include('pdf.partials.typography', ['variant' => 'report'])
     <style>
-        body { font-family: DejaVu Sans, sans-serif; color: #1a1a1a; margin: 0; padding: 0; }
+        body { color: #1a1a1a; margin: 0; padding: 0; }
         .page { padding: 60px 50px; text-align: center; }
         .title { font-size: 22pt; font-weight: bold; margin: 0 0 4px; color: #1e40af; }
         .title-am { font-size: 15pt; margin: 0 0 28px; color: #1e40af; }

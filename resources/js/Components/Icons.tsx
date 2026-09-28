@@ -747,3 +747,104 @@ export function ChevronLeft(p: IconProps) {
         </svg>
     );
 }
+
+/** Globe — localization settings */
+export function GlobeIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <circle cx="12" cy="12" r="10" />
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+        </svg>
+    );
+}
+
+/** Palette — appearance settings */
+export function PaletteIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M12 22a10 10 0 1 1 10-10c0 2.2-1.8 3.5-4 3.5h-1.8a1.7 1.7 0 0 0-1.2 2.9 1.7 1.7 0 0 1-1.2 2.9Z" />
+            <circle cx="7.5" cy="10.5" r="1" />
+            <circle cx="10.5" cy="7" r="1" />
+            <circle cx="15" cy="7.5" r="1" />
+        </svg>
+    );
+}
+
+/** Bell — notification settings */
+export function BellIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+            <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+        </svg>
+    );
+}
+
+/** Envelope — email settings */
+export function MailIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="m22 7-10 6L2 7" />
+        </svg>
+    );
+}
+
+/** Paper plane — Telegram settings */
+export function SendIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="m22 2-7 20-4-9-9-4Z" />
+            <path d="M22 2 11 13" />
+        </svg>
+    );
+}
+
+export function DownloadIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
+        </svg>
+    );
+}
+
+export function ClockIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+        </svg>
+    );
+}
+
+export function EyeOffIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19M1 1l22 22" />
+        </svg>
+    );
+}
+
+export function ChartLineIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M3 3v18h18M7 15l4-4 3 3 5-6" />
+        </svg>
+    );
+}
+
+export function FileChartIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M8 18v-2M12 18v-5M16 18v-3" />
+        </svg>
+    );
+}
+
+export function ArrowLeftIcon(p: IconProps) {
+    return (
+        <svg {...base} {...p}>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+        </svg>
+    );
+}

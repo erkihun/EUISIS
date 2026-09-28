@@ -1,4 +1,3 @@
-import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
 
 /** @type {import('tailwindcss').Config} */
@@ -14,8 +13,39 @@ export default {
 
     theme: {
         extend: {
+            /*
+             * Typography — see docs/ui-typography.md. Families and line
+             * heights are CSS variables defined in resources/css/app.css and
+             * switched by the `lang` attribute, so `font-sans` is Inter in
+             * English and Noto Sans Ethiopic in Amharic without any
+             * component knowing which language is active.
+             */
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['var(--font-ui)'],
+                ui: ['var(--font-ui)'],
+                document: ['var(--font-document)'],
+                'id-card': ['var(--font-id-card)'],
+            },
+            fontSize: {
+                xs: ['var(--fs-xs)', { lineHeight: 'var(--lh-xs)' }],
+                sm: ['0.875rem', { lineHeight: 'var(--lh-sm)' }],
+                base: ['1rem', { lineHeight: 'var(--lh-base)' }],
+                // Semantic steps. Prefer these in shared components.
+                'page-title': ['1.375rem', { lineHeight: 'var(--lh-title)', fontWeight: '700' }],
+                'section-title': ['1.125rem', { lineHeight: 'var(--lh-section)', fontWeight: '600' }],
+                body: ['0.875rem', { lineHeight: 'var(--lh-sm)' }],
+                label: ['0.875rem', { lineHeight: 'var(--lh-sm)', fontWeight: '500' }],
+                table: ['0.8125rem', { lineHeight: 'var(--lh-table)' }],
+                helper: ['var(--fs-helper)', { lineHeight: 'var(--lh-helper)' }],
+            },
+            /*
+             * Only 400–700 are shipped. 800/900 would be synthesised (or
+             * snapped to 700 anyway) and heavy Ethiopic strokes fill in, so
+             * the two heaviest utilities are pinned to the heaviest real face.
+             */
+            fontWeight: {
+                extrabold: '700',
+                black: '700',
             },
             colors: {
                 /*

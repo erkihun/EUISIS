@@ -33,7 +33,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 
 export function FormLabel({ required, className, children, ...props }: LabelHTMLAttributes<HTMLLabelElement> & { required?: boolean }) {
     return (
-        <label className={cx('block text-sm font-medium text-[color:var(--app-foreground)]', className)} {...props}>
+        <label className={cx('block text-label text-[color:var(--app-foreground)]', className)} {...props}>
             {children}
             {required && <span className="ml-1 text-red-600" aria-hidden="true">*</span>}
             {required && <span className="sr-only"> required</span>}
@@ -42,12 +42,12 @@ export function FormLabel({ required, className, children, ...props }: LabelHTML
 }
 
 export function FormDescription({ className, ...props }: HTMLAttributes<HTMLParagraphElement>) {
-    return <p className={cx('text-xs text-[color:var(--app-muted-foreground)]', className)} {...props} />;
+    return <p className={cx('text-helper text-[color:var(--app-muted-foreground)]', className)} {...props} />;
 }
 
 export function FieldError({ className, children, ...props }: HTMLAttributes<HTMLParagraphElement>) {
     if (!children) return null;
-    return <p role="alert" className={cx('text-xs text-red-600 dark:text-red-400', className)} {...props}>{children}</p>;
+    return <p role="alert" className={cx('text-helper font-medium text-red-600 dark:text-red-400', className)} {...props}>{children}</p>;
 }
 
 export function FormField({ id, label, required, description, error, children, className }: {

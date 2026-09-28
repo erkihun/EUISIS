@@ -194,7 +194,7 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                         )}
                         {upfrontAllowed && (
                             <Select aria-label={t('cafeteria.usageModeLabel')} value={usageMode} disabled={processing}
-                                onChange={(event) => setUsageMode(event.target.value)} className="ms-auto !h-9 !w-auto min-w-0 !text-base sm:!text-sm">
+                                onChange={(event) => setUsageMode(event.target.value)} className="!h-10 min-w-0 flex-1 !text-base sm:!text-sm">
                                 <option value="single_day">{t('cafeteria.usageModeSingleDay')}</option>
                                 <option value="use_remaining_week">{t('cafeteria.usageModeRemainingWeek')}</option>
                             </Select>
@@ -208,7 +208,8 @@ export default function MobileScan({ providers, scanOptions, provider_locked, se
                 <div id={camera.regionId} className="w-[min(100cqw,100cqh)] [&_video]:block [&_video]:w-full" />
 
                 {camera.active && (
-                    <p className="pointer-events-none absolute inset-x-0 bottom-4 mx-auto w-fit max-w-[90%] rounded-full bg-black/60 px-4 py-2 text-center text-sm text-white/90 backdrop-blur">
+                    // Hidden on short (landscape) screens, where it would cover the viewfinder.
+                    <p className="pointer-events-none absolute inset-x-0 bottom-4 mx-auto w-fit max-w-[90%] rounded-full [@media(max-height:480px)]:hidden bg-black/60 px-4 py-2 text-center text-sm text-white/90 backdrop-blur">
                         {t('cafeteria.holdQrInFrame')}
                     </p>
                 )}

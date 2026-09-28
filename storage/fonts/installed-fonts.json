@@ -2,5 +2,17 @@
     "notoeth": {
         "normal": "C:\\Users\\Erkis\\Documents\\GitHub\\EUISIS\\storage\\fonts\/notoeth_normal_04b80cdb308cb31a4555e694b1c9e426",
         "bold": "notoeth_bold_527d386def787540456c658a1fb14e5d"
+    },
+    "noto sans ethiopic": {
+        "normal": "C:\\Users\\Erkis\\Documents\\GitHub\\EUISIS\\storage\\fonts\/noto_sans_ethiopic_normal_a389e64fed2089d442cd8e0f513a8568",
+        "bold": "C:\\Users\\Erkis\\Documents\\GitHub\\EUISIS\\storage\\fonts\/noto_sans_ethiopic_bold_f96da5124bb3564ccd8a0aa04f61f130",
+        "italic": "C:\\Users\\Erkis\\Documents\\GitHub\\EUISIS\\storage\\fonts\/noto_sans_ethiopic_italic_a389e64fed2089d442cd8e0f513a8568",
+        "bold_italic": "noto_sans_ethiopic_bold_italic_f96da5124bb3564ccd8a0aa04f61f130"
+    },
+    "abyssinica sil": {
+        "normal": "C:\\Users\\Erkis\\Documents\\GitHub\\EUISIS\\storage\\fonts\/abyssinica_sil_normal_7f9aa3733f3f772a17f8b318838e63ad",
+        "bold": "C:\\Users\\Erkis\\Documents\\GitHub\\EUISIS\\storage\\fonts\/abyssinica_sil_bold_7f9aa3733f3f772a17f8b318838e63ad",
+        "italic": "C:\\Users\\Erkis\\Documents\\GitHub\\EUISIS\\storage\\fonts\/abyssinica_sil_italic_7f9aa3733f3f772a17f8b318838e63ad",
+        "bold_italic": "abyssinica_sil_bold_italic_7f9aa3733f3f772a17f8b318838e63ad"
     }
 }

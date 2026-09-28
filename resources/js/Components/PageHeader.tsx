@@ -26,7 +26,7 @@ export default function PageHeader({ title, description, actions, backHref }: Pr
                         {t('common.back')}
                     </Link>
                 )}
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">
+                <h1 className="text-page-title text-gray-900 dark:text-slate-100">
                     {title}
                 </h1>
                 {description && (

@@ -44,7 +44,7 @@ import {
     HistoryIcon,
     AlertTriangle,
 } from '@/Components/Icons';
-import { type CSSProperties, type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
+import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
@@ -497,9 +497,6 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
     const environmentLabel = getString('general.system_environment_label');
     const logoCentered = getString('appearance.logo_position', 'start') === 'center';
-    const sidebarStyle: CSSProperties | undefined = locale === 'am'
-        ? { fontFamily: 'var(--font-ethiopic)' }
-        : undefined;
 
     // Keep the existing permission contract, including independently permitted child links.
     const permitted = (item: NavSubItem) => (!item.permission || can(item.permission))
@@ -687,7 +684,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                             selected ? selectedSurface : 'text-[color:var(--sidebar-fg)]'].join(' ')}>
                         <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                     </PopoverButton>
-                    <PopoverPanel anchor="right start" transition style={sidebarStyle}
+                    <PopoverPanel anchor="right start" transition
                         className="z-50 w-64 rounded-xl border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] p-2 text-[color:var(--sidebar-fg)] shadow-xl outline-none transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-[closed]:-translate-x-1 data-[closed]:opacity-0">
                         {({ close }) => (
                             <>
@@ -727,7 +724,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     }
 
     return (
-        <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]" style={sidebarStyle}>
+        <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]">
             <div className={collapsed ? 'flex min-h-20 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'shrink-0 border-b border-[color:var(--sidebar-border)] p-4'}>
                 <div className="flex items-start gap-2">
                     <Link

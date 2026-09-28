@@ -1,13 +1,14 @@
 import { toPng } from 'html-to-image';
 import { useRef, useState } from 'react';
 import { waitForCardAssets } from '@/hooks/useWaitForCardAssets';
+import { appFontFaceCss, captureFontOptions, cssToken } from '@/lib/typography';
 
 /**
  * PNG / PDF export for the organogram chart.
  *
  * Capture settings mirror `useCardExport`: `pixelRatio: 2` for a high-DPI
- * raster and `skipFonts: true` because cross-origin stylesheets throw a
- * SecurityError when html-to-image tries to read their cssRules.
+ * raster, with the app's fonts inlined (see lib/typography) so Ethiopic
+ * names render in the same typeface as on screen.
  *
  * The PDF is produced by opening a print window containing the captured
  * image, so no extra PDF dependency is needed — the browser's own
@@ -57,7 +58,7 @@ export function useOrganogramExport(organizationCode: string, organizationName: 
             backgroundColor: '#ffffff',
             width: node.scrollWidth,
             height: node.scrollHeight,
-            skipFonts: true,
+            ...(await captureFontOptions()),
             style: {
                 // Neutralise the zoom transform so the export is always
                 // captured at 100%, whatever the on-screen zoom level.
@@ -111,13 +112,14 @@ export function useOrganogramExport(organizationCode: string, organizationName: 
             const fileName = buildFileName(organizationCode, organizationName);
 
             printWindow.document.write(`<!DOCTYPE html>
-<html>
+<html lang="${document.documentElement.lang || 'en'}">
 <head>
 <meta charset="utf-8">
 <title>${fileName}</title>
 <style>
+  ${appFontFaceCss()}
   @page { size: A4 landscape; margin: 10mm; }
-  body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; color: #0f172a; }
+  body { font-family: ${cssToken('--font-ui') || 'system-ui, sans-serif'}; margin: 0; padding: 12px; color: #0f172a; }
   h1 { font-size: 15px; margin: 0 0 2px; }
   p { font-size: 11px; margin: 0 0 10px; color: #475569; }
   img { width: 100%; height: auto; }
@@ -128,7 +130,10 @@ export function useOrganogramExport(organizationCode: string, organizationName: 
 <p></p>
 <img alt="">
 <script>
-  window.addEventListener('load', function () { window.focus(); window.print(); });
+  window.addEventListener('load', function () {
+    var fontsReady = document.fonts ? document.fonts.ready : Promise.resolve();
+    fontsReady.then(function () { window.focus(); window.print(); });
+  });
 </script>
 </body>
 </html>`);

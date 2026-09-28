@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
     Combobox,
+    ComboboxButton,
     ComboboxInput,
     ComboboxOption,
     ComboboxOptions,
@@ -82,7 +83,7 @@ export function DataTable<T>({ data, columns, loading = false, emptyTitle, empty
             {!loading && data.length === 0 ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} /> : <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                     <thead className="border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)]">
-                        {table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} className="px-4 py-3 text-xs font-semibold text-[color:var(--app-muted-foreground)]">{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>)}</tr>)}
+                        {table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} className="px-4 py-3 text-xs font-medium text-[color:var(--app-muted-foreground)]">{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>)}</tr>)}
                     </thead>
                     <tbody className="divide-y divide-[color:var(--app-border)]">
                         {loading ? Array.from({ length: pagination?.perPage ?? 6 }, (_, row) => <tr key={row}>{columns.map((_, col) => <td key={col} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}</tr>) : table.getRowModel().rows.map((row) => <tr key={row.id} className="hover:bg-[color:var(--app-surface-muted)]">{row.getVisibleCells().map((cell) => <td key={cell.id} className="px-4 py-3">{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}
@@ -119,7 +120,12 @@ export function FilterBar({ search, onSearchChange, searchPlaceholder, children,
 }
 
 export interface SearchableOption { value: string; label: string; description?: string; disabled?: boolean }
-export function SearchableSelect({ value, options: providedOptions, onChange, loadOptions, disabled, clearable = true, placeholder, searchPlaceholder, emptyText, loadingText, className }: {
+export function SearchableSelect({ id, label, immediate = false, value, options: providedOptions, onChange, loadOptions, disabled, clearable = true, placeholder, searchPlaceholder, emptyText, loadingText, className }: {
+    id?: string;
+    /** Accessible name of the input. Headless UI replaces aria-labelledby, so the name is passed as text. */
+    label?: string;
+    /** Open the option list on focus rather than on typing. */
+    immediate?: boolean;
     value: string;
     options?: SearchableOption[];
     onChange: (value: string, option: SearchableOption | null) => void;
@@ -150,10 +156,15 @@ export function SearchableSelect({ value, options: providedOptions, onChange, lo
     }, [disabled, loadOptions, query]);
     const selected = useMemo(() => options.find((option) => option.value === value) ?? null, [options, value]);
     const filtered = loadOptions ? options : options.filter((option) => option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
-    return <Combobox value={selected} onChange={(option: SearchableOption | null) => onChange(option?.value ?? '', option)} disabled={disabled} nullable>
+    return <Combobox value={selected} onChange={(option: SearchableOption | null) => onChange(option?.value ?? '', option)} disabled={disabled} immediate={immediate} nullable>
         <div className={cx('relative', className)}>
-            <ComboboxInput className={cx(controlClassName, clearable && value ? 'pr-9' : '')} displayValue={(option: SearchableOption | null) => option?.label ?? ''} onChange={(event) => setQuery(event.target.value)} placeholder={placeholder ?? searchPlaceholder ?? messages.search} />
+            <ComboboxInput id={id} aria-label={label} className={cx(controlClassName, (clearable && value) || !clearable ? 'pr-9' : '')} displayValue={(option: SearchableOption | null) => option?.label ?? ''} onChange={(event) => setQuery(event.target.value)} placeholder={placeholder ?? searchPlaceholder ?? messages.search} />
             {clearable && value && <button type="button" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1" aria-label={messages.clear} onClick={() => onChange('', null)}>×</button>}
+            {!clearable && (
+                <ComboboxButton className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-[color:var(--app-muted-foreground)]">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                </ComboboxButton>
+            )}
             <ComboboxOptions anchor="bottom start" className="z-50 mt-1 max-h-64 w-[var(--input-width)] overflow-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-1 shadow-lg empty:hidden">
                 {loading ? <div className="px-3 py-2 text-sm text-[color:var(--app-muted-foreground)]">{loadingText ?? messages.loading}</div> : filtered.length === 0 ? <div className="px-3 py-2 text-sm text-[color:var(--app-muted-foreground)]">{emptyText ?? messages.noResults}</div> : filtered.map((option) => <ComboboxOption key={option.value} value={option} disabled={option.disabled} className="cursor-pointer rounded-[var(--radius-control)] px-3 py-2 text-sm data-[focus]:bg-[color:var(--app-surface-muted)] data-[disabled]:opacity-50"><span className="block">{option.label}</span>{option.description && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{option.description}</span>}</ComboboxOption>)}
             </ComboboxOptions>

@@ -44,6 +44,8 @@ class ServiceFeedbackController extends Controller
         'status',
         'date_from',
         'date_to',
+        // Free text over comment, client name and employee.
+        'q',
     ];
 
     public function __construct(
@@ -71,6 +73,9 @@ class ServiceFeedbackController extends Controller
             'byServiceType' => $this->feedbackQuery->byServiceType($base),
             'recentComments' => $this->feedbackQuery->recentComments($base)
                 ->map(fn (EmployeeServiceFeedback $item): array => $this->summarise($item)),
+            'attention' => $this->feedbackQuery->needsAttention($base)
+                ->map(fn (EmployeeServiceFeedback $item): array => $this->summarise($item)),
+            'oldestPendingAt' => $this->feedbackQuery->oldestPendingAt($base),
             'filters' => $filters,
             'filterOptions' => $this->filterOptions($user),
         ]);
@@ -97,8 +102,17 @@ class ServiceFeedbackController extends Controller
             ->withQueryString()
             ->through(fn (EmployeeServiceFeedback $item): array => $this->summarise($item));
 
+        // Tab counts ignore the status filter, so each tab shows what choosing it would list.
+        $statusCounts = $this->feedbackQuery->statusCounts(
+            $this->feedbackQuery->applyFilters(
+                $this->feedbackQuery->scopedQuery($user),
+                array_diff_key($filters, ['status' => true]),
+            ),
+        );
+
         return Inertia::render('ServiceFeedback/Index', [
             'feedback' => $feedback,
+            'statusCounts' => $statusCounts,
             'filters' => $filters,
             'filterOptions' => $this->filterOptions($user),
             'statuses' => array_column(ServiceFeedbackStatus::cases(), 'value'),

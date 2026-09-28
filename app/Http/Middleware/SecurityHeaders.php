@@ -79,12 +79,19 @@ class SecurityHeaders
             ? "connect-src 'self' ws: wss: {$viteWs} {$viteHttp}"
             : "connect-src 'self' ws: wss:";
 
+        // Fonts are bundled (resources/css/fonts.css) and served from 'self' in
+        // a build; under `npm run dev` Vite serves them from its own origin.
+        // `data:` covers fonts inlined into ID card / organogram captures.
+        $fontSrc = $isLocal
+            ? "font-src 'self' data: {$viteHttp}"
+            : "font-src 'self' data:";
+
         $response->headers->set('Content-Security-Policy', implode('; ', [
             "default-src 'self'",
             $scriptSrc,
             "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: blob:",
-            "font-src 'self' data:",
+            $fontSrc,
             $connectSrc,
             "frame-ancestors 'none'",
             "object-src 'none'",
