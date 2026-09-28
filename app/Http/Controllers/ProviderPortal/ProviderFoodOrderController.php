@@ -118,7 +118,7 @@ class ProviderFoodOrderController extends Controller
             'status' => $status,
             'served_at' => $status === 'served' ? ($order->served_at ?? now()) : $order->served_at,
             'cancellation_reason' => $cancellationReason ?? $order->cancellation_reason,
-            'updated_by' => $request->user()?->id,
+            'updated_by' => $this->staffUserId($request),
         ]);
 
         return back()->with('flash', ['message' => __('provider-portal.order_updated'), 'type' => 'success']);

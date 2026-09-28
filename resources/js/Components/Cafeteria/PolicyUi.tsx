@@ -20,23 +20,36 @@ export function ActionButton({ label, url, field, description, destructive = fal
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(field === 'effective_to' ? new Date().toISOString().slice(0, 10) : '');
     const [busy, setBusy] = useState(false);
+    // The server's reasons for refusing (not your turn to approve, overlapping
+    // policy, …). The pages have no other place that shows them, so without
+    // this the dialog closed and nothing appeared to happen.
+    const [errors, setErrors] = useState<string[]>([]);
 
+    const close = () => { setOpen(false); setErrors([]); };
     const confirm = () => {
         setBusy(true);
+        setErrors([]);
         router.post(url, field ? { [field]: value } : {}, {
             preserveScroll: true,
-            onFinish: () => { setBusy(false); setOpen(false); },
+            onSuccess: close,
+            onError: (bag) => setErrors(Object.values(bag).filter(Boolean)),
+            onFinish: () => setBusy(false),
         });
     };
 
     return (
         <>
             <Button type="button" size="sm" variant={destructive ? 'destructive' : primary ? 'primary' : 'outline'} onClick={() => setOpen(true)}>{label}</Button>
-            <AppDialog open={open} onClose={() => setOpen(false)} title={label} description={description ?? t('cafeteriaPolicy.confirmTitle')}
+            <AppDialog open={open} onClose={close} title={label} description={description ?? t('cafeteriaPolicy.confirmTitle')}
                 footer={<>
-                    <Button type="button" variant="ghost" onClick={() => setOpen(false)}>{t('cafeteriaPolicy.cancel')}</Button>
+                    <Button type="button" variant="ghost" onClick={close}>{t('cafeteriaPolicy.cancel')}</Button>
                     <Button type="button" variant={destructive ? 'destructive' : 'primary'} disabled={busy || (field === 'effective_to' && !value)} onClick={confirm}>{label}</Button>
                 </>}>
+                {errors.length > 0 && (
+                    <div role="alert" className="mb-3">
+                        <Alert tone="danger">{errors.map((message) => <p key={message}>{message}</p>)}</Alert>
+                    </div>
+                )}
                 {field === 'effective_to' && (
                     <label className="block space-y-1 text-sm">
                         <span className="font-medium">{t('cafeteriaPolicy.endOn')}</span>

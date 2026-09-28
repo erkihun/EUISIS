@@ -24,9 +24,12 @@ final class IdCardSvgRenderer
 
     private const H = 540;
 
-    // CSS font-family value — single-quoted names (spaces) inside a double-quoted XML attribute.
-    // Used as: font-family="%s" in sprintf so no outer quotes needed here.
-    private const FONT = "'Abyssinica SIL','Noto Sans Ethiopic','Noto Serif Ethiopic','DejaVu Sans',Arial,sans-serif";
+    /**
+     * Font stack used when no application config is loaded (plain unit tests).
+     * The real value comes from `typography.id_card.stack`: Inter for Latin,
+     * Noto Sans Ethiopic for Ethiopic — the same stack as the browser preview.
+     */
+    private const DEFAULT_FONT = "'Inter','Noto Sans Ethiopic','Abyssinica SIL','Nyala',sans-serif";
 
     /** Shown when a card field has no value. */
     private const DASH = '-';
@@ -65,7 +68,22 @@ final class IdCardSvgRenderer
         'damaged' => 'DAMAGED',
     ];
 
-    public function __construct(private readonly IdCardQrCodeRenderer $qrRenderer) {}
+    /** CSS font-family value — single-quoted names inside a double-quoted XML attribute. */
+    private readonly string $font;
+
+    public function __construct(private readonly IdCardQrCodeRenderer $qrRenderer)
+    {
+        $this->font = self::fontStack();
+    }
+
+    /** The configured stack, limited to the characters a CSS family list needs. */
+    private static function fontStack(): string
+    {
+        $configured = app()->bound('config') ? config('typography.id_card.stack') : null;
+        $stack = is_string($configured) ? (string) preg_replace("/[^A-Za-z0-9 ,'\-]/", '', $configured) : '';
+
+        return $stack !== '' ? $stack : self::DEFAULT_FONT;
+    }
 
     // ── Public entry points ────────────────────────────────────────────
 
@@ -128,7 +146,7 @@ final class IdCardSvgRenderer
                 .' font-weight="900" fill="rgba(15,23,42,0.04)"'
                 .' transform="rotate(-20,%d,%d)" letter-spacing="12">%s</text>',
                 self::W / 2, self::H / 2,
-                self::FONT,
+                $this->font,
                 self::W / 2, self::H / 2,
                 $l->template === IdCardTemplate::Modern ? 'CITY ID' : 'EMPLOYEE ID',
             );
@@ -141,7 +159,7 @@ final class IdCardSvgRenderer
                 .' font-weight="900" fill="rgba(255,0,0,0.18)"'
                 .' transform="rotate(-30,%d,%d)" letter-spacing="10">%s</text>',
                 self::W / 2, self::H / 2,
-                self::FONT,
+                $this->font,
                 self::W / 2, self::H / 2,
                 $this->e($watermark),
             );
@@ -233,7 +251,7 @@ final class IdCardSvgRenderer
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
                 $headerTextX, $lineY,
-                self::FONT,
+                $this->font,
                 $this->styleAttrs($headerStyle, min($px, $step - 1), $weight, $color),
                 $this->e($this->trunc($line, $this->charBudget($headerTextW, min($px, $step - 1)))),
             );
@@ -265,7 +283,7 @@ final class IdCardSvgRenderer
                 $l->template === IdCardTemplate::Modern ? 36 : 6,
                 $l->template === IdCardTemplate::Modern ? 36 : 6,
                 $photoX + $photoW / 2, $photoY + $photoH / 2,
-                self::FONT,
+                $this->font,
                 $this->e($l->frontTextSecondary),
             );
         }
@@ -328,12 +346,12 @@ final class IdCardSvgRenderer
             // Caption, then the Ethiopian date above the Gregorian one.
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>',
-                $x, $datesY, self::FONT, $dateLabelStyle, $this->e($caption),
+                $x, $datesY, $this->font, $dateLabelStyle, $this->e($caption),
             );
             foreach (array_values(array_filter([$amValue, $enValue], 'filled')) as $line => $value) {
                 $svg .= sprintf(
                     '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
-                    $x, $datesY + 13 + $line * 13, self::FONT, $dateStyle,
+                    $x, $datesY + 13 + $line * 13, $this->font, $dateStyle,
                     $this->e($this->trunc((string) $value, 24)),
                 );
             }
@@ -424,7 +442,7 @@ final class IdCardSvgRenderer
                 .' font-weight="900" fill="rgba(255,0,0,0.18)"'
                 .' transform="rotate(-30,%d,%d)" letter-spacing="10">%s</text>',
                 self::W / 2, self::H / 2,
-                self::FONT,
+                $this->font,
                 self::W / 2, self::H / 2,
                 $this->e($watermark),
             );
@@ -488,7 +506,7 @@ final class IdCardSvgRenderer
                     $svg .= sprintf(
                         '<text x="%d" y="%d" font-family="%s" %s opacity="0.65">%s</text>',
                         $textX, $topTextY + $noticeLines * 12,
-                        self::FONT,
+                        $this->font,
                         $this->styleAttrs($noticeStyle, 7, '400', $l->backTextColor),
                         $this->e($line),
                     );
@@ -502,7 +520,7 @@ final class IdCardSvgRenderer
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" %s opacity="0.5">%s</text>',
                 $textX, $topTextY + max(1, $noticeLines) * 12 + 2,
-                self::FONT,
+                $this->font,
                 $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
                 $this->e($this->trunc($l->verificationUrl, 50)),
             );
@@ -538,10 +556,10 @@ final class IdCardSvgRenderer
             $svg .= sprintf(
                 '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>'
                 .'<text x="%d" y="%d" font-family="%s" %s letter-spacing="1">%s</text>',
-                $numberX, $numberY, self::FONT,
+                $numberX, $numberY, $this->font,
                 $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
                 $this->e($data->cardNumberLabel !== '' ? $data->cardNumberLabel : 'Card No'),
-                $numberX, $numberY + 15, self::FONT,
+                $numberX, $numberY + 15, $this->font,
                 $this->styleAttrs($data->textStyle('back', 'value'), 8, '600', $l->backTextColor),
                 $this->e($data->cardNumber),
             );
@@ -585,7 +603,7 @@ final class IdCardSvgRenderer
             foreach ($captionRows as $row => $caption) {
                 $svg .= sprintf(
                     '<text x="%d" y="%d" font-family="%s" %s opacity="0.7">%s</text>',
-                    $captionX, $captionTop + $row * 10, self::FONT,
+                    $captionX, $captionTop + $row * 10, $this->font,
                     $this->styleAttrs($data->textStyle('back', 'label'), 7, '400', $l->backTextColor),
                     $this->e($caption),
                 );
@@ -668,9 +686,9 @@ final class IdCardSvgRenderer
         $box = static fn (IdCardRenderData $data, string $face, string $element): array => (function ($value): array {
             return [$value->xIn(540), $value->yIn(856), $value->wIn(540), $value->hIn(856)];
         })($data->box($face, $element));
-        $centerText = fn (string $value, int $x, int $y, int $size, string $fill = null, string $weight = '600'): string => sprintf(
+        $centerText = fn (string $value, int $x, int $y, int $size, ?string $fill = null, string $weight = '600'): string => sprintf(
             '<text x="%d" y="%d" text-anchor="middle" font-family="%s" font-size="%d" font-weight="%s" fill="%s">%s</text>',
-            $x, $y, self::FONT, $size, $weight, $this->e($fill ?? $color), $this->e($this->trunc($value, 52)),
+            $x, $y, $this->font, $size, $weight, $this->e($fill ?? $color), $this->e($this->trunc($value, 52)),
         );
 
         if ($front) {
@@ -691,7 +709,7 @@ final class IdCardSvgRenderer
                 $svg .= sprintf(
                     '<text x="%d" y="%d" text-anchor="middle" font-family="%s" font-size="%d" font-weight="700" fill="%s">%s</text>',
                     $hx + intdiv($hw, 2), $firstBaseline + $index * $lineHeight,
-                    self::FONT, $fontSize, $this->e($color), $this->e((string) $line),
+                    $this->font, $fontSize, $this->e($color), $this->e((string) $line),
                 );
             }
 
@@ -766,7 +784,7 @@ final class IdCardSvgRenderer
         }
         $text = fn (string $value, int $y, int $size = 18): string => sprintf(
             '<text x="270" y="%d" text-anchor="middle" font-family="%s" font-size="%d" fill="%s">%s</text>',
-            $y, self::FONT, $size, $this->e($color), $this->e($this->trunc($value, 55)),
+            $y, $this->font, $size, $this->e($color), $this->e($this->trunc($value, 55)),
         );
         if ($front) {
             // Header content is per template, falling back to the global setting.
@@ -953,9 +971,9 @@ final class IdCardSvgRenderer
         return sprintf(
             '<text x="%d" y="%d" font-family="%s" font-size="%s" font-weight="%s" letter-spacing="0.5" fill="%s" opacity="0.85">%s</text>'
             .'<text x="%d" y="%d" font-family="%s" font-size="%s" font-weight="%s" fill="%s">%s</text>',
-            $x, $y, self::FONT, $this->num($labelSize), $this->e($labelWeight), $this->e($labelColor),
+            $x, $y, $this->font, $this->num($labelSize), $this->e($labelWeight), $this->e($labelColor),
             $this->e($this->trunc($label, $this->charBudget($columnWidth ?? 700, $labelSize))),
-            $x, $y + 15, self::FONT, $this->num($contentSize), $this->e($contentWeight),
+            $x, $y + 15, $this->font, $this->num($contentSize), $this->e($contentWeight),
             $this->e($contentColor), $this->e($this->trunc((string) $value, $limit)),
         );
     }
@@ -1074,7 +1092,7 @@ final class IdCardSvgRenderer
             .' font-weight="700" fill="%s">%s</text>',
             $cx, $cy, $r,
             $cx, $cy + 5,
-            self::FONT,
+            $this->font,
             $this->e($placeholderColor),
             $this->e(IdCardHeaderContent::FALLBACK_INITIALS),
         );
@@ -1120,11 +1138,11 @@ final class IdCardSvgRenderer
         $render = fn (?string $value): string => $this->e($this->trunc(filled($value) ? (string) $value : self::DASH, $valueBudget));
         $label = fn (string $text, int $rowY): string => sprintf(
             '<text x="%d" y="%d" font-family="%s" %s opacity="0.85">%s</text>',
-            $x, $rowY, self::FONT, $labelAttrs, $this->e($text),
+            $x, $rowY, $this->font, $labelAttrs, $this->e($text),
         );
         $value = fn (string $text, int $rowY): string => sprintf(
             '<text x="%d" y="%d" font-family="%s" %s>%s</text>',
-            $inline ? $x + $labelW : $x, $rowY, self::FONT, $valueAttrs, $text,
+            $inline ? $x + $labelW : $x, $rowY, $this->font, $valueAttrs, $text,
         );
 
         $svg = '';
@@ -1223,7 +1241,7 @@ final class IdCardSvgRenderer
             .' fill="%s">%s</text>',
             $x, $y, $w, $h,
             $x + 6, $y + 10,
-            self::FONT,
+            $this->font,
             $this->e($l->frontTextSecondary),
             $this->e($label),
             $x + 6, $y + 24,

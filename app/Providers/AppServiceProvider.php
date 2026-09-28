@@ -105,6 +105,10 @@ use App\Policies\VacancyApplicationPolicy;
 use App\Security\Hashing\MigratingArgon2IdHasher;
 use App\Security\Passwords\CompromisedPasswordChecker;
 use App\Security\Passwords\HibpCompromisedPasswordChecker;
+use App\Services\Backup\Infrastructure\BackupInfrastructureAdapter;
+use App\Services\Backup\Infrastructure\DisabledBackupAdapter;
+use App\Services\Backup\Infrastructure\PgBackRestBackupAdapter;
+use App\Services\Backup\Infrastructure\ReportBackupAdapter;
 use App\Services\Calendar\CalendarService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\Calendar\LocalizedDateService;
@@ -113,7 +117,11 @@ use App\Services\Security\SessionActivityService;
 use App\Services\Sms\BudgetedSmsGateway;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
@@ -132,6 +140,14 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(EthiopianCalendarService::class);
         $this->app->singleton(CalendarService::class);
         $this->app->singleton(LocalizedDateService::class);
+
+        // Backup status source (docs/backup-recovery-architecture.md). Disabled never reports healthy.
+        $this->app->bind(BackupInfrastructureAdapter::class, fn ($app) => ! config('backup.enabled') ? new DisabledBackupAdapter
+            : match (config('backup.driver')) {
+                'pgbackrest' => $app->make(PgBackRestBackupAdapter::class),
+                'report' => $app->make(ReportBackupAdapter::class),
+                default => new DisabledBackupAdapter('INVALID_CONFIGURATION'),
+            });
 
         // Password policy (docs/password-security-policy.md).
         $this->app->bind(CompromisedPasswordChecker::class, HibpCompromisedPasswordChecker::class);
@@ -157,6 +173,14 @@ class AppServiceProvider extends ServiceProvider
         $this->configureViteAssetMode();
         Vite::prefetch(concurrency: 3);
         $this->applyRuntimeSystemSettings();
+
+        // GET /up is the load balancer health check. It also proves the database
+        // and the cache store answer: a listener that throws turns it into a 500,
+        // so a node that lost its database is taken out of rotation.
+        Event::listen(DiagnosingHealth::class, function (): void {
+            DB::connection()->select('select 1');
+            Cache::store()->get('health:probe');
+        });
 
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);

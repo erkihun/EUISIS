@@ -2,6 +2,7 @@ import axios from 'axios';
 import { toPng } from 'html-to-image';
 import { useRef, useState } from 'react';
 import { waitForCardAssets } from '@/hooks/useWaitForCardAssets';
+import { captureFontOptions } from '@/lib/typography';
 import { pixelsForMillimetres, withPngDensity } from '@/utils/pngDensity';
 
 // ── Card dimensions ────────────────────────────────────────────────
@@ -63,11 +64,9 @@ async function captureElement(
         backgroundColor: '#ffffff',
         width: targetW,
         height: targetH,
-        // Cross-origin stylesheets (fonts.bunny.net, Google Fonts) throw a
-        // SecurityError when html-to-image tries to read their cssRules.
-        // skipFonts bypasses that step; the browser uses its already-loaded
-        // font cache when rendering the SVG foreignObject to canvas.
-        skipFonts: true,
+        // The capture is rasterised through an SVG image, which cannot see the
+        // page's web fonts; inline them so the PNG matches the preview.
+        ...(await captureFontOptions()),
         style: {
             transform: 'none',
             transformOrigin: 'top left',

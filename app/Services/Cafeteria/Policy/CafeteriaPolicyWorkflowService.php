@@ -330,13 +330,25 @@ class CafeteriaPolicyWorkflowService
         $today = ($today ?? today())->copy()->startOfDay();
         $changed = 0;
 
+        // Oldest first, and each re-read under lock: activating a version
+        // supersedes its predecessor, so a predecessor still in this batch must
+        // not be activated afterwards from a stale copy (PostgreSQL returns rows
+        // in no particular order, which re-activated and then expired it).
         CafeteriaServicePolicy::query()
             ->where('status', CafeteriaPolicyStatus::Approved->value)
             ->whereDate('effective_from', '<=', $today->toDateString())
-            ->get()
-            ->each(function (CafeteriaServicePolicy $policy) use (&$changed): void {
-                DB::transaction(fn () => $this->markActive($policy, null));
-                $changed++;
+            ->orderBy('effective_from')
+            ->orderBy('version_no')
+            ->pluck('id')
+            ->each(function (string $id) use (&$changed): void {
+                DB::transaction(function () use ($id, &$changed): void {
+                    $policy = CafeteriaServicePolicy::query()->whereKey($id)->lockForUpdate()->first();
+                    if ($policy === null || $policy->status !== CafeteriaPolicyStatus::Approved) {
+                        return;
+                    }
+                    $this->markActive($policy, null);
+                    $changed++;
+                });
             });
 
         $changed += CafeteriaServicePolicy::query()

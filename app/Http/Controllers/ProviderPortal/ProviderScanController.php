@@ -9,16 +9,19 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\ProviderPortal\Concerns\FormatsProviderPortalData;
 use App\Http\Requests\ProviderPortal\ProviderScanRequest;
 use App\Http\Resources\CafeteriaTransactionResource;
+use App\Models\CafeteriaProvider;
 use App\Models\CafeteriaProviderLedgerEntry;
 use App\Models\CafeteriaTransaction;
 use App\Models\Employee;
 use App\Services\Cafeteria\CafeteriaCalendarService;
 use App\Services\Cafeteria\CafeteriaSettingsService;
+use App\Services\Cafeteria\Policy\CafeteriaPricing;
 use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -70,20 +73,28 @@ class ProviderScanController extends Controller
 
         $transaction = $result['transaction'];
         if ($result['allowed'] && $transaction !== null && ! ($result['duplicate'] ?? false)) {
-            CafeteriaProviderLedgerEntry::query()->create([
-                'cafeteria_provider_id' => $provider->id,
-                'cafeteria_transaction_id' => $transaction->id,
-                'entry_date' => $transaction->transaction_date,
-                'entry_type' => 'scan_subsidy',
-                'debit' => 0,
-                'credit' => $transaction->subsidy_amount_applied,
-                'balance_after' => CafeteriaProviderLedgerEntry::query()
+            DB::transaction(function () use ($provider, $transaction, $request): void {
+                // Two counters scanning at once must not both build on the same
+                // previous balance: serialise on the cafeteria and total the
+                // ledger rather than trusting the "latest" row's timestamp.
+                CafeteriaProvider::query()->whereKey($provider->id)->lockForUpdate()->first();
+                $balance = CafeteriaPricing::toCents((string) CafeteriaProviderLedgerEntry::query()
                     ->where('cafeteria_provider_id', $provider->id)
-                    ->latest('created_at')
-                    ->value('balance_after') + $transaction->subsidy_amount_applied,
-                'description' => $transaction->transaction_number,
-                'created_by' => $request->user()?->id,
-            ]);
+                    ->selectRaw('round(coalesce(sum(credit), 0) - coalesce(sum(debit), 0), 2) as balance')
+                    ->value('balance'));
+
+                CafeteriaProviderLedgerEntry::query()->create([
+                    'cafeteria_provider_id' => $provider->id,
+                    'cafeteria_transaction_id' => $transaction->id,
+                    'entry_date' => $transaction->transaction_date,
+                    'entry_type' => 'scan_subsidy',
+                    'debit' => 0,
+                    'credit' => $transaction->subsidy_amount_applied,
+                    'balance_after' => CafeteriaPricing::format($balance + CafeteriaPricing::toCents((string) $transaction->subsidy_amount_applied)),
+                    'description' => $transaction->transaction_number,
+                    'created_by' => $this->staffUserId($request),
+                ]);
+            });
         }
 
         return back()->with([

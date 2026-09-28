@@ -1,4 +1,6 @@
-import InputError from '@/Components/InputError';
+import FieldRow from '@/Components/settings/FieldRow';
+import { Input } from '@euisis/ui';
+import { useId } from 'react';
 
 type Props = {
     label: string;
@@ -9,43 +11,26 @@ type Props = {
     onChange: (value: string) => void;
 };
 
-export default function ColorSettingField({
-    label,
-    description,
-    value,
-    error,
-    disabled = false,
-    onChange,
-}: Props) {
-    return (
-        <div className="grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-3 md:items-start">
-            <div>
-                <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{label}</span>
-                {description && (
-                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{description}</p>
-                )}
-            </div>
+const HEX = /^#[0-9A-F]{6}$/i;
 
-            <div className="space-y-2 md:col-span-2">
-                <div className="flex items-center gap-3">
-                    <input
-                        type="color"
-                        value={value || '#2563EB'}
-                        disabled={disabled}
-                        onChange={(event) => onChange(event.target.value.toUpperCase())}
-                        className="h-10 w-14 rounded-lg border border-gray-300 bg-white dark:border-slate-700 dark:bg-slate-950"
-                    />
-                    <input
-                        type="text"
-                        value={value}
-                        disabled={disabled}
-                        onChange={(event) => onChange(event.target.value.toUpperCase())}
-                        className="w-full rounded-card border border-gray-300 bg-white px-3 py-2 font-mono text-sm text-gray-900 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                    />
-                    <div className="h-10 w-10 rounded-card border border-gray-200 dark:border-slate-700" style={{ backgroundColor: value }} />
-                </div>
-                <InputError message={error} />
+/** A colour as a picker swatch plus its editable hex code. */
+export default function ColorSettingField({ label, description, value, error, disabled = false, onChange }: Props) {
+    const id = useId();
+    const errorId = error ? `${id}-error` : undefined;
+    const valid = HEX.test(value);
+
+    return (
+        <FieldRow htmlFor={id} label={label} description={description} error={error} errorId={errorId}>
+            <div className="flex items-center gap-2">
+                <label className="relative h-[var(--control-h-md)] w-12 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)] focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]">
+                    <span className="sr-only">{label}</span>
+                    <span aria-hidden="true" className="absolute inset-1 rounded-[calc(var(--radius-control)-3px)]" style={{ backgroundColor: valid ? value : 'transparent' }} />
+                    <input type="color" value={valid ? value : '#000000'} disabled={disabled} onChange={(event) => onChange(event.target.value.toUpperCase())}
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed" />
+                </label>
+                <Input id={id} value={value} disabled={disabled} maxLength={7} spellCheck={false} aria-describedby={errorId} aria-invalid={Boolean(error) || (value !== '' && !valid)}
+                    onChange={(event) => onChange(event.target.value.toUpperCase())} className="max-w-[9rem] font-mono uppercase" />
             </div>
-        </div>
+        </FieldRow>
     );
 }

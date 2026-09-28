@@ -9,6 +9,7 @@ import axios from 'axios';
 import IdCardPortraitFront from '@/Components/IdCards/IdCardPortraitFront';
 import IdCardPortraitBack from '@/Components/IdCards/IdCardPortraitBack';
 import { waitForCardAssets } from '@/hooks/useWaitForCardAssets';
+import { captureFontOptions } from '@/lib/typography';
 import { useLocale } from '@/hooks/useLocale';
 import type { CardForExport } from '@/Components/IdCards/CardPrintExportModal';
 
@@ -33,7 +34,8 @@ async function capturePortrait(el: HTMLElement, widthMm: number, dpi = EXPORT_DP
         backgroundColor: '#ffffff',
         width: el.offsetWidth,
         height: el.offsetHeight,
-        skipFonts: true,
+        // Inline the app fonts so the PNG uses the preview's typefaces.
+        ...(await captureFontOptions()),
         style: { transform: 'none', transformOrigin: 'top left', margin: '0', padding: '0' },
     });
 

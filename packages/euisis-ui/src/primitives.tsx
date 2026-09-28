@@ -84,8 +84,12 @@ export const Button = forwardRef(ButtonInner) as <T extends ElementType = 'butto
     props: ButtonProps<T> & { ref?: PolymorphicRef<T> },
 ) => ReactElement | null;
 
+// A caller's padding (p-0, p-3, ...) replaces the default. With both classes present the generated CSS
+// order, not the class order, decides, and the arbitrary-value default always won.
+const EXPLICIT_PADDING = /(?:^|\s)!?p-\S/;
+
 export function Card({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={cx('rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-[var(--card-padding)]', className)} {...props}>{children}</div>;
+    return <div className={cx('rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]', !EXPLICIT_PADDING.test(className ?? '') && 'p-[var(--card-padding)]', className)} {...props}>{children}</div>;
 }
 
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {

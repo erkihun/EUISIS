@@ -17,6 +17,8 @@ use App\Services\Nfc\NfcVerificationService;
 use App\Services\Verification\VerifyCardForServiceAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Ramsey\Uuid\Uuid;
 
 class NfcController extends Controller
 {
@@ -75,8 +77,12 @@ class NfcController extends Controller
                             // but is not money: the employee organization's policy prices it.
                             $scan = app(CafeteriaQrScanService::class)->process($card, $cafeteria, now(), null, [
                                 'usage_mode' => $payload['usage_mode'] ?? 'single_day',
-                                // Bound by secure challenge; namespace prevents cross-terminal collisions.
-                                'scan_nonce' => hash('sha256', $terminal->id.($payload['reference'] ?? bin2hex(random_bytes(16)))),
+                                // Bound by secure challenge; one uuid per terminal + reference, so
+                                // a retried request finds the first transaction. scan_nonce is a
+                                // uuid column: a sha256 hex did not fit it on MySQL or PostgreSQL.
+                                'scan_nonce' => isset($payload['reference'])
+                                    ? Uuid::uuid5(Uuid::NAMESPACE_URL, 'urn:euisis:nfc-scan:'.$terminal->id.':'.$payload['reference'])->toString()
+                                    : (string) Str::uuid(),
                                 'service_terminal_id' => $terminal->id,
                             ], $request, $purpose === 'eligibility');
                             $allowed = $scan['allowed'] && ! ($scan['duplicate'] ?? false);

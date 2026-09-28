@@ -50,7 +50,8 @@
                 border-top-color: #8f9fd8;
             }
             .app-loader-name {
-                font-family: Figtree, ui-sans-serif, system-ui, sans-serif;
+                /* Painted before app.css arrives; the token takes over once it does. */
+                font-family: var(--font-ui, Inter, 'Noto Sans Ethiopic', system-ui, sans-serif);
                 font-size: 13px;
                 font-weight: 600;
                 letter-spacing: 0.08em;

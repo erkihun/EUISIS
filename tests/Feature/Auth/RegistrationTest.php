@@ -50,6 +50,8 @@ test('an active employee receives a registration otp by email and phone', functi
     $employee = Employee::query()->create([
         'employee_number' => 'EMP-OTP-1',
         'full_name' => 'Verified Employee',
+        'first_name' => 'Verified',
+        'last_name' => 'Employee',
         'email' => 'verified@example.test',
         'phone' => '+251911000111',
         'status' => 'active',
@@ -72,6 +74,8 @@ test('a valid registration otp verifies the employee and creates the account', f
     $employee = Employee::query()->create([
         'employee_number' => 'EMP-OTP-2',
         'full_name' => 'Verified Employee',
+        'first_name' => 'Verified',
+        'last_name' => 'Employee',
         'email' => 'verified2@example.test',
         'phone' => '+251911000222',
         'status' => 'active',
@@ -120,6 +124,8 @@ test('inactive employees cannot request a registration otp', function (): void {
     $employee = Employee::query()->create([
         'employee_number' => 'EMP-INACTIVE',
         'full_name' => 'Inactive Employee',
+        'first_name' => 'Inactive',
+        'last_name' => 'Employee',
         'email' => 'inactive@example.test',
         'phone' => '+251911000333',
         'status' => 'suspended',

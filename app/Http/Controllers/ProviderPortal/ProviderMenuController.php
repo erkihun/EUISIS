@@ -68,8 +68,8 @@ class ProviderMenuController extends Controller
             $menu = CafeteriaMenu::query()->create([
                 ...$validated,
                 'cafeteria_provider_id' => $provider->id,
-                'created_by' => $request->user()?->id,
-                'updated_by' => $request->user()?->id,
+                'created_by' => $this->staffUserId($request),
+                'updated_by' => $this->staffUserId($request),
                 'status' => $validated['status'] ?? 'draft',
             ]);
 
@@ -105,7 +105,7 @@ class ProviderMenuController extends Controller
         DB::transaction(function () use ($menu, $request, $validated): void {
             $menu->update([
                 ...$validated,
-                'updated_by' => $request->user()?->id,
+                'updated_by' => $this->staffUserId($request),
             ]);
 
             $this->syncItems($menu, $validated['items'] ?? []);
@@ -135,7 +135,7 @@ class ProviderMenuController extends Controller
         $provider = $context->selectedProvider($request);
         abort_if($provider === null || $menu->cafeteria_provider_id !== $provider->id, 404);
 
-        $menu->update(['status' => 'published', 'updated_by' => $request->user()?->id]);
+        $menu->update(['status' => 'published', 'updated_by' => $this->staffUserId($request)]);
 
         return back()->with('flash', ['message' => __('provider-portal.menu_published'), 'type' => 'success']);
     }
@@ -145,7 +145,7 @@ class ProviderMenuController extends Controller
         $provider = $context->selectedProvider($request);
         abort_if($provider === null || $menu->cafeteria_provider_id !== $provider->id, 404);
 
-        $menu->update(['status' => 'closed', 'updated_by' => $request->user()?->id]);
+        $menu->update(['status' => 'closed', 'updated_by' => $this->staffUserId($request)]);
 
         return back()->with('flash', ['message' => __('provider-portal.menu_closed'), 'type' => 'success']);
     }

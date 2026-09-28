@@ -94,7 +94,8 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            // Production: require (encrypted) or verify-full (encrypted + certificate checked).
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
         'postgres' => [
@@ -109,7 +110,7 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
-            'sslmode' => 'prefer',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
         'sqlsrv' => [

@@ -43,9 +43,12 @@ class PerformanceDashboardController extends PerformanceController
 
         $requestedCycleId = (string) $request->query('cycle_id', '');
         $cycleId = (string) ($cycles->firstWhere('id', $requestedCycleId)?->getKey() ?? $cycles->first()?->getKey());
+        // No cycle yet: match nothing. Comparing the uuid column with '' is an
+        // error on PostgreSQL, not an empty result as on MySQL.
+        $inCycle = fn ($query) => $cycleId === '' ? $query->whereRaw('1 = 0') : $query->where('cycle_id', $cycleId);
 
-        $plans = $this->scope->applyOrganizationScope(PerformancePlan::query(), $user)
-            ->where('cycle_id', $cycleId)->where('status', PlanStatus::Published->value)
+        $plans = $inCycle($this->scope->applyOrganizationScope(PerformancePlan::query(), $user))
+            ->where('status', PlanStatus::Published->value)
             ->whereIn('plan_type', [PlanType::Organization->value, PlanType::Unit->value])
             ->with(['organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am'])->limit(200)->get();
 
@@ -73,7 +76,7 @@ class PerformanceDashboardController extends PerformanceController
             }
         }
 
-        $agreements = $this->access->constrainAgreements(EmployeePerformanceAgreement::query(), $user)->where('cycle_id', $cycleId);
+        $agreements = $inCycle($this->access->constrainAgreements(EmployeePerformanceAgreement::query(), $user));
         $agreementIds = (clone $agreements)->select('id');
 
         $reviewCounts = PerformanceReview::query()->whereIn('agreement_id', $agreementIds)

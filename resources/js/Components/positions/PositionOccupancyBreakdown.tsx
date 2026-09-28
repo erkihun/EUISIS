@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Bar, BarChart, CartesianGrid, LabelList, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { useChartColors } from '@/hooks/useChartColors';
 import { useLocale } from '@/hooks/useLocale';
+import { Card, EmptyState, cx } from '@euisis/ui';
 
 export type BreakdownSlice = {
     key: string;
@@ -27,57 +26,17 @@ type TabKey = 'group' | 'grade_level' | 'job_family';
 
 /** Keys the backend uses for the rolled-up tail and for rows missing the grouping value. */
 const OTHER_KEY = '__other__';
-const UNASSIGNED_KEY = '__unassigned__';
 
-type ChartRow = {
-    label: string;
-    shortLabel: string;
-    filled: number;
-    vacant: number;
-    total: number;
-    filledPercent: number;
-    vacantPercent: number;
-};
-
-type PercentLabelProps = {
-    x?: number | string;
-    y?: number | string;
-    width?: number | string;
-    height?: number | string;
-    value?: number | string;
-};
+const FILLED = 'bg-emerald-500 dark:bg-emerald-400';
+const VACANT = 'bg-amber-400 dark:bg-amber-500';
 
 /**
- * Percentage centred inside its stack segment. Segments narrower than the text
- * are left blank rather than spilling the label over the neighbouring bar.
+ * Occupancy per group as a ranked list of stacked bars. Each bar's length is the group's size relative
+ * to the largest group, and its split is filled vs vacant within that group, so both scale and occupancy
+ * read at a glance. Full labels wrap instead of being truncated, which a chart axis could not do.
  */
-function renderPercentLabel(props: unknown) {
-    const { x, y, width, height, value } = props as PercentLabelProps;
-    const barWidth = Number(width ?? 0);
-    const percent = Number(value ?? 0);
-
-    if (!Number.isFinite(barWidth) || barWidth < 30 || percent <= 0) {
-        return null;
-    }
-
-    return (
-        <text
-            x={Number(x ?? 0) + barWidth / 2}
-            y={Number(y ?? 0) + Number(height ?? 0) / 2}
-            fill="#ffffff"
-            fontSize={11}
-            fontWeight={600}
-            textAnchor="middle"
-            dominantBaseline="central"
-        >
-            {percent}%
-        </text>
-    );
-}
-
 export default function PositionOccupancyBreakdown({ breakdowns }: Props) {
     const { locale, t } = useLocale();
-    const { series } = useChartColors();
     const [tab, setTab] = useState<TabKey>('group');
     const useAmharic = locale === 'am';
 
@@ -93,87 +52,70 @@ export default function PositionOccupancyBreakdown({ breakdowns }: Props) {
 
     const active = tabs.find((entry) => entry.key === tab) ?? tabs[0];
 
-    const chartData = useMemo(() => active.data.map((slice) => {
-        const named = (useAmharic ? slice.label_am : slice.label_en) ?? slice.label_en;
-        const label = slice.key === OTHER_KEY
-            ? t('positions.otherGroups')
-            : named ?? t('positions.notSpecified');
-
-        // Percentages are relative to the row's own total, so each bar reads
-        // as its own occupancy split rather than a share of the grand total.
-        const share = (value: number) => (slice.total > 0 ? Math.round((value / slice.total) * 100) : 0);
-
-        return {
-            label,
-            // Long organization/unit names would otherwise squeeze the plot area.
-            shortLabel: label.length > 22 ? `${label.slice(0, 21)}…` : label,
-            filled: slice.filled,
-            vacant: slice.vacant,
-            total: slice.total,
-            filledPercent: share(slice.filled),
-            vacantPercent: share(slice.vacant),
-        };
-    }), [active.data, useAmharic, t]);
-
-    const filledColor = series[2] ?? '#16a34a';
-    const vacantColor = series[1] ?? '#d12908';
+    const rows = useMemo(() => {
+        const largest = Math.max(1, ...active.data.map((slice) => slice.total));
+        return active.data.map((slice) => {
+            const named = (useAmharic ? slice.label_am : slice.label_en) ?? slice.label_en;
+            // Percentages are relative to the row's own total: each bar reads as its own occupancy split.
+            const share = (value: number) => (slice.total > 0 ? (value / slice.total) * 100 : 0);
+            return {
+                key: slice.key,
+                label: slice.key === OTHER_KEY ? t('positions.otherGroups') : named ?? t('positions.notSpecified'),
+                filled: slice.filled,
+                vacant: slice.vacant,
+                total: slice.total,
+                filledPercent: share(slice.filled),
+                vacantPercent: share(slice.vacant),
+                scale: (slice.total / largest) * 100,
+            };
+        });
+    }, [active.data, useAmharic, t]);
 
     return (
-        <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <Card className="p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                    {t('positions.occupancyBreakdown')}
-                </h2>
-                <div className="flex flex-wrap gap-1 rounded-lg border border-gray-200 p-1 dark:border-slate-800">
+                <div>
+                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('positions.occupancyBreakdown')}</h2>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--app-muted-foreground)]">
+                        <span className="inline-flex items-center gap-1.5"><span className={cx('h-2 w-2 rounded-full', FILLED)} aria-hidden="true" />{t('positions.filled')}</span>
+                        <span className="inline-flex items-center gap-1.5"><span className={cx('h-2 w-2 rounded-full', VACANT)} aria-hidden="true" />{t('positions.vacant')}</span>
+                    </p>
+                </div>
+                <div role="group" aria-label={t('positions.occupancyBreakdown')} className="inline-flex flex-wrap rounded-[var(--radius-control)] bg-[color:var(--app-surface-muted)] p-0.5">
                     {tabs.map((entry) => (
-                        <button
-                            key={entry.key}
-                            type="button"
-                            onClick={() => setTab(entry.key)}
-                            className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                                entry.key === active.key
-                                    ? 'bg-[color:var(--color-primary)] text-white'
-                                    : 'text-gray-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800'
-                            }`}
-                        >
+                        <button key={entry.key} type="button" aria-pressed={entry.key === active.key} onClick={() => setTab(entry.key)}
+                            className={cx('rounded-[calc(var(--radius-control)-2px)] px-3 py-1 text-xs font-medium transition-colors',
+                                entry.key === active.key ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm'
+                                    : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]')}>
                             {entry.label}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {chartData.length === 0 ? (
-                <div className="py-12 text-center text-sm text-gray-500 dark:text-slate-400">
-                    {t('positions.noPositionStatusFound')}
-                </div>
+            {rows.length === 0 ? (
+                <EmptyState title={t('positions.noPositionStatusFound')} />
             ) : (
-                <div className="min-w-0" style={{ height: Math.max(220, chartData.length * 42 + 60) }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }}>
-                            <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-gray-200 dark:stroke-slate-800" />
-                            <XAxis type="number" allowDecimals={false} fontSize={11} />
-                            <YAxis type="category" dataKey="shortLabel" width={150} fontSize={11} interval={0} />
-                            <Tooltip
-                                cursor={{ fillOpacity: 0.08 }}
-                                labelFormatter={(_label, payload) => payload?.[0]?.payload?.label ?? ''}
-                                formatter={(value, name, entry) => {
-                                    const row = entry?.payload as ChartRow | undefined;
-                                    const percent = name === t('positions.vacant') ? row?.vacantPercent : row?.filledPercent;
-
-                                    return [`${Number(value ?? 0).toLocaleString()} (${percent ?? 0}%)`, name];
-                                }}
-                            />
-                            <Legend />
-                            <Bar dataKey="filled" stackId="occupancy" name={t('positions.filled')} fill={filledColor} radius={[0, 0, 0, 0]}>
-                                <LabelList dataKey="filledPercent" content={renderPercentLabel} />
-                            </Bar>
-                            <Bar dataKey="vacant" stackId="occupancy" name={t('positions.vacant')} fill={vacantColor} radius={[0, 4, 4, 0]}>
-                                <LabelList dataKey="vacantPercent" content={renderPercentLabel} />
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
+                <ul className="space-y-3.5">
+                    {rows.map((row) => (
+                        <li key={row.key}>
+                            <div className="flex items-baseline justify-between gap-4 text-sm">
+                                <span className="min-w-0 font-medium text-[color:var(--app-foreground)]">{row.label}</span>
+                                <span className="shrink-0 tabular-nums text-[color:var(--app-muted-foreground)]">
+                                    {row.filled.toLocaleString()} / {row.total.toLocaleString()} · {Math.round(row.filledPercent)}%
+                                </span>
+                            </div>
+                            <div className="mt-1.5 h-2.5 rounded-full bg-[color:var(--app-surface-muted)]">
+                                <div className="flex h-full overflow-hidden rounded-full" style={{ width: `${Math.max(row.scale, 2)}%` }}
+                                    role="img" aria-label={`${row.label}: ${row.filled} ${t('positions.filled')}, ${row.vacant} ${t('positions.vacant')}`}>
+                                    <div className={FILLED} style={{ width: `${row.filledPercent}%` }} title={`${t('positions.filled')}: ${row.filled}`} />
+                                    <div className={VACANT} style={{ width: `${row.vacantPercent}%` }} title={`${t('positions.vacant')}: ${row.vacant}`} />
+                                </div>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
             )}
-        </section>
+        </Card>
     );
 }

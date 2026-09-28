@@ -1,6 +1,8 @@
-import InputError from '@/Components/InputError';
+import FieldRow from '@/Components/settings/FieldRow';
+import { Upload, X } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
-import { useRef, useState } from 'react';
+import { Button, StatusBadge } from '@euisis/ui';
+import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
 
 type Props = {
     label: string;
@@ -13,117 +15,61 @@ type Props = {
     onChange: (file: File | null) => void;
 };
 
-export default function ImageSettingField({
-    label,
-    description,
-    previewUrl,
-    configured,
-    error,
-    disabled = false,
-    accept = '.jpg,.jpeg,.png,.webp,.ico',
-    onChange,
-}: Props) {
+/** An uploaded asset: the current image, a replace button, and the chosen file until it is saved. */
+export default function ImageSettingField({ label, description, previewUrl, configured, error, disabled = false, accept = '.jpg,.jpeg,.png,.webp,.ico', onChange }: Props) {
     const { t } = useLocale();
+    const id = useId();
+    const errorId = error ? `${id}-error` : undefined;
     const inputRef = useRef<HTMLInputElement>(null);
+    const [file, setFile] = useState<File | null>(null);
     const [localPreview, setLocalPreview] = useState<string | null>(null);
-    const [fileName, setFileName] = useState<string | null>(null);
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0] ?? null;
-        onChange(file);
+    useEffect(() => () => { if (localPreview) URL.revokeObjectURL(localPreview); }, [localPreview]);
 
-        if (file) {
-            setFileName(file.name);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setLocalPreview(e.target?.result as string ?? null);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setLocalPreview(null);
-            setFileName(null);
-        }
+    const choose = (event: ChangeEvent<HTMLInputElement>) => {
+        const next = event.target.files?.[0] ?? null;
+        setFile(next);
+        setLocalPreview(next ? URL.createObjectURL(next) : null);
+        onChange(next);
     };
 
-    const clearSelection = () => {
-        onChange(null);
+    const clear = () => {
+        setFile(null);
         setLocalPreview(null);
-        setFileName(null);
-        if (inputRef.current) {
-            inputRef.current.value = '';
-        }
+        onChange(null);
+        if (inputRef.current) inputRef.current.value = '';
     };
 
-    const displayUrl = localPreview ?? previewUrl;
+    const shown = localPreview ?? previewUrl;
 
     return (
-        <div className="grid grid-cols-1 gap-3 px-5 py-4 md:grid-cols-3 md:items-start">
-            <div>
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{label}</span>
-                    <span
-                        className={[
-                            'rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                            configured
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                                : 'bg-gray-200 text-gray-600 dark:bg-slate-800 dark:text-slate-300',
-                        ].join(' ')}
-                    >
-                        {configured ? t('settings.configured') : t('settings.notConfigured')}
-                    </span>
+        <FieldRow htmlFor={id} label={label} description={description} error={error} errorId={errorId}
+            badge={<StatusBadge tone={configured ? 'success' : 'neutral'}>{configured ? t('settings.configured') : t('settings.notConfigured')}</StatusBadge>}>
+            <div className="flex items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[var(--radius-card)] border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] p-1.5">
+                    {shown
+                        ? <img src={shown} alt={t('settings.currentImage').replace('{{name}}', label)} className="h-full w-full object-contain" />
+                        : <Upload className="h-5 w-5 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />}
                 </div>
-                {description && (
-                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{description}</p>
-                )}
-            </div>
-
-            <div className="space-y-3 md:col-span-2">
-                <div className="flex items-center gap-4">
-                    {/* Preview box */}
-                    <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-panel border border-dashed border-gray-300 bg-gray-50 dark:border-slate-700 dark:bg-slate-950">
-                        {displayUrl ? (
-                            <img src={displayUrl} alt="" className="h-full w-full object-contain" />
-                        ) : (
-                            <span className="text-xs text-gray-400 dark:text-slate-500">{t('settings.preview')}</span>
-                        )}
-                        {localPreview && (
-                            <span className="absolute right-1 top-1 rounded-full bg-[color:var(--color-primary)] px-1 py-0.5 text-[9px] font-semibold text-white">
-                                NEW
-                            </span>
-                        )}
-                    </div>
-
-                    {/* File input area */}
-                    <div className="flex-1 space-y-2">
-                        <input
-                            ref={inputRef}
-                            type="file"
-                            accept={accept}
-                            disabled={disabled}
-                            onChange={handleChange}
-                            className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-card file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60 dark:text-slate-300 dark:file:bg-slate-800 dark:file:text-slate-200"
-                        />
-                        {fileName && (
-                            <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 dark:border-[color:var(--color-primary)]/30 dark:bg-blue-500/10">
-                                <svg className="h-3.5 w-3.5 shrink-0 text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
-                                </svg>
-                                <span className="flex-1 truncate text-xs text-blue-700 dark:text-blue-300">{fileName}</span>
-                                <button
-                                    type="button"
-                                    onClick={clearSelection}
-                                    className="text-blue-400 hover:text-[color:var(--color-primary)] dark:text-blue-500 dark:hover:text-[color:var(--color-primary-hover)]"
-                                >
-                                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                <div className="min-w-0 flex-1 space-y-2">
+                    <input ref={inputRef} id={id} type="file" accept={accept} disabled={disabled} onChange={choose} className="sr-only" aria-describedby={errorId} />
+                    <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={() => inputRef.current?.click()}>
+                        {configured || file ? t('settings.replaceFile') : t('settings.chooseFile')}
+                    </Button>
+                    {file ? (
+                        <p className="flex min-w-0 items-center gap-2 text-xs">
+                            <StatusBadge tone="info">{t('settings.pendingUpload')}</StatusBadge>
+                            <span className="min-w-0 truncate text-[color:var(--app-foreground)]">{file.name}</span>
+                            <button type="button" onClick={clear} aria-label={t('settings.removeChosenFile')} title={t('settings.removeChosenFile')}
+                                className="shrink-0 rounded p-0.5 text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]">
+                                <X className="h-3.5 w-3.5" aria-hidden="true" />
+                            </button>
+                        </p>
+                    ) : (
+                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{accept.split(',').map((type) => type.replace(/^\./, '').replace('image/', '').toUpperCase()).filter((type, index, all) => all.indexOf(type) === index).join(', ')}</p>
+                    )}
                 </div>
-                <InputError message={error} />
             </div>
-        </div>
+        </FieldRow>
     );
 }

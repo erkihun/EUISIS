@@ -320,6 +320,9 @@ it('locks the service number once feedback exists', function (): void {
     ]);
 
     $scoped = User::factory()->create();
+    // An ordinary administrator: everything except the elevated renumber right.
+    $override = Permission::findOrCreate('service_feedback.service_no.override', 'web');
+    Role::findByName('Organizational Admin', 'web')->revokePermissionTo($override);
     $scoped->assignRole('Organizational Admin');
 
     UserOrganizationScope::query()->create([
@@ -337,6 +340,18 @@ it('locks the service number once feedback exists', function (): void {
         ]);
 
     expect($service->fresh()->service_no)->toBe('HR-001');
+
+    // The holder of the override may renumber a rated service in scope.
+    $scoped->givePermissionTo($override);
+    $this->actingAs($scoped->fresh())
+        ->patch(route('position-services.update', $service->id), [
+            'organization_id' => $this->alpha['org']->id,
+            'position_id' => $this->alpha['position']->id,
+            'service_no' => 'HR-777',
+            'name_en' => 'Record Correction',
+        ]);
+
+    expect($service->fresh()->service_no)->toBe('HR-777');
 });
 
 it('refuses to delete a service that has feedback', function (): void {

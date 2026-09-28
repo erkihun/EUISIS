@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { NfcIcon } from '@/Components/Icons';
+import { Button, Input, cx } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 
 /**
@@ -98,31 +99,25 @@ export default function NfcTapPanel({
     };
 
     return (
-        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 text-[color:var(--app-foreground)]">
             <div className="flex flex-col items-center gap-3 py-6 text-center">
                 <span
-                    className={`flex h-16 w-16 items-center justify-center rounded-full ${
+                    className={cx('flex h-16 w-16 items-center justify-center rounded-full',
                         state === 'waiting'
-                            ? 'animate-pulse bg-blue-100 text-[color:var(--color-primary)] dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]'
+                            ? 'bg-[color:var(--color-primary)]/10 text-[color:var(--color-primary)] motion-safe:animate-pulse'
                             : state === 'error' || state === 'unsupported'
-                              ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
-                              : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'
-                    }`}
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300'
+                              : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]')}
                 >
                     <NfcIcon className="h-8 w-8" />
                 </span>
 
-                <p className="max-w-sm text-sm text-gray-700 dark:text-slate-200">{stateLabel[state]}</p>
+                <p role="status" className="max-w-sm text-sm leading-6">{stateLabel[state]}</p>
 
                 {supported && state !== 'waiting' && (
-                    <button
-                        type="button"
-                        onClick={startScan}
-                        disabled={disabled}
-                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
-                    >
+                    <Button variant="primary" onClick={startScan} disabled={disabled} icon={<NfcIcon className="h-4 w-4" />}>
                         {t('nfc.scanMethodNfc')}
-                    </button>
+                    </Button>
                 )}
             </div>
 
@@ -133,7 +128,7 @@ export default function NfcTapPanel({
              * applies every card, employee and service rule.
              */}
             <form
-                className="mt-2 flex flex-wrap items-end gap-2 border-t border-gray-100 pt-4 dark:border-slate-800"
+                className="mt-2 flex flex-wrap items-end gap-2 border-t border-[color:var(--app-border)] pt-4"
                 onSubmit={(event) => {
                     event.preventDefault();
                     const value = CREDENTIAL_PATTERN.exec(manual.trim())?.[0];
@@ -149,25 +144,23 @@ export default function NfcTapPanel({
                     setManual('');
                 }}
             >
-                <label className="flex-1">
-                    <span className="mb-1 block text-xs text-gray-500 dark:text-slate-400">
+                <label className="min-w-0 flex-1 basis-48">
+                    <span className="mb-1.5 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                         {t('nfc.credentialId')}
                     </span>
-                    <input
+                    <Input
                         value={manual}
                         onChange={(event) => setManual(event.target.value)}
                         placeholder="nfc_…"
                         disabled={disabled}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 font-mono text-xs dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        autoComplete="off"
+                        spellCheck={false}
+                        className="font-mono"
                     />
                 </label>
-                <button
-                    type="submit"
-                    disabled={disabled || manual.trim() === ''}
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                >
+                <Button type="submit" variant="outline" disabled={disabled || manual.trim() === ''}>
                     {t('common.submit')}
-                </button>
+                </Button>
             </form>
         </div>
     );

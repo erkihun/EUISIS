@@ -9,6 +9,7 @@ use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
 use App\Enums\FeedbackTokenStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Observers\EmployeeCardImpactObserver;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,7 +23,7 @@ class Employee extends Model
 
     protected static function booted(): void
     {
-        static::observe(\App\Observers\EmployeeCardImpactObserver::class);
+        static::observe(EmployeeCardImpactObserver::class);
     }
 
     protected $fillable = [
@@ -99,6 +100,7 @@ class Employee extends Model
         if ($this->photo_path && str_starts_with($this->photo_path, 'employee-photos/')) {
             return route('employees.private-photo', $this, false);
         }
+
         return $this->photo_path ? '/storage/'.$this->photo_path : null;
     }
 
@@ -162,9 +164,12 @@ class Employee extends Model
     /** The token currently printed on this employee's feedback QR, if any. */
     public function activeFeedbackToken(): HasOne
     {
+        // Ordered, not latestOfMany(): that compares keys with MAX(id), and
+        // PostgreSQL has no MAX for uuid columns.
         return $this->hasOne(EmployeeFeedbackToken::class)
             ->where('status', FeedbackTokenStatus::Active->value)
-            ->latestOfMany();
+            ->latest('created_at')
+            ->latest('id');
     }
 
     public function serviceFeedback(): HasMany

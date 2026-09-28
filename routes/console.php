@@ -21,3 +21,6 @@ Schedule::command('cafeteria:sync-policy-statuses')->dailyAt('00:05');
 // Daily activity reminders. Idempotent, so a frequent cadence only means
 // reminders land close to the configured time; each is sent at most once.
 Schedule::command('daily-activities:send-reminders')->everyFifteenMinutes()->withoutOverlapping();
+
+// Database backups themselves run independently under the infrastructure scheduler.
+Schedule::command('backup:health --monitor')->everyFiveMinutes()->withoutOverlapping();

@@ -96,11 +96,19 @@ it('renders each employment type and both real names in both front orientations'
             ->and($data->bilingualFields[0])->toBe(['ስም', 'ሰላም ታደሰ', 'Name', 'Selam Tadesse', 'name'])
             ->and($data->bilingualFields[4][1])->toBe($type->label('am'))
             ->and($data->bilingualFields[4][3])->toBe($type->label('en'))
-            // Existing card layouts abbreviate long values to fit the field.
             // The front's ID Number is the employee number; the card number
             // identifies the plastic and lives on the back.
-            ->and($svg)->toContain('ሰላም ታደሰ', 'Selam Tadesse', 'Ethiopian', 'INTERNAL-EMP-23', $type === EmploymentType::DailyLabor ? 'Daily Labor' : $type->label('en'))
-            ->and($svg)->not->toContain('>Active<', 'SECRET-NATIONAL-ID', 'private@example.test', 'Mapping Organization');
+            ->and($svg)->toContain('ሰላም ታደሰ', 'Selam Tadesse', 'INTERNAL-EMP-23')
+            ->and($svg)->not->toContain('>Active<', 'SECRET-NATIONAL-ID', 'private@example.test');
+        if ($orientation === 'landscape') {
+            // Existing card layouts abbreviate long values to fit the field.
+            expect($svg)->toContain('Ethiopian', $type === EmploymentType::DailyLabor ? 'Daily Labor' : $type->label('en'))
+                ->not->toContain('Mapping Organization');
+        } else {
+            // The portrait front (2026-09-20 layout) is headed by the holder's
+            // own employer and carries name, position and number only.
+            expect($svg)->toContain('Mapping Organization');
+        }
     }
 })->with(EmploymentType::cases());
 

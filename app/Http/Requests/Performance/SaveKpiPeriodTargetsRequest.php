@@ -17,7 +17,8 @@ class SaveKpiPeriodTargetsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'period_targets' => ['required', 'array', 'max:16'],
+            // Only the periods that have a target, as in the plan's schedule; an empty list clears it.
+            'period_targets' => ['present', 'array', 'max:16'],
             'period_targets.*.period_type' => ['required', Rule::in(['QUARTER', 'MONTH'])],
             'period_targets.*.period_number' => ['required', 'integer', 'between:1,12'],
             'period_targets.*.target_value' => ['nullable', 'numeric', 'required_without_all:period_targets.*.target_numerator,period_targets.*.target_denominator'],

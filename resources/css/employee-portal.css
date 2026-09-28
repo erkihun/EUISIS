@@ -21,6 +21,8 @@
     letter-spacing: -.025em;
     line-height: 1.35;
 }
+/* Ethiopic reads worse tracked in; keep its natural spacing. */
+.portal-shell .app-page-heading h1:lang(am) { letter-spacing: normal; line-height: 1.45; }
 .portal-shell .app-page-heading p { max-width: 65ch; line-height: 1.7; }
 .portal-shell .app-page-heading > div { gap: 1rem; }
 .portal-content { color: #334155; overflow-wrap: anywhere; }

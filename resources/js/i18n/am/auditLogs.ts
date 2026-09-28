@@ -34,6 +34,27 @@ const auditLogs = {
     eventPlaceholder: 'ለምሳሌ card_issued',
     // Event type labels
     events: {
+        // Backup & Recovery
+        BACKUP_STATUS_VIEWED: 'የምትኬ ሁኔታ ታይቷል',
+        BACKUP_STARTED: 'ምትኬ ተጀምሯል',
+        BACKUP_COMPLETED: 'ምትኬ ተጠናቋል',
+        BACKUP_FAILED: 'ምትኬ አልተሳካም',
+        BACKUP_VERIFICATION_STARTED: 'የምትኬ ማረጋገጫ ተጀምሯል',
+        BACKUP_VERIFIED: 'ምትኬ ተረጋግጧል',
+        BACKUP_VERIFICATION_FAILED: 'የምትኬ ማረጋገጫ አልተሳካም',
+        RESTORE_TEST_STARTED: 'የመልሶ ማግኛ ሙከራ ተጀምሯል',
+        RESTORE_TEST_PASSED: 'የመልሶ ማግኛ ሙከራ አልፏል',
+        RESTORE_TEST_FAILED: 'የመልሶ ማግኛ ሙከራ አልተሳካም',
+        RESTORE_REQUESTED: 'መልሶ ማግኛ ተጠይቋል',
+        RESTORE_REVIEWED: 'መልሶ ማግኛ በግምገማ ላይ',
+        RESTORE_APPROVED: 'መልሶ ማግኛ ጸድቋል',
+        RESTORE_REJECTED: 'መልሶ ማግኛ ውድቅ ተደርጓል',
+        RESTORE_CANCELLED: 'መልሶ ማግኛ ተሰርዟል',
+        PRODUCTION_RESTORE_AUTHORIZED: 'የምርት መልሶ ማግኛ ተፈቅዷል',
+        PRODUCTION_RESTORE_STARTED: 'የምርት መልሶ ማግኛ ተጀምሯል',
+        PRODUCTION_RESTORE_COMPLETED: 'የምርት መልሶ ማግኛ ተጠናቋል',
+        PRODUCTION_RESTORE_FAILED: 'የምርት መልሶ ማግኛ አልተሳካም',
+        RETENTION_CLEANUP: 'የምትኬ ማቆያ ማጽዳት',
         // Employee
         employee_created: 'ሰራተኛ ተፈጥሯል',
         employee_updated: 'ሰራተኛ ተዘምኗል',

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Employee;
-use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
@@ -46,6 +45,14 @@ class EncryptExistingSensitiveData extends Command
             ],
         );
 
+        // A row left in plaintext is a failure, not a statistic: a deploy step
+        // or operator must see it.
+        if ($userStats['errors'] + $employeeStats['errors'] > 0) {
+            $this->error('Some rows could not be encrypted and are still stored in plaintext. Rerun after fixing the cause.');
+
+            return self::FAILURE;
+        }
+
         return self::SUCCESS;
     }
 
@@ -73,25 +80,30 @@ class EncryptExistingSensitiveData extends Command
 
                     if ($alreadyNid && $alreadyPhone) {
                         $stats['encrypted']++;
+
                         continue;
                     }
 
                     if ($dryRun) {
                         $stats['written']++;
+
                         continue;
                     }
 
                     try {
-                        $user = User::query()->whereKey($row->id)->first();
-                        if (! $user) {
-                            $stats['errors']++;
-                            continue;
+                        // Written directly, with the same encryptString the
+                        // model's `encrypted` cast uses. Going through the model
+                        // failed on every row: its dirty check decrypts the
+                        // stored plaintext and throws. (saveQuietly also skipped
+                        // the saving event that keeps national_id_hash current.)
+                        $updates = ['national_id_hash' => $nidPlain !== null ? hash('sha256', $nidPlain) : null];
+                        if (! $alreadyNid) {
+                            $updates['national_id'] = Crypt::encryptString((string) $nidPlain);
                         }
-                        // Re-assign so the encrypted cast kicks in on save; also
-                        // refreshes the national_id_hash via the model boot.
-                        $user->national_id = $nidPlain;
-                        $user->phone_number = $phonePlain;
-                        $user->saveQuietly();
+                        if (! $alreadyPhone) {
+                            $updates['phone_number'] = Crypt::encryptString((string) $phonePlain);
+                        }
+                        DB::table('users')->where('id', $row->id)->update($updates);
                         $stats['written']++;
                     } catch (\Throwable $e) {
                         $stats['errors']++;
@@ -123,11 +135,13 @@ class EncryptExistingSensitiveData extends Command
 
                     if ($alreadyNid) {
                         $stats['encrypted']++;
+
                         continue;
                     }
 
                     if ($dryRun) {
                         $stats['written']++;
+
                         continue;
                     }
 
@@ -135,6 +149,7 @@ class EncryptExistingSensitiveData extends Command
                         $employee = Employee::query()->whereKey($row->id)->first();
                         if (! $employee) {
                             $stats['errors']++;
+
                             continue;
                         }
                         $employee->national_id = $nidPlain;

@@ -106,6 +106,8 @@ class PerformancePlanController extends PerformanceController
                 'effective_from' => $plan->effective_from?->toDateString(),
                 'effective_to' => $plan->effective_to?->toDateString(),
                 'editable' => PerformancePlanService::isEditable($plan),
+                // Month / quarter columns of the action-plan table count from the cycle start.
+                'cycle_period' => [$plan->cycle?->start_date?->toDateString(), $plan->cycle?->end_date?->toDateString()],
             ],
             'objectives' => $objectives->map(fn (PerformanceObjective $o) => [
                 ...$o->only(['id', 'strategic_goal_id', 'code', 'title_en', 'title_am', 'description_en', 'description_am', 'weight', 'absolute_weight_percent', 'local_weight_percent', 'priority', 'is_mandatory', 'status', 'rejection_reason']),
@@ -116,7 +118,7 @@ class PerformancePlanController extends PerformanceController
                     ...$t->only(['id', 'target_value', 'target_numerator', 'target_denominator', 'baseline_value', 'weight', 'achievement_cap', 'tolerance', 'zero_score_deviation', 'version_no', 'parent_target_id']),
                     'period' => [$t->period_start->toDateString(), $t->period_end->toDateString()],
                     'period_targets' => $t->periodTargets->map(fn ($period) => $period->only(['period_type', 'period_number', 'target_value', 'target_numerator', 'target_denominator', 'is_cumulative']))->all(),
-                    'kpi' => ['id' => $t->kpi_id, 'code' => $t->kpi->code, 'name_en' => $t->kpi->name_en, 'name_am' => $t->kpi->name_am, 'direction' => $t->kpi->direction->value, 'aggregation' => $t->kpi->aggregation_method->value, 'source' => $t->kpi->data_source_type->value, 'unit' => $t->kpi->unit_of_measure],
+                    'kpi' => ['id' => $t->kpi_id, 'code' => $t->kpi->code, 'name_en' => $t->kpi->name_en, 'name_am' => $t->kpi->name_am, 'direction' => $t->kpi->direction->value, 'aggregation' => $t->kpi->aggregation_method->value, 'source' => $t->kpi->data_source_type->value, 'unit' => $t->kpi->unit_of_measure, 'measurement' => $t->kpi->measurement_type->value],
                 ])->all(),
             ])->all(),
             // Parent objectives available to cascade into this plan.

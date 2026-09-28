@@ -109,8 +109,13 @@ return [
 
         /**
          * Whether to enable font subsetting or not.
+         *
+         * On: templates embed the bundled Noto Sans Ethiopic / Abyssinica SIL
+         * (pdf.partials.typography), and a full face is ~365 KB. Subsetting
+         * embeds only the glyphs a document uses. Ethiopic needs no shaping,
+         * so the subset renders identically.
          */
-        'enable_font_subsetting' => false,
+        'enable_font_subsetting' => true,
 
         /**
          * The PDF rendering backend to use
@@ -179,7 +184,10 @@ return [
          *
          * @var string
          */
-        'default_font' => 'serif',
+        // Last resort only — every template embeds its own font. The core
+        // "serif" (Times) covers Latin-1 alone; DejaVu Sans at least covers
+        // extended Latin, and ships with dompdf.
+        'default_font' => 'DejaVu Sans',
 
         /**
          * Image DPI setting

@@ -1,3 +1,4 @@
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import { Link, usePage } from '@inertiajs/react';
 import {
     LayoutDashboard,
@@ -43,7 +44,7 @@ import {
     HistoryIcon,
     AlertTriangle,
 } from '@/Components/Icons';
-import { type CSSProperties, type SVGProps, useEffect, useId, useRef, useState } from 'react';
+import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
@@ -420,6 +421,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
             // API Management lives as a tab inside System Settings, beside
             // Security — not as a separate sidebar entry.
             { routeName: 'system-settings.index', labelKey: 'nav.systemSettings', icon: SettingsIcon, permission: 'system-settings.view' },
+            { routeName: 'backups.index', labelKey: 'nav.backupRecovery', icon: SettingsIcon, permission: 'backups.view_status' },
             { routeName: 'public-site-management.index', labelKey: 'publicSite.admin.title', icon: MegaphoneIcon, permission: 'public_site.view' },
         ],
     },
@@ -452,6 +454,29 @@ function activeRoute(items: NavSubItem[], current: string): string | undefined {
         .sort((a, b) => b.prefix.length - a.prefix.length)[0]?.name;
 }
 
+export type NavLocation = { groupLabelKey: string; item: NavSubItem };
+
+/**
+ * Where a route sits in this navigation tree, found with the same nearest-module rule that highlights
+ * the sidebar, so breadcrumbs and the selected item always agree. Null for home and for routes the
+ * tree does not cover. Permissions are not applied here; callers decide what to link.
+ */
+export function navLocation(current: string, employeePortal: boolean, tab: string | null = null): NavLocation | null {
+    const flatten = (items: NavItem[]) => items.flatMap((item) => item.children ?? [item]);
+    const groups = employeePortal
+        ? portalSections.flatMap((section) => section.groups.map((group) => ({ labelKey: group.labelKey, items: flatten(group.items) })))
+        : [...navGroups, ...adminGroups].map((group) => ({ labelKey: group.labelKey, items: flatten(group.items) }));
+    const home = employeePortal ? portalDashboard : dashboardNav;
+    const match = activeRoute([home, ...groups.flatMap((group) => group.items)], current);
+    if (!match || match === home.routeName) return null;
+    for (const group of groups) {
+        const candidates = group.items.filter((item) => item.routeName === match);
+        const item = candidates.find((candidate) => (candidate.tab ?? null) === tab) ?? candidates[0];
+        if (item) return { groupLabelKey: group.labelKey, item };
+    }
+    return null;
+}
+
 export default function AppSidebar({ onClose, collapsed = false, onToggleCollapse }: Props) {
     const { can } = useCan();
     const { locale, t } = useLocale();
@@ -461,6 +486,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const hasEmployeeRecord = pageProps.has_employee_record === true;
     const instanceId = useId();
     const searchRef = useRef<HTMLInputElement>(null);
+    const navRef = useRef<HTMLElement>(null);
     const focusSearchAfterExpand = useRef(false);
     const [query, setQuery] = useState('');
     const normalizedQuery = query.trim().toLocaleLowerCase();
@@ -471,9 +497,6 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
     const environmentLabel = getString('general.system_environment_label');
     const logoCentered = getString('appearance.logo_position', 'start') === 'center';
-    const sidebarStyle: CSSProperties | undefined = locale === 'am'
-        ? { fontFamily: 'var(--font-ethiopic)' }
-        : undefined;
 
     // Keep the existing permission contract, including independently permitted child links.
     const permitted = (item: NavSubItem) => (!item.permission || can(item.permission))
@@ -528,6 +551,14 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pageUrl, activeGroupSignature]);
 
+    // Deep items in long groups can sit below the fold; keep the current page visible after each visit.
+    // The active group opens in a follow-up render and hidden items cannot scroll, so this also re-runs
+    // once that group is open (but not when unrelated groups are toggled).
+    const activeGroupOpen = activeGroupKeys.every((key) => openGroups[key] ?? isEmployeeUser);
+    useEffect(() => {
+        if (activeGroupOpen) navRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
+    }, [pageUrl, collapsed, activeGroupOpen]);
+
     useEffect(() => {
         try {
             window.localStorage.setItem(SIDEBAR_GROUPS_STORAGE_KEY, JSON.stringify(openGroups));
@@ -547,7 +578,38 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         ? group.items : group.items.filter(matches);
     const matchingGroups = allGroups.filter((group) => matchingItems(group).length > 0);
 
-    function renderLink(item: NavSubItem, nested = false) {
+    // "/" jumps to the menu filter (desktop sidebar only; ignored while typing elsewhere).
+    useEffect(() => {
+        if (!onToggleCollapse) return;
+        function onKey(event: KeyboardEvent) {
+            if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+            const target = event.target as HTMLElement | null;
+            if (target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+            if (!navRef.current?.offsetParent) return;
+            event.preventDefault();
+            if (collapsed) {
+                focusSearchAfterExpand.current = true;
+                onToggleCollapse?.();
+            } else {
+                searchRef.current?.focus();
+            }
+        }
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [collapsed, onToggleCollapse]);
+
+    /** Marks the part of a label that matched the filter, so it is clear why an item is listed. */
+    function highlight(text: string): ReactNode {
+        const index = normalizedQuery ? text.toLocaleLowerCase().indexOf(normalizedQuery) : -1;
+        if (index < 0) return text;
+        return <>{text.slice(0, index)}<mark className="rounded-sm bg-[color:var(--sidebar-accent-wash)] font-semibold text-[color:var(--sidebar-fg)]">{text.slice(index, index + normalizedQuery.length)}</mark>{text.slice(index + normalizedQuery.length)}</>;
+    }
+
+    /**
+     * nested: a page inside a group (quieter, no icon). compact: the icon-only collapsed rail.
+     * onNavigate: closes a collapsed-rail flyout after choosing a page.
+     */
+    function renderLink(item: NavSubItem, { nested = false, compact = collapsed, onNavigate }: { nested?: boolean; compact?: boolean; onNavigate?: () => void } = {}) {
         const selected = currentItem === item.routeName && (!item.tab
             || new URLSearchParams(pageUrl.split('?')[1] ?? '').get('tab') === item.tab);
         const Icon = item.icon;
@@ -556,24 +618,40 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             <li key={item.routeName + (item.tab ?? '')}>
                 <Link
                     href={item.tab ? route(item.routeName) + '?tab=' + item.tab : route(item.routeName)}
-                    onClick={onClose}
+                    onClick={() => { onClose?.(); onNavigate?.(); }}
                     aria-current={selected ? 'page' : undefined}
-                    aria-label={collapsed ? label : undefined}
-                    title={collapsed ? label : undefined}
+                    aria-label={compact ? label : undefined}
+                    title={compact ? label : undefined}
                     className={[
-                        'relative flex min-h-10 items-center gap-2.5 rounded-lg text-sm transition-colors',
+                        // scroll-my keeps an auto-scrolled current page clear of the list's fading edges.
+                        'relative flex scroll-my-12 items-center gap-2.5 rounded-lg text-sm transition-colors',
                         focusRing, hoverSurface,
-                        collapsed ? 'mx-auto h-11 w-11 justify-center' : 'px-3 py-2.5',
-                        selected ? selectedSurface + ' font-semibold' : 'font-medium text-[color:var(--sidebar-fg)]',
+                        compact ? 'mx-auto h-10 w-10 justify-center' : nested ? 'min-h-8 px-3 py-1.5' : 'min-h-9 px-3 py-2',
+                        selected ? selectedSurface + ' font-semibold'
+                            : nested ? 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]' : 'font-medium text-[color:var(--sidebar-fg)]',
                     ].join(' ')}
                 >
-                    {selected && <span aria-hidden="true" className="absolute inset-y-2 start-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]" />}
-                    {(!nested || collapsed) && <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />}
-                    {!collapsed && <span className="min-w-0 flex-1 whitespace-normal break-words leading-relaxed">{label}</span>}
-                    {!collapsed && selected && <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />}
+                    {selected && <span aria-hidden="true" className="absolute inset-y-1.5 start-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]" />}
+                    {(!nested || compact) && <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />}
+                    {!compact && <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{highlight(label)}</span>}
                 </Link>
             </li>
         );
+    }
+
+    /** A group's pages; Administration keeps its labeled sub-clusters. */
+    function renderGroupItems(group: NavGroup, items: NavSubItem[], onNavigate?: () => void) {
+        const link = (item: NavSubItem) => renderLink(item, { nested: true, compact: false, onNavigate });
+        if (group.key !== 'admin') return <ul className="space-y-px">{items.map(link)}</ul>;
+        return visibleAdminGroups.map((subgroup) => {
+            const subItems = subgroup.items.filter((item) => items.some((match) => match.routeName === item.routeName));
+            return subItems.length > 0 && (
+                <div key={subgroup.labelKey} className="py-1 first:pt-0">
+                    <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold text-[color:var(--sidebar-muted)]">{t(subgroup.labelKey)}</p>
+                    <ul className="space-y-px">{subItems.map(link)}</ul>
+                </div>
+            );
+        });
     }
 
     function renderSection(labelKey: string, groups: NavGroup[]) {
@@ -581,8 +659,8 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         return <div key={labelKey} className="mb-4 last:mb-0">
             {collapsed
                 ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
-                : <p className="px-3 pb-2 pt-1 text-[11px] font-semibold leading-relaxed tracking-wide text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
-            <div className="space-y-1">{groups.map(renderGroup)}</div>
+                : <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase leading-relaxed tracking-[0.07em] text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
+            <div className="space-y-0.5">{groups.map(renderGroup)}</div>
         </div>;
     }
 
@@ -597,46 +675,48 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         if (group.items.length === 1 && group.key !== 'admin') {
             return <ul key={group.key}>{renderLink(group.items[0])}</ul>;
         }
+        if (collapsed) {
+            // The rail stays compact: a group opens as a flyout of its pages instead of expanding the sidebar.
+            return (
+                <Popover key={group.key}>
+                    <PopoverButton title={label} aria-label={label}
+                        className={['mx-auto flex h-10 w-10 items-center justify-center rounded-lg transition-colors data-[open]:bg-[color:var(--sidebar-hover)]', focusRing, hoverSurface,
+                            selected ? selectedSurface : 'text-[color:var(--sidebar-fg)]'].join(' ')}>
+                        <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                    </PopoverButton>
+                    <PopoverPanel anchor="right start" transition
+                        className="z-50 w-64 rounded-xl border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] p-2 text-[color:var(--sidebar-fg)] shadow-xl outline-none transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-[closed]:-translate-x-1 data-[closed]:opacity-0">
+                        {({ close }) => (
+                            <>
+                                <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--sidebar-muted)]">{label}</p>
+                                {renderGroupItems(group, items, close)}
+                            </>
+                        )}
+                    </PopoverPanel>
+                </Popover>
+            );
+        }
         return (
             <div key={group.key}>
                 <button
                     type="button"
-                    title={collapsed ? label : undefined}
-                    aria-label={collapsed ? label : undefined}
-                    aria-expanded={collapsed ? false : isOpen}
+                    aria-expanded={isOpen}
                     aria-controls={panelId}
-                    onClick={() => {
-                        if (collapsed) {
-                            setOpenGroups((previous) => ({ ...previous, [group.key]: true }));
-                            onToggleCollapse?.();
-                        } else if (!normalizedQuery) {
-                            setOpenGroups((previous) => ({ ...previous, [group.key]: !isOpen }));
-                        }
-                    }}
+                    onClick={() => { if (!normalizedQuery) setOpenGroups((previous) => ({ ...previous, [group.key]: !isOpen })); }}
                     className={[
-                        'flex min-h-11 w-full items-center gap-2.5 rounded-lg text-left text-sm transition-colors',
+                        'flex min-h-9 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[color:var(--sidebar-fg)] transition-colors',
                         focusRing, hoverSurface,
-                        collapsed ? 'mx-auto !w-11 justify-center' : 'px-3 py-2.5',
-                        selected ? selectedSurface + ' font-semibold' : 'font-medium text-[color:var(--sidebar-fg)]',
+                        // Only the page itself carries the selected surface; its group is marked by weight and an accent icon.
+                        selected ? 'font-semibold' : 'font-medium',
                     ].join(' ')}
                 >
-                    <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-                    {!collapsed && <>
-                        <span className="min-w-0 flex-1 whitespace-normal break-words leading-relaxed">{label}</span>
-                        <ChevronDown className={['h-3.5 w-3.5 shrink-0 text-[color:var(--sidebar-muted)]', isOpen ? '' : '-rotate-90'].join(' ')} aria-hidden="true" />
-                    </>}
+                    <Icon className={['h-[18px] w-[18px] shrink-0', selected ? 'text-[color:var(--sidebar-accent)]' : ''].join(' ')} aria-hidden="true" />
+                    <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{highlight(label)}</span>
+                    <ChevronDown className={['h-3.5 w-3.5 shrink-0 text-[color:var(--sidebar-muted)] transition-transform', isOpen ? '' : '-rotate-90'].join(' ')} aria-hidden="true" />
                 </button>
-                <div id={panelId} hidden={collapsed || !isOpen}>
-                    <div className="ms-5 my-1 border-s border-[color:var(--sidebar-border)] ps-3">
-                        {group.key === 'admin' ? visibleAdminGroups.map((subgroup) => {
-                            const subItems = subgroup.items.filter((item) => items.some((match) => match.routeName === item.routeName));
-                            return subItems.length > 0 && (
-                                <div key={subgroup.labelKey} className="py-1">
-                                    <p className="px-3 py-2 text-xs font-semibold text-[color:var(--sidebar-muted)]">{t(subgroup.labelKey)}</p>
-                                    <ul className="space-y-0.5">{subItems.map((item) => renderLink(item, true))}</ul>
-                                </div>
-                            );
-                        }) : <ul className="space-y-0.5">{items.map((item) => renderLink(item, true))}</ul>}
+                <div id={panelId} hidden={!isOpen}>
+                    <div className="ms-5 mt-0.5 mb-1.5 border-s border-[color:var(--sidebar-border)] ps-2">
+                        {renderGroupItems(group, items)}
                     </div>
                 </div>
             </div>
@@ -644,7 +724,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     }
 
     return (
-        <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]" style={sidebarStyle}>
+        <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]">
             <div className={collapsed ? 'flex min-h-20 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'shrink-0 border-b border-[color:var(--sidebar-border)] p-4'}>
                 <div className="flex items-start gap-2">
                     <Link
@@ -669,8 +749,8 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             <div className={collapsed ? 'px-2 pt-3' : 'px-3 pt-3'}>
                 {collapsed ? <button
                     type="button"
-                    aria-label={t('nav.searchNavigation')}
-                    title={t('nav.searchNavigation')}
+                    aria-label={t('nav.filterMenu')}
+                    title={t('nav.filterMenu')}
                     onClick={() => { focusSearchAfterExpand.current = true; onToggleCollapse?.(); }}
                     className={['mx-auto flex h-11 w-11 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)]', focusRing, hoverSurface].join(' ')}
                 ><SearchIcon className="h-[18px] w-[18px]" aria-hidden="true" /></button> : (
@@ -682,16 +762,18 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                             value={query}
                             onChange={(event) => setQuery(event.target.value)}
                             onKeyDown={(event) => { if (event.key === 'Escape' && query) { event.preventDefault(); event.stopPropagation(); setQuery(''); } }}
-                            aria-label={t('nav.searchNavigation')}
-                            placeholder={t('nav.searchNavigation')}
-                            className="h-10 w-full min-w-0 border-0 bg-transparent p-0 text-sm text-[color:var(--sidebar-fg)] placeholder:text-[color:var(--sidebar-muted)] focus:ring-0"
+                            aria-label={t('nav.filterMenu')}
+                            placeholder={t('nav.filterMenu')}
+                            aria-keyshortcuts={onToggleCollapse ? '/' : undefined}
+                            className="peer h-9 w-full min-w-0 border-0 bg-transparent p-0 text-sm text-[color:var(--sidebar-fg)] placeholder:text-[color:var(--sidebar-muted)] focus:ring-0"
                         />
+                        {onToggleCollapse && !query && <kbd aria-hidden="true" className="shrink-0 rounded border border-[color:var(--sidebar-border)] px-1.5 font-sans text-[10px] font-medium leading-4 text-[color:var(--sidebar-muted)] peer-focus:hidden">/</kbd>}
                     </div>
                 )}
             </div>
 
-            <nav className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3" aria-label={t('publicSite.mainNavigation')}>
-                {(!normalizedQuery || matches(homeNav)) && <ul className="mb-3">{renderLink(homeNav)}</ul>}
+            <nav ref={navRef} className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6 pt-3 [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)]" aria-label={t('publicSite.mainNavigation')}>
+                {(!normalizedQuery || matches(homeNav)) && <ul className="mb-4">{renderLink(homeNav)}</ul>}
                 {isEmployeeUser
                     ? visiblePortalSections.map((section) => renderSection(section.labelKey, section.groups))
                     : sections.map((section) => {
@@ -712,7 +794,12 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
                     </button>
                 ) : <p className="px-3 py-2 text-xs text-[color:var(--sidebar-muted)]">{t(isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
-                {!collapsed && environmentLabel && environmentLabel.toLowerCase() !== 'production' && <p className="px-3 pb-1 text-xs text-[color:var(--sidebar-muted)]">{environmentLabel}</p>}
+                {/* Non-production environments are flagged where every page shows it, so test data is never mistaken for live. */}
+                {environmentLabel && environmentLabel.toLowerCase() !== 'production' && (collapsed
+                    ? <span title={environmentLabel} aria-label={environmentLabel} className="mx-auto mb-1 mt-1 block h-2 w-2 rounded-full bg-amber-400" />
+                    : <p className="px-3 pb-1 pt-1"><span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 ring-1 ring-inset ring-amber-400/40 dark:text-amber-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true" />{environmentLabel}
+                    </span></p>)}
             </div>
         </div>
     );

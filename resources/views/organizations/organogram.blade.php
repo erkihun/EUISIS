@@ -10,8 +10,8 @@
 <head>
     <meta charset="utf-8">
     <title>{{ __('organizations.organizationOrganogram') }} — {{ $tree['organization']['code'] }}</title>
+    @include('pdf.partials.typography', ['variant' => 'report'])
     <style>
-        * { font-family: DejaVu Sans, sans-serif; }
         body { font-size: 10px; color: #0f172a; margin: 0; padding: 16px; }
         h1 { font-size: 16px; margin: 0 0 2px; }
         .muted { color: #64748b; }

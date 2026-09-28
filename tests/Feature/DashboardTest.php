@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Actions\Audit\WriteAuditLogAction;
+use App\Enums\AuditEventType;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\AuditLog;
 use App\Models\CardRequest;
@@ -85,6 +87,17 @@ test('scoped hr officer receives scoped dashboard counts', function (): void {
 
     expect(collect($props['kpis'])->pluck('key'))->toContain('activeEmployees');
     expect($props['recentActivity'])->toBeArray()->toHaveCount(0);
+});
+
+test('reports.view alone does not open the audit activity feed', function (): void {
+    // The feed names actors and actions; it follows the audit log policy.
+    $user = User::factory()->create();
+    $user->givePermissionTo(['dashboard.view', 'reports.view']);
+
+    $response = $this->actingAs($user)->get(route('dashboard'))->assertOk();
+
+    $response->assertInertia(fn (Assert $page) => $page->where('can.audit', false));
+    expect($response->viewData('page')['props']['recentActivity'])->toHaveCount(0);
 });
 
 test('provider user does not receive hr sections', function (): void {
@@ -339,4 +352,15 @@ test('memoised status counts are keyed by scope and never leak across organizati
 
     expect(array_sum($global))->toBeGreaterThan(0)
         ->and(array_sum($metrics->cardStatusCounts($emptyScope)))->toBe(0);
+});
+
+test('recent activity leaves out audited page views but keeps them in the audit log', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    app(WriteAuditLogAction::class)->execute(AuditEventType::BackupStatusViewed, $user);
+    app(WriteAuditLogAction::class)->execute(AuditEventType::RestoreRequested, $user);
+
+    $events = collect($this->actingAs($user)->get(route('dashboard'))->viewData('page')['props']['recentActivity'])->pluck('event');
+
+    expect($events)->not->toContain('BACKUP_STATUS_VIEWED')->toContain('RESTORE_REQUESTED')
+        ->and(AuditLog::where('event_type', 'BACKUP_STATUS_VIEWED')->exists())->toBeTrue();
 });

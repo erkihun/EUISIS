@@ -141,7 +141,9 @@ class DashboardDataService
             'providers' => $this->hasAnyPermission($user, ['providers.viewAny', 'transactions.view', 'transactions.manage']),
             'serviceFeedback' => $this->hasAnyPermission($user, ['service_feedback.view']),
             'transfers' => $this->hasAnyPermission($user, ['transfers.viewAny', 'transfers.view']),
-            'audit' => $this->hasAnyPermission($user, ['audit-logs.viewAny', 'audit.view', 'reports.view']),
+            // The activity feed names who did what, so it follows the audit log
+            // policy (audit.view), not the broader reports.view.
+            'audit' => $this->hasAnyPermission($user, ['audit-logs.viewAny', 'audit.view']),
             // Modules that may not be provisioned in every deployment; the
             // dashboard omits their sections entirely when unavailable.
             'nfc' => $this->hasAnyPermission($user, ['nfc_credentials.view', 'nfc_terminals.view']),

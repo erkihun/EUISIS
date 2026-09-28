@@ -3,12 +3,11 @@
 <head>
 <meta charset="utf-8">
 <title>{{ $paymentClaim ? __('provider-portal.cafeteria_payment_claim_export') : __('provider-portal.provider_transaction_export') }}</title>
+@include('pdf.partials.typography', ['variant' => 'report'])
 <style>
-@font-face { font-family:"NotoEth"; font-weight:normal; src:url("{{ storage_path('fonts/NotoSansEthiopic-Regular.ttf') }}") format("truetype"); }
-@font-face { font-family:"NotoEth"; font-weight:bold;   src:url("{{ storage_path('fonts/NotoSansEthiopic-Bold.ttf') }}")    format("truetype"); }
 @page { size:A4 landscape; margin:8mm 8mm 10mm 8mm; }
 *{box-sizing:border-box;}
-body{font-family:"NotoEth","Abyssinica SIL","DejaVu Sans",sans-serif;font-weight:normal;font-size:8.5pt;color:#111827;margin:0;}
+body{font-weight:normal;font-size:8.5pt;color:#111827;margin:0;}
 .rh{border-bottom:2px solid #1e3a8a;padding-bottom:5px;margin-bottom:8px;}
 .rh h1{font-size:13pt;color:#1e3a8a;margin:0 0 2px;font-weight:normal;}
 .rh p{font-size:8pt;color:#6b7280;margin:0;}

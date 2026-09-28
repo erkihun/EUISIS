@@ -686,6 +686,9 @@ it('prints the template signature and prefers its seal over the global setting',
         ['group' => 'general', 'key' => 'seal'],
         ['value' => 'system-assets/global-seal.png', 'type' => 'string'],
     );
+    // Written past the settings service, so drop what it cached at boot (on a
+    // persistent database such as PostgreSQL the boot-time read succeeds).
+    app(SystemSettingsService::class)->clearCache();
     // The global seal is a public-disk asset, unlike template artwork.
     Storage::disk('public')->put('system-assets/global-seal.png', UploadedFile::fake()->image('g.png', 80, 80)->get());
 
@@ -712,6 +715,9 @@ it('falls back to the global seal when the template has none', function (): void
         ['group' => 'general', 'key' => 'seal'],
         ['value' => 'system-assets/global-seal.png', 'type' => 'string'],
     );
+    // Written past the settings service, so drop what it cached at boot (on a
+    // persistent database such as PostgreSQL the boot-time read succeeds).
+    app(SystemSettingsService::class)->clearCache();
     // The global seal is a public-disk asset, unlike template artwork.
     Storage::disk('public')->put('system-assets/global-seal.png', UploadedFile::fake()->image('g.png', 80, 80)->get());
 

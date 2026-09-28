@@ -46,6 +46,8 @@ final class IdCardPngExporter
             );
         }
 
+        $this->useBundledFonts();
+
         // RSVG reads from a file more reliably than from a blob on Windows.
         // Strip the XML declaration which some RSVG versions reject.
         $svgData = preg_replace('/^<\?xml[^?]*\?>\s*/s', '', $svg) ?? $svg;
@@ -112,5 +114,20 @@ final class IdCardPngExporter
     public function pixelsForMillimetres(float $mm): int
     {
         return max(1, (int) round($mm / 25.4 * self::EXPORT_DPI));
+    }
+
+    /**
+     * Points fontconfig (which librsvg uses to find fonts) at the bundled
+     * Inter / Noto Sans Ethiopic, so the PNG matches the browser preview rather
+     * than whatever fonts the server has installed. An explicit FONTCONFIG_FILE
+     * in the environment wins. Fontconfig reads this once per process.
+     */
+    private function useBundledFonts(): void
+    {
+        $config = resource_path('fonts/fonts.conf');
+
+        if (getenv('FONTCONFIG_FILE') === false && is_file($config)) {
+            putenv('FONTCONFIG_FILE='.$config);
+        }
     }
 }

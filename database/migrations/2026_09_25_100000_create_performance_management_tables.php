@@ -86,7 +86,10 @@ return new class extends Migration
         });
 
         Schema::create('performance_plans', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and a self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('cycle_id')->constrained('performance_cycles')->restrictOnDelete();
             $table->string('plan_type', 32);
             $table->foreignUuid('organization_id')->constrained('organizations')->restrictOnDelete();
@@ -123,7 +126,10 @@ return new class extends Migration
         });
 
         Schema::create('performance_objectives', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and a self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('performance_plan_id')->constrained('performance_plans')->cascadeOnDelete();
             // The parent-plan objective this one derives from (cascade lineage).
             $table->foreignUuid('parent_objective_id')->nullable()->constrained('performance_objectives')->nullOnDelete();
@@ -177,7 +183,10 @@ return new class extends Migration
         });
 
         Schema::create('kpi_targets', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and a self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('kpi_id')->constrained('kpis')->restrictOnDelete();
             $table->foreignUuid('performance_plan_id')->constrained('performance_plans')->cascadeOnDelete();
             $table->foreignUuid('objective_id')->constrained('performance_objectives')->cascadeOnDelete();
@@ -211,7 +220,10 @@ return new class extends Migration
         });
 
         Schema::create('employee_performance_agreements', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and a self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('cycle_id')->constrained('performance_cycles')->restrictOnDelete();
             $table->foreignUuid('employee_id')->constrained('employees')->restrictOnDelete();
             $table->foreignUuid('employee_assignment_id')->constrained('employee_assignments')->restrictOnDelete();
@@ -248,7 +260,10 @@ return new class extends Migration
         });
 
         Schema::create('employee_performance_items', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and a self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('agreement_id')->constrained('employee_performance_agreements')->cascadeOnDelete();
             $table->foreignUuid('objective_id')->nullable()->constrained('performance_objectives')->nullOnDelete();
             $table->foreignUuid('kpi_id')->constrained('kpis')->restrictOnDelete();
@@ -489,7 +504,10 @@ return new class extends Migration
         });
 
         Schema::create('performance_results', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and a self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('employee_id')->constrained('employees')->restrictOnDelete();
             $table->foreignUuid('cycle_id')->constrained('performance_cycles')->restrictOnDelete();
             $table->foreignUuid('agreement_id')->constrained('employee_performance_agreements')->restrictOnDelete();

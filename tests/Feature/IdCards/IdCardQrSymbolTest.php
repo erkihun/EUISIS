@@ -15,7 +15,7 @@ use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Support\Facades\Schema;
 
-require_once __DIR__.'/IdCardFrontFieldsTest.php';
+require_once __DIR__.'/IdCardFrontHelpers.php';
 
 /** Builds the matrix at whatever symbol the resolver picks for a payload. */
 function idCardQrMatrix(string $url): QRMatrix
@@ -165,6 +165,31 @@ it('refuses a payload carrying employee data', function (string $payload): void 
     'json object' => ['{"name":"Yared","phone":"+251911000000"}'],
     'named field' => ['https://id.gov.et/c/abc/national_id/123'],
     'position data' => ['https://id.gov.et/c/abc/position/director'],
+]);
+
+it('accepts the public routes a card prints on the configured origin', function (string $appUrl, string $path): void {
+    // A host or fixed route naming "org" or "service" is not employee data;
+    // the card back prints /service-feedback/{token} on every card.
+    config()->set('app.url', $appUrl);
+    $symbol = app(QrCodeVersionResolver::class)->resolve($appUrl.$path);
+
+    expect($symbol['version'])->toBeGreaterThanOrEqual(1);
+})->with([
+    'feedback token' => ['http://127.0.0.1:8000', '/service-feedback/'.str_repeat('ab12', 16)],
+    'org host, id checker' => ['https://euisis.example.org', '/id-checker/4f1c2d3e-5a6b-4c7d-8e9f-0a1b2c3d4e5f'],
+    'service host, feedback' => ['https://civilservice.example.gov.et', '/service-feedback/'.str_repeat('cd34', 16)],
+]);
+
+it('still refuses employee data on the configured origin and on look-alike hosts', function (string $payload): void {
+    config()->set('app.url', 'https://euisis.example.org');
+
+    expect(fn () => app(QrCodeVersionResolver::class)->resolve($payload))
+        ->toThrow(QrPayloadContainsPiiException::class);
+})->with([
+    'extra path segment' => ['https://euisis.example.org/id-checker/abc12345/position/director'],
+    'unknown route naming a field' => ['https://euisis.example.org/employee_number/EMP-1'],
+    'look-alike host' => ['https://euisis.example.org.evil.test/service-feedback/'.str_repeat('ab12', 16)],
+    'other host' => ['https://feedback.example.net/service-feedback/'.str_repeat('ab12', 16)],
 ]);
 
 it('keeps the card identity stable when the symbol version changes', function (): void {

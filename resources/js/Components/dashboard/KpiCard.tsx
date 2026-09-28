@@ -127,14 +127,14 @@ export default function KpiCard({
             </div>
 
             <p
-                className="mt-auto break-words pt-3 text-2xl font-semibold leading-tight tabular-nums tracking-tight text-gray-950 sm:text-3xl dark:text-white"
+                className="break-words pt-3 text-2xl font-semibold leading-tight tabular-nums tracking-tight text-gray-950 sm:text-3xl dark:text-white"
             >
                 {value}
             </p>
 
             {hasTrend && (
                 <p
-                    className={`mt-3 flex items-center gap-1.5 text-xs ${trendColor}`}
+                    className={`mt-auto flex items-center gap-1.5 pt-3 text-xs ${trendColor}`}
                 >
                     <TrendIcon className="h-3.5 w-3.5" aria-hidden="true" />
                     <span className="font-medium tabular-nums">

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\ServiceFeedback;
 
+use App\Enums\ServiceFeedbackStatus;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -71,7 +73,33 @@ class ServiceFeedbackQueryService
             ->when($this->filled($filters, 'status'), fn (Builder $q): Builder => $q->where('status', $filters['status']))
             // Dates arrive as Y-m-d; `date_to` is inclusive of the whole day.
             ->when($this->filled($filters, 'date_from'), fn (Builder $q): Builder => $q->whereDate('created_at', '>=', $filters['date_from']))
-            ->when($this->filled($filters, 'date_to'), fn (Builder $q): Builder => $q->whereDate('created_at', '<=', $filters['date_to']));
+            ->when($this->filled($filters, 'date_to'), fn (Builder $q): Builder => $q->whereDate('created_at', '<=', $filters['date_to']))
+            ->when($this->filled($filters, 'q'), fn (Builder $q): Builder => $this->applySearch($q, (string) $filters['q']));
+    }
+
+    /**
+     * Free-text search over what an administrator would remember about an
+     * entry: the comment, the name the client volunteered, and the employee.
+     *
+     * @param  Builder<EmployeeServiceFeedback>  $query
+     * @return Builder<EmployeeServiceFeedback>
+     */
+    private function applySearch(Builder $query, string $term): Builder
+    {
+        // Capped so a pasted essay cannot become a pathological LIKE pattern.
+        $term = mb_substr(trim($term), 0, 100);
+
+        if ($term === '') {
+            return $query;
+        }
+
+        return $query->where(function (Builder $nested) use ($term): void {
+            $nested->whereLike('comment', "%{$term}%", caseSensitive: false)
+                ->orWhereLike('client_name', "%{$term}%", caseSensitive: false)
+                ->orWhereHas('employee', fn (Builder $employee): Builder => $employee
+                    ->whereLike('full_name', "%{$term}%", caseSensitive: false)
+                    ->orWhereLike('employee_number', "%{$term}%", caseSensitive: false));
+        });
     }
 
     /**
@@ -94,6 +122,62 @@ class ServiceFeedbackQueryService
             'low_rated' => (clone $query)->where('rating', '<=', 2)->count(),
             'pending' => (clone $query)->where('status', 'pending')->count(),
         ];
+    }
+
+    /**
+     * Entry count per moderation status, plus the total, for the inbox tabs.
+     *
+     * The caller passes a query filtered by everything except status, so each
+     * tab shows what selecting it would return.
+     *
+     * @param  Builder<EmployeeServiceFeedback>  $query
+     * @return array<string, int>
+     */
+    public function statusCounts(Builder $query): array
+    {
+        $counts = (clone $query)
+            ->select('status', DB::raw('COUNT(*) AS total_count'))
+            ->groupBy('status')
+            ->pluck('total_count', 'status');
+
+        $result = ['all' => (int) $counts->sum()];
+
+        foreach (ServiceFeedbackStatus::cases() as $status) {
+            $result[$status->value] = (int) ($counts[$status->value] ?? 0);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Low-rated entries nobody has reviewed yet, newest first.
+     *
+     * @param  Builder<EmployeeServiceFeedback>  $query
+     * @return Collection<int, EmployeeServiceFeedback>
+     */
+    public function needsAttention(Builder $query, int $limit = 4): Collection
+    {
+        return (clone $query)
+            ->lowRated()
+            ->where('status', ServiceFeedbackStatus::Pending->value)
+            ->with(['employee:id,full_name,employee_number', 'positionService:id,service_no,name_en,name_am', 'organization:id,name_en,name_am'])
+            ->latest('created_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * When the longest-waiting pending entry arrived, or null if none wait.
+     *
+     * @param  Builder<EmployeeServiceFeedback>  $query
+     */
+    public function oldestPendingAt(Builder $query): ?string
+    {
+        $oldest = (clone $query)
+            ->where('status', ServiceFeedbackStatus::Pending->value)
+            ->min('created_at');
+
+        return $oldest === null ? null : Carbon::parse($oldest)->toIso8601String();
     }
 
     /**

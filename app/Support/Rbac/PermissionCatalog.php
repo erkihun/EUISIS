@@ -51,7 +51,7 @@ final class PermissionCatalog
             'public_site', 'public_home', 'public_announcements', 'public_services', 'public_support', 'public_navigation',
             'public_footer', 'public_branding', 'public_seo', 'public_site_settings',
         ],
-        'System Settings' => ['system-settings'],
+        'System Settings' => ['system-settings', 'backups'],
         'Audit & Monitoring' => ['audit', 'audit-logs', 'recycle-bin'],
     ];
 

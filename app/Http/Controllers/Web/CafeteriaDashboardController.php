@@ -33,10 +33,7 @@ class CafeteriaDashboardController extends Controller
         $monthSummary = $this->reportService->getPeriodSummary($today->copy()->startOfMonth(), $today, user: $request->user());
 
         $activeProviderQuery = CafeteriaProvider::query()->where('is_active', true);
-        $accessibleProviderIds = $this->providerAccess->accessibleProviderIds($request->user());
-        if ($accessibleProviderIds !== []) {
-            $activeProviderQuery->whereIn('id', $accessibleProviderIds);
-        }
+        $this->providerAccess->filterProviderScopedQuery($request->user(), $activeProviderQuery, 'id');
 
         $todayQuery = CafeteriaTransaction::query()->whereDate('transaction_date', $today);
         $this->providerAccess->filterProviderScopedQuery($request->user(), $todayQuery);

@@ -12,7 +12,7 @@ use App\Services\IdCards\IdCardTemplateService;
 use App\Services\IdCards\IdCardTextStyle;
 use Spatie\Permission\Models\Permission;
 
-require_once __DIR__.'/IdCardFrontFieldsTest.php';
+require_once __DIR__.'/IdCardFrontHelpers.php';
 
 /** Minimum valid payload for the save endpoint. */
 function layoutTemplatePayload(array $overrides = []): array
@@ -83,10 +83,11 @@ it('moves portrait sections to the positions a template stores', function (): vo
 
     $svg = renderFrontSvg($card->fresh(), 'portrait');
 
-    // The employee name and position have independent portrait boxes.
-    expect($svg)->toContain('x="54"')
-        ->and($svg)->toContain('Front Employee')
-        ->and($svg)->toContain('Front Officer');
+    // The employee name and position have independent portrait boxes. Each
+    // line is centred in its box: name box 54..486 x 171 → x=270, y=171+22;
+    // position box 108..432 x 274 → x=270, y=274+18, Amharic line first.
+    expect($svg)->toMatch('/<text x="270" y="193"[^>]*>Front Employee</')
+        ->and($svg)->toMatch('/<text x="270" y="312"[^>]*>Front Officer</');
 });
 
 it('removes card number notes dates signature and emergency contact from the portrait back', function (): void {

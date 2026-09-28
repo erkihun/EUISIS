@@ -9,7 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('nfc_credentials', function (Blueprint $table): void {
-            $table->uuid('id')->primary();
+            $table->uuid('id');
+            // Declared before this table's own foreign keys: PostgreSQL adds a
+            // fluent ->primary() after them, and a self-reference then has no key.
+            $table->primary('id');
             $table->foreignUuid('id_card_id')->constrained('id_cards')->restrictOnDelete();
             $table->string('credential_id', 68)->unique();
             $table->string('chip_uid_hash', 64)->nullable();
@@ -35,7 +38,12 @@ return new class extends Migration
             $table->foreignUuid('provider_id')->nullable()->constrained('service_providers')->restrictOnDelete();
             $table->foreignUuid('cafeteria_provider_id')->nullable()->constrained('cafeteria_providers')->restrictOnDelete();
             $table->foreignUuid('organization_id')->nullable()->constrained('organizations')->restrictOnDelete();
-            $table->foreignUuid('external_application_id')->nullable()->constrained('external_applications')->restrictOnDelete();
+            // external_applications.id is VARCHAR(36) on PostgreSQL (2026_08_14_000300)
+            // and uuid-compatible CHAR(36) elsewhere; the foreign key needs its type.
+            (Schema::getConnection()->getDriverName() === 'pgsql'
+                ? $table->string('external_application_id', 36)
+                : $table->foreignUuid('external_application_id'))->nullable();
+            $table->foreign('external_application_id')->references('id')->on('external_applications')->restrictOnDelete();
             $table->string('terminal_code', 64)->unique();
             $table->string('name');
             $table->string('terminal_type', 24);
@@ -58,7 +66,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('nfc_credential_id')->nullable()->constrained('nfc_credentials')->restrictOnDelete();
             $table->foreignUuid('terminal_id')->nullable()->constrained('service_terminals')->restrictOnDelete();
-            $table->foreignUuid('external_application_id')->nullable()->constrained('external_applications')->restrictOnDelete();
+            // external_applications.id is VARCHAR(36) on PostgreSQL (2026_08_14_000300)
+            // and uuid-compatible CHAR(36) elsewhere; the foreign key needs its type.
+            (Schema::getConnection()->getDriverName() === 'pgsql'
+                ? $table->string('external_application_id', 36)
+                : $table->foreignUuid('external_application_id'))->nullable();
+            $table->foreign('external_application_id')->references('id')->on('external_applications')->restrictOnDelete();
             $table->string('event_type', 64);
             $table->string('result', 24);
             $table->string('reason_code', 64)->nullable();

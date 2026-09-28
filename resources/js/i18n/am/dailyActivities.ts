@@ -207,6 +207,9 @@ export default {
     },
 
     dashboard: {
+        registrationToday: 'የዛሬ ምዝገባ',
+        reviewSection: 'ግምገማ',
+        openReviewQueue: 'የግምገማ ወረፋን ክፈት',
         title: 'የእንቅስቃሴ ዳሽቦርድ',
         description: 'በወሰንዎ ውስጥ ያሉ ሠራተኞች የምዝገባ ሁኔታ። ቁጥሮች ብቻ፤ ውጤት አይሰጥም።',
         expectedToday: 'ዛሬ የሚጠበቁ',

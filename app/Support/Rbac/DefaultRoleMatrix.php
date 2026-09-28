@@ -39,7 +39,7 @@ final class DefaultRoleMatrix
         'recycle-bin.forceDelete', 'users.viewSensitive',
     ];
 
-    private const CITY_ADMIN_WITHHELD_MODULES = ['api_management', 'cafeteria-portal', 'provider-cafeteria-transactions', 'provider-cafeteria-payment-claims'];
+    private const CITY_ADMIN_WITHHELD_MODULES = ['backups', 'api_management', 'cafeteria-portal', 'provider-cafeteria-transactions', 'provider-cafeteria-payment-claims'];
 
     private const STRUCTURE_READ = [
         'organizations.viewAny', 'organizations.view',

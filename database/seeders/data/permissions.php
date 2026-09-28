@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    ...require database_path('seeders/data/backup-permissions.php'),
     ['name' => 'nfc_credentials.view', 'group' => 'nfc_credentials', 'sort_order' => 10, 'is_system' => true, 'label_en' => 'View NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ይመልከቱ', 'description_en' => 'View NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ይመልከቱ።'],
     ['name' => 'nfc_credentials.provision', 'group' => 'nfc_credentials', 'sort_order' => 20, 'is_system' => true, 'label_en' => 'Provision NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ያዘጋጁ', 'description_en' => 'Provision NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን ያዘጋጁ።'],
     ['name' => 'nfc_credentials.activate', 'group' => 'nfc_credentials', 'sort_order' => 30, 'is_system' => true, 'label_en' => 'Activate NFC credentials', 'label_am' => 'የኤንኤፍሲ ማረጋገጫዎችን አንቁ', 'description_en' => 'Activate NFC credentials.', 'description_am' => 'የኤንኤፍሲ ማረጋገጫዎችን አንቁ።'],

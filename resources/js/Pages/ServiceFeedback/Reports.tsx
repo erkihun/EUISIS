@@ -1,15 +1,22 @@
-import PageHeader from '@/Components/PageHeader';
-import AppMetricCard from '@/Components/ui/AppMetricCard';
-import RatingStars from '@/Components/ServiceFeedback/RatingStars';
 import FeedbackFilterBar, { type FeedbackFilterOptions, type FeedbackFilters } from '@/Components/ServiceFeedback/FeedbackFilterBar';
+import {
+    FeedbackPageHeader,
+    RatingBar,
+    RatingPill,
+    exportHref,
+    percent,
+    ratingTone,
+    toneClasses,
+    useNameLabel,
+    type FeedbackSummary,
+} from '@/Components/ServiceFeedback/feedbackUi';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import { DownloadIcon } from '@/Components/Icons';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
-import { MessageSquareIcon as MessageSquare, StarIcon as Star, AlertTriangle } from '@/Components/Icons';
-import { useState, type JSX } from 'react';
-
-type NamePair = { en: string | null; am: string | null } | null;
+import { buttonClassName, cx } from '@euisis/ui';
+import { Head, Link } from '@inertiajs/react';
+import { useState, type JSX, type ReactNode } from 'react';
 
 type PerformanceRow = {
     id: string | null;
@@ -20,40 +27,19 @@ type PerformanceRow = {
     low_rated?: number;
 };
 
-type LowRatedRow = {
-    id: string;
-    rating: number;
-    comment: string | null;
-    created_at: string | null;
-    employee: { id: string; name: string | null; employee_number: string | null } | null;
-    organization: NamePair;
-    service_type: NamePair;
-};
-
 type Props = {
     summary: { total: number; average: number; low_rated: number; pending: number };
     byEmployee: PerformanceRow[];
     byOrganization: PerformanceRow[];
     byServiceType: PerformanceRow[];
-    lowRated: LowRatedRow[];
+    lowRated: FeedbackSummary[];
     filters: FeedbackFilters;
     filterOptions: FeedbackFilterOptions;
     statuses: string[];
     can: { export: boolean };
 };
 
-type TabKey = 'employee' | 'organization' | 'serviceType';
-
-const MAX_RATING = 5;
-
-/** Red below 2.5, amber below 3.5, green above. */
-function ratingTone(average: number): string {
-    if (average < 2.5) {
-        return 'bg-red-500';
-    }
-
-    return average < 3.5 ? 'bg-amber-500' : 'bg-emerald-500';
-}
+type GroupKey = 'employee' | 'organization' | 'serviceType';
 
 export default function ServiceFeedbackReports({
     summary,
@@ -66,66 +52,48 @@ export default function ServiceFeedbackReports({
     statuses,
     can,
 }: Props): JSX.Element {
-    const { locale, t } = useLocale();
-    const am = locale === 'am';
-    const [tab, setTab] = useState<TabKey>('employee');
-
-    const label = (pair: NamePair): string => (am ? (pair?.am ?? pair?.en) : pair?.en) ?? '—';
-
-    const exportHref = `${route('service-feedback.admin.export')}?${new URLSearchParams(
-        Object.entries(filters).filter(([, v]) => v !== undefined && v !== '') as [string, string][],
-    ).toString()}`;
+    const { t } = useLocale();
+    const label = useNameLabel();
+    const [group, setGroup] = useState<GroupKey>('employee');
 
     /*
      * Each breakdown is ordered worst-average-first by the query service: the
      * point of these tables is to surface the desks that need attention, not
-     * to rank the best. They share one panel because they are the same shape —
-     * three stacked tables only made the page longer, not clearer.
+     * to rank the best. They share one panel because they are the same shape.
      */
-    const tabs: { key: TabKey; label: string; rows: PerformanceRow[]; nameHeader: string; showLowColumn?: boolean }[] = [
-        {
-            key: 'employee',
-            label: t('serviceFeedback.averageRatingByEmployee'),
-            rows: byEmployee,
-            nameHeader: t('serviceFeedback.filterEmployee'),
-            showLowColumn: true,
-        },
-        {
-            key: 'organization',
-            label: t('serviceFeedback.averageRatingByOrganization'),
-            rows: byOrganization,
-            nameHeader: t('serviceFeedback.filterOrganization'),
-        },
-        {
-            key: 'serviceType',
-            label: t('serviceFeedback.serviceTypePerformance'),
-            rows: byServiceType,
-            nameHeader: t('serviceFeedback.filterServiceType'),
-        },
-    ];
+    const groups: Record<GroupKey, { title: string; tab: string; rows: PerformanceRow[]; filterKey: keyof FeedbackFilters; showLow: boolean }> = {
+        employee: { title: t('serviceFeedback.averageRatingByEmployee'), tab: t('serviceFeedback.filterEmployee'), rows: byEmployee, filterKey: 'employee_id', showLow: true },
+        organization: { title: t('serviceFeedback.averageRatingByOrganization'), tab: t('serviceFeedback.filterOrganization'), rows: byOrganization, filterKey: 'organization_id', showLow: false },
+        serviceType: { title: t('serviceFeedback.serviceTypePerformance'), tab: t('serviceFeedback.filterServiceType'), rows: byServiceType, filterKey: 'service_type_id', showLow: false },
+    };
+    const active = groups[group];
 
-    const activeTab = tabs.find((entry) => entry.key === tab) ?? tabs[0];
-    const lowRatedShare = summary.total > 0 ? Math.round((summary.low_rated / summary.total) * 100) : 0;
+    // A row opens the inbox narrowed to it, keeping the scope chosen here.
+    const inboxHref = (row: PerformanceRow) => {
+        const params = Object.fromEntries(
+            Object.entries({ ...filters, [active.filterKey]: row.id ?? '' }).filter(([, value]) => value !== undefined && value !== ''),
+        );
+        return route('service-feedback.admin.index', params);
+    };
+
+    const lowShare = percent(summary.low_rated, summary.total);
 
     return (
         <AuthenticatedLayout>
             <Head title={t('serviceFeedback.reports')} />
 
             <div className="space-y-6">
-                <PageHeader
+                <FeedbackPageHeader
+                    current="reports"
                     title={t('serviceFeedback.reports')}
-                    description={t('serviceFeedback.moduleSubtitle')}
-                    backHref={route('service-feedback.admin.dashboard')}
-                    actions={
-                        can.export ? (
-                            <a
-                                href={exportHref}
-                                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
-                            >
-                                {t('serviceFeedback.exportFeedback')}
-                            </a>
-                        ) : undefined
-                    }
+                    description={t('serviceFeedback.reportsSubtitle')}
+                    pendingCount={summary.pending}
+                    actions={can.export ? (
+                        <a href={exportHref(filters)} className={buttonClassName({ variant: 'outline' })}>
+                            <DownloadIcon aria-hidden="true" className="h-4 w-4" />
+                            {t('serviceFeedback.exportCsv')}
+                        </a>
+                    ) : undefined}
                 />
 
                 <FeedbackFilterBar
@@ -133,201 +101,173 @@ export default function ServiceFeedbackReports({
                     filters={filters}
                     filterOptions={filterOptions}
                     statuses={statuses}
+                    presets
                 />
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <AppMetricCard
-                        label={t('serviceFeedback.totalFeedback')}
-                        value={summary.total.toLocaleString()}
-                        icon={<MessageSquare className="h-5 w-5" />}
-                        variant="primary"
-                    />
-                    <AppMetricCard
+                <section aria-label={t('serviceFeedback.reports')} className="grid gap-4 sm:grid-cols-3">
+                    <Stat label={t('serviceFeedback.totalFeedback')} value={summary.total.toLocaleString()}>
+                        <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.inSelectedScope')}</span>
+                    </Stat>
+                    <Stat
                         label={t('serviceFeedback.averageRating')}
-                        value={summary.average.toFixed(2)}
-                        detail={<RatingStars rating={Math.round(summary.average)} />}
-                        icon={<Star className="h-5 w-5" />}
-                        variant="success"
-                    />
-                    <AppMetricCard
-                        label={t('serviceFeedback.lowRatingReport')}
-                        value={summary.low_rated.toLocaleString()}
-                        detail={summary.total > 0 ? `${lowRatedShare}%` : undefined}
-                        icon={<AlertTriangle className="h-5 w-5" />}
-                        variant="danger"
-                    />
-                </div>
+                        value={(
+                            <span className="flex items-baseline gap-1.5">
+                                <span className={summary.total > 0 ? toneClasses[ratingTone(summary.average)].text : undefined}>
+                                    {summary.total > 0 ? summary.average.toFixed(2) : '—'}
+                                </span>
+                                <span className="text-sm font-normal text-[color:var(--app-muted-foreground)]">/ 5</span>
+                            </span>
+                        )}
+                    >
+                        <RatingBar value={summary.total > 0 ? summary.average : 0} />
+                    </Stat>
+                    <Stat
+                        label={t('serviceFeedback.lowRatings')}
+                        value={(
+                            <span className="flex items-baseline gap-2">
+                                <span className={summary.low_rated > 0 ? toneClasses.low.text : undefined}>{summary.low_rated.toLocaleString()}</span>
+                                {summary.total > 0 && <span className={cx('text-sm font-semibold', toneClasses.low.text)}>{lowShare}%</span>}
+                            </span>
+                        )}
+                    >
+                        <span aria-hidden="true" className="block h-1.5 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]">
+                            <span className={cx('block h-full rounded-full', toneClasses.low.bar)} style={{ width: `${lowShare}%` }} />
+                        </span>
+                    </Stat>
+                </section>
 
-                {/* Performance breakdowns share one panel, switched by tab. */}
-                <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-slate-800">
-                        <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{activeTab.label}</h2>
-
-                        <div className="flex flex-wrap gap-1 rounded-lg border border-gray-200 p-1 dark:border-slate-800">
-                            {tabs.map((entry) => (
-                                <button
-                                    key={entry.key}
-                                    type="button"
-                                    onClick={() => setTab(entry.key)}
-                                    className={`rounded-md px-3 py-1.5 text-xs font-medium transition ${
-                                        entry.key === activeTab.key
-                                            ? 'bg-[color:var(--color-primary)] text-white'
-                                            : 'text-gray-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800'
-                                    }`}
-                                >
-                                    {entry.nameHeader}
-                                </button>
-                            ))}
+                {/* Performance breakdowns share one panel, switched by the segmented control. */}
+                <section aria-labelledby="performance-heading" className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <div className="flex flex-col gap-3 border-b border-[color:var(--app-border)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 id="performance-heading" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{active.title}</h2>
+                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.lowestFirstHint')}</p>
+                        </div>
+                        <div role="group" aria-label={t('serviceFeedback.groupBy')} className="flex gap-0.5 self-start rounded-lg bg-[color:var(--app-surface-muted)] p-[3px] sm:self-auto">
+                            {(Object.keys(groups) as GroupKey[]).map((key) => {
+                                const selected = key === group;
+                                return (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        aria-pressed={selected}
+                                        onClick={() => setGroup(key)}
+                                        className={cx(
+                                            'h-[30px] whitespace-nowrap rounded-md px-3.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
+                                            selected
+                                                ? 'bg-[color:var(--app-surface)] font-semibold text-[color:var(--app-foreground)] shadow-sm ring-1 ring-[color:var(--app-border)]'
+                                                : 'font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+                                        )}
+                                    >
+                                        {groups[key].tab}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    <PerformanceTable
-                        rows={activeTab.rows}
-                        nameHeader={activeTab.nameHeader}
-                        t={t}
-                        showLowColumn={activeTab.showLowColumn}
-                    />
-                </div>
+                    {active.rows.length === 0 ? (
+                        <p className="px-5 py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noFeedbackYet')}</p>
+                    ) : (
+                        <div className="max-h-[36rem] overflow-auto">
+                            <table className="w-full min-w-[40rem] text-sm">
+                                <thead className="sticky top-0 z-[1] bg-[color:var(--app-surface-muted)]">
+                                    <tr className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
+                                        <th scope="col" className="w-12 px-5 py-2.5 text-left">#</th>
+                                        <th scope="col" className="px-3 py-2.5 text-left">{active.tab}</th>
+                                        <th scope="col" className="w-28 px-3 py-2.5 text-right">{t('serviceFeedback.responses')}</th>
+                                        {active.showLow && <th scope="col" className="w-28 px-3 py-2.5 text-right">{t('serviceFeedback.lowShort')}</th>}
+                                        <th scope="col" className="w-56 py-2.5 pl-3 pr-5 text-right">{t('serviceFeedback.averageRating')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-[color:var(--app-border)]">
+                                    {active.rows.map((row, index) => (
+                                        <tr key={row.id ?? row.name ?? index} className="transition-colors hover:bg-[color:var(--app-surface-muted)]">
+                                            <td className="px-5 py-3 text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{index + 1}</td>
+                                            <td className="px-3 py-3">
+                                                {row.id ? (
+                                                    <Link href={inboxHref(row)} className="font-medium text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] hover:underline">
+                                                        {row.name ?? '—'}
+                                                    </Link>
+                                                ) : (
+                                                    <span className="font-medium text-[color:var(--app-foreground)]">{row.name ?? '—'}</span>
+                                                )}
+                                                {row.employee_number && <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee_number}</div>}
+                                            </td>
+                                            <td className="px-3 py-3 text-right tabular-nums text-[color:var(--app-foreground)]">{row.total.toLocaleString()}</td>
+                                            {active.showLow && (
+                                                <td className="px-3 py-3 text-right">
+                                                    <span className={cx(
+                                                        'inline-flex h-[22px] min-w-[1.75rem] items-center justify-center rounded-full px-2 text-xs font-semibold tabular-nums',
+                                                        (row.low_rated ?? 0) > 0 ? toneClasses.low.pill : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
+                                                    )}>
+                                                        {row.low_rated ?? 0}
+                                                    </span>
+                                                </td>
+                                            )}
+                                            <td className="py-3 pl-3 pr-5">
+                                                {/* Bar first, number second: the bar is what makes a weak desk visible without reading decimals. */}
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <RatingBar value={row.average} className="h-2 w-24 sm:w-36" />
+                                                    <span className={cx('w-10 text-right font-bold tabular-nums', toneClasses[ratingTone(row.average)].text)}>{row.average.toFixed(2)}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </section>
 
                 {/* Low rating watchlist */}
-                <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-5 py-3 dark:border-slate-800">
-                        <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
-                            {t('serviceFeedback.lowRatingReport')}
-                        </h2>
-                        {lowRated.length > 0 && (
-                            <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/40 dark:text-red-300">
-                                {lowRated.length}
+                <section aria-labelledby="watchlist-heading" className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <div className="flex items-center gap-2.5 border-b border-[color:var(--app-border)] px-5 py-4">
+                        <h2 id="watchlist-heading" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.lowRatingWatchlist')}</h2>
+                        {summary.low_rated > 0 && (
+                            <span className={cx('inline-flex h-5 items-center rounded-full px-2 text-xs font-bold tabular-nums', toneClasses.low.pill)}>
+                                {summary.low_rated.toLocaleString()}
                             </span>
                         )}
                     </div>
 
                     {lowRated.length === 0 ? (
-                        <p className="px-5 py-10 text-center text-sm text-gray-500 dark:text-slate-400">
-                            {t('serviceFeedback.noFeedbackYet')}
-                        </p>
+                        <p className="px-5 py-12 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.noLowRatings')}</p>
                     ) : (
-                        /*
-                         * Capped so a long watchlist scrolls inside the card
-                         * instead of pushing the rest of the page away.
-                         */
-                        <ul className="max-h-[28rem] divide-y divide-gray-100 overflow-y-auto dark:divide-slate-800">
+                        // Capped so a long watchlist scrolls inside the card instead of pushing the page away.
+                        <ul className="max-h-[32rem] divide-y divide-[color:var(--app-border)] overflow-y-auto">
                             {lowRated.map((row) => (
                                 <li key={row.id}>
-                                    <Link
-                                        href={route('service-feedback.admin.show', row.id)}
-                                        className="flex items-start justify-between gap-3 px-5 py-3 transition hover:bg-gray-50 dark:hover:bg-slate-800/60"
-                                    >
-                                        <div className="min-w-0">
-                                            <RatingStars rating={row.rating} />
-                                            <p className="mt-1 text-sm text-gray-700 dark:text-slate-300">
-                                                {row.comment ?? '—'}
-                                            </p>
-                                            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                                {row.employee?.name ?? '—'} · {label(row.service_type)} · {label(row.organization)} ·{' '}
-                                                <LocalizedDateDisplay value={row.created_at} />
-                                            </p>
-                                        </div>
-                                        <span className="shrink-0 text-xs font-medium text-[color:var(--color-primary)]">
-                                            {t('common.view')}
+                                    <Link href={route('service-feedback.admin.show', row.id)} className="flex items-start gap-3.5 px-5 py-3.5 transition-colors hover:bg-[color:var(--app-surface-muted)]">
+                                        <RatingPill rating={row.rating} />
+                                        <span className="min-w-0 flex-1">
+                                            <span className={cx('block text-sm leading-relaxed', row.comment ? 'text-[color:var(--app-foreground)]' : 'italic text-[color:var(--app-muted-foreground)]')}>
+                                                {row.comment || t('serviceFeedback.noCommentRatingOnly')}
+                                            </span>
+                                            <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">
+                                                {row.employee?.name ?? '—'} · {label(row.service_type)} · {label(row.organization)}
+                                            </span>
+                                        </span>
+                                        <span className="hidden shrink-0 whitespace-nowrap text-xs text-[color:var(--app-muted-foreground)] sm:block">
+                                            <LocalizedDateDisplay value={row.created_at} />
                                         </span>
                                     </Link>
                                 </li>
                             ))}
                         </ul>
                     )}
-                </div>
+                </section>
             </div>
         </AuthenticatedLayout>
     );
 }
 
-function PerformanceTable({
-    rows,
-    nameHeader,
-    t,
-    showLowColumn = false,
-}: {
-    rows: PerformanceRow[];
-    nameHeader: string;
-    t: (key: string) => string;
-    showLowColumn?: boolean;
-}): JSX.Element {
-    if (rows.length === 0) {
-        return (
-            <p className="px-5 py-10 text-center text-sm text-gray-500 dark:text-slate-400">
-                {t('serviceFeedback.noFeedbackYet')}
-            </p>
-        );
-    }
-
+function Stat({ label, value, children }: { label: string; value: ReactNode; children: ReactNode }): JSX.Element {
     return (
-        <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-800">
-                <thead className="bg-gray-50 dark:bg-slate-950">
-                    <tr>
-                        <th className="w-10 px-5 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">#</th>
-                        <th className="px-5 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
-                            {nameHeader}
-                        </th>
-                        <th className="px-5 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">
-                            {t('serviceFeedback.totalFeedback')}
-                        </th>
-                        {showLowColumn && (
-                            <th className="px-5 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">
-                                {t('serviceFeedback.lowRatingReport')}
-                            </th>
-                        )}
-                        <th className="px-5 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">
-                            {t('serviceFeedback.averageRating')}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
-                    {rows.map((row, index) => (
-                        <tr key={row.id ?? row.name} className="transition hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                            <td className="px-5 py-2.5 text-xs tabular-nums text-gray-400 dark:text-slate-500">{index + 1}</td>
-                            <td className="px-5 py-2.5">
-                                <div className="text-gray-900 dark:text-slate-100">{row.name ?? '—'}</div>
-                                {row.employee_number && (
-                                    <div className="text-xs text-gray-500 dark:text-slate-400">{row.employee_number}</div>
-                                )}
-                            </td>
-                            <td className="px-5 py-2.5 text-right tabular-nums text-gray-600 dark:text-slate-400">
-                                {row.total}
-                            </td>
-                            {showLowColumn && (
-                                <td className="px-5 py-2.5 text-right tabular-nums">
-                                    {(row.low_rated ?? 0) > 0 ? (
-                                        <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/40 dark:text-red-300">
-                                            {row.low_rated}
-                                        </span>
-                                    ) : (
-                                        <span className="text-gray-400 dark:text-slate-600">0</span>
-                                    )}
-                                </td>
-                            )}
-                            <td className="px-5 py-2.5">
-                                {/*
-                                 * Bar first, number second: the bar is what makes
-                                 * a weak desk visible without reading decimals.
-                                 */}
-                                <div className="flex items-center justify-end gap-3">
-                                    <div className="h-1.5 w-24 shrink-0 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800">
-                                        <div
-                                            className={`h-full rounded-full ${ratingTone(row.average)}`}
-                                            style={{ width: `${Math.min(100, (row.average / MAX_RATING) * 100)}%` }}
-                                        />
-                                    </div>
-                                    <span className="w-10 text-right font-medium tabular-nums text-gray-900 dark:text-slate-100">
-                                        {row.average.toFixed(2)}
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <div className="flex flex-col gap-2 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+            <span className="text-[13px] font-medium text-[color:var(--app-muted-foreground)]">{label}</span>
+            <span className="text-3xl font-bold leading-none tabular-nums text-[color:var(--app-foreground)]">{value}</span>
+            {children}
         </div>
     );
 }

@@ -54,6 +54,15 @@
     letter-spacing: -0.02em;
 }
 
+/* Negative tracking suits Inter headings, not Ethiopic. */
+.public-home #hero-heading:lang(am),
+.public-home h2:lang(am) {
+    letter-spacing: normal;
+}
+.public-home #hero-heading:lang(am) {
+    line-height: 1.35;
+}
+
 .public-home h2::after {
     content: '';
     display: block;

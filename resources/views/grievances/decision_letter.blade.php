@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grievance Decision Letter — {{ $letterReference }}</title>
+    @include('pdf.partials.typography', ['variant' => 'formal'])
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12pt; color: #1a1a1a; margin: 0; padding: 0; }
+        body { font-size: 12pt; color: #1a1a1a; margin: 0; padding: 0; }
         .page { padding: 40px 50px; }
         .header { border-bottom: 2px solid #1e40af; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; }
         .header h1 { font-size: 14pt; font-weight: bold; color: #1e40af; margin: 0; }

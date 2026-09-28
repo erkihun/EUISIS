@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Dashboard;
 
 use App\Enums\AssignmentStatus;
+use App\Enums\AuditEventType;
 use App\Enums\CardRequestStatus;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
@@ -525,6 +526,12 @@ class DashboardMetricService
         return $alerts;
     }
 
+    /**
+     * Audited page views: kept in the audit log, but a feed of who opened a page would bury the
+     * changes this panel exists to show.
+     */
+    private const READ_ONLY_EVENTS = [AuditEventType::BackupStatusViewed];
+
     public function recentActivity(array $scope, bool $canAudit): array
     {
         if (! $canAudit) {
@@ -532,6 +539,7 @@ class DashboardMetricService
         }
 
         $logs = AuditLog::query()
+            ->whereNotIn('event_type', array_map(fn (AuditEventType $event) => $event->value, self::READ_ONLY_EVENTS))
             ->when(
                 ! $scope['global_access'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('organization_id', $scope['organization_ids'])

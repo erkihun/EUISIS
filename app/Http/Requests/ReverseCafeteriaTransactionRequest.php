@@ -11,7 +11,9 @@ class ReverseCafeteriaTransactionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $transaction = $this->route('cafeteria_transaction') ?? $this->route('transaction');
+        // The route declares {cafeteriaTransaction}; looking only for other names
+        // refused every reversal with 403, whoever asked.
+        $transaction = $this->route('cafeteriaTransaction') ?? $this->route('cafeteria_transaction') ?? $this->route('transaction');
 
         return $transaction instanceof CafeteriaTransaction
             ? ($this->user()?->can('reverse', $transaction) ?? false)

@@ -773,3 +773,61 @@ it('narrows feedback by service type on the list, reports and export', function 
                 ->and($props['filters']['service_type_id'] ?? null)->not->toBeNull();
         });
 });
+
+it('searches feedback by comment, client name and employee', function (): void {
+    makeFeedback($this->alpha, null, 2, 'The queue at window four was very slow');
+    makeFeedback($this->beta, null, 5, 'Quick and friendly');
+    makeFeedback($this->beta, null, 4)->forceFill(['client_name' => 'Almaz Tadesse'])->save();
+
+    $search = fn (string $term) => collect(
+        $this->actingAs($this->superAdmin)
+            ->get(route('service-feedback.admin.index', ['q' => $term]))
+            ->assertOk()
+            ->viewData('page')['props']['feedback']['data'],
+    );
+
+    // Case-insensitive match inside the comment.
+    expect($search('WINDOW FOUR'))->toHaveCount(1)
+        ->and($search('almaz'))->toHaveCount(1)
+        // The employee's name and number are searchable too.
+        ->and($search('Test BETA'))->toHaveCount(2)
+        ->and($search('ALPHA-EMP'))->toHaveCount(1)
+        ->and($search('no such text'))->toHaveCount(0);
+});
+
+it('counts each status for the inbox tabs regardless of the chosen status', function (): void {
+    makeFeedback($this->alpha, null, 5);
+    makeFeedback($this->alpha, null, 4)->forceFill(['status' => ServiceFeedbackStatus::Resolved])->save();
+    makeFeedback($this->alpha, null, 1)->forceFill(['status' => ServiceFeedbackStatus::Hidden])->save();
+    makeFeedback($this->beta, null, 3);
+
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.admin.index', [
+            'status' => 'resolved',
+            'organization_id' => $this->alpha['org']->id,
+        ]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('feedback.data', fn ($rows) => count($rows) === 1)
+            // Other filters still apply to the counts; the status filter does not.
+            ->where('statusCounts.all', 3)
+            ->where('statusCounts.pending', 1)
+            ->where('statusCounts.reviewed', 0)
+            ->where('statusCounts.resolved', 1)
+            ->where('statusCounts.hidden', 1)
+        );
+});
+
+it('lists unreviewed low ratings as needing attention on the dashboard', function (): void {
+    $waiting = makeFeedback($this->alpha, null, 1, 'Sent away without help');
+    makeFeedback($this->alpha, null, 2, 'Already handled')->forceFill(['status' => ServiceFeedbackStatus::Reviewed])->save();
+    makeFeedback($this->alpha, null, 5, 'Great');
+
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.admin.dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('attention', fn ($rows) => count($rows) === 1 && $rows[0]['id'] === $waiting->id)
+            ->where('oldestPendingAt', fn ($value) => is_string($value))
+        );
+});

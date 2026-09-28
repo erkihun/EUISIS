@@ -207,6 +207,9 @@ export default {
     },
 
     dashboard: {
+        registrationToday: 'Registration today',
+        reviewSection: 'Review',
+        openReviewQueue: 'Open review queue',
         title: 'Activity Dashboard',
         description: 'Registration discipline for the employees in your scope. Counts only; no scoring.',
         expectedToday: 'Expected today',

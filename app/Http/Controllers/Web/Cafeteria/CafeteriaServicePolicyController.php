@@ -85,6 +85,14 @@ class CafeteriaServicePolicyController extends Controller
         $policy->load(['organization', 'provider', 'network', 'cafeteria', 'assignment', 'supersedes']);
         $user = $request->user();
 
+        // The workflow refuses an approval by the drafter or submitter; say so
+        // on the page instead of offering a button that can only fail.
+        $approvalBlocked = $policy->status->value === 'under_review'
+            && config('cafeteria.policy_requires_distinct_approver', true)
+            && in_array($user->id, array_filter([$policy->created_by, $policy->submitted_by]), true)
+                ? __('cafeteria-policy.validation.policy_same_approver')
+                : null;
+
         $versions = CafeteriaServicePolicy::query()
             ->where('policy_group_id', $policy->policy_group_id)
             ->orderByDesc('version_no')
@@ -112,11 +120,12 @@ class CafeteriaServicePolicyController extends Controller
             ],
             'versions' => $versions,
             'preview' => $this->workflow->preview($policy),
+            'approvalBlocked' => $approvalBlocked,
             'can' => [
                 'edit' => $policy->status->isEditable() && $user->can('cafeteria_policies.update_draft'),
                 'submit' => $policy->status->value === 'draft' && $user->can('cafeteria_policies.submit'),
                 'review' => $policy->status->value === 'under_review' && $user->can('cafeteria_policies.review'),
-                'approve' => $policy->status->value === 'under_review' && $user->can('cafeteria_policies.approve'),
+                'approve' => $policy->status->value === 'under_review' && $user->can('cafeteria_policies.approve') && $approvalBlocked === null,
                 'activate' => $policy->status->value === 'approved' && $policy->effective_from->lte(today()) && $user->can('cafeteria_policies.activate'),
                 'end' => in_array($policy->status->value, ['approved', 'active'], true) && $user->can('cafeteria_policies.end'),
                 'cancel' => (in_array($policy->status->value, ['draft', 'under_review'], true)

@@ -1,4 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { BackupHealthCard } from '@/Components/backup/BackupHealthOverview';
+import type { BackupHealth } from '@/Components/backup/backupUi';
 import { Head, router } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
@@ -49,6 +51,7 @@ interface LabelValueDatum {
 }
 
 export interface DashboardProps {
+    backupHealth?: BackupHealth | null;
     header: DashboardHeaderData;
     filters: {
         dateRange: string;
@@ -79,7 +82,7 @@ export interface DashboardProps {
     };
 }
 
-const REFRESHED_PROPS = ['kpis', 'cards', 'charts', 'alerts', 'workflowQueues', 'recentActivity', 'header'] as const;
+const REFRESHED_PROPS = ['kpis', 'cards', 'charts', 'alerts', 'workflowQueues', 'recentActivity', 'header', 'backupHealth'] as const;
 
 function keyLabel(t: (key: string) => string, prefix: string) {
     return (key: string): string => {
@@ -136,6 +139,7 @@ function SimpleLineChart({ data, emptyTitle }: { data: LabelValueDatum[]; emptyT
 }
 
 export default function Dashboard({
+    backupHealth,
     header,
     filters,
     can,
@@ -288,13 +292,16 @@ export default function Dashboard({
         className: 'space-y-5',
     });
 
+    const backupUrgent = backupHealth?.enforced === true && backupHealth.overall_status === 'CRITICAL';
+
     return (
         <AuthenticatedLayout>
             <Head title={t('dashboard.title')} />
-
             <DashboardHeader header={header} refreshing={refreshing} onRefresh={refreshDashboard} filters={<DateRangeFilter filters={filters} t={t} />} />
 
             <div className="min-w-0 space-y-5">
+                {/* A production backup incident outranks the headline figures; otherwise backups follow them. */}
+                {backupUrgent && <BackupHealthCard status={backupHealth} />}
                 <section aria-labelledby="dashboard-overview-title" className="space-y-3">
                     <h2
                         id="dashboard-overview-title"
@@ -317,6 +324,8 @@ export default function Dashboard({
                         ) : null}
                     </div>
                 </section>
+
+                {backupHealth && !backupUrgent && <BackupHealthCard status={backupHealth} />}
 
                 <DashboardTabs tabs={tabs} activeId={activeTab} onChange={setActiveTab} label={t('dashboard.title')} />
 

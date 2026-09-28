@@ -181,6 +181,16 @@ const cafeteria = {
     processingScan: 'የተቃኘው QR ኮድ በመስራት ላይ...',
     selectProviderFirst: 'ካሜራውን ከመጀመርዎ በፊት የካፌቴሪያ አቅራቢ ይምረጡ።',
     scanAgainIn: 'ቀጣይ ስካን {{count}} ሴ ውስጥ ይጀምራል',
+    scanTerminalDescription: 'የካፌቴሪያ ምግብን ለመመዝገብ እና ድጎማውን ለመተግበር የሠራተኛ መታወቂያ ካርዶችን ይቃኙ።',
+    mobileScanner: 'ሙሉ ስክሪን ስካነር',
+    fullTerminal: 'ሙሉ ተርሚናል',
+    processing: 'በሂደት ላይ…',
+    startingCamera: 'ካሜራ በመጀመር ላይ…',
+    holdQrInFrame: 'QR ኮዱን በፍሬሙ ውስጥ ያድርጉ',
+    lastScan: 'የመጨረሻ ስካን',
+    scanNext: 'ቀጣይ ስካን',
+    enterCode: 'ኮድ ያስገቡ',
+    tryAgain: 'እንደገና ይሞክሩ',
 
     // Ledger
     ledger: 'ቀሪ ሂሳብ',

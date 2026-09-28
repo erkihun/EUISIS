@@ -46,6 +46,7 @@ use App\Http\Controllers\Transport\TransportVehicleController;
 use App\Http\Controllers\Web\AdministrativeTribunalController;
 use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
+use App\Http\Controllers\Web\BackupRecoveryController;
 use App\Http\Controllers\Web\Cafeteria\CafeteriaAccessController;
 use App\Http\Controllers\Web\Cafeteria\CafeteriaAnalyticsController;
 use App\Http\Controllers\Web\Cafeteria\CafeteriaNetworkController;
@@ -118,6 +119,7 @@ use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
 use App\Http\Controllers\Web\ServiceTypeController;
 use App\Http\Controllers\Web\SystemSettingController;
+use App\Http\Controllers\Web\TypographyTestController;
 use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\UserOrganizationScopeController;
 use App\Http\Controllers\Web\VacancyAnnouncementController;
@@ -478,6 +480,12 @@ Route::get('/verify/card/{publicCardUuid}', fn (string $publicCardUuid) => redir
     ->middleware('throttle:30,1');
 
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
+    Route::prefix('system/backup-recovery')->name('backups.')->middleware('throttle:30,1')->group(function (): void {
+        Route::get('/', [BackupRecoveryController::class, 'index'])->name('index');
+        Route::post('/refresh', [BackupRecoveryController::class, 'refresh'])->middleware('throttle:6,1')->name('refresh');
+        Route::post('/requests', [BackupRecoveryController::class, 'store'])->name('requests.store');
+        Route::post('/requests/{restoreRequest}', [BackupRecoveryController::class, 'transition'])->whereUuid('restoreRequest')->name('requests.transition');
+    });
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
     Route::prefix('public-site-management')->name('public-site-management.')->controller(PublicSiteManagementController::class)->group(function (): void {
@@ -1294,6 +1302,14 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Typography check sheet for the PDF renderer (docs/ui-typography.md).
+// Never registered in production; a cached production route table omits it.
+if (! app()->isProduction()) {
+    Route::middleware(['auth'])
+        ->get('/dev/typography-test', TypographyTestController::class)
+        ->name('dev.typography-test');
+}
 
 // Employee Performance Management (EPMS).
 require __DIR__.'/performance.php';

@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import { useLocaleContext } from '@/contexts/LocaleContext';
 import am from '@/i18n/am';
 import amAuditLogs from '@/i18n/am/auditLogs';
+import amBackup from '@/i18n/am/backup';
 import amCalendar from '@/i18n/am/calendar';
 import amCafeteria from '@/i18n/am/cafeteria';
 import amCommon from '@/i18n/am/common';
@@ -96,6 +97,7 @@ import enProviderPortal from '@/i18n/en/providerPortal';
 import enCafeteriaPolicy from '@/i18n/en/cafeteriaPolicy';
 import enProviderUsers from '@/i18n/en/providerUsers';
 import enRecycleBin from '@/i18n/en/recycleBin';
+import enBackup from '@/i18n/en/backup';
 import enServiceTypes from '@/i18n/en/serviceTypes';
 import enServiceFeedback from '@/i18n/en/serviceFeedback';
 import enSettings from '@/i18n/en/settings';
@@ -152,6 +154,7 @@ const translations: Record<Locale, TranslationTree> = {
         cafeteriaPolicy: enCafeteriaPolicy,
         providerUsers: enProviderUsers,
         recycleBin: enRecycleBin,
+        backup: enBackup,
         serviceTypes: enServiceTypes,
         serviceFeedback: enServiceFeedback,
         entitlementRules: enEntitlementRules,
@@ -207,6 +210,7 @@ const translations: Record<Locale, TranslationTree> = {
         cafeteriaPolicy: amCafeteriaPolicy,
         providerUsers: amProviderUsers,
         recycleBin: amRecycleBin,
+        backup: amBackup,
         serviceTypes: amServiceTypes,
         serviceFeedback: amServiceFeedback,
         entitlementRules: amEntitlementRules,
