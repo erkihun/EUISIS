@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Dialog, DialogPanel } from '@headlessui/react';
+import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { buttonClassName } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
@@ -62,6 +62,15 @@ export default function PublicHeader() {
     // Any navigation — link, back button, redirect — closes the menu.
     useEffect(() => router.on('navigate', () => setMenuOpen(false)), []);
 
+    // A CSS-hidden open Dialog still traps focus and locks page scrolling.
+    // Close it when rotation or resizing reveals the desktop navigation.
+    useEffect(() => {
+        const desktop = window.matchMedia('(min-width: 1024px)');
+        const closeOnDesktop = () => { if (desktop.matches) setMenuOpen(false); };
+        desktop.addEventListener('change', closeOnDesktop);
+        return () => desktop.removeEventListener('change', closeOnDesktop);
+    }, []);
+
     const navLinkClass = (active: boolean) =>
         [
             'relative inline-flex h-16 items-center px-3 text-sm font-medium transition-colors',
@@ -80,7 +89,7 @@ export default function PublicHeader() {
         </Link>
     ) : (
         <>
-            <Link href={route('login')} className={buttonClassName({ variant: 'ghost', size: 'sm' })}>
+            <Link href={route('login')} className={buttonClassName({ variant: 'primary', size: 'sm' })}>
                 {t('nav.login')}
             </Link>
             {registration_enabled && (
@@ -92,14 +101,14 @@ export default function PublicHeader() {
     );
 
     return (
-        <header className="sticky top-0 z-40 border-b border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+        <header className="public-header sticky top-0 z-40 border-b border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-950">
             {/* The accent rail: the one place the signal colour is always present. */}
             <div aria-hidden="true" className="h-[3px] bg-[color:var(--color-accent)]" />
 
             <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
                 <Link
                     href="/"
-                    className="flex min-w-0 items-center gap-2.5 rounded-control focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                    className="flex min-h-11 min-w-0 items-center gap-2.5 rounded-control focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
                 >
                     {logoUrl ? (
                         <img src={logoUrl} alt="" className="h-9 w-auto max-w-[88px] shrink-0 object-contain" />
@@ -173,7 +182,7 @@ export default function PublicHeader() {
                     aria-haspopup="dialog"
                     aria-expanded={menuOpen}
                     aria-controls="public-mobile-menu"
-                    className={buttonClassName({ variant: 'ghost', size: 'icon', className: 'ms-auto lg:hidden' })}
+                    className={buttonClassName({ variant: 'ghost', size: 'icon', className: 'ms-auto !h-11 !w-11 shrink-0 lg:hidden' })}
                 >
                     <MenuIcon className="h-5 w-5" aria-hidden="true" />
                 </button>
@@ -188,26 +197,26 @@ export default function PublicHeader() {
                 <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
                 <DialogPanel
                     id="public-mobile-menu"
-                    className="fixed inset-y-0 right-0 flex w-full max-w-xs flex-col bg-white shadow-xl dark:bg-slate-950"
+                    className="fixed inset-y-0 right-0 flex w-full max-w-xs flex-col overflow-y-auto overscroll-contain bg-white pb-[env(safe-area-inset-bottom)] shadow-xl dark:bg-slate-950"
                 >
-                    <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-slate-800">
-                        <span className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{appName}</span>
+                    <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-gray-200 px-4 dark:border-slate-800">
+                        <DialogTitle className="min-w-0 truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{appName}</DialogTitle>
                         <button
                             type="button"
                             onClick={() => setMenuOpen(false)}
                             aria-label={t('nav.closeMenu')}
-                            className={buttonClassName({ variant: 'ghost', size: 'icon' })}
+                            className={buttonClassName({ variant: 'ghost', size: 'icon', className: '!h-11 !w-11 shrink-0' })}
                         >
                             <X className="h-5 w-5" aria-hidden="true" />
                         </button>
                     </div>
 
-                    <nav aria-label={t('publicSite.mainNavigation')} className="flex-1 overflow-y-auto px-2 py-3">
+                    <nav aria-label={t('publicSite.mainNavigation')} className="min-h-20 flex-1 overflow-y-auto overscroll-contain px-2 py-3">
                         <ul className="space-y-0.5">
                             {links.map((link) => {
                                 const active = !link.external && isActive(path, link.href);
                                 const cls = [
-                                    'flex min-h-[44px] items-center rounded-control px-3 text-sm font-medium',
+                                    'flex min-h-[44px] items-center rounded-control px-3 py-2 text-sm font-medium [overflow-wrap:anywhere]',
                                     active
                                         ? 'bg-[color:var(--color-primary)]/10 text-[color:var(--color-primary)]'
                                         : 'text-gray-700 hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800',
@@ -228,7 +237,7 @@ export default function PublicHeader() {
                         </ul>
                     </nav>
 
-                    <div className="space-y-3 border-t border-gray-200 p-4 dark:border-slate-800">
+                    <div className="shrink-0 space-y-3 border-t border-gray-200 p-4 dark:border-slate-800">
                         <div className="flex items-center justify-between gap-2">
                             <LanguageSwitcher />
                             <ThemeToggle />

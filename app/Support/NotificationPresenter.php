@@ -6,6 +6,7 @@ namespace App\Support;
 
 use App\Notifications\DailyActivityNotification;
 use App\Notifications\EmployeePortalNotification;
+use App\Notifications\GrievanceNotification;
 use App\Notifications\PasswordSecurityNotification;
 use App\Notifications\PerformanceNotification;
 use Illuminate\Http\Request;
@@ -25,6 +26,7 @@ final class NotificationPresenter
         'employee_portal' => EmployeePortalNotification::class,
         'account_security' => PasswordSecurityNotification::class,
         'performance' => PerformanceNotification::class,
+        'grievance' => GrievanceNotification::class,
     ];
 
     /** The UI language is chosen in the browser, so it arrives with the request. */

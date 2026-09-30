@@ -44,12 +44,11 @@ it('serves fonts only from the application itself', function (): void {
         ->not->toContain('fonts.gstatic.com');
 });
 
-it('keeps the ID card SVG on the configured Inter / Noto Sans Ethiopic stack', function (): void {
+it('keeps the ID card SVG on the configured Inter / Abyssinica SIL stack', function (): void {
     $stack = (string) config('typography.id_card.stack');
     $renderer = app(IdCardSvgRenderer::class);
 
-    expect($stack)->toStartWith("'Inter'")
-        ->toContain("'Noto Sans Ethiopic'")
+    expect($stack)->toStartWith("'Inter','Abyssinica SIL'")
         ->and((new ReflectionProperty($renderer, 'font'))->getValue($renderer))->toBe($stack)
         // The built-in default (used without app config) must not drift from config.
         ->and((new ReflectionClassConstant(IdCardSvgRenderer::class, 'DEFAULT_FONT'))->getValue())->toBe($stack);

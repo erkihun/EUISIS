@@ -51,7 +51,7 @@ class SystemSettingController extends Controller
         foreach (SystemSettingsRegistry::groups() as $group) {
             // Edited under Public Site Management / Daily Activities > Settings;
             // showing them here too would give one value two editors.
-            if (in_array($group, [SystemSettingsRegistry::GROUP_PUBLIC_SITE, SystemSettingsRegistry::GROUP_DAILY_ACTIVITY, SystemSettingsRegistry::GROUP_PERFORMANCE], true)) {
+            if (in_array($group, [SystemSettingsRegistry::GROUP_PUBLIC_SITE, SystemSettingsRegistry::GROUP_DAILY_ACTIVITY, SystemSettingsRegistry::GROUP_PERFORMANCE, SystemSettingsRegistry::GROUP_GRIEVANCES], true)) {
                 continue;
             }
 

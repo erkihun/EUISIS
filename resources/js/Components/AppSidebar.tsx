@@ -37,12 +37,16 @@ import {
     StarIcon,
     NfcIcon,
     RouterIcon,
+    ScaleIcon,
     SearchIcon,
     ChevronRight,
     ChevronDown,
     CalendarIcon,
     HistoryIcon,
     AlertTriangle,
+    ClockIcon,
+    MailIcon,
+    FileChartIcon,
 } from '@/Components/Icons';
 import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
@@ -158,7 +162,7 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                 icon: MessageSquareIcon,
                 items: [
                     { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: ClipboardCheckIcon },
-                    { routeName: 'grievances.my', labelKey: 'nav.myGrievances', icon: ScrollText, listedInAdmin: true },
+                    { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: ScrollText, permission: 'grievances.view_own', listedInAdmin: true },
                     { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: MessageSquareIcon },
                 ],
             },
@@ -306,12 +310,32 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupGrievances',
         icon: ScrollText,
         items: [
-            { routeName: 'grievances.index', labelKey: 'nav.grievances', icon: ClipboardListIcon, permission: 'grievances.manage' },
-            { routeName: 'grievances.my', labelKey: 'nav.myGrievances',        icon: Inbox },
-            { routeName: 'grievance-committees.index', labelKey: 'nav.grievanceCommittees', icon: Users, permission: 'grievances.manage' },
-            { routeName: 'grievance-categories.index', labelKey: 'nav.grievanceCategories', icon: TagsIcon, permission: 'grievances.manage' },
-            { routeName: 'grievance-sla-rules.index', labelKey: 'nav.grievanceSlaRules', icon: SettingsIcon,      permission: 'grievances.manage' },
-            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: ShieldCheck,       permission: 'grievances.tribunal' },
+            { routeName: 'grievances.dashboard', labelKey: 'nav.grievanceDashboard', icon: LayoutDashboard, anyPermission: ['grievances.view_assigned', 'grievances.intake_review', 'grievances.assign', 'grievances.oversight_view', 'grievances.tribunal', 'grievance_decisions.approve', 'grievance_reports.view'] },
+            { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: Inbox, permission: 'grievances.view_own' },
+            { routeName: 'grievances.cases.index', tab: 'assigned', labelKey: 'nav.grievanceAssigned', icon: ClipboardListIcon, anyPermission: ['grievances.view_assigned', 'grievances.assign', 'grievances.tribunal'] },
+            { routeName: 'grievances.cases.index', tab: 'intake', labelKey: 'nav.grievanceIntake', icon: ClipboardCheckIcon, permission: 'grievances.intake_review' },
+            { routeName: 'grievances.cases.index', tab: 'authorized', labelKey: 'nav.grievanceAuthorized', icon: ScrollText, anyPermission: ['grievances.oversight_view', 'grievances.view_assigned', 'grievances.assign'] },
+            { routeName: 'grievances.approvals.index', labelKey: 'nav.grievanceApprovals', icon: BadgeCheckIcon, permission: 'grievance_decisions.approve' },
+            { routeName: 'grievances.appeals.index', labelKey: 'nav.grievanceAppeals', icon: ArrowLeftRightIcon, anyPermission: ['grievances.view_assigned', 'grievances.intake_review', 'grievances.assign', 'grievances.oversight_view', 'grievances.tribunal', 'grievance_decisions.approve', 'grievance_reports.view'] },
+            { routeName: 'grievances.correspondence.index', labelKey: 'nav.grievanceCorrespondence', icon: MailIcon, permission: 'grievance_correspondence.view' },
+            { routeName: 'grievances.committees.index', labelKey: 'nav.grievanceCommittees', icon: Users, permission: 'grievance_committees.view' },
+            { routeName: 'grievances.routes.index', labelKey: 'nav.grievanceRouting', icon: GitBranchIcon, permission: 'grievance_routes.view' },
+            { routeName: 'grievances.sla.index', labelKey: 'nav.grievanceSla', icon: ClockIcon, permission: 'grievance_sla.view' },
+            { routeName: 'grievances.reports.index', labelKey: 'nav.grievanceReports', icon: FileChartIcon, permission: 'grievance_reports.view' },
+            { routeName: 'grievances.settings.index', labelKey: 'nav.grievanceSettings', icon: SettingsIcon, permission: 'grievance_settings.view' },
+            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: ShieldCheck, permission: 'grievances.tribunal' },
+        ],
+    },
+    {
+        /*
+         * Court Cases is its own domain, not part of Grievance Management
+         * (docs/court-cases.md). One entry until the module is designed.
+         */
+        key: 'courtCases',
+        labelKey: 'nav.groupCourtCases',
+        icon: ScaleIcon,
+        items: [
+            { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: ScaleIcon, permission: 'court_cases.view' },
         ],
     },
     {

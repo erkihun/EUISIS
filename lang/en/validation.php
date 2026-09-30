@@ -34,6 +34,10 @@ return [
     'uuid' => 'The :attribute must be a valid UUID.',
 
     'attributes' => [
+        'employee_number' => 'employee number',
+        'otp' => 'verification code',
+        'password' => 'password',
+        'password_confirmation' => 'password confirmation',
         'code' => 'code',
         'legal_basis_ref' => 'legal basis reference',
         'logo' => 'logo',

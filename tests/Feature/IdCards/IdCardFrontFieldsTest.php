@@ -209,7 +209,7 @@ it('renders amharic labels without mangling the encoding', function (): void {
 
     expect($svg)->toContain('ጾታ')->and($svg)->toContain('የትውልድ ቀን')->and($svg)->toContain('መ.ቁ')
         ->and(mb_check_encoding($svg, 'UTF-8'))->toBeTrue()
-        ->and($svg)->toContain('Noto Sans Ethiopic');
+        ->and($svg)->toContain('Abyssinica SIL');
 });
 
 it('shows every bilingual label in full on the landscape detail layout', function (): void {

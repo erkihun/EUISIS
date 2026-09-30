@@ -15,7 +15,7 @@ Tests: `tests/Feature/Security/PasswordPolicyTest.php`.
 
 | NIST guidance | EUISIS |
 |---|---|
-| Minimum 15 characters for single-factor passwords; 8 when used only with MFA | **15 for every account.** System Settings can raise it but never lower it below 15 (`security.passwords.minimum_length_floor`). |
+| Minimum 15 characters for single-factor passwords; 8 when used only with MFA | **8-character application floor and default.** System Settings can raise it but never lower it below 8 (`security.passwords.minimum_length_floor`). This configured default differs from the single-factor guidance. |
 | Accept at least 64 characters | 64–128 allowed (setting, default 128). Never truncated (see §5). |
 | Accept spaces, all printing characters and Unicode | Yes. Nothing is trimmed, and paste and password managers work. |
 | No composition rules | None. The old "Password Complexity" setting was removed. |
@@ -54,7 +54,7 @@ There is no API, CSV import or other bulk path that sets passwords.
 
 Checks run in this order, stopping at the first failure:
 
-1. **Length:** 15 to 128 characters (settings may tighten).
+1. **Length:** 8 to 128 characters (settings may tighten).
 2. **Confirmation** must match, where the form asks for one (checked on the server).
 3. **Common or predictable** (`PasswordIsNotCommon`):
    - an entry of `resources/security/common-passwords.txt`, alone or with digits and symbols added ("Password123456789!" reduces to "password");

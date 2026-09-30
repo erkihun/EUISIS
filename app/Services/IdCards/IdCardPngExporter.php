@@ -118,7 +118,7 @@ final class IdCardPngExporter
 
     /**
      * Points fontconfig (which librsvg uses to find fonts) at the bundled
-     * Inter / Noto Sans Ethiopic, so the PNG matches the browser preview rather
+     * Inter / Abyssinica SIL, so the PNG matches the browser preview rather
      * than whatever fonts the server has installed. An explicit FONTCONFIG_FILE
      * in the environment wins. Fontconfig reads this once per process.
      */

@@ -180,7 +180,7 @@ return [
     ],
 
     'passwords' => [
-        'minimum_length_floor' => 15,
+        'minimum_length_floor' => 8,
         'maximum_length_floor' => 64,
         'maximum_length_ceiling' => 128,
         'history_max' => 24,

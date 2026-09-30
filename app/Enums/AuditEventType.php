@@ -406,6 +406,87 @@ enum AuditEventType: string
     case GrievanceDecisionLetterGenerated = 'grievance.decision_letter_generated';
     case GrievanceDecisionLetterDownloaded = 'grievance.decision_letter_downloaded';
 
+    // Grievance Management (docs/grievance-management.md §10). Values carry
+    // ids, statuses and codes only — never the grievance narrative.
+    case GrievanceDraftCreated = 'grievance.draft_created';
+    case GrievanceDraftUpdated = 'grievance.draft_updated';
+    case GrievanceDraftDeleted = 'grievance.draft_deleted';
+    case GrievanceAmended = 'grievance.amended';
+    case GrievanceViewed = 'grievance.viewed';
+    case GrievanceIntakeAccepted = 'grievance.intake_accepted';
+    case GrievanceIntakeReturned = 'grievance.intake_returned';
+    case GrievanceIntakeRejected = 'grievance.intake_rejected';
+    case GrievanceStageCreated = 'grievance.stage_created';
+    case GrievanceStageReceived = 'grievance.stage_received';
+    case GrievanceReviewStarted = 'grievance.review_started';
+    case GrievanceAutoEscalated = 'grievance.auto_escalated';
+    case GrievanceManuallyEscalated = 'grievance.manually_escalated';
+    case GrievanceReassigned = 'grievance.reassigned';
+    case GrievanceReferred = 'grievance.referred';
+    case GrievanceEscalationBlocked = 'grievance.escalation_blocked';
+    case GrievanceOfficerAssigned = 'grievance.officer_assigned';
+    case GrievanceOfficerReleased = 'grievance.officer_released';
+    case GrievanceSlaPauseRequested = 'grievance.sla_pause_requested';
+    case GrievanceSlaPaused = 'grievance.sla_paused';
+    case GrievanceSlaPauseRejected = 'grievance.sla_pause_rejected';
+    case GrievanceSlaResumed = 'grievance.sla_resumed';
+    case GrievanceRecusalDeclared = 'grievance.recusal_declared';
+    case GrievanceRecusalDecided = 'grievance.recusal_decided';
+    case GrievanceMemberReplaced = 'grievance.member_replaced';
+    case GrievanceEvidenceUploaded = 'grievance.evidence_uploaded';
+    case GrievanceEvidenceAccepted = 'grievance.evidence_accepted';
+    case GrievanceEvidenceRejected = 'grievance.evidence_rejected';
+    case GrievanceEvidenceClassified = 'grievance.evidence_classified';
+    case GrievanceEvidenceDownloaded = 'grievance.evidence_downloaded';
+    case GrievanceInformationRequested = 'grievance.information_requested';
+    case GrievanceInformationResponded = 'grievance.information_responded';
+    case GrievanceInformationRequestClosed = 'grievance.information_request_closed';
+    case GrievanceHearingScheduled = 'grievance.hearing_scheduled';
+    case GrievanceHearingUpdated = 'grievance.hearing_updated';
+    case GrievanceMinutesDrafted = 'grievance.minutes_drafted';
+    case GrievanceMinutesConfirmed = 'grievance.minutes_confirmed';
+    case GrievanceMinutesAmended = 'grievance.minutes_amended';
+    case GrievanceDecisionDrafted = 'grievance.decision_drafted';
+    case GrievanceDecisionRevised = 'grievance.decision_revised';
+    case GrievanceDecisionSubmittedForReview = 'grievance.decision_submitted_for_review';
+    case GrievanceDecisionEndorsed = 'grievance.decision_endorsed';
+    case GrievanceDecisionSubmittedForApproval = 'grievance.decision_submitted_for_approval';
+    case GrievanceDecisionApproved = 'grievance.decision_approved';
+    case GrievanceDecisionReturned = 'grievance.decision_returned';
+    case GrievanceDecisionRejected = 'grievance.decision_rejected';
+    case GrievanceDecisionFinalized = 'grievance.decision_finalized';
+    case GrievanceDecisionIssued = 'grievance.decision_issued';
+    case GrievanceVoteCast = 'grievance.vote_cast';
+    case GrievanceLetterGenerated = 'grievance.letter_generated';
+    case GrievanceLetterFinalized = 'grievance.letter_finalized';
+    case GrievanceLetterSigned = 'grievance.letter_signed';
+    case GrievanceLetterSealed = 'grievance.letter_sealed';
+    case GrievanceLetterIssued = 'grievance.letter_issued';
+    case GrievanceLetterVoided = 'grievance.letter_voided';
+    case GrievanceLetterDispatched = 'grievance.letter_dispatched';
+    case GrievanceLetterDownloaded = 'grievance.letter_downloaded';
+    case GrievanceAppealFiled = 'grievance.appeal_filed';
+    case GrievanceWithdrawalRequested = 'grievance.withdrawal_requested';
+    case GrievanceWithdrawn = 'grievance.withdrawn';
+    case GrievanceWithdrawalRejected = 'grievance.withdrawal_rejected';
+    case GrievanceClosed = 'grievance.closed';
+    case GrievanceReopened = 'grievance.reopened';
+    case GrievanceArchived = 'grievance.archived';
+    case GrievanceLegalHoldChanged = 'grievance.legal_hold_changed';
+    case GrievanceCorrectiveActionRecorded = 'grievance.corrective_action_recorded';
+    case GrievanceDisciplinaryReferralCreated = 'grievance.disciplinary_referral_created';
+    case GrievanceCommitteeCreated = 'grievance.committee_created';
+    case GrievanceCommitteeUpdated = 'grievance.committee_updated';
+    case GrievanceCommitteeApproved = 'grievance.committee_approved';
+    case GrievanceCommitteeMemberAdded = 'grievance.committee_member_added';
+    case GrievanceCommitteeMemberEnded = 'grievance.committee_member_ended';
+    case GrievanceRouteSaved = 'grievance.route_saved';
+    case GrievanceRouteApproved = 'grievance.route_approved';
+    case GrievanceConfigurationChanged = 'grievance.configuration_changed';
+    case GrievanceSealChanged = 'grievance.seal_changed';
+    case GrievanceDelegationChanged = 'grievance.delegation_changed';
+    case GrievanceReportExported = 'grievance.report_exported';
+
     /*
      * Public Global ID Checker — anonymous, so these are the only record that
      * a card was looked up. Every step is logged, including failures, because

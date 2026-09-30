@@ -288,6 +288,12 @@ class OrganizationDeletionGuard
             'grievance_committees' => ['organization_id'],
             'grievances' => ['organization_id'],
             'grievance_sla_rules' => ['organization_id'],
+            'grievance_case_stages' => ['organization_id'],
+            'grievance_sla_profiles' => ['organization_id'],
+            'grievance_approval_rules' => ['organization_id'],
+            'grievance_letters' => ['organization_id'],
+            'grievance_external_authorities' => ['organization_id'],
+            'organization_seals' => ['organization_id'],
         ];
 
         $found = collect();

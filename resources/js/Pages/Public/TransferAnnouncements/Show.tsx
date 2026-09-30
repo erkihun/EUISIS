@@ -159,13 +159,13 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                     {a.eligibility_rules && a.eligibility_rules.length > 0 && (
                         <div className={`${publicCardClass} mt-6`}>
                             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                <CheckCircleIcon className="h-4 w-4 text-blue-500" />
+                                <CheckCircleIcon className="h-4 w-4 text-[color:var(--color-primary)]" />
                                 {t('transfers.eligibilityRequirements')}
                             </h2>
                             <ul className="space-y-2">
                                 {a.eligibility_rules.map((rule, i) => (
                                     <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-slate-300">
-                                        <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
+                                        <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--color-primary)]" />
                                         {rule}
                                     </li>
                                 ))}

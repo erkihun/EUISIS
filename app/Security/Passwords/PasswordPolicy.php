@@ -18,7 +18,7 @@ use Throwable;
  * assigned — for every account type — validates through `rules()`, so the
  * admin portal, employee accounts and provider portals cannot drift apart.
  *
- * NIST SP 800-63B-4 aligned (docs/password-security-policy.md): length,
+ * Centralized policy (docs/password-security-policy.md): length,
  * blocklists, breach corpus, personal-information and reuse checks. No
  * composition rules, no periodic expiry.
  */
@@ -31,7 +31,7 @@ final class PasswordPolicy
 
     public function minLength(): int
     {
-        $floor = (int) config('security.passwords.minimum_length_floor', 15);
+        $floor = (int) config('security.passwords.minimum_length_floor', 8);
 
         return min($this->maxLength(), max($floor, (int) $this->setting('password_min_length', $floor)));
     }

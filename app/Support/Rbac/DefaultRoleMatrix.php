@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Rbac;
 
 use App\Support\DailyActivity\DailyActivityRoles;
+use App\Support\Grievances\GrievanceRoles;
 use App\Support\Performance\PerformanceRoles;
 use InvalidArgumentException;
 
@@ -118,7 +119,7 @@ final class DefaultRoleMatrix
     private static function build(bool $validate = true): array
     {
         $all = PermissionCatalog::names();
-        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
+        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
 
         $roles = [
             // ── Administration ────────────────────────────────────────────────
@@ -254,10 +255,12 @@ final class DefaultRoleMatrix
                 'service-types.viewAny', 'entitlement-rules.viewAny',
                 'hierarchy-versions.viewAny', 'hierarchy-versions.view', 'organization-edges.view',
                 'code-rules.viewAny', 'code-rules.view', 'code-rules.preview',
+                ...GrievanceRoles::AUDITOR_PERMISSIONS,
             ], 'Read-only review of audit logs, history and approved records. Creates, changes and deletes nothing.',
                 'የኦዲት ምዝግቦችን፣ ታሪክን እና የጸደቁ መዝገቦችን በንባብ ብቻ ይገመግማል። ምንም አይፈጥርም፣ አይቀይርም፣ አይሰርዝም።'),
             'Report Viewer' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'reports.view', 'daily_activities.view_reports', 'performance_reports.view',
+                ...GrievanceRoles::REPORT_VIEWER_PERMISSIONS,
             ], 'Views non-sensitive reports within scope. No exports.',
                 'በወሰኑ ውስጥ ስሱ ያልሆኑ ሪፖርቶችን ይመለከታል። ወደ ውጭ መላክ የለም።'),
             'Public Site Manager' => self::role(self::SCOPE_GLOBAL, PermissionCatalog::matching(...self::PUBLIC_SITE_MODULES),
@@ -265,7 +268,7 @@ final class DefaultRoleMatrix
                 'የሕዝብ ድረ-ገጽ ይዘትን ያስተካክላል። የመታወቂያ ማረጋገጫን፣ OTPን፣ የፍጥነት ገደቦችን፣ የሠራተኛ መረጃን ወይም የማረጋገጫ ፖሊሲን መቀየር አይችልም።'),
 
             // ── Employee self-service, teams and performance ─────────────────
-            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS],
+            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS],
                 'Self-service for the signed-in employee only: own daily activity, own performance agreement, reviews and appeals. My Portal pages are tied to the linked employee record, not to extra permissions.',
                 'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች።'),
             DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, DailyActivityRoles::REVIEWER_PERMISSIONS,
@@ -287,18 +290,35 @@ final class DefaultRoleMatrix
                 'Performance appeal committee (chairperson, writer or member, set by committee membership): reviews and decides assigned appeals only.',
                 'የአፈጻጸም ይግባኝ ኮሚቴ (ሰብሳቢ፣ ጸሐፊ ወይም አባል በኮሚቴ አባልነት)፡ የተመደቡ ይግባኞችን ብቻ ይገመግማል፣ ይወስናል።'),
 
-            // ── Grievances and the Administrative Tribunal ───────────────────
-            'Grievance Officer' => self::role(self::SCOPE_SCOPED, ['dashboard.view', 'grievances.view', 'grievances.manage'],
-                'Grievance office: intake, requirement checks, committee assignment and grievance settings.',
-                'የቅሬታ ጽ/ቤት፡ መቀበል፣ የመስፈርት ማረጋገጫ፣ የኮሚቴ ምደባ እና የቅሬታ ቅንብሮች።'),
-            'Grievance Committee Member' => self::role(self::SCOPE_SCOPED, ['dashboard.view', 'grievances.committee'],
-                'Grievance committee member or writer: reviews grievances assigned to the committee. Committee membership is required.',
-                'የቅሬታ ኮሚቴ አባል ወይም ጸሐፊ፡ ለኮሚቴው የተመደቡ ቅሬታዎችን ይገመግማል። የኮሚቴ አባልነት ያስፈልጋል።'),
-            'Grievance Committee Chairperson' => self::role(self::SCOPE_SCOPED, ['dashboard.view', 'grievances.committee', 'grievances.chairperson'],
-                'Chairs a grievance committee: coordinates review and records the recommendation. Chairperson membership is required.',
-                'የቅሬታ ኮሚቴን ይመራል፡ ግምገማውን ያስተባብራል እና ምክረ ሐሳቡን ይመዘግባል። የሰብሳቢነት አባልነት ያስፈልጋል።'),
-            'Administrative Tribunal Officer' => self::role(self::SCOPE_SCOPED, ['dashboard.view', 'grievances.tribunal'],
-                'Handles grievances escalated to the Administrative Tribunal.',
+            // ── Grievance Management and the Administrative Tribunal ─────────
+            // Roles make a user eligible; case access still needs membership,
+            // assignment or oversight scope (GrievanceCaseAccessService).
+            GrievanceRoles::OFFICER_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::OFFICER_PERMISSIONS,
+                'Grievance intake and Team/Directorate case officer: intake review in scope, cases of the user\'s grievance unit, case officers, drafting and letters.',
+                'የቅሬታ መቀበያ እና የቡድን/ዳይሬክቶሬት የጉዳይ ኃላፊ፡ በወሰን ውስጥ የመቀበያ ግምገማ፣ የተጠቃሚው የቅሬታ ክፍል ጉዳዮች፣ የጉዳይ ኃላፊዎች፣ ረቂቅ እና ደብዳቤዎች።'),
+            GrievanceRoles::COMMITTEE_MEMBER_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::COMMITTEE_MEMBER_PERMISSIONS,
+                'Grievance committee member: reviews cases assigned to a committee the user actively serves on. Membership is required.',
+                'የቅሬታ ኮሚቴ አባል፡ ተጠቃሚው በንቃት በሚያገለግልበት ኮሚቴ የተመደቡ ጉዳዮችን ይገመግማል። አባልነት ያስፈልጋል።'),
+            GrievanceRoles::COMMITTEE_WRITER_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::COMMITTEE_WRITER_PERMISSIONS,
+                'Grievance committee writer: member duties plus minutes, draft decisions and draft letters. Writer membership is required.',
+                'የቅሬታ ኮሚቴ ጸሐፊ፡ የአባል ሥራ እና ቃለ ጉባኤ፣ የውሳኔ እና የደብዳቤ ረቂቆች። የጸሐፊነት አባልነት ያስፈልጋል።'),
+            GrievanceRoles::COMMITTEE_CHAIR_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::COMMITTEE_CHAIR_PERMISSIONS,
+                'Chairs a grievance committee: leads review, confirms minutes, decides recusals, submits and finalizes decisions. Chairperson membership is required.',
+                'የቅሬታ ኮሚቴን ይመራል፡ ግምገማን ይመራል፣ ቃለ ጉባኤን ያረጋግጣል፣ ራስን ማግለልን ይወስናል፣ ውሳኔዎችን ያቀርባል እና ያጠናቅቃል። የሰብሳቢነት አባልነት ያስፈልጋል።'),
+            GrievanceRoles::APPROVER_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::APPROVER_PERMISSIONS,
+                'Institution head or superior official: approves, returns or rejects only the decisions routed to the position the user holds (or a delegation).',
+                'የተቋም ኃላፊ ወይም የበላይ ባለሥልጣን፡ ተጠቃሚው ለያዘው የሥራ መደብ (ወይም በውክልና) የቀረቡ ውሳኔዎችን ብቻ ያጸድቃል፣ ይመልሳል ወይም ውድቅ ያደርጋል።'),
+            GrievanceRoles::ADMINISTRATOR_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::ADMINISTRATOR_PERMISSIONS,
+                'Configures grievance committees, routes, SLA policies, approval rules and templates. No access to case content.',
+                'የቅሬታ ኮሚቴዎችን፣ መስመሮችን፣ የአገልግሎት ጊዜ ፖሊሲዎችን፣ የማጽደቅ ደንቦችን እና አብነቶችን ያዋቅራል። የጉዳይ ይዘት መዳረሻ የለውም።'),
+            GrievanceRoles::REGISTRY_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::REGISTRY_PERMISSIONS,
+                'Correspondence registry: custody of the official seal, sealing and dispatch of signed grievance letters in scope.',
+                'የደብዳቤ መዝገብ ቤት፡ የይፋዊ ማኅተም ጥበቃ፣ በወሰን ውስጥ የተፈረሙ የቅሬታ ደብዳቤዎችን ማኅተም ማድረግ እና መላክ።'),
+            GrievanceRoles::OVERSIGHT_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::OVERSIGHT_PERMISSIONS,
+                'Read-only grievance oversight and reports within scope. Highly restricted cases show metadata only.',
+                'በወሰን ውስጥ የቅሬታ ቁጥጥር እና ሪፖርቶች በንባብ ብቻ። በጣም የተገደቡ ጉዳዮች መረጃ-ዝርዝር ብቻ ያሳያሉ።'),
+            GrievanceRoles::TRIBUNAL_ROLE => self::role(self::SCOPE_SCOPED, GrievanceRoles::TRIBUNAL_PERMISSIONS,
+                'Handles grievances routed to the Administrative Tribunal.',
                 'ወደ አስተዳደር ፍርድ ቤት የተላለፉ ቅሬታዎችን ያስተናግዳል።'),
 
             // ── Services and providers (admin side; provider portals use their own roles) ─

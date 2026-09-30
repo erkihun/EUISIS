@@ -43,7 +43,6 @@ use App\Http\Controllers\Transport\TransportRouteController;
 use App\Http\Controllers\Transport\TransportScanController;
 use App\Http\Controllers\Transport\TransportSettingsController;
 use App\Http\Controllers\Transport\TransportVehicleController;
-use App\Http\Controllers\Web\AdministrativeTribunalController;
 use App\Http\Controllers\Web\ApiManagementController;
 use App\Http\Controllers\Web\AuditLogController;
 use App\Http\Controllers\Web\BackupRecoveryController;
@@ -81,10 +80,6 @@ use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
 use App\Http\Controllers\Web\EntitlementRuleController;
 use App\Http\Controllers\Web\GradeLevelController;
-use App\Http\Controllers\Web\GrievanceCategoryController;
-use App\Http\Controllers\Web\GrievanceCommitteeController;
-use App\Http\Controllers\Web\GrievanceController;
-use App\Http\Controllers\Web\GrievanceSlaRuleController;
 use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCardController;
 use App\Http\Controllers\Web\IdCardExportController;
@@ -1213,9 +1208,8 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     });
 });
 
-// ── Grievance Module ───────────────────────────────────────────────────────────
+// ── Client service feedback administration ─────────────────────────────────────
 Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])->group(function (): void {
-    // My Grievances (any authenticated user)
     /*
      * Client Service Feedback — administrative review.
      *
@@ -1257,44 +1251,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/employees/{employee}/feedback-qr/png', [EmployeeFeedbackQrController::class, 'exportPng'])->name('employees.feedback-qr.png');
     Route::get('/employees/{employee}/feedback-qr/pdf', [EmployeeFeedbackQrController::class, 'exportPdf'])->name('employees.feedback-qr.pdf');
 
-    Route::get('/grievances/my', [GrievanceController::class, 'myGrievances'])->name('grievances.my');
-    Route::get('/grievances/create', [GrievanceController::class, 'create'])->name('grievances.create');
-    Route::post('/grievances', [GrievanceController::class, 'store'])->name('grievances.store');
-
-    // Grievances (admin/committee/manager views)
-    Route::get('/grievances', [GrievanceController::class, 'index'])->name('grievances.index');
-    Route::get('/grievances/{grievance}', [GrievanceController::class, 'show'])->name('grievances.show');
-    Route::post('/grievances/{grievance}/assign', [GrievanceController::class, 'assign'])->name('grievances.assign');
-    Route::post('/grievances/{grievance}/check-requirement', [GrievanceController::class, 'checkRequirement'])->name('grievances.check-requirement');
-    Route::post('/grievances/{grievance}/compile-response', [GrievanceController::class, 'compileResponse'])->name('grievances.compile-response');
-    Route::post('/grievances/{grievance}/approve-response', [GrievanceController::class, 'approveResponse'])->name('grievances.approve-response');
-    Route::post('/grievances/{grievance}/reject-response', [GrievanceController::class, 'rejectResponse'])->name('grievances.reject-response');
-    Route::get('/grievances/{grievance}/letter', [GrievanceController::class, 'downloadLetter'])->name('grievances.letter');
-
-    // Grievance Categories
-    Route::get('/grievance-categories', [GrievanceCategoryController::class, 'index'])->name('grievance-categories.index');
-    Route::post('/grievance-categories', [GrievanceCategoryController::class, 'store'])->name('grievance-categories.store');
-    Route::patch('/grievance-categories/{grievanceCategory}', [GrievanceCategoryController::class, 'update'])->name('grievance-categories.update');
-
-    // Grievance Committees
-    Route::get('/grievance-committees', [GrievanceCommitteeController::class, 'index'])->name('grievance-committees.index');
-    Route::get('/grievance-committees/create', [GrievanceCommitteeController::class, 'create'])->name('grievance-committees.create');
-    Route::post('/grievance-committees', [GrievanceCommitteeController::class, 'store'])->name('grievance-committees.store');
-    Route::get('/grievance-committees/{grievanceCommittee}', [GrievanceCommitteeController::class, 'show'])->name('grievance-committees.show');
-    Route::post('/grievance-committees/{grievanceCommittee}/members', [GrievanceCommitteeController::class, 'addMember'])->name('grievance-committees.members.add');
-    Route::delete('/grievance-committees/{grievanceCommittee}/members/{member}', [GrievanceCommitteeController::class, 'removeMember'])->name('grievance-committees.members.remove');
-    Route::delete('/grievance-committees/{grievanceCommittee}', [GrievanceCommitteeController::class, 'destroy'])->name('grievance-committees.destroy');
-
-    // Grievance SLA Rules
-    Route::get('/grievance-sla-rules', [GrievanceSlaRuleController::class, 'index'])->name('grievance-sla-rules.index');
-    Route::post('/grievance-sla-rules', [GrievanceSlaRuleController::class, 'store'])->name('grievance-sla-rules.store');
-    Route::patch('/grievance-sla-rules/{grievanceSlaRule}', [GrievanceSlaRuleController::class, 'update'])->name('grievance-sla-rules.update');
-    Route::delete('/grievance-sla-rules/{grievanceSlaRule}', [GrievanceSlaRuleController::class, 'destroy'])->name('grievance-sla-rules.destroy');
-
-    // Administrative Tribunal
-    Route::get('/tribunal-cases', [AdministrativeTribunalController::class, 'index'])->name('tribunal-cases.index');
-    Route::get('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'show'])->name('tribunal-cases.show');
-    Route::patch('/tribunal-cases/{administrativeTribunalCase}', [AdministrativeTribunalController::class, 'update'])->name('tribunal-cases.update');
+    // Grievance Management routes live in routes/grievances.php.
 });
 
 Route::middleware(['auth', 'force.password', 'admin.access'])->group(function () {
@@ -1313,5 +1270,10 @@ if (! app()->isProduction()) {
 
 // Employee Performance Management (EPMS).
 require __DIR__.'/performance.php';
+
+require __DIR__.'/grievances.php';
+
+// Court Cases — planned standalone module, separate from Grievance Management.
+require __DIR__.'/court-cases.php';
 
 require __DIR__.'/auth.php';

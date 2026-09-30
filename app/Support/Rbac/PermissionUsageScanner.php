@@ -34,6 +34,7 @@ final class PermissionUsageScanner
         'app/Support/Rbac/',
         'app/Support/DailyActivity/DailyActivityRoles.php',
         'app/Support/Performance/PerformanceRoles.php',
+        'app/Support/Grievances/GrievanceRoles.php',
     ];
 
     private const NAME = '[a-z][a-z0-9_-]*(?:\.[a-zA-Z0-9_-]+)+';

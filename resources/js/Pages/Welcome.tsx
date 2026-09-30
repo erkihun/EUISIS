@@ -137,7 +137,7 @@ export default function Welcome() {
             {/* ─────────────────────────── HERO ────────────────────────────── */}
             <section
                 aria-labelledby="hero-heading"
-                className="home-hero relative overflow-hidden py-16 sm:py-24"
+                className="home-hero relative overflow-hidden py-8 sm:py-16 lg:py-24"
             >
                 <div
                     className="home-hero-grid pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -150,22 +150,22 @@ export default function Welcome() {
                 <div className="pointer-events-none absolute -top-24 right-0 h-96 w-96 rounded-full bg-white/10 blur-3xl animate-orb-drift" aria-hidden="true" />
 
                 <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="grid items-center gap-12 lg:grid-cols-2">
-                        <div className="text-center lg:text-left">
+                    <div className="grid min-w-0 grid-cols-1 items-center gap-8 sm:gap-12 lg:grid-cols-2">
+                        <div className="min-w-0 text-center lg:text-left">
                             <span className="inline-block rounded-full bg-orange-500/20 border border-orange-400/30 px-3 py-1 text-xs font-semibold text-orange-200 animate-fade-up">
                                 {t('home.headerTagline')}
                             </span>
                             <h1
                                 id="hero-heading"
-                                className="mt-4 text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl xl:text-5xl animate-fade-up"
+                                className="mt-4 text-[clamp(1.5rem,6vw,1.875rem)] font-extrabold leading-tight tracking-tight text-white sm:text-4xl xl:text-5xl animate-fade-up"
                                 style={{ animationDelay: '0.12s' }}
                             >
                                 {t('home.heroTitle')}
                             </h1>
-                            <p className="mt-5 text-lg text-blue-100 sm:text-xl animate-fade-up" style={{ animationDelay: '0.24s' }}>
+                            <p className="mt-4 text-base leading-relaxed text-blue-100 sm:mt-5 sm:text-xl animate-fade-up" style={{ animationDelay: '0.24s' }}>
                                 {t('home.heroSubtitle')}
                             </p>
-                            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start animate-fade-up" style={{ animationDelay: '0.36s' }}>
+                            <div className="mt-6 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start animate-fade-up [&>a]:min-h-12 [&>a]:justify-center" style={{ animationDelay: '0.36s' }}>
                                 {isAuthenticated ? (
                                     <Link
                                         href={route('dashboard')}

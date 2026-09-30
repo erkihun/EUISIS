@@ -84,6 +84,9 @@ const codeRules = {
         vacancy_announcement: 'የክፍት ቦታ ማስታወቂያ ኮድ',
         vacancy_application: 'የክፍት ቦታ ማመልከቻ ኮድ',
         institution_office: 'የተቋም ቢሮ ኮድ',
+        grievance_case: 'የቅሬታ ጉዳይ ቁጥር',
+        grievance_decision: 'የቅሬታ ውሳኔ ቁጥር',
+        grievance_letter: 'የቅሬታ ደብዳቤ የወጪ ቁጥር',
         organization_unit: 'የተቋም ክፍል ኮድ',
     },
     scopeTypes: {

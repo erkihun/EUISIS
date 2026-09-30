@@ -95,6 +95,15 @@ const home = {
     supportHelpCenterLabel: 'የእገዛ ማዕከል',
     supportNoContact: 'ለድጋፍ፣ እባክዎ የተቋሙን አስተዳዳሪ ያነጋግሩ።',
     registrationDisabled: 'ራስን ማስመዝገብ በአሁኑ ጊዜ ተዘግቷል።',
+
+    // Verify page
+    verifyScanQr: 'QR ኮድ ይቃኙ',
+    verifyEnterReference: 'ወይም የካርዱን መለያ ቁጥር ያስገቡ',
+    verifyHowTitle: 'ማረጋገጫው እንዴት ይሠራል',
+    verifyHowStep1: 'የQR ኮዱን ይቃኙ ወይም የካርዱን መለያ ቁጥር ያስገቡ።',
+    verifyHowStep2: 'ካርዱ ንቁ መሆኑን ይመልከቱ።',
+    verifyHowStep3: 'የባለቤቱ ዝርዝር መረጃ የሚታየው ለባለቤቱ በተላከ የአንድ ጊዜ ኮድ ከተረጋገጠ በኋላ ብቻ ነው።',
+    verifyPrivacyShort: 'ካርዱ ንቁ መሆኑን ያያሉ። የባለቤቱ ዝርዝር መረጃ የሚታየው ለባለቤቱ በተላከ የአንድ ጊዜ ኮድ ከተረጋገጠ በኋላ ብቻ ነው።',
 } as const;
 
 export default home;

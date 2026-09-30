@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react';
 import { Head } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import LocalizedUiProvider from '@/Components/ui/LocalizedUiProvider';
 import PublicHeader from '@/Components/public/PublicHeader';
 import PublicFooter from '@/Components/public/PublicFooter';
 import { useBilingual } from '@/Components/public/bilingual';
+import '../../css/public-site.css';
 
 /** SEO metadata managed per page in Public Site Management. */
 export type PublicPageMeta = {
@@ -40,6 +42,7 @@ interface Props {
  */
 export default function PublicLayout({ title, description, meta, noindex = false, children }: Props) {
     const { t } = useLocale();
+    const { getBoolean } = useSystemSettings();
     const pick = useBilingual();
 
     const pageTitle = pick(meta, 'title') || title;
@@ -57,7 +60,13 @@ export default function PublicLayout({ title, description, meta, noindex = false
                 {meta?.og_image_url && <meta head-key="og:image" property="og:image" content={meta.og_image_url} />}
             </Head>
 
-            <div className="flex min-h-screen flex-col bg-[color:var(--app-background)]">
+            {/* `public-site` carries the home page's look to every public page
+                (resources/css/public-site.css); motion follows the same
+                appearance setting the home page reads. */}
+            <div
+                className="public-site flex min-h-screen flex-col bg-[color:var(--app-background)]"
+                data-motion={getBoolean('appearance.enable_ui_animations', true) ? 'on' : 'off'}
+            >
                 <a
                     href="#main-content"
                     className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-gray-900 focus:shadow focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"

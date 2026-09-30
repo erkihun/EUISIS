@@ -31,7 +31,13 @@ final class PermissionCatalog
             'organizational-change-requests', 'positions', 'position-requests', 'position-establishments',
             'grade-levels', 'occupations', 'isic-activities', 'code-rules',
         ],
-        'Employee Management' => ['employees', 'transfers', 'vacancy-announcements', 'vacancy-applications', 'grievances'],
+        'Employee Management' => ['employees', 'transfers', 'vacancy-announcements', 'vacancy-applications'],
+        'Grievance Management' => [
+            'grievances', 'grievance_committees', 'grievance_committee_members', 'grievance_routes', 'grievance_sla',
+            'grievance_decisions', 'grievance_hearings', 'grievance_correspondence', 'grievance_reports', 'grievance_settings',
+        ],
+        // A separate domain from grievances (docs/court-cases.md).
+        'Court Cases' => ['court_cases'],
         'ID & Verification' => ['id-cards', 'id_card_templates', 'nfc_credentials', 'nfc_terminals', 'nfc_logs'],
         'Daily Activity' => ['daily_activities', 'daily_activity_settings'],
         'Performance Management' => [

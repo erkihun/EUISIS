@@ -218,11 +218,12 @@ export default function IdChecker({ cardUuid, card, autoSend = false, sections =
                 title={t('idChecker.title')}
                 description={t('idChecker.subtitle')}
                 breadcrumbs={[{ label: verifyTitle, href: route('public.verify') }, { label: t('idChecker.title') }]}
+                compact
             />
 
             {/* Bottom padding leaves room for the sticky mobile action bar. */}
-            <div className="bg-gray-50 py-12 sm:py-16 dark:bg-slate-900">
-                <PublicContainer narrow className="pb-28 pt-6 sm:pb-8 sm:pt-8">
+            <div className="bg-gray-50 dark:bg-slate-900">
+                <PublicContainer narrow className="pb-28 pt-1 sm:pb-10 sm:pt-4">
                     {pageNotice && (
                         <div role="note" className={`${publicCardClass} mb-6`}>
                             <RichText html={pageNotice} className="text-sm" />

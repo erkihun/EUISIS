@@ -28,6 +28,10 @@ Last updated: 2026-05-12
 - `permissions` -> `/permissions`
 - `system-settings` -> `/system-settings`
 
+## Court Cases (planned)
+
+- `court-cases` -> `/court-cases` (placeholder only; see `docs/court-cases.md`)
+
 ## Monitoring
 
 - `audit-logs` -> `/audit-logs`

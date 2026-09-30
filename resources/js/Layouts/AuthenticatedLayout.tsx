@@ -112,7 +112,7 @@ export default function Authenticated({
 
     return (
         <LocalizedUiProvider>
-        <div className={`${variant === 'portal' ? 'portal-shell ' : ''}min-h-screen bg-[color:var(--app-background)]`}>
+        <div className={`${variant === 'portal' ? 'portal-shell' : 'admin-shell'} min-h-screen bg-[color:var(--app-background)]`}>
             <a
                 href="#main-content"
                 className="sr-only fixed left-4 top-4 z-[60] rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg focus:not-sr-only"

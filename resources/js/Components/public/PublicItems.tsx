@@ -81,13 +81,13 @@ export function AnnouncementItem({ item }: { item: AnnouncementSummary }) {
     return (
         <article className={`${publicCardInteractiveClass} h-full`}>
             <PublicCardDecor />
-            <Link href={route('public.announcements.show', item.slug)} className="relative flex gap-4 focus:outline-none">
+            <Link href={route('public.announcements.show', item.slug)} className="relative flex min-w-0 flex-col gap-4 focus:outline-none">
                 {item.image_url && (
                     <img
                         src={item.image_url}
                         alt=""
                         loading="lazy"
-                        className="hidden h-24 w-32 shrink-0 rounded-card border border-gray-200 object-cover sm:block dark:border-slate-800"
+                        className="aspect-video w-full rounded-card border border-gray-200 object-cover dark:border-slate-800"
                     />
                 )}
                 <div className="min-w-0 flex-1">
@@ -182,28 +182,28 @@ export function PublicSearchBar({ routeName, search, category, categories, searc
     const hasFilters = Boolean(search || category);
 
     return (
-        <form role="search" onSubmit={submit} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <form role="search" onSubmit={submit} className="public-search flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <SearchInput
                 value={term}
                 onChange={setTerm}
                 label={searchLabel}
                 aria-label={searchLabel}
                 placeholder={searchLabel}
-                className="sm:max-w-sm sm:flex-1"
+                className="min-w-0 w-full sm:max-w-sm sm:flex-[1_1_14rem]"
             />
             {categories && categories.length > 0 && (
                 <Select
                     aria-label={t('publicSite.category')}
                     value={selected}
                     onChange={(event) => setSelected(event.target.value)}
-                    className="sm:w-48"
+                    className="!min-h-12 w-full !text-base sm:w-48"
                 >
                     <option value="">{t('publicSite.allCategories')}</option>
                     {categories.map((value) => <option key={value} value={value}>{value}</option>)}
                 </Select>
             )}
-            <div className="flex gap-2">
-                <Button type="submit" variant="outline">{t('publicSite.search')}</Button>
+            <div className="flex flex-wrap gap-2">
+                <Button type="submit" variant="outline" className="!min-h-12 flex-1 sm:flex-none">{t('publicSite.search')}</Button>
                 {hasFilters && (
                     <Link href={route(routeName)} className={`${publicButtonSecondary} px-4 py-2`}>
                         {t('publicSite.reset')}

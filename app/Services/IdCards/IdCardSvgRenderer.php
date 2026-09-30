@@ -27,9 +27,9 @@ final class IdCardSvgRenderer
     /**
      * Font stack used when no application config is loaded (plain unit tests).
      * The real value comes from `typography.id_card.stack`: Inter for Latin,
-     * Noto Sans Ethiopic for Ethiopic — the same stack as the browser preview.
+     * Abyssinica SIL for Ethiopic — the same stack as the browser preview.
      */
-    private const DEFAULT_FONT = "'Inter','Noto Sans Ethiopic','Abyssinica SIL','Nyala',sans-serif";
+    private const DEFAULT_FONT = "'Inter','Abyssinica SIL','Noto Sans Ethiopic','Nyala',sans-serif";
 
     /** Shown when a card field has no value. */
     private const DASH = '-';

@@ -23,12 +23,12 @@ return [
 
     /*
     | ID card SVG. Latin first so codes, dates and English lines use Inter;
-    | Ethiopic falls through to Noto Sans Ethiopic. Keep in step with
+    | Ethiopic falls through to Abyssinica SIL. Keep in step with
     | `--font-id-card` in resources/css/app.css, which the browser preview
     | and the client-side PNG export use.
     */
     'id_card' => [
-        'stack' => "'Inter','Noto Sans Ethiopic','Abyssinica SIL','Nyala',sans-serif",
+        'stack' => "'Inter','Abyssinica SIL','Noto Sans Ethiopic','Nyala',sans-serif",
     ],
 
     /*
@@ -42,6 +42,11 @@ return [
     |  formal — letters and official decisions: Abyssinica SIL, whose Latin
     |           glyphs are its own companion serif.
     |
+    | `locales` overrides a variant for the app locale the PDF is rendered
+    | in. Amharic output uses Abyssinica SIL throughout, like the Amharic UI;
+    | English reports keep Noto Sans Ethiopic, which has a real bold for
+    | table headers and totals.
+    |
     | Neither family ships an italic, and Abyssinica SIL has no bold; those
     | faces map to the files that exist so dompdf never drops to a core font
     | (which has no Ethiopic and prints boxes).
@@ -54,6 +59,16 @@ return [
                 'bold' => 'NotoSansEthiopic-Bold.ttf',
             ],
             'fallback' => ['DejaVu Sans', 'sans-serif'],
+            'locales' => [
+                'am' => [
+                    'family' => 'Abyssinica SIL',
+                    'files' => [
+                        'normal' => 'AbyssinicaSIL-Regular.ttf',
+                        'bold' => 'AbyssinicaSIL-Regular.ttf',
+                    ],
+                    'fallback' => ['DejaVu Serif', 'serif'],
+                ],
+            ],
         ],
         'formal' => [
             'family' => 'Abyssinica SIL',

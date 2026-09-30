@@ -84,6 +84,9 @@ const codeRules = {
         vacancy_announcement: 'Vacancy Announcement Code',
         vacancy_application: 'Vacancy Application Code',
         institution_office: 'Institution Office Code',
+        grievance_case: 'Grievance Case Number',
+        grievance_decision: 'Grievance Decision Number',
+        grievance_letter: 'Grievance Letter Reference Number',
         organization_unit: 'Organization Unit Code',
     },
     scopeTypes: {

@@ -91,6 +91,12 @@ it('points every document face at a bundled font file', function (): void {
 
     expect($fonts->family('report'))->toStartWith("'Noto Sans Ethiopic'")
         ->and($fonts->family('formal'))->toStartWith("'Abyssinica SIL'");
+
+    // Amharic output uses Abyssinica SIL throughout, like the Amharic UI.
+    app()->setLocale('am');
+    expect($fonts->family('report'))->toStartWith("'Abyssinica SIL'")
+        ->and($fonts->css('report'))->toContain('AbyssinicaSIL-Regular.ttf')
+        ->not->toContain('NotoSansEthiopic');
 });
 
 it('refuses fonts outside the bundle and unknown variants', function (): void {
@@ -101,7 +107,8 @@ it('refuses fonts outside the bundle and unknown variants', function (): void {
         ->and(fn () => $fonts->css('handwriting'))->toThrow(InvalidArgumentException::class);
 });
 
-it('embeds real Ethiopic and Latin glyphs in report and formal PDFs', function (string $variant, string $embedded): void {
+it('embeds real Ethiopic and Latin glyphs in report and formal PDFs', function (string $variant, string $embedded, string $locale): void {
+    app()->setLocale($locale);
     $fonts = app(DocumentFonts::class);
     $pdf = Pdf::loadView('pdf.typography-test', ['variant' => $variant, 'family' => $fonts->family($variant)])->output();
 
@@ -112,8 +119,10 @@ it('embeds real Ethiopic and Latin glyphs in report and formal PDFs', function (
         ->not->toContain('/BaseFont /Times-Roman')
         ->and(array_filter($glyphs, fn (int $id): bool => $id === 0))->toBe([]);
 })->with([
-    'report' => ['report', 'NotoSansEthiopic-Regular'],
-    'formal' => ['formal', 'AbyssinicaSIL-Regular'],
+    'report' => ['report', 'NotoSansEthiopic-Regular', 'en'],
+    'report (am)' => ['report', 'AbyssinicaSIL-Regular', 'am'],
+    'formal' => ['formal', 'AbyssinicaSIL-Regular', 'en'],
+    'formal (am)' => ['formal', 'AbyssinicaSIL-Regular', 'am'],
 ]);
 
 it('serves the PDF check sheet to signed-in users outside production only', function (): void {

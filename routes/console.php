@@ -24,3 +24,9 @@ Schedule::command('daily-activities:send-reminders')->everyFifteenMinutes()->wit
 
 // Database backups themselves run independently under the infrastructure scheduler.
 Schedule::command('backup:health --monitor')->everyFiveMinutes()->withoutOverlapping();
+
+// Grievance SLA: reminders, automatic escalation of overdue stages, and
+// closure after the appeal window when enabled. Idempotent (row locks + a
+// unique successor per stage), so overlapping or repeated runs are harmless;
+// withoutOverlapping/onOneServer just avoid wasted work.
+Schedule::command('grievances:process-sla')->everyFifteenMinutes()->withoutOverlapping()->onOneServer();

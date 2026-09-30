@@ -16,26 +16,35 @@ import {
     Users,
 } from '@/Components/Icons';
 
+/*
+ * `card` is the light-theme tint (card-tone-* in app.css); the dark theme keeps
+ * its slate surface. Icon tiles are solid in light so they read on the tint.
+ */
 const toneStyles = {
     primary: {
         marker: 'bg-[color:var(--color-primary)]',
-        icon: 'bg-[color:var(--color-primary)]/10 text-[color:var(--color-primary)]',
+        card: 'card-tone-info',
+        icon: 'bg-[color:var(--color-primary)] text-white dark:bg-[color:var(--color-primary)]/10 dark:text-[color:var(--color-primary)]',
     },
     success: {
         marker: 'bg-emerald-500',
-        icon: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400',
+        card: 'card-tone-success',
+        icon: 'bg-emerald-700 text-white dark:bg-emerald-950/60 dark:text-emerald-400',
     },
     warning: {
         marker: 'bg-amber-500',
-        icon: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400',
+        card: 'card-tone-warning',
+        icon: 'bg-amber-700 text-white dark:bg-amber-950/60 dark:text-amber-400',
     },
     critical: {
         marker: 'bg-red-500',
-        icon: 'bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-400',
+        card: 'card-tone-danger',
+        icon: 'bg-red-700 text-white dark:bg-red-950/60 dark:text-red-400',
     },
     neutral: {
         marker: 'bg-slate-400 dark:bg-slate-600',
-        icon: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+        card: 'card-tone-neutral',
+        icon: 'bg-slate-600 text-white dark:bg-slate-800 dark:text-slate-300',
     },
 } as const;
 
@@ -156,9 +165,10 @@ export default function KpiCard({
 
     const shell = [
         'relative h-full min-w-0 overflow-hidden rounded-xl border transition-colors',
+        style.card,
         featured
-            ? 'min-h-[112px] border-gray-200 border-s-[3px] border-s-[color:var(--color-primary)] bg-white p-4 dark:border-slate-700 dark:border-s-indigo-400 dark:bg-slate-900'
-            : 'min-h-[112px] border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900',
+            ? 'min-h-[112px] border-gray-200 border-s-[3px] border-s-[color:var(--color-primary)] p-4 dark:border-slate-700 dark:border-s-indigo-400 dark:bg-slate-900'
+            : 'min-h-[112px] border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-900',
     ].join(' ');
 
     if (!href) {
@@ -168,7 +178,7 @@ export default function KpiCard({
     return (
         <Link
             href={href}
-            className={`${shell} group block hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:hover:border-slate-700 dark:hover:bg-slate-800/70 dark:focus-visible:ring-offset-slate-950`}
+            className={`${shell} group block hover:border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:hover:border-slate-700 dark:hover:bg-slate-800/70 dark:focus-visible:ring-offset-slate-950`}
         >
             {body}
         </Link>

@@ -1460,6 +1460,12 @@ return [
     // Cafeteria networks, access, policies and settlements — docs/cafeteria-policy-architecture.md.
     ...require database_path('seeders/data/cafeteria-policy-permissions.php'),
 
+    // Grievance Management — docs/grievance-management.md §7.
+    ...require database_path('seeders/data/grievance-permissions.php'),
+
+    // Court Cases — planned standalone module; entry permission only (docs/court-cases.md).
+    ...require database_path('seeders/data/court-case-permissions.php'),
+
     // API Management
     ['name' => 'api_management.view', 'group' => 'api_management', 'sort_order' => 10, 'is_system' => true,
         'label_en' => 'View API Management', 'label_am' => 'የኤፒአይ አስተዳደር ይመልከቱ',

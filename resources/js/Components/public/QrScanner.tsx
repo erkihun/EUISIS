@@ -15,6 +15,8 @@ interface Props {
      * buttons, for one action.
      */
     autoStart?: boolean;
+    /** Keep the manual-entry alternative within reach on short phone screens. */
+    compact?: boolean;
 }
 
 /**
@@ -28,7 +30,7 @@ interface Props {
  * measures the element on start, and mounting into a zero-size box produces a
  * running camera with a blank screen.
  */
-export default function QrScanner({ onDecoded, autoStart = false }: Props) {
+export default function QrScanner({ onDecoded, autoStart = false, compact = false }: Props) {
     const { t } = useLocale();
     const regionId = useId().replace(/:/g, '');
     const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -171,11 +173,11 @@ export default function QrScanner({ onDecoded, autoStart = false }: Props) {
     }
 
     return (
-        <div className="w-full">
+        <div className="min-w-0 w-full">
             <div className="relative w-full overflow-hidden rounded-panel border border-gray-200 bg-slate-950 dark:border-slate-800">
                 <div
                     id={regionId}
-                    className="aspect-square w-full [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
+                    className={`${compact ? 'h-[clamp(160px,26svh,220px)] sm:h-auto sm:aspect-[16/10] lg:aspect-square' : 'aspect-square'} w-full [&_video]:max-h-full [&_video]:max-w-full [&_video]:object-contain`}
                 />
 
                 {!active && (
@@ -201,7 +203,7 @@ export default function QrScanner({ onDecoded, autoStart = false }: Props) {
                     <>
                         {/* Aiming frame — dimmed surround focuses attention. */}
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                            <div className="h-[65%] w-[65%] rounded-panel border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]" />
+                            <div className="h-[65%] max-w-[80%] aspect-square rounded-panel border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]" />
                         </div>
 
                         {torchSupported && (

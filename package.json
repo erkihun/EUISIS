@@ -26,6 +26,7 @@
     },
     "dependencies": {
         "@euisis/ui": "file:packages/euisis-ui",
+        "@fontsource/abyssinica-sil": "^5.3.0",
         "@fontsource/inter": "^5.3.0",
         "@fontsource/noto-sans-ethiopic": "^5.3.0",
         "@hookform/resolvers": "^5.4.0",

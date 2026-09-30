@@ -51,7 +51,7 @@
             }
             .app-loader-name {
                 /* Painted before app.css arrives; the token takes over once it does. */
-                font-family: var(--font-ui, Inter, 'Noto Sans Ethiopic', system-ui, sans-serif);
+                font-family: var(--font-ui, Inter, 'Abyssinica SIL', system-ui, sans-serif);
                 font-size: 13px;
                 font-weight: 600;
                 letter-spacing: 0.08em;

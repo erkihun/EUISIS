@@ -3,7 +3,7 @@
  *
  * An html-to-image capture is drawn through an SVG image, and an SVG image
  * cannot use the page's web fonts — without them an exported ID card falls
- * back to Arial/Nyala while the preview shows Inter / Noto Sans Ethiopic.
+ * back to Arial/Nyala while the preview shows Inter / Abyssinica SIL.
  * A print window is a separate document with no stylesheet of its own.
  *
  * Both get the same @font-face rules the page already declares (fonts.css),
@@ -11,7 +11,7 @@
  */
 
 /** Families declared in resources/css/fonts.css. */
-const APP_FONT_FAMILIES = ['Inter', 'Noto Sans Ethiopic'];
+const APP_FONT_FAMILIES = ['Inter', 'Abyssinica SIL', 'Noto Sans Ethiopic'];
 
 const URL_PATTERN = /url\((['"]?)([^'")]+)\1\)/g;
 

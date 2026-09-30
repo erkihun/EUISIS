@@ -14,7 +14,7 @@ How the system fits together is described in `docs/ui-typography.md`.
 |---|---|---|---|---|
 | `NotoSansEthiopic-Regular.ttf` | Noto Sans Ethiopic 400 | PDF reports, card PNG | Google Fonts static build v50, `fonts.gstatic.com/s/notosansethiopic/v50/…T35OK6Dj.ttf` | `6d66ffc7a4a33f95d56df3c02417083d14f2bfd1f7b4c50ebcdcda3d3f89ea9c` |
 | `NotoSansEthiopic-Bold.ttf` | Noto Sans Ethiopic 700 | PDF reports, card PNG | Google Fonts static build v50, `fonts.gstatic.com/s/notosansethiopic/v50/…T36pLKDj.ttf` | `dcd2194308a22136f931c3665bbba652bd4d71b1bc33be9c7aabddaddc8ce05d` |
-| `AbyssinicaSIL-Regular.ttf` | Abyssinica SIL | Formal PDF documents | `github.com/google/fonts` → `ofl/abyssinicasil/` | `f0e4fb92ee26967a3e6462342494956a3798b952345f917e1388913bb191cf2b` |
+| `AbyssinicaSIL-Regular.ttf` | Abyssinica SIL | Formal PDF documents, Amharic-locale PDF reports, card PNG | `github.com/google/fonts` → `ofl/abyssinicasil/` | `f0e4fb92ee26967a3e6462342494956a3798b952345f917e1388913bb191cf2b` |
 | `Inter-Variable.ttf` | Inter (variable, `opsz`,`wght`) | Card PNG (Latin) | `github.com/google/fonts` → `ofl/inter/Inter[opsz,wght].ttf` | `29160a80ff49ddcab2c97711247e08b1fab27a484a329ce8b813d820dc559031` |
 
 ## Why these builds
@@ -49,4 +49,4 @@ does neither.
 
 `fonts.conf` is a fontconfig file that adds this directory to the system font
 set. `IdCardPngExporter` points `FONTCONFIG_FILE` at it when the environment
-has not set one, so librsvg finds Inter and Noto Sans Ethiopic.
+has not set one, so librsvg finds Inter and Abyssinica SIL.

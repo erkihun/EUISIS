@@ -30,13 +30,15 @@ function typographyFrontendFiles(): array
     return $files;
 }
 
-it('defines Inter for English and Noto Sans Ethiopic for Amharic in one token set', function (): void {
+it('defines Inter for English and Abyssinica SIL for Amharic in one token set', function (): void {
     $css = typographySource('resources/css/app.css');
 
     expect($css)
         ->toMatch("/--font-ui-en:\s*'Inter'/")
-        ->toMatch("/--font-ui-am:\s*'Noto Sans Ethiopic'/")
-        ->toMatch("/--font-id-card:\s*'Inter'[^;]*'Noto Sans Ethiopic'/")
+        ->toMatch("/--font-ui-am:\s*'Abyssinica SIL'/")
+        // Ethiopic in English UI and on ID cards uses the same face.
+        ->toMatch("/--font-ui-en:\s*'Inter',\s*'Inter Fallback',\s*'Abyssinica SIL'/")
+        ->toMatch("/--font-id-card:\s*'Inter',\s*'Inter Fallback',\s*'Abyssinica SIL'/")
         // Switched by the language attribute, not by component classes.
         ->toMatch('/\[lang\|="en"\]\s*\{[^}]*--font-ui:\s*var\(--font-ui-en\)/s')
         ->toMatch('/\[lang\|="am"\]\s*\{[^}]*--font-ui:\s*var\(--font-ui-am\)/s')
@@ -71,7 +73,7 @@ it('ships only self-hosted woff2 faces at weights 400 to 700', function (): void
     expect(array_values(array_unique($weights[1])))->toEqualCanonicalizing(['400', '500', '600', '700'])
         ->and($fonts)->toContain('font-display: swap')
         ->and($fonts)->not->toMatch('#https?://#')
-        ->and($urls[1])->each->toMatch('/node_modules\/@fontsource\/(inter|noto-sans-ethiopic)\/files\/[\w-]+\.woff2/')
+        ->and($urls[1])->each->toMatch('/node_modules\/@fontsource\/(inter|abyssinica-sil|noto-sans-ethiopic)\/files\/[\w-]+\.woff2/')
         ->and(typographySource('resources/css/app.css'))->toContain("@import './fonts.css';");
 
     foreach ($urls[1] as $url) {

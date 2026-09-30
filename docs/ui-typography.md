@@ -6,9 +6,10 @@ families are defined in two central places. Nothing else names a font.
 
 | Surface | Amharic | English | Defined in |
 |---|---|---|---|
-| Web app: dashboard, forms, tables, portals, public site | **Noto Sans Ethiopic** | **Inter** | `resources/css/app.css` (tokens), `resources/css/fonts.css` (faces) |
-| ID card: preview, print, PNG | **Noto Sans Ethiopic** | **Inter** | `--font-id-card` in `app.css`; `typography.id_card.stack` in `config/typography.php` |
-| PDF reports and statements | **Noto Sans Ethiopic** | Noto Sans (the Latin glyphs of the same font) | `config/typography.php` → `report` |
+| Web app: dashboard, forms, tables, portals, public site | **Abyssinica SIL** | **Inter** | `resources/css/app.css` (tokens), `resources/css/fonts.css` (faces) |
+| ID card: preview, print, PNG | **Abyssinica SIL** | **Inter** | `--font-id-card` in `app.css`; `typography.id_card.stack` in `config/typography.php` |
+| PDF reports and statements (Amharic locale) | **Abyssinica SIL** | Abyssinica SIL's own Latin companion | `config/typography.php` → `report.locales.am` |
+| PDF reports and statements (English locale) | Noto Sans Ethiopic | Noto Sans (the Latin glyphs of the same font) | `config/typography.php` → `report` |
 | Formal official documents (decision letters) | **Abyssinica SIL** | Abyssinica SIL's own Latin companion | `config/typography.php` → `formal` |
 
 ## How it works
@@ -34,33 +35,37 @@ card field, or an English name inside Amharic UI) switches its own subtree.
 
 | Token | Value |
 |---|---|
-| `--font-ui-en` | `'Inter', 'Inter Fallback', 'Noto Sans Ethiopic', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif` |
-| `--font-ui-am` | `'Noto Sans Ethiopic', 'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Nyala', 'Kefa', system-ui, sans-serif` |
+| `--font-ui-en` | `'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif` |
+| `--font-ui-am` | `'Abyssinica SIL', 'Inter', 'Inter Fallback', 'Noto Sans Ethiopic', 'Nyala', 'Kefa', system-ui, sans-serif` |
 | `--font-document-am` | `'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', serif` |
 | `--font-document-en` | `'Noto Sans', 'Inter', system-ui, sans-serif` |
-| `--font-id-card` | `'Inter', 'Inter Fallback', 'Noto Sans Ethiopic', 'Abyssinica SIL', 'Nyala', sans-serif` |
+| `--font-id-card` | `'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', sans-serif` |
 | `--font-ui` / `--font-document` | the active language's stack |
 
 Each stack names the other language's font second, so a stray Ethiopic word
-in English UI still gets a designed face. Locally installed Ethiopic fonts
-follow: Nyala (Windows), Kefa (Apple), Abyssinica SIL if installed. The
+in English UI still gets a designed face. Noto Sans Ethiopic follows as a
+glyph-level fallback for any character Abyssinica SIL lacks, then locally
+installed Ethiopic fonts: Nyala (Windows), Kefa (Apple). The
 system UI font comes last, so the page stays readable if a webfont fails to
 load.
 
 ### Web fonts (`resources/css/fonts.css`)
 
-- Self-hosted from the `@fontsource/inter` and `@fontsource/noto-sans-ethiopic`
-  npm packages (OFL-1.1). Vite bundles them into `public/build/assets` with
+- Self-hosted from the `@fontsource/inter`, `@fontsource/abyssinica-sil` and
+  `@fontsource/noto-sans-ethiopic` npm packages (OFL-1.1). Vite bundles them into `public/build/assets` with
   hashed, cacheable filenames. No CDN is used: the CSP is
   `font-src 'self' data:`.
 - Weights **400, 500, 600, 700** only, woff2 only, `font-display: swap`.
-- The `unicode-range` split is deliberate. Inter serves Latin, and Noto Sans
-  Ethiopic is limited to the Ethiopic blocks. Latin text (employee numbers,
+  Abyssinica SIL ships one weight, declared at 400. The browser emboldens it
+  for 600/700, and 500 renders as regular.
+- The `unicode-range` split is deliberate. Inter serves Latin, and Abyssinica
+  SIL (with Noto Sans Ethiopic behind it) is limited to the Ethiopic blocks. Latin text (employee numbers,
   codes, amounts, English words in an Amharic sentence) therefore always
   renders in Inter, and a browser downloads the Ethiopic files only for
   pages that contain Ethiopic.
-- Payload: Inter ≈ 24 KB per weight, and Noto Sans Ethiopic ≈ 78 KB per
-  weight (Ethiopic pages only).
+- Payload: Inter ≈ 24 KB per weight, and one Abyssinica SIL file for all
+  weights (Ethiopic pages only). Noto Sans Ethiopic is fetched only if a page
+  uses a character Abyssinica SIL does not have.
 - `Inter Fallback` is local Arial with Inter's metrics (`size-adjust`,
   `ascent-override`, …), so the swap to Inter does not reflow tables.
 - No `<link rel="preload">`. Fonts are cached after the first visit, and
@@ -142,17 +147,17 @@ These are enforced centrally in `app.css`; don't work around them per page.
 
 - The preview (`IdCardFront`/`Back`/`Portrait*`, marked by
   `data-card-template`) uses `--font-id-card`: Latin in Inter, Ethiopic in
-  Noto Sans Ethiopic. Recommended weights are 500/600, with 700 only where
+  Abyssinica SIL. Recommended weights are 500/600, with 700 only where
   necessary. `font-mono` on code fields is deliberate and matches the
   server SVG.
 - **Client PNG** (html-to-image): an SVG image cannot use the page's web
   fonts, so `captureFontOptions()` (`resources/js/lib/typography.ts`) inlines
-  the loaded Inter / Noto faces into the capture. If that fails, the export
+  the loaded Inter / Abyssinica SIL faces into the capture. If that fails, the export
   still runs with system fonts.
 - **Server SVG / PNG**: `IdCardSvgRenderer` takes its stack from
   `typography.id_card.stack`. `IdCardPngExporter` sets `FONTCONFIG_FILE` to
   `resources/fonts/fonts.conf`, so librsvg draws with the bundled Inter and
-  Noto Sans Ethiopic.
+  Abyssinica SIL.
 - Long names wrap within their field and are not truncated in the data.
   Presentation (line clamps, scaling) is the only place fitting happens.
 
@@ -175,6 +180,11 @@ Ethiopic and Latin, and it must be embedded from files the server controls.
   to a core font, and sets `html, body { font-family: … }`.
 - Use `report` for tables, statements, organograms and QR sheets. Use
   `formal` for letters and official decisions.
+- A variant can override its font per app locale (`locales` in
+  `config/typography.php`). In Amharic, `report` switches to Abyssinica SIL
+  like the UI. Abyssinica SIL has no bold file, so bold text in those PDFs
+  prints at regular weight. English reports keep Noto Sans Ethiopic and its
+  real bold.
 - Font subsetting is on (`config/dompdf.php`), so a document embeds only the
   glyphs it uses (tens of KB instead of about 365 KB per face).
 - `font-family: monospace` is fine for ASCII codes and URLs.

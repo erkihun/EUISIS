@@ -1,0 +1,158 @@
+/*
+ * ── Public site look (every page in PublicLayout) ───────────────
+ *
+ * The home page's own face, shared: the navy gradient hero with its grid and
+ * accent line, the soft-shadow cards that lift on hover, the red accent bar
+ * under section headings, and the fade-up motion. Pages get it through the
+ * kit in Components/public/PublicPage.tsx; Welcome.css keeps the home-only
+ * pieces (platform panel, stepper).
+ *
+ * Motion follows the `appearance.enable_ui_animations` setting (data-motion
+ * on the layout root) and the visitor's reduced-motion preference.
+ */
+
+/* Hero band: the same gradient, grid and accent line as the home hero. */
+.public-site {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Controls shared by the public lists and the portalled mobile menu. */
+.public-site .public-search input {
+    min-height: 48px;
+    font-size: 16px;
+}
+.public-site .public-header button,
+#public-mobile-menu button,
+#public-mobile-menu a {
+    min-height: 44px;
+    min-width: 44px;
+}
+.public-site .public-prose {
+    min-width: 0;
+    max-width: 100%;
+}
+.public-site .public-prose :is(pre, table) {
+    max-width: 100%;
+    overflow-x: auto;
+}
+.public-site .public-prose :is(img, video, iframe) {
+    max-width: 100%;
+}
+.public-site .public-prose :is(img, video) {
+    height: auto;
+}
+
+.public-site .public-hero {
+    position: relative;
+    overflow: hidden;
+    color: #ffffff;
+    background: radial-gradient(ellipse at 85% 15%, #ffffff18, transparent 50%),
+        linear-gradient(120deg, #101b50 0%, var(--color-primary-700, #122170) 60%, #244487 100%);
+    border-bottom: 1px solid #ffffff20;
+}
+.public-site .public-hero::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--color-accent, #d12908), #ffffff60, transparent);
+    pointer-events: none;
+}
+.public-site .public-hero-grid {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: linear-gradient(to right, transparent, black);
+}
+.public-site .public-hero-orb {
+    position: absolute;
+    top: -6rem;
+    right: 0;
+    width: 24rem;
+    height: 24rem;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 10%);
+    filter: blur(64px);
+    pointer-events: none;
+}
+.public-site .public-hero h1 {
+    text-wrap: balance;
+    letter-spacing: -0.025em;
+    line-height: 1.18;
+}
+
+/* Section headings: the home page's red accent bar. */
+.public-site .public-heading-accent::after {
+    content: '';
+    display: block;
+    height: 3px;
+    width: 36px;
+    margin-top: 14px;
+    border-radius: 2px;
+    background: var(--color-accent, #d12908);
+}
+.public-site .text-center > .public-heading-accent::after {
+    margin-inline: auto;
+}
+.public-site h2 {
+    text-wrap: balance;
+}
+
+/* Cards: the home trust/module card. */
+.public-site .public-card {
+    border-radius: 16px;
+    box-shadow: 0 5px 20px -12px rgb(15 23 42 / 25%);
+    transition: box-shadow 200ms ease, border-color 200ms ease, translate 200ms ease;
+}
+
+/* Negative tracking suits Inter headings, not Ethiopic. */
+.public-site .public-hero h1:lang(am),
+.public-site h2:lang(am) {
+    letter-spacing: normal;
+}
+.public-site .public-hero h1:lang(am) {
+    line-height: 1.35;
+}
+
+/* ── Motion ─────────────────────────────────────────────────── */
+@keyframes public-fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    /* Hero text rises in on load, one line after another. */
+    .public-site[data-motion='on'] .public-hero-enter {
+        animation: public-fade-up 650ms ease-out both;
+    }
+    .public-site[data-motion='on'] .public-hero-enter:nth-child(2) { animation-delay: 80ms; }
+    .public-site[data-motion='on'] .public-hero-enter:nth-child(3) { animation-delay: 160ms; }
+    .public-site[data-motion='on'] .public-hero-enter:nth-child(4) { animation-delay: 240ms; }
+
+    /* Cards rise as they scroll into view where the browser supports it,
+       and simply on load elsewhere. Content is never left hidden. */
+    .public-site[data-motion='on'] .public-card {
+        animation: public-fade-up 600ms ease-out both;
+    }
+    @supports (animation-timeline: view()) {
+        .public-site[data-motion='on'] .public-card {
+            animation-timeline: view();
+            animation-range: entry 0% entry 35%;
+        }
+    }
+
+    @media (hover: hover) {
+        .public-site[data-motion='on'] :is(a, button).public-card:hover,
+        .public-site[data-motion='on'] .public-card:has(> a:only-child):hover {
+            translate: 0 -3px;
+            box-shadow: 0 14px 28px -15px rgb(15 23 42 / 30%);
+        }
+        .public-site[data-motion='on'] .public-hero a:hover {
+            translate: 0 -2px;
+        }
+    }
+}

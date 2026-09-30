@@ -46,6 +46,19 @@ php artisan test
 npm run build
 ```
 
+## Seeding
+
+```bash
+# Reference / system data (permissions, roles, settings, code rules, catalogs)
+php artisan db:seed
+
+# Development / QA / UAT demo dataset — never production
+php artisan db:seed --class=DemoDataSeeder
+php artisan demo-data:validate
+```
+
+`DemoDataSeeder` is never called by `DatabaseSeeder`, refuses to run when `APP_ENV=production` (there is no override), is safe to re-run, and never truncates or deletes. Outside `local`/`testing` it needs `DEMO_USER_PASSWORD`. What it creates: [demo-seed-data.md](../demo-seed-data.md).
+
 ## Development Services
 
 - Web app: `php artisan serve`

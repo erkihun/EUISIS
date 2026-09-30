@@ -10,7 +10,7 @@ type SharedProps = PageProps & {
 };
 
 function FooterLink({ link, label }: { link: PublicLink; label: string }) {
-    const cls = 'text-sm text-gray-600 hover:text-gray-900 hover:underline dark:text-slate-400 dark:hover:text-white';
+    const cls = 'inline-flex min-h-11 max-w-full items-center py-2 text-sm text-white/75 [overflow-wrap:anywhere] hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';
 
     return link.external ? (
         <a href={link.href} className={cls} rel="noopener noreferrer">{label}</a>
@@ -48,22 +48,22 @@ export default function PublicFooter() {
     const usefulLinks = publicSite?.footerLinks?.useful ?? [];
     const legalLinks = publicSite?.footerLinks?.legal ?? [];
 
-    const heading = 'mb-3 text-xs font-semibold text-gray-900 dark:text-slate-100';
+    const heading = 'mb-3 text-sm font-semibold text-white';
 
     return (
-        <footer className="border-t border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-            <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+        <footer className="bg-[color:var(--color-primary-900)] pb-[env(safe-area-inset-bottom)] text-white [overflow-wrap:anywhere] dark:bg-[color:var(--color-primary-950)]">
+            <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:grid-cols-2 sm:gap-8 sm:px-6 sm:py-12 lg:grid-cols-4 lg:px-8 [&>*]:min-w-0">
                 <div className="sm:col-span-2 lg:col-span-1">
-                    <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{organization}</p>
+                    <p className="text-base font-bold text-white">{organization}</p>
                     {description && (
-                        <p className="mt-2 max-w-xs text-sm leading-relaxed text-gray-600 dark:text-slate-400">{description}</p>
+                        <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/75">{description}</p>
                     )}
                 </div>
 
                 {navigation.length > 0 && (
                     <nav aria-label={t('publicSite.footerNavigation')}>
                         <p className={heading}>{t('publicSite.footerNavigation')}</p>
-                        <ul className="space-y-2">
+                        <ul>
                             {navigation.map((link) => (
                                 <li key={link.id}><FooterLink link={link} label={pick(link, 'label')} /></li>
                             ))}
@@ -74,7 +74,7 @@ export default function PublicFooter() {
                 {usefulLinks.length > 0 && (
                     <nav aria-label={t('publicSite.footerLinks')}>
                         <p className={heading}>{t('publicSite.footerLinks')}</p>
-                        <ul className="space-y-2">
+                        <ul>
                             {usefulLinks.map((link) => (
                                 <li key={link.id}><FooterLink link={link} label={pick(link, 'label')} /></li>
                             ))}
@@ -85,16 +85,16 @@ export default function PublicFooter() {
                 {(email || phone) && (
                     <div>
                         <p className={heading}>{t('publicSite.footerContact')}</p>
-                        <ul className="space-y-2 text-sm text-gray-600 dark:text-slate-400">
-                            {email && <li><a href={`mailto:${email}`} className="hover:text-gray-900 hover:underline dark:hover:text-white">{email}</a></li>}
-                            {phone && <li><a href={`tel:${phone.replace(/\s+/g, '')}`} className="hover:text-gray-900 hover:underline dark:hover:text-white">{phone}</a></li>}
+                        <ul className="space-y-2 text-sm text-white/75">
+                            {email && <li><a href={`mailto:${email}`} className="inline-flex min-h-11 max-w-full items-center py-2 hover:text-white hover:underline">{email}</a></li>}
+                            {phone && <li><a href={`tel:${phone.replace(/\s+/g, '')}`} className="inline-flex min-h-11 max-w-full items-center py-2 hover:text-white hover:underline">{phone}</a></li>}
                         </ul>
                     </div>
                 )}
             </div>
 
-            <div className="border-t border-gray-100 dark:border-slate-800">
-                <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8 dark:text-slate-400">
+            <div className="border-t border-white/15">
+                <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 text-xs text-white/70 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
                     <p>{copyright || `© ${new Date().getFullYear()} ${organization}`}</p>
                     {legalLinks.length > 0 && (
                         <nav aria-label={t('publicSite.footerLegal')}>

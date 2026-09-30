@@ -95,6 +95,15 @@ const home = {
     supportHelpCenterLabel: 'Help Center',
     supportNoContact: 'For support, please contact your organization administrator.',
     registrationDisabled: 'Self-registration is currently disabled.',
+
+    // Verify page
+    verifyScanQr: 'Scan QR code',
+    verifyEnterReference: 'Or enter the card reference',
+    verifyHowTitle: 'How verification works',
+    verifyHowStep1: 'Scan the QR code or enter the card reference.',
+    verifyHowStep2: 'See whether the card is active.',
+    verifyHowStep3: 'The holder\'s details are shown only after a one-time code sent to the holder.',
+    verifyPrivacyShort: 'You will see whether the card is active. The holder\'s details are shown only after a one-time code sent to the holder.',
 } as const;
 
 export default home;

@@ -109,6 +109,16 @@ import enInstitutionOffices from '@/i18n/en/institutionOffices';
 import enRelationships from '@/i18n/en/relationships';
 import enGrievances from '@/i18n/en/grievances';
 import amGrievances from '@/i18n/am/grievances';
+import enGrievancePortal from '@/i18n/en/grievancePortal';
+import amGrievancePortal from '@/i18n/am/grievancePortal';
+import enGrievanceCases from '@/i18n/en/grievanceCases';
+import amGrievanceCases from '@/i18n/am/grievanceCases';
+import enGrievanceWork from '@/i18n/en/grievanceWork';
+import amGrievanceWork from '@/i18n/am/grievanceWork';
+import enGrievanceAdmin from '@/i18n/en/grievanceAdmin';
+import amGrievanceAdmin from '@/i18n/am/grievanceAdmin';
+import enCourtCases from '@/i18n/en/courtCases';
+import amCourtCases from '@/i18n/am/courtCases';
 import type { PageProps } from '@/types';
 
 type Locale = 'en' | 'am';
@@ -167,6 +177,11 @@ const translations: Record<Locale, TranslationTree> = {
         institutionOffices: enInstitutionOffices,
         relationships: enRelationships,
         grievances: enGrievances,
+        grievancePortal: enGrievancePortal,
+        grievanceCases: enGrievanceCases,
+        grievanceWork: enGrievanceWork,
+        grievanceAdmin: enGrievanceAdmin,
+        courtCases: enCourtCases,
         confirmations: enConfirmations,
         auth: enAuth,
         security: enSecurity,
@@ -223,6 +238,11 @@ const translations: Record<Locale, TranslationTree> = {
         institutionOffices: amInstitutionOffices,
         relationships: amRelationships,
         grievances: amGrievances,
+        grievancePortal: amGrievancePortal,
+        grievanceCases: amGrievanceCases,
+        grievanceWork: amGrievanceWork,
+        grievanceAdmin: amGrievanceAdmin,
+        courtCases: amCourtCases,
         confirmations: amConfirmations,
         auth: amAuth,
         security: amSecurity,

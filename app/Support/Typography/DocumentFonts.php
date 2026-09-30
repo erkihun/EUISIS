@@ -79,7 +79,12 @@ final class DocumentFonts
         return str_replace('\\', '/', $path);
     }
 
-    /** @return array{family: string, files: array<string, string>, fallback?: list<string>} */
+    /**
+     * A variant's fonts for the current app locale: its `locales` entry for
+     * that locale when there is one, else the variant itself.
+     *
+     * @return array{family: string, files: array<string, string>, fallback?: list<string>}
+     */
     private function definition(string $variant): array
     {
         $definition = config("typography.documents.{$variant}");
@@ -88,7 +93,9 @@ final class DocumentFonts
             throw new InvalidArgumentException("Unknown document typography variant [{$variant}].");
         }
 
-        return $definition;
+        $localized = $definition['locales'][app()->getLocale()] ?? null;
+
+        return is_array($localized) && isset($localized['family'], $localized['files']['normal']) ? $localized : $definition;
     }
 
     private function quote(string $name): string

@@ -11,7 +11,18 @@ class OrganizationTypeSeeder extends Seeder
 {
     public function run(): void
     {
-        $types = [
+        foreach (self::definitions() as $data) {
+            OrganizationType::withTrashed()->updateOrCreate(
+                ['code' => $data['code']],
+                array_merge($data, ['deleted_at' => null]),
+            );
+        }
+    }
+
+    /** @return list<array<string, mixed>> */
+    public static function definitions(): array
+    {
+        return [
             [
                 'code' => 'CITY_ADMIN',
                 'name_en' => 'City Administration',
@@ -112,12 +123,5 @@ class OrganizationTypeSeeder extends Seeder
                 'is_active' => true,
             ],
         ];
-
-        foreach ($types as $data) {
-            OrganizationType::withTrashed()->updateOrCreate(
-                ['code' => $data['code']],
-                array_merge($data, ['deleted_at' => null]),
-            );
-        }
     }
 }

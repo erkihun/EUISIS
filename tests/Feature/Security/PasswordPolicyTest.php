@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\AuditEventType;
+use App\Http\Requests\Settings\UpdateSecuritySettingsRequest;
 use App\Models\AuditLog;
 use App\Models\CafeteriaProvider;
 use App\Models\Employee;
@@ -272,9 +273,42 @@ test('23 two racing changes to the same new password end consistent: one wins, t
 
 // ── Strength (24–32) ────────────────────────────────────────────────────────
 
-test('24 a password shorter than 15 characters is rejected', function (): void {
-    expect(ppError('Short pass 12'))->not->toBeNull()
-        ->and(app(PasswordPolicy::class)->minLength())->toBe(15);
+test('24 the minimum accepts eight characters and rejects seven', function (): void {
+    expect(ppError('vL7!rK9'))->not->toBeNull()
+        ->and(ppError('vL7!rK9z'))->toBeNull()
+        ->and(app(PasswordPolicy::class)->minLength())->toBe(8)
+        ->and(app(PasswordPolicy::class)->forClient()['min_length'])->toBe(8);
+});
+
+test('the password minimum setting accepts eight but not seven', function (): void {
+    $rules = (new UpdateSecuritySettingsRequest)->rules();
+    $validate = fn (int $length) => Validator::make(
+        ['password_min_length' => $length, 'password_max_length' => 128],
+        ['password_min_length' => $rules['password_min_length']],
+    );
+
+    expect($validate(8)->passes())->toBeTrue()
+        ->and($validate(7)->fails())->toBeTrue();
+});
+
+test('the password minimum migration updates the old default and keeps stricter settings', function (): void {
+    $setting = SystemSetting::query()->updateOrCreate(
+        ['group' => 'security', 'key' => 'password_min_length'],
+        ['value' => '15', 'type' => 'integer', 'label_en' => 'Minimum Password Length'],
+    );
+    app(SystemSettingsService::class)->clearCache();
+    expect(app(PasswordPolicy::class)->minLength())->toBe(15);
+
+    $migration = require database_path('migrations/2026_09_30_100000_lower_default_password_minimum_to_eight.php');
+    $migration->up();
+    expect($setting->fresh()->value)->toBe('8')
+        ->and(app(PasswordPolicy::class)->minLength())->toBe(8);
+
+    $setting->update(['value' => '20']);
+    $migration->up();
+    expect($setting->fresh()->value)->toBe('20')
+        ->and(app(PasswordPolicy::class)->minLength())->toBe(20)
+        ->and(ppError('vL7!rK9z'))->not->toBeNull();
 });
 
 test('25-27 long passphrases, spaces and Unicode are accepted; no composition rules', function (string $password): void {
@@ -634,7 +668,7 @@ test('a legacy bcrypt provider hash is upgraded on provider sign-in', function (
 test('the policy cannot be configured below the approved floor or back to composition rules', function (): void {
     Role::findOrCreate('Super Admin', 'web');
     $payload = [
-        'password_min_length' => 8, 'password_max_length' => 128, 'password_history_count' => 30,
+        'password_min_length' => 7, 'password_max_length' => 128, 'password_history_count' => 30,
         'password_block_personal_info' => true, 'password_block_common' => true, 'password_breach_check' => true,
     ];
 

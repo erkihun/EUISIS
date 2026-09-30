@@ -278,7 +278,7 @@ test('every My Portal menu entry opens for an employee-only account', function (
     portalEmployee('menu.check@example.test');
     preg_match_all("/routeName: '([^']+)'/", portalMenuSource(), $routes);
 
-    expect($routes[1])->toContain('employee.portal', 'employee.performance.index', 'grievances.my');
+    expect($routes[1])->toContain('employee.portal', 'employee.performance.index', 'employee.grievances.index');
     foreach ($routes[1] as $name) {
         $this->actingAs($user->fresh())->get(route($name))->assertOk();
     }

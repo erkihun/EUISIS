@@ -12,6 +12,9 @@ use App\Models\CodeGenerationLog;
 use App\Models\CodeRule;
 use App\Models\CodeRuleSequence;
 use App\Models\Employee;
+use App\Models\Grievance;
+use App\Models\GrievanceDecision;
+use App\Models\GrievanceLetter;
 use App\Models\IdCard;
 use App\Models\Organization;
 use App\Models\OrganizationType;
@@ -237,6 +240,9 @@ class CodeGeneratorService
             CodeRuleResetFrequency::Yearly => $lastResetAt->year !== $now->year,
             CodeRuleResetFrequency::Monthly => $lastResetAt->format('Y-m') !== $now->format('Y-m'),
             CodeRuleResetFrequency::Daily => $lastResetAt->toDateString() !== $now->toDateString(),
+            CodeRuleEntityType::GrievanceCase => Grievance::query()->where('reference_number', $generatedCode)->exists(),
+            CodeRuleEntityType::GrievanceDecision => GrievanceDecision::query()->where('decision_no', $generatedCode)->exists(),
+            CodeRuleEntityType::GrievanceLetter => GrievanceLetter::query()->where('reference_number', $generatedCode)->exists(),
             default => false,
         };
 

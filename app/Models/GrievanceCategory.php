@@ -19,12 +19,18 @@ class GrievanceCategory extends Model
         'description_en',
         'description_am',
         'is_active',
+        'default_confidentiality',
+        'default_priority',
+        'requires_executive_approval',
+        'sort_order',
     ];
 
     protected function casts(): array
     {
         return [
             'is_active' => 'bool',
+            'requires_executive_approval' => 'bool',
+            'sort_order' => 'int',
         ];
     }
 

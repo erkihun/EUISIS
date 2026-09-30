@@ -15,7 +15,7 @@ class UpdateSecuritySettingsRequest extends FormRequest
 
     public function rules(): array
     {
-        $floor = (int) config('security.passwords.minimum_length_floor', 15);
+        $floor = (int) config('security.passwords.minimum_length_floor', 8);
         $ceiling = (int) config('security.passwords.maximum_length_ceiling', 128);
 
         return [

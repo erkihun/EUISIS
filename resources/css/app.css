@@ -5,7 +5,7 @@
  *
  * UI fonts are self-hosted (fonts.css) — never a CDN stylesheet, which the
  * CSP (`font-src 'self' data:`) blocks and which would disclose every visitor
- * to a third party. English = Inter, Amharic = Noto Sans Ethiopic; the stack
+ * to a third party. English = Inter, Amharic = Abyssinica SIL; the stack
  * switches on the `lang` attribute (see the typography tokens below), so no
  * component chooses a font family itself. Full rules: docs/ui-typography.md.
  */
@@ -73,13 +73,33 @@
     /* ── Surfaces ──────────────────────────────────────────────
        Four levels, used consistently: the page sits one step below the
        cards on it, so borders stay thin and shadows stay unnecessary. */
-    --app-background:      #f6f7f9;
+    --app-background:      #f4f6fb;
     --app-foreground:      #0f172a;
     --app-surface:         #ffffff;
     --app-surface-muted:   #f1f3f6;
     --app-border:          #e2e5ea;
     --app-border-strong:   #cbd2dc;
     --app-muted-foreground:#5b6472;
+
+    /* ── Cards (light theme) ───────────────────────────────────
+       Admin cards are tonal, not white: a soft navy tint for content
+       panels, and a tint per meaning for KPI cards (card-tone-*). Form
+       fields, menus and dialogs stay on --app-surface so they read as
+       controls. Dark theme keeps its surfaces; see "Tonal cards" below. */
+    --app-card:            #edf1fb;
+    --app-card-border:     #d5ddf1;
+    --app-card-hover:      #e3e9f8;
+    --app-card-inset:      #e0e7f7;
+    --app-card-muted-text: #5b6472;
+
+    --tone-info-bg:        #e6ecfb;
+    --tone-info-border:    #c9d4f2;
+    --tone-success-bg:     #dff3ea;
+    --tone-success-border: #b7e2cd;
+    --tone-warning-bg:     #fdf0d9;
+    --tone-warning-border: #f2d59b;
+    --tone-danger-bg:      #fbe4e1;
+    --tone-danger-border:  #f1c0ba;
 
     /* ── Sidebar ───────────────────────────────────────────────
      *
@@ -130,15 +150,15 @@
      * installed Ethiopic faces (Nyala on Windows, Kefa on Apple) and the
      * system UI font, so the interface stays readable if a webfont fails.
      */
-    --font-ui-en: 'Inter', 'Inter Fallback', 'Noto Sans Ethiopic', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-ui-am: 'Noto Sans Ethiopic', 'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Nyala', 'Kefa', system-ui, sans-serif;
+    --font-ui-en: 'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-ui-am: 'Abyssinica SIL', 'Inter', 'Inter Fallback', 'Noto Sans Ethiopic', 'Nyala', 'Kefa', system-ui, sans-serif;
     /* Formal documents and long-form official text (see docs). */
     --font-document-am: 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', serif;
     --font-document-en: 'Noto Sans', 'Inter', system-ui, sans-serif;
     /* ID cards: Latin first so codes and English lines use Inter; Ethiopic
-       falls through to Noto Sans Ethiopic. Mirrors config/typography.php,
+       falls through to Abyssinica SIL. Mirrors config/typography.php,
        which the server-rendered card SVG uses. */
-    --font-id-card: 'Inter', 'Inter Fallback', 'Noto Sans Ethiopic', 'Abyssinica SIL', 'Nyala', sans-serif;
+    --font-id-card: 'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', sans-serif;
 
     --font-ui: var(--font-ui-en);
     --font-document: var(--font-document-en);
@@ -274,7 +294,7 @@ html [data-sonner-toaster] {
 
 /*
  * ID card faces use one stack for both languages (Latin → Inter, Ethiopic →
- * Noto Sans Ethiopic) — the same stack the server-rendered card SVG names, so
+ * Abyssinica SIL) — the same stack the server-rendered card SVG names, so
  * the preview, print and PNG export agree. Zero specificity: `font-mono` on a
  * code field still wins.
  */
@@ -349,6 +369,65 @@ html[data-card-radius="2xl"] { --radius-card: 12px; --radius-panel: 16px; }
  */
 html[data-button-style="square"]  { --radius-control: 0; }
 html[data-button-style="soft"]    { --radius-control: 8px; }
+
+/* ── Tonal cards (admin layout, light theme) ──────────────────
+ *
+ * Cards are recognised by their semantic classes: `rounded-card` /
+ * `rounded-panel` (and the `--radius-card/panel` arbitrary forms), plus
+ * bordered `rounded-xl/2xl` blocks, when they are painted with the white
+ * surface. So every admin page gets tonal cards without each page choosing a
+ * colour, and anything already given a colour (an amber "due soon" card, a
+ * red alert) keeps it. Form fields, buttons and floating menus are excluded.
+ *
+ * Scope: `.admin-shell` (AuthenticatedLayout, not the employee portal) and
+ * `:root:not(.dark)`, so the dark theme is unchanged. A card inside a card
+ * goes back to white, so nested content still reads as a layer.
+ * Mock: Claude Design canvas "EUISIS Admin Colorful Cards", direction A.
+ */
+:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex),
+:root:not(.dark) .admin-shell #main-content .app-card {
+    background-color: var(--app-card);
+    border-color: var(--app-card-border);
+}
+
+:root:not(.dark) .admin-shell #main-content :is(a, button):is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(.inline-flex):hover,
+:root:not(.dark) .admin-shell #main-content a.app-card:hover {
+    background-color: var(--app-card-hover);
+}
+
+/* A card inside a card: back to white. */
+:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"], .app-card) :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex) {
+    background-color: var(--app-surface);
+    border-color: var(--app-border);
+}
+
+/* Inside a tonal card: table headers and footers take a deeper tint, table
+   rows are see-through, hairlines use the card border, and grey-500 text is
+   darkened to keep 4.5:1 on the tint. */
+:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(thead, tfoot, div, section, footer, tr).bg-gray-50,
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(thead, tfoot, div, footer, tr)[class*="bg-[color:var(--app-surface-muted)]"] {
+    background-color: var(--app-card-inset);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(table, tbody, tr, td).bg-white {
+    background-color: transparent;
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(.border-gray-100, .border-gray-200, tbody > tr) {
+    border-color: var(--app-card-border);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(.divide-gray-100, .divide-gray-200, [class*="divide-[color:var(--app-border)]"]) > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--app-card-border);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) .text-gray-500 {
+    color: var(--app-card-muted-text);
+}
+
+/* KPI cards tinted by meaning (KpiCard `tone`). Light theme only. */
+:root:not(.dark) .card-tone-neutral { background-color: var(--app-card);       border-color: var(--app-card-border); }
+:root:not(.dark) .card-tone-info    { background-color: var(--tone-info-bg);    border-color: var(--tone-info-border); }
+:root:not(.dark) .card-tone-success { background-color: var(--tone-success-bg); border-color: var(--tone-success-border); }
+:root:not(.dark) .card-tone-warning { background-color: var(--tone-warning-bg); border-color: var(--tone-warning-border); }
+:root:not(.dark) .card-tone-danger  { background-color: var(--tone-danger-bg);  border-color: var(--tone-danger-border); }
+:root:not(.dark) a[class*="card-tone-"]:hover { filter: brightness(0.97); }
 
 /* ── Focus ring ─────────────────────────────────────────────── */
 @layer base {
