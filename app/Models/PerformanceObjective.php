@@ -25,6 +25,8 @@ class PerformanceObjective extends Model
     protected $fillable = [
         'performance_plan_id',
         'strategic_goal_id',
+        'strategic_goal_allocation_id',
+        'position_service_id',
         'parent_objective_id',
         'source_objective_id',
         'code',
@@ -74,6 +76,16 @@ class PerformanceObjective extends Model
     public function parentObjective(): BelongsTo
     {
         return $this->belongsTo(PerformanceObjective::class, 'parent_objective_id');
+    }
+
+    public function allocation(): BelongsTo
+    {
+        return $this->belongsTo(StrategicGoalAllocation::class, 'strategic_goal_allocation_id');
+    }
+
+    public function positionService(): BelongsTo
+    {
+        return $this->belongsTo(PositionService::class)->withTrashed();
     }
 
     public function childObjectives(): HasMany

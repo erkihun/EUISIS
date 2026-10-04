@@ -56,6 +56,11 @@ class DailyActivityItem extends Model
         return $this->belongsTo(DailyActivityLog::class, 'daily_activity_log_id');
     }
 
+    public function performanceItem(): BelongsTo
+    {
+        return $this->belongsTo(EmployeePerformanceItem::class, 'employee_performance_item_id');
+    }
+
     public function positionService(): BelongsTo
     {
         return $this->belongsTo(PositionService::class);

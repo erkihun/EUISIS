@@ -13,9 +13,12 @@ use App\Models\KpiTarget;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\PerformanceCycle;
+use App\Models\PerformancePlan;
 use App\Models\StrategicGoal;
 use App\Models\StrategicGoalAllocation;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Performance\EpmsAccess;
+use App\Services\Performance\PerformanceCascadeService;
 use App\Services\Performance\StrategicPlanningService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +28,7 @@ use Inertia\Response;
 
 class StrategicGoalController extends PerformanceController
 {
-    public function __construct(private readonly StrategicPlanningService $planning, private readonly OrganizationScopeService $scope) {}
+    public function __construct(private readonly StrategicPlanningService $planning, private readonly OrganizationScopeService $scope, private readonly EpmsAccess $access, private readonly PerformanceCascadeService $cascade) {}
 
     public function index(Request $request): Response
     {
@@ -66,9 +69,14 @@ class StrategicGoalController extends PerformanceController
             ->whereIn('organization_id', $allowedOrganizationIds)
             ->when($cycleId, fn ($q) => $q->where('cycle_id', $cycleId))
             ->when($organizationId, fn ($q) => $q->where('organization_id', $organizationId))
-            ->orderBy('sort_order')->orderBy('code')->paginate(50)->withQueryString();
+            ->orderBy('sort_order')->orderBy('code')->orderByDesc('version_no')->paginate(50)->withQueryString();
 
         $summary = null;
+        $unitPlans = PerformancePlan::query()->where('plan_type', 'UNIT')
+            ->whereIn('cycle_id', $goals->getCollection()->pluck('cycle_id')->unique())
+            ->whereIn('organization_id', $goals->getCollection()->pluck('organization_id')->unique())
+            ->with('objectives:id,performance_plan_id,strategic_goal_id,strategic_goal_allocation_id')->orderByDesc('version_no')->get()
+            ->groupBy(fn ($plan) => $plan->cycle_id.':'.$plan->organization_id.':'.$plan->organization_unit_id);
         if ($cycleId !== '' && $organizationId !== '') {
             $summary = [
                 ...$this->planning->organizationReadiness($cycleId, $organizationId),
@@ -79,20 +87,29 @@ class StrategicGoalController extends PerformanceController
 
         return Inertia::render('Performance/StrategicGoals/Index', [
             'goals' => $goals->through(fn (StrategicGoal $goal) => [
-                ...$goal->only(['id', 'cycle_id', 'organization_id', 'code', 'name_en', 'name_am', 'description_en', 'description_am', 'weight_percent', 'is_shared', 'sort_order', 'return_reason']),
+                ...$goal->only(['id', 'cycle_id', 'organization_id', 'code', 'name_en', 'name_am', 'description_en', 'description_am', 'weight_percent', 'is_shared', 'sort_order', 'return_reason', 'version_no', 'supersedes_goal_id', 'change_reason']),
+                'can_view_plans' => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id),
+                'cascade' => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id) ? $this->cascade->goalCascade($goal, $user) : [],
                 'effective_from' => $goal->effective_from?->toDateString(),
                 'effective_to' => $goal->effective_to?->toDateString(),
                 'status' => $goal->status->value,
                 'readiness' => $this->planning->readiness($goal),
                 'objectives_count' => $goal->objectives_count,
-                'objectives' => $goal->objectives->map(fn ($objective) => [
+                'objectives' => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id) ? $goal->objectives->map(fn ($objective) => [
                     ...$objective->only(['id', 'code', 'title_en', 'title_am', 'weight', 'absolute_weight_percent']),
                     'plan' => $objective->plan ? ['id' => $objective->plan->getKey(), 'title' => $objective->plan->title, 'status' => $objective->plan->status->value, 'version' => $objective->plan->version_no] : null,
-                ])->all(),
+                ])->all() : [],
                 'allocations' => $goal->allocations->map(fn ($row) => [
                     ...$row->only(['id', 'organization_unit_id', 'organization_contribution_percent', 'is_lead', 'notes']),
                     'allocation_type' => $row->allocation_type->value,
                     'unit' => $row->unit?->only(['id', 'name_en', 'name_am']),
+                    'unit_plans' => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id)
+                        ? ($unitPlans->get($goal->cycle_id.':'.$goal->organization_id.':'.$row->organization_unit_id) ?? collect())
+                            ->filter(fn ($plan) => $plan->objectives->contains(fn ($objective) => $objective->strategic_goal_allocation_id === $row->getKey() || $objective->strategic_goal_id === $goal->getKey()))
+                            ->map(fn ($plan) => [
+                                'id' => $plan->getKey(), 'title' => $plan->title, 'status' => $plan->status->value, 'version' => $plan->version_no,
+                                'published' => $plan->status->value === 'PUBLISHED',
+                            ])->values()->all() : [],
                 ])->all(),
             ]),
             'summary' => $summary,
@@ -171,6 +188,16 @@ class StrategicGoalController extends PerformanceController
         $this->planning->returnToDraft($strategicGoal, $data['reason'], $request->user());
 
         return $this->saved();
+    }
+
+    public function newVersion(Request $request, StrategicGoal $strategicGoal): RedirectResponse
+    {
+        $this->ensureEnabled();
+        $data = $request->validate(['reason' => ['required', 'string', 'max:2000']]);
+        $next = $this->planning->newVersion($strategicGoal, $data['reason'], $request->user());
+
+        return to_route('performance.strategic-goals.index', ['cycle_id' => $next->cycle_id, 'organization_id' => $next->organization_id])
+            ->with('flash', ['message' => __('performance.saved'), 'type' => 'success']);
     }
 
     public function replacePeriodTargets(SaveKpiPeriodTargetsRequest $request, KpiTarget $target): RedirectResponse

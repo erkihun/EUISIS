@@ -13,6 +13,7 @@ export type AgreementItem = {
     expected_output: string; weight: string; target_value: string | null; target_numerator: string | null; target_denominator: string | null;
     data_source: string; is_mandatory: boolean; is_additional: boolean; source: 'POSITION_PLAN' | 'ADDITIONAL';
     progress: ItemTrace | null; actuals: Actual[];
+    cascade_trace?: { type: string; id: string; label: string | null; unit?: string | null; position?: string | null; weight?: string | null }[];
 };
 
 export type Review = {
@@ -82,6 +83,12 @@ export function ItemsTable({ items, actions, extra }: { items: AgreementItem[]; 
                                 {item.is_mandatory && ` · ${t('performance.fields.mandatory')}`}
                             </p>
                             {extra?.(item)}
+                            {!!item.cascade_trace?.length && <details className="mt-2 text-xs text-gray-600 dark:text-slate-300">
+                                <summary className="cursor-pointer">{t('performance.plans.cascadeTrace')}</summary>
+                                <ol className="mt-1 space-y-1 border-l-2 border-blue-200 pl-2 dark:border-blue-800">
+                                    {item.cascade_trace.map((step) => <li key={`${step.type}-${step.id}`}>{step.type} · {step.label}{step.unit && ` · ${step.unit}`}{step.position && ` · ${step.position}`}{step.weight != null && ` (${formatScore(step.weight)}%)`}</li>)}
+                                </ol>
+                            </details>}
                         </td>
                         <td className={`${tdCls} whitespace-nowrap tabular-nums`}>{targetText(item, item.kpi.unit)}</td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(item.weight)}</td>

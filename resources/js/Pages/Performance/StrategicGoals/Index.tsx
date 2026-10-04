@@ -10,7 +10,8 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
 type Named = { id: string; name_en: string; name_am?: string | null };
-type Allocation = { id: string; organization_unit_id: string; organization_contribution_percent: string; allocation_type: string; is_lead: boolean; notes?: string | null; unit?: Named | null };
+type Allocation = { id: string; organization_unit_id: string; organization_contribution_percent: string; allocation_type: string; is_lead: boolean; notes?: string | null; unit?: Named | null; unit_plans: { id: string; title: string; status: string; version: number; published: boolean }[] };
+type CascadeObjective = { id: string; plan_id: string; level: string; title: string; unit: string | null; position: string | null; service: string | null; status: string; version: number; targets: { kpi: string | null; target: string | null; weight: string }[]; employees: string[] };
 type LinkedObjective = {
     id: string; code: string; title_en: string; title_am: string | null; weight: string; absolute_weight_percent: string | null;
     plan: { id: string; title: string; status: string; version: number } | null;
@@ -19,6 +20,7 @@ type Goal = {
     id: string; cycle_id: string; organization_id: string; code: string; name_en: string; name_am: string; description_en?: string | null; description_am?: string | null;
     weight_percent: string; is_shared: boolean; sort_order: number; status: string; return_reason?: string | null; effective_from: string | null; effective_to: string | null;
     objectives_count: number; objectives: LinkedObjective[]; allocations: Allocation[];
+    version_no: number; supersedes_goal_id: string | null; change_reason: string | null; can_view_plans: boolean; cascade: CascadeObjective[];
     readiness: { allocation_total: string; objective_total: string; remaining: string; ready: boolean; problems: string[] };
 };
 type Cycle = Named & { code: string; organization_id: string | null; status: string; is_current: boolean; start_date: string | null; end_date: string | null };
@@ -167,6 +169,11 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
     async function returnGoal(goal: Goal) {
         const { confirmed, reason } = await confirm({ title: t('performance.actions.return'), description: goalName(goal), confirmLabel: t('performance.actions.return'), cancelLabel: t('performance.actions.cancel'), requireReason: true, reasonLabel: t('performance.fields.reason'), variant: 'danger' });
         if (confirmed) router.post(route('performance.strategic-goals.return', goal.id), { reason }, { preserveScroll: true });
+    }
+
+    async function amendGoal(goal: Goal) {
+        const { confirmed, reason } = await confirm({ title: t('performance.actions.newVersion'), description: goalName(goal), confirmLabel: t('performance.actions.newVersion'), cancelLabel: t('performance.actions.cancel'), requireReason: true, reasonLabel: t('performance.fields.reason') });
+        if (confirmed) router.post(route('performance.strategic-goals.versions.store', goal.id), { reason }, { preserveScroll: true });
     }
 
     async function removeGoal(goal: Goal) {
@@ -325,6 +332,8 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         <h3 id={`sg-${goal.id}-name`} className="mt-3 break-words text-lg font-semibold leading-relaxed tracking-tight text-gray-900 dark:text-white">{title}</h3>
                                         <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-slate-400">
                                             <span className="tabular-nums">{t('performance.fields.weight')}: {formatScore(goal.weight_percent)}%</span>
+                                            <span>{t('performance.fields.version')} {goal.version_no}</span>
+                                            {goal.status === 'SUPERSEDED' && <span>{t('performance.strategicGoals.historicalVersion')}</span>}
                                             {(goal.effective_from || goal.effective_to) && <span><LocalizedDateDisplay value={goal.effective_from} /> – <LocalizedDateDisplay value={goal.effective_to} /></span>}
                                         </p>
                                     </div>
@@ -334,6 +343,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         {['UNDER_REVIEW', 'APPROVED'].includes(goal.status) && can.approve && <button type="button" className={secondaryBtn} onClick={() => returnGoal(goal)}>{t('performance.actions.return')}</button>}
                                         {goal.status === 'UNDER_REVIEW' && can.approve && <button type="button" className={primaryBtn} onClick={() => transition(goal, 'APPROVED')}>{t('performance.actions.approve')}</button>}
                                         {goal.status === 'APPROVED' && can.publish && <button type="button" className={primaryBtn} onClick={() => transition(goal, 'PUBLISHED')}>{t('performance.actions.publish')}</button>}
+                                        {goal.status === 'PUBLISHED' && can.update && <button type="button" className={secondaryBtn} onClick={() => amendGoal(goal)}>{t('performance.actions.newVersion')}</button>}
                                         {draft && can.delete && <button type="button" className={dangerLinkBtn} onClick={() => removeGoal(goal)}>{t('performance.actions.remove')}</button>}
                                     </div>
                                 </div>
@@ -358,6 +368,8 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         )}
 
                                         {description && hasDescription && <p className="max-w-3xl whitespace-pre-line break-words text-sm leading-relaxed text-gray-600 dark:text-slate-300">{description}</p>}
+                                        {goal.change_reason && <p className="text-sm text-gray-600 dark:text-slate-300">{t('performance.fields.reason')}: {goal.change_reason}</p>}
+                                        {goal.supersedes_goal_id && <p className="text-xs text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.amendedVersion')}</p>}
                                         <dl className="grid gap-5 rounded-xl border border-gray-100 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:grid-cols-2 sm:gap-8">
                                             <div className="text-sm">
                                                 <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.allocations')}</dt>
@@ -390,6 +402,13 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                                             )}
                                                         </span>
                                                         {row.notes && <span className="whitespace-pre-line text-gray-500 dark:text-slate-400">{row.notes}</span>}
+                                                        {goal.can_view_plans && <div className="space-y-1 border-t border-gray-100 pt-2 dark:border-slate-800">
+                                                            <span className="font-medium">{t('performance.strategicGoals.unitPlanStatus')}</span>
+                                                            {row.unit_plans.length === 0 ? <p className="text-gray-500">{t('performance.dashboard.noData')}</p> : row.unit_plans.map((plan) => <p key={plan.id}>
+                                                                <Link className="text-blue-700 hover:underline dark:text-blue-300" href={route('performance.plans.show', plan.id)}>{plan.title}</Link>
+                                                                {' · '}{label('plan', plan.status)}{' · '}{t('performance.fields.version')} {plan.version}
+                                                            </p>)}
+                                                        </div>}
                                                     </li>
                                                 ))}
                                             </ul>
@@ -402,7 +421,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                             <AllocationForm key={allocating.allocation ?? 'new'} goal={goal} allocation={goal.allocations.find((row) => row.id === allocating.allocation)} units={units} types={allocationTypes} onClose={() => setAllocating(null)} />
                                         )}
 
-                                        <details className="group/objectives mt-5 rounded-xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                                        {goal.can_view_plans && <details className="group/objectives mt-5 rounded-xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
                                             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
                                                 {t('performance.strategicGoals.objectives')} ({goal.objectives.length})
                                                 <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open/objectives:rotate-180" aria-hidden="true" />
@@ -426,7 +445,19 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                                     ))}
                                                 </ul>
                                             )}
-                                        </details>
+                                        </details>}
+                                        {goal.can_view_plans && <details className="rounded-xl border border-blue-200 bg-white dark:border-blue-900 dark:bg-slate-900">
+                                            <summary className="cursor-pointer px-4 py-3 text-sm font-medium">{t('performance.plans.cascadeTrace')} ({goal.cascade.length})</summary>
+                                            <ul className="space-y-3 border-t border-blue-100 p-4 dark:border-blue-950">
+                                                {goal.cascade.map((item) => <li key={item.id} className="border-l-2 border-orange-300 pl-3 text-sm dark:border-orange-800">
+                                                    <Link className="font-medium text-blue-700 hover:underline dark:text-blue-300" href={route('performance.plans.show', item.plan_id)}>{item.title}</Link>
+                                                    <p className="text-xs text-gray-500 dark:text-slate-400">{label('planType', item.level)} · {[item.unit, item.position].filter(Boolean).join(' › ')} · {label('plan', item.status)} · {t('performance.fields.version')} {item.version}</p>
+                                                    {item.service && <p className="mt-1 text-xs">{t('performance.fields.positionService')}: {item.service}</p>}
+                                                    {item.targets.map((target, index) => <p key={index} className="mt-1 text-xs">{t('performance.fields.kpi')}: {target.kpi} · {t('performance.fields.target')}: {target.target ?? '—'} · {t('performance.fields.weight')}: {formatScore(target.weight)}%</p>)}
+                                                    {item.employees.length > 0 && <p className="mt-1 text-xs">{t('performance.fields.employee')}: {item.employees.join(', ')}</p>}
+                                                </li>)}
+                                            </ul>
+                                        </details>}
                                     </div>
                                 </details>
                             </article>

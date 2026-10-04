@@ -72,10 +72,15 @@ final class PerformanceAggregationService
             return [new AggregateValue(null, $kpi->aggregation_method->value, 'circular lineage ignored'), collect(), ['source' => 'none']];
         }
         $visited[] = $target->getKey();
+        $chain = $this->targetHistory($target);
 
-        $own = KpiActual::query()->where('target_id', $target->getKey())->where('source_key', '!=', 'aggregate')
+        $own = KpiActual::query()->whereIn('target_id', $chain)->where('source_key', '!=', 'aggregate')
             ->where('period_start', '>=', $start->toDateString())->where('period_end', '<=', $end->toDateString())
             ->orderBy('period_end')->get();
+        $priority = array_flip($chain);
+        $own = $own->sortBy(fn (KpiActual $row) => $priority[$row->target_id])
+            ->unique(fn (KpiActual $row) => $row->period_start->toDateString().':'.$row->period_end->toDateString().':'.$row->source_key)
+            ->sortBy(fn (KpiActual $row) => $row->period_end->toDateString())->values();
 
         if ($own->isNotEmpty()) {
             $aggregate = $this->aggregation->aggregate($kpi->aggregation_method, $this->observations($own), $percentage);
@@ -91,7 +96,14 @@ final class PerformanceAggregationService
         $consumed = collect();
         $contributors = [];
 
-        foreach ($target->childTargets()->with('kpi')->get() as $child) {
+        $children = KpiTarget::query()->whereIn('parent_target_id', $chain)->where('is_current', true)->with('kpi')->orderByDesc('version_no')->get();
+        $countedTargets = [];
+        foreach ($children as $child) {
+            $childHistory = $this->targetHistory($child);
+            if (array_intersect($childHistory, $countedTargets) !== []) {
+                continue;
+            }
+            $countedTargets = array_merge($countedTargets, $childHistory);
             [$childAggregate, $rows] = $this->measureTarget($child, $asOf, $visited);
             if ($childAggregate->value === null && $childAggregate->numerator === null) {
                 continue;
@@ -101,13 +113,20 @@ final class PerformanceAggregationService
             $contributors[] = ['type' => 'UNIT', 'target_id' => $child->getKey(), 'value' => $childAggregate->value];
         }
 
-        $items = EmployeePerformanceItem::query()->where('position_target_id', $target->getKey())->where('is_current', true)
-            ->whereHas('agreement', fn ($q) => $q->whereIn('status', array_map(fn ($s) => $s->value, self::COUNTED_AGREEMENTS)))
+        $plan = $target->plan;
+        $items = EmployeePerformanceItem::query()->whereIn('position_target_id', $chain)->where('is_current', true)
+            ->whereHas('agreement', fn ($q) => $q->whereIn('status', array_map(fn ($s) => $s->value, self::COUNTED_AGREEMENTS))
+                ->where('cycle_id', $plan->cycle_id)->where('organization_id', $plan->organization_id)
+                ->when($plan->organization_unit_id !== null, fn ($q) => $q->where('organization_unit_id', $plan->organization_unit_id))
+                ->when($plan->position_id !== null, fn ($q) => $q->where('position_id', $plan->position_id)))
             ->with('agreement')->get();
         foreach ($items as $item) {
-            $rows = KpiActual::query()->where('employee_performance_item_id', $item->getKey())
-                ->where('source_type', $item->data_source_type->value)
-                ->where('period_end', '<=', $end->toDateString())->orderBy('period_end')->get();
+            $from = $start->copy()->max($item->agreement->effective_from);
+            $to = $end->copy()->min($item->agreement->effective_to);
+            if ($to->lt($from)) {
+                continue;
+            }
+            [, $rows] = EmployeeScoreCalculator::measurementHistory($item, $from, $to);
             if ($rows->isEmpty()) {
                 continue;
             }
@@ -124,6 +143,24 @@ final class PerformanceAggregationService
         $row = $this->persistAggregate($target, $start, $end, $combined, $consumed);
 
         return [$combined, collect([$row]), ['source' => 'contributors', 'contributors' => $contributors]];
+    }
+
+    /** @return list<string> */
+    private function targetHistory(KpiTarget $target): array
+    {
+        $chain = [$target->getKey()];
+        $previous = $target->amended_from_id;
+        while ($previous !== null && ! in_array($previous, $chain, true)) {
+            $predecessor = KpiTarget::query()->whereKey($previous)
+                ->where('performance_plan_id', $target->performance_plan_id)->where('kpi_id', $target->kpi_id)->first();
+            if ($predecessor === null) {
+                break;
+            }
+            $chain[] = $predecessor->getKey();
+            $previous = $predecessor->amended_from_id;
+        }
+
+        return $chain;
     }
 
     /**

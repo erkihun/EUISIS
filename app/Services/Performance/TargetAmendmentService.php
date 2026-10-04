@@ -20,8 +20,9 @@ use Illuminate\Validation\ValidationException;
  *
  * Original target → amendment request (reason, effective date) → approval by
  * someone else → NEW version row; the old one stays (is_current = false).
- * Actuals already recorded remain linked to the version they were measured
- * against; the score uses the current version's target over the whole chain.
+ * Existing child targets, agreement items and actuals retain their original
+ * target version. New planning versions explicitly adopt amended targets.
+ * Employee-item amendments retain their own measurement history chain.
  */
 final class TargetAmendmentService
 {
@@ -94,10 +95,14 @@ final class TargetAmendmentService
                 $locked->forceFill(['is_current' => false])->save();
                 $next->save();
 
-                // Children keep pointing at the current version of their parent target.
+                // Preserve published downstream lineage; period targets are copied
+                // exactly, without redistributing their explicitly entered values.
                 if ($locked instanceof KpiTarget) {
-                    KpiTarget::query()->where('parent_target_id', $locked->getKey())->update(['parent_target_id' => $next->getKey()]);
-                    EmployeePerformanceItem::query()->where('position_target_id', $locked->getKey())->update(['position_target_id' => $next->getKey()]);
+                    foreach ($locked->periodTargets()->get() as $periodTarget) {
+                        $copy = $periodTarget->replicate();
+                        $copy->kpi_target_id = $next->getKey();
+                        $copy->save();
+                    }
                 }
                 $newId = $next->getKey();
             }
@@ -120,7 +125,7 @@ final class TargetAmendmentService
     private function assertAuthority(KpiTarget|EmployeePerformanceItem $subject, User $actor, string $permission): void
     {
         if ($subject instanceof KpiTarget) {
-            $this->access->authorize($this->access->inScope($actor, $permission, $subject->plan->organization_id));
+            $this->access->authorize($this->access->canPlan($actor, $permission, $subject->plan->organization_id, $subject->plan->organization_unit_id));
             if ($subject->plan->status !== PlanStatus::Published) {
                 throw ValidationException::withMessages(['target' => __('performance.errors.amend_only_published')]);
             }

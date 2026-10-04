@@ -7,6 +7,7 @@ namespace App\Services\Performance;
 use App\Enums\AuditEventType;
 use App\Enums\DailyActivityStatus;
 use App\Enums\Performance\AgreementStatus;
+use App\Enums\Performance\KpiAggregation;
 use App\Enums\Performance\KpiDataSource;
 use App\Enums\Performance\PlanStatus;
 use App\Models\DailyActivityItem;
@@ -73,7 +74,7 @@ final class KpiActualService
     public function recordForTarget(KpiTarget $target, array $data, User $actor): KpiActual
     {
         $plan = $target->plan;
-        $this->access->authorize($this->access->inScope($actor, 'kpi_actuals.enter', $plan->organization_id));
+        $this->access->authorize($this->access->canPlan($actor, 'kpi_actuals.enter', $plan->organization_id, $plan->organization_unit_id));
         if ($plan->status !== PlanStatus::Published) {
             throw ValidationException::withMessages(['plan' => __('performance.errors.plan_not_published')]);
         }
@@ -95,7 +96,7 @@ final class KpiActualService
     {
         $allowed = $actor->can('kpi_actuals.verify') && ($actual->agreement_id !== null
             ? $this->access->canManageAgreement($actor, $actual->agreement)
-            : $this->access->inScope($actor, 'kpi_actuals.verify', $actual->organization_id));
+            : $this->access->canPlan($actor, 'kpi_actuals.verify', $actual->organization_id, $actual->organization_unit_id));
         $this->access->authorize($allowed);
         $this->access->assertSeparated($actor, $actual->entered_by, 'verify');
 
@@ -112,22 +113,38 @@ final class KpiActualService
      */
     public function syncDailyActivity(EmployeePerformanceItem $item, Carbon $from, Carbon $to): ?KpiActual
     {
-        if ($item->data_source_type !== KpiDataSource::DailyActivity) {
+        if ($item->data_source_type !== KpiDataSource::DailyActivity || $item->kpi->aggregation_method !== KpiAggregation::Sum) {
             return null;
         }
 
         $agreement = $item->agreement;
+        [$from, $to] = $this->period(['period_start' => $from->toDateString(), 'period_end' => $to->toDateString()], $agreement->effective_from, $agreement->effective_to);
+        $chain = [$item->getKey()];
+        $previous = $item->supersedes_item_id;
+        while ($previous !== null && ! in_array($previous, $chain, true)) {
+            $predecessor = EmployeePerformanceItem::query()->whereKey($previous)->where('agreement_id', $agreement->getKey())->first();
+            if ($predecessor === null) {
+                break;
+            }
+            $chain[] = $predecessor->getKey();
+            $previous = $predecessor->supersedes_item_id;
+        }
         $statuses = $this->dailyActivity->managerReviewRequired()
             ? [DailyActivityStatus::Approved->value]
             : DailyActivityStatus::submittedValues();
 
         $query = DailyActivityItem::query()
-            ->where('employee_performance_item_id', $item->getKey())
+            ->whereIn('employee_performance_item_id', $chain)
+            ->whereNotNull('quantity')
             ->whereHas('log', fn ($log) => $log->where('employee_id', $agreement->employee_id)
+                ->where('employee_assignment_id', $agreement->employee_assignment_id)
                 ->whereIn('status', $statuses)
                 ->whereBetween('activity_date', [$from->toDateString(), $to->toDateString()]));
 
         $count = (clone $query)->count();
+        if ($count === 0) {
+            return null;
+        }
         $quantity = (string) (clone $query)->sum('quantity');
 
         return KpiActual::query()->updateOrCreate(

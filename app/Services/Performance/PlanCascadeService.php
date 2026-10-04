@@ -37,6 +37,7 @@ final class PlanCascadeService
     public function __construct(
         private readonly EpmsAccess $access,
         private readonly EpmsAudit $audit,
+        private readonly PerformanceCascadeService $traceability,
     ) {}
 
     /**
@@ -78,6 +79,7 @@ final class PlanCascadeService
                 }
 
                 $child = $childPlan->objectives()->create([
+                    ...$this->traceability->links($childPlan, ['weight' => $part['weight'] ?? $parentObjective->weight, 'position_service_id' => $part['position_service_id'] ?? null], $parentObjective),
                     'parent_objective_id' => $parentObjective->getKey(),
                     'code' => $code,
                     'title_en' => $customWording ? $part['title_en'] : $parentObjective->title_en,
@@ -161,7 +163,7 @@ final class PlanCascadeService
 
     private function assertCascadable(PerformanceObjective $parentObjective, PerformancePlan $childPlan, User $actor): void
     {
-        $this->access->authorize($this->access->inScope($actor, 'performance_objectives.manage', $childPlan->organization_id));
+        $this->access->authorize($this->access->canPlan($actor, 'performance_objectives.manage', $childPlan->organization_id, $childPlan->organization_unit_id));
 
         $parentPlan = $parentObjective->plan;
         if ($parentPlan->getKey() === $childPlan->getKey() || $this->isAncestor($childPlan, $parentPlan)) {
@@ -206,6 +208,9 @@ final class PlanCascadeService
                 'version_no' => 1,
                 'is_current' => true,
             ])->save();
+            foreach ($target->periodTargets()->get() as $period) {
+                $period->replicate()->forceFill(['kpi_target_id' => $copy->getKey()])->save();
+            }
         }
     }
 

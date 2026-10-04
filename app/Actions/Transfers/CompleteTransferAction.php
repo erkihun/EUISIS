@@ -17,6 +17,7 @@ use App\Models\EmployeeAssignment;
 use App\Models\TransferApplication;
 use App\Models\TransferSetting;
 use App\Models\User;
+use App\Services\Performance\EmployeeAgreementService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -25,6 +26,7 @@ readonly class CompleteTransferAction
     public function __construct(
         private WriteAuditLogAction $writeAuditLogAction,
         private RecalculateEntitlementsAction $recalculateEntitlementsAction,
+        private EmployeeAgreementService $employeeAgreements,
     ) {}
 
     public function execute(TransferApplication $application, User $actor): TransferApplication
@@ -69,6 +71,7 @@ readonly class CompleteTransferAction
 
             // Update employee's current assignment pointer — employee UUID/number unchanged
             $employee->update(['current_assignment_id' => $newAssignment->id]);
+            $this->employeeAgreements->closeForAssignmentChange($currentAssignment, $newAssignment, $actor);
 
             // Mark application as transferred
             $application->update(['status' => TransferApplicationStatus::Transferred->value]);

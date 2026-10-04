@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
     gregorianIsoToEthiopian,
     ethiopianToGregorianIso,
@@ -62,8 +63,39 @@ export default function EthiopianDatePicker({
     const [viewYear, setViewYear] = useState(selectedEth?.year ?? todayEth.year);
     const [viewMonth, setViewMonth] = useState(selectedEth?.month ?? todayEth.month);
     const [open, setOpen] = useState(false);
-    const [openUpward, setOpenUpward] = useState(false);
+    const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
+    const popupRef = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        if (!open) return;
+
+        function updatePosition() {
+            if (!containerRef.current || !popupRef.current) return;
+            const anchor = containerRef.current.getBoundingClientRect();
+            const popup = popupRef.current.getBoundingClientRect();
+            const gutter = 8;
+            const gap = 4;
+            const below = window.innerHeight - anchor.bottom - gap - gutter;
+            const above = anchor.top - gap - gutter;
+            const top = below < popup.height && above > below
+                ? anchor.top - popup.height - gap
+                : anchor.bottom + gap;
+
+            setPopupPosition({
+                top: Math.max(gutter, Math.min(top, window.innerHeight - popup.height - gutter)),
+                left: Math.max(gutter, Math.min(anchor.left, window.innerWidth - popup.width - gutter)),
+            });
+        }
+
+        updatePosition();
+        window.addEventListener('resize', updatePosition);
+        window.addEventListener('scroll', updatePosition, true);
+        return () => {
+            window.removeEventListener('resize', updatePosition);
+            window.removeEventListener('scroll', updatePosition, true);
+        };
+    }, [open, viewYear, viewMonth, value, locale]);
 
     useEffect(() => {
         if (value) {
@@ -74,7 +106,8 @@ export default function EthiopianDatePicker({
 
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
-            if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+            if (containerRef.current && !containerRef.current.contains(e.target as Node)
+                && !popupRef.current?.contains(e.target as Node)) {
                 setOpen(false);
             }
         }
@@ -93,14 +126,7 @@ export default function EthiopianDatePicker({
     }
 
     function toggleOpen() {
-        if (open) { setOpen(false); return; }
-        // Decide whether to open upward based on available space below the button
-        if (containerRef.current) {
-            const rect = containerRef.current.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            setOpenUpward(spaceBelow < 320);
-        }
-        setOpen(true);
+        setOpen((current) => !current);
     }
 
     function selectDay(day: number) {
@@ -143,6 +169,7 @@ export default function EthiopianDatePicker({
                 id={id}
                 disabled={disabled}
                 onClick={toggleOpen}
+                aria-expanded={open}
                 className={`flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
             >
                 <span className={displayValue ? '' : 'text-gray-400'}>
@@ -153,10 +180,12 @@ export default function EthiopianDatePicker({
                 </svg>
             </button>
 
-            {open && (
+            {open && createPortal(
                 <div
-                    className={`absolute z-50 rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800 ${openUpward ? 'bottom-full mb-1' : 'top-full mt-1'}`}
-                    style={{ minWidth: '280px' }}
+                    ref={popupRef}
+                    lang={locale}
+                    className="fixed z-[1000] overflow-y-auto rounded-md border border-gray-200 bg-white text-gray-900 shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    style={{ ...popupPosition, width: '280px', maxWidth: 'calc(100vw - 16px)', maxHeight: 'calc(100vh - 16px)' }}
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
@@ -238,7 +267,8 @@ export default function EthiopianDatePicker({
                             </button>
                         )}
                     </div>
-                </div>
+                </div>,
+                document.body,
             )}
         </div>
     );

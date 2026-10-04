@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Performance;
 
+use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\EmployeeStatus;
 use App\Enums\Performance\AgreementStatus;
@@ -68,6 +69,12 @@ final class EmployeeAgreementService
     {
         $this->access->authorize($assignment->employee_id === $employee->getKey() && $this->canManageAssignment($actor, $assignment));
 
+        $currentAssignmentId = $employee->newQuery()->whereKey($employee->getKey())->value('current_assignment_id');
+        if ($assignment->assignment_status !== AssignmentStatus::Active
+            || (! $temporary && (! $assignment->is_current || $currentAssignmentId !== $assignment->getKey()))) {
+            throw ValidationException::withMessages(['employee_assignment_id' => __('performance.errors.assignment_outside_cycle')]);
+        }
+
         if (PerformanceCycleService::isReadOnly($cycle) || in_array($cycle->status, [CycleStatus::Finalized, CycleStatus::Draft], true)) {
             throw ValidationException::withMessages(['cycle_id' => __('performance.errors.cycle_not_open')]);
         }
@@ -87,7 +94,12 @@ final class EmployeeAgreementService
 
         $plan = PerformancePlan::query()
             ->where('cycle_id', $cycle->getKey())->where('plan_type', PlanType::Position->value)
+            ->where('organization_id', $assignment->organization_id)
+            ->where('organization_unit_id', $assignment->organization_unit_id)
             ->where('position_id', $assignment->position_id)->where('status', PlanStatus::Published->value)
+            ->where(fn ($q) => $q->whereNull('effective_from')->orWhere('effective_from', '<=', $to->toDateString()))
+            ->where(fn ($q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', $from->toDateString()))
+            ->orderByDesc('version_no')->orderByDesc('published_at')->orderByDesc('id')
             ->first();
 
         return DB::transaction(function () use ($employee, $assignment, $cycle, $actor, $manager, $temporary, $from, $to, $plan): EmployeePerformanceAgreement {
@@ -349,6 +361,42 @@ final class EmployeeAgreementService
             'closed_at' => now(),
             'close_reason' => $reason,
         ], $reason);
+    }
+
+    /**
+     * Mandatory history closure inside an already-authorized HR transfer.
+     * Receiving-organization agreements are prepared separately against that
+     * organization's applicable cycle and plan; no replacement is guessed here.
+     */
+    public function closeForAssignmentChange(EmployeeAssignment $oldAssignment, EmployeeAssignment $newAssignment, User $actor): void
+    {
+        if ($oldAssignment->employee_id !== $newAssignment->employee_id || $newAssignment->effective_from === null) {
+            throw ValidationException::withMessages(['employee_assignment_id' => __('performance.errors.assignment_outside_cycle')]);
+        }
+
+        DB::transaction(function () use ($oldAssignment, $newAssignment, $actor): void {
+            $end = Carbon::parse($newAssignment->effective_from)->subDay();
+            $agreements = EmployeePerformanceAgreement::query()
+                ->where('employee_assignment_id', $oldAssignment->getKey())
+                ->where('employee_id', $oldAssignment->employee_id)
+                ->whereIn('status', [AgreementStatus::Agreed->value, AgreementStatus::Active->value, AgreementStatus::UnderReview->value])
+                ->lockForUpdate()->get();
+
+            foreach ($agreements as $agreement) {
+                if ($end->lt($agreement->effective_from)) {
+                    // A same-day/future agreement cannot be assigned a negative
+                    // period. Roll back the transfer for an explicit decision.
+                    throw ValidationException::withMessages(['end_date' => __('performance.errors.end_before_start')]);
+                }
+                $reason = 'HR assignment transfer';
+                $this->move($agreement, AgreementStatus::Closed, $actor, [
+                    'effective_to' => $end->copy()->min($agreement->effective_to)->toDateString(),
+                    'active_key' => null,
+                    'closed_at' => now(),
+                    'close_reason' => $reason,
+                ], $reason);
+            }
+        });
     }
 
     /**

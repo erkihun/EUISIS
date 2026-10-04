@@ -285,6 +285,13 @@ const navGroups: NavGroup[] = [
             { routeName: 'daily-activities.settings', labelKey: 'nav.dailyActivitySettings', icon: SettingsIcon, permission: 'daily_activity_settings.view' },
             { routeName: 'vacancy-announcements.index', labelKey: 'nav.vacancyAnnouncements', icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
             { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',        icon: Inbox },
+        ],
+    },
+    {
+        key: 'transferManagement',
+        labelKey: 'nav.transferManagement',
+        icon: ArrowLeftRightIcon,
+        items: [
             { routeName: 'transfers.dashboard', labelKey: 'nav.transferDashboard', icon: ArrowLeftRightIcon, permission: 'transfers.view' },
             { routeName: 'transfer-announcements.index', labelKey: 'nav.transferAnnouncements', icon: MegaphoneIcon, permission: 'transfers.announcements.view' },
             { routeName: 'transfer-applications.index', labelKey: 'nav.transferApplications', icon: Inbox,              permission: 'transfers.applications.view' },
@@ -454,7 +461,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
 const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 
 const sections = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'employeeManagement', 'organization', 'hrMasterData', 'identity'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'employeeManagement', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];

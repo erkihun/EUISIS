@@ -44,6 +44,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::delete('/strategic-goal-allocations/{allocation}', [StrategicGoalController::class, 'destroyAllocation'])->whereUuid('allocation')->name('strategic-goal-allocations.destroy');
         Route::post('/strategic-goals/{strategicGoal}/transition', [StrategicGoalController::class, 'transition'])->whereUuid('strategicGoal')->name('strategic-goals.transition');
         Route::post('/strategic-goals/{strategicGoal}/return', [StrategicGoalController::class, 'returnToDraft'])->whereUuid('strategicGoal')->name('strategic-goals.return');
+        Route::post('/strategic-goals/{strategicGoal}/versions', [StrategicGoalController::class, 'newVersion'])->whereUuid('strategicGoal')->name('strategic-goals.versions.store');
 
         Route::get('/kpis', [KpiController::class, 'index'])->name('kpis.index');
         Route::post('/kpis', [KpiController::class, 'store'])->name('kpis.store');

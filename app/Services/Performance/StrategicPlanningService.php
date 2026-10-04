@@ -10,6 +10,8 @@ use App\Models\KpiPeriodTarget;
 use App\Models\KpiTarget;
 use App\Models\OrganizationUnit;
 use App\Models\PerformanceCycle;
+use App\Models\PerformanceObjective;
+use App\Models\PerformancePlan;
 use App\Models\StrategicGoal;
 use App\Models\StrategicGoalAllocation;
 use App\Models\User;
@@ -54,28 +56,40 @@ final class StrategicPlanningService
     /** @param array<string, mixed> $data */
     public function updateGoal(StrategicGoal $goal, array $data, User $actor): StrategicGoal
     {
-        $this->assertDraft($goal, $actor, 'strategic_goals.update');
-        // An emptied date means "the whole cycle", exactly as when the goal was created.
-        foreach (['effective_from' => $goal->cycle->start_date, 'effective_to' => $goal->cycle->end_date] as $field => $cycleDate) {
-            if (array_key_exists($field, $data) && blank($data[$field])) {
-                $data[$field] = $cycleDate?->toDateString();
+        return DB::transaction(function () use ($goal, $data, $actor): StrategicGoal {
+            $goal = StrategicGoal::query()->whereKey($goal->getKey())->lockForUpdate()->firstOrFail();
+            $this->assertDraft($goal, $actor, 'strategic_goals.update');
+            if (array_key_exists('weight_percent', $data)) {
+                $total = Dec::sum($goal->allocations()->get()->map(fn ($row) => Dec::of($row->organization_contribution_percent)));
+                if ($total->isGreaterThan(Dec::of($data['weight_percent']))) {
+                    throw ValidationException::withMessages(['weight_percent' => __('performance.validation.allocation_total', ['total' => Dec::str($total, 2), 'weight' => $data['weight_percent']])]);
+                }
             }
-        }
-        $this->assertDatesInsideCycle($goal->cycle, $data['effective_from'] ?? $goal->effective_from?->toDateString(), $data['effective_to'] ?? $goal->effective_to?->toDateString());
-        if (isset($data['code']) && StrategicGoal::query()->where('cycle_id', $goal->cycle_id)->where('organization_id', $goal->organization_id)->where('code', $data['code'])->where('id', '!=', $goal->getKey())->exists()) {
-            throw ValidationException::withMessages(['code' => __('performance.errors.code_taken')]);
-        }
-        $old = $goal->only(array_keys($data));
-        $goal->fill($data)->save();
-        $this->audit->record(AuditEventType::StrategicGoalChanged, $actor, $goal, $goal->only(array_keys($data)), $old);
+            // An emptied date means "the whole cycle", exactly as when the goal was created.
+            foreach (['effective_from' => $goal->cycle->start_date, 'effective_to' => $goal->cycle->end_date] as $field => $cycleDate) {
+                if (array_key_exists($field, $data) && blank($data[$field])) {
+                    $data[$field] = $cycleDate?->toDateString();
+                }
+            }
+            $this->assertDatesInsideCycle($goal->cycle, $data['effective_from'] ?? $goal->effective_from?->toDateString(), $data['effective_to'] ?? $goal->effective_to?->toDateString());
+            if (isset($data['code']) && $data['code'] !== $goal->code && $goal->supersedes_goal_id !== null) {
+                throw ValidationException::withMessages(['code' => __('performance.validation.goal_version_code')]);
+            }
+            if (isset($data['code']) && $data['code'] !== $goal->code && StrategicGoal::query()->where('cycle_id', $goal->cycle_id)->where('organization_id', $goal->organization_id)->where('code', $data['code'])->exists()) {
+                throw ValidationException::withMessages(['code' => __('performance.errors.code_taken')]);
+            }
+            $old = $goal->only(array_keys($data));
+            $goal->fill($data)->save();
+            $this->audit->record(AuditEventType::StrategicGoalChanged, $actor, $goal, $goal->only(array_keys($data)), $old);
 
-        return $goal;
+            return $goal;
+        });
     }
 
     public function deleteGoal(StrategicGoal $goal, User $actor): void
     {
         $this->assertDraft($goal, $actor, 'strategic_goals.delete_draft');
-        if ($goal->objectives()->exists()) {
+        if ($goal->objectives()->exists() || StrategicGoal::query()->where('supersedes_goal_id', $goal->getKey())->exists()) {
             throw ValidationException::withMessages(['goal' => __('performance.validation.goal_has_objectives')]);
         }
         $this->audit->record(AuditEventType::StrategicGoalChanged, $actor, $goal, ['deleted' => true]);
@@ -92,7 +106,9 @@ final class StrategicPlanningService
         }
 
         return DB::transaction(function () use ($goal, $data, $actor): StrategicGoalAllocation {
-            StrategicGoal::query()->whereKey($goal->getKey())->lockForUpdate()->firstOrFail();
+            $goal = StrategicGoal::query()->whereKey($goal->getKey())->lockForUpdate()->firstOrFail();
+            $this->assertDraft($goal, $actor, 'strategic_goal_allocations.manage');
+            $this->assertAllocationAmount($goal, $data['organization_contribution_percent']);
             if ($goal->allocations()->where('organization_unit_id', $data['organization_unit_id'])->exists()) {
                 throw ValidationException::withMessages(['organization_unit_id' => __('performance.validation.allocation_duplicate')]);
             }
@@ -109,33 +125,44 @@ final class StrategicPlanningService
     /** @param array<string, mixed> $data */
     public function updateAllocation(StrategicGoalAllocation $allocation, array $data, User $actor): StrategicGoalAllocation
     {
-        $goal = $allocation->goal;
-        $this->assertDraft($goal, $actor, 'strategic_goal_allocations.manage');
-        if (($data['is_lead'] ?? false) && $goal->allocations()->where('id', '!=', $allocation->getKey())->where('is_lead', true)->exists()) {
-            throw ValidationException::withMessages(['is_lead' => __('performance.validation.lead_exists')]);
-        }
-        $old = $allocation->only(array_keys($data));
-        unset($data['organization_unit_id']);
-        $allocation->fill($data)->save();
-        $this->audit->record(AuditEventType::StrategicGoalAllocationChanged, $actor, $goal, ['allocation' => $allocation->getKey(), ...$data], $old);
+        return DB::transaction(function () use ($allocation, $data, $actor): StrategicGoalAllocation {
+            $goal = StrategicGoal::query()->whereKey($allocation->strategic_goal_id)->lockForUpdate()->firstOrFail();
+            $this->assertDraft($goal, $actor, 'strategic_goal_allocations.manage');
+            $allocation = $goal->allocations()->whereKey($allocation->getKey())->firstOrFail();
+            $this->assertAllocationAmount($goal, $data['organization_contribution_percent'] ?? $allocation->organization_contribution_percent, $allocation->getKey());
+            if (($data['is_lead'] ?? false) && $goal->allocations()->where('id', '!=', $allocation->getKey())->where('is_lead', true)->exists()) {
+                throw ValidationException::withMessages(['is_lead' => __('performance.validation.lead_exists')]);
+            }
+            unset($data['organization_unit_id'], $data['strategic_goal_id'], $data['created_by']);
+            $old = $allocation->only(array_keys($data));
+            $allocation->fill($data)->save();
+            $this->audit->record(AuditEventType::StrategicGoalAllocationChanged, $actor, $goal, ['allocation' => $allocation->getKey(), ...$data], $old);
 
-        return $allocation;
+            return $allocation;
+        });
     }
 
     public function deleteAllocation(StrategicGoalAllocation $allocation, User $actor): void
     {
         $goal = $allocation->goal;
         $this->assertDraft($goal, $actor, 'strategic_goal_allocations.manage');
+        if (PerformanceObjective::query()->where('strategic_goal_allocation_id', $allocation->getKey())->exists()) {
+            throw ValidationException::withMessages(['allocation' => __('performance.validation.allocation_referenced')]);
+        }
         $this->audit->record(AuditEventType::StrategicGoalAllocationChanged, $actor, $goal, ['removed' => $allocation->getKey()]);
         $allocation->delete();
     }
 
     /** @return array{allocation_total:string,objective_total:string,remaining:string,ready:bool,problems:list<string>} */
-    public function readiness(StrategicGoal $goal): array
+    public function readiness(StrategicGoal $goal, ?PerformancePlan $plan = null): array
     {
         $allocation = Dec::sum($goal->allocations()->get()->map(fn ($row) => Dec::of($row->organization_contribution_percent)));
+        $plan ??= PerformancePlan::query()->where('cycle_id', $goal->cycle_id)->where('organization_id', $goal->organization_id)
+            ->where('plan_type', 'ORGANIZATION')->whereNotIn('status', ['SUPERSEDED', 'CLOSED'])
+            ->whereHas('objectives', fn ($query) => $query->where('strategic_goal_id', $goal->getKey()))
+            ->orderByDesc('version_no')->orderByDesc('created_at')->first();
         $objective = Dec::sum($goal->objectives()->where('status', 'ACTIVE')
-            ->whereHas('plan', fn ($query) => $query->whereNotIn('status', ['SUPERSEDED', 'CLOSED']))
+            ->where('performance_plan_id', $plan?->getKey())
             ->get()->map(fn ($row) => Dec::of($row->absolute_weight_percent ?? $row->weight)));
         $weight = Dec::of($goal->weight_percent);
         $problems = [];
@@ -159,10 +186,19 @@ final class StrategicPlanningService
     }
 
     /** @return array{total:string,remaining:string,ready:bool,problems:list<string>} */
-    public function organizationReadiness(string $cycleId, string $organizationId): array
+    public function organizationReadiness(string $cycleId, string $organizationId, ?PerformancePlan $plan = null): array
     {
         $goals = StrategicGoal::query()->where('cycle_id', $cycleId)->where('organization_id', $organizationId)
-            ->where('status', '!=', StrategicGoalStatus::Superseded->value)->get();
+            ->where('status', '!=', StrategicGoalStatus::Superseded->value)->orderByDesc('version_no')->get()->unique('code');
+        if ($plan !== null) {
+            // A plan's own goal references are its immutable strategic basis.
+            $mapped = $plan->objectives()->where('status', 'ACTIVE')->whereNotNull('strategic_goal_id')->pluck('strategic_goal_id');
+            $referenced = StrategicGoal::query()->whereIn('id', $mapped)->get();
+            if ($referenced->pluck('code')->unique()->count() !== $goals->count() || $referenced->pluck('code')->unique()->count() !== $referenced->count()) {
+                return ['total' => '0.0000', 'remaining' => '100.0000', 'ready' => false, 'problems' => [__('performance.validation.goal_outside_plan')]];
+            }
+            $goals = $referenced;
+        }
         $total = Dec::sum($goals->map(fn ($goal) => Dec::of($goal->weight_percent)));
         $problems = [];
         if ($goals->isEmpty()) {
@@ -171,7 +207,7 @@ final class StrategicPlanningService
             $problems[] = __('performance.validation.goal_weights', ['total' => Dec::str($total, 2)]);
         }
         foreach ($goals as $goal) {
-            foreach ($this->readiness($goal)['problems'] as $problem) {
+            foreach ($this->readiness($goal, $plan)['problems'] as $problem) {
                 $problems[] = $goal->code.': '.$problem;
             }
         }
@@ -198,13 +234,20 @@ final class StrategicPlanningService
             throw ValidationException::withMessages(['status' => __('performance.validation.goal_transition_invalid')]);
         }
 
-        return DB::transaction(function () use ($goal, $to, $actor): StrategicGoal {
+        return DB::transaction(function () use ($goal, $to, $actor, $expected): StrategicGoal {
             StrategicGoal::query()->where('cycle_id', $goal->cycle_id)->where('organization_id', $goal->organization_id)->lockForUpdate()->get();
+            $goal->refresh();
+            if ($goal->status !== $expected || PerformanceCycleService::isReadOnly($goal->cycle)) {
+                throw ValidationException::withMessages(['status' => __('performance.validation.goal_transition_invalid')]);
+            }
             $readiness = $this->organizationReadiness($goal->cycle_id, $goal->organization_id);
             if (! $readiness['ready']) {
                 throw ValidationException::withMessages(['readiness' => $readiness['problems']]);
             }
             $old = $goal->status->value;
+            if ($to === StrategicGoalStatus::Published && $goal->supersedes_goal_id !== null) {
+                StrategicGoal::query()->whereKey($goal->supersedes_goal_id)->update(['status' => StrategicGoalStatus::Superseded->value]);
+            }
             $goal->forceFill([
                 'status' => $to,
                 'approved_by' => $to === StrategicGoalStatus::Approved ? $actor->getKey() : $goal->approved_by,
@@ -249,7 +292,7 @@ final class StrategicPlanningService
     /** @param list<array<string, mixed>> $rows */
     public function replacePeriodTargets(KpiTarget $target, array $rows, User $actor): void
     {
-        $this->access->authorize($this->access->inScope($actor, 'kpi_targets.manage', $target->plan->organization_id));
+        $this->access->authorize($this->access->canPlan($actor, 'kpi_targets.manage', $target->plan->organization_id, $target->plan->organization_unit_id));
         if (! PerformancePlanService::isEditable($target->plan)) {
             throw ValidationException::withMessages(['target' => __('performance.errors.plan_locked')]);
         }
@@ -273,6 +316,41 @@ final class StrategicPlanningService
                 KpiPeriodTarget::query()->create(['kpi_target_id' => $target->getKey(), ...$row]);
             }
             $this->audit->record(AuditEventType::KpiPeriodTargetsChanged, $actor, $target->plan, ['target' => $target->getKey(), 'period_targets' => $rows]);
+        });
+    }
+
+    private function assertAllocationAmount(StrategicGoal $goal, mixed $value, ?string $excludeId = null): void
+    {
+        $amount = Dec::of($value);
+        $existing = $goal->allocations()->when($excludeId !== null, fn ($query) => $query->where('id', '!=', $excludeId))->get();
+        $total = Dec::sum($existing->map(fn ($row) => Dec::of($row->organization_contribution_percent)))->plus($amount ?? Dec::zero());
+        if ($amount === null || ! $amount->isPositive() || $amount->isGreaterThan(100) || $total->isGreaterThan(Dec::of($goal->weight_percent))) {
+            throw ValidationException::withMessages(['organization_contribution_percent' => __('performance.validation.allocation_total', ['total' => Dec::str($total, 2), 'weight' => Dec::str(Dec::of($goal->weight_percent), 2)])]);
+        }
+    }
+
+    public function newVersion(StrategicGoal $goal, string $reason, User $actor): StrategicGoal
+    {
+        $this->access->authorize($this->access->inScope($actor, 'strategic_goals.update', $goal->organization_id));
+
+        return DB::transaction(function () use ($goal, $reason, $actor): StrategicGoal {
+            $goal = StrategicGoal::query()->whereKey($goal->getKey())->lockForUpdate()->firstOrFail();
+            if ($goal->status !== StrategicGoalStatus::Published || PerformanceCycleService::isReadOnly($goal->cycle)) {
+                throw ValidationException::withMessages(['goal' => __('performance.validation.goal_not_editable')]);
+            }
+            $versions = StrategicGoal::query()->where('cycle_id', $goal->cycle_id)->where('organization_id', $goal->organization_id)->where('code', $goal->code)->lockForUpdate()->get();
+            if ($versions->contains(fn ($row) => in_array($row->status->value, ['DRAFT', 'UNDER_REVIEW', 'APPROVED'], true))) {
+                throw ValidationException::withMessages(['goal' => __('performance.errors.version_pending')]);
+            }
+            $next = $goal->replicate(['approved_by', 'published_at', 'return_reason']);
+            $next->forceFill(['version_no' => $versions->max('version_no') + 1, 'supersedes_goal_id' => $goal->getKey(), 'change_reason' => $reason,
+                'status' => StrategicGoalStatus::Draft, 'created_by' => $actor->getKey()])->save();
+            foreach ($goal->allocations()->get() as $allocation) {
+                $allocation->replicate()->forceFill(['strategic_goal_id' => $next->getKey(), 'created_by' => $actor->getKey()])->save();
+            }
+            $this->audit->record(AuditEventType::StrategicGoalChanged, $actor, $next, ['version_no' => $next->version_no, 'supersedes_goal_id' => $goal->getKey()], null, $reason);
+
+            return $next;
         });
     }
 

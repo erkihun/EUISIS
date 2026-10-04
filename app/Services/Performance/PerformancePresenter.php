@@ -26,6 +26,7 @@ final class PerformancePresenter
     public function __construct(
         private readonly EpmsAccess $access,
         private readonly EmployeeScoreCalculator $calculator,
+        private readonly PerformanceCascadeService $cascade,
     ) {}
 
     /** @return array<string, mixed> */
@@ -58,6 +59,7 @@ final class PerformancePresenter
             'items' => $agreement->items()->with(['kpi', 'objective'])->get()->map(fn ($item) => [
                 'id' => $item->getKey(),
                 'objective' => $item->objective ? ['code' => $item->objective->code, 'title_en' => $item->objective->title_en, 'title_am' => $item->objective->title_am] : null,
+                'cascade_trace' => $item->objective ? $this->cascade->trace($item->objective) : [],
                 'kpi' => ['id' => $item->kpi_id, 'code' => $item->kpi->code, 'name_en' => $item->kpi->name_en, 'name_am' => $item->kpi->name_am, 'direction' => $item->kpi->direction->value, 'unit' => $item->kpi->unit_of_measure, 'milestones' => $item->kpi->milestones],
                 'expected_output' => $item->expected_output,
                 'weight' => $item->weight,

@@ -23,8 +23,13 @@ type Objective = {
     id: string; code: string; title_en: string; title_am: string | null; description_en: string | null; description_am: string | null;
     weight: string; priority: number | null; is_mandatory: boolean; status: string; rejection_reason: string | null;
     strategic_goal_id: string | null; absolute_weight_percent: string | null; local_weight_percent: string | null;
+    strategic_goal_allocation_id: string | null; position_service_id: string | null; parent_objective_id: string | null;
+    position_service: PositionService | null; cascade_trace: CascadeStep[];
     objective_type: string; cascade_mode: string; lineage: { code: string; title_en: string; plan: string | null } | null; targets: Target[];
 };
+
+type PositionService = { id: string; service_no: string; name_en: string; name_am: string | null };
+type CascadeStep = { type: string; id: string; label: string | null; weight?: string; plan_id?: string; unit?: string | null; position?: string | null };
 
 type TraceTarget = { target_id: string; kpi_code: string; kpi_name_en: string; kpi_name_am?: string | null; target: string | null; actual: string | null; achievement: string | null; achievement_formula?: string | null; weight: string; weighted: string | null; health: string; lineage?: { source?: string } };
 type PlanTrace = { formula?: Record<string, string>; score: string | null; objectives: { objective_id: string; code: string; title_en: string; title_am?: string | null; weight: string; score: string | null; contribution: string | null; targets: TraceTarget[] }[] };
@@ -32,10 +37,12 @@ type PlanTrace = { formula?: Record<string, string>; score: string | null; objec
 type Props = {
     plan: PlanSummary & { change_reason: string | null; return_reason: string | null; parent: { id: string; title: string } | null; supersedes_plan_id: string | null; effective_from: string | null; effective_to: string | null; editable: boolean; cycle_period: [string | null, string | null] };
     objectives: Objective[];
+    positionServices: PositionService[];
     parentObjectives: { id: string; code: string; title_en: string; title_am: string | null; weight: string; is_mandatory: boolean; cascaded: boolean }[];
     childPlans: PlanSummary[];
     cascades: { parent: string | null; child_code: string | null; child_title_en: string | null; child_plan: string | null; type: string }[];
     versions: { id: string; version_no: number; status: string; published_at: string | null; change_reason: string | null }[];
+    versionParents: { id: string; title: string; version_no: number; organization_unit_id: string | null }[];
     validation: string[];
     score: { as_of: string; score: string | null; trace: PlanTrace } | null;
     pendingAmendments: { id: string; subject_id: string; original_values: Record<string, unknown> | null; proposed_values: Record<string, unknown> | null; reason: string; effective_date: string; requested_by: number }[];
@@ -52,6 +59,7 @@ export default function PlanShow(props: Props) {
     const { t, locale } = useLocale();
     const label = useEnumLabel();
     const { confirm } = useConfirm();
+    const [versionParentId, setVersionParentId] = useState('');
     const [addingObjective, setAddingObjective] = useState(false);
 
     async function workflow(action: 'submit' | 'return' | 'approve' | 'publish') {
@@ -65,7 +73,7 @@ export default function PlanShow(props: Props) {
 
     async function newVersion() {
         const { confirmed, reason } = await confirm({ title: t('performance.actions.newVersion'), description: t('performance.plans.editLocked'), confirmLabel: t('performance.actions.newVersion'), cancelLabel: t('performance.actions.cancel'), requireReason: true, reasonLabel: t('performance.fields.reason') });
-        if (confirmed) router.post(route('performance.plans.versions.store', plan.id), { reason });
+        if (confirmed) router.post(route('performance.plans.versions.store', plan.id), { reason, parent_plan_id: versionParentId || null });
     }
 
     const where = [nameOf(plan.organization, locale), nameOf(plan.unit, locale), titleOf(plan.position, locale)].filter(Boolean).join(' › ');
@@ -77,7 +85,16 @@ export default function PlanShow(props: Props) {
                 {(can.review || can.approve) && <button type="button" className={secondaryBtn} onClick={() => workflow('return')}>{t('performance.actions.return')}</button>}
                 {can.approve && <button type="button" className={primaryBtn} onClick={() => workflow('approve')}>{t('performance.actions.approve')}</button>}
                 {can.publish && <button type="button" className={primaryBtn} onClick={() => workflow('publish')}>{t('performance.actions.publish')}</button>}
-                {can.newVersion && <button type="button" className={secondaryBtn} onClick={newVersion}>{t('performance.actions.newVersion')}</button>}
+                {can.newVersion && <>
+                    {plan.parent && <label className="flex flex-wrap items-center gap-2 text-xs">
+                        {t('performance.fields.parentPlan')}
+                        <select className={inputCls} value={versionParentId} onChange={(e) => setVersionParentId(e.target.value)}>
+                            <option value="">{plan.parent.title}</option>
+                            {props.versionParents?.map((parent) => <option key={parent.id} value={parent.id}>{parent.title} · {t('performance.fields.version')} {parent.version_no}</option>)}
+                        </select>
+                    </label>}
+                    <button type="button" className={secondaryBtn} onClick={newVersion}>{t('performance.actions.newVersion')}</button>
+                </>}
             </div>} />}>
             <Head title={plan.title} />
             <div className={pageCls}>
@@ -100,7 +117,7 @@ export default function PlanShow(props: Props) {
 
                 <Section title={t('performance.plans.objectives')} description={t('performance.plans.mandatoryNote')}
                     actions={can.edit && <button type="button" className={smallBtn} onClick={() => setAddingObjective((v) => !v)}>{t('performance.plans.addObjective')}</button>}>
-                    {addingObjective && <ObjectiveForm planId={plan.id} types={props.options.objective_types} strategicGoals={props.strategicGoals} onDone={() => setAddingObjective(false)} />}
+                    {addingObjective && <ObjectiveForm planId={plan.id} planType={plan.type} types={props.options.objective_types} strategicGoals={props.strategicGoals} positionServices={props.positionServices} parentObjectives={parentObjectives} onDone={() => setAddingObjective(false)} />}
                     {objectives.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : (
                         <div className="space-y-4">
                             {objectives.map((objective) => <ObjectiveCard key={objective.id} objective={objective} {...props} />)}
@@ -182,7 +199,7 @@ export default function PlanShow(props: Props) {
     );
 }
 
-function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, strategicGoals }: Props & { objective: Objective }) {
+function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, strategicGoals, positionServices, parentObjectives }: Props & { objective: Objective }) {
     const { t, locale } = useLocale();
     const label = useEnumLabel();
     const { confirm } = useConfirm();
@@ -210,6 +227,7 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
                         {objective.is_mandatory && ` · ${t('performance.fields.mandatory')}`}
                         {objective.lineage && ` · ${t('performance.plans.lineage')} ${objective.lineage.code} (${objective.lineage.plan ?? ''})`}
                     </p>
+                    {objective.position_service && <p className="mt-1 text-xs text-gray-600 dark:text-slate-300">{t('performance.fields.positionService')}: {objective.position_service.service_no} — {nameOf(objective.position_service, locale)}</p>}
                     {rejected && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{t('performance.actions.decline')}: {objective.rejection_reason}</p>}
                 </div>
                 {can.edit && !rejected && (
@@ -221,7 +239,17 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
                 )}
             </div>
 
-            {mode === 'edit' && <ObjectiveForm planId={plan.id} types={options.objective_types} strategicGoals={strategicGoals} objective={objective} onDone={() => setMode(null)} />}
+            {objective.cascade_trace.length > 0 && <details className="mt-3 text-xs text-gray-600 dark:text-slate-300">
+                <summary className="cursor-pointer font-medium">{t('performance.plans.cascadeTrace')}</summary>
+                <ol className="mt-2 space-y-2 border-l-2 border-blue-200 pl-3 dark:border-blue-900">
+                    {objective.cascade_trace.map((step, index) => <li key={`${step.type}-${step.id}-${index}`}>
+                        {step.plan_id ? <Link className="text-blue-700 hover:underline dark:text-blue-300" href={route('performance.plans.show', step.plan_id)}>{step.label}</Link> : <span>{step.label}</span>}
+                        {step.weight !== undefined && <span className="ml-2 text-orange-700 dark:text-orange-300">{formatScore(step.weight)}%</span>}
+                        {(step.unit || step.position) && <span className="ml-2">{[step.unit, step.position].filter(Boolean).join(' › ')}</span>}
+                    </li>)}
+                </ol>
+            </details>}
+            {mode === 'edit' && <ObjectiveForm planId={plan.id} planType={plan.type} types={options.objective_types} strategicGoals={strategicGoals} positionServices={positionServices} parentObjectives={parentObjectives} objective={objective} onDone={() => setMode(null)} />}
             {mode === 'target' && <TargetForm objectiveId={objective.id} kpis={kpis} parentTargets={parentTargets} onDone={() => setMode(null)} />}
 
             {objective.targets.length > 0 && (
@@ -295,13 +323,14 @@ function PeriodTargetsForm({ target, cycleStart, onDone }: { target: Target; cyc
     </form>;
 }
 
-function ObjectiveForm({ planId, types, strategicGoals, objective, onDone }: { planId: string; types: string[]; strategicGoals: Props['strategicGoals']; objective?: Objective; onDone: () => void }) {
+function ObjectiveForm({ planId, planType, types, strategicGoals, positionServices, parentObjectives, objective, onDone }: { planId: string; planType: string; types: string[]; strategicGoals: Props['strategicGoals']; positionServices: Props['positionServices']; parentObjectives: Props['parentObjectives']; objective?: Objective; onDone: () => void }) {
     const { t, locale } = useLocale();
     const label = useEnumLabel();
     const form = useForm({
         strategic_goal_id: objective?.strategic_goal_id ?? '', code: objective?.code ?? '', title_en: objective?.title_en ?? '', title_am: objective?.title_am ?? '', description_en: objective?.description_en ?? '',
         objective_type: objective?.objective_type ?? 'ANNUAL', is_mandatory: objective?.is_mandatory ?? false, weight: objective?.weight ?? '', priority: objective?.priority?.toString() ?? '',
         absolute_weight_percent: objective?.absolute_weight_percent ?? '', local_weight_percent: objective?.local_weight_percent ?? '',
+        position_service_id: objective?.position_service_id ?? '', parent_objective_id: objective?.parent_objective_id ?? '',
     });
 
     function submit(e: FormEvent) {
@@ -314,10 +343,23 @@ function ObjectiveForm({ planId, types, strategicGoals, objective, onDone }: { p
 
     return (
         <form onSubmit={submit} className="my-3 grid gap-3 rounded-lg bg-gray-50 p-3 sm:grid-cols-2 lg:grid-cols-4 dark:bg-slate-800/50">
+            {planType !== 'ORGANIZATION' && <Field label={t('performance.fields.upstreamObjective')} error={form.errors.parent_objective_id} className="sm:col-span-2">
+                <select className={inputCls} value={form.data.parent_objective_id} disabled={!!objective} onChange={(e) => form.setData('parent_objective_id', e.target.value)}>
+                    <option value="">—</option>
+                    {parentObjectives.map((parent) => <option key={parent.id} value={parent.id}>{parent.code} — {titleOf(parent, locale)}</option>)}
+                </select>
+            </Field>}
+            {planType === 'POSITION' && <Field label={t('performance.fields.positionService')} error={form.errors.position_service_id} className="sm:col-span-2">
+                <select className={inputCls} value={form.data.position_service_id} onChange={(e) => form.setData('position_service_id', e.target.value)}>
+                    <option value="">—</option>
+                    {objective?.position_service && !positionServices.some((service) => service.id === objective.position_service_id) && <option value={objective.position_service.id}>{objective.position_service.service_no} — {nameOf(objective.position_service, locale)}</option>}
+                    {positionServices.map((service) => <option key={service.id} value={service.id}>{service.service_no} — {nameOf(service, locale)}</option>)}
+                </select>
+            </Field>}
             {strategicGoals.length > 0 && <Field label={t('performance.strategicGoals.title')} error={form.errors.strategic_goal_id} className="sm:col-span-2"><select className={inputCls} value={form.data.strategic_goal_id} onChange={(e) => form.setData('strategic_goal_id', e.target.value)}><option value="">—</option>{strategicGoals.map((goal) => <option key={goal.id} value={goal.id}>{goal.code} — {(locale === 'am' && goal.name_am) || goal.name_en} ({formatScore(goal.weight_percent)}%)</option>)}</select></Field>}
             <Field label={t('performance.fields.code')} error={form.errors.code}><input className={inputCls} value={form.data.code} disabled={!!objective} onChange={(e) => form.setData('code', e.target.value)} required={!objective} /></Field>
             <Field label={t('performance.fields.titleEn')} error={form.errors.title_en} className="lg:col-span-2"><input className={inputCls} value={form.data.title_en} onChange={(e) => form.setData('title_en', e.target.value)} required /></Field>
-            <Field label={t('performance.fields.weight')} error={form.errors.weight}><input className={inputCls} inputMode="decimal" value={form.data.weight} onChange={(e) => form.setData('weight', e.target.value)} required /></Field>
+            <Field label={t('performance.fields.weight')} error={form.errors.weight}><input className={inputCls} inputMode="decimal" value={form.data.weight} onChange={(e) => form.setData({ ...form.data, weight: e.target.value, local_weight_percent: planType === 'ORGANIZATION' ? form.data.local_weight_percent : e.target.value })} required /></Field>
             {strategicGoals.length > 0 && <Field label={t('performance.fields.absoluteWeight')} error={form.errors.absolute_weight_percent}><input className={inputCls} inputMode="decimal" value={form.data.absolute_weight_percent} onChange={(e) => form.setData('absolute_weight_percent', e.target.value)} /></Field>}
             <Field label={t('performance.fields.titleAm')} error={form.errors.title_am} className="lg:col-span-2"><input className={inputCls} value={form.data.title_am} onChange={(e) => form.setData('title_am', e.target.value)} /></Field>
             <Field label={t('performance.fields.type')} error={form.errors.objective_type}>

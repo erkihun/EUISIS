@@ -38,7 +38,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class PerformancePlanService
 {
-    public function __construct(private readonly EpmsAccess $access, private readonly EpmsAudit $audit, private readonly StrategicPlanningService $strategicPlanning) {}
+    public function __construct(private readonly EpmsAccess $access, private readonly EpmsAudit $audit, private readonly StrategicPlanningService $strategicPlanning, private readonly PerformanceCascadeService $traceability) {}
 
     public static function isEditable(PerformancePlan $plan): bool
     {
@@ -49,7 +49,6 @@ final class PerformancePlanService
     public function create(array $data, User $actor): PerformancePlan
     {
         $type = PlanType::from($data['plan_type']);
-        $this->access->authorize($this->access->inScope($actor, 'performance_plans.create', $data['organization_id'] ?? null));
 
         /** @var PerformanceCycle $cycle */
         $cycle = PerformanceCycle::query()->findOrFail($data['cycle_id']);
@@ -80,6 +79,10 @@ final class PerformancePlanService
             }
         }
 
+        $this->access->authorize($this->access->canPlan($actor, 'performance_plans.create', $data['organization_id'], $unitId));
+        if ($type === PlanType::Position && $unitId === null) {
+            throw ValidationException::withMessages(['position_id' => __('performance.validation.position_unit_required')]);
+        }
         $parent = $this->resolveParent($type, $cycle->getKey(), $data['organization_id'], $unitId, $data['parent_plan_id'] ?? null);
 
         $duplicate = PerformancePlan::query()
@@ -129,8 +132,7 @@ final class PerformancePlanService
         }
 
         if ($type === PlanType::Position) {
-            $valid = $parent->plan_type === PlanType::Unit && $parent->organization_unit_id === $unitId
-                || $unitId === null && $parent->plan_type === PlanType::Organization;
+            $valid = $parent->plan_type === PlanType::Unit && $parent->organization_unit_id === $unitId;
         } else {
             $ancestors = $this->unitAncestors($unitId);
             $valid = $parent->plan_type === PlanType::Organization
@@ -157,13 +159,14 @@ final class PerformancePlanService
         return [$start, $end];
     }
 
-    private function assertParentTarget(PerformancePlan $plan, string $kpiId, ?string $parentTargetId): void
+    private function assertParentTarget(PerformancePlan $plan, string $kpiId, ?string $parentTargetId, ?PerformanceObjective $objective = null): void
     {
         if ($parentTargetId === null || $parentTargetId === '') {
             return;
         }
         $parentTarget = KpiTarget::query()->find($parentTargetId);
-        if ($parentTarget === null || $parentTarget->performance_plan_id !== $plan->parent_plan_id || $parentTarget->kpi_id !== $kpiId) {
+        if ($parentTarget === null || $parentTarget->performance_plan_id !== $plan->parent_plan_id || $parentTarget->kpi_id !== $kpiId
+            || ($objective?->parent_objective_id !== null && $parentTarget->objective_id !== $objective->parent_objective_id)) {
             throw ValidationException::withMessages(['parent_target_id' => __('performance.errors.parent_target_invalid')]);
         }
     }
@@ -188,6 +191,8 @@ final class PerformancePlanService
     {
         $this->assertEditable($plan, $actor);
         $this->assertStrategicGoal($plan, $data['strategic_goal_id'] ?? null);
+        $parent = ! empty($data['parent_objective_id']) ? PerformanceObjective::query()->findOrFail($data['parent_objective_id']) : null;
+        $links = $this->traceability->links($plan, $data, $parent);
 
         if ($plan->objectives()->where('code', $data['code'])->exists()) {
             throw ValidationException::withMessages(['code' => __('performance.errors.code_taken')]);
@@ -195,11 +200,12 @@ final class PerformancePlanService
 
         $objective = $plan->objectives()->create([
             ...$data,
+            ...$links,
             // An empty priority means "no priority": the column's default, not NULL.
             'priority' => $data['priority'] ?? 0,
             'objective_type' => $data['objective_type'] ?? ObjectiveType::Local->value,
-            'cascade_mode' => 'LOCAL_ONLY',
-            'parent_objective_id' => null,
+            'cascade_mode' => $parent !== null ? 'CONTRIBUTE' : 'LOCAL_ONLY',
+            'parent_objective_id' => $parent?->getKey(),
         ]);
 
         $this->audit->record(AuditEventType::PerformanceObjectiveChanged, $actor, $plan, ['added_objective' => $objective->code, 'weight' => $objective->weight]);
@@ -217,6 +223,8 @@ final class PerformancePlanService
         $old = $objective->only(array_keys($data));
         // Lineage and inherited obligations are not editable here.
         unset($data['parent_objective_id'], $data['source_objective_id'], $data['is_mandatory'], $data['cascade_mode']);
+        $context = [...$objective->only(['strategic_goal_id', 'strategic_goal_allocation_id', 'position_service_id', 'weight', 'absolute_weight_percent']), ...$data];
+        $data = [...$data, ...$this->traceability->links($objective->plan, $context, $objective->parentObjective, $objective)];
         if (array_key_exists('priority', $data)) {
             $data['priority'] ??= 0;
         }
@@ -251,7 +259,7 @@ final class PerformancePlanService
         }
 
         [$start, $end] = $this->periodWithinCycle($plan, $data['period_start'] ?? null, $data['period_end'] ?? null);
-        $this->assertParentTarget($plan, $kpi->getKey(), $data['parent_target_id'] ?? null);
+        $this->assertParentTarget($plan, $kpi->getKey(), $data['parent_target_id'] ?? null, $objective);
 
         $target = $objective->targets()->create([
             ...$data,
@@ -283,7 +291,7 @@ final class PerformancePlanService
         $data['period_start'] = $start->toDateString();
         $data['period_end'] = $end->toDateString();
         if (array_key_exists('parent_target_id', $data)) {
-            $this->assertParentTarget($target->plan, $target->kpi_id, $data['parent_target_id']);
+            $this->assertParentTarget($target->plan, $target->kpi_id, $data['parent_target_id'], $target->objective);
         }
         $old = $target->only(array_keys($data));
         $target->fill($data)->save();
@@ -306,7 +314,7 @@ final class PerformancePlanService
     {
         $errors = [];
         if ($plan->plan_type === PlanType::Organization && StrategicGoal::query()->where('cycle_id', $plan->cycle_id)->where('organization_id', $plan->organization_id)->exists()) {
-            $errors = [...$errors, ...$this->strategicPlanning->organizationReadiness($plan->cycle_id, $plan->organization_id)['problems']];
+            $errors = [...$errors, ...$this->strategicPlanning->organizationReadiness($plan->cycle_id, $plan->organization_id, $plan)['problems']];
         }
         $objectives = $plan->objectives()->with(['targets.kpi'])->get();
         $active = $objectives->where('status', 'ACTIVE');
@@ -345,6 +353,10 @@ final class PerformancePlanService
                 $errors[] = __('performance.validation.parent_not_published');
             } else {
                 foreach ($parent->objectives()->where('is_mandatory', true)->where('status', 'ACTIVE')->get() as $mandatory) {
+                    $goal = $this->traceability->goalFor($mandatory);
+                    if ($goal !== null && ! $this->traceability->hasResponsibility($plan, $goal)) {
+                        continue;
+                    }
                     $covered = $active->contains(fn ($o) => $o->parent_objective_id === $mandatory->getKey());
                     if (! $covered) {
                         $errors[] = __('performance.validation.mandatory_not_cascaded', ['code' => $mandatory->code]);
@@ -414,7 +426,7 @@ final class PerformancePlanService
 
     public function submit(PerformancePlan $plan, User $actor): PerformancePlan
     {
-        $this->access->authorize($this->access->inScope($actor, 'performance_plans.update', $plan->organization_id));
+        $this->access->authorize($this->access->canPlan($actor, 'performance_plans.update', $plan->organization_id, $plan->organization_unit_id));
         $this->assertStatus($plan, [PlanStatus::Draft]);
         $errors = $this->validate($plan);
         if ($errors !== []) {
@@ -426,7 +438,7 @@ final class PerformancePlanService
 
     public function returnToDraft(PerformancePlan $plan, string $reason, User $actor): PerformancePlan
     {
-        $this->access->authorize($this->access->inScope($actor, 'performance_plans.review', $plan->organization_id));
+        $this->access->authorize($this->access->canPlan($actor, 'performance_plans.review', $plan->organization_id, $plan->organization_unit_id));
         $this->assertStatus($plan, [PlanStatus::UnderReview, PlanStatus::Approved]);
 
         return $this->move($plan, PlanStatus::Draft, $actor, ['return_reason' => $reason, 'reviewed_by' => $actor->getKey(), 'reviewed_at' => now()], $reason);
@@ -434,7 +446,7 @@ final class PerformancePlanService
 
     public function approve(PerformancePlan $plan, User $actor): PerformancePlan
     {
-        $this->access->authorize($this->access->inScope($actor, 'performance_plans.approve', $plan->organization_id));
+        $this->access->authorize($this->access->canPlan($actor, 'performance_plans.approve', $plan->organization_id, $plan->organization_unit_id));
         $this->assertStatus($plan, [PlanStatus::UnderReview]);
         $this->access->assertSeparated($actor, $plan->submitted_by, 'approve');
 
@@ -443,7 +455,7 @@ final class PerformancePlanService
 
     public function publish(PerformancePlan $plan, User $actor): PerformancePlan
     {
-        $this->access->authorize($this->access->inScope($actor, 'performance_plans.publish', $plan->organization_id));
+        $this->access->authorize($this->access->canPlan($actor, 'performance_plans.publish', $plan->organization_id, $plan->organization_unit_id));
         $this->assertStatus($plan, [PlanStatus::Approved]);
         $errors = $this->validate($plan);
         if ($errors !== []) {
@@ -472,20 +484,37 @@ final class PerformancePlanService
      * and cascade lineage (source_objective_id points back). The old version
      * stays PUBLISHED — and in use — until the new one is published.
      */
-    public function newVersion(PerformancePlan $plan, string $reason, User $actor): PerformancePlan
+    public function newVersion(PerformancePlan $plan, string $reason, User $actor, ?string $parentPlanId = null): PerformancePlan
     {
-        $this->access->authorize($this->access->inScope($actor, 'performance_plans.update', $plan->organization_id));
-        $this->assertStatus($plan, [PlanStatus::Published]);
-
-        $pending = PerformancePlan::query()->where('lineage_key', $plan->lineage_key)
-            ->whereIn('status', [PlanStatus::Draft->value, PlanStatus::UnderReview->value, PlanStatus::Approved->value])->exists();
-        if ($pending) {
-            throw ValidationException::withMessages(['plan' => __('performance.errors.version_pending')]);
-        }
-
-        return DB::transaction(function () use ($plan, $reason, $actor): PerformancePlan {
+        return DB::transaction(function () use ($plan, $reason, $actor, $parentPlanId): PerformancePlan {
+            $plan = PerformancePlan::query()->whereKey($plan->getKey())->lockForUpdate()->firstOrFail();
+            $this->access->authorize($this->access->canPlan($actor, 'performance_plans.update', $plan->organization_id, $plan->organization_unit_id));
+            $this->assertStatus($plan, [PlanStatus::Published]);
+            if (PerformancePlan::query()->where('lineage_key', $plan->lineage_key)
+                ->whereIn('status', [PlanStatus::Draft->value, PlanStatus::UnderReview->value, PlanStatus::Approved->value])->exists()) {
+                throw ValidationException::withMessages(['plan' => __('performance.errors.version_pending')]);
+            }
+            $parent = $plan->plan_type === PlanType::Organization ? null : $this->resolveParent(
+                $plan->plan_type, $plan->cycle_id, $plan->organization_id, $plan->organization_unit_id, $parentPlanId ?? $plan->parent_plan_id,
+            );
+            $remap = $parent !== null && $parent->getKey() !== $plan->parent_plan_id;
+            $parentMap = [];
+            if ($remap) {
+                $ancestry = PerformanceObjective::query()->whereHas('plan', fn ($q) => $q->where('cycle_id', $plan->cycle_id)->where('organization_id', $plan->organization_id))
+                    ->get(['id', 'source_objective_id'])->keyBy('id');
+                foreach ($parent->objectives()->where('status', 'ACTIVE')->get() as $candidate) {
+                    $ancestor = $candidate;
+                    $seen = [];
+                    while ($ancestor !== null && ! isset($seen[$ancestor->getKey()])) {
+                        $seen[$ancestor->getKey()] = true;
+                        $parentMap[$ancestor->getKey()][] = $candidate;
+                        $ancestor = $ancestry->get($ancestor->source_objective_id);
+                    }
+                }
+            }
             $next = $plan->replicate(['status', 'live_key', 'submitted_by', 'submitted_at', 'reviewed_by', 'reviewed_at', 'approved_by', 'approved_at', 'published_by', 'published_at', 'return_reason']);
             $next->forceFill([
+                'parent_plan_id' => $parent?->getKey(),
                 'version_no' => (int) PerformancePlan::query()->where('lineage_key', $plan->lineage_key)->max('version_no') + 1,
                 'supersedes_plan_id' => $plan->getKey(),
                 'status' => PlanStatus::Draft,
@@ -494,21 +523,55 @@ final class PerformancePlanService
             ])->save();
 
             $objectiveMap = [];
-            foreach ($plan->objectives()->get() as $objective) {
+            foreach ($plan->objectives()->with('targets.periodTargets')->get() as $objective) {
+                $mappedParent = null;
+                if ($remap && $objective->parent_objective_id !== null) {
+                    $matches = $parentMap[$objective->parent_objective_id] ?? [];
+                    if (count($matches) !== 1) {
+                        throw ValidationException::withMessages(['parent_plan_id' => 'NEEDS_DECISION: upstream objective lineage has no unique successor for '.$objective->code.'.']);
+                    }
+                    $mappedParent = $matches[0];
+                }
                 $copy = $objective->replicate();
-                $copy->forceFill(['performance_plan_id' => $next->getKey(), 'source_objective_id' => $objective->getKey()])->save();
+                $attributes = ['performance_plan_id' => $next->getKey(), 'source_objective_id' => $objective->getKey()];
+                if ($mappedParent !== null) {
+                    $attributes = [...$attributes, 'parent_objective_id' => $mappedParent->getKey(), ...$this->traceability->links(
+                        $next, $objective->only(['position_service_id', 'weight', 'local_weight_percent']), $mappedParent, $objective,
+                    )];
+                }
+                $copy->forceFill($attributes)->save();
                 $objectiveMap[$objective->getKey()] = $copy->getKey();
 
-                foreach ($objective->targets()->get() as $target) {
+                foreach ($objective->targets as $target) {
+                    $parentTargetId = $target->parent_target_id;
+                    if ($remap && $parentTargetId !== null) {
+                        $matches = $mappedParent?->targets()->where('kpi_id', $target->kpi_id)->where('is_current', true)->get() ?? collect();
+                        if ($matches->count() !== 1) {
+                            throw ValidationException::withMessages(['parent_plan_id' => 'NEEDS_DECISION: upstream KPI target has no unique successor for '.$objective->code.'.']);
+                        }
+                        $parentTargetId = $matches->first()->getKey();
+                    }
                     $targetCopy = $target->replicate();
-                    $targetCopy->forceFill(['performance_plan_id' => $next->getKey(), 'objective_id' => $copy->getKey()])->save();
+                    $targetCopy->forceFill(['performance_plan_id' => $next->getKey(), 'objective_id' => $copy->getKey(), 'parent_target_id' => $parentTargetId])->save();
+                    foreach ($target->periodTargets as $period) {
+                        $period->replicate()->forceFill(['kpi_target_id' => $targetCopy->getKey()])->save();
+                    }
                 }
             }
 
             foreach (PerformanceCascade::query()->where('child_plan_id', $plan->getKey())->get() as $cascade) {
                 if (isset($objectiveMap[$cascade->child_objective_id])) {
                     $row = $cascade->replicate();
-                    $row->forceFill(['child_plan_id' => $next->getKey(), 'child_objective_id' => $objectiveMap[$cascade->child_objective_id], 'created_by' => $actor->getKey(), 'created_at' => now()])->save();
+                    $parentObjectiveId = $cascade->parent_objective_id;
+                    if ($remap) {
+                        $matches = $parentMap[$parentObjectiveId] ?? [];
+                        if (count($matches) !== 1) {
+                            throw ValidationException::withMessages(['parent_plan_id' => 'NEEDS_DECISION: cascade lineage has no unique upstream successor.']);
+                        }
+                        $parentObjectiveId = $matches[0]->getKey();
+                    }
+                    $row->forceFill(['parent_plan_id' => $parent?->getKey() ?? $cascade->parent_plan_id, 'parent_objective_id' => $parentObjectiveId,
+                        'child_plan_id' => $next->getKey(), 'child_objective_id' => $objectiveMap[$cascade->child_objective_id], 'created_by' => $actor->getKey(), 'created_at' => now()])->save();
                 }
             }
 
@@ -522,8 +585,8 @@ final class PerformancePlanService
 
     public function assertEditable(PerformancePlan $plan, User $actor): void
     {
-        $this->access->authorize($this->access->inScope($actor, 'performance_objectives.manage', $plan->organization_id)
-            || $this->access->inScope($actor, 'performance_plans.update', $plan->organization_id));
+        $this->access->authorize($this->access->canPlan($actor, 'performance_objectives.manage', $plan->organization_id, $plan->organization_unit_id)
+            || $this->access->canPlan($actor, 'performance_plans.update', $plan->organization_id, $plan->organization_unit_id));
         if (! self::isEditable($plan)) {
             throw ValidationException::withMessages(['plan' => __('performance.errors.plan_locked')]);
         }

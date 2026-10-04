@@ -1,6 +1,10 @@
 const performance = {
     title: 'Performance Management',
     strategicGoals: {
+        historicalVersion: 'Historical version',
+        amendedVersion: 'Amends version',
+        unitPlanStatus: 'Unit plan status',
+
         workflow: 'Build the strategic plan',
         registerStep: 'Register goals with a combined weight of 100%.',
         allocateStep: 'Allocate each goal to responsible units and link plan objectives.',
@@ -31,6 +35,9 @@ const performance = {
         addResults: 'Add to session', open: 'Open', appeal: 'Appeal this result', upload: 'Upload evidence', search: 'Search',
     },
     fields: {
+        positionService: 'Position service',
+        upstreamObjective: 'Upstream objective',
+
         notes: 'Notes', plan: 'Plan',
         planning: 'Planning window', descriptionEn: 'Description (English)', descriptionAm: 'Description (Amharic)',
         code: 'Code', name: 'Name', nameEn: 'Name (English)', nameAm: 'Name (Amharic)', title: 'Title', titleEn: 'Title (English)', titleAm: 'Title (Amharic)',
@@ -116,6 +123,8 @@ const performance = {
         create: 'New KPI', empty: 'No KPIs yet.', milestonesHelp: 'One per line: key | label | percent | verify (yes/no)', globalOwner: 'City-wide (no organization)',
     },
     plans: {
+        cascadeTrace: 'Strategic cascade',
+
         quarterShort: 'Q', monthShort: 'M', quarterN: 'Quarter :n',
         actionPlan: 'Action plan', actionPlanHelp: 'The plan as a table: each strategic goal with its weight, then every objective or KPI with its weight, unit, baseline, target and schedule by quarter and month.',
         actionPlanNo: 'No.', actionPlanItem: 'Strategic goals, main activities and key performance indicators', actionPlanUnit: 'Unit', actionPlanSchedule: 'Schedule (by quarter and month)', actionPlanOther: 'Not linked to a strategic goal',

@@ -25,11 +25,14 @@ use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
+use App\Models\PerformancePlan;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
+use App\Models\PositionService;
 use App\Models\User;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Performance\EpmsAccess;
 use App\Services\Positions\ScopedPositionStructureService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -611,12 +614,32 @@ class PositionController extends Controller
             ->with('flash', ['message' => __('positions.created_successfully'), 'type' => 'success']);
     }
 
-    public function show(Position $position): Response
+    public function show(Request $request, Position $position, EpmsAccess $epmsAccess): Response
     {
         $this->authorize('view', $position);
 
         $position->load('organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am,code', 'occupation:id,isco_code,name_en,name_am');
         $position->loadCount('assignments');
+
+        $user = $request->user();
+        $canViewPlans = $epmsAccess->inScope($user, 'performance_plans.view', $position->organization_id);
+        $canViewServices = $user->can('createForPosition', [PositionService::class, $position]);
+        $today = now()->toDateString();
+        $plans = $canViewPlans ? PerformancePlan::query()->where('position_id', $position->getKey())->where('plan_type', 'POSITION')
+            ->with(['cycle:id,name_en,name_am,start_date,end_date,status', 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am'])
+            ->orderByDesc('effective_from')->orderByDesc('version_no')->get()
+            ->filter(fn ($plan) => $epmsAccess->inScope($user, 'performance_plans.view', $plan->organization_id))
+            ->map(fn ($plan) => [
+                'id' => $plan->getKey(), 'title' => $plan->title, 'status' => $plan->status->value, 'version' => $plan->version_no,
+                'organization' => $plan->organization?->only(['name_en', 'name_am']),
+                'unit' => $plan->organizationUnit?->only(['name_en', 'name_am']),
+                'cycle' => $plan->cycle?->only(['name_en', 'name_am']),
+                'effective_from' => $plan->effective_from?->toDateString(), 'effective_to' => $plan->effective_to?->toDateString(),
+                'is_current' => $plan->status->value === 'PUBLISHED'
+                    && $plan->cycle !== null && ! in_array($plan->cycle->status->value, ['CLOSED', 'CANCELLED', 'FINALIZED'], true)
+                    && ($plan->effective_from?->toDateString() ?? $plan->cycle?->start_date?->toDateString()) <= $today
+                    && ($plan->effective_to?->toDateString() ?? $plan->cycle?->end_date?->toDateString()) >= $today,
+            ])->values() : collect();
 
         $movementHistory = $position->movements()
             ->with([
@@ -638,6 +661,13 @@ class PositionController extends Controller
         return Inertia::render('Positions/Show', [
             'position' => (new PositionResource($position))->resolve(),
             'movementHistory' => $movementHistory,
+            'positionServices' => $canViewServices ? PositionService::query()->where('position_id', $position->getKey())
+                ->where('organization_id', $position->organization_id)->orderBy('sort_order')->orderBy('service_no')
+                ->get(['id', 'service_no', 'name_en', 'name_am', 'description', 'is_active'])->toArray() : [],
+            'currentPerformancePlans' => $plans->where('is_current', true)->values()->all(),
+            'historicalPerformancePlans' => $plans->where('is_current', false)->values()->all(),
+            'canViewPerformancePlans' => $canViewPlans,
+            'canViewPositionServices' => $canViewServices,
         ]);
     }
 

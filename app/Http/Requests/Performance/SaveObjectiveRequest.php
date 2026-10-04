@@ -21,6 +21,9 @@ class SaveObjectiveRequest extends FormRequest
     {
         return [
             'strategic_goal_id' => ['nullable', 'uuid', 'exists:strategic_goals,id'],
+            'strategic_goal_allocation_id' => ['nullable', 'uuid', 'exists:strategic_goal_allocations,id'],
+            'position_service_id' => ['nullable', 'uuid', 'exists:position_services,id'],
+            'parent_objective_id' => ['nullable', 'uuid', 'exists:performance_objectives,id'],
             'code' => [$this->isMethod('post') ? 'required' : 'sometimes', 'string', 'max:50', 'alpha_dash'],
             'title_en' => ['required', 'string', 'max:500'],
             'title_am' => ['nullable', 'string', 'max:500'],

@@ -3,11 +3,13 @@ import { useLocale } from '@/hooks/useLocale';
 import { named } from './helpers';
 import type { ActivityItem } from './types';
 
+type TracedItem = ActivityItem & { cascade_trace?: { id: string; type: string; label: string | null; weight?: string; unit?: string | null; position?: string | null }[] };
+
 /**
  * Read-only activity list. Dense definition rows rather than cards so a day
  * with eight activities still fits on one screen.
  */
-export default function ItemsReadOnly({ items, showReviewerNotes = true }: { items: ActivityItem[]; showReviewerNotes?: boolean }) {
+export default function ItemsReadOnly({ items, showReviewerNotes = true }: { items: TracedItem[]; showReviewerNotes?: boolean }) {
     const { t, locale } = useLocale();
 
     if (!items.length) {
@@ -70,6 +72,16 @@ export default function ItemsReadOnly({ items, showReviewerNotes = true }: { ite
                                 </>
                             )}
                         </dl>
+                        {!!item.cascade_trace?.length && <details className="mt-3 text-xs text-gray-600 dark:text-slate-300">
+                            <summary className="cursor-pointer font-medium">{t('performance.plans.cascadeTrace')}</summary>
+                            <ol className="mt-2 space-y-2 border-l-2 border-blue-200 pl-3 dark:border-blue-900">
+                                {item.cascade_trace.map((step, stepIndex) => <li key={`${step.type}-${step.id}-${stepIndex}`}>
+                                    <span>{step.label}</span>
+                                    {step.weight !== undefined && <span className="ml-2 text-orange-700 dark:text-orange-300">{step.weight}%</span>}
+                                    {(step.unit || step.position) && <span className="ml-2">{[step.unit, step.position].filter(Boolean).join(' › ')}</span>}
+                                </li>)}
+                            </ol>
+                        </details>}
                         {showReviewerNotes && item.reviewer_note && (
                             <p className="mt-2 border-s-2 border-amber-400 ps-2 text-sm text-amber-900 dark:text-amber-200">
                                 <span className="font-medium">{t('dailyActivities.entry.reviewerNote')}:</span> {item.reviewer_note}

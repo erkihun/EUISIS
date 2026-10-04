@@ -1,4 +1,8 @@
 const positions = {
+    positionServices: 'Position Services',
+    currentPerformancePlan: 'Current Performance Plan',
+    historicalPerformancePlans: 'Other and Historical Performance Plans',
+
     title: 'Job Positions',
     jobPositions: 'Job Positions',
     newPosition: 'New Position',

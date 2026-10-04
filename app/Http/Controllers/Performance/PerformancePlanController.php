@@ -22,10 +22,12 @@ use App\Models\PerformanceObjective;
 use App\Models\PerformancePlan;
 use App\Models\PerformancePlanScore;
 use App\Models\PerformanceTargetAmendment;
+use App\Models\PositionService;
 use App\Models\StrategicGoal;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Performance\EpmsAccess;
 use App\Services\Performance\KpiActualService;
+use App\Services\Performance\PerformanceCascadeService;
 use App\Services\Performance\PerformancePlanService;
 use App\Services\Performance\PerformancePresenter;
 use App\Services\Performance\PlanCascadeService;
@@ -46,6 +48,7 @@ class PerformancePlanController extends PerformanceController
         private readonly PerformancePresenter $presenter,
         private readonly OrganizationScopeService $scope,
         private readonly EpmsAccess $access,
+        private readonly PerformanceCascadeService $cascadeTrace,
     ) {}
 
     public function index(Request $request): Response
@@ -89,10 +92,10 @@ class PerformancePlanController extends PerformanceController
     {
         $this->ensureEnabled();
         $user = $request->user();
-        abort_unless($this->access->inScope($user, 'performance_plans.view', $plan->organization_id), 403);
+        abort_unless($this->access->canPlan($user, 'performance_plans.view', $plan->organization_id, $plan->organization_unit_id), 403);
         $plan->load(['organization', 'organizationUnit', 'position', 'cycle', 'parentPlan']);
 
-        $objectives = $plan->objectives()->with(['targets.kpi', 'targets.periodTargets', 'parentObjective.plan'])->get();
+        $objectives = $plan->objectives()->with(['targets.kpi', 'targets.periodTargets', 'parentObjective.plan', 'positionService'])->get();
         $cascadedParentIds = $objectives->pluck('parent_objective_id')->filter()->all();
         $score = PerformancePlanScore::query()->where('performance_plan_id', $plan->getKey())->latest('as_of')->first();
 
@@ -110,7 +113,9 @@ class PerformancePlanController extends PerformanceController
                 'cycle_period' => [$plan->cycle?->start_date?->toDateString(), $plan->cycle?->end_date?->toDateString()],
             ],
             'objectives' => $objectives->map(fn (PerformanceObjective $o) => [
-                ...$o->only(['id', 'strategic_goal_id', 'code', 'title_en', 'title_am', 'description_en', 'description_am', 'weight', 'absolute_weight_percent', 'local_weight_percent', 'priority', 'is_mandatory', 'status', 'rejection_reason']),
+                ...$o->only(['id', 'strategic_goal_id', 'strategic_goal_allocation_id', 'position_service_id', 'parent_objective_id', 'code', 'title_en', 'title_am', 'description_en', 'description_am', 'weight', 'absolute_weight_percent', 'local_weight_percent', 'priority', 'is_mandatory', 'status', 'rejection_reason']),
+                'position_service' => $o->positionService?->only(['id', 'service_no', 'name_en', 'name_am']),
+                'cascade_trace' => $this->cascadeTrace->trace($o),
                 'objective_type' => $o->objective_type->value,
                 'cascade_mode' => $o->cascade_mode->value,
                 'lineage' => $o->parentObjective ? ['code' => $o->parentObjective->code, 'title_en' => $o->parentObjective->title_en, 'plan' => $o->parentObjective->plan?->title] : null,
@@ -122,16 +127,23 @@ class PerformancePlanController extends PerformanceController
                 ])->all(),
             ])->all(),
             // Parent objectives available to cascade into this plan.
-            'parentObjectives' => $plan->parentPlan
+            'parentObjectives' => $plan->parentPlan?->status === PlanStatus::Published
                 ? $plan->parentPlan->objectives()->where('status', 'ACTIVE')->get()->map(fn ($o) => [
                     ...$o->only(['id', 'code', 'title_en', 'title_am', 'weight', 'is_mandatory']),
                     'cascaded' => in_array($o->getKey(), $cascadedParentIds, true),
                 ])->all()
                 : [],
+            'positionServices' => $plan->plan_type === PlanType::Position
+                ? PositionService::query()->where('position_id', $plan->position_id)->where('organization_id', $plan->organization_id)
+                    ->where('is_active', true)->orderBy('sort_order')->orderBy('service_no')->get(['id', 'service_no', 'name_en', 'name_am'])->toArray()
+                : [],
             'childPlans' => $plan->childPlans()->where('status', '!=', PlanStatus::Superseded->value)->with(['organizationUnit', 'position'])->get()->map(fn ($c) => $this->presenter->planSummary($c))->all(),
             'cascades' => PerformanceCascade::query()->where('parent_plan_id', $plan->getKey())->with(['childObjective:id,code,title_en,title_am', 'parentObjective:id,code', 'childPlan:id,title'])->get()
                 ->map(fn ($c) => ['parent' => $c->parentObjective?->code, 'child_code' => $c->childObjective?->code, 'child_title_en' => $c->childObjective?->title_en, 'child_plan' => $c->childPlan?->title, 'type' => $c->cascade_type->value])->all(),
             'versions' => PerformancePlan::query()->where('lineage_key', $plan->lineage_key)->orderByDesc('version_no')->get(['id', 'version_no', 'status', 'published_at', 'change_reason'])->toArray(),
+            'versionParents' => $plan->parentPlan ? PerformancePlan::query()->where('lineage_key', $plan->parentPlan->lineage_key)
+                ->where('cycle_id', $plan->cycle_id)->where('organization_id', $plan->organization_id)->where('status', PlanStatus::Published->value)
+                ->get(['id', 'title', 'version_no', 'organization_unit_id'])->toArray() : [],
             'validation' => $plan->status === PlanStatus::Draft || $plan->status === PlanStatus::Approved ? $this->plans->validate($plan) : [],
             'score' => $score ? ['as_of' => $score->as_of->toDateString(), 'score' => $score->score, 'trace' => $score->trace_json] : null,
             'pendingAmendments' => PerformanceTargetAmendment::query()->where('subject_type', 'TARGET')->where('status', 'PENDING')
@@ -146,15 +158,15 @@ class PerformancePlanController extends PerformanceController
                 : [],
             'options' => ['objective_types' => ObjectiveType::values(), 'cascade_modes' => array_values(array_diff(CascadeMode::values(), ['LOCAL_ONLY']))],
             'can' => [
-                'edit' => PerformancePlanService::isEditable($plan) && ($user->can('performance_objectives.manage') || $user->can('performance_plans.update')),
-                'submit' => $plan->status === PlanStatus::Draft && $user->can('performance_plans.update'),
-                'review' => $plan->status === PlanStatus::UnderReview && $user->can('performance_plans.review'),
-                'approve' => $plan->status === PlanStatus::UnderReview && $user->can('performance_plans.approve'),
-                'publish' => $plan->status === PlanStatus::Approved && $user->can('performance_plans.publish'),
-                'newVersion' => $plan->status === PlanStatus::Published && $user->can('performance_plans.update'),
-                'enterActual' => $plan->status === PlanStatus::Published && $user->can('kpi_actuals.enter'),
-                'amend' => $plan->status === PlanStatus::Published && $user->can('kpi_targets.manage'),
-                'decideAmendment' => $user->can('performance_plans.approve'),
+                'edit' => PerformancePlanService::isEditable($plan) && ($this->access->canPlan($user, 'performance_objectives.manage', $plan->organization_id, $plan->organization_unit_id) || $this->access->canPlan($user, 'performance_plans.update', $plan->organization_id, $plan->organization_unit_id)),
+                'submit' => $plan->status === PlanStatus::Draft && $this->access->canPlan($user, 'performance_plans.update', $plan->organization_id, $plan->organization_unit_id),
+                'review' => $plan->status === PlanStatus::UnderReview && $this->access->canPlan($user, 'performance_plans.review', $plan->organization_id, $plan->organization_unit_id),
+                'approve' => $plan->status === PlanStatus::UnderReview && $this->access->canPlan($user, 'performance_plans.approve', $plan->organization_id, $plan->organization_unit_id),
+                'publish' => $plan->status === PlanStatus::Approved && $this->access->canPlan($user, 'performance_plans.publish', $plan->organization_id, $plan->organization_unit_id),
+                'newVersion' => $plan->status === PlanStatus::Published && $this->access->canPlan($user, 'performance_plans.update', $plan->organization_id, $plan->organization_unit_id),
+                'enterActual' => $plan->status === PlanStatus::Published && $this->access->canPlan($user, 'kpi_actuals.enter', $plan->organization_id, $plan->organization_unit_id),
+                'amend' => $plan->status === PlanStatus::Published && $this->access->canPlan($user, 'kpi_targets.manage', $plan->organization_id, $plan->organization_unit_id),
+                'decideAmendment' => $this->access->canPlan($user, 'performance_plans.approve', $plan->organization_id, $plan->organization_unit_id),
                 // Same check as recalculate(): a queued roll-up for someone who may read the scores.
                 'recalculate' => $plan->status === PlanStatus::Published && $this->access->inScope($user, 'performance_reports.view', $plan->organization_id),
             ],
@@ -258,8 +270,8 @@ class PerformancePlanController extends PerformanceController
 
     public function newVersion(Request $request, PerformancePlan $plan): RedirectResponse
     {
-        $data = $request->validate(['reason' => ['required', 'string', 'max:2000']]);
-        $next = $this->plans->newVersion($plan, $data['reason'], $request->user());
+        $data = $request->validate(['reason' => ['required', 'string', 'max:2000'], 'parent_plan_id' => ['nullable', 'uuid', 'exists:performance_plans,id']]);
+        $next = $this->plans->newVersion($plan, $data['reason'], $request->user(), $data['parent_plan_id'] ?? null);
 
         return to_route('performance.plans.show', $next)->with('flash', ['message' => __('performance.saved'), 'type' => 'success']);
     }

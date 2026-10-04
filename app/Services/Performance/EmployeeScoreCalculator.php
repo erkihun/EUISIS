@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Performance;
 
+use App\Enums\Performance\KpiDataSource;
 use App\Enums\Performance\KpiMeasurementType;
 use App\Models\EmployeePerformanceAgreement;
 use App\Models\EmployeePerformanceItem;
@@ -16,6 +17,8 @@ use App\Services\Performance\Calculation\KpiAggregationService;
 use App\Services\Performance\Calculation\Observation;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * The employee score, as a full trace (docs/epms-calculation-rules.md §4):
@@ -93,21 +96,7 @@ final class EmployeeScoreCalculator
         $kpi = $item->kpi;
         $percentage = $kpi->measurement_type === KpiMeasurementType::Percentage;
 
-        // The item's amendment chain shares one measurement history.
-        $chain = [$item->getKey()];
-        $previous = $item->supersedes_item_id;
-        while ($previous !== null && ! in_array($previous, $chain, true)) {
-            $chain[] = $previous;
-            $previous = EmployeePerformanceItem::query()->whereKey($previous)->value('supersedes_item_id');
-        }
-
-        $actuals = KpiActual::query()
-            ->whereIn('employee_performance_item_id', $chain)
-            ->where('source_type', $item->data_source_type->value)
-            ->where('period_start', '>=', $agreement->effective_from->toDateString())
-            ->where('period_end', '<=', $agreement->effective_to->toDateString())
-            ->orderBy('period_end')
-            ->get();
+        [$chain, $actuals] = self::measurementHistory($item, Carbon::parse($agreement->effective_from), Carbon::parse($agreement->effective_to));
 
         $observations = $actuals->map(fn (KpiActual $a): Observation => new Observation(
             $a->actual_value, $a->actual_numerator, $a->actual_denominator, null, $a->period_end->toDateString(), $a->milestone_key,
@@ -150,6 +139,41 @@ final class EmployeeScoreCalculator
             'weighted' => Dec::str($weighted),
             'amended' => count($chain) > 1,
         ];
+    }
+
+    /**
+     * The same measurement history is used by employee scoring and KPI roll-up.
+     * Daily resynchronization includes predecessor tasks, so its newest item
+     * measurement replaces the old measurement for that exact period logically.
+     *
+     * @return array{0: list<string>, 1: Collection<int, KpiActual>}
+     */
+    public static function measurementHistory(EmployeePerformanceItem $item, Carbon $from, Carbon $to): array
+    {
+        $chain = [$item->getKey()];
+        $previous = $item->supersedes_item_id;
+        while ($previous !== null && ! in_array($previous, $chain, true)) {
+            $predecessor = EmployeePerformanceItem::query()->whereKey($previous)
+                ->where('agreement_id', $item->agreement_id)->where('kpi_id', $item->kpi_id)->first();
+            if ($predecessor === null) {
+                break;
+            }
+            $chain[] = $predecessor->getKey();
+            $previous = $predecessor->supersedes_item_id;
+        }
+
+        $rows = KpiActual::query()->whereIn('employee_performance_item_id', $chain)
+            ->where('source_type', $item->data_source_type->value)
+            ->where('period_start', '>=', $from->toDateString())
+            ->where('period_end', '<=', $to->toDateString())->orderBy('period_end')->get();
+        if ($item->data_source_type === KpiDataSource::DailyActivity) {
+            $priority = array_flip($chain);
+            $rows = $rows->sortBy(fn (KpiActual $row) => $priority[$row->employee_performance_item_id])
+                ->unique(fn (KpiActual $row) => $row->period_start->toDateString().':'.$row->period_end->toDateString())
+                ->sortBy(fn (KpiActual $row) => $row->period_end->toDateString())->values();
+        }
+
+        return [$chain, $rows];
     }
 
     /** @return array{0: ?BigDecimal, 1: list<array<string, mixed>>, 2: bool} */

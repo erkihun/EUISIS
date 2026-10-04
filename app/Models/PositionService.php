@@ -65,6 +65,11 @@ class PositionService extends Model
         return $this->hasMany(EmployeeServiceFeedback::class, 'position_service_id');
     }
 
+    public function performanceObjectives(): HasMany
+    {
+        return $this->hasMany(PerformanceObjective::class, 'position_service_id');
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

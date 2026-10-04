@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Resolved colors for recharts elements, read from the live theme tokens so
- * charts follow the org's primary/accent palette and dark-mode toggles instead
- * of hard-coding hex values. Re-reads when the `dark` class on <html> changes.
+ * Shared blue/orange chart palette with dark-mode-aware gridlines.
+ * Re-reads when the `dark` class on <html> changes.
  */
 export interface ChartColors {
     primary: string;
@@ -14,27 +13,18 @@ export interface ChartColors {
 }
 
 function readColors(): ChartColors {
-    if (typeof window === 'undefined') {
-        // SSR-safe defaults mirroring the default theme tokens.
-        return { primary: '#122170', accent: '#d12908', grid: '#cbd5e1', series: [] };
-    }
-
-    const styles = getComputedStyle(document.documentElement);
-    const read = (name: string, fallback: string) => {
-        const value = styles.getPropertyValue(name).trim();
-        return value || fallback;
-    };
-
-    const isDark = document.documentElement.classList.contains('dark');
-    const primary = read('--color-primary', '#122170');
-    const accent = read('--color-accent', '#d12908');
+    const isDark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+    const primary = isDark ? '#60a5fa' : '#2563eb';
+    const accent = isDark ? '#fb923c' : '#ea580c';
 
     return {
         primary,
         accent,
         // Lighter slate in light mode, dim slate in dark mode for legible-but-subtle gridlines.
         grid: isDark ? '#334155' : '#e2e8f0',
-        series: [primary, accent, '#16a34a', '#64748b', '#dc2626', '#7c3aed'],
+        series: isDark
+            ? [primary, accent, '#93c5fd', '#fdba74', '#3b82f6', '#f97316', '#bfdbfe', '#fed7aa']
+            : [primary, accent, '#60a5fa', '#fb923c', '#1e40af', '#9a3412', '#93c5fd', '#fdba74'],
     };
 }
 

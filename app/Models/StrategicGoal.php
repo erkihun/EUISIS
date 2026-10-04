@@ -37,6 +37,11 @@ class StrategicGoal extends Model
         return $this->hasMany(StrategicGoalAllocation::class);
     }
 
+    public function supersedes(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'supersedes_goal_id');
+    }
+
     public function objectives(): HasMany
     {
         return $this->hasMany(PerformanceObjective::class);

@@ -11,6 +11,9 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
+use App\Models\PerformanceCycle;
+use App\Models\PerformanceObjective;
+use App\Models\PerformancePlan;
 use App\Models\Position;
 use App\Models\PositionService;
 use App\Models\ServiceType;
@@ -18,6 +21,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -142,6 +146,64 @@ it('requires a service number and english name', function (): void {
             'position_id' => $this->alpha['position']->id,
         ])
         ->assertSessionHasErrors(['service_no', 'name_en']);
+});
+
+it('rejects a forged service organization on create and update', function (): void {
+    $payload = [
+        'organization_id' => $this->beta['org']->id,
+        'position_id' => $this->alpha['position']->id,
+        'service_no' => 'HR-001',
+        'name_en' => 'Record Correction',
+    ];
+
+    $this->actingAs($this->admin)->post(route('position-services.store'), $payload)
+        ->assertSessionHasErrors('organization_id');
+    expect(PositionService::query()->count())->toBe(0);
+
+    $service = makeService($this->alpha, 'HR-001', 'Record Correction');
+    $this->actingAs($this->admin)->patch(route('position-services.update', $service), $payload)
+        ->assertSessionHasErrors('organization_id');
+    expect($service->fresh()->organization_id)->toBe($this->alpha['org']->id);
+});
+
+it('preserves a performance referenced service while allowing deactivation', function (): void {
+    $service = makeService($this->alpha, 'HR-001', 'Record Correction');
+    $cycle = PerformanceCycle::query()->create([
+        'code' => 'SERVICE-HISTORY', 'name_en' => 'Service history cycle',
+        'organization_id' => $this->alpha['org']->id,
+        'start_date' => '2026-01-01', 'end_date' => '2026-12-31',
+    ]);
+    $plan = new PerformancePlan([
+        'cycle_id' => $cycle->id, 'organization_id' => $this->alpha['org']->id,
+        'organization_unit_id' => $this->alpha['unit']->id,
+        'position_id' => $this->alpha['position']->id,
+        'plan_type' => 'POSITION', 'title' => 'Historical position plan',
+    ]);
+    $plan->forceFill(['lineage_key' => (string) Str::uuid(), 'status' => 'PUBLISHED'])->save();
+    $objective = new PerformanceObjective([
+        'performance_plan_id' => $plan->id, 'code' => 'SERVICE-ITEM',
+        'title_en' => 'Correct employee records', 'objective_type' => 'OPERATIONAL',
+    ]);
+    $objective->forceFill(['position_service_id' => $service->id])->save();
+
+    $this->actingAs($this->admin)->patch(route('position-services.update', $service), [
+        'organization_id' => $this->beta['org']->id,
+        'position_id' => $this->beta['position']->id,
+        'service_no' => 'HR-001', 'name_en' => 'Record Correction',
+    ])->assertSessionHasErrors('position_id');
+    expect($service->fresh()->position_id)->toBe($this->alpha['position']->id);
+
+    $this->actingAs($this->admin)->delete(route('position-services.destroy', $service))
+        ->assertSessionHasErrors('service_no');
+    expect($service->fresh()->deleted_at)->toBeNull();
+
+    $this->actingAs($this->admin)->patch(route('position-services.update', $service), [
+        'organization_id' => $this->alpha['org']->id,
+        'position_id' => $this->alpha['position']->id,
+        'service_no' => 'HR-001', 'name_en' => 'Record Correction', 'is_active' => false,
+    ])->assertSessionHasNoErrors();
+    expect($service->fresh()->is_active)->toBeFalse()
+        ->and($objective->fresh()->position_service_id)->toBe($service->id);
 });
 
 it('lists position services for an authorised user', function (): void {

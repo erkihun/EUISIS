@@ -354,7 +354,7 @@ test('25 26 daily activity feeds a KPI actual as evidence; the number of activit
 
     // Ten activity entries, but only 3 + 4 + 0... cases of real output.
     foreach ([['2026-02-02', 3], ['2026-02-03', 4], ['2026-02-04', 0]] as [$date, $qty]) {
-        $log = (new DailyActivityLog)->forceFill(['employee_id' => $this->e1->id, 'organization_id' => $this->orgA->id, 'organization_unit_id' => $this->team->id, 'activity_date' => $date, 'status' => 'approved']);
+        $log = (new DailyActivityLog)->forceFill(['employee_id' => $this->e1->id, 'employee_assignment_id' => $agreement->employee_assignment_id, 'organization_id' => $this->orgA->id, 'organization_unit_id' => $this->team->id, 'activity_date' => $date, 'status' => 'approved']);
         $log->save();
         (new DailyActivityItem)->forceFill(['daily_activity_log_id' => $log->id, 'title' => 'Transfer cases', 'progress_status' => 'completed', 'quantity' => $qty, 'employee_performance_item_id' => $item->id])->save();
         (new DailyActivityItem)->forceFill(['daily_activity_log_id' => $log->id, 'title' => 'Meeting', 'progress_status' => 'completed', 'quantity' => null])->save();
@@ -619,6 +619,8 @@ test('97 a mid-cycle transfer closes the old agreement, keeps its actuals in the
     app(KpiActualService::class)->recordForItem($old->items()->first(), ['period_start' => '2026-01-01', 'period_end' => '2026-05-31', 'actual_value' => 120], $this->manager);
 
     $newAssignment = EmployeeAssignment::query()->create(['employee_id' => $this->e1->id, 'organization_id' => $this->orgA->id, 'organization_unit_id' => $this->team2->id, 'position_id' => $this->position2->id, 'assignment_status' => 'active', 'effective_from' => '2026-07-01', 'is_current' => true]);
+    $this->e1->currentAssignment->update(['is_current' => false, 'effective_to' => '2026-06-30']);
+    $this->e1->update(['current_assignment_id' => $newAssignment->id]);
     $next = app(EmployeeAgreementService::class)->transfer($old->fresh(), $newAssignment, $this->admin);
 
     expect($old->fresh()->status)->toBe(AgreementStatus::Closed)

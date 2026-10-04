@@ -4,6 +4,7 @@
 return [
     'band_attributes' => ['min_score' => 'minimum score', 'max_score' => 'maximum score', 'label_en' => 'English label', 'label_am' => 'Amharic label'],
     'errors' => [
+
         'band_range_invalid' => 'The maximum score must be greater than or equal to the minimum score.',
         'forbidden' => 'You are not authorized for this performance action.',
         'separation_of_duties' => 'The person who prepared or requested this cannot also :step it.',
@@ -77,6 +78,14 @@ return [
         'calibration_cycle_invalid' => 'Choose an open cycle of this organization, or a city-wide cycle.',
     ],
     'validation' => [
+        'absolute_weight_mismatch' => 'Organization objective absolute weight must match its plan weight.',
+        'position_unit_required' => 'Assign the position to a unit before creating its unit-based performance plan.',
+        'service_outside_position' => 'Choose an active service belonging to this position and organization.',
+        'unit_allocation_required' => 'The upstream goal must allocate responsibility to this unit or an ancestor unit.',
+        'local_weight_mismatch' => 'Local weight must match the objective weight. It is separate from the absolute goal allocation.',
+        'allocation_referenced' => 'This allocation is referenced by planning items and cannot be deleted.',
+        'goal_version_code' => 'A goal amendment must retain its original code.',
+
         'goal_has_objectives' => 'Remove or reassign this goal’s objectives before deleting it.',
         'allocation_duplicate' => 'This unit is already allocated to the goal.',
         'lead_exists' => 'This goal already has a lead unit.',

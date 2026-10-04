@@ -5,6 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { localizedName } from '@/utils/localizedName';
+import { Empty, Pill, Section, Table, tdCls, thCls } from '@/Components/performance/ui';
 
 type Movement = {
     id: string;
@@ -15,7 +16,12 @@ type Movement = {
     moved_at: string;
 };
 
-export default function PositionsShow({ position, movementHistory }: { position: any; movementHistory: Movement[] }) {
+type Named = { name_en: string; name_am: string | null };
+type PositionService = Named & { id: string; service_no: string; description: string | null; is_active: boolean };
+type PositionPlan = { id: string; title: string; status: string; version: number; organization: Named | null; unit: Named | null; cycle: Named | null; effective_from: string | null; effective_to: string | null };
+type Props = { position: any; movementHistory: Movement[]; positionServices: PositionService[]; currentPerformancePlans: PositionPlan[]; historicalPerformancePlans: PositionPlan[]; canViewPerformancePlans: boolean; canViewPositionServices: boolean };
+
+export default function PositionsShow({ position, movementHistory, positionServices, currentPerformancePlans, historicalPerformancePlans, canViewPerformancePlans, canViewPositionServices }: Props) {
     const { t, locale } = useLocale();
     const standardName = localizedName(position.title_en, position.title_am, locale);
 
@@ -59,6 +65,24 @@ export default function PositionsShow({ position, movementHistory }: { position:
                 </aside>
             </div>
 
+            {canViewPositionServices && <div className="mt-6"><Section title={t('positions.positionServices')}>
+                {positionServices.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : <Table head={<>
+                    <th className={thCls}>{t('performance.fields.code')}</th><th className={thCls}>{t('performance.fields.titleEn')}</th>
+                    <th className={thCls}>{t('performance.fields.description')}</th><th className={thCls}>{t('common.status')}</th>
+                </>}>
+                    {positionServices.map((service) => <tr key={service.id}>
+                        <td className={tdCls}><Link className="text-blue-700 hover:underline dark:text-blue-300" href={route('position-services.edit', service.id)}>{service.service_no}</Link></td>
+                        <td className={tdCls}>{localizedName(service.name_en, service.name_am, locale)}</td>
+                        <td className={tdCls}>{service.description ?? '—'}</td>
+                        <td className={tdCls}><StatusBadge status={service.is_active ? 'active' : 'inactive'} /></td>
+                    </tr>)}
+                </Table>}
+            </Section></div>}
+            {canViewPerformancePlans && <div className="mt-6 space-y-6">
+                <PositionPlans title={t('positions.currentPerformancePlan')} plans={currentPerformancePlans} />
+                <PositionPlans title={t('positions.historicalPerformancePlans')} plans={historicalPerformancePlans} />
+            </div>}
+
             <section className="mt-6 rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
                 <div className="border-b border-gray-200 px-5 py-4 dark:border-slate-800">
                     <h2 className="font-semibold text-gray-900 dark:text-slate-100">{t('positions.movementHistory')}</h2>
@@ -94,4 +118,25 @@ export default function PositionsShow({ position, movementHistory }: { position:
             </section>
         </AuthenticatedLayout>
     );
+}
+
+function PositionPlans({ title, plans }: { title: string; plans: PositionPlan[] }) {
+    const { t, locale } = useLocale();
+    const name = (value: Named | null) => value ? localizedName(value.name_en, value.name_am, locale) : '—';
+
+    return <Section title={title}>
+        {plans.length === 0 ? <Empty>{t('performance.dashboard.noData')}</Empty> : <Table head={<>
+            <th className={thCls}>{t('performance.fields.titleEn')}</th><th className={thCls}>{t('performance.fields.cycle')}</th>
+            <th className={thCls}>{t('performance.fields.organization')}</th><th className={thCls}>{t('performance.fields.unit')}</th>
+            <th className={thCls}>{t('performance.fields.version')}</th><th className={thCls}>{t('common.status')}</th>
+            <th className={thCls}>{t('performance.fields.period')}</th>
+        </>}>
+            {plans.map((plan) => <tr key={plan.id}>
+                <td className={tdCls}><Link className="text-blue-700 hover:underline dark:text-blue-300" href={route('performance.plans.show', plan.id)}>{plan.title}</Link></td>
+                <td className={tdCls}>{name(plan.cycle)}</td><td className={tdCls}>{name(plan.organization)}</td><td className={tdCls}>{name(plan.unit)}</td>
+                <td className={tdCls}>{plan.version}</td><td className={tdCls}><Pill group="plan" value={plan.status} /></td>
+                <td className={tdCls}><LocalizedDateDisplay value={plan.effective_from} /> – <LocalizedDateDisplay value={plan.effective_to} /></td>
+            </tr>)}
+        </Table>}
+    </Section>;
 }

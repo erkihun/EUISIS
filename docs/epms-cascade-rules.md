@@ -8,7 +8,7 @@ Cascading turns an organization objective into unit, child-unit and position obj
 |---|---|---|
 | ORGANIZATION | none | one live plan per organization and cycle |
 | UNIT | ORGANIZATION, or a UNIT plan of an **ancestor** unit | the parent unit must be above this unit in the unit tree |
-| POSITION | the UNIT plan of the position's unit, or the ORGANIZATION plan when the position has no unit | |
+| POSITION | the published UNIT plan of the position's unit; unitless positions require placement before planning | |
 
 Every parent must be **PUBLISHED**, in the **same cycle** and in the **same organization**. A plan cannot be created twice for the same subject in a cycle; later changes are made with a new version.
 
@@ -76,3 +76,6 @@ Scoring then applies each version to its own period.
 - **Effective dates:** the intersection of the cycle and the assignment.
 
 A manager can add *additional* items. The agreement still has to total 100 before it is sent.
+
+
+See [the audited performance cascade](performance-cascade.md) for allocation links, reusable position services, version amendments, assignment history, and deployment checks.

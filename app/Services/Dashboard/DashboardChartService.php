@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Dashboard;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 
 class DashboardChartService
@@ -28,6 +29,9 @@ class DashboardChartService
     {
         return [
             'employeesByStatus' => $can['employees'] ? $this->employeesByStatus($scope) : [],
+            'employeesByAge' => $can['employees'] ? $this->employeesByAge($scope) : [],
+            'employeesBySex' => $can['employees'] ? $this->employeeDistribution($scope, 'gender') : [],
+            'employeesByEmploymentType' => $can['employees'] ? $this->employeeDistribution($scope, 'employment_type') : [],
             'employeesByOrganizationType' => $can['employees'] ? $this->employeesByOrganizationType($scope) : [],
             'employeeRegistrationsTrend' => $can['employees'] ? $this->employeeRegistrationsTrend($scope) : [],
             'organizationsByType' => $can['organizations'] ? $this->organizationsByType($scope) : [],
@@ -61,6 +65,41 @@ class DashboardChartService
             ->selectRaw('employees.status as "key", COUNT(*) as "value"')
             ->groupBy('employees.status')
             ->orderBy('employees.status')
+            ->get()
+            ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
+            ->all();
+    }
+
+    private function employeesByAge(array $scope): array
+    {
+        $today = CarbonImmutable::today();
+        $birthDate = $this->dateExpression('employees.date_of_birth');
+        $expression = "CASE WHEN employees.date_of_birth IS NULL OR {$birthDate} > ? THEN 'unknown'";
+        $bindings = [$today->toDateString()];
+        foreach ([20 => 'under_20', 30 => '20_29', 40 => '30_39', 50 => '40_49', 60 => '50_59'] as $age => $key) {
+            $expression .= " WHEN {$birthDate} > ? THEN '{$key}'";
+            $bindings[] = $today->subYearsNoOverflow($age)->toDateString();
+        }
+        $expression .= " ELSE '60_plus' END";
+
+        $counts = $this->metrics->employeeQuery($scope)
+            ->selectRaw($expression.' as "key", COUNT(*) as "value"', $bindings)
+            ->groupBy('key')
+            ->get()
+            ->pluck('value', 'key');
+
+        return collect(['under_20', '20_29', '30_39', '40_49', '50_59', '60_plus', 'unknown'])
+            ->map(fn (string $key): array => ['key' => $key, 'value' => (int) ($counts[$key] ?? 0)])
+            ->all();
+    }
+
+    /** Columns are supplied only by the fixed employee chart definitions above. */
+    private function employeeDistribution(array $scope, string $column): array
+    {
+        return $this->metrics->employeeQuery($scope)
+            ->selectRaw("COALESCE(NULLIF(employees.{$column}, ''), 'unknown') as \"key\", COUNT(*) as \"value\"")
+            ->groupBy('key')
+            ->orderByDesc('value')
             ->get()
             ->map(fn ($row): array => ['key' => $row->key, 'value' => (int) $row->value])
             ->all();

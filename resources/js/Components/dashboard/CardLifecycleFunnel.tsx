@@ -1,4 +1,5 @@
 import EmptyDashboardState from './EmptyDashboardState';
+import { useChartColors } from '@/hooks/useChartColors';
 
 interface Item {
     key: string;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function CardLifecycleFunnel({ data, t }: Props) {
+    const { series } = useChartColors();
     if (data.length === 0) {
         return <EmptyDashboardState compact />;
     }
@@ -19,7 +21,7 @@ export default function CardLifecycleFunnel({ data, t }: Props) {
 
     return (
         <div className="space-y-3">
-            {data.map((item) => {
+            {data.map((item, index) => {
                 const width = Math.max(15, Math.round((item.value / max) * 100));
 
                 return (
@@ -31,8 +33,8 @@ export default function CardLifecycleFunnel({ data, t }: Props) {
                             <span className="font-semibold text-gray-900 dark:text-slate-100">{item.value}</span>
                         </div>
                         <div className="h-10 rounded-card bg-gray-100 p-1 dark:bg-slate-800">
-                            <div className="flex h-full items-center rounded-lg bg-[color:var(--color-primary)] px-3 text-sm font-medium text-white" style={{ width: `${width}%` }}>
-                                {item.value}
+                            <div className="flex h-full items-center rounded-lg px-3 text-sm font-medium text-gray-950" style={{ width: `${width}%`, backgroundColor: series[index % series.length] }}>
+                                <span className="rounded bg-white/90 px-1.5 text-gray-950">{item.value}</span>
                             </div>
                         </div>
                     </div>

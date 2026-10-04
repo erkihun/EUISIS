@@ -56,6 +56,24 @@ final class EpmsAccess
         return $employee !== null && $employee->getKey() === $agreement->employee_id;
     }
 
+    /** Unit planners need explicit reviewer coverage; organization oversight remains scoped. */
+    public function canPlan(User $user, string $permission, ?string $organizationId, ?string $unitId): bool
+    {
+        if (! $this->inScope($user, $permission, $organizationId)) {
+            return false;
+        }
+        if (str_ends_with($permission, '.view') || $user->can('performance_plans.approve') || $this->scope->isUnrestricted($user)) {
+            return true;
+        }
+        if ($unitId === null) {
+            return false;
+        }
+        $coverage = $this->reviewers->coverage($user);
+
+        return $coverage->all || in_array($organizationId, $coverage->organizationIds, true)
+            || in_array($unitId, $coverage->unitIds, true);
+    }
+
     /** Line-manager authority over this agreement (never over one's own). */
     public function isManagerOf(User $user, EmployeePerformanceAgreement $agreement): bool
     {
@@ -118,7 +136,10 @@ final class EpmsAccess
         $coverage = $user->can('employee_performance_agreements.manage') ? $this->reviewers->coverage($user) : null;
 
         return $query->where(function (Builder $scoped) use ($user, $oversight, $coverage, $query): void {
-            $scoped->where($query->qualifyColumn('manager_user_id'), $user->getKey());
+            $scoped->whereRaw('1 = 0');
+            if ($user->can('employee_performance_agreements.manage')) {
+                $scoped->orWhere($query->qualifyColumn('manager_user_id'), $user->getKey());
+            }
 
             if ($oversight) {
                 $scoped->orWhereIn($query->qualifyColumn('organization_id'), $this->scope->allowedOrganizationIds($user));

@@ -17,7 +17,7 @@ import { type AlertItem, type QueueItem } from '@/Components/dashboard/Attention
 import DashboardTabs, { useDashboardTab, type DashboardTab } from '@/Components/dashboard/DashboardTabs';
 import ProviderRanking from '@/Components/dashboard/ProviderRanking';
 import CardLifecycleFunnel from '@/Components/dashboard/CardLifecycleFunnel';
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useChartColors } from '@/hooks/useChartColors';
 import DashboardOverview from '@/Components/dashboard/DashboardOverview';
 
@@ -112,7 +112,9 @@ function SimpleBarChart({ data, labelFor, emptyTitle }: { data: KeyValueDatum[];
                     labelFormatter={(label) => labelFor(String(label))}
                 />
                 {/* Square-ish caps: a 8px radius on a 20px bar reads as a pill. */}
-                <Bar dataKey="value" fill={colors.primary} radius={[2, 2, 0, 0]} />
+                <Bar dataKey="value" fill={colors.primary} radius={[2, 2, 0, 0]}>
+                    {data.map((item, index) => <Cell key={item.key} fill={colors.series[index % colors.series.length]} />)}
+                </Bar>
             </BarChart>
         </ResponsiveContainer>
     );
@@ -132,7 +134,7 @@ function SimpleLineChart({ data, emptyTitle }: { data: LabelValueDatum[]; emptyT
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={36} />
                 <Tooltip contentStyle={{ background: 'var(--app-surface)', borderColor: 'var(--app-border)', color: 'var(--app-foreground)', borderRadius: 8 }} labelStyle={{ color: 'var(--app-foreground)' }} itemStyle={{ color: 'var(--app-foreground)' }} />
-                <Line type="monotone" dataKey="value" stroke={colors.primary} strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="value" stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ fill: colors.accent, stroke: colors.accent }} />
             </LineChart>
         </ResponsiveContainer>
     );
@@ -238,6 +240,8 @@ export default function Dashboard({
     const priorityKeys = ['activeEmployees', 'totalPositions', 'activeIdCards', 'pendingCardRequests'];
     const prioritized = priorityKeys.flatMap((key) => kpis.filter((kpi) => kpi.key === key));
     const headlineKpis = [...prioritized, ...kpis.filter((kpi) => !priorityKeys.includes(kpi.key))].slice(0, 4);
+    const employeeKpis = kpis.filter((kpi) => ['activeEmployees', 'registeredEmployees', 'dataQualityWarnings'].includes(kpi.key));
+    const structureKpis = kpis.filter((kpi) => kpi.group === 'organizations' || kpi.group === 'positions');
     const kpisForGroup = (group: string) => kpis.filter((kpi) => kpi.group === group);
 
     const renderKpi = (kpi: KpiItem, featured = false) => (
@@ -343,10 +347,37 @@ export default function Dashboard({
                 {/* ── Workforce ──────────────────────────────────────────── */}
                 {activeTab === 'workforce' && (
                     <div {...panelProps('workforce')}>
-                        <GroupMetrics group="employees" />
+                        {can.employees && (
+                            <MetricGrid count={employeeKpis.length}>
+                                {employeeKpis.map((kpi) => renderKpi(kpi))}
+                            </MetricGrid>
+                        )}
 
                         {can.employees && (
                             <>
+                                <ChartRow>
+                                    <ChartCard title={t('dashboard.employeesByAge')}>
+                                        <SimpleBarChart
+                                            emptyTitle={t('dashboard.noData')}
+                                            data={(charts.employeesByAge as KeyValueDatum[]) ?? []}
+                                            labelFor={keyLabel(t, 'dashboard.ageGroups')}
+                                        />
+                                    </ChartCard>
+                                    <ChartCard title={t('dashboard.employeesBySex')}>
+                                        <StatusDistribution
+                                            data={(charts.employeesBySex as KeyValueDatum[]) ?? []}
+                                            labelFor={keyLabel(t, 'dashboard.sexGroups')}
+                                        />
+                                    </ChartCard>
+                                </ChartRow>
+                                <ChartRow full>
+                                    <ChartCard title={t('dashboard.employeesByEmploymentType')}>
+                                        <StatusDistribution
+                                            data={(charts.employeesByEmploymentType as KeyValueDatum[]) ?? []}
+                                            labelFor={(key) => key === 'unknown' ? t('dashboard.unknown') : t(`employees.employmentType_${key}`)}
+                                        />
+                                    </ChartCard>
+                                </ChartRow>
                                 <ChartRow>
                                     <ChartCard title={t('dashboard.employeesByStatus')}>
                                         <StatusDistribution
@@ -411,8 +442,11 @@ export default function Dashboard({
                 {/* ── Structure ──────────────────────────────────────────── */}
                 {activeTab === 'structure' && (
                     <div {...panelProps('structure')}>
-                        <GroupMetrics group="organizations" />
-                        <GroupMetrics group="positions" />
+                        {structureKpis.length > 0 && (
+                            <MetricGrid count={structureKpis.length} variant="featured">
+                                {structureKpis.map((kpi) => renderKpi(kpi))}
+                            </MetricGrid>
+                        )}
 
                         {can.organizations && (
                             <ChartRow>

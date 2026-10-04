@@ -9,6 +9,7 @@ use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
+use App\Models\PerformanceObjective;
 use App\Models\Position;
 use App\Models\PositionService;
 use App\Services\OrganizationScope\OrganizationScopeService;
@@ -104,6 +105,8 @@ class PositionServiceController extends Controller
         // against the real record rather than trusted from the form.
         $this->authorize('createForPosition', [PositionService::class, $position]);
 
+        $this->assertOrganizationMatchesPosition($data, $position);
+
         $this->guardDuplicates($data, null);
 
         $record = PositionService::query()->create($data + [
@@ -149,6 +152,15 @@ class PositionServiceController extends Controller
 
         $position = Position::query()->findOrFail($data['position_id']);
         $this->authorize('createForPosition', [PositionService::class, $position]);
+
+        $this->assertOrganizationMatchesPosition($data, $position);
+        if ($this->performanceReferencesExistFor($positionService)
+            && ($positionService->position_id !== $position->getKey()
+                || $positionService->organization_id !== $position->organization_id)) {
+            throw ValidationException::withMessages([
+                'position_id' => __('This service is used by a performance plan and cannot be moved. Deactivate it instead.'),
+            ]);
+        }
 
         $this->guardDuplicates($data, $positionService->getKey());
 
@@ -199,6 +211,12 @@ class PositionServiceController extends Controller
         if ($this->feedbackExistsFor($positionService)) {
             throw ValidationException::withMessages([
                 'service_no' => __('This service has feedback and cannot be removed. Deactivate it instead.'),
+            ]);
+        }
+
+        if ($this->performanceReferencesExistFor($positionService)) {
+            throw ValidationException::withMessages([
+                'service_no' => __('This service is used by a performance plan and cannot be removed. Deactivate it instead.'),
             ]);
         }
 
@@ -289,6 +307,20 @@ class PositionServiceController extends Controller
         return EmployeeServiceFeedback::query()
             ->where('position_service_id', $record->getKey())
             ->exists();
+    }
+
+    private function assertOrganizationMatchesPosition(array $data, Position $position): void
+    {
+        if ($data['organization_id'] !== $position->organization_id) {
+            throw ValidationException::withMessages([
+                'organization_id' => __('The service organization must match the selected position organization.'),
+            ]);
+        }
+    }
+
+    private function performanceReferencesExistFor(PositionService $record): bool
+    {
+        return PerformanceObjective::query()->where('position_service_id', $record->getKey())->exists();
     }
 
     /** @return Collection<int, Organization> */

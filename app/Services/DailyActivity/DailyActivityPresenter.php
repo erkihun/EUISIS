@@ -9,6 +9,7 @@ use App\Models\DailyActivityHistory;
 use App\Models\DailyActivityItem;
 use App\Models\DailyActivityLog;
 use App\Models\Employee;
+use App\Services\Performance\PerformanceCascadeService;
 
 /**
  * Shapes logs for Inertia. Dates leave as Gregorian ISO strings; the browser
@@ -17,6 +18,8 @@ use App\Models\Employee;
  */
 class DailyActivityPresenter
 {
+    public function __construct(private readonly PerformanceCascadeService $cascade) {}
+
     /** Eager loads every presenter method below relies on. */
     public const SUMMARY_WITH = [
         'employee:id,employee_number,full_name,name_en',
@@ -51,6 +54,8 @@ class DailyActivityPresenter
         $log->loadMissing([
             ...self::SUMMARY_WITH,
             'items.positionService:id,name_en,name_am',
+            'items.performanceItem.objective.plan',
+            'items.performanceItem.objective.positionService',
             'attachments',
             'histories.actor:id,name',
             'reopener:id,name',
@@ -90,6 +95,8 @@ class DailyActivityPresenter
             'activity_category' => $item->activity_category?->value,
             'position_service_id' => $item->position_service_id,
             'employee_performance_item_id' => $item->employee_performance_item_id,
+            'cascade_trace' => $item->relationLoaded('performanceItem') && $item->performanceItem?->relationLoaded('objective')
+                && $item->performanceItem->objective !== null ? $this->cascade->trace($item->performanceItem->objective) : [],
             'position_service' => $item->relationLoaded('positionService') && $item->positionService
                 ? $this->named($item->positionService->name_en, $item->positionService->name_am)
                 : null,

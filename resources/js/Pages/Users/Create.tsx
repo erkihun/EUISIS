@@ -9,6 +9,19 @@ import { useLocale } from '@/hooks/useLocale';
 
 type Role = { id: number; name: string; scope: 'organization' | 'global' };
 
+const roleCategories = [
+    { key: 'administration', names: /^(Super Admin|System Admin|City Admin|Public Service Bureau Admin|Organizational Admin)$/ },
+    { key: 'hr', names: /^(HR Officer|Employee|Daily Activity .*)$/ },
+    { key: 'structure', names: /^Structure / },
+    { key: 'identity', names: /^(ID Card |NFC )/ },
+    { key: 'security', names: /^(Security Settings Manager|System Settings Admin|API Manager|Public Site Manager)$/ },
+    { key: 'reporting', names: /^(Auditor|Report Viewer)$/ },
+    { key: 'performance', names: /^Performance / },
+    { key: 'grievances', names: /^(Grievance |Administrative Tribunal )/ },
+    { key: 'services', names: /^(Cafeteria |Transport |Service Provider |Settlement )/ },
+    { key: 'other', names: /.*/ },
+] as const;
+
 const inputCls =
     'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
 const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
@@ -132,6 +145,12 @@ export default function CreateUser({
         (role) => form.data.role_ids.includes(role.id) && role.scope === 'organization',
     );
     const organizationScopeRequired = requiresOrganizationScope || selectedRoleRequiresScope;
+    const groupedRoles = roleCategories
+        .map((category) => ({
+            ...category,
+            roles: roles.filter((role) => roleCategories.find((entry) => entry.names.test(role.name)) === category),
+        }))
+        .filter((category) => category.roles.length > 0);
 
     return (
         <AuthenticatedLayout
@@ -355,25 +374,35 @@ export default function CreateUser({
                                     {t('users.noRoles')}
                                 </p>
                             ) : (
-                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                                    {roles.map((role) => (
-                                        <label
-                                            key={role.id}
-                                            className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
-                                                checked={form.data.role_ids.includes(role.id)}
-                                                onChange={() => toggleRole(role.id)}
-                                            />
-                                            <span className="min-w-0 flex-1 text-sm text-gray-700 dark:text-slate-300">
-                                                {role.name}
-                                            </span>
-                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
-                                                {role.scope === 'organization' ? t('users.scopedRole') : t('users.globalRole')}
-                                            </span>
-                                        </label>
+                                <div className="space-y-5">
+                                    {groupedRoles.map((category) => (
+                                        <fieldset key={category.key} className="min-w-0">
+                                            <legend className="mb-2 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                                                {t(`users.roleCategories.${category.key}`)}
+                                                <span className="ml-2 text-xs font-normal text-gray-500 dark:text-slate-400">({category.roles.length})</span>
+                                            </legend>
+                                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                                {category.roles.map((role) => (
+                                                    <label
+                                                        key={role.id}
+                                                        className="flex cursor-pointer items-center justify-between gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
+                                                            checked={form.data.role_ids.includes(role.id)}
+                                                            onChange={() => toggleRole(role.id)}
+                                                        />
+                                                        <span className="min-w-0 flex-1 text-sm text-gray-700 dark:text-slate-300">
+                                                            {role.name}
+                                                        </span>
+                                                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                                                            {role.scope === 'organization' ? t('users.scopedRole') : t('users.globalRole')}
+                                                        </span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </fieldset>
                                     ))}
                                 </div>
                             )}

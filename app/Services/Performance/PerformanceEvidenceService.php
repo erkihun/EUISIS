@@ -39,10 +39,20 @@ final class PerformanceEvidenceService
             throw ValidationException::withMessages(['employee_performance_item_id' => __('performance.errors.item_not_in_agreement')]);
         }
 
-        // A linked daily activity must be the agreement employee's own.
+        // Evidence retains the assignment and period in which work happened.
         $dailyItemId = $data['daily_activity_item_id'] ?? null;
-        if ($dailyItemId !== null && ! DailyActivityItem::query()->whereKey($dailyItemId)->whereHas('log', fn ($q) => $q->where('employee_id', $agreement->employee_id))->exists()) {
-            throw ValidationException::withMessages(['daily_activity_item_id' => __('performance.errors.item_not_in_agreement')]);
+        if ($dailyItemId !== null) {
+            $dailyItem = DailyActivityItem::query()->whereKey($dailyItemId)
+                ->whereHas('log', fn ($q) => $q->where('employee_id', $agreement->employee_id)
+                    ->where('employee_assignment_id', $agreement->employee_assignment_id)
+                    ->whereBetween('activity_date', [$agreement->effective_from->toDateString(), $agreement->effective_to->toDateString()]))
+                ->first();
+            $linkedItemId = $dailyItem?->employee_performance_item_id;
+            if ($dailyItem === null
+                || ($linkedItemId !== null && ! $agreement->allItems()->whereKey($linkedItemId)->exists())
+                || ($itemId !== null && $linkedItemId !== $itemId)) {
+                throw ValidationException::withMessages(['daily_activity_item_id' => __('performance.errors.item_not_in_agreement')]);
+            }
         }
 
         $type = $own ? ($dailyItemId !== null ? EvidenceType::DailyActivity : EvidenceType::Document) : EvidenceType::from($data['evidence_type'] ?? EvidenceType::ManagerConfirmation->value);

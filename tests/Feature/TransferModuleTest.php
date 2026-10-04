@@ -19,8 +19,14 @@ use App\Enums\TransferApprovalStatus;
 use App\Enums\TransferApprovalType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\EmployeePerformanceAgreement;
+use App\Models\Kpi;
+use App\Models\KpiActual;
 use App\Models\Organization;
 use App\Models\OrganizationType;
+use App\Models\PerformanceCycle;
+use App\Models\PerformancePlan;
+use App\Models\PerformanceResult;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\TransferAnnouncement;
@@ -28,6 +34,10 @@ use App\Models\TransferApplication;
 use App\Models\TransferApproval;
 use App\Models\TransferSetting;
 use App\Models\User;
+use App\Services\Performance\EmployeeAgreementService;
+use App\Services\Performance\KpiActualService;
+use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function (): void {
@@ -373,6 +383,82 @@ test('old assignment is closed and new assignment is created after transfer', fu
     // Application marked as transferred
     $application->refresh();
     expect($application->status)->toBe(TransferApplicationStatus::Transferred);
+});
+
+function makeTransferPerformanceContext(Employee $employee, User $actor, bool $sameDay = false): array
+{
+    $assignment = $employee->currentAssignment;
+    $cycle = PerformanceCycle::query()->create(['code' => 'TRANSFER-EP', 'name_en' => 'Transfer performance cycle', 'organization_id' => $assignment->organization_id, 'start_date' => now()->startOfYear()->toDateString(), 'end_date' => now()->endOfYear()->toDateString()]);
+    $plan = new PerformancePlan(['cycle_id' => $cycle->id, 'organization_id' => $assignment->organization_id, 'position_id' => $assignment->position_id, 'plan_type' => 'POSITION', 'title' => 'Original position plan']);
+    $plan->forceFill(['lineage_key' => 'transfer-history-plan', 'status' => 'PUBLISHED'])->save();
+    $objective = $plan->objectives()->create(['code' => 'TRANSFER-O', 'title_en' => 'Complete requests', 'objective_type' => 'LOCAL', 'weight' => 100]);
+    $kpi = Kpi::query()->create(['code' => 'TRANSFER-K', 'name_en' => 'Requests', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL', 'frequency' => 'ANNUAL']);
+    $target = $objective->targets()->create(['performance_plan_id' => $plan->id, 'kpi_id' => $kpi->id, 'period_start' => $cycle->start_date->toDateString(), 'period_end' => $cycle->end_date->toDateString(), 'target_value' => 100, 'weight' => 100]);
+    $agreement = EmployeePerformanceAgreement::query()->create(['cycle_id' => $cycle->id, 'employee_id' => $employee->id, 'employee_assignment_id' => $assignment->id, 'performance_plan_id' => $plan->id, 'organization_id' => $assignment->organization_id, 'position_id' => $assignment->position_id, 'manager_user_id' => $actor->id, 'effective_from' => ($sameDay ? now() : now()->subMonth())->toDateString(), 'effective_to' => $cycle->end_date->toDateString()]);
+    $agreement->forceFill(['status' => 'ACTIVE', 'active_key' => $employee->id.':'.$assignment->id.':'.$cycle->id])->save();
+    $item = $agreement->items()->create(['objective_id' => $objective->id, 'kpi_id' => $kpi->id, 'position_target_id' => $target->id, 'expected_output' => 'Complete requests', 'target_value' => 100, 'weight' => 100]);
+    $actual = KpiActual::query()->create(['kpi_id' => $kpi->id, 'employee_performance_item_id' => $item->id, 'subject_key' => 'item:'.$item->id, 'agreement_id' => $agreement->id, 'performance_plan_id' => $plan->id, 'employee_id' => $employee->id, 'organization_id' => $assignment->organization_id, 'period_start' => $agreement->effective_from->toDateString(), 'period_end' => ($sameDay ? now() : now()->subDay())->toDateString(), 'actual_value' => 7, 'source_type' => 'MANUAL', 'source_key' => 'manual']);
+    $result = new PerformanceResult(['employee_id' => $employee->id, 'cycle_id' => $cycle->id, 'agreement_id' => $agreement->id, 'organization_id' => $assignment->organization_id]);
+    $result->forceFill(['results_score' => 7, 'results_weight' => 100, 'competency_weight' => 0, 'calculated_score' => 7, 'final_score' => 7, 'calculated_at' => now(), 'snapshot_json' => ['agreement_id' => $agreement->id, 'assignment_id' => $assignment->id, 'item_id' => $item->id, 'actual' => '7.0000']])->save();
+
+    return compact('agreement', 'plan', 'item', 'actual', 'result');
+}
+
+test('HR transfer closes old performance responsibility and preserves its measurement history', function (): void {
+    $this->travelTo(Carbon::parse('2026-07-01 10:00:00'));
+    $from = makeTransferOrg('EP-CLOSE-FROM');
+    $to = makeTransferOrg('EP-CLOSE-TO');
+    $employee = makeTransferEmployee($from, makeTransferPos($from->id));
+    $oldAssignment = $employee->currentAssignment;
+    $actor = makeTransferActor('transfers.complete');
+    $context = makeTransferPerformanceContext($employee, $actor);
+    $announcement = TransferAnnouncement::query()->create(['organization_id' => $to->id, 'position_id' => makeTransferPos($to->id)->id, 'number_of_vacancies' => 1, 'opening_date' => now()->subDay()->toDateString(), 'closing_date' => now()->addDays(30)->toDateString(), 'status' => TransferAnnouncementStatus::Published, 'created_by' => $actor->id]);
+    $application = TransferApplication::query()->create(['announcement_id' => $announcement->id, 'employee_id' => $employee->id, 'current_assignment_id' => $oldAssignment->id, 'releasing_organization_id' => $from->id, 'receiving_organization_id' => $to->id, 'status' => TransferApplicationStatus::Approved, 'submitted_at' => now()]);
+    TransferSetting::current()->update(['card_reprint_policy' => 'no_reprint', 'service_recalculation_policy' => 'no_recalculation']);
+    $oldActual = $context['actual']->fresh()->getRawOriginal();
+    $oldResult = $context['result']->fresh()->getRawOriginal();
+    $oldItem = $context['item']->fresh()->getRawOriginal();
+
+    app(CompleteTransferAction::class)->execute($application, $actor);
+    $agreement = $context['agreement']->fresh();
+
+    expect($agreement->status->value)->toBe('CLOSED')
+        ->and($agreement->effective_to->toDateString())->toBe('2026-06-30')
+        ->and($agreement->active_key)->toBeNull()
+        ->and($agreement->employee_assignment_id)->toBe($oldAssignment->id)
+        ->and($agreement->performance_plan_id)->toBe($context['plan']->id)
+        ->and($context['item']->fresh()->getRawOriginal())->toBe($oldItem)
+        ->and($context['actual']->fresh()->getRawOriginal())->toBe($oldActual)
+        ->and($context['result']->fresh()->getRawOriginal())->toBe($oldResult);
+    $this->assertDatabaseCount('employee_performance_agreements', 1);
+
+    foreach (['employee_performance_agreements.manage', 'kpi_actuals.enter'] as $permission) {
+        $actor->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+    }
+    expect(fn () => app(KpiActualService::class)->recordForItem($context['item']->fresh(), ['period_start' => '2026-07-01', 'period_end' => '2026-07-02', 'actual_value' => 5], $actor))
+        ->toThrow(ValidationException::class);
+    expect(app(EmployeeAgreementService::class)->close($agreement, '2026-06-30', 'Repeated closure', $actor)->status->value)->toBe('CLOSED');
+});
+
+test('a same-day active agreement rolls back HR transfer rather than creating an invalid history period', function (): void {
+    $this->travelTo(Carbon::parse('2026-07-01 10:00:00'));
+    $from = makeTransferOrg('EP-ROLL-FROM');
+    $to = makeTransferOrg('EP-ROLL-TO');
+    $employee = makeTransferEmployee($from, makeTransferPos($from->id));
+    $oldAssignment = $employee->currentAssignment;
+    $actor = makeTransferActor('transfers.complete');
+    $context = makeTransferPerformanceContext($employee, $actor, sameDay: true);
+    $announcement = TransferAnnouncement::query()->create(['organization_id' => $to->id, 'position_id' => makeTransferPos($to->id)->id, 'number_of_vacancies' => 1, 'opening_date' => now()->subDay()->toDateString(), 'closing_date' => now()->addDays(30)->toDateString(), 'status' => TransferAnnouncementStatus::Published, 'created_by' => $actor->id]);
+    $application = TransferApplication::query()->create(['announcement_id' => $announcement->id, 'employee_id' => $employee->id, 'current_assignment_id' => $oldAssignment->id, 'releasing_organization_id' => $from->id, 'receiving_organization_id' => $to->id, 'status' => TransferApplicationStatus::Approved, 'submitted_at' => now()]);
+    TransferSetting::current()->update(['card_reprint_policy' => 'no_reprint', 'service_recalculation_policy' => 'no_recalculation']);
+
+    expect(fn () => app(CompleteTransferAction::class)->execute($application, $actor))->toThrow(ValidationException::class);
+    expect($employee->fresh()->current_assignment_id)->toBe($oldAssignment->id)
+        ->and($oldAssignment->fresh()->assignment_status)->toBe(AssignmentStatus::Active)
+        ->and($oldAssignment->fresh()->is_current)->toBeTrue()
+        ->and($application->fresh()->status)->toBe(TransferApplicationStatus::Approved)
+        ->and($context['agreement']->fresh()->status->value)->toBe('ACTIVE');
+    $this->assertDatabaseCount('employee_assignments', 1);
 });
 
 test('transfer cannot complete without full approval when approvals are required', function (): void {
