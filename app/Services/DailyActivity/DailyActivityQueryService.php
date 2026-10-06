@@ -29,6 +29,11 @@ use Illuminate\Support\Collection;
  */
 class DailyActivityQueryService
 {
+    private const EMPLOYEE_COLUMNS = ['id', 'employee_number', 'full_name', 'name_en', 'status', 'email'];
+
+    /** Employees per day-calculation batch; each batch is a handful of bounded queries. */
+    public int $employeeChunkSize = 1000;
+
     public const MAX_RANGE_DAYS = 92;
 
     public function __construct(
@@ -115,15 +120,33 @@ class DailyActivityQueryService
      * DailyActivityCoverage::matchesAssignment, so a transfer mid-range
      * counts each day under the organization it belonged to.
      *
+     * Walks them a bounded chunk at a time, in a stable
+     * order (name, then id). Day calculations load logs, assignments, status
+     * history and leave per chunk, so memory and every IN list stay bounded
+     * whatever the coverage: a city-wide scope never builds one query with
+     * hundreds of thousands of parameters (PostgreSQL refuses more than
+     * 65,535). Return false from the callback to stop early.
+     *
      * @param  array<string, mixed>  $filters
-     * @return Collection<int, Employee>
+     * @param  callable(Collection<int, Employee>): (bool|void)  $callback
      */
-    public function employeesInCoverage(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters = []): Collection
+    public function eachEmployeeChunk(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters, callable $callback): void
     {
         if ($coverage->isEmpty()) {
-            return collect();
+            return;
         }
 
+        $this->employeeQuery($coverage, $from, $to, $filters)
+            ->select(self::EMPLOYEE_COLUMNS)
+            ->chunk($this->employeeChunkSize, fn (Collection $employees) => $callback($employees) === false ? false : null);
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Employee>
+     */
+    private function employeeQuery(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters): Builder
+    {
         $assignments = $coverage->apply(EmployeeAssignment::query())
             ->where('assignment_status', '!=', AssignmentStatus::PendingTransfer->value)
             ->whereDate('effective_from', '<=', $to->toDateString())
@@ -145,7 +168,7 @@ class DailyActivityQueryService
                 ->orWhere('employee_number', 'like', $term));
         }
 
-        return $employees->orderBy('full_name')->get(['id', 'employee_number', 'full_name', 'name_en', 'status', 'email']);
+        return $employees->orderBy('full_name')->orderBy('id');
     }
 
     /**

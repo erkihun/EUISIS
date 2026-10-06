@@ -1,7 +1,9 @@
 const positions = {
-    positionServices: '??? ??? ???????',
-    currentPerformancePlan: '???? ?????? ???',
-    historicalPerformancePlans: '??? ?? ???? ?????? ????',
+    positionServices: 'የሥራ መደብ አገልግሎቶች',
+    currentPerformancePlan: 'የአሁኑ የአፈጻጸም ዕቅድ',
+    historicalPerformancePlans: 'ሌሎች እና ያለፉ የአፈጻጸም ዕቅዶች',
+    contributingGoals: 'የሚያበረክትባቸው ስትራቴጂያዊ ግቦች',
+    noContributingGoals: 'ስትራቴጂያዊ ግብ የለም (የክፍሉ የራሱ ሥራ ብቻ)',
 
     title: 'የስራ መደቦች',
     jobPositions: 'የስራ መደቦች',

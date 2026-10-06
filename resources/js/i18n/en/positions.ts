@@ -2,6 +2,8 @@ const positions = {
     positionServices: 'Position Services',
     currentPerformancePlan: 'Current Performance Plan',
     historicalPerformancePlans: 'Other and Historical Performance Plans',
+    contributingGoals: 'Contributes to strategic goals',
+    noContributingGoals: 'No strategic goal (local work only)',
 
     title: 'Job Positions',
     jobPositions: 'Job Positions',

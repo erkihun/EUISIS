@@ -1,161 +1,211 @@
 # Performance cascade
 
-## Source audit before implementation
+How a strategic goal reaches a position, an employee and a daily task in EUISIS EPMS, and why each link lives where it does. Read this with [epms-strategic-planning.md](epms-strategic-planning.md), [epms-cascade-rules.md](epms-cascade-rules.md) and [epms-calculation-rules.md](epms-calculation-rules.md).
 
-The existing master-data graph is `Organization → OrganizationUnit → Position → PositionService`.
-Neither `positions` nor `position_services` has a `strategic_goal_id` field in the migrations, models, requests, or UI. There is no direct legacy master-data goal mapping to remove.
+## Mapping to the conceptual model
 
-The existing planning graph is `PerformanceCycle + Organization → StrategicGoal → StrategicGoalAllocation → OrganizationUnit`, alongside `PerformancePlan(ORGANIZATION → UNIT → POSITION) → PerformanceObjective → KpiTarget → KpiPeriodTarget`. `PerformanceObjective.parent_objective_id` and `PerformanceCascade` record upstream lineage. Unit and position plans already exist as types of `performance_plans`; objectives and targets are their items. They must be reused.
+EUISIS already had a planning hierarchy, so the cascade reuses it. No parallel `unit_plans`, `position_plans` or `position_plan_items` tables exist, and none should be added.
 
-The employee graph is `EmployeeAssignment → EmployeePerformanceAgreement.performance_plan_id → EmployeePerformanceItem.position_target_id → KpiTarget`. Agreements retain assignment, organization, unit, position, and plan context. `DailyActivityItem.employee_performance_item_id` links evidence/progress to an agreement item. `KpiActual` and `PerformanceResult.snapshot_json` keep measured results and appraisal calculation traces.
+| Concept | EUISIS entity |
+|---|---|
+| Strategic Goal | `strategic_goals` (cycle + organization + `version_no`) |
+| Strategic Goal Allocation | `strategic_goal_allocations` |
+| Unit Plan | `performance_plans` where `plan_type = UNIT` |
+| Unit Plan Item / Objective | `performance_objectives` of a UNIT plan |
+| Position Plan | `performance_plans` where `plan_type = POSITION` |
+| Position Plan Item | `performance_objectives` of a POSITION plan |
+| KPI definition / target | `kpis` / `kpi_targets`, with quarter and month rows in `kpi_period_targets` |
+| Position Service | `position_services` |
+| Employee Performance Agreement / item | `employee_performance_agreements` / `employee_performance_items` |
+| Daily Activity / evidence | `daily_activity_items`, `performance_evidence` |
+| Actual result / appraisal | `kpi_actuals`, `kpi_contributions`, `performance_plan_scores`, `performance_results` |
 
-Issues identified:
+## A. Master-data relationship
 
-- Planning objectives do not reference position services or unit goal allocations.
-- Goal readiness sums linked objectives at every level, which can double-count cascades and parallel plan versions.
-- Allocation writes allow totals above the goal until readiness validation.
-- Unitless positions can bypass unit plans; plan authorization stops at organization scope.
-- Target amendments repoint existing employee items and child targets, changing historical context.
-- Plan version copies omit quarterly/monthly target rows.
-- Strategic goals have no amendment/version dimension.
-
-The existing methodology in `docs/epms-strategic-planning.md` requires exactly one lead allocation; this is preserved, not introduced as a government policy.
-
-## Final relationship architecture
-
-```mermaid
-flowchart TD
-    ORG[Organization master] --> UNIT[Organization Unit master]
-    UNIT --> POS[Position master]
-    POS --> SERVICE[Position Service master]
-    CYCLE[Performance Cycle + Organization] --> GOAL[Strategic Goal version]
-    GOAL --> ALLOC[Strategic Goal Allocation]
-    ALLOC --> UNIT
-    GOAL --> ROOT[Organization Plan Objective]
-    ROOT --> UOBJ[Unit Plan Objective]
-    ALLOC --> UOBJ
-    UOBJ --> POBJ[Position Plan Objective / Item]
-    POS --> PPLAN[Position Plan version]
-    PPLAN --> POBJ
-    SERVICE --> POBJ
-    POBJ --> TARGET[KPI Target + quarterly/monthly targets]
-    ASSIGN[Employee Assignment snapshot] --> AGREEMENT[Employee Performance Agreement]
-    PPLAN --> AGREEMENT
-    AGREEMENT --> ITEM[Employee Performance Item]
-    POBJ --> ITEM
-    TARGET --> ITEM
-    ITEM --> DAILY[Daily Activity Item / Evidence]
-    DAILY --> ACTUAL[Source measurements: KpiActual]
-    ITEM --> ACTUAL
-    ACTUAL --> RESULT[Appraisal and immutable result trace]
+```
+Organization → Organization Unit → Position → Position Service
 ```
 
-Organization, unit and position plans remain `performance_plans` types. Their items remain `performance_objectives`; no duplicate unit-plan, position-plan, or position-plan-item tables were created. A local objective may remain operational and unlinked to strategy. When an objective contributes to a strategic goal, its annual lineage goes through the exact published parent objective and an allocated unit (or its allocated ancestor).
+- A position belongs to an organization and a unit. It exists across many cycles and has no `strategic_goal_id`.
+- A position service is a stable responsibility of one position (`position_services.position_id`). It answers "what is this post responsible for?" and has no `strategic_goal_id`.
+- Neither table has ever had a goal column, so no legacy goal mapping needed removing. A schema test guards this.
 
-### Schema and compatibility
+## B. Performance relationship
 
-The additive migration `2026_10_04_100000_link_performance_items_to_allocations_and_services.php` adds:
+```
+Performance Cycle + Organization
+  → Strategic Goal (version)
+  → Strategic Goal Allocation (unit, absolute percentage points)
+  → Unit Plan → Unit Plan Item
+  → Position Plan → Position Plan Item ──(optional)── Position Service
+  → KPI Target (annual → quarterly → monthly where entered)
+  → Employee Performance Agreement → Agreement Item
+```
 
-| Existing table | Added fields | Purpose |
+- Root objectives of the ORGANIZATION plan carry `strategic_goal_id`.
+- Unit and position items link upstream through `parent_objective_id` to an objective of the **published parent plan**. `PerformanceCascadeService::links()` derives `strategic_goal_id` and `strategic_goal_allocation_id` from that lineage. A goal can never be attached directly to a unit or position item.
+- `strategic_goal_allocation_id` names the allocated unit: the plan's own unit, or its nearest allocated ancestor for a descendant team. A goal that allocates nothing to the unit's line is refused.
+- `position_service_id` is optional per item. It must be an active service of the plan's own position and organization, and the backend refuses any other. One service can support several items, cycles and goals without being duplicated.
+- A position plan's parent must be the published UNIT plan of the position's unit. A position without a unit cannot be planned until it is placed.
+
+The distinction in practice:
+
+| | Position Service | Position Plan Item |
 |---|---|---|
-| `performance_objectives` | nullable `strategic_goal_allocation_id`, nullable `position_service_id` | Annual responsibility and reusable master service links; restricted foreign keys and lookup indexes |
-| `strategic_goals` | `version_no` default 1, nullable `supersedes_goal_id`, nullable `change_reason` | Audited amendments without overwriting published goal data |
+| Question | What is this post responsible for? | What must it deliver this cycle? |
+| Lifetime | Master data, many cycles | One plan version in one cycle |
+| Example | Employee Recruitment | 2026: 95% of approved requests within the service standard. 2027: cut average processing time by 15%. |
 
-The unique goal key becomes `(cycle_id, organization_id, code, version_no)`. All existing goals remain version 1. No position or service master receives a goal FK. Existing parent/source objective fields, cascade records, agreement snapshots, decimal fields, targets, evidence, actuals and result snapshots are retained. Nullable link fields deliberately leave older unmapped rows untouched; there is no guessed data backfill.
+## C. Traceability relationship
 
-Rollback is possible before the new fields have operational history. The migration refuses rollback when goal versions beyond 1 or new objective links exist. If any new objective links have been populated, export and preserve them before rollback; the old application cannot represent them. Never use rollback to collapse amendments or erase history.
+```
+Daily Activity → Agreement Item → Position Plan Item (→ Position Service)
+  → Unit Plan Item → Strategic Goal Allocation → Strategic Goal
+```
 
-### Allocation and weight semantics
+`PerformanceCascadeService` resolves every direction from the stored lineage. One eager-loaded objective graph per cycle and organization avoids N+1 queries.
 
-| Value | Basis and invariant |
+| Question | Method |
 |---|---|
-| Goal `weight_percent` | Absolute organization percentage points; the selected strategic basis totals exactly 100 before review/approval/publication |
-| Allocation `organization_contribution_percent` | Absolute share of that goal; every share is positive, draft sum may be below the goal, never above it; publication sum equals the goal weight |
-| Organization objective `absolute_weight_percent` | Goal-linked organization objective shares equal their goal weight; only objectives of the applicable root plan count |
-| Objective `weight` / `local_weight_percent` | Local normalized plan weights, total 100; both fields must agree when supplied |
-| Target weight | Normalized within its objective, total 100 |
-| Employee item weight | Adapted plan objective ? target weight / 100, normalized across the agreement; separate from absolute strategic allocation |
+| Lineage of one item, goal to service | `trace(objective)` |
+| Which goal a daily task contributed to | `activityTrace(dailyActivityItem)` |
+| Which goals a plan version contributes to | `goalsForPlans(plans)` |
+| Which goals a position contributes to, per cycle and version | `goalsForPosition(position, ?cycleId)` |
+| Which goals an employee contributed to, per agreement and assignment | `goalsForEmployee(employee, ?cycleId)` |
+| Which units, positions, services, KPIs and employees deliver a goal | `goalCascade(goal, actor)` |
 
-Example: an organization goal weighs 30%, allocated 15% to Planning, 10% to HR and 5% to Finance. Planning's own objectives can still total 100% locally. A Planning achievement of 90% contributes `15 ? 90 / 100 = 13.5000` organization percentage points. It does not imply that every Planning employee has an appraisal weight of 15%.
+Unlinked operational work stays unlinked. The service never guesses a goal from names or codes.
 
-Calculations use existing DECIMAL columns and Brick Math BigDecimal operations. Organization performance consumes KPI quantities through declared aggregation rules; employee appraisal scores are never summed into the organization. Percentage aggregation uses numerator/denominator totals where configured; non-combinable measures require their own measurement. See [PostgreSQL exact numeric types](https://www.postgresql.org/docs/17/datatype-numeric.html).
+## Final architecture
 
-### Version and historical rules
+```
+Performance Cycle + Organization
+        │
+        ▼
+Strategic Goal ─────────────── weight_percent (absolute, Σ = 100)
+        │
+        ▼
+Strategic Goal Allocation ──── organization_contribution_percent (absolute, Σ = goal weight)
+        │
+        ▼
+Organization Unit
+        │
+        ▼
+Unit Plan (performance_plans, UNIT)
+        │
+        ▼
+Unit Plan Item / KPI Target ── local weight (Σ = 100 per plan)
+        │
+        ▼
+Position Plan (performance_plans, POSITION)
+        │
+        ├──── Position (master)
+        │        │
+        │        ▼
+        │   Position Services (master)
+        │        │
+        ▼        ▼
+Position Plan Item ──────────── local weight (Σ = 100 per plan), optional service link
+        │
+        ▼
+Employee Agreement Item ─────── objective weight × target weight ÷ 100
+        │
+        ▼
+Daily Activity / Evidence ───── evidence and source quantities, never a score by itself
+        │
+        ▼
+KPI Actual → Plan Score / Appraisal Result
+```
 
-1. Published goals and plans are edited through reason-required draft successors. Published predecessor data, allocations and employee references remain attached to their original IDs.
-2. A goal amendment copies allocations under the new goal ID. Its code is immutable so the strategic version family remains identifiable. A pending successor prevents another concurrent amendment.
-3. An organization plan amendment retains its goal basis until the drafter explicitly selects amended goals. Readiness checks use that plan's own strategic references, rather than all descendant objectives or all concurrent versions.
-4. When a child plan is amended after its parent has changed, the user explicitly selects the published parent version. Objective mapping follows `source_objective_id` ancestry. KPI target mapping requires one current target for the mapped objective and KPI. Missing or ambiguous successors produce `NEEDS_DECISION` and the transaction rolls back; matching names or codes are not treated as proof.
-5. New plan and target versions copy quarter/month target rows. Target amendments preserve older employee-item and child-target foreign keys. Scoring and roll-up traverse predecessor measurements without rewriting those references.
-6. Daily resynchronization may include predecessor tasks. For the same exact period, the newest item measurement replaces the older measurement logically; both rows remain stored. Distinct reporting periods retain their own measurements.
-7. Position moves do not rewrite plan unit snapshots. Existing service references remain readable after deactivation; newly selected services must be active and belong to the plan position and organization. Referenced service master records cannot be moved or deleted.
-8. Finalized/released result snapshots remain immutable. New working calculations do not rewrite historical snapshots.
+## Weight semantics
 
-### Assignments, transfers and evidence
+Three different quantities are stored in three different fields. They are never interchangeable.
 
-Normal agreement creation requires the employee's active primary assignment, matching `current_assignment_id`. The published position plan must match the agreement's cycle, organization, unit and position snapshot and overlap its dates. Temporary acting assignments retain the existing explicit workflow.
+| Weight | Field | Meaning | Invariant |
+|---|---|---|---|
+| A. Organization goal weight | `strategic_goals.weight_percent` | Absolute share of organization performance | Active goals for the cycle and organization total exactly 100.0000 before review, approval or publication |
+| B. Unit allocation | `strategic_goal_allocations.organization_contribution_percent` | Absolute organization percentage points delivered by a unit | Each share is positive. The draft total may be below the goal weight but never above it. At publication the total equals the goal weight exactly (30 → 15 + 10 + 5, not 100) |
+| C. Local plan weight | `performance_objectives.weight` / `local_weight_percent` | Share of one unit's or position's own workload | Active items of a plan total 100 at submit and publish. Drafts may be incomplete. The two fields must agree when both are given |
 
-Completing an HR transfer now closes old agreed/active/under-review agreements inside the same transaction, at the earlier of their existing end date and the day before the new assignment begins. Old plan, service, objective, target, actual, evidence and result links remain intact. A transfer that would create a negative agreement period is refused and rolled back for an explicit decision. Finalized result snapshots are preserved.
+Two further weights sit inside a plan: KPI target weights total 100 within each objective, and agreement item weight equals objective weight × target weight ÷ 100.
 
-A receiving-organization agreement is created through its authorized cycle/plan workflow. The transfer does not guess a receiving cycle or fabricate a replacement plan. This matters for transfers between organizations whose performance cycles differ.
+The existing methodology requires exactly one lead allocation per goal at publication (`epms-strategic-planning.md`). This rule was already defined before this work and is enforced; no additional government policy is assumed.
 
-Daily evidence must belong to the same employee, assignment and agreement period. If an item is selected, the daily task must point to that item; cross-agreement/cross-item links are refused. DAILY_ACTIVITY synchronization uses approved quantities (or the existing configured submission policy), supports SUM, and excludes unlinked or wrong-assignment work. No eligible measurement returns null; a deliberately recorded zero remains zero. Activity counts alone never produce a score.
+All values are DECIMAL columns, reconciled with `Brick\Math\BigDecimal`. There are no floats and no tolerances: 99.9999 is not publishable.
 
-`PerformanceCascadeService` centralizes goal resolution, allocation derivation, historical traces, goal cascade queries and decimal contribution calculation. Plan and agreement pages display the trace; daily activity presentation exposes the same reverse trace for linked tasks. Unlinked operational work remains unlinked rather than being attributed to a guessed goal. Eager organization/cycle graph loads are cached within a service instance, including batched employee visibility for goal drilldowns.
+## Achievement and contribution
 
-### Authorization and UI
+An allocation's contribution is in organization percentage points:
 
-Mutation authority combines the named permission, organization scope and explicit unit reviewer coverage; scoped organizational approval authority retains oversight. Titles such as HR Officer do not grant planning rights. Cross-unit managers and employees without coverage cannot mutate another unit's planning, targets, schedules or actuals. Employee names in cascades use the same agreement visibility policy as agreement lists, including management permission for named managers.
+```
+contribution = allocation points × achievement ÷ 100
+15 × 90 ÷ 100 = 13.5000 points     (not 90 points, not 30 × 90)
+```
 
-The UI now provides:
+`PerformanceCascadeService::contribution()` is the single implementation. `allocationContributions(goals)` applies it for each allocation:
 
-- Position detail sections for services, current published plan and other/historical plans, retaining recorded organization/unit/cycle/version/dates and separately checking historical organization access.
-- Position plan item service and upstream-objective selection, local weights, and expandable strategic lineage.
-- Goal version/amendment history, allocation unit-plan statuses and read-only goal ? unit ? position ? service ? KPI ? authorized employee drilldowns.
-- Explicit published upstream version selection for child amendments, with ambiguity handled as a decision rather than a silent rewrite.
-- Read-only item lineage in agreement and daily activity views. Labels are supplied in English and Amharic.
+1. Take the allocated unit's published UNIT plan in the goal's cycle.
+2. Read its latest stored plan score (`performance_plan_scores`, produced by `PerformanceAggregationService::planScore`).
+3. Achievement is the weighted average, by local weight, of the scores of that plan's items linked to the allocation. Amended goals copy allocations, so items linked to an earlier version of the same goal and unit count too.
+4. Items without any reported KPI achievement are excluded and the allocation is marked incomplete. An unmeasured allocation shows "not yet measured"; it never counts as zero.
 
-### Live local audit and data decisions
+The goal page shows each allocation's achievement, its points and the as-of date, plus the goal's total points with an incomplete flag. All of it is calculated on the server.
 
-The read-only PostgreSQL audit before applying the additive migration found 3 goals and zero allocations, plans, objectives, services, agreements, agreement items and daily activity items. Neither position nor service master contained a goal field. One active position had no unit. Its proper unit is `NEEDS_DECISION`; no placement was guessed. The application now requires unit placement before creating a position plan.
+This is a derived accountability view. The official organization score remains the organization plan score: KPI actuals rolled up through `parent_target_id` and `kpi_contributions` by each KPI's aggregation method. Employee appraisal scores are never summed into a unit or the organization, and each source row reaches exactly one parent, so nothing is double-counted.
 
-Only the new additive EPMS migration was applied to the local database. No live goals or mappings were rewritten, no master records were moved, and demo seeders were not run against the live database.
+## Versioning and history
 
-The repository also has a pre-existing pending `2026_09_29_100000_register_court_case_permissions` migration. A full `migrate --pretend` encounters its PostgreSQL insertGetId dry-run error before EPMS. The EPMS migration's separate PostgreSQL preview succeeded and its local execution succeeded. The unrelated migration remains pending.
+1. Published goals, allocations, plans and targets are immutable. Changes go through reason-required draft successors: `StrategicPlanningService::newVersion` (goal and its allocations), `PerformancePlanService::newVersion` (plan, items, targets, period targets, cascade rows) and `TargetAmendmentService`.
+2. A goal amendment keeps its code, so the version family stays identifiable. Only one pending successor may exist at a time.
+3. A child plan amended after its parent changed must name the published parent version. Mapping follows `source_objective_id` ancestry. A missing or ambiguous successor raises `NEEDS_DECISION` and the transaction rolls back. Matching names are never treated as proof.
+4. Plans snapshot their organization unit. Moving a position to another unit does not rewrite earlier plans, and agreements still resolve their historical plan.
+5. Deletion is limited to drafts: draft goals without objectives or successors, allocations no item references, and items or targets of DRAFT plans. There is no plan delete route. Positions and services are soft-deleted, and items reference services with a restricting foreign key.
 
-### Demo fixture
+## Employees, transfers and daily evidence
 
-`DemoPerformanceSeeder` now builds an isolated complete example using the existing demo organization, Planning unit, position and assigned employee. Root objectives weigh 30/40/30; the shared 30% goal has 15/10/5 allocations. Published organization, unit and position plans use existing tables. Two local position items reuse one service, each weighing 50%, with KPI target weights of 100. A draft employee agreement and measurable draft daily task demonstrate traceability without creating an official actual or appraisal score. A repeat seed preserves existing versions and avoids duplicate plans.
+- An agreement is created from the employee's active primary assignment (`current_assignment_id`) and the published position plan matching that assignment's cycle, organization, unit and position. It is not taken from a bare `employee.position_id`.
+- Agreement items inherit position targets. Employee-specific changes go through the amendment workflow and never modify the position plan.
+- Completing a transfer closes the old agreements the day before the new assignment starts. Old plan, service, target, actual, evidence and result links stay attached to the old assignment. `goalsForEmployee` returns one row per agreement with its own assignment, position, unit and plan.
+- A daily task may link to an agreement item of the same employee, assignment and agreement period. DAILY_ACTIVITY KPIs use approved quantities (or the configured submission policy) and exclude unlinked or wrong-assignment work. Counting tasks never produces a score, and a period with no eligible measurement stays null rather than zero.
 
-### Verification
+## Client service feedback
 
-Focused regressions cover allocation limits, readiness excluding descendants, goal amendment history, unit authority, service scope and reuse, unitless positions, historical plan snapshots, period-target copies, assignment selection, immutable target links, daily evidence context, amendment measurement deduplication and transfer closure. Final run totals are recorded below after completion.
+```
+Client scans employee QR → rates one active service of the employee's current position
+  → employee_service_feedback (organization, unit, position and service frozen at submission)
+  → KPI with system source service_feedback.average_rating
+  → agreement item → position plan item (→ its position service) → strategic goal
+```
 
-### Requested handoff checklist
+- The public form lists only active services of the employee's current position. The server refuses any other service.
+- An agreement item counts a rating when its KPI uses the feedback source and the rating was given to the same employee, organization and position during the agreement period. If the item's plan item names a position service, only that service's ratings count; otherwise all of that position's evaluated services count.
+- Only services marked **Use for Performance Evaluation** count. A deactivated or deleted service keeps the ratings it already earned.
+- Every review status counts. Review moderates the comment, and a hidden comment's rating still counts (`ServiceFeedbackStatus`). Restricting this to reviewed feedback would be a policy change.
+- Each submission re-measures that month for the matching ACTIVE, AGREED or UNDER_REVIEW agreement items (`ServiceFeedbackPerformanceSync`). Finalized and closed agreements are never changed. If measurement fails, the rating is still stored and the error is logged; the item's sync action re-measures it.
+- System actuals are stored as one verified row per calendar month, clipped to the agreement period. Re-syncing any range replaces those months, so ratings are never counted twice. Use `RATIO_FROM_TOTALS` aggregation: Σ ratings ÷ Σ responses across months, in DECIMAL. A month without ratings stores nothing, so no rating is never treated as a rating of zero.
+- After a transfer, new ratings carry the new position and reach only the new agreement.
 
-| # | Handoff item | Result |
-|---|---|---|
-| 1 | Current Strategic Goal relationship | Cycle + organization ? goal ? unit allocation; root objectives reference the goal |
-| 2 | Current Position relationship | Organization + unit master; plans own annual position snapshots |
-| 3 | Current Position Service relationship | Reusable responsibility/service master belonging to a position |
-| 4 | Problems found | Allocation overflow, readiness double-counting, missing service links, unitless bypass, weak unit authority, history rewrites, missing period copies/versioning and transfer boundary gap |
-| 5 | Direct goal FK usages | Existing goal allocations and performance objectives; none on positions/services |
-| 6 | Final architecture | Diagram and version/trace rules above |
-| 7 | Tables reused | Goals, allocations, plans, objectives, cascades, KPIs/targets/period targets, assignments, agreements/items, daily items/evidence, actuals/contributions/results |
-| 8 | Added columns | Two nullable objective links and three goal amendment fields; no duplicate planning tables |
-| 9 | Legacy retained/removed | Existing fields retained; no master goal field existed to remove |
-| 10 | Data migration | Existing goals default version 1; no guessed link backfill |
-| 11 | NEEDS_DECISION | One live unitless active position; unresolved upstream successor mappings are explicitly refused |
-| 12 | Allocation rules | Positive absolute shares, never over goal, exact total plus existing one-lead rule at publication |
-| 13 | Unit plan | Existing UNIT plan and objective items linked through allocated responsibility |
-| 14 | Position plan | Existing POSITION plan beneath its unit plan, retaining annual snapshots |
-| 15 | Service | Optional per-item reusable master reference, scoped and history-safe |
-| 16 | Agreement | Exact active assignment and published applicable position plan |
-| 17 | Daily trace | Daily task ? agreement item ? position objective/service ? upstream unit objective/allocation ? goal |
-| 18 | Weights | Absolute allocation and local normalized weights remain mathematically separate |
-| 19 | UI | Position sections, service/upstream selectors, version history, allocation statuses and cascade traces |
-| 20 | Authorization | Permission + organization + unit coverage, safe employee visibility |
-| 21 | Seeds | Complete isolated repeat-safe demo; no live seeding |
-| 22 | Tests | New domain/history/security/demo regressions plus existing workflows |
-| 23 | Test/build results | Final totals and limitations follow |
+## Authorization
 
+Mutations require the named permission, organization scope (`EpmsAccess` / `OrganizationScopeService`) and, for unit planning, explicit unit reviewer coverage. Job titles grant nothing. An organizational admin cannot edit another organization's plans. A unit manager edits only covered units. An employee cannot edit position plans. Goal cascades show employee names only to actors allowed to view those agreements. Plan scores, contributions and contributing goals appear only to actors with `performance_plans.view` in that organization.
+
+## Schema
+
+| Migration | Change |
+|---|---|
+| `2026_09_26_100000_add_strategic_planning_core` | `strategic_goals`, `strategic_goal_allocations` (unique goal + unit), `kpi_period_targets`, objective `strategic_goal_id` / `absolute_weight_percent` / `local_weight_percent`, PostgreSQL range checks |
+| `2026_10_04_100000_link_performance_items_to_allocations_and_services` | Nullable objective `strategic_goal_allocation_id` and `position_service_id` (restrict on delete, indexed). Goal `version_no`, `supersedes_goal_id` and `change_reason`. Goal uniqueness becomes cycle + organization + code + version |
+
+Existing goals default to version 1. No link was backfilled by guessing. Rollback of the second migration refuses to run once goal versions or new links exist (`NEEDS_DECISION`), so history cannot be collapsed silently.
+
+Uniqueness that allows valid history: one live plan per subject and cycle (`live_key`), versions unique per lineage, one allocation per goal and unit, one goal code per version.
+
+## Data decisions
+
+- The local PostgreSQL audit at migration time found 3 goals and no allocations, plans, objectives, services, agreements or daily items. No position or service had a goal field.
+- **NEEDS_DECISION:** one active position had no unit. Its placement is a business decision, so none was guessed; that position cannot get a position plan until it is placed.
+- An upstream successor that cannot be mapped uniquely during a plan amendment is refused as `NEEDS_DECISION`.
+
+## Demo fixture
+
+`DemoPerformanceSeeder` (ORG-5, all values marked DEMO): goals 30 / 40 / 30. The shared 30% goal is allocated 15 / 10 / 5. Published organization, Planning unit and position plans use the existing tables. Two position items of 50% each reuse one position service with KPI targets. A draft agreement for the assigned employee and one draft daily task show the trace without creating an official actual or score. Repeat runs keep existing fixtures.

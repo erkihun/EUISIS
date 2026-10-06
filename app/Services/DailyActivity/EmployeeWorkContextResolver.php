@@ -75,7 +75,9 @@ class EmployeeWorkContextResolver
         return $assignments
             ->filter(fn (EmployeeAssignment $assignment): bool => $assignment->effective_from->toDateString() <= $date
                 && ($assignment->effective_to === null || $assignment->effective_to->toDateString() >= $date))
-            ->sortByDesc(fn (EmployeeAssignment $assignment): string => ($assignment->is_current ? '1' : '0').$assignment->effective_from->toDateString())
+            // Current first, then the latest start, then the id: the same day
+            // always resolves to the same assignment, even on bad overlaps.
+            ->sortByDesc(fn (EmployeeAssignment $assignment): string => ($assignment->is_current ? '1' : '0').$assignment->effective_from->toDateString().(string) $assignment->id)
             ->first();
     }
 

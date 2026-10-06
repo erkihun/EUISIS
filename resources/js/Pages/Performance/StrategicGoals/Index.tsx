@@ -10,7 +10,9 @@ import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
 type Named = { id: string; name_en: string; name_am?: string | null };
-type Allocation = { id: string; organization_unit_id: string; organization_contribution_percent: string; allocation_type: string; is_lead: boolean; notes?: string | null; unit?: Named | null; unit_plans: { id: string; title: string; status: string; version: number; published: boolean }[] };
+/** Computed on the server: allocation points × achievement of the allocated responsibility. */
+type AllocationContribution = { plan_id: string | null; as_of: string | null; achievement: string | null; contribution: string | null; complete: boolean };
+type Allocation = { id: string; organization_unit_id: string; organization_contribution_percent: string; allocation_type: string; is_lead: boolean; notes?: string | null; unit?: Named | null; unit_plans: { id: string; title: string; status: string; version: number; published: boolean }[]; contribution: AllocationContribution | null };
 type CascadeObjective = { id: string; plan_id: string; level: string; title: string; unit: string | null; position: string | null; service: string | null; status: string; version: number; targets: { kpi: string | null; target: string | null; weight: string }[]; employees: string[] };
 type LinkedObjective = {
     id: string; code: string; title_en: string; title_am: string | null; weight: string; absolute_weight_percent: string | null;
@@ -22,6 +24,7 @@ type Goal = {
     objectives_count: number; objectives: LinkedObjective[]; allocations: Allocation[];
     version_no: number; supersedes_goal_id: string | null; change_reason: string | null; can_view_plans: boolean; cascade: CascadeObjective[];
     readiness: { allocation_total: string; objective_total: string; remaining: string; ready: boolean; problems: string[] };
+    contribution: { contribution: string | null; complete: boolean } | null;
 };
 type Cycle = Named & { code: string; organization_id: string | null; status: string; is_current: boolean; start_date: string | null; end_date: string | null };
 type Summary = { total: string; remaining: string; ready: boolean; problems: string[]; status_counts: Record<string, number> };
@@ -39,6 +42,21 @@ const share = (part: string | number, whole: string | number): number | null => 
     const w = Number(whole);
     return w > 0 ? (Number(part) / w) * 100 : null;
 };
+
+/** Achievement of an allocated responsibility and its organization percentage points. */
+function AllocationResult({ value, weight }: { value: AllocationContribution; weight: string }) {
+    const { t } = useLocale();
+    if (value.contribution === null) {
+        return <p className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.orgContribution')}: {t('performance.strategicGoals.contributionPending')}</p>;
+    }
+
+    return <div className="tabular-nums">
+        <p>{t('performance.strategicGoals.achievement')}: <span className="font-medium">{formatScore(value.achievement)}%</span>
+            {' · '}{t('performance.strategicGoals.orgContribution')}: <span className="font-medium">{fill(t('performance.strategicGoals.contributionPoints'), { value: formatScore(value.contribution) })}</span> / {formatScore(weight)}%</p>
+        <p className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.contributionAsOf')} <LocalizedDateDisplay value={value.as_of} /></p>
+        {!value.complete && <p className="text-amber-700 dark:text-amber-300">{t('performance.strategicGoals.contributionPartial')}</p>}
+    </div>;
+}
 
 /** Add a unit to a goal, or change an allocation (the unit itself stays). */
 function AllocationForm({ goal, allocation, units, types, onClose }: { goal: Goal; allocation?: Allocation; units: Props['units']; types: string[]; onClose: () => void }) {
@@ -381,6 +399,11 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                                 <dd className="mt-1 font-semibold tabular-nums">{formatScore(goal.readiness.objective_total)} / {formatScore(goal.weight_percent)}%</dd>
                                                 <div className="mt-1.5"><Bar value={share(goal.readiness.objective_total, goal.weight_percent)} /></div>
                                             </div>
+                                            {goal.contribution && goal.allocations.length > 0 && <div className="text-sm sm:col-span-2">
+                                                <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.orgContribution')}</dt>
+                                                <dd className="mt-1 font-semibold tabular-nums">{fill(t('performance.strategicGoals.contributionPoints'), { value: formatScore(goal.contribution.contribution) })} / {formatScore(goal.weight_percent)}%</dd>
+                                                {!goal.contribution.complete && <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{t('performance.strategicGoals.contributionPartial')}</p>}
+                                            </div>}
                                         </dl>
 
                                         {goal.allocations.length > 0 && (
@@ -402,6 +425,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                                             )}
                                                         </span>
                                                         {row.notes && <span className="whitespace-pre-line text-gray-500 dark:text-slate-400">{row.notes}</span>}
+                                                        {row.contribution && <AllocationResult value={row.contribution} weight={row.organization_contribution_percent} />}
                                                         {goal.can_view_plans && <div className="space-y-1 border-t border-gray-100 pt-2 dark:border-slate-800">
                                                             <span className="font-medium">{t('performance.strategicGoals.unitPlanStatus')}</span>
                                                             {row.unit_plans.length === 0 ? <p className="text-gray-500">{t('performance.dashboard.noData')}</p> : row.unit_plans.map((plan) => <p key={plan.id}>

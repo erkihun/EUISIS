@@ -18,6 +18,8 @@ return [
     'late_rejected' => 'The submission deadline (:deadline) has passed and late submissions are not accepted.',
     'invalid_task' => 'The selected task is not a service of your position.',
     'not_awaiting_review' => 'This daily activity is not waiting for review.',
+    'stale_review' => 'The employee has resubmitted this daily activity since you opened it. Reload the page and review the current version.',
+    'service_inactive' => 'Choose an active service of your position.',
     'not_approved' => 'Only approved daily activity can be reopened.',
     'comment_required' => 'A comment explaining what needs correction is required.',
     'reason_required' => 'A reason for reopening is required.',

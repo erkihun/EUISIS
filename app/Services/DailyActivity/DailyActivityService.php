@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Services\DailyActivity;
 
-use App\Models\EmployeePerformanceItem;
-use App\Enums\Performance\AgreementStatus;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\DailyActivityDayStatus;
 use App\Enums\DailyActivityHistoryAction;
 use App\Enums\DailyActivityStatus;
+use App\Enums\Performance\AgreementStatus;
 use App\Models\DailyActivityAttachment;
 use App\Models\DailyActivityItem;
 use App\Models\DailyActivityLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
+use App\Models\EmployeePerformanceItem;
 use App\Models\PositionService;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -105,7 +105,7 @@ class DailyActivityService
 
         $items = $this->normalizeItems($data['items'] ?? []);
         $positionId = $existing?->position_id ?? $assignment?->position_id;
-        $this->assertTasksBelongToPosition($items, $positionId);
+        $this->assertTasksBelongToPosition($items, $positionId, $existing?->organization_id ?? $assignment?->organization_id, $existing);
         $performanceLinks = $this->performanceLinks($items, $employee, $date);
 
         return DB::transaction(function () use ($actor, $employee, $date, $data, $submit, $items, $assignment, $performanceLinks): DailyActivityLog {
@@ -154,12 +154,16 @@ class DailyActivityService
 
     // ── Reviewer ────────────────────────────────────────────────────────────
 
-    /** @param array<string, string> $itemNotes item id => note (optional) */
-    public function approve(User $reviewer, DailyActivityLog $log, ?string $comment, array $itemNotes = []): DailyActivityLog
+    /**
+     * @param  array<string, string>  $itemNotes  item id => note (optional)
+     * @param  int|null  $reviewedSubmission  the submission_count the reviewer read; null only for internal callers
+     */
+    public function approve(User $reviewer, DailyActivityLog $log, ?string $comment, array $itemNotes = [], ?int $reviewedSubmission = null): DailyActivityLog
     {
-        $log = DB::transaction(function () use ($reviewer, $log, $comment, $itemNotes): DailyActivityLog {
+        $log = DB::transaction(function () use ($reviewer, $log, $comment, $itemNotes, $reviewedSubmission): DailyActivityLog {
             $locked = $this->lock($log);
             $this->assertAwaitingReview($locked);
+            $this->assertCurrentSubmission($locked, $reviewedSubmission);
 
             $from = $locked->status;
             $this->applyItemNotes($locked, $itemNotes);
@@ -182,17 +186,21 @@ class DailyActivityService
         return $log;
     }
 
-    /** @param array<string, string> $itemNotes item id => note (optional) */
-    public function returnForCorrection(User $reviewer, DailyActivityLog $log, string $comment, array $itemNotes = []): DailyActivityLog
+    /**
+     * @param  array<string, string>  $itemNotes  item id => note (optional)
+     * @param  int|null  $reviewedSubmission  the submission_count the reviewer read; null only for internal callers
+     */
+    public function returnForCorrection(User $reviewer, DailyActivityLog $log, string $comment, array $itemNotes = [], ?int $reviewedSubmission = null): DailyActivityLog
     {
         $comment = trim($comment);
         if ($comment === '') {
             throw ValidationException::withMessages(['comment' => __('daily-activities.comment_required')]);
         }
 
-        $log = DB::transaction(function () use ($reviewer, $log, $comment, $itemNotes): DailyActivityLog {
+        $log = DB::transaction(function () use ($reviewer, $log, $comment, $itemNotes, $reviewedSubmission): DailyActivityLog {
             $locked = $this->lock($log);
             $this->assertAwaitingReview($locked);
+            $this->assertCurrentSubmission($locked, $reviewedSubmission);
 
             $from = $locked->status;
             $this->applyItemNotes($locked, $itemNotes);
@@ -457,6 +465,18 @@ class DailyActivityService
         }
     }
 
+    /**
+     * Checked under the row lock: if the log was returned and resubmitted
+     * since the reviewer opened it, their decision would apply to a version
+     * they never read.
+     */
+    private function assertCurrentSubmission(DailyActivityLog $log, ?int $reviewedSubmission): void
+    {
+        if ($reviewedSubmission !== null && $reviewedSubmission !== (int) $log->submission_count) {
+            throw ValidationException::withMessages(['status' => __('daily-activities.stale_review')]);
+        }
+    }
+
     private function assertEnabled(): void
     {
         if (! $this->settings->enabled()) {
@@ -493,9 +513,14 @@ class DailyActivityService
     }
 
     /**
+     * A related task must be a service of the position and organization the
+     * log is recorded under. A newly chosen service must also be active; one
+     * already linked on this log stays valid after deactivation, so a
+     * returned log can be corrected without rewriting history.
+     *
      * @param  array<int, array<string, mixed>>  $items
      */
-    private function assertTasksBelongToPosition(array $items, ?string $positionId): void
+    private function assertTasksBelongToPosition(array $items, ?string $positionId, ?string $organizationId, ?DailyActivityLog $existing = null): void
     {
         $serviceIds = array_values(array_unique(array_filter(array_column($items, 'position_service_id'))));
 
@@ -503,13 +528,19 @@ class DailyActivityService
             return;
         }
 
-        $valid = $positionId === null ? 0 : PositionService::query()
+        $services = $positionId === null ? collect() : PositionService::query()
             ->whereIn('id', $serviceIds)
             ->where('position_id', $positionId)
-            ->count();
+            ->when($organizationId !== null, fn ($query) => $query->where('organization_id', $organizationId))
+            ->get(['id', 'is_active']);
 
-        if ($valid !== count($serviceIds)) {
+        if ($services->count() !== count($serviceIds)) {
             throw ValidationException::withMessages(['items' => __('daily-activities.invalid_task')]);
+        }
+
+        $retained = $existing?->items()->whereNotNull('position_service_id')->pluck('position_service_id')->all() ?? [];
+        if ($services->contains(fn (PositionService $service): bool => ! $service->is_active && ! in_array($service->id, $retained, true))) {
+            throw ValidationException::withMessages(['items' => __('daily-activities.service_inactive')]);
         }
     }
 

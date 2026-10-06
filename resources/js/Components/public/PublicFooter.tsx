@@ -10,7 +10,8 @@ type SharedProps = PageProps & {
 };
 
 function FooterLink({ link, label }: { link: PublicLink; label: string }) {
-    const cls = 'inline-flex min-h-11 max-w-full items-center py-2 text-sm text-white/75 [overflow-wrap:anywhere] hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2';
+    // 44px rows are the touch target on phones; a pointer needs less, so desktop rows are compact.
+    const cls = 'inline-flex min-h-11 max-w-full items-center py-2 text-sm text-white/75 [overflow-wrap:anywhere] hover:text-white hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 lg:min-h-8 lg:py-1';
 
     return link.external ? (
         <a href={link.href} className={cls} rel="noopener noreferrer">{label}</a>
@@ -39,7 +40,8 @@ export default function PublicFooter() {
     };
 
     const organization = getString('general.organization_name', getString('app.name'));
-    const description = pick(settings, 'description');
+    // An unconfigured footer still says what the site is, in the home page's own words.
+    const description = pick(settings, 'description') || t('home.metaDescription');
     const copyright = pick(settings, 'copyright');
     const email = getString('general.support_email');
     const phone = getString('general.support_phone');
@@ -52,20 +54,20 @@ export default function PublicFooter() {
 
     return (
         <footer className="bg-[color:var(--color-primary-900)] pb-[env(safe-area-inset-bottom)] text-white [overflow-wrap:anywhere] dark:bg-[color:var(--color-primary-950)]">
-            <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:grid-cols-2 sm:gap-8 sm:px-6 sm:py-12 lg:grid-cols-4 lg:px-8 [&>*]:min-w-0">
+            <div className={`mx-auto grid max-w-7xl grid-cols-1 gap-6 px-4 py-8 sm:grid-cols-2 sm:gap-8 sm:px-6 sm:py-10 lg:gap-12 lg:px-8 [&>*]:min-w-0 ${usefulLinks.length > 0 ? 'lg:grid-cols-[2fr_1.6fr_1.2fr_1.2fr]' : 'lg:grid-cols-[2fr_2fr_1.4fr]'}`}>
                 <div className="sm:col-span-2 lg:col-span-1">
                     <p className="text-base font-bold text-white">{organization}</p>
                     {description && (
-                        <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/75">{description}</p>
+                        <p className="mt-2 max-w-md text-sm leading-relaxed text-white/75">{description}</p>
                     )}
                 </div>
 
                 {navigation.length > 0 && (
                     <nav aria-label={t('publicSite.footerNavigation')}>
                         <p className={heading}>{t('publicSite.footerNavigation')}</p>
-                        <ul>
+                        <ul className="grid grid-cols-2 gap-x-6">
                             {navigation.map((link) => (
-                                <li key={link.id}><FooterLink link={link} label={pick(link, 'label')} /></li>
+                                <li key={link.id} className="min-w-0"><FooterLink link={link} label={pick(link, 'label')} /></li>
                             ))}
                         </ul>
                     </nav>
@@ -82,13 +84,26 @@ export default function PublicFooter() {
                     </nav>
                 )}
 
-                {(email || phone) && (
+                {email || phone ? (
                     <div>
                         <p className={heading}>{t('publicSite.footerContact')}</p>
                         <ul className="space-y-2 text-sm text-white/75">
                             {email && <li><a href={`mailto:${email}`} className="inline-flex min-h-11 max-w-full items-center py-2 hover:text-white hover:underline">{email}</a></li>}
                             {phone && <li><a href={`tel:${phone.replace(/\s+/g, '')}`} className="inline-flex min-h-11 max-w-full items-center py-2 hover:text-white hover:underline">{phone}</a></li>}
                         </ul>
+                    </div>
+                ) : (
+                    // No contact details configured: point to the Support page, which explains who to ask.
+                    <div>
+                        <p className={heading}>{t('publicSite.footerHelp')}</p>
+                        <p className="text-sm leading-relaxed text-white/75">{t('publicSite.footerHelpText')}</p>
+                        <Link
+                            href={route('public.support')}
+                            className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-white/35 px-4 text-sm font-semibold text-white hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                        >
+                            {t('publicSite.footerHelpLink')}
+                            <span aria-hidden="true" className="ms-2">→</span>
+                        </Link>
                     </div>
                 )}
             </div>

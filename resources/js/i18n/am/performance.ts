@@ -1,9 +1,15 @@
 const performance = {
     title: 'የአፈጻጸም አስተዳደር',
     strategicGoals: {
-        historicalVersion: '???? ???',
-        amendedVersion: '?????? ???',
-        unitPlanStatus: '???? ??? ???',
+        historicalVersion: 'ታሪካዊ ስሪት',
+        amendedVersion: 'የሚያሻሽለው ስሪት',
+        unitPlanStatus: 'የክፍል ዕቅድ ሁኔታ',
+        achievement: 'ስኬት',
+        orgContribution: 'ለተቋሙ ያለው አስተዋጽኦ',
+        contributionPoints: '{value} ነጥብ',
+        contributionPending: 'ገና አልተለካም',
+        contributionPartial: 'ከፊል፦ አንዳንድ የተያያዙ ዓላማዎች ገና አልተለኩም',
+        contributionAsOf: 'እስከ',
 
         workflow: 'ስትራቴጂያዊ ዕቅዱን ያዘጋጁ',
         registerStep: 'ድምር ክብደታቸው 100% የሆኑ ግቦችን ይመዝግቡ።',
@@ -35,8 +41,8 @@ const performance = {
         addResults: 'ወደ ስብሰባው አክል', open: 'ክፈት', appeal: 'በዚህ ውጤት ላይ ይግባኝ በል', upload: 'ማስረጃ ጫን', search: 'ፈልግ',
     },
     fields: {
-        positionService: '??? ??? ??????',
-        upstreamObjective: '????? ??? ???',
+        positionService: 'የሥራ መደብ አገልግሎት',
+        upstreamObjective: 'የላይኛው ደረጃ ዓላማ',
 
         notes: 'ማስታወሻ', plan: 'ዕቅድ',
         planning: 'የዕቅድ ዝግጅት ጊዜ', descriptionEn: 'መግለጫ (እንግሊዝኛ)', descriptionAm: 'መግለጫ (አማርኛ)',
@@ -123,7 +129,7 @@ const performance = {
         create: 'አዲስ KPI', empty: 'እስካሁን KPI የለም።', milestonesHelp: 'በእያንዳንዱ መስመር አንድ፡ ቁልፍ | ስያሜ | መቶኛ | ማረጋገጫ (yes/no)', globalOwner: 'ከተማ-አቀፍ (ተቋም የለውም)',
     },
     plans: {
-        cascadeTrace: '?????? ????',
+        cascadeTrace: 'የስትራቴጂ ትስስር',
 
         quarterShort: 'ሩብ ', monthShort: 'ወር ', quarterN: ':nኛ ሩብ ዓመት',
         actionPlan: 'ድርጊት መርሃ ግብር', actionPlanHelp: 'ዕቅዱ በሰንጠረዥ፡ እያንዳንዱ ስትራቴጂክ ግብ ከክብደቱ ጋር፣ ከዚያ እያንዳንዱ ተግባር ወይም አመልካች ከክብደቱ፣ ከመለኪያው፣ ከመነሻው፣ ከዒላማው እና በሩብ ዓመትና በወር ከሚከናወንበት ጊዜ ጋር።',

@@ -69,14 +69,14 @@ class DailyActivityReportService
         $filters = [...$filters, 'date_from' => $from->toDateString(), 'date_to' => $to->toDateString()];
 
         [$columns, $rows] = match ($type) {
-            'daily_submission' => $this->dailySubmission($coverage, $from, $filters),
+            'daily_submission' => $this->dailySubmission($coverage, $from, $filters, $limit),
             'employee_activity' => $this->employeeActivity($coverage, $filters, $limit),
             'unit_activity' => $this->unitActivity($coverage, $from, $to, $filters),
-            'missing' => $this->missing($coverage, $from, $to, $filters),
+            'missing' => $this->missing($coverage, $from, $to, $filters, $limit),
             'late' => $this->late($coverage, $filters, $limit),
             'review_status' => $this->reviewStatus($coverage, $filters, $limit),
             'by_task' => $this->byTask($coverage, $filters),
-            'monthly_summary' => $this->monthlySummary($coverage, $from, $to, $filters),
+            'monthly_summary' => $this->monthlySummary($coverage, $from, $to, $filters, $limit),
         };
 
         $total = count($rows);
@@ -95,9 +95,14 @@ class DailyActivityReportService
     // ── Reports ─────────────────────────────────────────────────────────────
 
     /** @return array{0: array<int, string>, 1: array<int, array<string, mixed>>} */
-    private function dailySubmission(DailyActivityCoverage $coverage, Carbon $date, array $filters): array
+    private function dailySubmission(DailyActivityCoverage $coverage, Carbon $date, array $filters, int $limit): array
     {
-        $rows = $this->dayRows($coverage, $date, $date, $filters);
+        $rows = [];
+        $this->eachDayRow($coverage, $date, $date, $filters, function (array $row) use (&$rows, $limit): bool {
+            $rows[] = $row;
+
+            return count($rows) <= $limit;
+        });
         $names = $this->placementNames($rows);
 
         return [
@@ -147,17 +152,17 @@ class DailyActivityReportService
 
     private function unitActivity(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters): array
     {
-        $rows = $this->dayRows($coverage, $from, $to, $filters);
         $units = [];
 
-        foreach ($rows as $row) {
+        // An aggregate: every in-scope employee-day counts, one bounded batch at a time.
+        $this->eachDayRow($coverage, $from, $to, $filters, function (array $row) use (&$units): void {
             $key = $row['assignment']->organization_unit_id ?? '—';
             $units[$key] ??= ['employees' => [], 'required' => 0, 'submitted' => 0, 'approved' => 0, 'missing' => 0, 'returned' => 0, 'late' => 0, 'leave' => 0, 'items' => 0];
             $unit = &$units[$key];
             $unit['employees'][$row['employee']->id] = true;
             $this->accumulate($unit, $row);
             unset($unit);
-        }
+        });
 
         $names = OrganizationUnit::query()->whereIn('id', array_keys($units))->get(['id', 'name_en', 'name_am'])->keyBy('id');
 
@@ -178,9 +183,18 @@ class DailyActivityReportService
         ];
     }
 
-    private function missing(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters): array
+    private function missing(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters, int $limit): array
     {
-        $rows = array_values(array_filter($this->dayRows($coverage, $from, $to, $filters), fn (array $row): bool => $row['missing']));
+        // Employees are visited in name order; collection stops one row past
+        // the limit, which is enough to flag the result as truncated.
+        $rows = [];
+        $this->eachDayRow($coverage, $from, $to, $filters, function (array $row) use (&$rows, $limit): bool {
+            if ($row['missing']) {
+                $rows[] = $row;
+            }
+
+            return count($rows) <= $limit;
+        });
         $names = $this->placementNames($rows);
 
         usort($rows, fn (array $a, array $b): int => [$b['date'], $a['employee']->full_name] <=> [$a['date'], $b['employee']->full_name]);
@@ -284,32 +298,39 @@ class DailyActivityReportService
         ];
     }
 
-    private function monthlySummary(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters): array
+    private function monthlySummary(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters, int $limit): array
     {
-        $employees = $this->queries->employeesInCoverage($coverage, $from, $to, $filters);
-        $summaries = $this->calendar->summaries($employees, $from, $to, $this->queries->assignmentPredicate($coverage, $filters));
+        $inScope = $this->queries->assignmentPredicate($coverage, $filters);
         $month = $from->format('Y-m');
-
         $rows = [];
-        foreach ($employees as $employee) {
-            $summary = $summaries[$employee->id] ?? null;
-            if ($summary === null || $summary['last_assignment'] === null) {
-                continue;
+
+        $this->queries->eachEmployeeChunk($coverage, $from, $to, $filters, function ($employees) use (&$rows, $from, $to, $inScope, $month, $limit): bool {
+            $summaries = $this->calendar->summaries($employees, $from, $to, $inScope);
+            foreach ($employees as $employee) {
+                $summary = $summaries[$employee->id] ?? null;
+                if ($summary === null || $summary['last_assignment'] === null) {
+                    continue;
+                }
+                $rows[] = [
+                    'month' => $month,
+                    'employee_number' => $employee->employee_number,
+                    'employee' => $employee->full_name,
+                    'required' => $summary['required'],
+                    'submitted' => $summary['submitted'],
+                    'approved' => $summary['approved'],
+                    'missing' => $summary['missing'],
+                    'leave' => $summary['leave'],
+                    'holiday' => $summary['holiday'],
+                    'late' => $summary['late'],
+                    'items' => $summary['items'],
+                ];
+                if (count($rows) > $limit) {
+                    return false;
+                }
             }
-            $rows[] = [
-                'month' => $month,
-                'employee_number' => $employee->employee_number,
-                'employee' => $employee->full_name,
-                'required' => $summary['required'],
-                'submitted' => $summary['submitted'],
-                'approved' => $summary['approved'],
-                'missing' => $summary['missing'],
-                'leave' => $summary['leave'],
-                'holiday' => $summary['holiday'],
-                'late' => $summary['late'],
-                'items' => $summary['items'],
-            ];
-        }
+
+            return true;
+        });
 
         return [
             ['month', 'employee_number', 'employee', 'required', 'submitted', 'approved', 'missing', 'leave', 'holiday', 'late', 'items'],
@@ -319,12 +340,26 @@ class DailyActivityReportService
 
     // ── Helpers ─────────────────────────────────────────────────────────────
 
-    /** @return array<int, array<string, mixed>> */
-    private function dayRows(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters): array
+    /**
+     * Visit every in-scope employee-day, one bounded employee batch at a
+     * time. Return false from $visit to stop early.
+     *
+     * @param  array<string, mixed>  $filters
+     * @param  callable(array<string, mixed>): (bool|void)  $visit
+     */
+    private function eachDayRow(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters, callable $visit): void
     {
-        $employees = $this->queries->employeesInCoverage($coverage, $from, $to, $filters);
+        $inScope = $this->queries->assignmentPredicate($coverage, $filters);
 
-        return $this->calendar->rows($employees, $from, $to, $this->queries->assignmentPredicate($coverage, $filters));
+        $this->queries->eachEmployeeChunk($coverage, $from, $to, $filters, function ($employees) use ($from, $to, $inScope, $visit): bool {
+            foreach ($this->calendar->rows($employees, $from, $to, $inScope) as $row) {
+                if ($visit($row) === false) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
     }
 
     /** @param array<string, mixed> $bucket */

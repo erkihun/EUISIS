@@ -219,6 +219,37 @@ it('lists position services for an authorised user', function (): void {
         );
 });
 
+it('shows description and current plan usage without any goal field', function (): void {
+    $service = makeService($this->alpha, 'HR-001', 'Recruitment', ['description' => 'Fills approved vacancies.']);
+    $item = function (string $cycleStatus, string $planStatus, string $code) use ($service): void {
+        $cycle = PerformanceCycle::query()->create(['code' => 'USAGE-'.$code, 'name_en' => 'Usage cycle', 'organization_id' => $this->alpha['org']->id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
+        $cycle->forceFill(['status' => $cycleStatus])->save();
+        $plan = new PerformancePlan(['cycle_id' => $cycle->id, 'organization_id' => $this->alpha['org']->id, 'organization_unit_id' => $this->alpha['unit']->id, 'position_id' => $this->alpha['position']->id, 'plan_type' => 'POSITION', 'title' => 'Usage plan '.$code]);
+        $plan->forceFill(['lineage_key' => (string) Str::uuid(), 'status' => $planStatus])->save();
+        $objective = new PerformanceObjective(['performance_plan_id' => $plan->id, 'code' => 'USE-'.$code, 'title_en' => 'Recruit within standard', 'objective_type' => 'OPERATIONAL']);
+        $objective->forceFill(['position_service_id' => $service->id])->save();
+    };
+    $item('ACTIVE', 'PUBLISHED', 'LIVE');
+    $item('ACTIVE', 'DRAFT', 'DRAFT');
+    $item('CLOSED', 'PUBLISHED', 'OLD');
+
+    $this->actingAs($this->admin)->get(route('position-services.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('can.viewPlanUsage', true)
+            ->where('records.data.0.description', 'Fills approved vacancies.')
+            // Only the published plan in an open cycle is current usage; history and drafts are not.
+            ->where('records.data.0.current_plan_items_count', 1)
+            ->missing('records.data.0.strategic_goal_id'));
+
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo('service_feedback.view');
+    UserOrganizationScope::query()->create(['user_id' => $viewer->id, 'organization_id' => $this->alpha['org']->id, 'scope_type' => OrganizationScopeType::Self->value, 'is_active' => true]);
+    $this->actingAs($viewer)->get(route('position-services.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('can.viewPlanUsage', false)
+            ->where('records.data.0.current_plan_items_count', null));
+});
+
 it('updates a position service', function (): void {
     $service = makeService($this->alpha, 'HR-001', 'Record Correction');
 

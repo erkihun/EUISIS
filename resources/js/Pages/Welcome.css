@@ -73,15 +73,15 @@
     background: var(--color-accent, #d12908);
 }
 
-.public-home section[aria-labelledby='trust-heading'] .group,
-.public-home section[aria-labelledby='modules-heading'] .group {
+/* Left-aligned headings (verify card, FAQ) keep their accent under the text. */
+.public-home .home-heading-start::after {
+    margin-inline: 0;
+}
+
+.public-home .home-card {
     border-radius: 16px;
     box-shadow: 0 5px 20px -12px rgb(15 23 42 / 25%);
     transition: box-shadow 200ms ease, border-color 200ms ease, translate 200ms ease;
-}
-
-.public-home section[aria-labelledby='trust-heading'] .group p:first-child {
-    font-weight: 600;
 }
 
 .public-home .home-hero a {
@@ -99,8 +99,7 @@
         border-color: #ffffff45;
     }
     .public-home[data-motion='on'] .home-hero a:hover { translate: 0 -2px; }
-    .public-home[data-motion='on'] section[aria-labelledby='modules-heading'] .group:hover,
-    .public-home[data-motion='on'] section[aria-labelledby='trust-heading'] .group:hover {
+    .public-home[data-motion='on'] .home-card:hover {
         translate: 0 -3px;
         box-shadow: 0 14px 28px -15px rgb(15 23 42 / 30%);
     }

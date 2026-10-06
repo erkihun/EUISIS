@@ -30,13 +30,16 @@ type Record = {
     organization: (NamePair & { id: string }) | null;
     name_en: string;
     name_am: string | null;
+    description: string | null;
+    /** Items of published plans in open cycles; null when the viewer cannot see plans. */
+    current_plan_items_count: number | null;
 };
 
 type Props = {
     records: { data: Record[]; links: { url: string | null; label: string; active: boolean }[] };
     filters: { organization_id?: string; position_id?: string; search?: string };
     organizations: { id: string; name_en: string; name_am: string | null }[];
-    can: { create: boolean };
+    can: { create: boolean; viewPlanUsage: boolean };
 };
 
 const inputCls =
@@ -116,17 +119,19 @@ export default function PositionServicesIndex({ records, filters, organizations,
                             <tr>
                                 <Th>{t('serviceFeedback.serviceIdNo')}</Th>
                                 <Th>{t('serviceFeedback.serviceName')}</Th>
+                                <Th>{t('serviceFeedback.serviceDescription')}</Th>
                                 <Th>{t('serviceFeedback.position')}</Th>
                                 <Th>{t('serviceFeedback.filterOrganization')}</Th>
                                 <Th>{t('serviceFeedback.filterStatus')}</Th>
                                 <Th>{t('serviceFeedback.usePerformanceEvaluation')}</Th>
+                                {can.viewPlanUsage && <Th>{t('serviceFeedback.currentPlanUsage')}</Th>}
                                 <Th />
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
                             {records.data.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={can.viewPlanUsage ? 9 : 8} className="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
                                         {t('serviceFeedback.noPositionServices')}
                                     </td>
                                 </tr>
@@ -139,6 +144,9 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                     </td>
                                     <td className="px-4 py-2.5 text-gray-700 dark:text-slate-300">
                                         {am ? (row.name_am ?? row.name_en) : row.name_en}
+                                    </td>
+                                    <td className="max-w-xs px-4 py-2.5 text-gray-600 dark:text-slate-400">
+                                        <span className="line-clamp-2" title={row.description ?? undefined}>{row.description || '—'}</span>
                                     </td>
                                     <td className="px-4 py-2.5 text-gray-700 dark:text-slate-300">
                                         {row.position
@@ -168,6 +176,13 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                     <td className="whitespace-nowrap px-4 py-2.5 text-gray-600 dark:text-slate-400">
                                         {row.is_performance_evaluation_enabled ? t('common.yes') : t('common.no')}
                                     </td>
+                                    {can.viewPlanUsage && (
+                                        <td className="whitespace-nowrap px-4 py-2.5 text-gray-600 dark:text-slate-400">
+                                            {row.current_plan_items_count
+                                                ? t('serviceFeedback.currentPlanItems').replace('{count}', String(row.current_plan_items_count))
+                                                : t('serviceFeedback.notInCurrentPlan')}
+                                        </td>
+                                    )}
                                     <td className="whitespace-nowrap px-4 py-2.5 text-right">
                                         <Link
                                             href={route('position-services.edit', row.id)}

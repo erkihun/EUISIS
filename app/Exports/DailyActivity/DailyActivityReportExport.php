@@ -31,9 +31,14 @@ class DailyActivityReportExport extends DefaultValueBinder implements FromArray,
     private const STATUS_COLUMNS = ['status', 'day_status', 'progress_status', 'source'];
 
     /** @param array{columns: array<int, string>, rows: array<int, array<string, mixed>>} $report */
+    /**
+     * @param  bool  $neutralizeFormulas  for CSV, which has no cell types: a text cell that a
+     *                                    spreadsheet would read as a formula is prefixed with an apostrophe
+     */
     public function __construct(
         private readonly array $report,
         private readonly LocalizedDateService $dates,
+        private readonly bool $neutralizeFormulas = false,
     ) {}
 
     public function headings(): array
@@ -47,7 +52,13 @@ class DailyActivityReportExport extends DefaultValueBinder implements FromArray,
             $cells = [];
 
             foreach ($this->report['columns'] as $column) {
-                $cells[] = $this->cell($column, $row[$column] ?? null);
+                $cell = $this->cell($column, $row[$column] ?? null);
+                // Free text such as a late reason or a name can start with
+                // =, +, -, @, tab or CR; in a CSV that would run as a formula.
+                if ($this->neutralizeFormulas && is_string($cell) && preg_match('/^[=+\-@\t\r]/', $cell) === 1) {
+                    $cell = "'".$cell;
+                }
+                $cells[] = $cell;
             }
 
             return $cells;

@@ -161,7 +161,7 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
  */
 function Viewfinder({ label }: { label: string }) {
     return (
-        <div className="flex h-[clamp(160px,26svh,220px)] aspect-[4/3] w-full min-w-0 flex-col items-center justify-center gap-3 rounded-[10px] bg-slate-950 px-4 text-center sm:h-auto sm:aspect-[16/10] lg:aspect-square">
+        <div className="flex h-[clamp(160px,26svh,220px)] aspect-[4/3] w-full min-w-0 flex-col items-center justify-center gap-3 rounded-[10px] bg-slate-950 px-4 text-center sm:h-auto sm:aspect-[16/10] lg:aspect-auto lg:h-80">
             <div aria-hidden="true" className="h-[45%] max-h-44 aspect-square rounded-xl border-2 border-dashed border-white/40" />
             <p className="text-sm text-slate-300">{label}</p>
         </div>

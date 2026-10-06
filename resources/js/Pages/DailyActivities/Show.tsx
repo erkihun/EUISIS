@@ -28,7 +28,9 @@ export default function DailyActivitiesShow({ log, can }: Props): JSX.Element {
     const { confirm } = useConfirm();
     const [mode, setMode] = useState<'approve' | 'return' | null>(null);
     const [openHistory, setOpenHistory] = useState<string | null>(null);
-    const form = useForm<{ comment: string; item_notes: Record<string, string> }>({ comment: '', item_notes: {} });
+    // submission_count pins the decision to the submission on screen; the
+    // server refuses it if the employee has resubmitted since.
+    const form = useForm<{ comment: string; item_notes: Record<string, string>; submission_count: number }>({ comment: '', item_notes: {}, submission_count: log.submission_count });
 
     function decide(action: 'approve' | 'return') {
         form.post(route(action === 'approve' ? 'daily-activities.approve' : 'daily-activities.return', log.id), { preserveScroll: true });
@@ -142,6 +144,9 @@ export default function DailyActivitiesShow({ log, can }: Props): JSX.Element {
                                 </div>
                             )}
 
+                            {(form.errors as Record<string, string>).status && (
+                                <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-300">{(form.errors as Record<string, string>).status}</p>
+                            )}
                             <div className="flex flex-wrap gap-2">
                                 <button type="submit" disabled={form.processing} className={primaryBtn}>
                                     {t(mode === 'approve' ? 'dailyActivities.actions.approve' : 'dailyActivities.actions.return')}

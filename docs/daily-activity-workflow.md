@@ -1,0 +1,48 @@
+# Daily Activity workflow
+
+All state changes go through `DailyActivityService`. Controllers never change a status directly. The status enum (`DailyActivityStatus`) defines the allowed transitions.
+
+```
+DRAFT ──submit──► SUBMITTED ──approve──► APPROVED ──reopen (reason)──┐
+  ▲                   │                                               │
+  │                   └──return (comment)──► RETURNED_FOR_CORRECTION ◄┘
+  │                                              │
+  └─ employee edits only here and in DRAFT ──────┴──resubmit──► RESUBMITTED ──approve / return…
+```
+
+`UNDER_REVIEW` exists as an awaiting-review state alongside `SUBMITTED` and `RESUBMITTED`.
+
+| Action | Who | Rules |
+|---|---|---|
+| Save draft | The employee, for their own date | Date open for entry (below); items normalized; services and EPMS links validated |
+| Submit | The employee | At least one item; title and description on every item; output when required; late reason when required; first-submission lateness recorded once |
+| Return for correction | Assigned reviewer | Comment of at least 5 characters required; optional per-item notes; employee notified |
+| Resubmit | The employee | Same checks as submit; the earlier submission's snapshot stays in history |
+| Approve | Assigned reviewer | Optional comment; employee notified when configured |
+| Reopen | Reviewer or scoped oversight with `reopen` | Approved logs only; reason required; returns the log to the employee |
+
+## Entry window
+
+A date is open for entry when it is not in the future, the employee is employed and assigned that day, it is a working day that is not a holiday or approved leave, and it is within the backdating window. A returned log can always be corrected, however old.
+
+## Integrity guarantees
+
+- **One header per employee and date.** A unique index plus insert-or-ignore and a locked re-read: concurrent first saves converge on one row with no error.
+- **Row locks.** Every transition locks the header (`SELECT … FOR UPDATE`) and re-checks the status inside the lock.
+- **Idempotent submit.** Submitting an already-submitted day returns it unchanged.
+- **No silent edits.** Submitted, awaiting-review and approved logs refuse item and evidence changes; only `RETURNED_FOR_CORRECTION` and `DRAFT` are editable.
+- **Stale review refused.** A review decision carries the `submission_count` the reviewer was shown. If the employee has resubmitted since, the decision is refused and the reviewer is asked to reload.
+- **Reviewers never edit employee text.** They only add a comment and item notes.
+- **History is kept.** Each submission stores a full item snapshot; every action records actor, from/to status and comment.
+
+## Review authority
+
+Review authority comes only from explicit reviewer assignments. Positions and units carry no supervisor, so authority is never inferred from job titles. An assignment covers an organization, a unit (optionally with sub-units) or one employee, with `effective_from`/`effective_to`. Authority is evaluated against the log's **snapshot** organization and unit, so it follows where the work was done.
+
+Acting or delegated reviewers are ordinary effective-dated assignments; no separate delegation system exists. The assignment must be effective on the day of the decision. A reviewer appointed after a log was submitted can work the backlog, and one whose assignment has ended can no longer act. `reviewed_by` records who actually decided and is never rewritten when managers change.
+
+Nobody reviews their own log, including Super Admin.
+
+## Retention
+
+Submitted, reviewed and approved logs are never deleted through the application. There is no delete route for logs. Items are replaced only while the log is editable, and evidence can be removed only while the log is editable. Corrections go through return and resubmit, which keeps every earlier submission in history.

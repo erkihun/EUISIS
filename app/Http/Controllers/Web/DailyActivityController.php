@@ -63,32 +63,13 @@ class DailyActivityController extends Controller
         $weekStart = $today->copy()->subDays(6);
         $filters = $this->filters($request, ['organization_id', 'organization_unit_id']);
 
-        $employees = $this->queries->employeesInCoverage($coverage, $weekStart, $today, $filters);
-        $rows = $this->calendar->rows($employees, $weekStart, $today, $this->queries->assignmentPredicate($coverage, $filters));
-
+        $inScope = $this->queries->assignmentPredicate($coverage, $filters);
         $days = [];
-        foreach ($rows as $row) {
-            $day = &$days[$row['date']];
-            $day ??= ['date' => $row['date'], 'expected' => 0, 'submitted' => 0, 'missing' => 0, 'late' => 0, 'leave' => 0];
-            if ($row['status'] === DailyActivityDayStatus::Leave) {
-                $day['leave']++;
-            }
-            if ($row['status']->isRequiredDay()) {
-                $day['expected']++;
-                if (in_array($row['status'], [DailyActivityDayStatus::Submitted, DailyActivityDayStatus::Approved], true)) {
-                    $day['submitted']++;
-                }
-                // Today is still open, so an unsubmitted day counts as
-                // "not yet submitted" rather than missing.
-                if ($row['missing'] || ($row['date'] === $today->toDateString() && in_array($row['status'], [DailyActivityDayStatus::Required, DailyActivityDayStatus::Draft], true))) {
-                    $day['missing']++;
-                }
-            }
-            if ($row['log']?->is_late && $row['log']->status->countsAsSubmitted()) {
-                $day['late']++;
-            }
-            unset($day);
-        }
+        // Bounded batches: the figures accumulate chunk by chunk, so an
+        // organization- or city-wide coverage never loads every employee at once.
+        $this->queries->eachEmployeeChunk($coverage, $weekStart, $today, $filters, function ($employees) use (&$days, $weekStart, $today, $inScope): void {
+            $this->accumulateDays($days, $this->calendar->rows($employees, $weekStart, $today, $inScope), $today->toDateString());
+        });
         ksort($days);
 
         $visibleLogs = fn () => $this->queries->logs($coverage, $filters);
@@ -222,7 +203,7 @@ class DailyActivityController extends Controller
     {
         $this->authorizeReviewAction($request, 'approve', $log);
 
-        $this->service->approve($request->user(), $log, $request->validated('comment'), $request->itemNotes());
+        $this->service->approve($request->user(), $log, $request->validated('comment'), $request->itemNotes(), (int) $request->validated('submission_count'));
 
         return redirect()->route('daily-activities.review-queue')->with('success', __('daily-activities.approved'));
     }
@@ -231,7 +212,7 @@ class DailyActivityController extends Controller
     {
         $this->authorizeReviewAction($request, 'returnForCorrection', $log);
 
-        $this->service->returnForCorrection($request->user(), $log, (string) $request->validated('comment'), $request->itemNotes());
+        $this->service->returnForCorrection($request->user(), $log, (string) $request->validated('comment'), $request->itemNotes(), (int) $request->validated('submission_count'));
 
         return redirect()->route('daily-activities.review-queue')->with('success', __('daily-activities.returned'));
     }
@@ -290,7 +271,7 @@ class DailyActivityController extends Controller
             request: $request,
         );
 
-        $export = new DailyActivityReportExport($report, $dates);
+        $export = new DailyActivityReportExport($report, $dates, neutralizeFormulas: $format === 'csv');
         $filename = 'daily-activity-'.str_replace('_', '-', $type).'-'.$report['from'].'-to-'.$report['to'];
 
         return match ($format) {
@@ -309,6 +290,38 @@ class DailyActivityController extends Controller
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────
+
+    /**
+     * Fold one batch of employee-days into the per-date dashboard figures.
+     *
+     * @param  array<string, array<string, mixed>>  $days
+     * @param  array<int, array<string, mixed>>  $rows
+     */
+    private function accumulateDays(array &$days, array $rows, string $today): void
+    {
+        foreach ($rows as $row) {
+            $day = &$days[$row['date']];
+            $day ??= ['date' => $row['date'], 'expected' => 0, 'submitted' => 0, 'missing' => 0, 'late' => 0, 'leave' => 0];
+            if ($row['status'] === DailyActivityDayStatus::Leave) {
+                $day['leave']++;
+            }
+            if ($row['status']->isRequiredDay()) {
+                $day['expected']++;
+                if (in_array($row['status'], [DailyActivityDayStatus::Submitted, DailyActivityDayStatus::Approved], true)) {
+                    $day['submitted']++;
+                }
+                // Today is still open, so an unsubmitted day counts as
+                // "not yet submitted" rather than missing.
+                if ($row['missing'] || ($row['date'] === $today && in_array($row['status'], [DailyActivityDayStatus::Required, DailyActivityDayStatus::Draft], true))) {
+                    $day['missing']++;
+                }
+            }
+            if ($row['log']?->is_late && $row['log']->status->countsAsSubmitted()) {
+                $day['late']++;
+            }
+            unset($day);
+        }
+    }
 
     /**
      * Logs waiting for THIS user's review. Review authority comes only from

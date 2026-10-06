@@ -72,6 +72,8 @@ class StrategicGoalController extends PerformanceController
             ->orderBy('sort_order')->orderBy('code')->orderByDesc('version_no')->paginate(50)->withQueryString();
 
         $summary = null;
+        $contributions = $this->cascade->allocationContributions($goals->getCollection()
+            ->filter(fn (StrategicGoal $goal) => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id)));
         $unitPlans = PerformancePlan::query()->where('plan_type', 'UNIT')
             ->whereIn('cycle_id', $goals->getCollection()->pluck('cycle_id')->unique())
             ->whereIn('organization_id', $goals->getCollection()->pluck('organization_id')->unique())
@@ -94,6 +96,7 @@ class StrategicGoalController extends PerformanceController
                 'effective_to' => $goal->effective_to?->toDateString(),
                 'status' => $goal->status->value,
                 'readiness' => $this->planning->readiness($goal),
+                'contribution' => $contributions['goals'][$goal->getKey()] ?? null,
                 'objectives_count' => $goal->objectives_count,
                 'objectives' => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id) ? $goal->objectives->map(fn ($objective) => [
                     ...$objective->only(['id', 'code', 'title_en', 'title_am', 'weight', 'absolute_weight_percent']),
@@ -103,6 +106,7 @@ class StrategicGoalController extends PerformanceController
                     ...$row->only(['id', 'organization_unit_id', 'organization_contribution_percent', 'is_lead', 'notes']),
                     'allocation_type' => $row->allocation_type->value,
                     'unit' => $row->unit?->only(['id', 'name_en', 'name_am']),
+                    'contribution' => $contributions['allocations'][$row->getKey()] ?? null,
                     'unit_plans' => $this->access->inScope($user, 'performance_plans.view', $goal->organization_id)
                         ? ($unitPlans->get($goal->cycle_id.':'.$goal->organization_id.':'.$row->organization_unit_id) ?? collect())
                             ->filter(fn ($plan) => $plan->objectives->contains(fn ($objective) => $objective->strategic_goal_allocation_id === $row->getKey() || $objective->strategic_goal_id === $goal->getKey()))

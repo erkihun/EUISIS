@@ -16,14 +16,15 @@ use Illuminate\Support\Carbon;
 /**
  * A few Daily Activity logs through DailyActivityService, on the latest
  * working day the backdating rule still accepts: a draft, a submitted log,
- * and one approved by the Organization 1 head's portal account. The service
+ * one returned for correction and one approved by the Organization 1 head's
+ * portal account. The service
  * derives organization, unit, position and status; working-day and
  * backdating rules apply as for employees.
  */
 class DemoDailyActivitySeeder extends DemoSeeder
 {
-    /** employee key => draft | submitted | approved */
-    private const LOGS = ['E-1-6' => 'approved', 'E-1-2' => 'submitted', 'E-1-3' => 'draft'];
+    /** employee key => draft | submitted | returned | approved */
+    private const LOGS = ['E-1-6' => 'approved', 'E-1-2' => 'submitted', 'E-1-4' => 'returned', 'E-1-3' => 'draft'];
 
     public function run(DailyActivityService $service, DailyActivityCalendarService $calendar, DailyActivitySettings $settings): void
     {
@@ -66,6 +67,9 @@ class DemoDailyActivitySeeder extends DemoSeeder
 
             if ($state === 'approved') {
                 $service->approve($reviewer, $log, 'Synthetic demo review: approved');
+            }
+            if ($state === 'returned') {
+                $service->returnForCorrection($reviewer, $log, 'Synthetic demo review: please add the output produced.');
             }
         }
     }

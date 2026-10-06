@@ -11,9 +11,11 @@ use App\Models\EmployeeAssignment;
 use App\Models\EmployeeFeedbackToken;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\PositionService;
+use App\Services\Performance\ServiceFeedbackPerformanceSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Throwable;
 
 /**
  * The anonymous client feedback flow.
@@ -33,6 +35,7 @@ class PublicServiceFeedbackService
     public function __construct(
         private readonly WriteAuditLogAction $writeAuditLogAction,
         private readonly EmployeeFeedbackTokenService $tokens,
+        private readonly ServiceFeedbackPerformanceSync $performance,
     ) {}
 
     /**
@@ -158,6 +161,14 @@ class PublicServiceFeedbackService
             reason: 'Client service feedback submitted (rating '.$data['rating'].')',
             request: $request,
         );
+
+        // The client's rating is already stored; a measurement failure must
+        // not lose it. A manager can re-sync the agreement item later.
+        try {
+            $this->performance->sync($feedback);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
 
         return $feedback;
     }

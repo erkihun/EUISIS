@@ -33,6 +33,7 @@ use App\Models\User;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Performance\EpmsAccess;
+use App\Services\Performance\PerformanceCascadeService;
 use App\Services\Positions\ScopedPositionStructureService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -614,7 +615,7 @@ class PositionController extends Controller
             ->with('flash', ['message' => __('positions.created_successfully'), 'type' => 'success']);
     }
 
-    public function show(Request $request, Position $position, EpmsAccess $epmsAccess): Response
+    public function show(Request $request, Position $position, EpmsAccess $epmsAccess, PerformanceCascadeService $cascade): Response
     {
         $this->authorize('view', $position);
 
@@ -625,21 +626,24 @@ class PositionController extends Controller
         $canViewPlans = $epmsAccess->inScope($user, 'performance_plans.view', $position->organization_id);
         $canViewServices = $user->can('createForPosition', [PositionService::class, $position]);
         $today = now()->toDateString();
-        $plans = $canViewPlans ? PerformancePlan::query()->where('position_id', $position->getKey())->where('plan_type', 'POSITION')
+        $planModels = $canViewPlans ? PerformancePlan::query()->where('position_id', $position->getKey())->where('plan_type', 'POSITION')
             ->with(['cycle:id,name_en,name_am,start_date,end_date,status', 'organization:id,name_en,name_am', 'organizationUnit:id,name_en,name_am'])
             ->orderByDesc('effective_from')->orderByDesc('version_no')->get()
-            ->filter(fn ($plan) => $epmsAccess->inScope($user, 'performance_plans.view', $plan->organization_id))
-            ->map(fn ($plan) => [
-                'id' => $plan->getKey(), 'title' => $plan->title, 'status' => $plan->status->value, 'version' => $plan->version_no,
-                'organization' => $plan->organization?->only(['name_en', 'name_am']),
-                'unit' => $plan->organizationUnit?->only(['name_en', 'name_am']),
-                'cycle' => $plan->cycle?->only(['name_en', 'name_am']),
-                'effective_from' => $plan->effective_from?->toDateString(), 'effective_to' => $plan->effective_to?->toDateString(),
-                'is_current' => $plan->status->value === 'PUBLISHED'
-                    && $plan->cycle !== null && ! in_array($plan->cycle->status->value, ['CLOSED', 'CANCELLED', 'FINALIZED'], true)
-                    && ($plan->effective_from?->toDateString() ?? $plan->cycle?->start_date?->toDateString()) <= $today
-                    && ($plan->effective_to?->toDateString() ?? $plan->cycle?->end_date?->toDateString()) >= $today,
-            ])->values() : collect();
+            ->filter(fn ($plan) => $epmsAccess->inScope($user, 'performance_plans.view', $plan->organization_id))->values() : collect();
+        // Goals are derived per plan version from its lineage; the position itself stores none.
+        $planGoals = $cascade->goalsForPlans($planModels);
+        $plans = $planModels->map(fn ($plan) => [
+            'id' => $plan->getKey(), 'title' => $plan->title, 'status' => $plan->status->value, 'version' => $plan->version_no,
+            'organization' => $plan->organization?->only(['name_en', 'name_am']),
+            'unit' => $plan->organizationUnit?->only(['name_en', 'name_am']),
+            'cycle' => $plan->cycle?->only(['name_en', 'name_am']),
+            'effective_from' => $plan->effective_from?->toDateString(), 'effective_to' => $plan->effective_to?->toDateString(),
+            'is_current' => $plan->status->value === 'PUBLISHED'
+                && $plan->cycle !== null && ! in_array($plan->cycle->status->value, ['CLOSED', 'CANCELLED', 'FINALIZED'], true)
+                && ($plan->effective_from?->toDateString() ?? $plan->cycle?->start_date?->toDateString()) <= $today
+                && ($plan->effective_to?->toDateString() ?? $plan->cycle?->end_date?->toDateString()) >= $today,
+            'goals' => $planGoals[$plan->getKey()] ?? [],
+        ])->values();
 
         $movementHistory = $position->movements()
             ->with([

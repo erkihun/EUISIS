@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\DailyActivity;
 
+use App\Models\DailyActivityLog;
+use App\Services\DailyActivity\DailyActivityReviewerResolver;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -13,9 +15,19 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 class ReviewDailyActivityRequest extends FormRequest
 {
+    /**
+     * Authorised before validation, so a user with no authority over the
+     * log is refused outright rather than told which fields are missing.
+     * The controller re-checks against the record as well.
+     */
     public function authorize(): bool
     {
-        return true;
+        $log = $this->route('log');
+        $ability = $this->routeIs('daily-activities.return') ? 'returnForCorrection' : 'approve';
+
+        return $log instanceof DailyActivityLog
+            && ! app(DailyActivityReviewerResolver::class)->isOwnLog($this->user(), $log)
+            && $this->user()->can($ability, $log);
     }
 
     public function rules(): array
@@ -28,6 +40,9 @@ class ReviewDailyActivityRequest extends FormRequest
                 : ['nullable', 'string', 'max:2000'],
             'item_notes' => ['nullable', 'array', 'max:30'],
             'item_notes.*' => ['nullable', 'string', 'max:1000'],
+            // The submission the reviewer actually read. A decision on a
+            // version that has since been resubmitted is refused.
+            'submission_count' => ['required', 'integer', 'min:1'],
         ];
     }
 

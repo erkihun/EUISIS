@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\DailyActivityNotification;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -25,7 +26,12 @@ class DailyActivityNotifier
 
     public function notifyEmployee(Employee $employee, string $kind, string $activityDate, ?string $comment = null): bool
     {
-        $user = $this->userFor($employee);
+        return $this->notifyUser($this->userFor($employee), $employee, $kind, $activityDate, $comment);
+    }
+
+    /** As notifyEmployee(), for a user already resolved (see usersFor()). */
+    public function notifyUser(?User $user, Employee $employee, string $kind, string $activityDate, ?string $comment = null): bool
+    {
         $channels = $this->channelsFor($user);
 
         if ($user === null || $channels === []) {
@@ -45,6 +51,32 @@ class DailyActivityNotifier
 
             return false;
         }
+    }
+
+    /**
+     * userFor() for a whole batch in two queries, so a reminder run over
+     * thousands of employees does not issue two lookups per person.
+     *
+     * @param  Collection<int, Employee>  $employees
+     * @return array<string, User|null> employee id => user
+     */
+    public function usersFor(Collection $employees): array
+    {
+        $linked = User::query()->whereIn('employee_id', $employees->pluck('id')->all())->where('status', 'active')
+            ->orderBy('id')->get()->unique('employee_id')->keyBy('employee_id');
+        $emails = $employees->reject(fn (Employee $employee): bool => $linked->has($employee->id))
+            ->pluck('email')->filter()->unique()->values()->all();
+        $byEmail = $emails === [] ? collect() : User::query()
+            ->whereNull('employee_id')->where('employee_link_locked', false)
+            ->whereIn('email', $emails)->where('status', 'active')
+            ->orderBy('id')->get()->unique('email')->keyBy('email');
+
+        $users = [];
+        foreach ($employees as $employee) {
+            $users[$employee->id] = $linked->get($employee->id) ?? (filled($employee->email) ? $byEmail->get($employee->email) : null);
+        }
+
+        return $users;
     }
 
     public function userFor(Employee $employee): ?User

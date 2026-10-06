@@ -46,6 +46,7 @@ class PositionServiceController extends Controller
 
         $user = $request->user();
         $unrestricted = $this->scope->isUnrestricted($user);
+        $canViewPlanUsage = $user->can('performance_plans.view');
 
         $records = PositionService::query()
             ->with([
@@ -55,6 +56,11 @@ class PositionServiceController extends Controller
             ->when(! $unrestricted, fn ($query) => $query->forOrganizations(
                 $this->scope->accessibleOrganizationIds($user)->all(),
             ))
+            // Usage only: the annual goal link lives on the plan item, never on the service.
+            ->when($canViewPlanUsage, fn ($query) => $query->withCount(['performanceObjectives as current_plan_items_count' => fn ($items) => $items
+                ->where('status', 'ACTIVE')
+                ->whereHas('plan', fn ($plan) => $plan->where('status', 'PUBLISHED')
+                    ->whereHas('cycle', fn ($cycle) => $cycle->whereNotIn('status', ['FINALIZED', 'CLOSED', 'CANCELLED'])))]))
             ->when($request->filled('organization_id'), fn ($query) => $query->where('organization_id', $request->string('organization_id')->toString()))
             ->when($request->filled('position_id'), fn ($query) => $query->where('position_id', $request->string('position_id')->toString()))
             ->when($request->filled('search'), function ($query) use ($request): void {
@@ -78,6 +84,7 @@ class PositionServiceController extends Controller
             'organizations' => $this->scopedOrganizations($user, $unrestricted),
             'can' => [
                 'create' => $user->can('create', PositionService::class),
+                'viewPlanUsage' => $canViewPlanUsage,
             ],
         ]);
     }
@@ -354,6 +361,7 @@ class PositionServiceController extends Controller
             'name_en' => $record->name_en,
             'name_am' => $record->name_am,
             'description' => $record->description,
+            'current_plan_items_count' => $record->current_plan_items_count,
             'organization' => $record->organization === null ? null : [
                 'id' => $record->organization->id,
                 'name_en' => $record->organization->name_en,

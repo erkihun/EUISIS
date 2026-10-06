@@ -29,7 +29,8 @@ class DailyActivityReminderService
     /** Morning reminders wait until the working day has plausibly started. */
     public const NEXT_DAY_NOT_BEFORE = '08:30';
 
-    private const CHUNK = 300;
+    /** Employees per batch; each batch is a few bounded queries and queued notifications. */
+    public int $chunkSize = 300;
 
     public function __construct(
         private readonly DailyActivitySettings $settings,
@@ -76,8 +77,12 @@ class DailyActivityReminderService
                 ->where('activity_date', '<=', $date->toDateString().' 23:59:59')
                 ->where('reminder_type', $type)
                 ->select('employee_id'))
-            ->orderBy('id')
-            ->chunk(self::CHUNK, function ($employees) use ($date, $type, $shouldRemind, &$count): void {
+            // Keyset paging (id > last), not OFFSET: every claim below removes
+            // an employee from this query's result, which would make OFFSET
+            // pages skip employees who were never reached.
+            ->chunkById($this->chunkSize, function ($employees) use ($date, $type, $shouldRemind, &$count): void {
+                $users = $this->notifier->usersFor($employees);
+
                 foreach ($this->calendar->rows($employees, $date, $date) as $row) {
                     if (! $shouldRemind($row['status'])) {
                         continue;
@@ -87,7 +92,7 @@ class DailyActivityReminderService
                         continue;
                     }
 
-                    if ($this->notifier->notifyEmployee($row['employee'], $type, $date->toDateString())) {
+                    if ($this->notifier->notifyUser($users[$row['employee']->id] ?? null, $row['employee'], $type, $date->toDateString())) {
                         $count++;
                     }
                 }

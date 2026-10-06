@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -14,8 +15,12 @@ use Illuminate\Notifications\Notification;
  * Kinds: end_of_day, next_day, returned, reopened, approved. Channels follow
  * the existing System Settings > Notifications switches, resolved by
  * DailyActivityNotifier before this is constructed.
+ *
+ * Queued: mail delivery happens on the queue worker, so a reviewer's
+ * decision or a city-wide reminder run never waits on the mail server.
+ * The workflow change itself never depends on delivery.
  */
-class DailyActivityNotification extends Notification
+class DailyActivityNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

@@ -10,10 +10,12 @@ use App\Enums\Performance\AgreementStatus;
 use App\Enums\Performance\KpiAggregation;
 use App\Enums\Performance\KpiDataSource;
 use App\Enums\Performance\PlanStatus;
+use App\Enums\Performance\PlanType;
 use App\Models\DailyActivityItem;
 use App\Models\EmployeePerformanceItem;
 use App\Models\KpiActual;
 use App\Models\KpiTarget;
+use App\Models\OrganizationUnit;
 use App\Models\User;
 use App\Services\DailyActivity\DailyActivitySettings;
 use Illuminate\Support\Carbon;
@@ -165,7 +167,15 @@ final class KpiActualService
         );
     }
 
-    /** Measure a SYSTEM_TRANSACTION item or target from its registered source. */
+    /**
+     * Measure a SYSTEM_TRANSACTION item or target from its registered source.
+     *
+     * One row per calendar month, clipped to the agreement or target period.
+     * The buckets are fixed whatever range is requested, so re-syncing any
+     * range replaces those months instead of adding overlapping rows that the
+     * KPI aggregation would count twice. A month without data stores nothing;
+     * a source that reports zero stores zero.
+     */
     public function syncSystem(EmployeePerformanceItem|KpiTarget $subject, Carbon $from, Carbon $to): ?KpiActual
     {
         $kpi = $subject->kpi;
@@ -176,11 +186,33 @@ final class KpiActualService
         $isItem = $subject instanceof EmployeePerformanceItem;
         $organizationId = $isItem ? $subject->agreement->organization_id : $subject->plan->organization_id;
         $employeeId = $isItem ? $subject->agreement->employee_id : null;
-        $measure = $this->systemSources->measure($kpi->system_source_key, $organizationId, $employeeId, $from, $to);
+        [$periodStart, $periodEnd] = $isItem
+            ? [Carbon::parse($subject->agreement->effective_from), Carbon::parse($subject->agreement->effective_to)]
+            : [Carbon::parse($subject->period_start), Carbon::parse($subject->period_end)];
+        $scope = $isItem ? $this->itemScope($subject) : $this->targetScope($subject);
+        $subjectKey = ($isItem ? 'item:' : 'target:').$subject->getKey();
+        $sourceKey = 'system:'.$kpi->system_source_key;
 
-        return KpiActual::query()->updateOrCreate(
-            ['subject_key' => ($isItem ? 'item:' : 'target:').$subject->getKey(), 'period_start' => $from->toDateString(), 'period_end' => $to->toDateString(), 'source_key' => 'system:'.$kpi->system_source_key],
-            [
+        $last = null;
+        $month = $from->copy()->max($periodStart)->startOfMonth();
+        $until = $to->copy()->min($periodEnd);
+        for (; $month->lte($until); $month = $month->copy()->addMonthNoOverflow()->startOfMonth()) {
+            $bucketStart = $month->copy()->max($periodStart)->startOfDay();
+            $bucketEnd = $month->copy()->endOfMonth()->startOfDay()->min($periodEnd);
+            $measure = $this->systemSources->measure($kpi->system_source_key, $organizationId, $employeeId, $bucketStart, $bucketEnd, $scope);
+            $key = ['subject_key' => $subjectKey, 'period_start' => $bucketStart->toDateString(), 'period_end' => $bucketEnd->toDateString(), 'source_key' => $sourceKey];
+
+            KpiActual::query()->where('subject_key', $subjectKey)->where('source_key', $sourceKey)
+                ->where('period_start', '<=', $key['period_end'])->where('period_end', '>=', $key['period_start'])
+                ->where(fn ($q) => $q->where('period_start', '!=', $key['period_start'])->orWhere('period_end', '!=', $key['period_end']))
+                ->delete();
+            if ($measure['value'] === null && $measure['numerator'] === null) {
+                KpiActual::query()->where($key)->delete();
+
+                continue;
+            }
+
+            $last = KpiActual::query()->updateOrCreate($key, [
                 'kpi_id' => $kpi->getKey(),
                 'employee_performance_item_id' => $isItem ? $subject->getKey() : null,
                 'target_id' => $isItem ? null : $subject->getKey(),
@@ -194,11 +226,51 @@ final class KpiActualService
                 'actual_denominator' => $measure['denominator'],
                 'source_type' => KpiDataSource::SystemTransaction,
                 'source_reference_type' => $measure['reference'],
-                // System data is verified by construction.
-                'verified' => true,
-                'verified_at' => now(),
-            ],
-        );
+            ]);
+            // System data is verified by construction (not mass assignable).
+            $last->forceFill(['verified' => true, 'verified_by' => null, 'verified_at' => now()])->save();
+        }
+
+        return $last;
+    }
+
+    /**
+     * An agreement item is measured in its own assignment context: the
+     * position it was agreed for, and the service its plan item delivers.
+     *
+     * @return array{position_id?: string, position_service_id?: string}
+     */
+    private function itemScope(EmployeePerformanceItem $item): array
+    {
+        return array_filter([
+            'position_id' => $item->agreement->position_id,
+            'position_service_id' => $item->objective?->position_service_id,
+        ]);
+    }
+
+    /** @return array{position_id?: string, position_service_id?: string, organization_unit_ids?: list<string>} */
+    private function targetScope(KpiTarget $target): array
+    {
+        $plan = $target->plan;
+
+        return match ($plan->plan_type) {
+            PlanType::Position => array_filter(['position_id' => $plan->position_id, 'position_service_id' => $target->objective?->position_service_id]),
+            PlanType::Unit => ['organization_unit_ids' => $this->unitWithDescendants($plan->organization_unit_id)],
+            default => [],
+        };
+    }
+
+    /** @return list<string> */
+    private function unitWithDescendants(string $unitId): array
+    {
+        $ids = [$unitId];
+        $frontier = [$unitId];
+        while ($frontier !== []) {
+            $frontier = OrganizationUnit::query()->whereIn('parent_unit_id', $frontier)->whereNotIn('id', $ids)->pluck('id')->all();
+            $ids = [...$ids, ...$frontier];
+        }
+
+        return $ids;
     }
 
     private function assertManualAllowed(KpiDataSource $source): void

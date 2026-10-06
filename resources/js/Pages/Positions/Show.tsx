@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { localizedName } from '@/utils/localizedName';
-import { Empty, Pill, Section, Table, tdCls, thCls } from '@/Components/performance/ui';
+import { Empty, formatScore, Pill, Section, Table, tdCls, thCls } from '@/Components/performance/ui';
 
 type Movement = {
     id: string;
@@ -18,7 +18,9 @@ type Movement = {
 
 type Named = { name_en: string; name_am: string | null };
 type PositionService = Named & { id: string; service_no: string; description: string | null; is_active: boolean };
-type PositionPlan = { id: string; title: string; status: string; version: number; organization: Named | null; unit: Named | null; cycle: Named | null; effective_from: string | null; effective_to: string | null };
+/** Derived from the plan's lineage on the server; a position never stores a goal. */
+type ContributingGoal = { id: string; code: string; name_en: string; name_am: string | null; weight_percent: string; unit: string | null; unit_am: string | null; allocation_percent: string | null };
+type PositionPlan = { id: string; title: string; status: string; version: number; organization: Named | null; unit: Named | null; cycle: Named | null; effective_from: string | null; effective_to: string | null; goals: ContributingGoal[] };
 type Props = { position: any; movementHistory: Movement[]; positionServices: PositionService[]; currentPerformancePlans: PositionPlan[]; historicalPerformancePlans: PositionPlan[]; canViewPerformancePlans: boolean; canViewPositionServices: boolean };
 
 export default function PositionsShow({ position, movementHistory, positionServices, currentPerformancePlans, historicalPerformancePlans, canViewPerformancePlans, canViewPositionServices }: Props) {
@@ -129,13 +131,20 @@ function PositionPlans({ title, plans }: { title: string; plans: PositionPlan[] 
             <th className={thCls}>{t('performance.fields.titleEn')}</th><th className={thCls}>{t('performance.fields.cycle')}</th>
             <th className={thCls}>{t('performance.fields.organization')}</th><th className={thCls}>{t('performance.fields.unit')}</th>
             <th className={thCls}>{t('performance.fields.version')}</th><th className={thCls}>{t('common.status')}</th>
-            <th className={thCls}>{t('performance.fields.period')}</th>
+            <th className={thCls}>{t('performance.fields.period')}</th><th className={thCls}>{t('positions.contributingGoals')}</th>
         </>}>
             {plans.map((plan) => <tr key={plan.id}>
                 <td className={tdCls}><Link className="text-blue-700 hover:underline dark:text-blue-300" href={route('performance.plans.show', plan.id)}>{plan.title}</Link></td>
                 <td className={tdCls}>{name(plan.cycle)}</td><td className={tdCls}>{name(plan.organization)}</td><td className={tdCls}>{name(plan.unit)}</td>
                 <td className={tdCls}>{plan.version}</td><td className={tdCls}><Pill group="plan" value={plan.status} /></td>
                 <td className={tdCls}><LocalizedDateDisplay value={plan.effective_from} /> – <LocalizedDateDisplay value={plan.effective_to} /></td>
+                <td className={tdCls}>{plan.goals.length === 0 ? <span className="text-gray-500 dark:text-slate-400">{t('positions.noContributingGoals')}</span>
+                    : <ul className="space-y-1">{plan.goals.map((goal) => <li key={goal.id}>
+                        <span className="font-mono text-xs">{goal.code}</span> {localizedName(goal.name_en, goal.name_am, locale)}
+                        {goal.allocation_percent !== null && <span className="block text-xs text-gray-500 dark:text-slate-400">
+                            {localizedName(goal.unit, goal.unit_am, locale)} · {formatScore(goal.allocation_percent)}% / {formatScore(goal.weight_percent)}%
+                        </span>}
+                    </li>)}</ul>}</td>
             </tr>)}
         </Table>}
     </Section>;

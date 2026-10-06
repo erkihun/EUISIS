@@ -1,55 +1,47 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import PublicLayout from '@/Layouts/PublicLayout';
+import PublicLayout, { type PublicPageMeta } from '@/Layouts/PublicLayout';
+import { publicCardClass } from '@/Components/public/PublicPage';
 import {
+    ActivityIcon,
+    ArrowLeftRightIcon,
+    BadgeCheckIcon,
+    BoxesIcon,
+    Briefcase,
     Building2,
-    Users,
-    CreditCard,
-    Store,
-    Layers,
-    ScrollText,
-    LayoutDashboard,
-    CheckCircle,
+    ChartLineIcon,
     ChevronRight,
+    ClipboardCheckIcon,
+    ClipboardListIcon,
+    CreditCard,
+    HandshakeIcon,
+    InfoIcon,
+    LayoutDashboard,
+    NetworkIcon,
+    QrCodeIcon,
+    ScaleIcon,
+    ScrollText,
+    ShieldCheck,
+    StarIcon,
+    Store,
+    TrendingUpIcon,
+    UserIcon,
+    Users,
 } from '@/Components/Icons';
 import type { PageProps } from '@/types';
 import { SVGProps } from 'react';
 import './Welcome.css';
 
 type IconProps = SVGProps<SVGSVGElement>;
-
-function BarChart2Icon(p: IconProps) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-        </svg>
-    );
-}
+type Icon = ComponentType<IconProps>;
 
 function ArrowRightIcon(p: IconProps) {
     return (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
             <line x1="5" y1="12" x2="19" y2="12" />
             <polyline points="12 5 19 12 12 19" />
-        </svg>
-    );
-}
-
-function QrCodeIcon(p: IconProps) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...p}>
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="5" y="5" width="3" height="3" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="16" y="5" width="3" height="3" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="16" y="16" width="3" height="3" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="5" y="16" width="3" height="3" rx="0.5" fill="currentColor" stroke="none" />
         </svg>
     );
 }
@@ -93,11 +85,6 @@ function useInView(threshold = 0.12) {
     return { ref, inView };
 }
 
-const MODULE_ICON_MAP = [Building2, Users, CreditCard, Store, Layers, Users, ScrollText, BarChart2Icon];
-const MODULE_KEY_LIST = ['module1', 'module2', 'module3', 'module4', 'module5', 'module6', 'module7', 'module8'] as const;
-const TRUST_ICON_MAP = [QrCodeIcon, UserShieldIcon, ScrollText, LockIcon];
-const TRUST_KEY_LIST = ['trust1', 'trust2', 'trust3', 'trust4'] as const;
-
 type Tone = 'primary' | 'success' | 'warning' | 'neutral';
 const TONE_ICON: Record<Tone, string> = {
     primary: 'bg-[color:var(--color-primary)]/10 text-[color:var(--color-primary)] ring-[color:var(--color-primary)]/15',
@@ -111,28 +98,207 @@ const TONE_GLOW: Record<Tone, string> = {
     warning: 'bg-[color:var(--color-accent)]/10',
     neutral: 'bg-slate-500/10',
 };
-const TRUST_TONES:  Tone[] = ['primary', 'success', 'warning', 'neutral'];
-const MODULE_TONES: Tone[] = ['primary', 'success', 'warning', 'neutral', 'primary', 'success', 'neutral', 'warning'];
-const STEP_COUNT = 7;
+
+/**
+ * One card: `key` names the translation pair `home.{key}Title` / `home.{key}Desc`.
+ * `status` marks a service as available today or a planned integration, so
+ * nothing planned reads as operational.
+ */
+type Card = { key: string; icon: Icon; tone: Tone; status?: 'available' | 'planned' };
+
+/** Short labels in the hero's platform overview panel. */
+const PANEL_TILES: { key: string; icon: Icon }[] = [
+    { key: 'tileInstitutions', icon: Building2 },
+    { key: 'tilePositions', icon: Briefcase },
+    { key: 'tileEmployees', icon: Users },
+    { key: 'tileIdCards', icon: CreditCard },
+    { key: 'tileServices', icon: Store },
+    { key: 'tilePerformance', icon: TrendingUpIcon },
+    { key: 'tileGrievances', icon: ScaleIcon },
+    { key: 'tileReports', icon: ChartLineIcon },
+];
+
+const MANAGE_CARDS: Card[] = [
+    { key: 'manageOrg', icon: Building2, tone: 'primary' },
+    { key: 'managePositions', icon: Briefcase, tone: 'success' },
+    { key: 'manageRegistry', icon: Users, tone: 'warning' },
+    { key: 'manageInsight', icon: ChartLineIcon, tone: 'neutral' },
+];
+
+const SERVICE_CARDS: Card[] = [
+    { key: 'serviceCard', icon: CreditCard, tone: 'primary', status: 'available' },
+    { key: 'serviceCafeteria', icon: Store, tone: 'success', status: 'available' },
+    { key: 'serviceTransport', icon: ArrowLeftRightIcon, tone: 'warning', status: 'available' },
+    { key: 'serviceProviders', icon: HandshakeIcon, tone: 'neutral', status: 'available' },
+    { key: 'serviceIntegration', icon: NetworkIcon, tone: 'primary', status: 'available' },
+    { key: 'serviceConsumer', icon: BoxesIcon, tone: 'neutral', status: 'planned' },
+    { key: 'serviceHealth', icon: ActivityIcon, tone: 'neutral', status: 'planned' },
+    { key: 'serviceWelfare', icon: BadgeCheckIcon, tone: 'neutral', status: 'planned' },
+];
+
+const WORK_CARDS: Card[] = [
+    { key: 'workDaily', icon: ClipboardListIcon, tone: 'primary' },
+    { key: 'workPerformance', icon: TrendingUpIcon, tone: 'success' },
+    { key: 'workCompetency', icon: ClipboardCheckIcon, tone: 'warning' },
+    { key: 'workFeedback', icon: StarIcon, tone: 'primary' },
+    { key: 'workGrievance', icon: ScaleIcon, tone: 'neutral' },
+    { key: 'workPortal', icon: UserIcon, tone: 'success' },
+];
+
+const TRUST_CARDS: Card[] = [
+    { key: 'trust1', icon: UserShieldIcon, tone: 'primary' },
+    { key: 'trust2', icon: LockIcon, tone: 'success' },
+    { key: 'trust3', icon: ScrollText, tone: 'warning' },
+    { key: 'trust4', icon: ShieldCheck, tone: 'neutral' },
+];
+
+const STEP_COUNT = 8;
+// The rest of the questions are on the Support page.
+const FAQ_COUNT = 5;
+
+const primaryCtaCls = 'inline-flex items-center gap-2 rounded-card bg-[color:var(--color-primary)] px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-[color:var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]';
+const heroPrimaryCls = 'inline-flex items-center gap-2 rounded-card bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white';
+const heroSecondaryCls = 'inline-flex items-center gap-2 rounded-card border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white';
 
 interface WelcomePageProps extends PageProps {
     auth: { user: { id: number; name: string; email: string } | null };
+    meta?: PublicPageMeta;
+}
+
+function SectionHeader({ id, title, subtitle, inView }: { id: string; title: string; subtitle: string; inView: boolean }) {
+    return (
+        <div className="mb-12 text-center">
+            <h2
+                id={id}
+                className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-100"
+                style={inView ? { animation: 'fade-up 0.65s ease-out both' } : { opacity: 0 }}
+            >
+                {title}
+            </h2>
+            <p
+                className="mt-3 text-base text-gray-500 dark:text-slate-400"
+                style={inView ? { animation: 'fade-up 0.65s ease-out 0.1s both' } : { opacity: 0 }}
+            >
+                {subtitle}
+            </p>
+        </div>
+    );
+}
+
+function InfoCard({ card, index, inView, muted = false }: { card: Card; index: number; inView: boolean; muted?: boolean }) {
+    const { t } = useLocale();
+    const Icon = card.icon;
+
+    return (
+        <div
+            className="home-card group relative overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.65)] dark:border-slate-800/80 dark:bg-slate-900/95 dark:hover:border-slate-700"
+            style={inView ? { animation: `fade-up 0.6s ease-out ${0.1 + index * 0.08}s both` } : { opacity: 0 }}
+        >
+            <div className="absolute left-0 top-0 h-1 w-1/2 bg-gradient-to-r from-[var(--color-primary)] via-[color:var(--color-primary)]/45 to-transparent" style={{ borderTopLeftRadius: 'inherit' }} />
+            <div className={`pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full blur-3xl ${TONE_GLOW[card.tone]}`} />
+            <div className="relative flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                    {muted ? (
+                        <h3 className="text-[15px] font-medium text-gray-600 dark:text-slate-300">{t(`home.${card.key}Title`)}</h3>
+                    ) : (
+                        <h3 className="text-[15px] font-semibold text-gray-900 dark:text-slate-100">{t(`home.${card.key}Title`)}</h3>
+                    )}
+                    <p className={`${muted ? 'mt-3 text-gray-600 dark:text-slate-300' : 'mt-2 text-gray-600 dark:text-slate-400'} text-justify text-[13px] leading-relaxed`}>{t(`home.${card.key}Desc`)}</p>
+                </div>
+                <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[card.tone]}`}>
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/** A titled grid of cards; the same markup the trust and module sections always used. */
+function CardSection({ id, prefix, cards, tinted, columns = 4, muted = false }: {
+    id: string; prefix: string; cards: Card[]; tinted: boolean; columns?: 3 | 4; muted?: boolean;
+}) {
+    const { t } = useLocale();
+    const { ref, inView } = useInView();
+
+    return (
+        <section aria-labelledby={id} className={`${tinted ? 'bg-gray-50 dark:bg-slate-900' : 'bg-white dark:bg-slate-950'} py-16 sm:py-20`}>
+            <div ref={ref} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <SectionHeader id={id} title={t(`home.${prefix}SectionTitle`)} subtitle={t(`home.${prefix}SectionSubtitle`)} inView={inView} />
+                <div className={`grid gap-4 sm:grid-cols-2 ${columns === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'}`}>
+                    {cards.map((card, idx) => <InfoCard key={card.key} card={card} index={idx} inView={inView} muted={muted} />)}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+/**
+ * Services split by status, so nothing planned reads as operational: available
+ * ones in the standard card, planned integrations in a muted dashed card.
+ */
+function ServicesSection() {
+    const { t } = useLocale();
+    const { ref, inView } = useInView();
+    const available = SERVICE_CARDS.filter((card) => card.status === 'available');
+    const planned = SERVICE_CARDS.filter((card) => card.status === 'planned');
+
+    return (
+        <section aria-labelledby="services-heading" className="bg-white py-16 sm:py-20 dark:bg-slate-950">
+            <div ref={ref} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <SectionHeader id="services-heading" title={t('home.servicesSectionTitle')} subtitle={t('home.servicesSectionSubtitle')} inView={inView} />
+
+                <h3 className="mb-4 flex items-center gap-2 text-sm font-bold text-[color:var(--color-primary)]">
+                    <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-600" />
+                    {t('home.statusAvailable')}
+                </h3>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                    {available.map((card, idx) => <InfoCard key={card.key} card={card} index={idx} inView={inView} />)}
+                </div>
+
+                <h3 className="mb-4 mt-10 flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-slate-300">
+                    <span aria-hidden="true" className="h-2 w-2 rounded-full border-2 border-slate-400" />
+                    {t('home.statusPlanned')}
+                </h3>
+                <div className="grid gap-4 md:grid-cols-3">
+                    {planned.map((card) => {
+                        const Icon = card.icon;
+                        return (
+                            <div key={card.key} className="flex items-start gap-3.5 rounded-panel border border-dashed border-slate-300 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+                                <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                    <Icon className="h-[18px] w-[18px]" aria-hidden="true" />
+                                </div>
+                                <div className="min-w-0">
+                                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t(`home.${card.key}Title`)}</h4>
+                                    <p className="mt-1 text-justify text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">{t(`home.${card.key}Desc`)}</p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div role="note" className="mt-8 flex items-start gap-3 rounded-card border border-[color:var(--color-primary)]/15 bg-[color:var(--color-primary)]/5 px-5 py-4 text-sm leading-relaxed text-gray-800 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                    <InfoIcon className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--color-primary)]" aria-hidden="true" />
+                    <p>{t('home.servicesNote')}</p>
+                </div>
+            </div>
+        </section>
+    );
 }
 
 export default function Welcome() {
-    const { auth } = usePage<WelcomePageProps>().props;
+    const { auth, meta } = usePage<WelcomePageProps>().props;
     const isAuthenticated = Boolean(auth?.user);
     const { t } = useLocale();
     const { getString, getBoolean } = useSystemSettings();
-    const { ref: trustRef,   inView: trustInView   } = useInView();
-    const { ref: modulesRef, inView: modulesInView } = useInView();
-    const { ref: stepsRef,   inView: stepsInView   } = useInView();
+    const { ref: stepsRef, inView: stepsInView } = useInView();
+    const { ref: verifyRef, inView: verifyInView } = useInView();
 
     const appNameEn = getString('app.short_name', getString('app.name', 'AA Employee ID'));
     const steps = Array.from({ length: STEP_COUNT }, (_, i) => i + 1);
+    const faqs = Array.from({ length: FAQ_COUNT }, (_, i) => i + 1);
 
     return (
-        <PublicLayout title={appNameEn}>
+        <PublicLayout title={appNameEn} description={t('home.metaDescription')} meta={meta}>
             <div className="public-home" data-motion={getBoolean('appearance.enable_ui_animations', true) ? 'on' : 'off'}>
             {/* ─────────────────────────── HERO ────────────────────────────── */}
             <section
@@ -167,27 +333,29 @@ export default function Welcome() {
                             </p>
                             <div className="mt-6 flex flex-col items-stretch gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start animate-fade-up [&>a]:min-h-12 [&>a]:justify-center" style={{ animationDelay: '0.36s' }}>
                                 {isAuthenticated ? (
-                                    <Link
-                                        href={route('dashboard')}
-                                        className="inline-flex items-center gap-2 rounded-card bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                                    >
+                                    <Link href={route('dashboard')} className={heroPrimaryCls}>
                                         <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                                         {t('home.heroCtaDashboard')}
                                     </Link>
                                 ) : (
-                                    <Link
-                                        href={route('login')}
-                                        className="inline-flex items-center gap-2 rounded-card bg-white px-6 py-3 text-sm font-bold text-blue-700 shadow-lg transition-all hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                                    >
-                                        {t('home.heroCtaLogin')}
+                                    <Link href={route('public.verify')} className={heroPrimaryCls}>
+                                        {t('home.heroCtaVerify')}
                                         <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                                     </Link>
                                 )}
-                                <Link
-                                    href="/announcements"
-                                    className="inline-flex items-center gap-2 rounded-card border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-                                >
-                                    {t('nav.announcements')}
+                                {isAuthenticated ? (
+                                    <Link href={route('public.verify')} className={heroSecondaryCls}>
+                                        {t('home.heroCtaVerify')}
+                                        <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                                    </Link>
+                                ) : (
+                                    <Link href={route('employee.login')} className={heroSecondaryCls}>
+                                        {t('home.heroCtaPortal')}
+                                        <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                                    </Link>
+                                )}
+                                <Link href={route('public.services')} className={heroSecondaryCls}>
+                                    {t('home.heroCtaServices')}
                                     <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                                 </Link>
                             </div>
@@ -203,24 +371,21 @@ export default function Welcome() {
                                     {t('home.platformOverview')}
                                 </p>
                                 <div className="grid grid-cols-2 gap-3 min-[400px]:grid-cols-4 lg:grid-cols-4">
-                                    {MODULE_KEY_LIST.map((key, idx) => {
-                                        const Icon = MODULE_ICON_MAP[idx];
-                                        return (
-                                            <div key={key} className="home-module-tile flex min-w-0 flex-col items-center gap-2 rounded-card bg-white/10 px-2 py-4 text-center" style={{ animationDelay: `${0.15 + idx * 0.06}s` }}>
-                                                <Icon className="h-6 w-6 text-white/90" aria-hidden="true" />
-                                                <span className="text-[11px] font-medium leading-snug text-blue-100">{t(`home.${key}Title`)}</span>
-                                            </div>
-                                        );
-                                    })}
+                                    {PANEL_TILES.map(({ key, icon: Icon }, idx) => (
+                                        <div key={key} className="home-module-tile flex min-w-0 flex-col items-center gap-2 rounded-card bg-white/10 px-2 py-4 text-center" style={{ animationDelay: `${0.15 + idx * 0.06}s` }}>
+                                            <Icon className="h-6 w-6 text-white/90" aria-hidden="true" />
+                                            <span className="text-[11px] font-medium leading-snug text-blue-100">{t(`home.${key}`)}</span>
+                                        </div>
+                                    ))}
                                 </div>
                                 <div className="mt-4 flex items-center justify-between rounded-lg bg-white/10 px-3 py-2">
-                                    <span className="text-xs text-blue-200">System Status</span>
+                                    <span className="text-xs text-blue-200">{t('home.statusLabel')}</span>
                                     <span className="flex items-center gap-1.5 text-xs font-semibold text-green-300">
                                         <span className="relative flex h-2 w-2" aria-hidden="true">
                                             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
                                             <span className="relative inline-flex h-2 w-2 rounded-full bg-green-400" />
                                         </span>
-                                        Operational
+                                        {t('home.statusValue')}
                                     </span>
                                 </div>
                             </div>
@@ -229,97 +394,17 @@ export default function Welcome() {
                 </div>
             </section>
 
-            {/* ──────────────────── TRUST / SECURITY HIGHLIGHTS ─────────────── */}
-            <section aria-labelledby="trust-heading" className="bg-gray-50 py-16 sm:py-20 dark:bg-slate-900">
-                <div ref={trustRef} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-12 text-center">
-                        <h2
-                            id="trust-heading"
-                            className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-100"
-                            style={trustInView ? { animation: 'fade-up 0.65s ease-out both' } : { opacity: 0 }}
-                        >
-                            {t('home.trustSectionTitle')}
-                        </h2>
-                        <p
-                            className="mt-3 text-base text-gray-500 dark:text-slate-400"
-                            style={trustInView ? { animation: 'fade-up 0.65s ease-out 0.1s both' } : { opacity: 0 }}
-                        >
-                            {t('home.trustSectionSubtitle')}
-                        </p>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {TRUST_KEY_LIST.map((key, idx) => {
-                            const Icon = TRUST_ICON_MAP[idx];
-                            const tone = TRUST_TONES[idx];
-                            return (
-                                <div
-                                    key={key}
-                                    className="group relative overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.65)] dark:border-slate-800/80 dark:bg-slate-900/95 dark:hover:border-slate-700"
-                                    style={trustInView ? { animation: `fade-up 0.6s ease-out ${0.15 + idx * 0.1}s both` } : { opacity: 0 }}
-                                >
-                                    <div className="absolute left-0 top-0 h-1 w-1/2 bg-gradient-to-r from-[var(--color-primary)] via-[color:var(--color-primary)]/45 to-transparent" style={{ borderTopLeftRadius: 'inherit' }} />
-                                    <div className={`pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full blur-3xl ${TONE_GLOW[tone]}`} />
-                                    <div className="relative flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{t(`home.${key}Title`)}</p>
-                                            <p className="mt-3 text-xs leading-relaxed text-gray-600 dark:text-slate-300">{t(`home.${key}Desc`)}</p>
-                                        </div>
-                                        <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[tone]}`}>
-                                            <Icon className="h-5 w-5" aria-hidden="true" />
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            </section>
+            {/* ───────────────────── WHAT EUISIS MANAGES ───────────────────── */}
+            <CardSection id="manage-heading" prefix="manage" cards={MANAGE_CARDS} tinted />
 
-            {/* ─────────────────────── PLATFORM MODULES ────────────────────── */}
-            <section aria-labelledby="modules-heading" className="bg-white py-16 sm:py-20 dark:bg-slate-950">
-                <div ref={modulesRef} className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="mb-12 text-center">
-                        <h2
-                            id="modules-heading"
-                            className="text-2xl font-bold text-gray-900 sm:text-3xl dark:text-slate-100"
-                            style={modulesInView ? { animation: 'fade-up 0.65s ease-out both' } : { opacity: 0 }}
-                        >
-                            {t('home.modulesSectionTitle')}
-                        </h2>
-                        <p
-                            className="mt-3 text-base text-gray-500 dark:text-slate-400"
-                            style={modulesInView ? { animation: 'fade-up 0.65s ease-out 0.1s both' } : { opacity: 0 }}
-                        >
-                            {t('home.modulesSectionSubtitle')}
-                        </p>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        {MODULE_KEY_LIST.map((key, idx) => {
-                            const Icon = MODULE_ICON_MAP[idx];
-                            const tone = MODULE_TONES[idx];
-                            return (
-                                <div
-                                    key={key}
-                                    className="group relative overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.65)] dark:border-slate-800/80 dark:bg-slate-900/95 dark:hover:border-slate-700"
-                                    style={modulesInView ? { animation: `fade-up 0.6s ease-out ${0.1 + idx * 0.08}s both` } : { opacity: 0 }}
-                                >
-                                    <div className="absolute left-0 top-0 h-1 w-1/2 bg-gradient-to-r from-[var(--color-primary)] via-[color:var(--color-primary)]/45 to-transparent" style={{ borderTopLeftRadius: 'inherit' }} />
-                                    <div className={`pointer-events-none absolute -right-10 -top-12 h-28 w-28 rounded-full blur-3xl ${TONE_GLOW[tone]}`} />
-                                    <div className="relative flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
-                                            <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t(`home.${key}Title`)}</p>
-                                            <p className="mt-2 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{t(`home.${key}Desc`)}</p>
-                                        </div>
-                                        <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[tone]}`}>
-                                            <Icon className="h-5 w-5" aria-hidden="true" />
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            </section>
+            {/* ─────────────────── ONE ID — MULTIPLE SERVICES ──────────────── */}
+            <ServicesSection />
+
+            {/* ──────────── PERFORMANCE, FEEDBACK AND SELF-SERVICE ─────────── */}
+            <CardSection id="work-heading" prefix="work" cards={WORK_CARDS} tinted columns={3} />
+
+            {/* ──────────────── SECURITY, PRIVACY, ACCOUNTABILITY ──────────── */}
+            <CardSection id="trust-heading" prefix="trust" cards={TRUST_CARDS} tinted={false} muted />
 
             {/* ──────────────────────── HOW IT WORKS ───────────────────────── */}
             <section aria-labelledby="how-it-works-heading" className="bg-gray-50 py-16 sm:py-20 dark:bg-slate-900">
@@ -346,7 +431,7 @@ export default function Welcome() {
                                         : { transform: 'scaleX(0)', transformOrigin: 'left' }}
                                 />
                             </div>
-                            <ol className="relative grid grid-cols-7 gap-3">
+                            <ol className="relative grid grid-cols-8 gap-3">
                                 {steps.map((stepNum) => (
                                     <li key={stepNum} className="flex flex-col items-center text-center">
                                         <div
@@ -397,22 +482,53 @@ export default function Welcome() {
 
                     <div className="mt-12 text-center">
                         {isAuthenticated ? (
-                            <Link
-                                href={route('dashboard')}
-                                className="inline-flex items-center gap-2 rounded-card bg-[color:var(--color-primary)] px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-[color:var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]"
-                            >
+                            <Link href={route('dashboard')} className={primaryCtaCls}>
                                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
                                 {t('home.heroCtaDashboard')}
                             </Link>
                         ) : (
-                            <Link
-                                href={route('login')}
-                                className="inline-flex items-center gap-2 rounded-card bg-[color:var(--color-primary)] px-6 py-3 text-sm font-bold text-white shadow-md transition-colors hover:bg-[color:var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]"
-                            >
+                            <Link href={route('login')} className={primaryCtaCls}>
                                 {t('home.heroCtaLogin')}
                                 <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
                             </Link>
                         )}
+                    </div>
+                </div>
+            </section>
+
+            {/* ─────────────────────── VERIFY + FAQ ────────────────────────── */}
+            <section aria-label={t('home.verifySectionTitle')} className="bg-white py-16 sm:py-20 dark:bg-slate-950">
+                <div ref={verifyRef} className="mx-auto grid max-w-7xl items-start gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+                    <div
+                        className="flex flex-col gap-4 rounded-panel bg-[color:var(--color-primary)] p-6 text-white sm:p-8 lg:col-span-5 dark:bg-[color:var(--color-primary-900)]"
+                        style={verifyInView ? { animation: 'fade-up 0.65s ease-out both' } : { opacity: 0 }}
+                    >
+                        <QrCodeIcon className="h-8 w-8" aria-hidden="true" />
+                        <h2 id="verify-heading" className="home-heading-start text-2xl font-bold">{t('home.verifySectionTitle')}</h2>
+                        <p className="text-justify text-[15px] leading-relaxed text-blue-100">{t('home.verifySectionBody')}</p>
+                        <Link href={route('public.verify')} className={`${heroPrimaryCls} mt-2 self-start`}>
+                            {t('home.heroCtaVerify')}
+                            <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />
+                        </Link>
+                    </div>
+
+                    <div className="min-w-0 lg:col-span-7">
+                    <h2 id="faq-heading" className="home-heading-start mb-6 text-2xl font-bold text-gray-900 dark:text-slate-100">{t('home.faqTitle')}</h2>
+                    {/* Native <details>, as on the Support page: keyboard and screen-reader support built in. */}
+                    <div className="space-y-3">
+                        {faqs.map((n) => (
+                            <details key={n} className={`${publicCardClass} group py-2`}>
+                                <summary className="relative flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm font-semibold text-gray-900 marker:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:text-slate-100 [&::-webkit-details-marker]:hidden">
+                                    <span className="[overflow-wrap:anywhere]">{t(`home.faq${n}Q`)}</span>
+                                    <span aria-hidden="true" className="shrink-0 text-gray-400 transition-transform group-open:rotate-45">+</span>
+                                </summary>
+                                <p className="relative pb-2 text-sm text-gray-700 dark:text-slate-300">{t(`home.faq${n}A`)}</p>
+                            </details>
+                        ))}
+                    </div>
+                    <p className="mt-6 text-sm">
+                        <Link href={route('public.support')} className="font-semibold text-[color:var(--color-primary)] hover:underline">{t('home.faqMore')} <span aria-hidden="true">→</span></Link>
+                    </p>
                     </div>
                 </div>
             </section>

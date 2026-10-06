@@ -4,6 +4,12 @@ const performance = {
         historicalVersion: 'Historical version',
         amendedVersion: 'Amends version',
         unitPlanStatus: 'Unit plan status',
+        achievement: 'Achievement',
+        orgContribution: 'Organization contribution',
+        contributionPoints: '{value} pts',
+        contributionPending: 'Not yet measured',
+        contributionPartial: 'Partial: some linked objectives are not measured yet',
+        contributionAsOf: 'as of',
 
         workflow: 'Build the strategic plan',
         registerStep: 'Register goals with a combined weight of 100%.',
