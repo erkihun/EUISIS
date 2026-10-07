@@ -30,7 +30,7 @@ return new class extends Migration
             // reserved -> sent | failed; refused rows record a blocked attempt.
             $table->string('status', 16);
             $table->string('refusal_reason', 32)->nullable();
-            $table->timestamp('occurred_at');
+            $table->dateTime('occurred_at');
 
             $table->index(['service', 'occurred_at'], 'esu_service_time_idx');
             $table->index(['service', 'recipient_hash', 'occurred_at'], 'esu_recipient_time_idx');

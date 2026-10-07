@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('generated_code')->index();
             $table->unsignedBigInteger('sequence_number');
             $table->foreignId('generated_by')->nullable()->constrained('users');
-            $table->timestamp('generated_at');
+            $table->dateTime('generated_at');
             $table->json('metadata')->nullable();
             $table->timestamps();
         });

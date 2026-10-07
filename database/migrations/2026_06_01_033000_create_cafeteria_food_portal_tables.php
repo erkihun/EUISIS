@@ -59,7 +59,7 @@ return new class extends Migration
                 $table->foreignUuid('id_card_id')->nullable()->constrained('id_cards')->nullOnDelete();
                 $table->foreignUuid('fulfilled_transaction_id')->nullable()->constrained('cafeteria_transactions')->nullOnDelete();
                 $table->date('order_date')->index();
-                $table->timestamp('ordered_at');
+                $table->dateTime('ordered_at');
                 $table->timestamp('served_at')->nullable();
                 $table->string('fulfillment_nonce', 64)->nullable()->unique();
                 $table->string('status')->default('pending')->index();

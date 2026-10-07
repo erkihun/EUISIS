@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('reason')->default('sla_breach'); // sla_breach, manual
             $table->text('notes')->nullable();
             $table->foreignId('escalated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('escalated_at');
+            $table->dateTime('escalated_at');
             $table->timestamps();
 
             $table->index('grievance_id');

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('key_version', 64)->nullable();
             $table->string('key_reference')->nullable();
             $table->string('status', 24)->index();
-            $table->timestamp('issued_at');
+            $table->dateTime('issued_at');
             foreach (['activated_at', 'expires_at', 'revoked_at', 'last_used_at'] as $column) {
                 $table->timestamp($column)->nullable();
             }
@@ -59,7 +59,7 @@ return new class extends Migration
             $table->foreignUuid('nfc_credential_id')->constrained('nfc_credentials')->restrictOnDelete();
             $table->foreignUuid('terminal_id')->constrained('service_terminals')->restrictOnDelete();
             $table->string('context_hash', 64);
-            $table->timestamp('expires_at')->index();
+            $table->dateTime('expires_at')->index();
             $table->timestamp('consumed_at')->nullable();
         });
         Schema::create('nfc_verification_logs', function (Blueprint $table): void {
@@ -76,7 +76,7 @@ return new class extends Migration
             $table->string('result', 24);
             $table->string('reason_code', 64)->nullable();
             $table->ipAddress('ip_address')->nullable();
-            $table->timestamp('occurred_at')->index();
+            $table->dateTime('occurred_at')->index();
             $table->json('metadata')->nullable();
             $table->index(['nfc_credential_id', 'occurred_at']);
         });

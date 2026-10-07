@@ -136,7 +136,7 @@ return new class extends Migration
             $table->string('action', 32);
             $table->text('comment')->nullable();
             $table->unsignedInteger('revision')->default(1);
-            $table->timestamp('reviewed_at');
+            $table->dateTime('reviewed_at');
             $table->timestamps();
 
             $table->index(['request_id', 'reviewed_at'], 'ocr_review_request_idx');

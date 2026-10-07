@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignUuid('current_organization_id')->constrained('organizations');
             $table->foreignUuid('current_position_id')->nullable()->constrained('positions');
             $table->string('status')->default('submitted')->index();
-            $table->timestamp('applied_at');
+            $table->dateTime('applied_at');
             $table->timestamp('withdrawn_at')->nullable();
             $table->decimal('screening_score', 5, 2)->nullable();
             $table->text('screening_notes')->nullable();

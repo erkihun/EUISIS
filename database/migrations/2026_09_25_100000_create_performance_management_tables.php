@@ -530,7 +530,7 @@ return new class extends Migration
             $table->string('rating_label_en', 100)->nullable();
             $table->string('rating_label_am', 100)->nullable();
             $table->string('status', 32)->default('CALCULATED');
-            $table->timestamp('calculated_at');
+            $table->dateTime('calculated_at');
             $table->foreignId('calculated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('finalized_at')->nullable();
             $table->foreignId('finalized_by')->nullable()->constrained('users')->nullOnDelete();
@@ -607,7 +607,7 @@ return new class extends Migration
             $table->text('reason');
             $table->string('attachment_path', 500)->nullable();
             $table->string('attachment_name', 255)->nullable();
-            $table->timestamp('submitted_at');
+            $table->dateTime('submitted_at');
             $table->string('status', 16)->default('SUBMITTED');
             $table->string('decision', 32)->nullable();
             $table->text('decision_reason')->nullable();
@@ -688,7 +688,7 @@ return new class extends Migration
             $table->date('as_of');
             $table->decimal('score', 10, 4)->nullable();
             $table->jsonb('trace_json');
-            $table->timestamp('calculated_at');
+            $table->dateTime('calculated_at');
             $table->timestamps();
 
             $table->unique(['performance_plan_id', 'as_of'], 'pps_plan_asof_unique');

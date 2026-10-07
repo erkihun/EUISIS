@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignUuid('to_organization_unit_id')->constrained('organization_units')->restrictOnDelete();
             $table->foreignId('moved_by')->constrained('users')->restrictOnDelete();
             $table->text('reason');
-            $table->timestamp('moved_at')->index();
+            $table->dateTime('moved_at')->index();
             $table->timestamps();
 
             $table->index(['position_id', 'moved_at']);

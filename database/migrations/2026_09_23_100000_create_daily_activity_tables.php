@@ -168,7 +168,7 @@ return new class extends Migration
             $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->date('activity_date');
             $table->string('reminder_type', 32);
-            $table->timestamp('sent_at');
+            $table->dateTime('sent_at');
 
             $table->unique(['employee_id', 'activity_date', 'reminder_type'], 'dar_employee_date_type_unique');
         });

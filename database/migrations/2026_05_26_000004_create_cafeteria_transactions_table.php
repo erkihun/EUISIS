@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignUuid('cafeteria_provider_id')->constrained('cafeteria_providers');
             $table->date('transaction_date')->index();
             $table->time('transaction_time')->nullable();
-            $table->timestamp('scanned_at')->index();
+            $table->dateTime('scanned_at')->index();
             $table->decimal('meal_amount', 12, 2)->nullable();
             $table->decimal('subsidy_amount_applied', 12, 2)->default(0);
             $table->decimal('employee_payable_amount', 12, 2)->default(0);

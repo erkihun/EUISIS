@@ -14,7 +14,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
             $table->string('otp_hash');
-            $table->timestamp('expires_at');
+            $table->dateTime('expires_at');
             $table->timestamp('verified_at')->nullable();
             $table->unsignedTinyInteger('attempts')->default(0);
             $table->string('ip_address', 45)->nullable();

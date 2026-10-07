@@ -19,7 +19,7 @@ return new class extends Migration
             // Null only for LOGICAL_BACKUP, which is written outside the pgBackRest repositories.
             $table->unsignedSmallInteger('repository')->nullable();
             $table->foreignId('initiated_by')->nullable()->constrained('users')->restrictOnDelete();
-            $table->timestampTz('started_at');
+            $table->dateTimeTz('started_at');
             $table->timestampTz('completed_at')->nullable();
             $table->string('failure_summary')->nullable();
             $table->string('backup_reference', 40)->nullable();

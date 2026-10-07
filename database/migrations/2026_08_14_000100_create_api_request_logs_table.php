@@ -26,7 +26,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('status_code');
             $table->boolean('success')->default(false);
             $table->string('failure_reason')->nullable();
-            $table->timestamp('requested_at')->index();
+            $table->dateTime('requested_at')->index();
             $table->json('metadata')->nullable();
             $table->timestamps();
 

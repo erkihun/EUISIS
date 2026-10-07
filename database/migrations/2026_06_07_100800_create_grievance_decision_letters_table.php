@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('letter_reference')->unique();
             $table->string('file_path')->nullable();
             $table->foreignId('generated_by_user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('generated_at');
+            $table->dateTime('generated_at');
             $table->timestamp('downloaded_at')->nullable();
             $table->foreignId('downloaded_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

@@ -159,7 +159,7 @@ return new class extends Migration
                 $table->foreignUuid('transport_pass_id')->nullable()->constrained('transport_passes')->nullOnDelete();
                 $table->foreignUuid('transport_route_id')->nullable()->constrained('transport_routes')->nullOnDelete();
                 $table->foreignUuid('transport_trip_id')->nullable()->constrained('transport_trips')->nullOnDelete();
-                $table->timestamp('scanned_at');
+                $table->dateTime('scanned_at');
                 $table->date('transaction_date');
                 $table->string('status')->default('accepted');
                 $table->string('result_code')->nullable();

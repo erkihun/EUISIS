@@ -190,8 +190,8 @@ return new class extends Migration
             $table->string('authority', 40)->default('decision_approval');
             $table->foreignUuid('organization_id')->nullable()->constrained('organizations')->nullOnDelete();
             $table->foreignUuid('position_id')->nullable()->constrained('positions')->nullOnDelete();
-            $table->timestamp('starts_at');
-            $table->timestamp('ends_at');
+            $table->dateTime('starts_at');
+            $table->dateTime('ends_at');
             $table->text('reason')->nullable();
             $table->string('status', 20)->default('active');
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
@@ -327,7 +327,7 @@ return new class extends Migration
             $table->string('role', 20);
             $table->string('source', 20)->default('committee');
             $table->boolean('is_active')->default(true);
-            $table->timestamp('joined_at');
+            $table->dateTime('joined_at');
             $table->timestamp('left_at')->nullable();
             $table->timestamp('recused_at')->nullable();
             $table->uuid('replaces_stage_member_id')->nullable();
@@ -346,7 +346,7 @@ return new class extends Migration
             $table->foreignUuid('employee_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->string('role', 20)->default('officer');
             $table->foreignId('assigned_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('assigned_at');
+            $table->dateTime('assigned_at');
             $table->timestamp('released_at')->nullable();
             $table->timestamps();
 
@@ -362,7 +362,7 @@ return new class extends Migration
             $table->string('status', 20)->default('requested');
             $table->text('notes')->nullable();
             $table->foreignId('requested_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('requested_at');
+            $table->dateTime('requested_at');
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('started_at')->nullable();
             $table->timestamp('ended_at')->nullable();
@@ -385,7 +385,7 @@ return new class extends Migration
             $table->text('reason');
             $table->string('status', 20)->default('declared');
             $table->foreignId('declared_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('declared_at');
+            $table->dateTime('declared_at');
             $table->foreignId('decided_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('decided_at')->nullable();
             $table->text('decision_notes')->nullable();
@@ -450,7 +450,7 @@ return new class extends Migration
             $table->foreignUuid('actor_position_id')->nullable()->constrained('positions')->nullOnDelete();
             $table->foreignUuid('delegation_id')->nullable()->constrained('grievance_delegations')->nullOnDelete();
             $table->text('comment')->nullable();
-            $table->timestamp('acted_at');
+            $table->dateTime('acted_at');
             $table->timestamps();
 
             $table->index(['decision_id', 'acted_at']);
@@ -463,7 +463,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('vote', 20);
             $table->text('opinion')->nullable();
-            $table->timestamp('voted_at');
+            $table->dateTime('voted_at');
             $table->timestamps();
 
             $table->unique(['decision_id', 'employee_id']);
@@ -473,7 +473,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
-            $table->timestamp('scheduled_at');
+            $table->dateTime('scheduled_at');
             $table->unsignedSmallInteger('duration_minutes')->nullable();
             $table->string('location')->nullable();
             $table->string('mode', 20)->default('in_person');
@@ -542,7 +542,7 @@ return new class extends Migration
             $table->boolean('pauses_sla')->default(false);
             $table->foreignUuid('sla_pause_id')->nullable()->constrained('grievance_sla_pauses')->nullOnDelete();
             $table->foreignId('requested_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('requested_at');
+            $table->dateTime('requested_at');
             $table->timestamp('responded_at')->nullable();
             $table->timestamp('closed_at')->nullable();
             $table->timestamps();
@@ -558,7 +558,7 @@ return new class extends Migration
             $table->text('response_text');
             $table->foreignId('responded_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignUuid('responded_by_employee_id')->nullable()->constrained('employees')->nullOnDelete();
-            $table->timestamp('responded_at');
+            $table->dateTime('responded_at');
             $table->timestamps();
         });
 
@@ -573,7 +573,7 @@ return new class extends Migration
             $table->string('status', 20)->default('submitted');
             $table->foreignId('filed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignUuid('filed_by_employee_id')->nullable()->constrained('employees')->nullOnDelete();
-            $table->timestamp('filed_at');
+            $table->dateTime('filed_at');
             $table->timestamp('deadline_at')->nullable();
             $table->timestamp('routed_at')->nullable();
             $table->timestamp('withdrawn_at')->nullable();
@@ -604,7 +604,7 @@ return new class extends Migration
             $table->boolean('submitted_by_complainant')->default(false);
             $table->foreignId('submitted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignUuid('submitted_by_employee_id')->nullable()->constrained('employees')->nullOnDelete();
-            $table->timestamp('submitted_at');
+            $table->dateTime('submitted_at');
             $table->foreignId('accepted_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('accepted_at')->nullable();
             $table->text('rejection_reason')->nullable();
@@ -620,7 +620,7 @@ return new class extends Migration
             $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('ip_address', 45)->nullable();
             $table->text('notes')->nullable();
-            $table->timestamp('occurred_at');
+            $table->dateTime('occurred_at');
 
             $table->index(['evidence_id', 'occurred_at']);
         });
@@ -662,7 +662,7 @@ return new class extends Migration
             $table->string('visibility', 20)->default('internal');
             $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->json('data')->nullable();
-            $table->timestamp('occurred_at');
+            $table->dateTime('occurred_at');
 
             $table->index(['grievance_id', 'occurred_at']);
         });
@@ -673,7 +673,7 @@ return new class extends Migration
             $table->json('changes');
             $table->text('reason')->nullable();
             $table->foreignId('amended_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('amended_at');
+            $table->dateTime('amended_at');
             $table->timestamps();
         });
 
@@ -756,7 +756,7 @@ return new class extends Migration
             $table->string('status', 20)->default('queued');
             $table->string('destination')->nullable();
             $table->string('provider_reference')->nullable();
-            $table->timestamp('queued_at');
+            $table->dateTime('queued_at');
             $table->timestamp('sent_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
             $table->timestamp('failed_at')->nullable();
@@ -804,7 +804,7 @@ return new class extends Migration
             $table->string('disciplinary_case_reference')->nullable();
             $table->uuid('disciplinary_case_id')->nullable();
             $table->foreignId('referred_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('referred_at');
+            $table->dateTime('referred_at');
             $table->timestamp('acknowledged_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();

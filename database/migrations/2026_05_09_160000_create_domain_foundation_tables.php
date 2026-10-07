@@ -282,7 +282,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('id_card_id')->constrained('id_cards');
             $table->foreignId('issued_by')->constrained('users');
-            $table->timestamp('issued_at');
+            $table->dateTime('issued_at');
             $table->string('recipient_name')->nullable();
             $table->timestamps();
         });
@@ -371,7 +371,7 @@ return new class extends Migration
             $table->foreignUuid('service_provider_id')->constrained('service_providers');
             $table->foreignUuid('entitlement_id')->nullable()->constrained('entitlements');
             $table->string('status')->index();
-            $table->timestamp('occurred_at')->index();
+            $table->dateTime('occurred_at')->index();
             $table->string('reference')->nullable()->index();
             $table->decimal('amount', 12, 2)->nullable();
             $table->json('metadata')->nullable();
@@ -391,7 +391,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('period')->index();
             $table->foreignId('generated_by')->constrained('users');
-            $table->timestamp('generated_at');
+            $table->dateTime('generated_at');
             $table->timestamps();
         });
 

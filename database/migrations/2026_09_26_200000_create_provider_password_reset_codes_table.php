@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignUuid('provider_user_id')->constrained('provider_users')->cascadeOnDelete();
             $table->string('channel', 10);
             $table->string('otp_hash');
-            $table->timestamp('expires_at');
+            $table->dateTime('expires_at');
             $table->timestamp('used_at')->nullable();
             $table->unsignedTinyInteger('attempts')->default(0);
             $table->string('ip_address', 45)->nullable();

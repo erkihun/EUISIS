@@ -64,7 +64,7 @@ return new class extends Migration
             $table->text('value');
             $table->string('code_hash');
             $table->unsignedTinyInteger('attempts')->default(0);
-            $table->timestamp('expires_at');
+            $table->dateTime('expires_at');
             $table->timestamp('consumed_at')->nullable();
             $table->timestamps();
         });

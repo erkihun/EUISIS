@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('assigned_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('assignment_type')->default('committee'); // committee, tribunal
             $table->text('notes')->nullable();
-            $table->timestamp('assigned_at');
+            $table->dateTime('assigned_at');
             $table->timestamp('due_at')->nullable();
             $table->boolean('is_current')->default(true);
             $table->timestamps();

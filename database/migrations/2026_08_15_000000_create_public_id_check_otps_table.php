@@ -27,7 +27,7 @@ return new class extends Migration
             // Denormalised so a lookup by scanned QR needs no join.
             $table->uuid('card_uuid')->index();
             $table->string('otp_hash');
-            $table->timestamp('expires_at');
+            $table->dateTime('expires_at');
             $table->timestamp('verified_at')->nullable();
             $table->unsignedTinyInteger('attempts')->default(0);
             $table->string('ip_address', 45)->nullable();
