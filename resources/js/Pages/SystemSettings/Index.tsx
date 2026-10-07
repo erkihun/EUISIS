@@ -178,10 +178,13 @@ export default function SystemSettingsIndex({ settingGroups, roles, can, emailIn
     const [clearing, setClearing] = useState(false);
     const contentRef = useRef<HTMLDivElement>(null);
 
-    const channelStatus = (id: string): string | undefined => {
+    // The Notifications tab switch for a channel. Off means module
+    // notifications do not use it; verification codes still do.
+    const channelOff = (id: string): boolean => {
         const field = settingGroups.notifications?.fields.find((entry) => entry.key === CHANNEL_SWITCHES[id]);
-        return field && (field.value ?? field.default) === false ? t('settings.channelOff') : undefined;
+        return field !== undefined && (field.value ?? field.default) === false;
     };
+    const channelStatus = (id: string): string | undefined => (channelOff(id) ? t('settings.channelOff') : undefined);
 
     const navGroups: SettingsNavGroup[] = NAV_GROUPS.map((group) => ({
         label: t(`settings.navGroups.${group}`),
@@ -285,6 +288,8 @@ export default function SystemSettingsIndex({ settingGroups, roles, can, emailIn
                             canViewTemplates={can.viewIdCardTemplates === true}
                             sidebarColor={typeof sidebarColor === 'string' ? sidebarColor : undefined}
                             emailInEffect={emailInEffect}
+                            channelOff={current.id in CHANNEL_SWITCHES && channelOff(current.id)}
+                            onOpenNotifications={sections.some((section) => section.id === 'notifications') ? () => void select('notifications') : undefined}
                             onDirtyChange={setDirty}
                         />
                     </div>
@@ -306,6 +311,8 @@ function GroupFormPanel({
     canViewTemplates,
     sidebarColor,
     emailInEffect,
+    channelOff,
+    onOpenNotifications,
     onDirtyChange,
 }: {
     section: string;
@@ -317,6 +324,8 @@ function GroupFormPanel({
     canViewTemplates: boolean;
     sidebarColor?: string;
     emailInEffect: EmailInEffectData | null;
+    channelOff: boolean;
+    onOpenNotifications?: () => void;
     onDirtyChange: (dirty: boolean) => void;
 }) {
     const { locale, t } = useLocale();
@@ -450,6 +459,14 @@ function GroupFormPanel({
             {section === 'general' && <BrandingPreview values={form.data} fields={payload.fields} sidebarColor={sidebarColor} />}
             {section === 'appearance' && <AppearancePreview values={form.data} />}
             {section === 'id_cards' && <IdCardTemplatesPanel canManage={canViewTemplates} />}
+            {channelOff && (
+                <Alert tone="info" title={t('settings.channelOffTitle')}>
+                    <p>{t(`settings.channelOffHelp.${section}`)}</p>
+                    {onOpenNotifications && (
+                        <Button variant="outline" size="sm" className="mt-2" onClick={onOpenNotifications}>{t('settings.channelOffAction')}</Button>
+                    )}
+                </Alert>
+            )}
             {section === 'email' && emailInEffect && <EmailInEffect data={emailInEffect} />}
 
             {cards.map((card) => {
