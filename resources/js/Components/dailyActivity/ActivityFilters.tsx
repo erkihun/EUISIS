@@ -61,6 +61,7 @@ export default function ActivityFilters({ routeName, filters, options, fields, k
                     type="search"
                     className={`${compactInputCls} w-full sm:w-56`}
                     placeholder={t('dailyActivities.filters.search')}
+                    aria-label={t('dailyActivities.filters.search')}
                     value={values.search ?? ''}
                     onChange={(e) => set('search', e.target.value)}
                 />
@@ -90,37 +91,37 @@ export default function ActivityFilters({ routeName, filters, options, fields, k
                 </label>
             )}
             {has('organization') && options.organizations.length > 1 && (
-                <select className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.organization_id ?? ''} onChange={(e) => set('organization_id', e.target.value)}>
+                <select aria-label={t('dailyActivities.filters.allOrganizations')} className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.organization_id ?? ''} onChange={(e) => set('organization_id', e.target.value)}>
                     <option value="">{t('dailyActivities.filters.allOrganizations')}</option>
                     {options.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
                 </select>
             )}
             {has('unit') && options.units.length > 0 && (
-                <select className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.organization_unit_id ?? ''} onChange={(e) => set('organization_unit_id', e.target.value)}>
+                <select aria-label={t('dailyActivities.filters.allUnits')} className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.organization_unit_id ?? ''} onChange={(e) => set('organization_unit_id', e.target.value)}>
                     <option value="">{t('dailyActivities.filters.allUnits')}</option>
                     {options.units.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
                 </select>
             )}
             {has('position') && options.positions.length > 0 && (
-                <select className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.position_id ?? ''} onChange={(e) => set('position_id', e.target.value)}>
+                <select aria-label={t('dailyActivities.filters.allPositions')} className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.position_id ?? ''} onChange={(e) => set('position_id', e.target.value)}>
                     <option value="">{t('dailyActivities.filters.allPositions')}</option>
                     {options.positions.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
                 </select>
             )}
             {has('service') && options.services.length > 0 && (
-                <select className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.position_service_id ?? ''} onChange={(e) => set('position_service_id', e.target.value)}>
+                <select aria-label={t('dailyActivities.filters.allTasks')} className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.position_service_id ?? ''} onChange={(e) => set('position_service_id', e.target.value)}>
                     <option value="">{t('dailyActivities.filters.allTasks')}</option>
                     {options.services.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
                 </select>
             )}
             {has('status') && options.statuses && (
-                <select className={`${compactInputCls} w-full sm:w-auto`} value={values.status ?? ''} onChange={(e) => set('status', e.target.value)}>
+                <select aria-label={t('dailyActivities.filters.allStatuses')} className={`${compactInputCls} w-full sm:w-auto`} value={values.status ?? ''} onChange={(e) => set('status', e.target.value)}>
                     <option value="">{t('dailyActivities.filters.allStatuses')}</option>
                     {options.statuses.map((s) => <option key={s} value={s}>{t(`${statusNamespace}.${s}`)}</option>)}
                 </select>
             )}
             {has('late') && (
-                <select className={`${compactInputCls} w-full sm:w-auto`} value={values.late ?? ''} onChange={(e) => set('late', e.target.value)}>
+                <select aria-label={t('dailyActivities.filters.lateAny')} className={`${compactInputCls} w-full sm:w-auto`} value={values.late ?? ''} onChange={(e) => set('late', e.target.value)}>
                     <option value="">{t('dailyActivities.filters.lateAny')}</option>
                     <option value="1">{t('dailyActivities.filters.lateOnly')}</option>
                     <option value="0">{t('dailyActivities.filters.onTimeOnly')}</option>

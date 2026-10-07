@@ -267,3 +267,22 @@ it('saves the policy settings exactly as the settings page submits them', functi
         ->and($settings->committeeMaxMembers())->toBe(7)
         ->and($settings->votingEnabled())->toBeTrue();
 });
+
+it('refuses every My Portal action on another employee grievance', function (): void {
+    $g = httpFile($this);
+    $other = GrievanceScenario::user(GrievanceScenario::employee($this->s->woreda, $this->s->woredaUnit), GrievanceRoles::EMPLOYEE_PERMISSIONS);
+    $before = [$g->status, $g->evidence()->count(), $g->appeals()->count()];
+
+    $this->actingAs($other)->get(route('employee.grievances.edit', $g))->assertForbidden();
+    $this->actingAs($other)->post(route('employee.grievances.update', $g), ['subject' => 'Hijack', 'description' => 'Changed by someone else.', 'category_id' => $this->s->category->id])->assertForbidden();
+    $this->actingAs($other)->post(route('employee.grievances.withdraw', $g), ['reason_code' => 'other'])->assertForbidden();
+    $this->actingAs($other)->post(route('employee.grievances.accept-outcome', $g))->assertForbidden();
+    $this->actingAs($other)->post(route('employee.grievances.appeal', $g), ['reason' => 'Appeal filed by someone else.'])->assertForbidden();
+    $this->actingAs($other)->post(route('employee.grievances.evidence.store', $g), [
+        'file' => UploadedFile::fake()->create('x.pdf', 10, 'application/pdf'), 'evidence_type' => 'document', 'title' => 'Planted',
+    ])->assertForbidden();
+    $this->actingAs($other)->get(route('employee.grievances.evidence.download', [$g, $g->evidence()->firstOrFail()]))->assertForbidden();
+
+    $g->refresh();
+    expect([$g->status, $g->evidence()->count(), $g->appeals()->count()])->toEqual($before);
+});

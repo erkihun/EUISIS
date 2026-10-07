@@ -95,12 +95,12 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
 
                 <p className="text-xs text-gray-500 dark:text-slate-400">
                     <LocalizedDateDisplay value={report.from} /> – <LocalizedDateDisplay value={report.to} />
-                    {' · '}{fill(t('dailyActivities.reports.rows'), { count: report.total })}
+                    {' · '}{fill(t('dailyActivities.reports.rows'), { count: report.truncated ? `${report.total}+` : report.total })}
                 </p>
 
                 {report.truncated && (
                     <p className="rounded-panel border border-amber-300 bg-amber-50 p-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
-                        {fill(t('dailyActivities.reports.truncated'), { count: report.rows.length, total: report.total })}
+                        {fill(t('dailyActivities.reports.truncated'), { count: report.rows.length })}
                     </p>
                 )}
 

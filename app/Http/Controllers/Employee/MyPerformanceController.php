@@ -79,6 +79,7 @@ class MyPerformanceController extends Controller
 
     public function acknowledge(Request $request, EmployeePerformanceAgreement $agreement, EmployeeAgreementService $agreements): RedirectResponse
     {
+        $this->own($request, $agreement);
         $agreements->acknowledge($agreement, $request->user());
 
         return $this->saved();
@@ -86,6 +87,7 @@ class MyPerformanceController extends Controller
 
     public function returnAgreement(Request $request, EmployeePerformanceAgreement $agreement, EmployeeAgreementService $agreements): RedirectResponse
     {
+        $this->own($request, $agreement);
         $data = $request->validate(['reason' => ['required', 'string', 'max:2000']]);
         $agreements->returnAgreement($agreement, $data['reason'], $request->user());
 
@@ -94,6 +96,7 @@ class MyPerformanceController extends Controller
 
     public function submitReview(Request $request, EmployeePerformanceAgreement $agreement, string $type, PerformanceReviewService $reviews): RedirectResponse
     {
+        $this->own($request, $agreement);
         $data = $request->validate([
             'employee_self_assessment' => ['required', 'string', 'max:10000'], 'achievements' => ['nullable', 'string', 'max:10000'],
             'challenges' => ['nullable', 'string', 'max:10000'], 'contributions' => ['nullable', 'string', 'max:10000'],
@@ -106,6 +109,7 @@ class MyPerformanceController extends Controller
 
     public function checkinNote(Request $request, PerformanceCheckin $checkin, PerformanceReviewService $reviews): RedirectResponse
     {
+        $this->own($request, $checkin->agreement);
         $data = $request->validate([
             'employee_summary' => ['nullable', 'string', 'max:5000'], 'blockers' => ['nullable', 'string', 'max:5000'],
             'support_required' => ['nullable', 'string', 'max:5000'], 'learning_needs' => ['nullable', 'string', 'max:5000'],
@@ -117,6 +121,7 @@ class MyPerformanceController extends Controller
 
     public function storeEvidence(Request $request, EmployeePerformanceAgreement $agreement, PerformanceEvidenceService $evidence): RedirectResponse
     {
+        $this->own($request, $agreement);
         $evidence->add($agreement, EmployeeAgreementController::validateEvidence($request), $request->file('file'), $request->user());
 
         return $this->saved();
@@ -124,6 +129,7 @@ class MyPerformanceController extends Controller
 
     public function storeDevelopmentPlan(Request $request, EmployeePerformanceAgreement $agreement, DevelopmentPlanService $development): RedirectResponse
     {
+        $this->own($request, $agreement);
         $development->createDevelopmentPlan($agreement, EmployeeAgreementController::validateIdp($request), $request->user());
 
         return $this->saved();
@@ -131,6 +137,7 @@ class MyPerformanceController extends Controller
 
     public function appeal(Request $request, PerformanceResult $result, PerformanceAppealService $appeals): RedirectResponse
     {
+        $this->own($request, $result->agreement);
         $data = $request->validate([
             'reason' => ['required', 'string', 'min:20', 'max:10000'],
             'attachment' => ['nullable', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx'],
@@ -138,6 +145,16 @@ class MyPerformanceController extends Controller
         $appeals->file($result, $data['reason'], $request->file('attachment'), $request->user());
 
         return $this->saved();
+    }
+
+    /**
+     * My Portal acts on the employee's own records only. Checked before
+     * validation, so another employee's record id is refused outright
+     * rather than answered with validation errors that confirm it exists.
+     */
+    private function own(Request $request, ?EmployeePerformanceAgreement $agreement): void
+    {
+        $this->access->authorize($agreement !== null && $this->access->isOwn($request->user(), $agreement));
     }
 
     private function saved(): RedirectResponse

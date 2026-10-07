@@ -121,6 +121,12 @@ const employeePortal = {
     expires: 'Expires',
     activeBenefits: 'Active benefits',
     requestStatuses: { pending: 'Waiting for HR', approved: 'Approved', rejected: 'Rejected' },
+    appliedOn: 'Applied',
+    applicationStatuses: {
+        submitted: 'Submitted', under_review: 'Under review', verified: 'Verified', selected: 'Selected',
+        release_pending: 'Awaiting release', receiving_pending: 'Awaiting receiving office', final_approval_pending: 'Awaiting final approval',
+        approved: 'Approved', transferred: 'Transferred', rejected: 'Not selected', withdrawn: 'Withdrawn', cancelled: 'Cancelled',
+    },
     correctionFields: {
         full_name: 'Legal name', date_of_birth: 'Date of birth', national_id: 'National ID', nationality: 'Nationality',
         employee_number: 'Employee number', employment_type: 'Employment type', gender: 'Sex',

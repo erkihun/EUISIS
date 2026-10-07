@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -59,6 +60,8 @@ class RegisteredUserController extends Controller
             'employee_number' => ['required', 'string', 'max:255'],
         ]);
 
+        $this->throttleCodeRequests($request, (string) $validated['employee_number']);
+
         $employee = $this->eligibleEmployee((string) $validated['employee_number']);
         $email = trim((string) $employee->email);
         $phone = trim((string) $employee->phone);
@@ -90,16 +93,8 @@ class RegisteredUserController extends Controller
         $emailDelivered = false;
         $smsDelivered = false;
 
-        try {
-            Notification::route('mail', $email)->notify($notification);
-            $emailDelivered = true;
-        } catch (Throwable $exception) {
-            Log::error('Employee registration OTP email failed.', [
-                'employee_id' => $employee->getKey(),
-                'error' => $exception->getMessage(),
-            ]);
-        }
-
+        // SMS first: it is the channel that fails most often, and an email
+        // code sent before a failed SMS would be one that can never be used.
         try {
             $smsDelivered = $this->smsGateway->send($phone, $notification->toSmsText());
         } catch (Throwable $exception) {
@@ -107,6 +102,18 @@ class RegisteredUserController extends Controller
                 'employee_id' => $employee->getKey(),
                 'error' => $exception->getMessage(),
             ]);
+        }
+
+        if ($smsDelivered) {
+            try {
+                Notification::route('mail', $email)->notify($notification);
+                $emailDelivered = true;
+            } catch (Throwable $exception) {
+                Log::error('Employee registration OTP email failed.', [
+                    'employee_id' => $employee->getKey(),
+                    'error' => $exception->getMessage(),
+                ]);
+            }
         }
 
         if (! $emailDelivered || ! $smsDelivered) {
@@ -204,7 +211,7 @@ class RegisteredUserController extends Controller
 
             $otp->forceFill(['verified_at' => now()])->save();
 
-            return User::query()->create([
+            $user = new User([
                 'name' => $employee->full_name ?? trim(($employee->first_name ?? '').' '.($employee->last_name ?? '')),
                 'email' => $employee->email,
                 'phone_number' => $employee->phone,
@@ -214,6 +221,17 @@ class RegisteredUserController extends Controller
                 'first_login_at' => now(),
                 'last_login_at' => now(),
             ]);
+            // Link to the employee whose contacts were just proved, rather than
+            // relying on the email match, which fails when two records share
+            // an email and would follow the email if HR later changed it.
+            // The code went to that email, so the address is verified too.
+            $user->forceFill([
+                'employee_id' => $employee->getKey(),
+                'employee_link_locked' => true,
+                'email_verified_at' => now(),
+            ])->save();
+
+            return $user;
         });
 
         if (is_string($result)) {
@@ -230,8 +248,36 @@ class RegisteredUserController extends Controller
         $request->session()->forget(['registration_employee_id', 'registration_employee_number']);
         event(new Registered($user));
         Auth::login($user);
+        $request->session()->regenerate();
 
         return redirect()->route('employee.portal');
+    }
+
+    /**
+     * At most 3 codes per employee number and 10 per address in 10 minutes.
+     * Counted here rather than by route middleware so that reaching the limit
+     * is a message beside the field, not an error page that loses the form.
+     */
+    private function throttleCodeRequests(Request $request, string $employeeNumber): void
+    {
+        $keys = [
+            'registration-send:'.mb_strtolower(trim($employeeNumber)).'|'.$request->ip() => 3,
+            'registration-send-ip:'.$request->ip() => 10,
+        ];
+
+        foreach ($keys as $key => $max) {
+            if (RateLimiter::tooManyAttempts($key, $max)) {
+                throw ValidationException::withMessages([
+                    'employee_number' => __('auth.registration_otp_throttled', [
+                        'minutes' => max(1, (int) ceil(RateLimiter::availableIn($key) / 60)),
+                    ]),
+                ]);
+            }
+        }
+
+        foreach (array_keys($keys) as $key) {
+            RateLimiter::hit($key, 600);
+        }
     }
 
     private function eligibleEmployee(string $employeeNumber): Employee

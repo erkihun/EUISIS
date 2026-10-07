@@ -24,8 +24,8 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
+    // Throttled inside the controller, so the limit reads as a field message.
     Route::post('register/send-otp', [RegisteredUserController::class, 'sendOtp'])
-        ->middleware('throttle:registration-send-otp')
         ->name('register.send-otp');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])

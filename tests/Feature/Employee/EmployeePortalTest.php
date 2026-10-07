@@ -401,3 +401,50 @@ test('the dashboard lists upcoming public holidays', function (): void {
             ->where('holidays.0.name_en', 'Test Holiday')
             ->where('holidays.0.name_am', 'የሙከራ በዓል'));
 });
+
+/* My Transfer Applications reads in Amharic too: names and statuses, no English chrome. */
+test('my transfer applications carry Amharic names and no hardcoded English', function (): void {
+    $user = User::factory()->create(['email' => 'mover@example.test', 'status' => 'active']);
+    $ctx = portalEmployee('mover@example.test');
+    $announcement = portalAnnouncement($ctx);
+    App\Models\TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $ctx['employee']->id,
+        'current_assignment_id' => $ctx['employee']->fresh()->current_assignment_id,
+        'releasing_organization_id' => $ctx['organization']->id,
+        'receiving_organization_id' => $ctx['organization']->id,
+        'status' => 'release_pending',
+        'submitted_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('employee.transfer-applications'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Employee/MyTransferApplications')
+            ->where('applications.0.status', 'release_pending')
+            ->where('applications.0.organization_name_am', 'የፖርታል ተቋም')
+            ->where('applications.0.position_title_am', 'የፖርታል ኦፊሰር'));
+
+    $source = file_get_contents(dirname(__DIR__, 3).'/resources/js/Pages/Employee/MyTransferApplications.tsx');
+    expect($source)->not->toContain('Applied:')->not->toContain('Browse open announcements')
+        ->toContain('employeePortal.applicationStatuses');
+});
+
+/* The dashboard suggests open posts the employee has not applied to yet, in both languages. */
+test('the dashboard shows open announcements the employee has not applied to', function (): void {
+    $user = User::factory()->create(['email' => 'suggest@example.test', 'status' => 'active']);
+    $announcement = portalAnnouncement(portalEmployee('suggest@example.test'));
+
+    $this->actingAs($user)
+        ->get(route('employee.portal'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Employee/Portal')
+            ->has('open_announcements', 1)
+            ->where('open_announcements.0.id', $announcement->id)
+            ->where('open_announcements.0.position_am', 'የፖርታል ኦፊሰር'));
+
+    $source = file_get_contents(dirname(__DIR__, 3).'/resources/js/Pages/Employee/Portal.tsx');
+    expect($source)->toContain('open_announcements.map');
+});

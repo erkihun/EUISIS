@@ -324,6 +324,13 @@ test('23 50 an employee cannot change official targets or another agreement (IDO
     $this->actingAs($this->u1)->post(route('employee.performance.acknowledge', $other))->assertForbidden();
     $this->actingAs($this->u1)->post(route('performance.items.actuals.store', $other->items()->first()), ['period_start' => '2026-01-01', 'period_end' => '2026-01-31', 'actual_value' => 999])->assertForbidden();
     expect((string) $item->fresh()->target_value)->toBe('1000.0000');
+
+    // My Portal refuses another employee's agreement before validating, so
+    // an incomplete form cannot confirm that the record exists.
+    foreach (['employee.performance.idps.store', 'employee.performance.evidence.store', 'employee.performance.return'] as $name) {
+        $this->actingAs($this->u1)->post(route($name, $other), [])->assertForbidden();
+    }
+    $this->actingAs($this->u1)->post(route('employee.performance.reviews.submit', [$other, 'mid_year']), [])->assertForbidden();
 });
 
 test('24 the employee can add evidence to their own agreement (private storage)', function (): void {

@@ -52,6 +52,8 @@ const auth = {
         employeeNumberPlaceholder: 'e.g. EMP-001234',
         sendCode: 'Send code',
         resend: 'Resend',
+        resendIn: 'Resend in :seconds s',
+        keepNumber: 'Cancel',
         verificationCode: '6-digit verification code',
         show: 'Show',
         hide: 'Hide',

@@ -118,6 +118,12 @@ const employeePortal = {
     expires: 'የሚያበቃበት',
     activeBenefits: 'ንቁ ጥቅማጥቅሞች',
     requestStatuses: { pending: 'የሰው ሀብትን በመጠባበቅ ላይ', approved: 'ጸድቋል', rejected: 'ውድቅ ተደርጓል' },
+    appliedOn: 'ያመለከቱበት',
+    applicationStatuses: {
+        submitted: 'ቀርቧል', under_review: 'በግምገማ ላይ', verified: 'ተረጋግጧል', selected: 'ተመርጧል',
+        release_pending: 'መልቀቂያን በመጠባበቅ ላይ', receiving_pending: 'ተቀባይ መሥሪያ ቤትን በመጠባበቅ ላይ', final_approval_pending: 'የመጨረሻ ማጽደቂያን በመጠባበቅ ላይ',
+        approved: 'ጸድቋል', transferred: 'ተዛውሯል', rejected: 'አልተመረጡም', withdrawn: 'ተሰርዟል', cancelled: 'ተቋርጧል',
+    },
     correctionFields: {
         full_name: 'ሕጋዊ ስም', date_of_birth: 'የትውልድ ቀን', national_id: 'ብሔራዊ መታወቂያ', nationality: 'ዜግነት',
         employee_number: 'የሠራተኛ ቁጥር', employment_type: 'የቅጥር ዓይነት', gender: 'ጾታ',

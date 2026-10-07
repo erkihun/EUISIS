@@ -2,6 +2,7 @@ import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
 import type { PageProps } from '@/types';
 
 type Application = {
@@ -11,7 +12,9 @@ type Application = {
     submitted_at: string | null;
     applicant_notes: string | null;
     organization_name: string | null;
+    organization_name_am: string | null;
     position_title: string | null;
+    position_title_am: string | null;
     announcement_id: string;
     closing_date: string | null;
     rejected_reason: string | null;
@@ -37,7 +40,14 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default function MyTransferApplications({ applications, has_employee }: Props) {
-    const { t } = useLocale();
+    const { t, locale } = useLocale();
+    const name = (en: string | null, am: string | null) => localizedName(en ?? '', am, locale) || null;
+    const statusLabel = (app: Application) => {
+        const key = `employeePortal.applicationStatuses.${app.status}`;
+        const translated = t(key);
+
+        return translated !== key ? translated : app.status_label;
+    };
 
     return (
         <PortalPage
@@ -61,7 +71,7 @@ export default function MyTransferApplications({ applications, has_employee }: P
                 <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
                     <p className="text-sm text-gray-400 dark:text-slate-500">{t('transfers.noApplications')}</p>
                     <Link href={route('employee.announcements')} className="mt-4 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline">
-                        Browse open announcements →
+                        {t('employeePortal.browseAnnouncements')}
                     </Link>
                 </div>
             ) : (
@@ -76,19 +86,19 @@ export default function MyTransferApplications({ applications, has_employee }: P
                                             href={route('employee.announcements.show', { announcement: app.announcement_id })}
                                             className="font-semibold text-gray-900 hover:text-[var(--color-primary)] dark:text-slate-100"
                                         >
-                                            {app.position_title ?? '—'}
+                                            {name(app.position_title, app.position_title_am) ?? '—'}
                                         </Link>
                                         {app.organization_name && (
-                                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{app.organization_name}</p>
+                                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{name(app.organization_name, app.organization_name_am)}</p>
                                         )}
                                     </div>
                                     <span className={`inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusCls}`}>
-                                        {app.status_label}
+                                        {statusLabel(app)}
                                     </span>
                                 </div>
 
                                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 dark:text-slate-500">
-                                    {app.submitted_at && <span>Applied: <LocalizedDateDisplay value={app.submitted_at} /></span>}
+                                    {app.submitted_at && <span>{t('employeePortal.appliedOn')}: <LocalizedDateDisplay value={app.submitted_at} /></span>}
                                     {app.closing_date && <span>{t('transfers.closes')}: <LocalizedDateDisplay value={app.closing_date} /></span>}
                                 </div>
 

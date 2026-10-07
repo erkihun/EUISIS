@@ -264,11 +264,6 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by('pic-verify:'.$request->route('cardUuid').'|'.$request->ip()),
         ]);
 
-        RateLimiter::for('registration-send-otp', fn (Request $request): array => [
-            Limit::perMinutes(10, 3)->by('registration-send:'.mb_strtolower((string) $request->input('employee_number')).'|'.$request->ip()),
-            Limit::perMinutes(10, 10)->by('registration-send-ip:'.$request->ip()),
-        ]);
-
         /*
          * Public service feedback submission.
          *

@@ -10,11 +10,12 @@ export default function ManagementNav({ can, current }: { can: ManagementAbiliti
     const { t } = useLocale();
 
     const entries = [
-        { route: 'daily-activities.dashboard', label: 'nav.dailyActivityDashboard', show: can.viewReports || can.viewRegister || can.review },
+        { route: 'daily-activities.dashboard', label: 'nav.dailyActivityDashboard', show: can.viewReports || can.viewRegister },
         { route: 'daily-activities.index', label: 'nav.dailyActivityRegister', show: can.viewRegister },
         { route: 'daily-activities.missing', label: 'nav.dailyActivityMissing', show: can.viewReports || can.viewRegister },
         { route: 'daily-activities.review-queue', label: 'nav.dailyActivityReviewQueue', show: can.review },
         { route: 'daily-activities.reports', label: 'nav.dailyActivityReports', show: can.viewReports },
+        { route: 'daily-activities.reviewers.index', label: 'nav.dailyActivityReviewers', show: can.manageReviewers },
         { route: 'daily-activities.settings', label: 'nav.dailyActivitySettings', show: can.manageSettings },
     ].filter((entry) => entry.show);
 

@@ -79,14 +79,17 @@ class DailyActivityReportService
             'monthly_summary' => $this->monthlySummary($coverage, $from, $to, $filters, $limit),
         };
 
-        $total = count($rows);
+        $truncated = count($rows) > $limit;
+        $rows = array_slice($rows, 0, $limit);
 
         return [
             'type' => $type,
             'columns' => $columns,
-            'rows' => array_slice($rows, 0, $limit),
-            'truncated' => $total > $limit,
-            'total' => $total,
+            'rows' => $rows,
+            'truncated' => $truncated,
+            // Row-limited reports stop collecting once past the limit, so a
+            // truncated report reports what it shows, never a guessed total.
+            'total' => count($rows),
             'from' => $from->toDateString(),
             'to' => $to->toDateString(),
         ];

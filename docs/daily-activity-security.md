@@ -22,6 +22,12 @@ Acting is narrower than seeing. Only the owner edits or submits, only an assigne
 
 `daily_activities.view_own`, `create`, `update_draft`, `submit`, `resubmit` (employee); `view_team`, `review`, `approve`, `return_for_correction`, `reopen` (reviewer); `view_scoped`, `view_reports`, `export` (oversight); `manage_reviewers`, `daily_activity_settings.view` (administration). Reviewer assignments can only be created inside organizations the administrator's own scope covers.
 
+The two administration areas are separate pages:
+- **Activity Settings** (`/daily-activities/settings`) holds the city-wide rules, under `daily_activity_settings.view` and `update`.
+- **Reviewer Assignments** (`/daily-activities/reviewers`) holds organization-scoped operational data, under `daily_activities.manage_reviewers`. Ending an assignment keeps it on record.
+
+A reviewer manager without settings rights who opens the Settings URL is redirected to Reviewer Assignments.
+
 ## IDOR and mass assignment
 
 - **Employee identity:** employee routes take no employee ID; the employee is resolved from the session.

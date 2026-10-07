@@ -70,9 +70,13 @@ const APP_COLOR: Record<string, string> = {
 };
 
 function StatusPill({ status, label }: { status: string; label?: string }) {
+    const { t } = useLocale();
+    const key = `employeePortal.applicationStatuses.${status}`;
+    const translated = t(key);
+
     return (
         <span className={`inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${APP_COLOR[status] ?? 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>
-            {label ?? status.replace(/_/g, ' ')}
+            {translated !== key ? translated : label ?? status.replace(/_/g, ' ')}
         </span>
     );
 }
@@ -144,7 +148,7 @@ const DAY_MARK: Record<string, { symbol: string; cls: string }> = {
 const QUIET_MARK = { symbol: '–', cls: 'bg-transparent text-gray-400 ring-gray-100 dark:text-slate-600 dark:ring-slate-800' };
 
 /* ── main page ───────────────────────────────────────────────────────────── */
-export default function EmployeePortal({ employee, assignment, id_card, entitlements, transfer_apps, daily_activity, performance = null, notifications, pending_requests, holidays, requests }: PortalProps) {
+export default function EmployeePortal({ employee, assignment, id_card, entitlements, transfer_apps, open_announcements = [], daily_activity, performance = null, notifications, pending_requests, holidays, requests }: PortalProps) {
     const { t, locale } = useLocale();
     const { props } = usePage<PortalProps>();
     const user = props.auth?.user;
@@ -301,7 +305,7 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                 )}
                 <Figure
                     label={t('employeePortal.idCard')}
-                    value={id_card ? <span className="capitalize">{id_card.reprint_required ? t('employeePortal.reprintRequired') : id_card.status.replace(/_/g, ' ')}</span> : t('employeePortal.noCard')}
+                    value={id_card ? (id_card.reprint_required ? t('employeePortal.reprintRequired') : t(`idCards.status_${id_card.status}`)) : t('employeePortal.noCard')}
                     caption={id_card?.expires_at ? <>{t('employeePortal.expiresShort')} <LocalizedDateDisplay value={id_card.expires_at} /></> : id_card?.card_number ?? undefined}
                     tone={id_card?.reprint_required ? 'warn' : id_card?.is_active ? 'good' : 'default'}
                     href={route('employee.id-card')}
@@ -446,6 +450,28 @@ export default function EmployeePortal({ employee, assignment, id_card, entitlem
                                     </li>
                                 ))}
                             </ul>
+                        )}
+                        {open_announcements.length > 0 && (
+                            <>
+                                <h3 className="mb-1 mt-4 text-xs font-semibold text-gray-500 dark:text-slate-400">{t('employeePortal.openAnnouncements')}</h3>
+                                <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                                    {open_announcements.map((post) => (
+                                        <li key={post.id}>
+                                            <Link href={route('employee.announcements.show', { announcement: post.id })} className="flex items-center justify-between gap-3 py-2 text-sm hover:text-[var(--color-primary)]">
+                                                <span className="min-w-0">
+                                                    <span className="block truncate font-medium text-gray-900 dark:text-slate-100">{name(post.position, post.position_am)}</span>
+                                                    <span className="block truncate text-xs text-gray-500 dark:text-slate-400">
+                                                        {name(post.organization, post.organization_am)} · {fill('employeePortal.vacanciesOpen', { count: post.vacancies })}
+                                                    </span>
+                                                </span>
+                                                {post.closing_date && (
+                                                    <span className="shrink-0 text-xs text-gray-500 dark:text-slate-400">{t('employeePortal.closes')} <LocalizedDateDisplay value={post.closing_date} /></span>
+                                                )}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
                         )}
                     </section>
 

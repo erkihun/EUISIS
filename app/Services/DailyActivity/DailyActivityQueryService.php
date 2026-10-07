@@ -106,9 +106,9 @@ class DailyActivityQueryService
         if (! empty($filters['search'])) {
             $term = '%'.trim((string) $filters['search']).'%';
             $query->whereHas('employee', fn (Builder $employee) => $employee
-                ->where('full_name', 'like', $term)
-                ->orWhere('name_en', 'like', $term)
-                ->orWhere('employee_number', 'like', $term));
+                ->where('full_name', ci_like_operator(), $term)
+                ->orWhere('name_en', ci_like_operator(), $term)
+                ->orWhere('employee_number', ci_like_operator(), $term));
         }
 
         return $query;
@@ -163,9 +163,9 @@ class DailyActivityQueryService
         if (! empty($filters['search'])) {
             $term = '%'.trim((string) $filters['search']).'%';
             $employees->where(fn (Builder $q) => $q
-                ->where('full_name', 'like', $term)
-                ->orWhere('name_en', 'like', $term)
-                ->orWhere('employee_number', 'like', $term));
+                ->where('full_name', ci_like_operator(), $term)
+                ->orWhere('name_en', ci_like_operator(), $term)
+                ->orWhere('employee_number', ci_like_operator(), $term));
         }
 
         return $employees->orderBy('full_name')->orderBy('id');

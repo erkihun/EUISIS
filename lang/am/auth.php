@@ -28,6 +28,7 @@ return [
     'registration_otp_attempts' => 'በጣም ብዙ የተሳሳቱ ሙከራዎች ተደርገዋል። አዲስ ኮድ ይጠይቁ።',
     'registration_otp_required' => 'መለያዎን ከመፍጠርዎ በፊት የማረጋገጫ ኮድ ይጠይቁ።',
     'registration_otp_delivery_failed' => 'የማረጋገጫ ኮዱን መላክ አልተቻለም። እባክዎ ቆይተው እንደገና ይሞክሩ።',
+    'registration_otp_throttled' => 'በጣም ብዙ ኮዶች ተጠይቀዋል። እባክዎ ከ:minutes ደቂቃ በኋላ እንደገና ይሞክሩ።',
     'registration_otp_subject' => 'የሠራተኛ መለያዎን ያረጋግጡ',
     'registration_otp_greeting' => 'የሠራተኛ መለያ ማረጋገጫ',
     'registration_otp_intro' => 'የሠራተኛ ፖርታል መለያዎን መፍጠር ለማጠናቀቅ ይህን የአንድ ጊዜ ኮድ ይጠቀሙ፦',

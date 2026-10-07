@@ -15,6 +15,7 @@ th,td { padding: 5px 4px; border: 1px solid #d6dde6; word-wrap: break-word; vert
 </style></head><body>
 <div class="header"><h1>{{ $title }}</h1>{{ config('app.name') }}</div>
 <div class="meta">{{ $period }}<br>{{ $generated }}</div>
+@if (! empty($truncated))<p class="note" style="color:#8a4b00;margin:0 0 8px">{{ __('daily-activities.reports.truncated', ['count' => count($rows)]) }}</p>@endif
 <table><thead><tr>@foreach ($headings as $heading)<th>{{ $heading }}</th>@endforeach</tr></thead><tbody>
 @forelse ($rows as $row)
 <tr>@foreach ($row as $cell)<td>{{ $cell }}</td>@endforeach</tr>

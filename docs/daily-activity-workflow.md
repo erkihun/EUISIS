@@ -43,6 +43,27 @@ Acting or delegated reviewers are ordinary effective-dated assignments; no separ
 
 Nobody reviews their own log, including Super Admin.
 
+## Review policy and reviewer workload
+
+How much submitted work needs a reviewer is set per organization on **Reviewer Assignments › Review policy by organization**. Admins can set it only for organizations they administer, and every change is audited.
+
+| Mode | Waits in review queues | Final for EPMS measurement |
+|---|---|---|
+| Follow city-wide setting (default) | As "Manager Review Required" says | Approval if review is required, otherwise submission |
+| Review every submitted day | All submitted and resubmitted days | Approval |
+| No review needed | Nothing | Submission |
+| Review only late and resubmitted days | Late days and resubmissions | On-time first submission; late or resubmitted days need approval |
+
+The policy decides what waits for review and when quantities count for EPMS. It never changes a record's status, and a reviewer may still review any day they cover.
+
+**Workload.** One reviewer covering a whole unit is a single assignment, whatever the unit's size. The page shows how many current employees each assignment covers and suggests splitting above 150, because daily review of that many people is not sustainable. Recommended practice:
+
+- Give team leaders their own units.
+- Add a second reviewer to a large unit. Whoever acts first decides, and a concurrent second decision is refused.
+- For very large institutions, use "late only" or "no review needed".
+
+There is deliberately no bulk "approve all".
+
 ## Retention
 
 Submitted, reviewed and approved logs are never deleted through the application. There is no delete route for logs. Items are replaced only while the log is editable, and evidence can be removed only while the log is editable. Corrections go through return and resubmit, which keeps every earlier submission in history.

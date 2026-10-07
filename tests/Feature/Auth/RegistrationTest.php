@@ -172,3 +172,91 @@ test('inactive employees cannot request a registration otp', function (): void {
         'employee_number' => $employee->employee_number,
     ])->assertSessionHasErrors('employee_number');
 });
+
+function registrationEmployee(string $number, string $email): Employee
+{
+    return Employee::query()->create([
+        'employee_number' => $number, 'full_name' => 'Linked Employee', 'first_name' => 'Linked', 'last_name' => 'Employee',
+        'email' => $email, 'phone' => '+251911000444', 'status' => 'active',
+    ]);
+}
+
+function finishRegistration(object $test, Employee $employee): Illuminate\Testing\TestResponse
+{
+    $test->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])->assertSessionHasNoErrors();
+    EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->latest('created_at')->firstOrFail()
+        ->forceFill(['otp_hash' => Hash::make('123456')])->save();
+
+    return $test->post('/register', [
+        'employee_number' => $employee->employee_number, 'otp' => '123456',
+        'password' => 'Secure!Password#2026', 'password_confirmation' => 'Secure!Password#2026',
+    ]);
+}
+
+test('a registered account is linked to the verified employee even when another record shares the email', function (): void {
+    config(['security.registration_enabled' => true]);
+    Notification::fake();
+    $employee = registrationEmployee('EMP-LINK-1', 'shared@example.test');
+    Employee::query()->create(['employee_number' => 'EMP-LINK-2', 'full_name' => 'Other Person', 'first_name' => 'Other', 'last_name' => 'Person', 'email' => 'shared@example.test', 'status' => 'active']);
+
+    finishRegistration($this, $employee)->assertRedirect(route('employee.portal'));
+
+    $user = User::query()->where('employee_reference', 'EMP-LINK-1')->firstOrFail();
+    expect($user->employee_id)->toBe($employee->id)
+        ->and($user->employee?->is($employee))->toBeTrue()
+        ->and($user->email_verified_at)->not->toBeNull();
+
+    // HR later changes the email: the account stays with the same person.
+    $employee->update(['email' => 'renamed@example.test']);
+    expect($user->fresh()->employee?->is($employee))->toBeTrue();
+});
+
+test('registration starts a new session when it signs the employee in', function (): void {
+    config(['security.registration_enabled' => true]);
+    Notification::fake();
+    $employee = registrationEmployee('EMP-SESSION', 'session@example.test');
+
+    $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number]);
+    $before = session()->getId();
+    EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->latest('created_at')->firstOrFail()
+        ->forceFill(['otp_hash' => Hash::make('123456')])->save();
+    $this->post('/register', [
+        'employee_number' => $employee->employee_number, 'otp' => '123456',
+        'password' => 'Secure!Password#2026', 'password_confirmation' => 'Secure!Password#2026',
+    ])->assertRedirect(route('employee.portal'));
+
+    expect(session()->getId())->not->toBe($before);
+    $this->assertAuthenticated();
+});
+
+test('no email code is sent when the SMS cannot be delivered', function (): void {
+    config(['security.registration_enabled' => true]);
+    Notification::fake();
+    app()->instance(SmsGateway::class, new class implements SmsGateway
+    {
+        public function send(string $phoneNumber, string $message): bool { return false; }
+        public function isConfigured(): bool { return false; }
+    });
+    $employee = registrationEmployee('EMP-NOSMS', 'nosms@example.test');
+
+    $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
+        ->assertSessionHasErrors(['employee_number' => __('auth.registration_otp_delivery_failed')]);
+
+    Notification::assertNothingSent();
+    expect(EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->first()->isExpired())->toBeTrue();
+});
+
+test('too many code requests are refused beside the field, not with an error page', function (): void {
+    config(['security.registration_enabled' => true]);
+    Notification::fake();
+    $employee = registrationEmployee('EMP-THROTTLE', 'throttle@example.test');
+
+    foreach (range(1, 3) as $attempt) {
+        $this->from('/register')->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])->assertSessionHasNoErrors();
+    }
+
+    $this->from('/register')->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
+        ->assertRedirect('/register')
+        ->assertSessionHasErrors(['employee_number' => __('auth.registration_otp_throttled', ['minutes' => 10])]);
+    expect(EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->count())->toBe(3);
+});

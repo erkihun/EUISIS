@@ -581,4 +581,5 @@ enum AuditEventType: string
     case DailyActivityEvidenceDeleted = 'daily_activity.evidence_deleted';
     case DailyActivityReviewerAssigned = 'daily_activity.reviewer_assigned';
     case DailyActivityReviewerRemoved = 'daily_activity.reviewer_removed';
+    case DailyActivityReviewPolicyChanged = 'daily_activity.review_policy_changed';
 }

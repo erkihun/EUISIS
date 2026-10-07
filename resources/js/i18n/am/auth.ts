@@ -52,6 +52,8 @@ const auth = {
         employeeNumberPlaceholder: 'ለምሳሌ፦ EMP-001234',
         sendCode: 'ኮድ ላክ',
         resend: 'ዳግም ላክ',
+        resendIn: 'ከ:seconds ሰከንድ በኋላ ዳግም ላክ',
+        keepNumber: 'ተው',
         verificationCode: 'ባለ 6 አሃዝ የማረጋገጫ ኮድ',
         show: 'አሳይ',
         hide: 'ደብቅ',

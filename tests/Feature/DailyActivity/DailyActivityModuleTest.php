@@ -11,6 +11,7 @@ use App\Models\AuditLog;
 use App\Models\DailyActivityLog;
 use App\Models\DailyActivityReminder;
 use App\Models\DailyActivityReviewerAssignment;
+use App\Models\DailyActivityReviewPolicy;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\KpiActual;
@@ -31,6 +32,7 @@ use App\Services\DailyActivity\DailyActivityCoverage;
 use App\Services\DailyActivity\DailyActivityQueryService;
 use App\Services\DailyActivity\DailyActivityReminderService;
 use App\Services\DailyActivity\DailyActivityReportService;
+use App\Services\DailyActivity\DailyActivityReviewPolicyService;
 use App\Services\DailyActivity\DailyActivityService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\SystemSettings\SystemSettingsRegistry;
@@ -765,7 +767,7 @@ test('the employee entry, calendar and history pages render', function (): void 
 test('the management pages render for authorised users and refuse employees', function (): void {
     daPost($this->userA, DA_TODAY, daItems(), 'submit');
 
-    foreach (['daily-activities.dashboard', 'daily-activities.index', 'daily-activities.missing', 'daily-activities.reports', 'daily-activities.settings'] as $route) {
+    foreach (['daily-activities.dashboard', 'daily-activities.index', 'daily-activities.missing', 'daily-activities.reports', 'daily-activities.settings', 'daily-activities.reviewers.index'] as $route) {
         $this->actingAs($this->orgAdmin)->get(route($route))->assertOk();
         $this->actingAs($this->userA)->get(route($route))->assertForbidden();
     }
@@ -807,14 +809,14 @@ test('editing saved time details recomputes duration when the form clears its de
 
 test('reviewer assignments cannot be created outside the actor\'s organization scope', function (): void {
     $this->actingAs($this->orgAdmin)
-        ->post(route('daily-activities.settings.reviewers.store'), [
+        ->post(route('daily-activities.reviewers.store'), [
             'reviewer_user_id' => $this->financeReviewer->id,
             'organization_id' => $this->otherOrg->id,
         ])
         ->assertSessionHasErrors('organization_id');
 
     $this->actingAs($this->orgAdmin)
-        ->post(route('daily-activities.settings.reviewers.store'), [
+        ->post(route('daily-activities.reviewers.store'), [
             'reviewer_user_id' => $this->financeReviewer->id,
             'organization_id' => $this->org->id,
             'organization_unit_id' => $this->foreignUnit->id,
@@ -983,4 +985,218 @@ test('P11. CSV exports neutralize text a spreadsheet would run as a formula', fu
     // xlsx cells are bound as typed text instead, so their values stay as written.
     $xlsx = (new DailyActivityReportExport($report, app(LocalizedDateService::class)))->array();
     expect($xlsx[0][1])->toBe('=HYPERLINK("http://x")');
+});
+
+// ── Settings page ───────────────────────────────────────────────────────────
+
+test('S1. ending a reviewer assignment revokes authority at once and keeps the record', function (): void {
+    $admin = daUser('DA Settings Admin', ['daily_activities.manage_reviewers', 'daily_activity_settings.view', 'daily_activity_settings.update']);
+    UserOrganizationScope::query()->create(['user_id' => $admin->id, 'organization_id' => $this->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $log = daLog($this->employeeA, DA_TODAY);
+    $assignment = DailyActivityReviewerAssignment::query()->where('reviewer_user_id', $this->reviewer->id)->firstOrFail();
+
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('reviewers', fn ($rows) => collect($rows)->firstWhere('id', $assignment->id)['status'] === 'active'));
+
+    $this->actingAs($admin)->delete(route('daily-activities.reviewers.destroy', $assignment))->assertSessionHasNoErrors();
+
+    $assignment->refresh();
+    expect($assignment->exists)->toBeTrue()
+        ->and($assignment->is_active)->toBeFalse()
+        ->and($assignment->effective_to?->toDateString())->toBe('2026-09-22')
+        ->and(AuditLog::query()->where('event_type', 'daily_activity.reviewer_removed')->exists())->toBeTrue();
+
+    $this->actingAs($this->reviewer->fresh())->post(route('daily-activities.approve', $log), ['submission_count' => 1])->assertForbidden();
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('reviewers', fn ($rows) => collect($rows)->firstWhere('id', $assignment->id)['status'] === 'ended'));
+});
+
+test('S2. the employee picker searches the whole organization instead of preloading thousands', function (): void {
+    $admin = daUser('DA Settings Admin 2', ['daily_activities.manage_reviewers']);
+    UserOrganizationScope::query()->create(['user_id' => $admin->id, 'organization_id' => $this->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index', ['organization_id' => $this->org->id, 'employee_search' => 'DA-B']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('employeeSearch', 'DA-B')
+            ->has('options.employees', 1)
+            ->where('options.employees.0.employee_number', 'DA-B')
+            ->where('options.employeesTruncated', false));
+
+    // Another organization's employees are never offered, whatever the query says.
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index', ['organization_id' => $this->otherOrg->id, 'employee_search' => 'DA-F']))
+        ->assertInertia(fn (Assert $page) => $page->where('selectedOrganizationId', null)->where('options.employees', []));
+});
+
+test('S3. every daily activity setting explains itself in both languages', function (): void {
+    foreach (SystemSettingsRegistry::group(SystemSettingsRegistry::GROUP_DAILY_ACTIVITY) as $key => $definition) {
+        expect($definition['description_en'] ?? '')->not->toBe('', "{$key} English description")
+            ->and($definition['description_am'] ?? '')->not->toBe('', "{$key} Amharic description");
+    }
+});
+
+// ── Admin pages end to end ──────────────────────────────────────────────────
+
+test('E1. a team reviewer can open every page the sidebar shows them', function (): void {
+    $teamReviewer = daUser('DA Team Reviewer', ['daily_activities.view_team', 'daily_activities.review', 'daily_activities.approve', 'daily_activities.return_for_correction']);
+    DailyActivityReviewerAssignment::query()->create(['reviewer_user_id' => $teamReviewer->id, 'organization_id' => $this->org->id, 'organization_unit_id' => $this->unit->id, 'include_sub_units' => true, 'is_active' => true]);
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+
+    foreach (['daily-activities.dashboard', 'daily-activities.index', 'daily-activities.missing', 'daily-activities.review-queue'] as $name) {
+        $this->actingAs($teamReviewer)->get(route($name))->assertOk();
+    }
+    $this->actingAs($teamReviewer)->get(route('daily-activities.reports'))->assertForbidden();
+
+    // The sidebar gates each entry by the same permissions the pages accept.
+    $sidebar = (string) file_get_contents(resource_path('js/Components/AppSidebar.tsx'));
+    foreach (['daily-activities.dashboard', 'daily-activities.index', 'daily-activities.missing'] as $name) {
+        expect($sidebar)->toMatch("/routeName: '".preg_quote($name, '/')."'[^}]*daily_activities\\.view_team/");
+    }
+});
+
+test('E2. the dashboard shows the real review queue size, not the preview length', function (): void {
+    foreach ([$this->userA, $this->userB] as $user) {
+        daPost($user, DA_TODAY, daItems(), 'submit');
+    }
+
+    $this->actingAs($this->reviewer)->get(route('daily-activities.dashboard'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('pendingReview', 2)->has('awaitingReviewList', 2));
+});
+
+test('E3. searches are case-insensitive on every database', function (): void {
+    $sources = (string) file_get_contents(app_path('Services/DailyActivity/DailyActivityQueryService.php'))
+        .file_get_contents(app_path('Http/Controllers/Web/DailyActivityController.php'));
+    // PostgreSQL LIKE is case-sensitive; ci_like_operator() resolves to ILIKE there.
+    expect($sources)->not->toContain("'like'");
+
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.index', ['search' => 'da-a']))
+        ->assertInertia(fn (Assert $page) => $page->where('logs.meta.total', 1));
+});
+
+test('E4. a cut-off report and missing list say so, without inventing a total', function (): void {
+    $coverage = new DailyActivityCoverage(organizationIds: [$this->org->id]);
+    $report = app(DailyActivityReportService::class)->build('missing', $coverage, ['date_from' => '2026-09-14', 'date_to' => DA_TODAY], 1);
+    expect($report['truncated'])->toBeTrue()->and($report['total'])->toBe(1)->and($report['rows'])->toHaveCount(1);
+
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.missing', ['date_from' => '2026-09-14', 'date_to' => DA_TODAY]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('truncated', false)->where('rows.meta.total', fn ($total) => $total > 0));
+});
+
+// ── Settings and reviewer assignments are separate pages ────────────────────
+
+test('R1. city-wide settings and scoped reviewer assignments live on separate pages', function (): void {
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.settings'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('DailyActivities/Settings')
+            ->has('fields')
+            ->missing('reviewers')
+            ->missing('options')
+            ->where('canUpdate', false)
+            ->where('can.manageSettings', true)
+            ->where('can.manageReviewers', true));
+
+    $this->actingAs($this->orgAdmin)->get(route('daily-activities.reviewers.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('DailyActivities/ReviewerAssignments')
+            ->has('reviewers')
+            ->missing('fields'));
+});
+
+test('R2. a reviewer manager without settings rights is sent to reviewer assignments, and each page keeps its own permission', function (): void {
+    $manager = daUser('DA Reviewer Manager', ['daily_activities.manage_reviewers']);
+    UserOrganizationScope::query()->create(['user_id' => $manager->id, 'organization_id' => $this->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    $this->actingAs($manager)->get(route('daily-activities.settings'))->assertRedirect(route('daily-activities.reviewers.index'));
+    $this->actingAs($manager)->get(route('daily-activities.reviewers.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('can.manageSettings', false)->where('can.manageReviewers', true));
+    $this->actingAs($manager)->put(route('daily-activities.settings.update'), ['enabled' => false])->assertForbidden();
+
+    $settingsOnly = daUser('DA Settings Only', ['daily_activity_settings.view']);
+    $this->actingAs($settingsOnly)->get(route('daily-activities.settings'))->assertOk();
+    $this->actingAs($settingsOnly)->get(route('daily-activities.reviewers.index'))->assertForbidden();
+    $this->actingAs($this->reviewer)->get(route('daily-activities.settings'))->assertForbidden();
+});
+
+// ── Review policy per organization ──────────────────────────────────────────
+
+function daPolicyAdmin($test): User
+{
+    $admin = daUser('DA Policy Admin', ['daily_activities.manage_reviewers']);
+    UserOrganizationScope::query()->create(['user_id' => $admin->id, 'organization_id' => $test->org->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    return $admin;
+}
+
+test('W1. an organization review policy decides what waits in the review queue', function (): void {
+    $admin = daPolicyAdmin($this);
+    daAt('19:00');
+    daPost($this->userA, DA_TODAY, daItems(), 'submit', ['late_reason' => 'Field visit ran late.']);
+    daAt('10:00', '2026-09-24');
+    daPost($this->userB, '2026-09-24', daItems(), 'submit');
+    $queue = fn () => $this->actingAs($this->reviewer)->get(route('daily-activities.review-queue'));
+
+    $queue()->assertInertia(fn (Assert $page) => $page->where('logs.meta.total', 2));
+
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'late_only'])->assertSessionHasNoErrors();
+    $queue()->assertInertia(fn (Assert $page) => $page->where('logs.meta.total', 1)->where('logs.data.0.is_late', true));
+
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'none']);
+    // Other organizations still review city-wide; this one's days leave the queue.
+    $queue()->assertInertia(fn (Assert $page) => $page->where('reviewRequired', true)->where('logs.meta.total', 0));
+
+    // City-wide review off, but this organization still reviews everything.
+    daSetting('manager_review_required', false);
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'all']);
+    $queue()->assertInertia(fn (Assert $page) => $page->where('reviewRequired', true)->where('logs.meta.total', 2));
+
+    expect(AuditLog::query()->where('event_type', 'daily_activity.review_policy_changed')->count())->toBe(3);
+});
+
+test('W2. only scoped reviewer managers may set an organization review policy', function (): void {
+    $admin = daPolicyAdmin($this);
+
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->otherOrg->id, 'review_mode' => 'none'])->assertSessionHasErrors('organization_id');
+    $this->actingAs($admin)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'sometimes'])->assertSessionHasErrors('review_mode');
+    $this->actingAs($this->reviewer)->put(route('daily-activities.reviewers.policy'), ['organization_id' => $this->org->id, 'review_mode' => 'none'])->assertForbidden();
+
+    expect(DailyActivityReviewPolicy::query()->count())->toBe(0);
+});
+
+test('W3. each assignment shows how many employees it covers', function (): void {
+    $admin = daPolicyAdmin($this);
+    DailyActivityReviewerAssignment::query()->create(['reviewer_user_id' => $this->financeReviewer->id, 'organization_id' => $this->org->id, 'employee_id' => $this->employeeB->id, 'is_active' => true]);
+
+    $this->actingAs($admin)->get(route('daily-activities.reviewers.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('reviewers', function ($rows): bool {
+            $rows = collect($rows);
+
+            // HR directorate with sub-units holds A and B; the single-employee grant covers one.
+            return $rows->firstWhere('reviewer.id', $this->reviewer->id)['covered_employees'] === 2
+                && $rows->firstWhere('employee.employee_number', 'DA-B')['covered_employees'] === 1;
+        }));
+});
+
+test('W4. EPMS treats a day as final according to its organization review policy', function (): void {
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+    $policy = app(DailyActivityReviewPolicyService::class);
+    $final = fn () => $policy->constrainToFinal(DailyActivityLog::query(), $this->org->id)->count();
+
+    // City-wide review on: a submitted, unreviewed day is not final yet.
+    expect($final())->toBe(0);
+
+    DailyActivityReviewPolicy::query()->create(['organization_id' => $this->org->id, 'review_mode' => 'none']);
+    expect($final())->toBe(1);
+
+    DailyActivityReviewPolicy::query()->where('organization_id', $this->org->id)->update(['review_mode' => 'late_only']);
+    expect($final())->toBe(1);
+    DailyActivityLog::query()->update(['is_late' => true]);
+    expect($final())->toBe(0);
 });

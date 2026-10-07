@@ -5,7 +5,7 @@ import ActivityFilters from '@/Components/dailyActivity/ActivityFilters';
 import ManagementNav from '@/Components/dailyActivity/ManagementNav';
 import Pager from '@/Components/dailyActivity/Pager';
 import { DayStatusBadge } from '@/Components/dailyActivity/StatusBadges';
-import { panelCls } from '@/Components/dailyActivity/helpers';
+import { fill, panelCls } from '@/Components/dailyActivity/helpers';
 import type { FilterOptions, ManagementAbilities, Paginated } from '@/Components/dailyActivity/types';
 import { useLocale } from '@/hooks/useLocale';
 import { Head } from '@inertiajs/react';
@@ -23,6 +23,7 @@ type Row = {
 type Props = {
     rows: Paginated<Row>;
     filters: Record<string, string>;
+    truncated: boolean;
     options: FilterOptions;
     can: ManagementAbilities;
 };
@@ -32,7 +33,7 @@ type Props = {
  * server derives each row from employment, assignment, the work calendar,
  * public holidays and leave.
  */
-export default function DailyActivitiesMissing({ rows, filters, options, can }: Props): JSX.Element {
+export default function DailyActivitiesMissing({ rows, filters, truncated, options, can }: Props): JSX.Element {
     const { t } = useLocale();
 
     return (
@@ -41,6 +42,11 @@ export default function DailyActivitiesMissing({ rows, filters, options, can }: 
             <div className="space-y-3">
                 <ManagementNav can={can} current="daily-activities.missing" />
                 <ActivityFilters routeName="daily-activities.missing" filters={filters} options={options} fields={['search', 'dateRange', 'organization', 'unit', 'position']} />
+                {truncated && (
+                    <p role="status" className="rounded-panel border border-amber-300 bg-amber-50 p-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+                        {fill(t('dailyActivities.reports.truncated'), { count: rows.meta.total })}
+                    </p>
+                )}
 
                 {rows.data.length === 0 ? (
                     <p className={`${panelCls} p-4 text-sm text-gray-500 dark:text-slate-400`}>{t('dailyActivities.missing.empty')}</p>

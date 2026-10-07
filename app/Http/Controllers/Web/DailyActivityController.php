@@ -19,8 +19,10 @@ use App\Services\DailyActivity\DailyActivityPresenter;
 use App\Services\DailyActivity\DailyActivityQueryService;
 use App\Services\DailyActivity\DailyActivityReportService;
 use App\Services\DailyActivity\DailyActivityReviewerResolver;
+use App\Services\DailyActivity\DailyActivityReviewPolicyService;
 use App\Services\DailyActivity\DailyActivityService;
 use App\Services\DailyActivity\DailyActivitySettings;
+use App\Support\DailyActivity\DailyActivityAbilities;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -51,6 +53,7 @@ class DailyActivityController extends Controller
         private readonly DailyActivityService $service,
         private readonly DailyActivitySettings $settings,
         private readonly DailyActivityReviewerResolver $reviewers,
+        private readonly DailyActivityReviewPolicyService $reviewPolicy,
     ) {}
 
     public function dashboard(Request $request): Response
@@ -85,7 +88,7 @@ class DailyActivityController extends Controller
                 ? $reviewQueue->with(DailyActivityPresenter::SUMMARY_WITH)->withCount('items')->orderBy('activity_date')->limit(8)->get()
                     ->map(fn (DailyActivityLog $log): array => $this->presenter->summary($log))->all()
                 : [],
-            'reviewRequired' => $this->settings->managerReviewRequired(),
+            'reviewRequired' => $this->reviewPolicy->anyReviewRequired(),
             'filters' => $filters,
             'options' => $this->queries->filterOptions($coverage, $filters['organization_id'] ?? null),
             'can' => $this->abilities($request),
@@ -145,6 +148,7 @@ class DailyActivityController extends Controller
                 'links' => $paginator->linkCollection()->toArray(),
             ],
             'filters' => [...$filters, 'date_from' => $report['from'], 'date_to' => $report['to']],
+            'truncated' => $report['truncated'],
             'options' => $this->queries->filterOptions($coverage, $filters['organization_id'] ?? null),
             'can' => $this->abilities($request),
         ]);
@@ -162,8 +166,8 @@ class DailyActivityController extends Controller
             ->when(! empty($filters['organization_unit_id']), fn ($q) => $q->where('organization_unit_id', $filters['organization_unit_id']))
             ->when(($filters['late'] ?? '') !== '', fn ($q) => $q->where('is_late', filter_var($filters['late'], FILTER_VALIDATE_BOOLEAN)))
             ->when(! empty($filters['search']), fn ($q) => $q->whereHas('employee', fn ($e) => $e
-                ->where('full_name', 'like', '%'.$filters['search'].'%')
-                ->orWhere('employee_number', 'like', '%'.$filters['search'].'%')))
+                ->where('full_name', ci_like_operator(), '%'.$filters['search'].'%')
+                ->orWhere('employee_number', ci_like_operator(), '%'.$filters['search'].'%')))
             ->with(DailyActivityPresenter::SUMMARY_WITH)
             ->withCount('items')
             ->orderBy('activity_date')
@@ -175,7 +179,7 @@ class DailyActivityController extends Controller
             'logs' => $logs ? $this->paginated($logs, fn (DailyActivityLog $log): array => $this->presenter->summary($log)) : null,
             'filters' => $filters,
             'hasAssignment' => $this->reviewers->hasAnyAssignment($request->user()),
-            'reviewRequired' => $this->settings->managerReviewRequired(),
+            'reviewRequired' => $this->reviewPolicy->anyReviewRequired(),
             'options' => $this->queries->filterOptions($this->reviewers->coverage($request->user()), null),
             'can' => $this->abilities($request),
         ]);
@@ -333,12 +337,15 @@ class DailyActivityController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->can('daily_activities.review') || ! $this->settings->managerReviewRequired()) {
+        if (! $user->can('daily_activities.review') || ! $this->reviewPolicy->anyReviewRequired()) {
             return null;
         }
 
-        return $this->reviewers->constrainReviewable(DailyActivityLog::query(), $user)
-            ->whereIn('status', DailyActivityStatus::awaitingReviewValues());
+        // Only days their organization's review policy sends to a reviewer.
+        return $this->reviewPolicy->constrainToReviewRequired(
+            $this->reviewers->constrainReviewable(DailyActivityLog::query(), $user)
+                ->whereIn('status', DailyActivityStatus::awaitingReviewValues()),
+        );
     }
 
     private function readerLocale(Request $request): string
@@ -403,14 +410,6 @@ class DailyActivityController extends Controller
     /** @return array<string, bool> */
     private function abilities(Request $request): array
     {
-        $user = $request->user();
-
-        return [
-            'viewRegister' => $user->can('daily_activities.view_scoped') || $user->can('daily_activities.view_team'),
-            'review' => $user->can('daily_activities.review'),
-            'viewReports' => $user->can('daily_activities.view_reports'),
-            'export' => $user->can('daily_activities.export'),
-            'manageSettings' => $user->can('daily_activity_settings.view') || $user->can('daily_activities.manage_reviewers'),
-        ];
+        return DailyActivityAbilities::for($request->user());
     }
 }

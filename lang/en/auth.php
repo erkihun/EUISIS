@@ -28,6 +28,7 @@ return [
     'registration_otp_attempts' => 'Too many incorrect attempts. Request a new code.',
     'registration_otp_required' => 'Request a verification code before creating your account.',
     'registration_otp_delivery_failed' => 'The verification code could not be delivered. Please try again later.',
+    'registration_otp_throttled' => 'Too many codes were requested. Please try again in :minutes minutes.',
     'registration_otp_subject' => 'Verify your employee account',
     'registration_otp_greeting' => 'Employee account verification',
     'registration_otp_intro' => 'Use this one-time code to finish creating your employee portal account:',

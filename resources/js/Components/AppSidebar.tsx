@@ -272,19 +272,27 @@ const navGroups: NavGroup[] = [
         items: [
             { routeName: 'employees.index', labelKey: 'nav.employees', icon: Users,              permission: 'employees.view' },
             { routeName: 'employees.import.create', labelKey: 'nav.employeeImport', icon: ClipboardListIcon,  permission: 'employees.import.view' },
-            /*
-             * Daily Activities. The dashboard and missing list are gated by the
-             * broadest permission that reaches them; each page re-checks the
-             * exact permission server-side.
-             */
-            { routeName: 'daily-activities.dashboard', labelKey: 'nav.dailyActivityDashboard', icon: ActivityIcon, permission: 'daily_activities.view_reports' },
-            { routeName: 'daily-activities.index', labelKey: 'nav.dailyActivityRegister', icon: ClipboardListIcon, permission: 'daily_activities.view_scoped' },
-            { routeName: 'daily-activities.missing', labelKey: 'nav.dailyActivityMissing', icon: AlertTriangle, permission: 'daily_activities.view_scoped' },
-            { routeName: 'daily-activities.review-queue', labelKey: 'nav.dailyActivityReviewQueue', icon: ClipboardCheckIcon, permission: 'daily_activities.review' },
-            { routeName: 'daily-activities.reports', labelKey: 'nav.dailyActivityReports', icon: ReceiptTextIcon, permission: 'daily_activities.view_reports' },
-            { routeName: 'daily-activities.settings', labelKey: 'nav.dailyActivitySettings', icon: SettingsIcon, permission: 'daily_activity_settings.view' },
             { routeName: 'vacancy-announcements.index', labelKey: 'nav.vacancyAnnouncements', icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
             { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',        icon: Inbox },
+        ],
+    },
+    {
+        /*
+         * Daily Activity Register: its own module, not employee records. The
+         * dashboard and missing list are gated by the broadest permission that
+         * reaches them; each page re-checks the exact permission server-side.
+         */
+        key: 'dailyActivity',
+        labelKey: 'nav.groupDailyActivity',
+        icon: ActivityIcon,
+        items: [
+            { routeName: 'daily-activities.dashboard', labelKey: 'nav.dailyActivityDashboard', icon: ActivityIcon, anyPermission: ['daily_activities.view_reports', 'daily_activities.view_team', 'daily_activities.view_scoped'] },
+            { routeName: 'daily-activities.index', labelKey: 'nav.dailyActivityRegister', icon: ClipboardListIcon, anyPermission: ['daily_activities.view_scoped', 'daily_activities.view_team'] },
+            { routeName: 'daily-activities.missing', labelKey: 'nav.dailyActivityMissing', icon: AlertTriangle, anyPermission: ['daily_activities.view_reports', 'daily_activities.view_scoped', 'daily_activities.view_team'] },
+            { routeName: 'daily-activities.review-queue', labelKey: 'nav.dailyActivityReviewQueue', icon: ClipboardCheckIcon, permission: 'daily_activities.review' },
+            { routeName: 'daily-activities.reports', labelKey: 'nav.dailyActivityReports', icon: ReceiptTextIcon, permission: 'daily_activities.view_reports' },
+            { routeName: 'daily-activities.reviewers.index', labelKey: 'nav.dailyActivityReviewers', icon: UserCogIcon, permission: 'daily_activities.manage_reviewers' },
+            { routeName: 'daily-activities.settings', labelKey: 'nav.dailyActivitySettings', icon: SettingsIcon, anyPermission: ['daily_activity_settings.view', 'daily_activity_settings.update'] },
         ],
     },
     {
@@ -461,7 +469,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
 const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 
 const sections = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'employeeManagement', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];

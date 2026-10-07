@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Performance;
 
 use App\Enums\AuditEventType;
-use App\Enums\DailyActivityStatus;
 use App\Enums\Performance\AgreementStatus;
 use App\Enums\Performance\KpiAggregation;
 use App\Enums\Performance\KpiDataSource;
@@ -17,6 +16,7 @@ use App\Models\KpiActual;
 use App\Models\KpiTarget;
 use App\Models\OrganizationUnit;
 use App\Models\User;
+use App\Services\DailyActivity\DailyActivityReviewPolicyService;
 use App\Services\DailyActivity\DailyActivitySettings;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -45,6 +45,7 @@ final class KpiActualService
         private readonly EpmsSettings $settings,
         private readonly SystemKpiSourceRegistry $systemSources,
         private readonly DailyActivitySettings $dailyActivity,
+        private readonly DailyActivityReviewPolicyService $reviewPolicy,
     ) {}
 
     /** @param array<string, mixed> $data period_start, period_end, actual_value|actual_numerator+actual_denominator|milestone_key, comment */
@@ -131,16 +132,13 @@ final class KpiActualService
             $chain[] = $predecessor->getKey();
             $previous = $predecessor->supersedes_item_id;
         }
-        $statuses = $this->dailyActivity->managerReviewRequired()
-            ? [DailyActivityStatus::Approved->value]
-            : DailyActivityStatus::submittedValues();
-
         $query = DailyActivityItem::query()
             ->whereIn('employee_performance_item_id', $chain)
             ->whereNotNull('quantity')
             ->whereHas('log', fn ($log) => $log->where('employee_id', $agreement->employee_id)
                 ->where('employee_assignment_id', $agreement->employee_assignment_id)
-                ->whereIn('status', $statuses)
+                // Approved where the organization reviews, submitted where it does not.
+                ->where(fn ($final) => $this->reviewPolicy->constrainToFinal($final, $agreement->organization_id))
                 ->whereBetween('activity_date', [$from->toDateString(), $to->toDateString()]));
 
         $count = (clone $query)->count();

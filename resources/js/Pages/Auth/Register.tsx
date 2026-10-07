@@ -15,6 +15,8 @@ type Props = {
     status?: string | null;
 };
 
+const RESEND_SECONDS = 60;
+
 const STEPS = [
     { title: 'identifyTitle', detail: 'identifyDetail' },
     { title: 'codeTitle', detail: 'codeDetail' },
@@ -39,6 +41,9 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
     const [sendingCode, setSendingCode] = useState(false);
     // Step 2 shows the number as a summary; "Change" reopens the field.
     const [editingNumber, setEditingNumber] = useState(false);
+    // Seconds before another code may be requested; keeps a quick double tap
+    // from spending the 3-codes-per-10-minutes allowance.
+    const [cooldown, setCooldown] = useState(0);
     const codeGroup = useRef<HTMLDivElement>(null);
     const passwordInput = useRef<HTMLInputElement>(null);
 
@@ -47,6 +52,12 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
     }, [pendingEmployeeNumber]);
 
     const focusCode = () => codeGroup.current?.querySelector('input')?.focus();
+
+    useEffect(() => {
+        if (cooldown <= 0) return;
+        const timer = window.setTimeout(() => setCooldown((seconds) => seconds - 1), 1000);
+        return () => window.clearTimeout(timer);
+    }, [cooldown]);
 
     useEffect(() => {
         if (otpSent) {
@@ -61,7 +72,7 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
         form.post(route('register.send-otp'), {
             preserveScroll: true,
             only: ['otpSent', 'pendingEmployeeNumber', 'status', 'errors'],
-            onSuccess: () => { setEditingNumber(false); focusCode(); },
+            onSuccess: () => { setCooldown(RESEND_SECONDS); setEditingNumber(false); focusCode(); },
             onFinish: () => setSendingCode(false),
         });
     };
@@ -208,6 +219,11 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                                             {form.errors.employee_number
                                                 ? <p id="employee-number-error" role="alert" className={errorClass}>{form.errors.employee_number}</p>
                                                 : <p id="employee-number-help" className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{t('auth.registration.employeeNumberHelp')}</p>}
+                                            {otpSent && pendingEmployeeNumber && (
+                                                <button type="button" onClick={() => { form.setData('employee_number', pendingEmployeeNumber); form.clearErrors('employee_number'); setEditingNumber(false); }} className={`${linkClass} mt-2 min-h-10 px-1 text-sm`}>
+                                                    {t('auth.registration.keepNumber')}
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 
@@ -215,8 +231,10 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                                         <div>
                                             <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                                                 <span id="otp-label" className="text-sm font-semibold text-slate-800 dark:text-slate-200">{t('auth.registration.verificationCode')}</span>
-                                                <button type="button" onClick={sendCode} disabled={form.processing || !form.data.employee_number.trim()} className={`${linkClass} min-h-10 px-1 text-sm disabled:cursor-not-allowed disabled:opacity-50`}>
-                                                    {t(sendingCode ? 'auth.registration.sendingCode' : 'auth.registration.resend')}
+                                                <button type="button" onClick={sendCode} disabled={form.processing || cooldown > 0 || !form.data.employee_number.trim()} className={`${linkClass} min-h-10 px-1 text-sm tabular-nums disabled:cursor-not-allowed disabled:opacity-50`}>
+                                                    {sendingCode
+                                                        ? t('auth.registration.sendingCode')
+                                                        : cooldown > 0 ? t('auth.registration.resendIn').replace(':seconds', String(cooldown)) : t('auth.registration.resend')}
                                                 </button>
                                             </div>
                                             <div ref={codeGroup}>

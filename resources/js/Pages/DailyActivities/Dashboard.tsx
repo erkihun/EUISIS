@@ -134,7 +134,7 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
                         <div className="mb-2 flex items-center justify-between gap-3">
                             <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                                 {t('dailyActivities.dashboard.awaitingReview')}
-                                {reviewRequired && awaitingReviewList.length > 0 && <span className="ms-2 font-normal tabular-nums text-[color:var(--app-muted-foreground)]">({awaitingReviewList.length})</span>}
+                                {reviewRequired && pendingReview > 0 && <span className="ms-2 font-normal tabular-nums text-[color:var(--app-muted-foreground)]">({pendingReview})</span>}
                             </h2>
                             {reviewRequired && reviewQueue && (
                                 <Link href={reviewQueue} className="inline-flex items-center gap-1 text-sm font-medium text-[color:var(--color-primary)] hover:underline">

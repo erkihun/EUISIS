@@ -41,7 +41,8 @@ return [
     'attachment_deleted' => 'Evidence removed.',
     'settings_updated' => 'Daily activity settings updated.',
     'reviewer_added' => 'Reviewer assignment added.',
-    'reviewer_removed' => 'Reviewer assignment removed.',
+    'reviewer_removed' => 'Reviewer assignment ended.',
+    'review_policy_saved' => 'Review policy saved.',
 
     'status' => [
         'draft' => 'draft',
@@ -156,5 +157,6 @@ return [
         'generated' => 'Generated :at by :user',
         'period' => 'Period: :from to :to',
         'note' => 'Daily activity is a work record. It is not attendance and not a performance score.',
+        'truncated' => 'Only the first :count rows are included; there are more. Narrow the filters to export the rest.',
     ],
 ];

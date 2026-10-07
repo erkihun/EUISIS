@@ -108,4 +108,5 @@ export type ManagementAbilities = {
     viewReports: boolean;
     export: boolean;
     manageSettings: boolean;
+    manageReviewers: boolean;
 };
