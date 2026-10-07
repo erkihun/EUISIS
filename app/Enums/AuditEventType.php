@@ -588,4 +588,14 @@ enum AuditEventType: string
     case WorkStandardSaved = 'work_standards.standard_saved';
     case WorkStandardApproved = 'work_standards.standard_approved';
     case WorkStandardRetired = 'work_standards.standard_retired';
+
+    // Assessment Form Builder
+    case AssessmentFormCreated = 'assessment_forms.created';
+    case AssessmentFormDraftSaved = 'assessment_forms.draft_saved';
+    case AssessmentFormValidated = 'assessment_forms.validated';
+    case AssessmentFormPublished = 'assessment_forms.published';
+    case AssessmentFormVersionCreated = 'assessment_forms.version_created';
+    case AssessmentFormCloned = 'assessment_forms.cloned';
+    case AssessmentFormArchived = 'assessment_forms.archived';
+    case AssessmentFormDraftDiscarded = 'assessment_forms.draft_discarded';
 }

@@ -8,6 +8,7 @@ const en = {
         kpiLibrary: 'KPI Library',
         performanceAgreements: 'Employee Agreements',
         performanceCalibration: 'Calibration',
+        assessmentForms: 'Assessment Forms',
         performanceAppeals: 'Performance Appeals',
         performanceReports: 'Performance Reports',
         performanceSettings: 'Performance Settings',

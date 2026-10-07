@@ -182,6 +182,7 @@ class AppServiceProvider extends ServiceProvider
             Cache::store()->get('health:probe');
         });
 
+        Gate::policy(\App\Models\AssessmentForm::class, \App\Policies\AssessmentFormPolicy::class);
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);
         Gate::policy(Employee::class, EmployeePolicy::class);

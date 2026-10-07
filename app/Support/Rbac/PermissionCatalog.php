@@ -43,6 +43,7 @@ final class PermissionCatalog
         'Performance Management' => [
             'performance_cycles', 'strategic_goals', 'performance_plans', 'kpis', 'performance_agreements', 'performance_reviews',
             'performance_calibration', 'performance_appeals', 'performance_reports', 'performance_settings',
+            'assessment_forms',
         ],
         'Service Management' => [
             'service-types', 'entitlements', 'entitlement-rules', 'service-transactions', 'service_feedback', 'public-holidays',

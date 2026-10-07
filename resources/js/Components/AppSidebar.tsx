@@ -259,6 +259,8 @@ const navGroups: NavGroup[] = [
             { routeName: 'performance.plans.index', labelKey: 'nav.performancePlans', icon: GitForkIcon, permission: 'performance_plans.view' },
             { routeName: 'performance.kpis.index', labelKey: 'nav.kpiLibrary', icon: HashIcon, permission: 'kpis.view' },
             { routeName: 'performance.agreements.index', labelKey: 'nav.performanceAgreements', icon: HandshakeIcon, permission: 'employee_performance_agreements.manage' },
+            // Configurable competency / behavioural assessment forms.
+            { routeName: 'assessment-forms.index', labelKey: 'nav.assessmentForms', icon: ClipboardListIcon, permission: 'assessment_forms.view' },
             { routeName: 'performance.calibration.index', labelKey: 'nav.performanceCalibration', icon: BadgeCheckIcon, permission: 'performance_calibration.view' },
             { routeName: 'performance.appeals.index', labelKey: 'nav.performanceAppeals', icon: MessageSquareIcon, anyPermission: ['performance_appeals.review', 'performance_appeals.decide'] },
             { routeName: 'performance.reports.index', labelKey: 'nav.performanceReports', icon: ReceiptTextIcon, permission: 'performance_reports.view' },

@@ -79,4 +79,11 @@ return [
 
     $entry('performance_settings.view', 'performance_settings', 10, 'View performance settings', 'የአፈጻጸም ቅንብሮችን ይመልከቱ'),
     $entry('performance_settings.update', 'performance_settings', 20, 'Update performance settings', 'የአፈጻጸም ቅንብሮችን ያሻሽሉ'),
+
+    // Assessment Form Builder (docs/assessment-form-builder.md)
+    $entry('assessment_forms.view', 'assessment_forms', 10, 'View assessment forms', 'የምዘና ቅጾችን ይመልከቱ'),
+    $entry('assessment_forms.create', 'assessment_forms', 20, 'Create and clone assessment forms', 'የምዘና ቅጾችን ይፍጠሩ እና ይቅዱ'),
+    $entry('assessment_forms.edit_draft', 'assessment_forms', 30, 'Edit draft assessment form versions', 'ረቂቅ የምዘና ቅጽ ስሪቶችን ያስተካክሉ'),
+    $entry('assessment_forms.publish', 'assessment_forms', 40, 'Publish assessment form versions', 'የምዘና ቅጽ ስሪቶችን ያትሙ'),
+    $entry('assessment_forms.archive', 'assessment_forms', 50, 'Archive assessment forms', 'የምዘና ቅጾችን በማህደር ያስቀምጡ'),
 ];

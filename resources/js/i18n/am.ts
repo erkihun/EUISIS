@@ -8,6 +8,7 @@ const am = {
         kpiLibrary: 'የKPI ቤተ-መጽሐፍት',
         performanceAgreements: 'የሠራተኛ ስምምነቶች',
         performanceCalibration: 'ካሊብሬሽን',
+        assessmentForms: 'የምዘና ቅጾች',
         performanceAppeals: 'የአፈጻጸም ይግባኞች',
         performanceReports: 'የአፈጻጸም ሪፖርቶች',
         performanceSettings: 'የአፈጻጸም ቅንብሮች',

@@ -43,6 +43,7 @@ final class PerformanceRoles
         'performance_calibration.view',
         'performance_reports.view', 'performance_reports.export',
         'performance_settings.view',
+        'assessment_forms.view', 'assessment_forms.create', 'assessment_forms.edit_draft',
     ];
 
     /** Reviews and approves what officers prepare; verifies reported actuals. No publishing, no calibration. */
@@ -127,5 +128,6 @@ final class PerformanceRoles
         'performance_appeals.review',
         'performance_reports.view', 'performance_reports.export',
         'performance_settings.view',
+        'assessment_forms.view', 'assessment_forms.create', 'assessment_forms.edit_draft', 'assessment_forms.publish', 'assessment_forms.archive',
     ];
 }
