@@ -9,6 +9,7 @@ use App\Actions\Settings\UpdateSystemSettingAction;
 use App\Actions\SystemSettings\UpdateSystemSettingsGroupAction;
 use App\Actions\SystemSettings\UploadSystemAssetAction;
 use App\Enums\AuditEventType;
+use App\Contracts\SmsGateway;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\TestNotificationChannelRequest;
 use App\Http\Requests\Settings\UpdateAppearanceSettingsRequest;
@@ -27,10 +28,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
+use Throwable;
 
 class SystemSettingController extends Controller
 {
@@ -269,6 +273,13 @@ class SystemSettingController extends Controller
             $request,
             channel: 'email',
             target: is_string($recipient) ? $recipient : null,
+            send: function (string $to): ?string {
+                Mail::raw(__('settings.messages.test_email_body', ['app' => config('app.name')]), function ($message) use ($to): void {
+                    $message->to($to)->subject(__('settings.messages.test_email_subject', ['app' => config('app.name')]));
+                });
+
+                return null;
+            },
         );
     }
 
@@ -280,6 +291,9 @@ class SystemSettingController extends Controller
             $request,
             channel: 'sms',
             target: is_string($phone) ? $phone : null,
+            send: fn (string $to): ?string => app(SmsGateway::class)->send($to, __('settings.messages.test_sms_body', ['app' => config('app.name')]))
+                ? null
+                : __('settings.messages.test_sms_refused'),
         );
     }
 
@@ -313,12 +327,29 @@ class SystemSettingController extends Controller
         return back()->with('flash', ['message' => __('settings.messages.setting_updated'), 'type' => 'success']);
     }
 
+    /**
+     * @param  (callable(string): ?string)|null  $send  Delivers a test message;
+     *                                                   returns an error, or null when delivered.
+     */
     private function handleTestChannelResult(
         Request $request,
         string $channel,
         ?string $target,
+        ?callable $send = null,
     ): RedirectResponse {
         $configured = $target !== null && $target !== '';
+        $error = null;
+
+        // Really send, and wait for the answer: an administrator checking the
+        // mail settings needs the server's reply, not a promise.
+        if ($configured && $send !== null) {
+            try {
+                $error = $send($target);
+            } catch (Throwable $exception) {
+                $error = Str::limit($exception->getMessage(), 300);
+                Log::warning('Notification channel test failed.', ['channel' => $channel, 'error' => $exception->getMessage()]);
+            }
+        }
 
         $this->writeAuditLogAction->execute(
             AuditEventType::NotificationChannelTested,
@@ -329,6 +360,7 @@ class SystemSettingController extends Controller
                 'channel' => $channel,
                 'configured' => $configured,
                 'target' => $configured ? 'configured' : 'not_configured',
+                'delivered' => $configured && $send !== null ? $error === null : null,
             ],
             reason: 'system_settings_test_channel',
         );
@@ -340,9 +372,15 @@ class SystemSettingController extends Controller
             ]);
         }
 
-        return back()->with('flash', [
-            'message' => __('settings.messages.test_channel_queued', ['channel' => ucfirst($channel)]),
-            'type' => 'success',
-        ]);
+        if ($send === null) {
+            return back()->with('flash', [
+                'message' => __('settings.messages.test_channel_queued', ['channel' => ucfirst($channel)]),
+                'type' => 'success',
+            ]);
+        }
+
+        return back()->with('flash', $error === null
+            ? ['message' => __('settings.messages.test_channel_sent', ['channel' => ucfirst($channel), 'target' => $target]), 'type' => 'success']
+            : ['message' => __('settings.messages.test_channel_failed', ['channel' => ucfirst($channel), 'error' => $error]), 'type' => 'error']);
     }
 }

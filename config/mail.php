@@ -45,7 +45,10 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            // Seconds to wait for the mail server. Mail is sent while the
+            // visitor waits (verification codes), so an unreachable host
+            // must fail quickly rather than after PHP's 60 second default.
+            'timeout' => (int) env('MAIL_TIMEOUT', 15),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 

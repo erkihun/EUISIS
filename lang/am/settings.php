@@ -19,5 +19,11 @@ return [
         'cache_cleared' => 'የቅንብር ካሽ በተሳካ ሁኔታ ተጽድቷል።',
         'test_channel_missing' => 'የ:channel የሙከራ መዳረሻ አልተቀናበረም።',
         'test_channel_queued' => 'የ:channel ሙከራ በደህና ተላልፏል።',
+        'test_channel_sent' => 'የ:channel የሙከራ መልእክት ለ:target ወደ ሰርቨሩ ደርሷል። መድረሱን ያረጋግጡ።',
+        'test_channel_failed' => 'የ:channel ሙከራ አልተሳካም፦ :error',
+        'test_email_subject' => 'የ:app የሙከራ ኢሜይል',
+        'test_email_body' => 'ይህ ከ:app የተላከ የሙከራ መልእክት ነው። ከደረሰዎ የኢሜይል መላኪያው ይሰራል።',
+        'test_sms_body' => 'የ:app የሙከራ መልእክት፦ የኤስኤምኤስ መላኪያው ይሰራል።',
+        'test_sms_refused' => 'የኤስኤምኤስ መግቢያው መልእክቱን አልተቀበለም። የኤስኤምኤስ ቅንብሮችን እና የወጪ ገደቡን ያረጋግጡ።',
     ],
 ];

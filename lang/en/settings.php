@@ -17,5 +17,11 @@ return [
         'cache_cleared' => 'Settings cache cleared successfully.',
         'test_channel_missing' => ':channel test target is not configured.',
         'test_channel_queued' => ':channel test has been queued safely.',
+        'test_channel_sent' => ':channel test message was delivered to the server for :target. Check that it arrives.',
+        'test_channel_failed' => ':channel test failed: :error',
+        'test_email_subject' => ':app test email',
+        'test_email_body' => 'This is a test message from :app. If you received it, email delivery works.',
+        'test_sms_body' => ':app test message: SMS delivery works.',
+        'test_sms_refused' => 'The SMS gateway did not accept the message. Check the SMS settings and the spend limit.',
     ],
 ];
