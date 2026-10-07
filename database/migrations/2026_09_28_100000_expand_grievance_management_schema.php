@@ -24,79 +24,83 @@ return new class extends Migration
     public function up(): void
     {
         // ── Existing tables: additive columns ───────────────────────────────
-        Schema::table('grievances', function (Blueprint $table): void {
-            $table->foreignUuid('employee_assignment_id')->nullable()->after('employee_id')->constrained('employee_assignments')->nullOnDelete();
-            $table->date('incident_date')->nullable()->after('description');
-            $table->string('priority', 20)->default('normal')->after('incident_date');
-            $table->string('confidentiality_level', 30)->default('normal_confidential')->after('priority')->index();
-            $table->uuid('current_stage_id')->nullable()->after('status')->index();
-            $table->string('current_handler_type', 30)->nullable()->after('current_stage_id');
-            $table->uuid('current_handler_id')->nullable()->after('current_handler_type');
-            $table->timestamp('accepted_at')->nullable();
-            $table->timestamp('resolved_at')->nullable();
-            $table->string('intake_reason_code', 60)->nullable();
-            $table->text('intake_notes')->nullable();
-            $table->timestamp('withdraw_requested_at')->nullable();
-            $table->timestamp('withdrawn_at')->nullable();
-            $table->text('withdrawal_reason')->nullable();
-            $table->string('withdrawal_reason_code', 60)->nullable();
-            $table->string('closure_reason_code', 60)->nullable();
-            $table->text('closure_notes')->nullable();
-            $table->string('record_state', 20)->default('active')->index();
-            $table->timestamp('archived_at')->nullable();
-            $table->boolean('legal_hold')->default(false);
-            $table->text('legal_hold_reason')->nullable();
-            $table->date('retention_until')->nullable();
-            $table->timestamp('appeal_deadline_at')->nullable();
-            $table->string('respondent_type', 30)->nullable();
-            $table->foreignUuid('respondent_employee_id')->nullable()->constrained('employees')->nullOnDelete();
-            $table->foreignUuid('respondent_organization_unit_id')->nullable()->constrained('organization_units')->nullOnDelete();
-            $table->text('respondent_description')->nullable();
-            $table->string('root_cause_category', 60)->nullable();
-            $table->boolean('systemic_issue_flag')->default(false);
-            $table->boolean('corrective_action_required')->default(false);
-            $table->unsignedSmallInteger('reopened_count')->default(0);
+        // Each column and index is added only when missing. On MySQL a schema
+        // change is not transactional, so a run that fails part-way leaves
+        // what it already added; re-running must continue, not fail on it.
+        $this->addColumns('grievances', [
+            'employee_assignment_id' => fn (Blueprint $t) => $t->foreignUuid('employee_assignment_id')->nullable()->after('employee_id')->constrained('employee_assignments')->nullOnDelete(),
+            'incident_date' => fn (Blueprint $t) => $t->date('incident_date')->nullable()->after('description'),
+            'priority' => fn (Blueprint $t) => $t->string('priority', 20)->default('normal')->after('incident_date'),
+            'confidentiality_level' => fn (Blueprint $t) => $t->string('confidentiality_level', 30)->default('normal_confidential')->after('priority')->index(),
+            'current_stage_id' => fn (Blueprint $t) => $t->uuid('current_stage_id')->nullable()->after('status')->index(),
+            'current_handler_type' => fn (Blueprint $t) => $t->string('current_handler_type', 30)->nullable()->after('current_stage_id'),
+            'current_handler_id' => fn (Blueprint $t) => $t->uuid('current_handler_id')->nullable()->after('current_handler_type'),
+            'accepted_at' => fn (Blueprint $t) => $t->timestamp('accepted_at')->nullable(),
+            'resolved_at' => fn (Blueprint $t) => $t->timestamp('resolved_at')->nullable(),
+            'intake_reason_code' => fn (Blueprint $t) => $t->string('intake_reason_code', 60)->nullable(),
+            'intake_notes' => fn (Blueprint $t) => $t->text('intake_notes')->nullable(),
+            'withdraw_requested_at' => fn (Blueprint $t) => $t->timestamp('withdraw_requested_at')->nullable(),
+            'withdrawn_at' => fn (Blueprint $t) => $t->timestamp('withdrawn_at')->nullable(),
+            'withdrawal_reason' => fn (Blueprint $t) => $t->text('withdrawal_reason')->nullable(),
+            'withdrawal_reason_code' => fn (Blueprint $t) => $t->string('withdrawal_reason_code', 60)->nullable(),
+            'closure_reason_code' => fn (Blueprint $t) => $t->string('closure_reason_code', 60)->nullable(),
+            'closure_notes' => fn (Blueprint $t) => $t->text('closure_notes')->nullable(),
+            'record_state' => fn (Blueprint $t) => $t->string('record_state', 20)->default('active')->index(),
+            'archived_at' => fn (Blueprint $t) => $t->timestamp('archived_at')->nullable(),
+            'legal_hold' => fn (Blueprint $t) => $t->boolean('legal_hold')->default(false),
+            'legal_hold_reason' => fn (Blueprint $t) => $t->text('legal_hold_reason')->nullable(),
+            'retention_until' => fn (Blueprint $t) => $t->date('retention_until')->nullable(),
+            'appeal_deadline_at' => fn (Blueprint $t) => $t->timestamp('appeal_deadline_at')->nullable(),
+            'respondent_type' => fn (Blueprint $t) => $t->string('respondent_type', 30)->nullable(),
+            'respondent_employee_id' => fn (Blueprint $t) => $t->foreignUuid('respondent_employee_id')->nullable()->constrained('employees')->nullOnDelete(),
+            'respondent_organization_unit_id' => fn (Blueprint $t) => $t->foreignUuid('respondent_organization_unit_id')->nullable()->constrained('organization_units')->nullOnDelete(),
+            'respondent_description' => fn (Blueprint $t) => $t->text('respondent_description')->nullable(),
+            'root_cause_category' => fn (Blueprint $t) => $t->string('root_cause_category', 60)->nullable(),
+            'systemic_issue_flag' => fn (Blueprint $t) => $t->boolean('systemic_issue_flag')->default(false),
+            'corrective_action_required' => fn (Blueprint $t) => $t->boolean('corrective_action_required')->default(false),
+            'reopened_count' => fn (Blueprint $t) => $t->unsignedSmallInteger('reopened_count')->default(0),
+        ]);
+        $this->addIndex('grievances', 'grievances_current_handler_index', fn (Blueprint $t) => $t->index(['current_handler_type', 'current_handler_id'], 'grievances_current_handler_index'));
+        $this->addIndex('grievances', 'grievances_submitted_at_index', fn (Blueprint $t) => $t->index('submitted_at'));
+        $this->addIndex('grievances', 'grievances_category_id_index', fn (Blueprint $t) => $t->index('category_id'));
+        $this->addIndex('grievances', 'grievances_status_index', fn (Blueprint $t) => $t->index('status'));
 
-            $table->index(['current_handler_type', 'current_handler_id'], 'grievances_current_handler_index');
-            $table->index('submitted_at');
-            $table->index('category_id');
-            $table->index('status');
-        });
+        $this->addColumns('grievance_categories', [
+            'default_confidentiality' => fn (Blueprint $t) => $t->string('default_confidentiality', 30)->nullable(),
+            'default_priority' => fn (Blueprint $t) => $t->string('default_priority', 20)->nullable(),
+            'requires_executive_approval' => fn (Blueprint $t) => $t->boolean('requires_executive_approval')->default(false),
+            'sort_order' => fn (Blueprint $t) => $t->integer('sort_order')->default(0),
+        ]);
 
-        Schema::table('grievance_categories', function (Blueprint $table): void {
-            $table->string('default_confidentiality', 30)->nullable();
-            $table->string('default_priority', 20)->nullable();
-            $table->boolean('requires_executive_approval')->default(false);
-            $table->integer('sort_order')->default(0);
-        });
-
-        Schema::table('grievance_committees', function (Blueprint $table): void {
-            $table->text('description_en')->nullable();
-            $table->text('description_am')->nullable();
-            $table->date('effective_from')->nullable();
-            $table->date('effective_to')->nullable();
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('approved_at')->nullable();
-        });
+        $this->addColumns('grievance_committees', [
+            'description_en' => fn (Blueprint $t) => $t->text('description_en')->nullable(),
+            'description_am' => fn (Blueprint $t) => $t->text('description_am')->nullable(),
+            'effective_from' => fn (Blueprint $t) => $t->date('effective_from')->nullable(),
+            'effective_to' => fn (Blueprint $t) => $t->date('effective_to')->nullable(),
+            'created_by' => fn (Blueprint $t) => $t->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete(),
+            'approved_by' => fn (Blueprint $t) => $t->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete(),
+            'approved_at' => fn (Blueprint $t) => $t->timestamp('approved_at')->nullable(),
+        ]);
 
         // A committee is re-constituted for a new term as a new record; the old
         // unique (org, unit, type) blocked that and, with a NULL unit, never
-        // held on PostgreSQL anyway. Relaxed to a plain index.
-        Schema::table('grievance_committees', function (Blueprint $table): void {
-            $table->dropUnique('unique_committee_per_org_unit_type');
-            $table->index(['organization_id', 'committee_type', 'status'], 'grievance_committees_org_type_status_index');
-        });
+        // held on PostgreSQL anyway. Relaxed to a plain index. The plain index
+        // is added first: on MySQL the foreign keys on these columns need an
+        // index to remain once the unique one is dropped.
+        $this->addIndex('grievance_committees', 'grievance_committees_org_type_status_index', fn (Blueprint $t) => $t->index(['organization_id', 'committee_type', 'status'], 'grievance_committees_org_type_status_index'));
+        if (Schema::hasIndex('grievance_committees', 'unique_committee_per_org_unit_type')) {
+            Schema::table('grievance_committees', fn (Blueprint $t) => $t->dropUnique('unique_committee_per_org_unit_type'));
+        }
 
-        Schema::table('grievance_committee_members', function (Blueprint $table): void {
-            $table->foreignId('appointed_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('appointment_reference')->nullable();
-            $table->text('end_reason')->nullable();
-            $table->index(['employee_id', 'status'], 'grievance_committee_members_employee_status_index');
-        });
+        $this->addColumns('grievance_committee_members', [
+            'appointed_by' => fn (Blueprint $t) => $t->foreignId('appointed_by')->nullable()->constrained('users')->nullOnDelete(),
+            'appointment_reference' => fn (Blueprint $t) => $t->string('appointment_reference')->nullable(),
+            'end_reason' => fn (Blueprint $t) => $t->text('end_reason')->nullable(),
+        ]);
+        $this->addIndex('grievance_committee_members', 'grievance_committee_members_employee_status_index', fn (Blueprint $t) => $t->index(['employee_id', 'status'], 'grievance_committee_members_employee_status_index'));
 
         // ── Configuration ────────────────────────────────────────────────────
-        Schema::create('grievance_external_authorities', function (Blueprint $table): void {
+        $this->createTable('grievance_external_authorities', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('code', 60)->unique();
             $table->string('name_en');
@@ -108,7 +112,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('grievance_sla_profiles', function (Blueprint $table): void {
+        $this->createTable('grievance_sla_profiles', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('name_en');
             $table->string('name_am')->nullable();
@@ -133,7 +137,7 @@ return new class extends Migration
             $table->index(['handler_type', 'handler_id']);
         });
 
-        Schema::create('grievance_routes', function (Blueprint $table): void {
+        $this->createTable('grievance_routes', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('source_handler_type', 30);
             $table->uuid('source_handler_id');
@@ -157,7 +161,7 @@ return new class extends Migration
             $table->index(['target_handler_type', 'target_handler_id'], 'grievance_routes_target_index');
         });
 
-        Schema::create('grievance_approval_rules', function (Blueprint $table): void {
+        $this->createTable('grievance_approval_rules', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('name_en');
             $table->string('name_am')->nullable();
@@ -179,7 +183,7 @@ return new class extends Migration
             $table->index(['is_active', 'organization_id']);
         });
 
-        Schema::create('grievance_delegations', function (Blueprint $table): void {
+        $this->createTable('grievance_delegations', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignId('delegator_user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('delegate_user_id')->constrained('users')->cascadeOnDelete();
@@ -198,7 +202,7 @@ return new class extends Migration
             $table->index(['delegate_user_id', 'status']);
         });
 
-        Schema::create('grievance_reason_codes', function (Blueprint $table): void {
+        $this->createTable('grievance_reason_codes', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('type', 30);
             $table->string('code', 60);
@@ -211,7 +215,7 @@ return new class extends Migration
             $table->unique(['type', 'code']);
         });
 
-        Schema::create('organization_letterheads', function (Blueprint $table): void {
+        $this->createTable('organization_letterheads', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->unique()->constrained('organizations')->cascadeOnDelete();
             $table->string('header_line_en')->nullable();
@@ -229,7 +233,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('organization_seals', function (Blueprint $table): void {
+        $this->createTable('organization_seals', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->constrained('organizations')->cascadeOnDelete();
             $table->string('name');
@@ -248,7 +252,7 @@ return new class extends Migration
             $table->index(['organization_id', 'status']);
         });
 
-        Schema::create('grievance_letter_templates', function (Blueprint $table): void {
+        $this->createTable('grievance_letter_templates', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('organization_id')->nullable()->constrained('organizations')->nullOnDelete();
             $table->string('template_type', 40);
@@ -271,7 +275,7 @@ return new class extends Migration
         });
 
         // ── Case lifecycle ───────────────────────────────────────────────────
-        Schema::create('grievance_case_stages', function (Blueprint $table): void {
+        $this->createTable('grievance_case_stages', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->unsignedSmallInteger('stage_no');
@@ -312,11 +316,10 @@ return new class extends Migration
             $table->index(['status', 'due_at']);
         });
 
-        // At most one current stage per case (partial unique index; both
-        // PostgreSQL and SQLite support WHERE on CREATE INDEX).
-        DB::statement('CREATE UNIQUE INDEX grievance_case_stages_one_current ON grievance_case_stages (grievance_id) WHERE is_current = '.(DB::getDriverName() === 'pgsql' ? 'true' : '1'));
+        // At most one current stage per case.
+        $this->oneCurrentStagePerCase();
 
-        Schema::create('grievance_stage_members', function (Blueprint $table): void {
+        $this->createTable('grievance_stage_members', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
             $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
@@ -335,7 +338,7 @@ return new class extends Migration
             $table->unique(['case_stage_id', 'employee_id']);
         });
 
-        Schema::create('grievance_case_officers', function (Blueprint $table): void {
+        $this->createTable('grievance_case_officers', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
@@ -351,7 +354,7 @@ return new class extends Migration
             $table->index(['user_id', 'released_at']);
         });
 
-        Schema::create('grievance_sla_pauses', function (Blueprint $table): void {
+        $this->createTable('grievance_sla_pauses', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
@@ -372,7 +375,7 @@ return new class extends Migration
             $table->index(['case_stage_id', 'status']);
         });
 
-        Schema::create('grievance_case_recusals', function (Blueprint $table): void {
+        $this->createTable('grievance_case_recusals', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
@@ -393,7 +396,7 @@ return new class extends Migration
             $table->index(['case_stage_id', 'status']);
         });
 
-        Schema::create('grievance_decisions', function (Blueprint $table): void {
+        $this->createTable('grievance_decisions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
@@ -438,7 +441,7 @@ return new class extends Migration
             $table->index(['status', 'approval_due_at']);
         });
 
-        Schema::create('grievance_decision_approvals', function (Blueprint $table): void {
+        $this->createTable('grievance_decision_approvals', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('decision_id')->constrained('grievance_decisions')->cascadeOnDelete();
             $table->string('action', 40);
@@ -453,7 +456,7 @@ return new class extends Migration
             $table->index(['decision_id', 'acted_at']);
         });
 
-        Schema::create('grievance_decision_votes', function (Blueprint $table): void {
+        $this->createTable('grievance_decision_votes', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('decision_id')->constrained('grievance_decisions')->cascadeOnDelete();
             $table->foreignUuid('employee_id')->constrained('employees')->cascadeOnDelete();
@@ -466,7 +469,7 @@ return new class extends Migration
             $table->unique(['decision_id', 'employee_id']);
         });
 
-        Schema::create('grievance_hearings', function (Blueprint $table): void {
+        $this->createTable('grievance_hearings', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
@@ -488,7 +491,7 @@ return new class extends Migration
             $table->index('scheduled_at');
         });
 
-        Schema::create('grievance_hearing_participants', function (Blueprint $table): void {
+        $this->createTable('grievance_hearing_participants', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('hearing_id')->constrained('grievance_hearings')->cascadeOnDelete();
             $table->string('role', 30);
@@ -503,7 +506,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('grievance_minutes', function (Blueprint $table): void {
+        $this->createTable('grievance_minutes', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
@@ -526,7 +529,7 @@ return new class extends Migration
             $table->index(['case_stage_id', 'status']);
         });
 
-        Schema::create('grievance_information_requests', function (Blueprint $table): void {
+        $this->createTable('grievance_information_requests', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->constrained('grievance_case_stages')->cascadeOnDelete();
@@ -548,7 +551,7 @@ return new class extends Migration
             $table->index(['requested_from_type', 'requested_from_id', 'status'], 'grievance_info_requests_target_index');
         });
 
-        Schema::create('grievance_information_responses', function (Blueprint $table): void {
+        $this->createTable('grievance_information_responses', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('information_request_id')->constrained('grievance_information_requests')->cascadeOnDelete();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
@@ -559,7 +562,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('grievance_appeals', function (Blueprint $table): void {
+        $this->createTable('grievance_appeals', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             // One appeal per decision: the database-level duplicate guard.
@@ -577,7 +580,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('grievance_evidence', function (Blueprint $table): void {
+        $this->createTable('grievance_evidence', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->nullable()->constrained('grievance_case_stages')->nullOnDelete();
@@ -610,7 +613,7 @@ return new class extends Migration
             $table->index(['grievance_id', 'status']);
         });
 
-        Schema::create('grievance_evidence_custody', function (Blueprint $table): void {
+        $this->createTable('grievance_evidence_custody', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('evidence_id')->constrained('grievance_evidence')->cascadeOnDelete();
             $table->string('action', 20);
@@ -622,7 +625,7 @@ return new class extends Migration
             $table->index(['evidence_id', 'occurred_at']);
         });
 
-        Schema::create('grievance_notes', function (Blueprint $table): void {
+        $this->createTable('grievance_notes', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->nullable()->constrained('grievance_case_stages')->nullOnDelete();
@@ -634,7 +637,7 @@ return new class extends Migration
             $table->index(['grievance_id', 'created_at']);
         });
 
-        Schema::create('grievance_tasks', function (Blueprint $table): void {
+        $this->createTable('grievance_tasks', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->nullable()->constrained('grievance_case_stages')->nullOnDelete();
@@ -651,7 +654,7 @@ return new class extends Migration
             $table->index(['grievance_id', 'status']);
         });
 
-        Schema::create('grievance_case_events', function (Blueprint $table): void {
+        $this->createTable('grievance_case_events', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->uuid('case_stage_id')->nullable();
@@ -664,7 +667,7 @@ return new class extends Migration
             $table->index(['grievance_id', 'occurred_at']);
         });
 
-        Schema::create('grievance_amendments', function (Blueprint $table): void {
+        $this->createTable('grievance_amendments', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->json('changes');
@@ -675,7 +678,7 @@ return new class extends Migration
         });
 
         // ── Correspondence ───────────────────────────────────────────────────
-        Schema::create('grievance_letters', function (Blueprint $table): void {
+        $this->createTable('grievance_letters', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('case_stage_id')->nullable()->constrained('grievance_case_stages')->nullOnDelete();
@@ -719,7 +722,7 @@ return new class extends Migration
             $table->index(['status', 'issued_at']);
         });
 
-        Schema::create('grievance_letter_recipients', function (Blueprint $table): void {
+        $this->createTable('grievance_letter_recipients', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('letter_id')->constrained('grievance_letters')->cascadeOnDelete();
             $table->string('kind', 20);
@@ -734,7 +737,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('grievance_letter_attachments', function (Blueprint $table): void {
+        $this->createTable('grievance_letter_attachments', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('letter_id')->constrained('grievance_letters')->cascadeOnDelete();
             $table->string('attachment_type', 30);
@@ -745,7 +748,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('grievance_letter_dispatches', function (Blueprint $table): void {
+        $this->createTable('grievance_letter_dispatches', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('letter_id')->constrained('grievance_letters')->cascadeOnDelete();
             $table->foreignUuid('recipient_id')->nullable()->constrained('grievance_letter_recipients')->nullOnDelete();
@@ -767,13 +770,14 @@ return new class extends Migration
         });
 
         // ── Outcomes ─────────────────────────────────────────────────────────
-        Schema::create('grievance_corrective_actions', function (Blueprint $table): void {
+        $this->createTable('grievance_corrective_actions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('decision_id')->nullable()->constrained('grievance_decisions')->nullOnDelete();
             $table->text('description');
             $table->foreignUuid('responsible_organization_id')->nullable()->constrained('organizations')->nullOnDelete();
-            $table->foreignUuid('responsible_organization_unit_id')->nullable()->constrained('organization_units')->nullOnDelete();
+            // Named: the generated name exceeds MySQL's 64-character limit.
+            $table->foreignUuid('responsible_organization_unit_id')->nullable()->constrained('organization_units', indexName: 'gca_responsible_unit_foreign')->nullOnDelete();
             $table->date('due_date')->nullable();
             $table->string('status', 20)->default('open');
             $table->text('completion_notes')->nullable();
@@ -786,12 +790,13 @@ return new class extends Migration
             $table->index(['status', 'due_date']);
         });
 
-        Schema::create('grievance_disciplinary_referrals', function (Blueprint $table): void {
+        $this->createTable('grievance_disciplinary_referrals', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('grievance_id')->constrained('grievances')->cascadeOnDelete();
             $table->foreignUuid('decision_id')->nullable()->constrained('grievance_decisions')->nullOnDelete();
-            $table->foreignUuid('referred_to_organization_id')->nullable()->constrained('organizations')->nullOnDelete();
-            $table->foreignUuid('referred_to_organization_unit_id')->nullable()->constrained('organization_units')->nullOnDelete();
+            // Named: the generated names exceed MySQL's 64-character limit.
+            $table->foreignUuid('referred_to_organization_id')->nullable()->constrained('organizations', indexName: 'gdr_referred_org_foreign')->nullOnDelete();
+            $table->foreignUuid('referred_to_organization_unit_id')->nullable()->constrained('organization_units', indexName: 'gdr_referred_unit_foreign')->nullOnDelete();
             $table->text('reason');
             $table->string('status', 20)->default('referred');
             // A disciplinary module does not exist yet; its case id/reference
@@ -864,5 +869,57 @@ return new class extends Migration
         });
         // The relaxed committee unique is not restored: re-adding it could fail
         // on committees legitimately re-constituted while this was live.
+    }
+
+    /** @param array<string, \Closure(Blueprint): mixed> $columns column => definition */
+    private function addColumns(string $table, array $columns): void
+    {
+        foreach ($columns as $column => $define) {
+            if (! Schema::hasColumn($table, $column)) {
+                Schema::table($table, fn (Blueprint $blueprint) => $define($blueprint));
+            }
+        }
+    }
+
+    /** @param \Closure(Blueprint): mixed $define */
+    private function addIndex(string $table, string $index, \Closure $define): void
+    {
+        if (! Schema::hasIndex($table, $index)) {
+            Schema::table($table, fn (Blueprint $blueprint) => $define($blueprint));
+        }
+    }
+
+    /** @param \Closure(Blueprint): mixed $define */
+    private function createTable(string $table, \Closure $define): void
+    {
+        if (! Schema::hasTable($table)) {
+            Schema::create($table, $define);
+        }
+    }
+
+    /**
+     * At most one current stage per case. PostgreSQL and SQLite take a
+     * partial unique index. MySQL has none, so a generated column holds the
+     * case id only on the current stage and is made unique; the other stages
+     * hold NULL, which a unique index allows any number of. VIRTUAL, not
+     * STORED: MySQL forbids a stored generated column whose base column has
+     * an ON DELETE CASCADE foreign key, as grievance_id does.
+     */
+    private function oneCurrentStagePerCase(): void
+    {
+        if (Schema::hasIndex('grievance_case_stages', 'grievance_case_stages_one_current')) {
+            return;
+        }
+
+        if (in_array(DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+            if (! Schema::hasColumn('grievance_case_stages', 'current_grievance_id')) {
+                DB::statement('ALTER TABLE grievance_case_stages ADD COLUMN current_grievance_id CHAR(36) GENERATED ALWAYS AS (CASE WHEN is_current = 1 THEN grievance_id END) VIRTUAL');
+            }
+            DB::statement('CREATE UNIQUE INDEX grievance_case_stages_one_current ON grievance_case_stages (current_grievance_id)');
+
+            return;
+        }
+
+        DB::statement('CREATE UNIQUE INDEX grievance_case_stages_one_current ON grievance_case_stages (grievance_id) WHERE is_current = '.(DB::getDriverName() === 'pgsql' ? 'true' : '1'));
     }
 };
