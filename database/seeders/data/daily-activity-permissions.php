@@ -70,6 +70,16 @@ return [
         'Assign which users review the daily activity of which units or employees, inside your organization scope.',
         'በድርጅት ወሰንዎ ውስጥ የትኞቹ ተጠቃሚዎች የየትኞቹን ክፍሎች ወይም ሠራተኞች ዕለታዊ እንቅስቃሴ እንደሚገመግሙ ይመድቡ።'),
 
+    // Work standards (sub-services, main tasks, task standards / BPR plans)
+    $entry('work_standards.manage', 10, 'Manage work standards', 'የሥራ ስታንዳርዶችን ያስተዳድሩ',
+        'Maintain sub-services, main tasks and draft task standards (BPR plans) of position services inside your organization scope.',
+        'በድርጅት ወሰንዎ ውስጥ የሥራ መደብ አገልግሎቶችን ንዑስ አገልግሎቶች፣ ዋና ተግባራት እና ረቂቅ የተግባር ስታንዳርዶችን (የBPR ዕቅዶች) ያስተዳድሩ።',
+        'work_standards'),
+    $entry('work_standards.approve', 20, 'Approve work standards', 'የሥራ ስታንዳርዶችን ያጽድቁ',
+        'Approve a task standard version so it measures daily work from its effective date, or retire one. Inside your organization scope.',
+        'የተግባር ስታንዳርድ ስሪት ከሚጀምርበት ቀን ጀምሮ ዕለታዊ ሥራን እንዲለካ ያጽድቁ፣ ወይም ያቋርጡ። በድርጅት ወሰንዎ ውስጥ።',
+        'work_standards'),
+
     // Module settings
     $entry('daily_activity_settings.view', 10, 'View daily activity settings', 'የዕለታዊ እንቅስቃሴ ቅንብሮችን ይመልከቱ',
         'View Daily Activity module settings such as deadlines, backdating and reminders.',

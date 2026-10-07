@@ -24,6 +24,7 @@ const confirmations = {
     iUnderstand: 'የዚህን ድርጊት መዘዝ ተረድቻለሁ።',
     operationInProgress: 'በሂደት ላይ...',
     confirmDeleteTitle: 'መዝገብ ይሰርዙ?',
+    deleteWarning: 'ይህን መዝገብ ይሰርዛሉ? ይህ ድርጊት ሊቀለበስ አይችልም።',
     confirmRestoreTitle: 'መዝገብ ይመልሱ?',
     confirmPublishTitle: 'ስሪቱን ያትሙ?',
     confirmApproveTitle: 'ጥያቄውን ያጽድቁ?',

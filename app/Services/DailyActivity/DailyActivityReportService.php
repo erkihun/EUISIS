@@ -31,6 +31,9 @@ class DailyActivityReportService
         'review_status',
         'by_task',
         'monthly_summary',
+        // Work execution register: measured against task standards.
+        'task_performance',
+        'sub_service_performance',
     ];
 
     /** Rows returned for on-screen display; exports use EXPORT_LIMIT. */
@@ -42,6 +45,7 @@ class DailyActivityReportService
         private readonly DailyActivityQueryService $queries,
         private readonly DailyActivityCalendarService $calendar,
         private readonly DailyActivitySettings $settings,
+        private readonly DailyWorkPerformanceCalculator $calculator,
     ) {}
 
     /**
@@ -77,6 +81,8 @@ class DailyActivityReportService
             'review_status' => $this->reviewStatus($coverage, $filters, $limit),
             'by_task' => $this->byTask($coverage, $filters),
             'monthly_summary' => $this->monthlySummary($coverage, $from, $to, $filters, $limit),
+            'task_performance' => $this->taskPerformance($coverage, $filters),
+            'sub_service_performance' => $this->subServicePerformance($coverage, $filters),
         };
 
         $truncated = count($rows) > $limit;
@@ -299,6 +305,115 @@ class DailyActivityReportService
                 'carried_forward' => (int) $row->carried_forward,
             ])->all(),
         ];
+    }
+
+    /**
+     * Plan against actual per main task: executions, employees, planned and
+     * actual quantity, and the average of each dimension's score over the
+     * task's measured items. Submitted days only, within scope. One grouped
+     * query: the number of rows is the number of tasks, never of items.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array{0: array<int, string>, 1: array<int, array<string, mixed>>}
+     */
+    private function taskPerformance(DailyActivityCoverage $coverage, array $filters): array
+    {
+        $rows = $this->taskRows($coverage, $filters);
+
+        return [
+            ['main_service', 'sub_service', 'main_task', 'executions', 'employees', 'planned_quantity', 'actual_quantity', 'quantity_score', 'time_score', 'quality_score', 'task_score'],
+            $rows->map(fn ($row): array => [
+                'main_service' => $this->localized($row->service_en, $row->service_am),
+                'sub_service' => trim($row->sub_code.' '.$this->localized($row->sub_en, $row->sub_am)),
+                'main_task' => trim($row->task_code.' '.$this->localized($row->task_en, $row->task_am)),
+                'executions' => (int) $row->executions,
+                'employees' => (int) $row->employees,
+                'planned_quantity' => $this->number($row->planned_quantity),
+                'actual_quantity' => $this->number($row->actual_quantity),
+                'quantity_score' => $this->percent($row->quantity_score),
+                'time_score' => $this->percent($row->time_score),
+                'quality_score' => $this->percent($row->quality_score),
+                'task_score' => $this->percent($row->task_score),
+            ])->all(),
+        ];
+    }
+
+    /**
+     * The form's sub-service aggregate: (Task 1 + Task 2 + …) / number of
+     * tasks, where a task's performance is the average over its executions
+     * and only tasks executed in the period count (docs/daily-work-register.md
+     * records this as the rule awaiting confirmation). Tasks of different
+     * sub-services are never mixed.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array{0: array<int, string>, 1: array<int, array<string, mixed>>}
+     */
+    private function subServicePerformance(DailyActivityCoverage $coverage, array $filters): array
+    {
+        $bySub = $this->taskRows($coverage, $filters)->groupBy('sub_service_id');
+
+        $rows = $bySub->map(function ($tasks): array {
+            $first = $tasks->first();
+            $scores = $tasks->pluck('task_score')->filter(fn ($score) => $score !== null)->map(fn ($score) => $this->decimalString($score))->values()->all();
+
+            return [
+                'main_service' => $this->localized($first->service_en, $first->service_am),
+                'sub_service' => trim($first->sub_code.' '.$this->localized($first->sub_en, $first->sub_am)),
+                'tasks_executed' => $tasks->count(),
+                'executions' => (int) $tasks->sum('executions'),
+                'sub_service_score' => $this->percent($this->calculator->subServiceScore($scores)),
+            ];
+        })->values()->all();
+
+        return [['main_service', 'sub_service', 'tasks_executed', 'executions', 'sub_service_score'], $rows];
+    }
+
+    /** @param array<string, mixed> $filters */
+    private function taskRows(DailyActivityCoverage $coverage, array $filters): \Illuminate\Support\Collection
+    {
+        return DailyActivityItem::query()
+            ->whereNotNull('daily_activity_items.task_standard_id')
+            ->whereIn('daily_activity_log_id', $this->queries->logs($coverage, $filters)
+                ->whereIn('status', DailyActivityStatus::submittedValues())
+                ->select('id'))
+            ->join('daily_activity_logs', 'daily_activity_logs.id', '=', 'daily_activity_items.daily_activity_log_id')
+            ->join('position_service_tasks', 'position_service_tasks.id', '=', 'daily_activity_items.task_id')
+            ->join('position_service_sub_services', 'position_service_sub_services.id', '=', 'daily_activity_items.sub_service_id')
+            ->join('position_services', 'position_services.id', '=', 'daily_activity_items.position_service_id')
+            ->selectRaw('daily_activity_items.task_id, daily_activity_items.sub_service_id')
+            ->selectRaw('position_services.name_en as service_en, position_services.name_am as service_am')
+            ->selectRaw('position_service_sub_services.code as sub_code, position_service_sub_services.name_en as sub_en, position_service_sub_services.name_am as sub_am')
+            ->selectRaw('position_service_tasks.code as task_code, position_service_tasks.name_en as task_en, position_service_tasks.name_am as task_am')
+            ->selectRaw('COUNT(*) as executions, COUNT(DISTINCT daily_activity_logs.employee_id) as employees')
+            ->selectRaw('SUM(daily_activity_items.planned_quantity) as planned_quantity, SUM(daily_activity_items.quantity) as actual_quantity')
+            ->selectRaw('AVG(daily_activity_items.quantity_score) as quantity_score, AVG(daily_activity_items.time_score) as time_score')
+            ->selectRaw('AVG(daily_activity_items.quality_score) as quality_score, AVG(daily_activity_items.task_score) as task_score')
+            ->groupBy(
+                'daily_activity_items.task_id', 'daily_activity_items.sub_service_id',
+                'position_services.name_en', 'position_services.name_am',
+                'position_service_sub_services.code', 'position_service_sub_services.name_en', 'position_service_sub_services.name_am',
+                'position_service_tasks.code', 'position_service_tasks.name_en', 'position_service_tasks.name_am',
+            )
+            ->orderBy('position_service_sub_services.code')
+            ->orderBy('position_service_tasks.code')
+            ->get();
+    }
+
+    /** A score as a percent with two decimals, never capped. */
+    private function percent(mixed $value): ?string
+    {
+        return $value === null ? null : $this->calculator->round($this->decimalString($value), 2);
+    }
+
+    private function number(mixed $value): ?string
+    {
+        return $value === null ? null : rtrim(rtrim($this->calculator->round($this->decimalString($value), 4), '0'), '.');
+    }
+
+    /** NUMERIC from PostgreSQL arrives as a string; other drivers may return a float. */
+    private function decimalString(mixed $value): string
+    {
+        return is_float($value) ? sprintf('%.10F', $value) : (string) $value;
     }
 
     private function monthlySummary(DailyActivityCoverage $coverage, Carbon $from, Carbon $to, array $filters, int $limit): array

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Providers\AppServiceProvider;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\Mail;
+use Inertia\Testing\AssertableInertia;
 
 /**
  * Email settings must reach the mail transport as configured, and the
@@ -123,7 +124,7 @@ it('shows the mail settings in use and where each comes from, without secrets', 
     mailSetting('mail_port', '587', 'integer');
 
     $this->actingAs(emailAdmin())->get(route('system-settings.index', ['tab' => 'email']))->assertOk()
-        ->assertInertia(fn (Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('emailInEffect.port.source', 'settings')
             ->where('emailInEffect.host.source', 'server')
             ->where('emailInEffect.password.value', 'set')

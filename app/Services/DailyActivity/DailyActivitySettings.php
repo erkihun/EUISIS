@@ -90,6 +90,20 @@ class DailyActivitySettings
         return $this->bool('require_output_result', true);
     }
 
+    /** Every item must name a main task, measured by its approved standard. */
+    public function structuredEntryRequired(): bool
+    {
+        return $this->bool('structured_entry_required', false);
+    }
+
+    /** How the main task aggregate treats a standard measuring fewer than three dimensions. */
+    public function taskScoreRule(): string
+    {
+        $rule = (string) $this->settings->get(SystemSettingsRegistry::GROUP_DAILY_ACTIVITY, 'task_score_rule', DailyWorkPerformanceCalculator::RULE_APPLICABLE_AVERAGE);
+
+        return $rule === DailyWorkPerformanceCalculator::RULE_ALL_THREE ? $rule : DailyWorkPerformanceCalculator::RULE_APPLICABLE_AVERAGE;
+    }
+
     public function managerReviewRequired(): bool
     {
         return $this->bool('manager_review_required', true);
@@ -158,6 +172,8 @@ class DailyActivitySettings
             'max_backdate_days' => $this->maxBackdateDays(),
             'require_late_reason' => $this->requireLateReason(),
             'require_output_result' => $this->requireOutputResult(),
+            'structured_entry_required' => $this->structuredEntryRequired(),
+            'task_score_rule' => $this->taskScoreRule(),
             'evidence_attachments_enabled' => $this->evidenceAttachmentsEnabled(),
             'max_attachment_size_kb' => $this->maxAttachmentSizeKb(),
         ];

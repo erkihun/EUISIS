@@ -24,6 +24,7 @@ const confirmations = {
     iUnderstand: 'I understand the consequences of this action.',
     operationInProgress: 'Processing...',
     confirmDeleteTitle: 'Delete record?',
+    deleteWarning: 'Delete this record? This action cannot be undone.',
     confirmRestoreTitle: 'Restore record?',
     confirmPublishTitle: 'Publish version?',
     confirmApproveTitle: 'Approve request?',

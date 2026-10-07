@@ -32,6 +32,7 @@ const SECTIONS: { key: string; fields: string[] }[] = [
     { key: 'general', fields: ['enabled', 'require_daily_submission', 'tracking_start_date', 'work_week_days'] },
     { key: 'submission', fields: ['submission_deadline', 'require_late_reason', 'reject_late_submission', 'allow_backdated_submission', 'max_backdate_days', 'require_output_result'] },
     { key: 'review', fields: ['manager_review_required', 'notify_on_approval'] },
+    { key: 'measurement', fields: ['structured_entry_required', 'task_score_rule'] },
     { key: 'reminders', fields: ['auto_reminder_enabled', 'reminder_time'] },
     { key: 'evidence', fields: ['evidence_attachments_enabled', 'max_attachment_size_kb'] },
 ];
@@ -114,6 +115,12 @@ export default function DailyActivitiesSettings({ fields, canUpdate, can }: Prop
                         </label>
                     ))}
                 </div>
+            );
+        } else if (field.type === 'select') {
+            control = (
+                <select id={id} disabled={disabled} className={inputCls} value={String(value ?? '')} onChange={(e) => settingsForm.setData(field.key, e.target.value)}>
+                    {(field.options ?? []).map((option) => <option key={option} value={option}>{t(`dailyActivities.settings.options.${field.key}.${option}`)}</option>)}
+                </select>
             );
         } else if (field.type === 'date') {
             control = <LocalizedDatePicker id={id} value={String(value ?? '')} disabled={disabled} onChange={(v) => settingsForm.setData(field.key, v)} />;

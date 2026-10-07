@@ -40,10 +40,23 @@ class ReviewDailyActivityRequest extends FormRequest
                 : ['nullable', 'string', 'max:2000'],
             'item_notes' => ['nullable', 'array', 'max:30'],
             'item_notes.*' => ['nullable', 'string', 'max:1000'],
+            // Actual quality for tasks whose standard leaves it to the reviewer.
+            'item_quality' => ['nullable', 'array', 'max:30'],
+            'item_quality.*' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             // The submission the reviewer actually read. A decision on a
             // version that has since been resubmitted is refused.
             'submission_count' => ['required', 'integer', 'min:1'],
         ];
+    }
+
+    /** @return array<string, string> item id => actual quality the reviewer recorded */
+    public function itemQuality(): array
+    {
+        return array_filter(
+            (array) $this->validated('item_quality', []),
+            static fn ($value, $key): bool => is_string($key) && $value !== null && $value !== '',
+            ARRAY_FILTER_USE_BOTH,
+        );
     }
 
     /** @return array<string, string> item id => note, only non-empty notes */

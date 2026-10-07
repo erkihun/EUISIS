@@ -63,6 +63,30 @@ class PositionServicePolicy
         return $this->update($user, $record);
     }
 
+    /** See the sub-services, main tasks and task standards of this service. */
+    public function viewStructure(User $user, PositionService $record): bool
+    {
+        return ($this->viewAny($user) || $user->hasAnyPermission(['work_standards.manage', 'work_standards.approve']))
+            && $this->withinScope($user, $record->organization_id);
+    }
+
+    /** Maintain sub-services, main tasks and draft standards of this service. */
+    public function manageStructure(User $user, PositionService $record): bool
+    {
+        return $user->hasAnyPermission(['work_standards.manage'])
+            && $this->withinScope($user, $record->organization_id);
+    }
+
+    /**
+     * Approve or retire a standard version of this service's tasks: the act
+     * that decides how daily work is measured, so a separate right.
+     */
+    public function approveStandards(User $user, PositionService $record): bool
+    {
+        return $user->hasAnyPermission(['work_standards.approve'])
+            && $this->withinScope($user, $record->organization_id);
+    }
+
     /** Toggling whether ratings for this service count toward evaluation. */
     public function managePerformanceFlag(User $user, PositionService $record): bool
     {

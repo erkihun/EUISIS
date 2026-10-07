@@ -30,7 +30,9 @@ export default function DailyActivitiesShow({ log, can }: Props): JSX.Element {
     const [openHistory, setOpenHistory] = useState<string | null>(null);
     // submission_count pins the decision to the submission on screen; the
     // server refuses it if the employee has resubmitted since.
-    const form = useForm<{ comment: string; item_notes: Record<string, string>; submission_count: number }>({ comment: '', item_notes: {}, submission_count: log.submission_count });
+    const form = useForm<{ comment: string; item_notes: Record<string, string>; item_quality: Record<string, string>; submission_count: number }>({ comment: '', item_notes: {}, item_quality: {}, submission_count: log.submission_count });
+    // Tasks whose approved standard makes the reviewer the authority on quality.
+    const qualityItems = log.items.filter((item) => item.id && item.standard?.quality_source === 'reviewer' && item.standard.planned_quality !== null);
 
     function decide(action: 'approve' | 'return') {
         form.post(route(action === 'approve' ? 'daily-activities.approve' : 'daily-activities.return', log.id), { preserveScroll: true });
@@ -124,6 +126,24 @@ export default function DailyActivitiesShow({ log, can }: Props): JSX.Element {
                                 {mode === 'return' && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.show.returnHint')}</p>}
                                 {form.errors.comment && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{form.errors.comment}</p>}
                             </div>
+
+                            {mode === 'approve' && qualityItems.length > 0 && (
+                                <fieldset className="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-slate-700">
+                                    <legend className="px-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{t('dailyActivities.work.reviewerQualityTitle')}</legend>
+                                    {qualityItems.map((item) => (
+                                        <div key={item.id}>
+                                            <label htmlFor={`quality-${item.id}`} className={labelCls}>
+                                                {item.title} — {t('dailyActivities.work.actualQuality')} ({t('dailyActivities.work.planQuality')}: {item.standard?.planned_quality} {item.standard?.quality_unit ?? ''}) <span className="text-red-600">*</span>
+                                            </label>
+                                            {item.standard?.quality_measure && <p className="mb-1 text-xs text-gray-500 dark:text-slate-400">{item.standard.quality_measure}</p>}
+                                            <input id={`quality-${item.id}`} type="number" min={0} step="any" inputMode="decimal" className={inputCls}
+                                                value={form.data.item_quality[item.id as string] ?? ''}
+                                                onChange={(e) => form.setData('item_quality', { ...form.data.item_quality, [item.id as string]: e.target.value })} />
+                                            {(form.errors as Record<string, string>)[`item_quality.${item.id}`] && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{(form.errors as Record<string, string>)[`item_quality.${item.id}`]}</p>}
+                                        </div>
+                                    ))}
+                                </fieldset>
+                            )}
 
                             {mode === 'return' && log.items.length > 1 && (
                                 <div className="space-y-2">

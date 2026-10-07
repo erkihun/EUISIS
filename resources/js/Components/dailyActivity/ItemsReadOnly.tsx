@@ -2,6 +2,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 import { named } from './helpers';
 import type { ActivityItem } from './types';
+import { ScoreRow, StandardSummary, hoursMinutes, plain } from './WorkExecution';
 
 type TracedItem = ActivityItem & { cascade_trace?: { id: string; type: string; label: string | null; weight?: string; unit?: string | null; position?: string | null }[] };
 
@@ -19,9 +20,13 @@ export default function ItemsReadOnly({ items, showReviewerNotes = true }: { ite
     return (
         <ol className="divide-y divide-gray-100 dark:divide-slate-800">
             {items.map((item, index) => {
-                const task = item.position_service
-                    ? named(item.position_service, locale)
-                    : t(`dailyActivities.categories.${item.activity_category ?? 'other'}`);
+                // Main service › sub-service › main task for measured work.
+                const task = item.task
+                    ? [item.position_service ? named(item.position_service, locale) : null, item.sub_service ? named(item.sub_service, locale) : null, `${item.task.code} ${named(item.task, locale)}`]
+                        .filter(Boolean).join(' › ')
+                    : item.position_service
+                        ? named(item.position_service, locale)
+                        : t(`dailyActivities.categories.${item.activity_category ?? 'other'}`);
                 const time = [item.started_at, item.ended_at].filter(Boolean).join('–');
                 const extra = [
                     time,
@@ -59,6 +64,18 @@ export default function ItemsReadOnly({ items, showReviewerNotes = true }: { ite
                                     <dd className="text-gray-800 dark:text-slate-200">{extra}</dd>
                                 </>
                             )}
+                            {item.standard && (
+                                <>
+                                    <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.work.timeTaken')}</dt>
+                                    <dd className="tabular-nums text-gray-800 dark:text-slate-200">{hoursMinutes(item.duration_minutes)}</dd>
+                                    {item.standard.planned_quality !== null && (
+                                        <>
+                                            <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.work.actualQuality')}</dt>
+                                            <dd className="text-gray-800 dark:text-slate-200">{item.actual_quality === null || item.actual_quality === undefined ? t('dailyActivities.work.awaitingReviewer') : `${plain(item.actual_quality)} ${item.standard.quality_unit ?? ''}`.trim()}</dd>
+                                        </>
+                                    )}
+                                </>
+                            )}
                             {item.challenge_issue && (
                                 <>
                                     <dt className="text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.challengeIssue')}</dt>
@@ -72,6 +89,12 @@ export default function ItemsReadOnly({ items, showReviewerNotes = true }: { ite
                                 </>
                             )}
                         </dl>
+                        {item.standard && (
+                            <div className="mt-3 space-y-3">
+                                <StandardSummary standard={item.standard} />
+                                {item.scores && <ScoreRow scores={item.scores} />}
+                            </div>
+                        )}
                         {!!item.cascade_trace?.length && <details className="mt-3 text-xs text-gray-600 dark:text-slate-300">
                             <summary className="cursor-pointer font-medium">{t('performance.plans.cascadeTrace')}</summary>
                             <ol className="mt-2 space-y-2 border-l-2 border-blue-200 pl-3 dark:border-blue-900">

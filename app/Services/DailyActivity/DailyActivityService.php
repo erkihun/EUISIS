@@ -62,6 +62,26 @@ class DailyActivityService
         'next_action',
         // EPMS: the employee's own KPI item this work is evidence for.
         'employee_performance_item_id',
+        // Work execution register: the chosen task and the recorded actuals.
+        'sub_service_id',
+        'task_id',
+        'actual_quality',
+    ];
+
+    /**
+     * Set by WorkStructureResolver from master data, never from the request:
+     * the standard used, the planned values copied from it, and the scores.
+     */
+    private const RESOLVED_FIELDS = [
+        'task_standard_id',
+        'planned_quantity',
+        'planned_time_minutes',
+        'planned_quality',
+        'standard_snapshot',
+        'quantity_score',
+        'time_score',
+        'quality_score',
+        'task_score',
     ];
 
     public function __construct(
@@ -70,6 +90,7 @@ class DailyActivityService
         private readonly EmployeeWorkContextResolver $context,
         private readonly WriteAuditLogAction $audit,
         private readonly DailyActivityNotifier $notifier,
+        private readonly WorkStructureResolver $structure,
     ) {}
 
     // ── Employee ────────────────────────────────────────────────────────────
@@ -105,7 +126,10 @@ class DailyActivityService
 
         $items = $this->normalizeItems($data['items'] ?? []);
         $positionId = $existing?->position_id ?? $assignment?->position_id;
-        $this->assertTasksBelongToPosition($items, $positionId, $existing?->organization_id ?? $assignment?->organization_id, $existing);
+        $organizationId = $existing?->organization_id ?? $assignment?->organization_id;
+        // Task → sub-service → service → standard, all resolved for the work date.
+        $items = $this->structure->resolve($items, $positionId, $organizationId, $date, $existing);
+        $this->assertTasksBelongToPosition($items, $positionId, $organizationId, $existing);
         $performanceLinks = $this->performanceLinks($items, $employee, $date);
 
         return DB::transaction(function () use ($actor, $employee, $date, $data, $submit, $items, $assignment, $performanceLinks): DailyActivityLog {
@@ -157,16 +181,18 @@ class DailyActivityService
     /**
      * @param  array<string, string>  $itemNotes  item id => note (optional)
      * @param  int|null  $reviewedSubmission  the submission_count the reviewer read; null only for internal callers
+     * @param  array<string, mixed>  $itemQuality  item id => actual quality, for tasks whose standard makes the reviewer record quality
      */
-    public function approve(User $reviewer, DailyActivityLog $log, ?string $comment, array $itemNotes = [], ?int $reviewedSubmission = null): DailyActivityLog
+    public function approve(User $reviewer, DailyActivityLog $log, ?string $comment, array $itemNotes = [], ?int $reviewedSubmission = null, array $itemQuality = []): DailyActivityLog
     {
-        $log = DB::transaction(function () use ($reviewer, $log, $comment, $itemNotes, $reviewedSubmission): DailyActivityLog {
+        $log = DB::transaction(function () use ($reviewer, $log, $comment, $itemNotes, $reviewedSubmission, $itemQuality): DailyActivityLog {
             $locked = $this->lock($log);
             $this->assertAwaitingReview($locked);
             $this->assertCurrentSubmission($locked, $reviewedSubmission);
 
             $from = $locked->status;
             $this->applyItemNotes($locked, $itemNotes);
+            $this->applyReviewerQuality($locked, $itemQuality);
             $this->transition($locked, DailyActivityStatus::Approved, [
                 'reviewed_at' => now(),
                 'reviewed_by' => $reviewer->getKey(),
@@ -445,12 +471,75 @@ class DailyActivityService
             if (blank($item->title)) {
                 $errors["items.{$index}.title"] = __('validation.required', ['attribute' => __('daily-activities.fields.title')]);
             }
-            if (blank($item->description)) {
+            if ($this->settings->structuredEntryRequired() && ! $item->isStructured()) {
+                $errors["items.{$index}.task_id"] = __('daily-activities.task_required');
+            }
+            if ($item->isStructured()) {
+                // A measured task needs what its standard measures. Its own
+                // values are the record, so a narrative is optional.
+                foreach ($this->missingActuals($item) as $field => $message) {
+                    $errors["items.{$index}.{$field}"] = $message;
+                }
+            } elseif (blank($item->description)) {
                 $errors["items.{$index}.description"] = __('validation.required', ['attribute' => __('daily-activities.fields.description')]);
             }
             if ($this->settings->requireOutputResult() && blank($item->output_result)) {
                 $errors["items.{$index}.output_result"] = __('daily-activities.output_required');
             }
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
+    /**
+     * What a measured task still lacks before it can be submitted.
+     *
+     * @return array<string, string>
+     */
+    private function missingActuals(DailyActivityItem $item): array
+    {
+        $missing = [];
+
+        // The form records start and completion for every task.
+        if ($item->started_at === null || $item->ended_at === null || $item->duration_minutes === null) {
+            $missing['started_at'] = __('daily-activities.times_required');
+        }
+        if ($item->planned_quantity !== null && $item->quantity === null) {
+            $missing['quantity'] = __('daily-activities.actual_quantity_required');
+        }
+        if ($item->planned_quality !== null && $item->actual_quality === null && ! $this->structure->needsReviewerQuality($item)) {
+            $missing['actual_quality'] = __('daily-activities.actual_quality_required');
+        }
+
+        return $missing;
+    }
+
+    /**
+     * Record the actual quality the standard leaves to the reviewer, and
+     * rescore those items. Every such item must receive a value before the
+     * day can be approved; values for any other item are ignored.
+     *
+     * @param  array<string, mixed>  $itemQuality
+     */
+    private function applyReviewerQuality(DailyActivityLog $log, array $itemQuality): void
+    {
+        $errors = [];
+
+        foreach ($log->items()->get() as $item) {
+            if (! $this->structure->needsReviewerQuality($item)) {
+                continue;
+            }
+
+            $value = $itemQuality[$item->id] ?? null;
+            if (blank($value) || ! is_numeric($value) || (float) $value < 0) {
+                $errors["item_quality.{$item->id}"] = __('daily-activities.reviewer_quality_required', ['task' => $item->title]);
+
+                continue;
+            }
+
+            $item->forceFill($this->structure->rescoreWithQuality($item, (string) $value))->save();
         }
 
         if ($errors !== []) {
@@ -633,7 +722,11 @@ class DailyActivityService
             } else {
                 $item = $log->items()->make($attributes);
             }
-            $item->forceFill(['kpi_id' => $link['kpi_id'] ?? null, 'performance_objective_id' => $link['objective_id'] ?? null])->save();
+            $item->forceFill([
+                'kpi_id' => $link['kpi_id'] ?? null,
+                'performance_objective_id' => $link['objective_id'] ?? null,
+                ...array_intersect_key($data, array_flip(self::RESOLVED_FIELDS)),
+            ])->save();
 
             $keep[] = $item->id;
         }
@@ -670,11 +763,12 @@ class DailyActivityService
                 $row[$field] = $this->nullableText($row[$field] ?? null);
             }
             $row['title'] = (string) ($row['title'] ?? '');
-            foreach (['activity_category', 'position_service_id', 'started_at', 'ended_at', 'id'] as $field) {
+            foreach (['activity_category', 'position_service_id', 'sub_service_id', 'task_id', 'started_at', 'ended_at', 'id'] as $field) {
                 $row[$field] = blank($row[$field] ?? null) ? null : (string) $row[$field];
             }
             $row['duration_minutes'] = blank($row['duration_minutes'] ?? null) ? null : (int) $row['duration_minutes'];
             $row['quantity'] = blank($row['quantity'] ?? null) ? null : $row['quantity'];
+            $row['actual_quality'] = blank($row['actual_quality'] ?? null) ? null : $row['actual_quality'];
 
             if ($row['duration_minutes'] === null && $row['started_at'] !== null && $row['ended_at'] !== null) {
                 $minutes = Carbon::createFromFormat('H:i', substr($row['started_at'], 0, 5))
@@ -714,6 +808,17 @@ class DailyActivityService
             'unit_of_measure' => $item->unit_of_measure,
             'challenge_issue' => $item->challenge_issue,
             'next_action' => $item->next_action,
+            'sub_service_id' => $item->sub_service_id,
+            'task_id' => $item->task_id,
+            'task_standard_id' => $item->task_standard_id,
+            'planned_quantity' => $item->planned_quantity,
+            'planned_time_minutes' => $item->planned_time_minutes,
+            'planned_quality' => $item->planned_quality,
+            'actual_quality' => $item->actual_quality,
+            'quantity_score' => $item->quantity_score,
+            'time_score' => $item->time_score,
+            'quality_score' => $item->quality_score,
+            'task_score' => $item->task_score,
         ])->all();
     }
 

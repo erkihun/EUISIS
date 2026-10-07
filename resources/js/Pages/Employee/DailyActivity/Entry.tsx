@@ -6,7 +6,8 @@ import ItemsReadOnly from '@/Components/dailyActivity/ItemsReadOnly';
 import {
     dangerBtn, fill, formatBytes, inputCls, labelCls, named, panelCls, primaryBtn, secondaryBtn,
 } from '@/Components/dailyActivity/helpers';
-import type { ActivityItem, EmployeeRef, LogDetail, Named, Option } from '@/Components/dailyActivity/types';
+import type { ActivityItem, EmployeeRef, LogDetail, Named, Option, WorkStructure } from '@/Components/dailyActivity/types';
+import { ScoreRow, StandardSummary, hoursMinutes, minutesBetween, previewScores } from '@/Components/dailyActivity/WorkExecution';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import { Plus, TrashIcon } from '@/Components/Icons';
@@ -21,6 +22,8 @@ type Props = {
     placement?: { organization: Named; organization_unit: Named; position: Named } | null;
     log?: LogDetail | null;
     tasks?: Option[];
+    /** Service → sub-service → main task → standard in force on the date. */
+    work_structure?: WorkStructure;
     kpis?: (Option & { unit?: string | null })[];
     options?: { categories: string[]; progress_statuses: string[] };
     rules?: {
@@ -28,6 +31,8 @@ type Props = {
         submission_deadline: string;
         require_late_reason: boolean;
         require_output_result: boolean;
+        structured_entry_required?: boolean;
+        task_score_rule?: 'applicable_average' | 'all_three';
         evidence_attachments_enabled: boolean;
         max_attachment_size_kb: number;
         would_be_late: boolean;
@@ -51,6 +56,9 @@ const blankItem = (): EditableItem => ({
     open: false,
     activity_category: null,
     position_service_id: null,
+    sub_service_id: null,
+    task_id: null,
+    actual_quality: null,
     title: '',
     description: '',
     output_result: '',
@@ -93,6 +101,7 @@ export default function DailyActivityEntry(props: Props): JSX.Element {
 
     const { date, log, rules, can, options } = props;
     const tasks = props.tasks ?? [];
+    const structure = props.work_structure ?? [];
     const kpis = props.kpis ?? [];
 
     return (
@@ -108,6 +117,7 @@ export default function DailyActivityEntry(props: Props): JSX.Element {
                 can={can}
                 options={options}
                 tasks={tasks}
+                structure={structure}
                 kpis={kpis}
                 t={t}
                 locale={locale}
@@ -124,13 +134,14 @@ type BodyProps = Props & {
     can: NonNullable<Props['can']>;
     options: NonNullable<Props['options']>;
     tasks: Option[];
+    structure: WorkStructure;
     kpis: Option[];
     t: (key: string) => string;
     locale: string;
     confirm: ReturnType<typeof useConfirm>['confirm'];
 };
 
-function EntryBody({ date, today, day_status, placement, log, tasks, kpis, options, rules, can, week, today_status, recent, t, locale, confirm }: BodyProps) {
+function EntryBody({ date, today, day_status, placement, log, tasks, structure, kpis, options, rules, can, week, today_status, recent, t, locale, confirm }: BodyProps) {
     const form = useForm<{ items: EditableItem[]; late_reason: string; action: 'draft' | 'submit' }>({
         items: log?.items.length ? log.items.map(toEditable) : (can.edit ? [blankItem()] : []),
         late_reason: log?.late_reason ?? '',
@@ -146,7 +157,9 @@ function EntryBody({ date, today, day_status, placement, log, tasks, kpis, optio
     const [savedSignature, setSavedSignature] = useState(signature);
     const dirty = can.edit && signature !== savedSignature;
     const busy = form.processing || uploading || removing || confirming;
-    const readyCount = form.data.items.filter((item) => item.title.trim() && item.description?.trim() && (!rules.require_output_result || item.output_result?.trim())).length;
+    // A measured task is ready with its times; other work needs a description.
+    const readyCount = form.data.items.filter((item) => (item.task_id ? Boolean(item.started_at && item.ended_at) : Boolean(item.title.trim() && item.description?.trim()))
+        && (!rules.require_output_result || item.output_result?.trim())).length;
     const step = log?.status === 'approved' ? 3 : log && !can.edit ? 2 : 1;
     const allowNavigation = useRef(false);
     const navigationPrompt = useRef(false);
@@ -218,7 +231,12 @@ function EntryBody({ date, today, day_status, placement, log, tasks, kpis, optio
         form.transform((data) => ({
             action,
             late_reason: data.late_reason,
-            items: data.items.map(({ key: _key, open: _open, reviewer_note: _note, position_service: _service, ...item }) => item),
+            // Read-only server values (names, standard, scores) are never sent:
+            // the server resolves and recalculates them on every save.
+            items: data.items.map(({ key: _key, open: _open, reviewer_note: _note, position_service: _service, sub_service: _sub, task: _task, standard: _standard, scores: _scores, ...item }) => {
+                const { cascade_trace: _trace, ...rest } = item as typeof item & { cascade_trace?: unknown };
+                return rest;
+            }),
         }));
         form.post(route('employee.daily-activity.save', date), {
             preserveScroll: true,
@@ -378,6 +396,9 @@ function EntryBody({ date, today, day_status, placement, log, tasks, kpis, optio
                             index={index}
                             item={item}
                             tasks={tasks}
+                            structure={structure}
+                            structuredRequired={Boolean(rules.structured_entry_required)}
+                            scoreRule={rules.task_score_rule ?? 'applicable_average'}
                             kpis={kpis}
                             options={options}
                             requireOutput={rules.require_output_result}
@@ -521,6 +542,9 @@ type EditorProps = {
     index: number;
     item: EditableItem;
     tasks: Option[];
+    structure: WorkStructure;
+    structuredRequired: boolean;
+    scoreRule: 'applicable_average' | 'all_three';
     kpis: Option[];
     options: { categories: string[]; progress_statuses: string[] };
     requireOutput: boolean;
@@ -531,10 +555,37 @@ type EditorProps = {
     locale: string;
 };
 
-function ItemEditor({ index, item, tasks, kpis, options, requireOutput, errors, onChange, onRemove, t, locale }: EditorProps) {
+function ItemEditor({ index, item, tasks, structure, structuredRequired, scoreRule, kpis, options, requireOutput, errors, onChange, onRemove, t, locale }: EditorProps) {
     const id = (field: string) => `item-${index}-${field}`;
     const error = (field: string) => errors[`items.${index}.${field}`];
     const text = (value: string | number | null | undefined) => (value === null || value === undefined ? '' : String(value));
+
+    // Main service → sub-service → main task, each list filtered by the one above.
+    const service = structure.find((entry) => entry.id === item.position_service_id);
+    const subServices = service?.sub_services ?? [];
+    const subService = subServices.find((entry) => entry.id === item.sub_service_id);
+    const taskOptions = subService?.tasks ?? [];
+    const chosenTask = taskOptions.find((entry) => entry.id === item.task_id);
+    // A saved item keeps the standard it was measured against; a new choice
+    // shows the standard in force on this date.
+    const standard = item.task_id ? (item.standard ?? chosenTask?.standard ?? null) : null;
+    const structured = Boolean(item.task_id);
+    const minutes = minutesBetween(item.started_at, item.ended_at);
+    const reviewerQuality = standard?.quality_source === 'reviewer';
+    const preview = standard ? previewScores(standard, { quantity: item.quantity, minutes, quality: reviewerQuality ? null : item.actual_quality }, scoreRule) : null;
+
+    const chooseTask = (taskId: string | null) => {
+        const next = taskOptions.find((entry) => entry.id === taskId);
+        const previousName = chosenTask ? named(chosenTask, locale) : '';
+        onChange({
+            task_id: taskId,
+            standard: null,
+            scores: null,
+            // The task names the activity unless the employee wrote their own title.
+            title: next && (!item.title || item.title === previousName) ? named(next, locale) : item.title,
+            open: item.open,
+        });
+    };
 
     return (
         <fieldset className={`${panelCls} min-w-0 p-4 shadow-sm sm:p-6`}>
@@ -556,17 +607,36 @@ function ItemEditor({ index, item, tasks, kpis, options, requireOutput, errors, 
 
             <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                    <label htmlFor={id('task')} className={labelCls}>{t('dailyActivities.fields.relatedTask')}</label>
+                    <label htmlFor={id('service')} className={labelCls}>{t('dailyActivities.work.mainService')}</label>
                     <select
-                        id={id('task')}
+                        id={id('service')}
                         className={inputCls}
                         value={item.position_service_id ?? ''}
-                        onChange={(e) => onChange({ position_service_id: e.target.value || null, activity_category: e.target.value ? null : item.activity_category })}
+                        onChange={(e) => onChange({ position_service_id: e.target.value || null, sub_service_id: null, task_id: null, standard: null, scores: null, activity_category: e.target.value ? null : item.activity_category })}
                     >
-                        <option value="">{t('dailyActivities.fields.otherActivity')}</option>
+                        <option value="">{structuredRequired ? t('dailyActivities.work.chooseService') : t('dailyActivities.fields.otherActivity')}</option>
                         {tasks.map((task) => <option key={task.id} value={task.id}>{named(task, locale)}</option>)}
                     </select>
                 </div>
+                {subServices.length > 0 && (
+                    <div>
+                        <label htmlFor={id('sub')} className={labelCls}>{t('dailyActivities.work.subService')}</label>
+                        <select id={id('sub')} className={inputCls} value={item.sub_service_id ?? ''} onChange={(e) => onChange({ sub_service_id: e.target.value || null, task_id: null, standard: null, scores: null })}>
+                            <option value="">—</option>
+                            {subServices.map((sub) => <option key={sub.id} value={sub.id}>{sub.code} {named(sub, locale)}</option>)}
+                        </select>
+                    </div>
+                )}
+                {subService && (
+                    <div>
+                        <label htmlFor={id('maintask')} className={labelCls}>{t('dailyActivities.work.mainTask')} <span className="text-red-600">*</span></label>
+                        <select id={id('maintask')} className={inputCls} value={item.task_id ?? ''} onChange={(e) => chooseTask(e.target.value || null)} aria-invalid={Boolean(error('task_id'))}>
+                            <option value="">—</option>
+                            {taskOptions.map((task) => <option key={task.id} value={task.id}>{task.code} {named(task, locale)}</option>)}
+                        </select>
+                    </div>
+                )}
+                {error('task_id') && <p className="text-xs text-red-700 sm:col-span-2 dark:text-red-400">{error('task_id')}</p>}
                 {kpis.length > 0 && (
                     <div>
                         <label htmlFor={id('kpi')} className={labelCls}>{t('dailyActivities.fields.relatedKpi')}</label>
@@ -577,7 +647,7 @@ function ItemEditor({ index, item, tasks, kpis, options, requireOutput, errors, 
                         <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.fields.relatedKpiHelp')}</p>
                     </div>
                 )}
-                {!item.position_service_id && (
+                {!item.position_service_id && !structuredRequired && (
                     <div>
                         <label htmlFor={id('category')} className={labelCls}>{t('dailyActivities.fields.category')}</label>
                         <select id={id('category')} className={inputCls} value={item.activity_category ?? ''} onChange={(e) => onChange({ activity_category: e.target.value || null })}>
@@ -588,14 +658,59 @@ function ItemEditor({ index, item, tasks, kpis, options, requireOutput, errors, 
                 )}
             </div>
 
+            {structured && (
+                <div className="mt-4 space-y-3">
+                    {standard ? <StandardSummary standard={standard} /> : (
+                        <p role="alert" className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('dailyActivities.work.noStandard')}</p>
+                    )}
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div>
+                            <label htmlFor={id('start')} className={labelCls}>{t('dailyActivities.work.startTime')} <span className="text-red-600">*</span></label>
+                            <input id={id('start')} type="time" className={inputCls} value={text(item.started_at)} onChange={(e) => onChange({ started_at: e.target.value || null, duration_minutes: null })} />
+                        </div>
+                        <div>
+                            <label htmlFor={id('end')} className={labelCls}>{t('dailyActivities.work.completionTime')} <span className="text-red-600">*</span></label>
+                            <input id={id('end')} type="time" className={inputCls} value={text(item.ended_at)} onChange={(e) => onChange({ ended_at: e.target.value || null, duration_minutes: null })} aria-invalid={Boolean(error('ended_at'))} />
+                        </div>
+                        <div>
+                            <p className={labelCls}>{t('dailyActivities.work.timeTaken')}</p>
+                            <p className="flex min-h-10 items-center text-sm font-semibold tabular-nums text-gray-900 dark:text-slate-100" aria-live="polite">{hoursMinutes(minutes)}</p>
+                        </div>
+                        {standard?.planned_quantity !== null && standard?.planned_quantity !== undefined && (
+                            <div>
+                                <label htmlFor={id('actualqty')} className={labelCls}>{t('dailyActivities.work.actualQuantity')} <span className="text-red-600">*</span></label>
+                                <input id={id('actualqty')} type="number" min={0} step="any" inputMode="decimal" className={inputCls} value={text(item.quantity)} onChange={(e) => onChange({ quantity: e.target.value || null })} />
+                                {standard.quantity_unit && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{standard.quantity_unit}</p>}
+                            </div>
+                        )}
+                        {standard?.planned_quality !== null && standard?.planned_quality !== undefined && (
+                            reviewerQuality ? (
+                                <div className="col-span-2">
+                                    <p className={labelCls}>{t('dailyActivities.work.actualQuality')}</p>
+                                    <p className="text-sm text-gray-600 dark:text-slate-300">{t('dailyActivities.work.qualityByReviewer')}</p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label htmlFor={id('actualquality')} className={labelCls}>{t('dailyActivities.work.actualQuality')} <span className="text-red-600">*</span></label>
+                                    <input id={id('actualquality')} type="number" min={0} step="any" inputMode="decimal" className={inputCls} value={text(item.actual_quality)} onChange={(e) => onChange({ actual_quality: e.target.value || null })} />
+                                    {standard.quality_unit && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{standard.quality_unit}</p>}
+                                </div>
+                            )
+                        )}
+                    </div>
+                    {['started_at', 'ended_at', 'quantity', 'actual_quality'].map((field) => error(field) && <p key={field} className="text-xs text-red-700 dark:text-red-400">{error(field)}</p>)}
+                    {preview && <ScoreRow scores={preview} preview />}
+                </div>
+            )}
+
             <div className="mt-3 space-y-3">
                 <div>
-                    <label htmlFor={id('title')} className={labelCls}>{t('dailyActivities.fields.title')} <span className="text-red-600">*</span></label>
+                    <label htmlFor={id('title')} className={labelCls}>{t('dailyActivities.fields.title')} {!structured && <span className="text-red-600">*</span>}</label>
                     <input id={id('title')} className={inputCls} value={item.title} maxLength={255} placeholder={t('dailyActivities.fields.titlePlaceholder')} onChange={(e) => onChange({ title: e.target.value })} />
                     {error('title') && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error('title')}</p>}
                 </div>
                 <div>
-                    <label htmlFor={id('description')} className={labelCls}>{t('dailyActivities.fields.description')} <span className="text-red-600">*</span></label>
+                    <label htmlFor={id('description')} className={labelCls}>{t('dailyActivities.fields.description')} {!structured && <span className="text-red-600">*</span>}</label>
                     <textarea id={id('description')} rows={2} className={inputCls} value={text(item.description)} placeholder={t('dailyActivities.fields.descriptionPlaceholder')} onChange={(e) => onChange({ description: e.target.value })} />
                     {error('description') && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{error('description')}</p>}
                 </div>
@@ -627,6 +742,7 @@ function ItemEditor({ index, item, tasks, kpis, options, requireOutput, errors, 
 
             {item.open && (
                 <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {!structured && <>
                     <div>
                         <label htmlFor={id('start')} className={labelCls}>{t('dailyActivities.fields.startedAt')}</label>
                         <input id={id('start')} type="time" className={inputCls} value={text(item.started_at)} onChange={(e) => onChange({ started_at: e.target.value || null, duration_minutes: null })} />
@@ -643,6 +759,7 @@ function ItemEditor({ index, item, tasks, kpis, options, requireOutput, errors, 
                         <label htmlFor={id('uom')} className={labelCls}>{t('dailyActivities.fields.unitOfMeasure')}</label>
                         <input id={id('uom')} className={inputCls} maxLength={64} value={text(item.unit_of_measure)} onChange={(e) => onChange({ unit_of_measure: e.target.value || null })} />
                     </div>
+                    </>}
                     <div className="col-span-2">
                         <label htmlFor={id('challenge')} className={labelCls}>{t('dailyActivities.fields.challengeIssue')}</label>
                         <textarea id={id('challenge')} rows={2} className={inputCls} value={text(item.challenge_issue)} onChange={(e) => onChange({ challenge_issue: e.target.value || null })} />

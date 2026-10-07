@@ -1200,3 +1200,252 @@ test('W4. EPMS treats a day as final according to its organization review policy
     DailyActivityLog::query()->update(['is_late' => true]);
     expect($final())->toBe(0);
 });
+
+// ── Work execution register (የባለሞያ የእለት እቅድ ክንውን መመዝገቢያ) ─────────────────
+
+/**
+ * Sub-service → main task → approved standard under the HR Officer's service.
+ *
+ * @param  array<string, mixed>  $standard
+ * @return array{0: App\Models\PositionServiceSubService, 1: App\Models\PositionServiceTask, 2: App\Models\PositionServiceTaskStandard}
+ */
+function wxStructure(object $test, array $standard = [], ?PositionService $service = null): array
+{
+    $service ??= $test->task;
+    $sub = App\Models\PositionServiceSubService::query()->create(['position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'code' => 'SS-'.Illuminate\Support\Str::random(4), 'name_en' => 'Employee Transfer Processing', 'is_active' => true]);
+    $task = App\Models\PositionServiceTask::query()->create(['sub_service_id' => $sub->id, 'position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'code' => 'T-'.Illuminate\Support\Str::random(4), 'name_en' => 'Review Transfer Application', 'is_active' => true]);
+    $row = App\Models\PositionServiceTaskStandard::query()->create([
+        'task_id' => $task->id, 'organization_id' => $service->organization_id, 'version_no' => 1, 'status' => 'approved',
+        'planned_quantity' => 10, 'quantity_unit' => 'applications', 'planned_time_minutes' => 60,
+        'planned_quality' => 100, 'quality_unit' => '%', 'quality_measure' => 'Share of applications complete and correct',
+        'quality_source' => 'employee', 'effective_from' => '2026-01-01', 'bpr_reference' => 'BPR-HR-2026',
+        ...$standard,
+    ]);
+
+    return [$sub, $task, $row];
+}
+
+/** @param array<string, mixed> $overrides */
+function wxItem(App\Models\PositionServiceTask $task, array $overrides = []): array
+{
+    return [
+        'task_id' => $task->id,
+        'started_at' => '09:00',
+        'ended_at' => '10:15',
+        'quantity' => '8',
+        'actual_quality' => '90',
+        'progress_status' => 'completed',
+        'output_result' => '8 applications reviewed',
+        ...$overrides,
+    ];
+}
+
+function wxAdmin(object $test, array $permissions, ?Organization $org = null): User
+{
+    $admin = daUser('WX Admin '.Illuminate\Support\Str::random(4), $permissions);
+    UserOrganizationScope::query()->create(['user_id' => $admin->id, 'organization_id' => ($org ?? $test->org)->id, 'scope_type' => 'self', 'is_active' => true]);
+    app(OrganizationScopeService::class)->clearCache();
+
+    return $admin;
+}
+
+test('X1. a task item is measured on the server from its standard: hierarchy, time taken and scores', function (): void {
+    [$sub, $task, $standard] = wxStructure($this);
+
+    daPost($this->userA, DA_TODAY, [wxItem($task)], 'submit')->assertSessionHasNoErrors();
+
+    $item = daLog($this->employeeA, DA_TODAY)->items()->firstOrFail();
+    expect($item->position_service_id)->toBe($this->task->id)
+        ->and($item->sub_service_id)->toBe($sub->id)
+        ->and($item->task_standard_id)->toBe($standard->id)
+        ->and($item->title)->toBe('Review Transfer Application')
+        ->and($item->duration_minutes)->toBe(75)
+        ->and((string) $item->planned_quantity)->toBe('10.0000')
+        ->and($item->unit_of_measure)->toBe('applications')
+        ->and($item->standard_snapshot['bpr_reference'])->toBe('BPR-HR-2026')
+        // 8/10 = 80, 60/75 = 80, 90/100 = 90, (80+80+90)/3 = 83.3333
+        ->and((string) $item->quantity_score)->toBe('80.0000')
+        ->and((string) $item->time_score)->toBe('80.0000')
+        ->and((string) $item->quality_score)->toBe('90.0000')
+        ->and((string) $item->task_score)->toBe('83.3333');
+});
+
+test('X2. the browser can neither choose the standard nor send scores or planned values', function (): void {
+    [, $task, $standard] = wxStructure($this);
+
+    foreach (['task_standard_id' => $standard->id, 'planned_quantity' => 1, 'quantity_score' => 100, 'task_score' => 100, 'planned_time_minutes' => 1] as $field => $value) {
+        daPost($this->userA, DA_TODAY, [wxItem($task, [$field => $value])])->assertSessionHasErrors("items.0.{$field}");
+    }
+    expect(daLog($this->employeeA, DA_TODAY))->toBeNull();
+});
+
+test('X3. a task of another position, organization or sub-service is refused', function (): void {
+    [$sub, $task] = wxStructure($this);
+    $foreignService = PositionService::query()->create(['organization_id' => $this->otherOrg->id, 'position_id' => $this->foreignPosition->id, 'service_no' => 9, 'name_en' => 'Foreign service', 'is_active' => true]);
+    [, $foreignTask] = wxStructure($this, [], $foreignService);
+    [$otherSub] = wxStructure($this);
+
+    daPost($this->userA, DA_TODAY, [wxItem($foreignTask)])->assertSessionHasErrors('items.0.task_id');
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['sub_service_id' => $otherSub->id])])->assertSessionHasErrors('items.0.task_id');
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['sub_service_id' => $sub->id, 'position_service_id' => $foreignService->id])])->assertSessionHasErrors('items.0.task_id');
+
+    $task->update(['is_active' => false]);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasErrors('items.0.task_id');
+});
+
+test('X4. only an approved standard in force on the work date measures work', function (): void {
+    [, $task, $standard] = wxStructure($this, ['status' => 'draft']);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasErrors('items.0.task_id');
+
+    $standard->update(['status' => 'approved', 'effective_to' => '2026-09-22']);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasErrors('items.0.task_id');
+
+    // The same standard does measure a date inside its period.
+    daPost($this->userA, '2026-09-22', [wxItem($task)])->assertSessionHasNoErrors();
+    expect(daLog($this->employeeA, '2026-09-22')->items()->first()->task_standard_id)->toBe($standard->id);
+});
+
+test('X5. recorded work keeps the standard it was measured against after a new version is approved', function (): void {
+    [, $task, $v1] = wxStructure($this, ['effective_from' => '2026-09-01']);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasNoErrors();
+    $item = daLog($this->employeeA, DA_TODAY)->items()->first();
+
+    $approver = wxAdmin($this, ['work_standards.manage', 'work_standards.approve']);
+    $this->actingAs($approver)->post(route('work-structure.standards.store', $task), [
+        'planned_quantity' => 20, 'quantity_unit' => 'applications', 'quality_source' => 'employee', 'effective_from' => '2026-09-15',
+    ])->assertSessionHasNoErrors();
+    $v2 = App\Models\PositionServiceTaskStandard::query()->where('task_id', $task->id)->where('version_no', 2)->firstOrFail();
+    $this->actingAs($approver)->post(route('work-structure.standards.approve', $v2))->assertSessionHasErrors('effective_from');
+
+    $v2->update(['effective_from' => '2026-09-24']);
+    $this->actingAs($approver)->post(route('work-structure.standards.approve', $v2))->assertSessionHasNoErrors();
+    expect($v1->fresh()->effective_to->toDateString())->toBe('2026-09-23');
+
+    // Saving the draft again keeps the original measurement.
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['id' => $item->id])])->assertSessionHasNoErrors();
+    $item->refresh();
+    expect($item->task_standard_id)->toBe($v1->id)->and((string) $item->planned_quantity)->toBe('10.0000');
+
+    // An approved version is immutable.
+    $this->actingAs($approver)->patch(route('work-structure.standards.update', $v1), [
+        'planned_quantity' => 99, 'quantity_unit' => 'x', 'quality_source' => 'employee', 'effective_from' => '2026-09-01',
+    ])->assertSessionHasErrors('status');
+});
+
+test('X6. time is taken from start and completion, and submission needs what the standard measures', function (): void {
+    [, $task] = wxStructure($this);
+
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['started_at' => '11:00', 'ended_at' => '10:00'])])->assertSessionHasErrors('items.0.ended_at');
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['duration_minutes' => 5])])->assertSessionHasNoErrors();
+    expect(daLog($this->employeeA, DA_TODAY)->items()->first()->duration_minutes)->toBe(75);
+
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['started_at' => null, 'ended_at' => null, 'quantity' => null])], 'submit')
+        ->assertSessionHasErrors(['items.0.started_at', 'items.0.quantity']);
+});
+
+test('X7. quality left to the reviewer is recorded at approval and rescored', function (): void {
+    [, $task] = wxStructure($this, ['quality_source' => 'reviewer']);
+
+    daPost($this->userA, DA_TODAY, [wxItem($task, ['actual_quality' => '100'])], 'submit')->assertSessionHasNoErrors();
+    $log = daLog($this->employeeA, DA_TODAY);
+    $item = $log->items()->first();
+    expect($item->actual_quality)->toBeNull()->and($item->task_score)->toBeNull();
+
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $log), ['submission_count' => 1])
+        ->assertSessionHasErrors("item_quality.{$item->id}");
+    $this->actingAs($this->reviewer)->post(route('daily-activities.approve', $log), ['submission_count' => 1, 'item_quality' => [$item->id => '75']])
+        ->assertSessionHasNoErrors();
+
+    $item->refresh();
+    expect((string) $item->quality_score)->toBe('75.0000')
+        ->and((string) $item->task_score)->toBe('78.3333')
+        ->and($log->fresh()->status)->toBe(DailyActivityStatus::Approved);
+});
+
+test('X8. the rules: task required when configured, partial standards, and the same task twice in a day', function (): void {
+    [, $task] = wxStructure($this, ['planned_quality' => null, 'quality_unit' => null, 'quality_measure' => null]);
+
+    daSetting('structured_entry_required', true);
+    daPost($this->userA, DA_TODAY, daItems())->assertSessionHasErrors('items.0.task_id');
+
+    daPost($this->userA, DA_TODAY, [wxItem($task), wxItem($task, ['started_at' => '10:30', 'ended_at' => '11:30', 'quantity' => '5'])], 'submit')->assertSessionHasNoErrors();
+    $items = daLog($this->employeeA, DA_TODAY)->items()->orderBy('sort_order')->get();
+    // Quantity and time only: (80 + 80) / 2 and (50 + 100) / 2.
+    expect($items)->toHaveCount(2)
+        ->and((string) $items[0]->task_score)->toBe('80.0000')
+        ->and((string) $items[1]->task_score)->toBe('75.0000')
+        ->and($items[0]->actual_quality)->toBeNull();
+
+    daSetting('task_score_rule', 'all_three');
+    daPost($this->userB, DA_TODAY, [wxItem($task)])->assertSessionHasNoErrors();
+    expect(daLog($this->employeeB, DA_TODAY)->items()->first()->task_score)->toBeNull();
+});
+
+test('X9. work standards are managed and approved only within scope and with the separate rights', function (): void {
+    [$sub, $task, $standard] = wxStructure($this, ['status' => 'draft']);
+    $manager = wxAdmin($this, ['work_standards.manage']);
+    $foreignManager = wxAdmin($this, ['work_standards.manage', 'work_standards.approve'], $this->otherOrg);
+
+    $this->actingAs($manager)->get(route('work-structure.show', $this->task))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('PositionServices/Structure')->where('can.manage', true)->where('can.approve', false));
+    $this->actingAs($manager)->post(route('work-structure.sub-services.store', $this->task), ['code' => 'SS-NEW', 'name_en' => 'New', 'is_active' => true])->assertSessionHasNoErrors();
+    $this->actingAs($manager)->post(route('work-structure.standards.approve', $standard))->assertForbidden();
+
+    $this->actingAs($foreignManager)->get(route('work-structure.show', $this->task))->assertForbidden();
+    $this->actingAs($foreignManager)->post(route('work-structure.tasks.store', $sub), ['code' => 'X', 'name_en' => 'X', 'is_active' => true])->assertForbidden();
+    $this->actingAs($foreignManager)->post(route('work-structure.standards.approve', $standard))->assertForbidden();
+    $this->actingAs($this->userA)->get(route('work-structure.show', $this->task))->assertForbidden();
+
+    // A standard must measure something, above zero, and define quality when it measures it.
+    $this->actingAs($manager)->post(route('work-structure.standards.store', $task), ['quality_source' => 'employee', 'effective_from' => '2026-10-01'])->assertSessionHasErrors('planned_quantity');
+    $this->actingAs($manager)->post(route('work-structure.standards.store', $task), ['planned_quantity' => 0, 'quantity_unit' => 'x', 'quality_source' => 'employee', 'effective_from' => '2026-10-01'])->assertSessionHasErrors('planned_quantity');
+    $this->actingAs($manager)->post(route('work-structure.standards.store', $task), ['planned_quality' => 100, 'quality_unit' => '%', 'quality_source' => 'employee', 'effective_from' => '2026-10-01'])->assertSessionHasErrors('quality_measure');
+
+    expect(AuditLog::query()->where('event_type', 'work_standards.structure_changed')->exists())->toBeTrue();
+});
+
+test('X10. used structure cannot be deleted, only made inactive; the entry page offers the structure', function (): void {
+    [$sub, $task] = wxStructure($this);
+    daPost($this->userA, DA_TODAY, [wxItem($task)])->assertSessionHasNoErrors();
+    $manager = wxAdmin($this, ['work_standards.manage']);
+
+    $this->actingAs($manager)->delete(route('work-structure.tasks.destroy', $task))->assertSessionHasErrors('structure');
+    $this->actingAs($manager)->delete(route('work-structure.sub-services.destroy', $sub))->assertSessionHasErrors('structure');
+
+    $this->actingAs($this->userA)->get(route('employee.daily-activity.entry'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('work_structure.0.sub_services.0.tasks.0.id', $task->id)
+            ->where('work_structure.0.sub_services.0.tasks.0.standard.planned_quantity', '10.0000')
+            ->where('log.items.0.scores.task', '83.3333'));
+});
+
+test('X11. task and sub-service performance reports aggregate measured work within scope', function (): void {
+    [$sub, $task] = wxStructure($this);
+    $task->update(['code' => 'T-1']);
+    $second = App\Models\PositionServiceTask::query()->create(['sub_service_id' => $sub->id, 'position_service_id' => $this->task->id, 'organization_id' => $this->org->id, 'code' => 'T-2', 'name_en' => 'Prepare transfer letter', 'is_active' => true]);
+    App\Models\PositionServiceTaskStandard::query()->create(['task_id' => $second->id, 'organization_id' => $this->org->id, 'version_no' => 1, 'status' => 'approved', 'planned_quantity' => 4, 'quantity_unit' => 'letters', 'quality_source' => 'employee', 'effective_from' => '2026-01-01']);
+
+    // Task 1: 83.3333 (A) and 100 (B: 10/10, 60/60, 100/100); task 2: 4/4 = 100.
+    daPost($this->userA, DA_TODAY, [wxItem($task), wxItem($second, ['started_at' => '11:00', 'ended_at' => '12:00', 'quantity' => '4', 'actual_quality' => null])], 'submit')->assertSessionHasNoErrors();
+    daPost($this->userB, DA_TODAY, [wxItem($task, ['ended_at' => '10:00', 'quantity' => '10', 'actual_quality' => '100'])], 'submit')->assertSessionHasNoErrors();
+    // Another organization's measured work never appears.
+    $foreignService = PositionService::query()->create(['organization_id' => $this->otherOrg->id, 'position_id' => $this->foreignPosition->id, 'service_no' => 9, 'name_en' => 'Foreign', 'is_active' => true]);
+    [, $foreignTask] = wxStructure($this, [], $foreignService);
+    daPost($this->userF, DA_TODAY, [wxItem($foreignTask)], 'submit')->assertSessionHasNoErrors();
+
+    $report = fn (string $type) => $this->actingAs($this->orgAdmin)->get(route('daily-activities.reports', ['type' => $type, 'date_from' => DA_TODAY, 'date_to' => DA_TODAY]))->assertOk();
+
+    $report('task_performance')->assertInertia(fn (Assert $page) => $page
+        ->has('report.rows', 2)
+        ->where('report.rows.0.executions', 2)
+        ->where('report.rows.0.employees', 2)
+        ->where('report.rows.0.actual_quantity', '18')
+        ->where('report.rows.0.task_score', '91.67')
+        ->where('report.rows.1.task_score', '100.00'));
+
+    // (91.6667 + 100) / 2 executed tasks.
+    $report('sub_service_performance')->assertInertia(fn (Assert $page) => $page
+        ->has('report.rows', 1)
+        ->where('report.rows.0.tasks_executed', 2)
+        ->where('report.rows.0.sub_service_score', '95.83'));
+});

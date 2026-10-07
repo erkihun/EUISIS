@@ -25,7 +25,50 @@ export type ActivityItem = {
     challenge_issue: string | null;
     next_action: string | null;
     reviewer_note?: string | null;
+    /** Work execution register: the chosen sub-service and main task. */
+    sub_service_id?: string | null;
+    task_id?: string | null;
+    actual_quality?: string | number | null;
+    /** Read-only, from the server. */
+    sub_service?: CodedName;
+    task?: CodedName;
+    standard?: TaskStandardView | null;
+    scores?: TaskScores | null;
 };
+
+export type CodedName = ({ code: string; name_en: string; name_am: string | null }) | null;
+
+/** A task standard as the employee sees it: read-only master data. */
+export type TaskStandardView = {
+    version_no: number | null;
+    standard_measure: string | null;
+    bpr_reference: string | null;
+    planned_quantity: string | null;
+    quantity_unit: string | null;
+    planned_time_minutes: string | null;
+    planned_quality: string | null;
+    quality_unit: string | null;
+    quality_measure: string | null;
+    quality_source: 'employee' | 'reviewer';
+};
+
+/** Server-calculated performance, percent, unrounded to 4 decimals. */
+export type TaskScores = { quantity: string | null; time: string | null; quality: string | null; task: string | null };
+
+/** Position service → sub-service → main task → standard in force on the date. */
+export type WorkStructure = {
+    id: string;
+    code: string;
+    name_en: string;
+    name_am: string | null;
+    sub_services: {
+        id: string;
+        code: string;
+        name_en: string;
+        name_am: string | null;
+        tasks: { id: string; code: string; name_en: string; name_am: string | null; standard: TaskStandardView | null }[];
+    }[];
+}[];
 
 export type Attachment = {
     id: string;

@@ -37,6 +37,12 @@ class DailyActivityItem extends Model
         'challenge_issue',
         'next_action',
         'employee_performance_item_id',
+        // Work execution register: the employee picks the task and records
+        // actuals. The standard, planned values and scores are set by the
+        // server (WorkStructureResolver) and are deliberately not fillable.
+        'sub_service_id',
+        'task_id',
+        'actual_quality',
         'sort_order',
     ];
 
@@ -48,6 +54,15 @@ class DailyActivityItem extends Model
             'duration_minutes' => 'integer',
             'quantity' => 'decimal:2',
             'sort_order' => 'integer',
+            'planned_quantity' => 'decimal:4',
+            'planned_time_minutes' => 'decimal:4',
+            'planned_quality' => 'decimal:4',
+            'actual_quality' => 'decimal:4',
+            'quantity_score' => 'decimal:4',
+            'time_score' => 'decimal:4',
+            'quality_score' => 'decimal:4',
+            'task_score' => 'decimal:4',
+            'standard_snapshot' => 'array',
         ];
     }
 
@@ -64,5 +79,26 @@ class DailyActivityItem extends Model
     public function positionService(): BelongsTo
     {
         return $this->belongsTo(PositionService::class);
+    }
+
+    public function subService(): BelongsTo
+    {
+        return $this->belongsTo(PositionServiceSubService::class, 'sub_service_id')->withTrashed();
+    }
+
+    public function task(): BelongsTo
+    {
+        return $this->belongsTo(PositionServiceTask::class, 'task_id')->withTrashed();
+    }
+
+    public function taskStandard(): BelongsTo
+    {
+        return $this->belongsTo(PositionServiceTaskStandard::class, 'task_standard_id');
+    }
+
+    /** Recorded against a main task and its standard, not as other work. */
+    public function isStructured(): bool
+    {
+        return $this->task_id !== null && $this->task_standard_id !== null;
     }
 }

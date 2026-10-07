@@ -54,6 +54,8 @@ class DailyActivityPresenter
         $log->loadMissing([
             ...self::SUMMARY_WITH,
             'items.positionService:id,name_en,name_am',
+            'items.subService:id,code,name_en,name_am',
+            'items.task:id,code,name_en,name_am',
             'items.performanceItem.objective.plan',
             'items.performanceItem.objective.positionService',
             'attachments',
@@ -112,6 +114,49 @@ class DailyActivityPresenter
             'challenge_issue' => $item->challenge_issue,
             'next_action' => $item->next_action,
             'reviewer_note' => $item->reviewer_note,
+            ...$this->execution($item),
+        ];
+    }
+
+    /**
+     * The work execution register part of an item: the task it was recorded
+     * against, the standard used (as copied when it was measured) and the
+     * scores the server calculated. Empty values for other work.
+     *
+     * @return array<string, mixed>
+     */
+    public function execution(DailyActivityItem $item): array
+    {
+        $snapshot = $item->standard_snapshot ?? [];
+
+        return [
+            'sub_service_id' => $item->sub_service_id,
+            'task_id' => $item->task_id,
+            'sub_service' => $item->relationLoaded('subService') && $item->subService
+                ? ['code' => $item->subService->code, ...($this->named($item->subService->name_en, $item->subService->name_am) ?? [])]
+                : null,
+            'task' => $item->relationLoaded('task') && $item->task
+                ? ['code' => $item->task->code, ...($this->named($item->task->name_en, $item->task->name_am) ?? [])]
+                : null,
+            'standard' => $item->task_standard_id === null ? null : [
+                'version_no' => $snapshot['version_no'] ?? null,
+                'standard_measure' => $snapshot['standard_measure'] ?? null,
+                'bpr_reference' => $snapshot['bpr_reference'] ?? null,
+                'planned_quantity' => $item->planned_quantity,
+                'quantity_unit' => $snapshot['quantity_unit'] ?? null,
+                'planned_time_minutes' => $item->planned_time_minutes,
+                'planned_quality' => $item->planned_quality,
+                'quality_unit' => $snapshot['quality_unit'] ?? null,
+                'quality_measure' => $snapshot['quality_measure'] ?? null,
+                'quality_source' => $snapshot['quality_source'] ?? 'employee',
+            ],
+            'actual_quality' => $item->actual_quality,
+            'scores' => $item->task_standard_id === null ? null : [
+                'quantity' => $item->quantity_score,
+                'time' => $item->time_score,
+                'quality' => $item->quality_score,
+                'task' => $item->task_score,
+            ],
         ];
     }
 

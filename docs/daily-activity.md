@@ -27,6 +27,8 @@ The snapshot on the header is never recalculated. Work done before a transfer st
 
 An item may name a service of the position the log is recorded under. The server checks that the service belongs to that position and organization and is active. A service already linked on the log stays valid after deactivation, so a returned day can still be corrected. Position services describe responsibility; items describe work actually done.
 
+An item may go further, to a sub-service and main task, and be measured against the task's approved standard (BPR plan). That is the Employee Daily Plan & Work Execution Register: see [daily-work-register.md](daily-work-register.md).
+
 ## EPMS link
 
 Where the employee has an agreed, active or under-review performance agreement covering the date, an item may link to one of their own current agreement items. The KPI and objective are copied from the verified agreement item, never from the browser. This makes the trace possible:

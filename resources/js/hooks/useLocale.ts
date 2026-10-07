@@ -119,6 +119,8 @@ import enGrievanceAdmin from '@/i18n/en/grievanceAdmin';
 import amGrievanceAdmin from '@/i18n/am/grievanceAdmin';
 import enCourtCases from '@/i18n/en/courtCases';
 import amCourtCases from '@/i18n/am/courtCases';
+import enWorkStandards from '@/i18n/en/workStandards';
+import amWorkStandards from '@/i18n/am/workStandards';
 import type { PageProps } from '@/types';
 
 type Locale = 'en' | 'am';
@@ -182,6 +184,7 @@ const translations: Record<Locale, TranslationTree> = {
         grievanceWork: enGrievanceWork,
         grievanceAdmin: enGrievanceAdmin,
         courtCases: enCourtCases,
+        workStandards: enWorkStandards,
         confirmations: enConfirmations,
         auth: enAuth,
         security: enSecurity,
@@ -243,6 +246,7 @@ const translations: Record<Locale, TranslationTree> = {
         grievanceWork: amGrievanceWork,
         grievanceAdmin: amGrievanceAdmin,
         courtCases: amCourtCases,
+        workStandards: amWorkStandards,
         confirmations: amConfirmations,
         auth: amAuth,
         security: amSecurity,

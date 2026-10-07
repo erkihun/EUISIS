@@ -39,7 +39,7 @@ final class PermissionCatalog
         // A separate domain from grievances (docs/court-cases.md).
         'Court Cases' => ['court_cases'],
         'ID & Verification' => ['id-cards', 'id_card_templates', 'nfc_credentials', 'nfc_terminals', 'nfc_logs'],
-        'Daily Activity' => ['daily_activities', 'daily_activity_settings'],
+        'Daily Activity' => ['daily_activities', 'daily_activity_settings', 'work_standards'],
         'Performance Management' => [
             'performance_cycles', 'strategic_goals', 'performance_plans', 'kpis', 'performance_agreements', 'performance_reviews',
             'performance_calibration', 'performance_appeals', 'performance_reports', 'performance_settings',

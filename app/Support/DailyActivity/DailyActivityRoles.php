@@ -54,5 +54,7 @@ final class DailyActivityRoles
         'daily_activities.reopen',
         'daily_activities.manage_reviewers',
         'daily_activity_settings.view',
+        // Sub-services, tasks and draft standards; approval stays city-level.
+        'work_standards.manage',
     ];
 }

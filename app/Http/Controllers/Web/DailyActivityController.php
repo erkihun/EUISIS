@@ -207,7 +207,7 @@ class DailyActivityController extends Controller
     {
         $this->authorizeReviewAction($request, 'approve', $log);
 
-        $this->service->approve($request->user(), $log, $request->validated('comment'), $request->itemNotes(), (int) $request->validated('submission_count'));
+        $this->service->approve($request->user(), $log, $request->validated('comment'), $request->itemNotes(), (int) $request->validated('submission_count'), $request->itemQuality());
 
         return redirect()->route('daily-activities.review-queue')->with('success', __('daily-activities.approved'));
     }

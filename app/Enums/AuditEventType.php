@@ -582,4 +582,10 @@ enum AuditEventType: string
     case DailyActivityReviewerAssigned = 'daily_activity.reviewer_assigned';
     case DailyActivityReviewerRemoved = 'daily_activity.reviewer_removed';
     case DailyActivityReviewPolicyChanged = 'daily_activity.review_policy_changed';
+
+    // Work standards: sub-services, main tasks and task standards (BPR plans)
+    case WorkStructureChanged = 'work_standards.structure_changed';
+    case WorkStandardSaved = 'work_standards.standard_saved';
+    case WorkStandardApproved = 'work_standards.standard_approved';
+    case WorkStandardRetired = 'work_standards.standard_retired';
 }

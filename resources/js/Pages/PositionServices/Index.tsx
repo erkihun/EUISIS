@@ -184,6 +184,13 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                         </td>
                                     )}
                                     <td className="whitespace-nowrap px-4 py-2.5 text-right">
+                                        {/* Sub-services, main tasks and task standards (BPR plans). */}
+                                        <Link
+                                            href={route('work-structure.show', row.id)}
+                                            className="mr-3 text-xs font-medium text-[color:var(--color-primary)] hover:underline"
+                                        >
+                                            {t('workStandards.open')}
+                                        </Link>
                                         <Link
                                             href={route('position-services.edit', row.id)}
                                             className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"

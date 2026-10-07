@@ -17,6 +17,7 @@ use App\Models\EmployeePerformanceItem;
 use App\Models\PositionService;
 use App\Services\DailyActivity\DailyActivityCalendarService;
 use App\Services\DailyActivity\DailyActivityPresenter;
+use App\Services\DailyActivity\WorkStructureResolver;
 use App\Services\DailyActivity\DailyActivityService;
 use App\Services\DailyActivity\DailyActivitySettings;
 use App\Services\DailyActivity\EmployeeWorkContextResolver;
@@ -41,6 +42,7 @@ class DailyActivityController extends Controller
         private readonly DailyActivitySettings $settings,
         private readonly EmployeeWorkContextResolver $context,
         private readonly DailyActivityPresenter $presenter,
+        private readonly WorkStructureResolver $structure,
     ) {}
 
     public function entry(Request $request): Response
@@ -86,6 +88,8 @@ class DailyActivityController extends Controller
                 ->get(['id', 'name_en', 'name_am'])
                 ->map(fn (PositionService $service): array => ['id' => $service->id, 'name_en' => $service->name_en, 'name_am' => $service->name_am])
                 ->all(),
+            // Work execution register: service → sub-service → task → standard in force on the date.
+            'work_structure' => $this->structure->catalog($positionId, $log?->organization_id ?? $assignment?->organization_id, $date),
             // EPMS: the employee's own KPIs agreed for this date (evidence link only).
             'kpis' => EmployeePerformanceItem::query()->where('is_current', true)
                 ->whereHas('agreement', fn ($q) => $q->where('employee_id', $employee->id)

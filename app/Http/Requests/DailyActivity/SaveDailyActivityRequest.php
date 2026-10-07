@@ -53,7 +53,12 @@ class SaveDailyActivityRequest extends FormRequest
             'items.*.id' => ['nullable', 'uuid'],
             'items.*.activity_category' => ['nullable', Rule::in(DailyActivityCategory::values())],
             'items.*.position_service_id' => ['nullable', 'uuid'],
-            'items.*.title' => ['required', 'string', 'max:255'],
+            // Work execution register: hierarchy is re-checked against the
+            // position by WorkStructureResolver; the title defaults to the task.
+            'items.*.sub_service_id' => ['nullable', 'uuid'],
+            'items.*.task_id' => ['nullable', 'uuid'],
+            'items.*.actual_quality' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
+            'items.*.title' => ['required_without:items.*.task_id', 'nullable', 'string', 'max:255'],
             'items.*.description' => ['nullable', 'string', 'max:5000'],
             'items.*.output_result' => ['nullable', 'string', 'max:5000'],
             'items.*.progress_status' => ['required', Rule::in(DailyActivityProgressStatus::values())],
@@ -71,6 +76,12 @@ class SaveDailyActivityRequest extends FormRequest
 
         foreach (self::PROTECTED_FIELDS as $field) {
             $rules[$field] = ['prohibited'];
+            $rules["items.*.{$field}"] = ['prohibited'];
+        }
+
+        // The standard, its planned values and every score come from the
+        // server; an employee can neither choose nor alter them.
+        foreach (['task_standard_id', 'planned_quantity', 'planned_time_minutes', 'planned_quality', 'standard_snapshot', 'quantity_score', 'time_score', 'quality_score', 'task_score'] as $field) {
             $rules["items.*.{$field}"] = ['prohibited'];
         }
 

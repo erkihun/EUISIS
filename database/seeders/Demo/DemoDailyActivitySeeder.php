@@ -6,6 +6,10 @@ namespace Database\Seeders\Demo;
 
 use App\Enums\DailyActivityDayStatus;
 use App\Models\Employee;
+use App\Models\PositionService;
+use App\Models\PositionServiceSubService;
+use App\Models\PositionServiceTask;
+use App\Models\PositionServiceTaskStandard;
 use App\Models\User;
 use App\Services\DailyActivity\DailyActivityCalendarService;
 use App\Services\DailyActivity\DailyActivityService;
@@ -20,6 +24,13 @@ use Illuminate\Support\Carbon;
  * portal account. The service
  * derives organization, unit, position and status; working-day and
  * backdating rules apply as for employees.
+ *
+ * Work execution register: the approved employee's position gets the
+ * synthetic structure Employee Administration → Employee Transfer
+ * Processing → Review Transfer Application, with an approved standard
+ * (quantity 10, time 30 minutes, quality 100), and the approved day records
+ * one measured execution of it (8 done in 40 minutes at quality 90: 80%,
+ * 75%, 90%, aggregate 81.67%), calculated by the server.
  */
 class DemoDailyActivitySeeder extends DemoSeeder
 {
@@ -35,6 +46,7 @@ class DemoDailyActivitySeeder extends DemoSeeder
         }
 
         $reviewer = DemoDataset::requireUser('demo.org1.manager@example.test');
+        $measuredTask = $this->workStructure(DemoDataset::requireEmployee('E-1-6'));
 
         foreach (self::LOGS as $key => $state) {
             $employee = DemoDataset::requireEmployee($key);
@@ -61,7 +73,16 @@ class DemoDailyActivitySeeder extends DemoSeeder
                     'progress_status' => 'completed',
                     'started_at' => '09:00',
                     'ended_at' => '11:30',
-                ]],
+                ], ...($key === 'E-1-6' && $measuredTask !== null ? [[
+                    'task_id' => $measuredTask->id,
+                    'title' => 'Synthetic demo: reviewed transfer applications',
+                    'output_result' => '8 transfer applications reviewed (demo)',
+                    'progress_status' => 'completed',
+                    'started_at' => '13:00',
+                    'ended_at' => '13:40',
+                    'quantity' => '8',
+                    'actual_quality' => '90',
+                ]] : [])],
                 'late_reason' => 'Synthetic demo: entered by the demo seeder',
             ], submit: $state !== 'draft');
 
@@ -72,6 +93,49 @@ class DemoDailyActivitySeeder extends DemoSeeder
                 $service->returnForCorrection($reviewer, $log, 'Synthetic demo review: please add the output produced.');
             }
         }
+    }
+
+    /**
+     * Synthetic main service → sub-service → main task → approved standard on
+     * the employee's position. Idempotent. Null when the employee has no
+     * position on file.
+     */
+    private function workStructure(Employee $employee): ?PositionServiceTask
+    {
+        $assignment = $employee->currentAssignment;
+        if ($assignment?->position_id === null) {
+            return null;
+        }
+
+        $service = PositionService::query()->firstOrCreate(
+            ['position_id' => $assignment->position_id, 'service_no' => 'DEMO-EMP-ADMIN'],
+            ['organization_id' => $assignment->organization_id, 'name_en' => 'DEMO Employee Administration', 'name_am' => 'የሠራተኛ አስተዳደር (ማሳያ)', 'is_active' => true],
+        );
+        $sub = PositionServiceSubService::query()->firstOrCreate(
+            ['position_service_id' => $service->id, 'code' => 'DEMO-SS-TRANSFER'],
+            ['organization_id' => $service->organization_id, 'name_en' => 'DEMO Employee Transfer Processing', 'name_am' => 'የሠራተኛ ዝውውር ሂደት (ማሳያ)', 'is_active' => true],
+        );
+        $task = PositionServiceTask::query()->firstOrCreate(
+            ['sub_service_id' => $sub->id, 'code' => 'DEMO-T-REVIEW'],
+            ['position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'name_en' => 'DEMO Review Transfer Application', 'name_am' => 'የዝውውር ማመልከቻ መገምገም (ማሳያ)', 'is_active' => true],
+        );
+        PositionServiceTaskStandard::query()->firstOrCreate(
+            ['task_id' => $task->id, 'version_no' => 1],
+            [
+                'organization_id' => $service->organization_id, 'status' => 'approved',
+                'standard_measure' => 'Synthetic demo: 10 applications a day, 30 minutes, all complete and correct',
+                'bpr_reference' => 'DEMO-BPR-HR-01',
+                'planned_quantity' => 10, 'quantity_unit' => 'applications',
+                'planned_time_minutes' => 30,
+                'planned_quality' => 100, 'quality_unit' => '%',
+                'quality_measure' => 'Synthetic demo: share of reviewed applications complete and correct',
+                'quality_source' => 'employee',
+                'effective_from' => '2020-01-01',
+                'approved_at' => now(),
+            ],
+        );
+
+        return $task;
     }
 
     /** The latest day on or before the first run that is open for entry. */

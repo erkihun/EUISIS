@@ -103,6 +103,7 @@ use App\Http\Controllers\Web\PermissionController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
+use App\Http\Controllers\Web\WorkStructureController;
 use App\Http\Controllers\Web\ProviderUserController;
 use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
@@ -1236,6 +1237,24 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/position-services/{positionService}/edit', [PositionServiceController::class, 'edit'])->name('position-services.edit');
     Route::patch('/position-services/{positionService}', [PositionServiceController::class, 'update'])->name('position-services.update');
     Route::delete('/position-services/{positionService}', [PositionServiceController::class, 'destroy'])->name('position-services.destroy');
+
+    /*
+     * Work standards: Sub-Service → Main Task → Task Standard (BPR plan)
+     * under a position service. Measures daily work in the Employee Daily
+     * Plan & Work Execution Register. Scoped through the owning service.
+     */
+    Route::get('/position-services/{positionService}/structure', [WorkStructureController::class, 'show'])->name('work-structure.show');
+    Route::post('/position-services/{positionService}/sub-services', [WorkStructureController::class, 'storeSubService'])->name('work-structure.sub-services.store');
+    Route::patch('/work-structure/sub-services/{subService}', [WorkStructureController::class, 'updateSubService'])->whereUuid('subService')->name('work-structure.sub-services.update');
+    Route::delete('/work-structure/sub-services/{subService}', [WorkStructureController::class, 'destroySubService'])->whereUuid('subService')->name('work-structure.sub-services.destroy');
+    Route::post('/work-structure/sub-services/{subService}/tasks', [WorkStructureController::class, 'storeTask'])->whereUuid('subService')->name('work-structure.tasks.store');
+    Route::patch('/work-structure/tasks/{task}', [WorkStructureController::class, 'updateTask'])->whereUuid('task')->name('work-structure.tasks.update');
+    Route::delete('/work-structure/tasks/{task}', [WorkStructureController::class, 'destroyTask'])->whereUuid('task')->name('work-structure.tasks.destroy');
+    Route::post('/work-structure/tasks/{task}/standards', [WorkStructureController::class, 'storeStandard'])->whereUuid('task')->name('work-structure.standards.store');
+    Route::patch('/work-structure/standards/{standard}', [WorkStructureController::class, 'updateStandard'])->whereUuid('standard')->name('work-structure.standards.update');
+    Route::delete('/work-structure/standards/{standard}', [WorkStructureController::class, 'destroyStandard'])->whereUuid('standard')->name('work-structure.standards.destroy');
+    Route::post('/work-structure/standards/{standard}/approve', [WorkStructureController::class, 'approveStandard'])->whereUuid('standard')->name('work-structure.standards.approve');
+    Route::post('/work-structure/standards/{standard}/retire', [WorkStructureController::class, 'retireStandard'])->whereUuid('standard')->name('work-structure.standards.retire');
 
     Route::get('/feedback-admin/dashboard', [ServiceFeedbackController::class, 'dashboard'])->name('service-feedback.admin.dashboard');
     Route::get('/feedback-admin/reports', [ServiceFeedbackController::class, 'reports'])->name('service-feedback.admin.reports');
