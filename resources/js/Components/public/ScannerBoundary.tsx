@@ -11,7 +11,7 @@ import { Component, type ReactNode } from 'react';
  * identical copy.
  */
 export default class ScannerBoundary extends Component<
-    { children: ReactNode; onFailure: () => void; fallbackLabel: string },
+    { children: ReactNode; onFailure?: () => void; fallbackLabel: string },
     { failed: boolean }
 > {
     state = { failed: false };
@@ -21,7 +21,7 @@ export default class ScannerBoundary extends Component<
     }
 
     componentDidCatch() {
-        this.props.onFailure();
+        this.props.onFailure?.();
     }
 
     render() {

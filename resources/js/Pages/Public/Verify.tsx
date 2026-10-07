@@ -39,6 +39,7 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
     const pick = useBilingual();
     const [value, setValue] = useState('');
     const [showScanner, setShowScanner] = useState(false);
+    const [scannerFailed, setScannerFailed] = useState(false);
 
     const header = sections.header;
     const title = pick(header, 'title') || t('home.verifyPageTitle');
@@ -46,9 +47,13 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
     const scanHelp = pick(sections.scan_help, 'body_html');
     const notice = pick(sections.notice, 'body_html');
 
-    const go = (raw: string) => {
+    const go = (raw: string, scanned = false) => {
         const destination = resolveVerifyDestination(raw);
-        if (destination !== null) router.visit(destination);
+        if (destination === null) return;
+        // A live in-page scan of an ID card sends the verification code at
+        // once, as it does on the ID Checker page. A typed or pasted value
+        // still needs the button there, so holding a link alone sends nothing.
+        router.visit(scanned && destination.startsWith('/id-checker/') ? `${destination}?scanned=1` : destination);
     };
 
     const handleSubmit = (e: FormEvent) => {
@@ -77,19 +82,24 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
                             <h2 id="scan-heading" className="sr-only">{t('home.verifyScanQr')}</h2>
 
                             {showScanner ? (
-                                <ScannerBoundary onFailure={() => setShowScanner(false)} fallbackLabel={t('idChecker.scannerUnavailable')}>
+                                <ScannerBoundary onFailure={() => { setScannerFailed(true); setShowScanner(false); }} fallbackLabel={t('idChecker.scannerUnavailable')}>
                                     <Suspense fallback={<Viewfinder label={t('idChecker.loadingScanner')} />}>
                                         {/* autoStart: the tap that loaded the scanner
                                             already asked for the camera. */}
-                                        <QrScanner autoStart compact onDecoded={go} />
+                                        <QrScanner autoStart onDecoded={(decoded) => go(decoded, true)} />
                                     </Suspense>
                                 </ScannerBoundary>
                             ) : (
                                 <>
                                     <Viewfinder label={t('idChecker.cameraIdle')} />
+                                    {scannerFailed && (
+                                        <p role="alert" className="mx-auto mt-3 max-w-md rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                                            {t('idChecker.scannerUnavailable')}
+                                        </p>
+                                    )}
                                     <button
                                         type="button"
-                                        className={`${publicButtonPrimary} mt-3 min-h-[52px] w-full text-base`}
+                                        className={`${publicButtonPrimary} mx-auto mt-3 flex min-h-[52px] w-full max-w-md text-base`}
                                         onClick={() => setShowScanner(true)}
                                     >
                                         <ScanIcon />
@@ -156,13 +166,13 @@ export default function PublicVerify({ sections, meta }: { sections: Record<stri
 }
 
 /**
- * The idle camera area. Shorter than square on phones so the button and the
- * manual entry stay in the first screen; the live scanner takes its own size.
+ * The idle camera area: the same square as the live scanner (full width on a
+ * phone, capped on a wide screen), so starting the camera does not jump.
  */
 function Viewfinder({ label }: { label: string }) {
     return (
-        <div className="flex h-[clamp(160px,26svh,220px)] aspect-[4/3] w-full min-w-0 flex-col items-center justify-center gap-3 rounded-[10px] bg-slate-950 px-4 text-center sm:h-auto sm:aspect-[16/10] lg:aspect-auto lg:h-80">
-            <div aria-hidden="true" className="h-[45%] max-h-44 aspect-square rounded-xl border-2 border-dashed border-white/40" />
+        <div className="mx-auto flex aspect-square w-full min-w-0 max-w-md flex-col items-center justify-center gap-4 rounded-[10px] bg-slate-950 px-4 text-center">
+            <div aria-hidden="true" className="aspect-square w-[70%] rounded-xl border-2 border-dashed border-white/40" />
             <p className="text-sm text-slate-300">{label}</p>
         </div>
     );

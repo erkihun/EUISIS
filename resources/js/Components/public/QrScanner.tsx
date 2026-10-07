@@ -15,8 +15,6 @@ interface Props {
      * buttons, for one action.
      */
     autoStart?: boolean;
-    /** Keep the manual-entry alternative within reach on short phone screens. */
-    compact?: boolean;
 }
 
 /**
@@ -26,11 +24,15 @@ interface Props {
  * and is useless to a visitor who arrived by scanning a QR with their phone's
  * own camera, which is the common path on mobile.
  *
- * The video container is always mounted at a fixed height — html5-qrcode
- * measures the element on start, and mounting into a zero-size box produces a
- * running camera with a blank screen.
+ * The camera area is a square that fills the width on a phone and is capped
+ * on a wide screen. Until the camera runs it holds that square, because
+ * html5-qrcode measures the element on start and a zero-size box gives a
+ * running camera with a blank screen. Once it runs, the video keeps its own
+ * shape: html5-qrcode maps its scan box from the element's size to the camera
+ * frame, so squeezing the video with CSS (as an earlier fixed 220px height
+ * did) made it decode a distorted region and miss codes.
  */
-export default function QrScanner({ onDecoded, autoStart = false, compact = false }: Props) {
+export default function QrScanner({ onDecoded, autoStart = false }: Props) {
     const { t } = useLocale();
     const regionId = useId().replace(/:/g, '');
     const scannerRef = useRef<Html5Qrcode | null>(null);
@@ -96,10 +98,13 @@ export default function QrScanner({ onDecoded, autoStart = false, compact = fals
                 { facingMode: 'environment' },
                 {
                     fps: 10,
-                    // Square box sized to the viewport, so the target stays
-                    // reachable on a 320px screen without overflowing.
+                    // Ask for a square frame so the preview fills the square
+                    // area; a camera that cannot comply keeps its own shape.
+                    aspectRatio: 1,
+                    // Square scan box at 75% of the shorter side: on a phone
+                    // a card held at a comfortable distance fits inside it.
                     qrbox: (viewfinderWidth, viewfinderHeight) => {
-                        const edge = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.7);
+                        const edge = Math.max(120, Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.75));
 
                         return { width: edge, height: edge };
                     },
@@ -174,11 +179,10 @@ export default function QrScanner({ onDecoded, autoStart = false, compact = fals
 
     return (
         <div className="min-w-0 w-full">
-            <div className="relative w-full overflow-hidden rounded-panel border border-gray-200 bg-slate-950 dark:border-slate-800">
-                <div
-                    id={regionId}
-                    className={`${compact ? 'h-[clamp(160px,26svh,220px)] sm:h-auto sm:aspect-[16/10] lg:aspect-square' : 'aspect-square'} w-full [&_video]:max-h-full [&_video]:max-w-full [&_video]:object-contain`}
-                />
+            <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-panel border border-gray-200 bg-slate-950 dark:border-slate-800">
+                {/* html5-qrcode draws its own shaded frame around the scan box,
+                    in the right place for whatever shape the camera returns. */}
+                <div id={regionId} className={`w-full ${active ? '' : 'aspect-square'} [&_video]:block`} />
 
                 {!active && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
@@ -201,11 +205,6 @@ export default function QrScanner({ onDecoded, autoStart = false, compact = fals
 
                 {active && (
                     <>
-                        {/* Aiming frame — dimmed surround focuses attention. */}
-                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                            <div className="h-[65%] max-w-[80%] aspect-square rounded-panel border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]" />
-                        </div>
-
                         {torchSupported && (
                             <button
                                 type="button"
@@ -223,7 +222,7 @@ export default function QrScanner({ onDecoded, autoStart = false, compact = fals
                 )}
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mx-auto mt-3 flex w-full max-w-md flex-wrap gap-2">
                 <button
                     type="button"
                     onClick={active ? stop : start}
@@ -241,7 +240,7 @@ export default function QrScanner({ onDecoded, autoStart = false, compact = fals
             </div>
 
             {error && (
-                <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-300">
+                <p role="alert" className="mx-auto mt-2 max-w-md rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-300">
                     {error}
                 </p>
             )}

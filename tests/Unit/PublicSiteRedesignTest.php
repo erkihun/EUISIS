@@ -23,16 +23,26 @@ it('routes scanned or typed values through the shared resolver', function (): vo
 
 it('keeps the Verify task in the first phone screen', function (): void {
     $verify = publicSource('resources/js/Pages/Public/Verify.tsx');
+    $scanner = publicSource('resources/js/Components/public/QrScanner.tsx');
 
     expect($verify)
         ->toContain('breadcrumbs={[{ label: title }]} compact')
-        // Shorter than square on phones; the scanner still loads lazily.
-        ->toContain('aspect-[4/3]')
+        // A square camera area: full width on a phone, capped on a wide
+        // screen. The scanner still loads lazily.
+        ->toContain('aspect-square w-full min-w-0 max-w-md')
         ->toContain("lazy(() => import('@/Components/public/QrScanner'))")
         // Large touch targets and a 16px input (no iOS zoom on focus).
         ->toContain('min-h-[52px]')
         ->toContain('h-12 min-w-0 flex-1')
         ->toContain('text-base');
+
+    // The live video is never squeezed by CSS: html5-qrcode maps its scan box
+    // from the element to the camera frame, and a distorted element made it
+    // decode the wrong region.
+    expect($scanner)
+        ->toContain('aspectRatio: 1')
+        ->not->toContain('object-contain')
+        ->not->toContain('clamp(160px');
 });
 
 it('gives every public page the home page look', function (): void {

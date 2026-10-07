@@ -243,7 +243,7 @@ export default function IdChecker({ cardUuid, card, autoSend = false, sections =
                                 // does not implement — must not take down the page.
                                 // The manual token field below is a complete
                                 // alternative path, so the checker stays usable.
-                                <ScannerBoundary onFailure={() => setShowScanner(false)} fallbackLabel={t('idChecker.scannerUnavailable')}>
+                                <ScannerBoundary fallbackLabel={t('idChecker.scannerUnavailable')}>
                                     <Suspense
                                         fallback={
                                             <div className="flex aspect-square w-full items-center justify-center rounded-panel border border-gray-200 bg-slate-950 text-sm text-slate-300 dark:border-slate-800">
