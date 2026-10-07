@@ -40,9 +40,14 @@ it('keeps the Verify task in the first phone screen', function (): void {
     // from the element to the camera frame, and a distorted element made it
     // decode the wrong region.
     expect($scanner)
-        ->toContain('aspectRatio: 1')
         ->not->toContain('object-contain')
-        ->not->toContain('clamp(160px');
+        ->not->toContain('clamp(160px')
+        // An aspect-ratio constraint applied after opening is refused by
+        // some phones and failed the whole start; resolution hints are
+        // "ideal" only, so no camera refuses to open over them.
+        ->not->toContain('aspectRatio')
+        ->toContain('width: { ideal: 1920 }')
+        ->toContain('useBarCodeDetectorIfSupported: true');
 });
 
 it('gives every public page the home page look', function (): void {

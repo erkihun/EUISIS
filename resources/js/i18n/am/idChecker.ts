@@ -17,6 +17,8 @@ export default {
     cameraNotFound: 'በዚህ መሣሪያ ላይ ካሜራ አልተገኘም። በምትኩ ከታች የካርድ ቶከኑን ያስገቡ።',
     cameraInUse: 'ካሜራው በሌላ መተግበሪያ እየተጠቀመ ነው። ዘግተው እንደገና ይሞክሩ።',
     cameraInsecureOrigin: 'የQR ስካን ደህንነቱ የተጠበቀ (https) ግንኙነት ይፈልጋል። በምትኩ ከታች የካርድ ቶከኑን ያስገቡ።',
+    cameraUnsupported: 'ይህ ብሮውዘር ካሜራ መጠቀም አይችልም። ገጹን በChrome ወይም በSafari ይክፈቱ፣ ወይም ከታች የካርድ ቶከኑን ያስገቡ።',
+    cameraInAppBrowser: 'ካሜራው በዚህ መተግበሪያ ውስጣዊ ብሮውዘር ውስጥ አይሰራም። ገጹን በChrome ወይም በSafari ይክፈቱ (ሜኑ → በብሮውዘር ክፈት)፣ ወይም ከታች የካርድ ቶከኑን ያስገቡ።',
     enterCardToken: 'ወይም የካርድ ቶከን ያስገቡ',
     or: 'ወይም',
     scannerUnavailable: 'የካሜራ ስካነሩን መጫን አልተቻለም። በምትኩ ከታች የካርድ ቶከኑን ያስገቡ።',

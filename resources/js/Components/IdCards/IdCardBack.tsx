@@ -154,6 +154,10 @@ export default function IdCardBack({ cardNumber, qrValue, emergencyContactName, 
                                 value={qrValue}
                                 size={qrSize}
                                 level="Q"
+                                // Two modules of white around the code inside the
+                                // same outer size: the 4px padding alone is about
+                                // one module, and phone scanners need a margin.
+                                marginSize={2}
                                 bgColor="#FFFFFF"
                                 fgColor="#0F172A"
                             />

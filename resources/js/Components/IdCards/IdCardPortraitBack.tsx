@@ -49,7 +49,7 @@ export default function IdCardPortraitBack({
                 {showQr && <div className="flex flex-col items-center justify-center gap-1 overflow-hidden" style={layoutStyle(cardTemplate, 'qr', 'back')}>
                     <p className="w-full truncate text-center font-semibold" style={labelStyle}>{t('employees.feedbackSuggestionQr')}</p>
                     {qrValue
-                        ? <div className="aspect-square max-h-[82%] max-w-[82%] bg-white p-1 shadow"><QRCodeSVG value={qrValue} size={220} level="Q" bgColor="#FFFFFF" fgColor="#0F172A" className="h-full w-full" /></div>
+                        ? <div className="aspect-square max-h-[82%] max-w-[82%] bg-white p-1 shadow"><QRCodeSVG value={qrValue} size={220} level="Q" marginSize={2} bgColor="#FFFFFF" fgColor="#0F172A" className="h-full w-full" /></div>
                         : <div className="flex aspect-square max-h-[82%] max-w-[82%] items-center justify-center border-2 border-dashed border-slate-300 bg-slate-100 text-center" style={labelStyle}>{t('idCards.qrOnPrint')}</div>}
                 </div>}
 

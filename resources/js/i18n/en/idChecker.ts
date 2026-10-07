@@ -19,6 +19,8 @@ export default {
     cameraNotFound: 'No camera was found on this device. Enter the card token below instead.',
     cameraInUse: 'The camera is being used by another application. Close it and try again.',
     cameraInsecureOrigin: 'Camera scanning needs a secure (https) connection. Enter the card token below instead.',
+    cameraUnsupported: 'This browser cannot use the camera. Open this page in Chrome or Safari, or enter the card token below.',
+    cameraInAppBrowser: 'The camera does not work in this app\'s built-in browser. Open the page in Chrome or Safari (menu → Open in browser), or enter the card token below.',
     enterCardToken: 'Or enter the card token',
     or: 'or',
     scannerUnavailable: 'The camera scanner could not be loaded. Enter the card token below instead.',
