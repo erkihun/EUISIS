@@ -211,14 +211,30 @@ class RegisteredUserController extends Controller
 
             $otp->forceFill(['verified_at' => now()])->save();
 
-            $user = new User([
+            // An account may predate its employee record. Once both employee
+            // contacts have been verified, attach that unlinked account instead
+            // of rejecting the employee merely because its email is unique.
+            $user = User::query()
+                ->where('email', $employee->email)
+                ->lockForUpdate()
+                ->first();
+
+            if ($user !== null && ($user->employee_id !== null || $user->employee_reference !== null)) {
+                throw ValidationException::withMessages([
+                    'employee_number' => __('auth.employee_already_registered'),
+                ]);
+            }
+
+            $user ??= new User();
+
+            $user->fill([
                 'name' => $employee->full_name ?? trim(($employee->first_name ?? '').' '.($employee->last_name ?? '')),
                 'email' => $employee->email,
                 'phone_number' => $employee->phone,
                 'password' => Hash::make((string) $validated['password']),
                 'employee_reference' => $employee->employee_number,
                 'password_changed_at' => now(),
-                'first_login_at' => now(),
+                'first_login_at' => $user->first_login_at ?? now(),
                 'last_login_at' => now(),
             ]);
             // Link to the employee whose contacts were just proved, rather than
@@ -308,7 +324,13 @@ class RegisteredUserController extends Controller
         if (User::query()
             ->where('employee_reference', $employee->employee_number)
             ->orWhere('employee_id', $employee->id)
-            ->orWhere('email', $employee->email)
+            ->orWhere(function ($query) use ($employee): void {
+                $query->where('email', $employee->email)
+                    ->where(function ($query): void {
+                        $query->whereNotNull('employee_reference')
+                            ->orWhereNotNull('employee_id');
+                    });
+            })
             ->exists()) {
             throw ValidationException::withMessages([
                 'employee_number' => __('auth.employee_already_registered'),

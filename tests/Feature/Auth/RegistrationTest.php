@@ -141,6 +141,28 @@ test('a valid registration otp verifies the employee and creates the account', f
         ->and(EmployeeRegistrationOtp::query()->latest('created_at')->first()->verified_at)->not->toBeNull();
 });
 
+test('registration attaches an unlinked account that already uses the employee email', function (): void {
+    config(['security.registration_enabled' => true]);
+    Notification::fake();
+
+    $employee = registrationEmployee('EMP-EXISTING-EMAIL', 'existing-email@example.test');
+    $existingUser = User::withoutEvents(fn (): User => User::factory()->create([
+        'email' => $employee->email,
+        'employee_id' => null,
+        'employee_reference' => null,
+        'employee_link_locked' => true,
+    ]));
+
+    finishRegistration($this, $employee)->assertRedirect(route('employee.portal'));
+
+    $user = $existingUser->fresh();
+
+    expect(User::query()->where('email', $employee->email)->count())->toBe(1)
+        ->and($user->employee_id)->toBe($employee->id)
+        ->and($user->employee_reference)->toBe($employee->employee_number)
+        ->and(Hash::check('Secure!Password#2026', $user->password))->toBeTrue();
+});
+
 test('registration cannot finish without requesting and verifying an otp', function (): void {
     config(['security.registration_enabled' => true]);
 
