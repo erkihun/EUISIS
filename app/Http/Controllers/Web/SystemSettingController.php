@@ -82,6 +82,7 @@ class SystemSettingController extends Controller
 
         return Inertia::render('SystemSettings/Index', [
             'settingGroups' => $groups,
+            'emailInEffect' => isset($groups[SystemSettingsRegistry::GROUP_EMAIL]) ? $this->emailInEffect() : null,
             'roles' => Role::query()
                 ->withCount('users')
                 ->orderBy('name')
@@ -267,7 +268,10 @@ class SystemSettingController extends Controller
 
     public function testEmail(TestNotificationChannelRequest $request): RedirectResponse
     {
-        $recipient = $request->validated('recipient') ?: $this->settingsService->get('email', 'email_test_recipient');
+        // The admin pressing the button is a sensible default recipient.
+        $recipient = $request->validated('recipient')
+            ?: $this->settingsService->get('email', 'email_test_recipient')
+            ?: $request->user()?->email;
 
         return $this->handleTestChannelResult(
             $request,
@@ -331,6 +335,38 @@ class SystemSettingController extends Controller
      * @param  (callable(string): ?string)|null  $send  Delivers a test message;
      *                                                   returns an error, or null when delivered.
      */
+    /**
+     * The mail settings this server actually uses, and where each comes from.
+     * A blank field on the page falls back to the server's .env, so the form
+     * alone cannot tell an administrator what the mailer will do. No secrets:
+     * only whether a username and password are set.
+     *
+     * @return array<string, mixed>
+     */
+    private function emailInEffect(): array
+    {
+        $stored = SystemSetting::query()
+            ->where('group', SystemSettingsRegistry::GROUP_EMAIL)
+            ->whereNotNull('value')
+            ->where('value', '!=', '')
+            ->pluck('key')
+            ->all();
+        $source = fn (string $key): string => in_array($key, $stored, true) ? 'settings' : 'server';
+        $smtp = (array) config('mail.mailers.smtp');
+        $scheme = (string) ($smtp['scheme'] ?? 'smtp');
+
+        return [
+            'mailer' => ['value' => (string) config('mail.default'), 'source' => $source('mail_mailer')],
+            'host' => ['value' => (string) ($smtp['host'] ?? ''), 'source' => $source('mail_host')],
+            'port' => ['value' => (string) ($smtp['port'] ?? ''), 'source' => $source('mail_port')],
+            'connection' => ['value' => $scheme === 'smtps' ? 'ssl' : (($smtp['auto_tls'] ?? true) ? 'starttls' : 'plain'), 'source' => $source('mail_encryption')],
+            'username' => ['value' => filled($smtp['username'] ?? null) ? 'set' : 'not_set', 'source' => $source('mail_username')],
+            'password' => ['value' => filled($smtp['password'] ?? null) ? 'set' : 'not_set', 'source' => $source('mail_password')],
+            'from' => ['value' => (string) config('mail.from.address'), 'source' => $source('mail_from_address')],
+            'timeout' => ['value' => (string) ($smtp['timeout'] ?? ''), 'source' => 'server'],
+        ];
+    }
+
     private function handleTestChannelResult(
         Request $request,
         string $channel,

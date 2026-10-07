@@ -93,3 +93,49 @@ it('reports a refused test SMS', function (): void {
         ->assertSessionHas('flash.type', 'error')
         ->assertSessionHas('flash.message', fn (string $message): bool => str_contains($message, __('settings.messages.test_sms_refused')));
 });
+
+function emailAdmin(): User
+{
+    $user = User::factory()->create();
+    $user->givePermissionTo(['system-settings.view', 'system-settings.manageEmail', 'system-settings.testNotificationChannels']);
+
+    return $user;
+}
+
+function emailForm(array $overrides = []): array
+{
+    return array_merge(['mail_mailer' => 'smtp', 'mail_host' => 'mail.example.test', 'mail_port' => 587, 'mail_encryption' => 'tls'], $overrides);
+}
+
+it('refuses a port and encryption pair that can never connect', function (): void {
+    $admin = emailAdmin();
+
+    $this->actingAs($admin)->patch(route('system-settings.email.update'), emailForm(['mail_encryption' => 'ssl', 'mail_port' => 587]))
+        ->assertSessionHasErrors(['mail_port' => __('settings.messages.mail_port_ssl')]);
+    $this->actingAs($admin)->patch(route('system-settings.email.update'), emailForm(['mail_encryption' => 'tls', 'mail_port' => 465]))
+        ->assertSessionHasErrors(['mail_encryption' => __('settings.messages.mail_port_465')]);
+    $this->actingAs($admin)->patch(route('system-settings.email.update'), emailForm(['mail_encryption' => 'ssl', 'mail_port' => 465]))
+        ->assertSessionHasNoErrors();
+});
+
+it('shows the mail settings in use and where each comes from, without secrets', function (): void {
+    config(['mail.mailers.smtp.host' => 'env-host.example.test', 'mail.mailers.smtp.password' => 'secret-pass']);
+    mailSetting('mail_port', '587', 'integer');
+
+    $this->actingAs(emailAdmin())->get(route('system-settings.index', ['tab' => 'email']))->assertOk()
+        ->assertInertia(fn (Inertia\Testing\AssertableInertia $page) => $page
+            ->where('emailInEffect.port.source', 'settings')
+            ->where('emailInEffect.host.source', 'server')
+            ->where('emailInEffect.password.value', 'set')
+            ->where('settingGroups.email.fields', fn ($fields): bool => collect($fields)->pluck('key')->intersect(['email_queue_enabled', 'email_rate_limit_per_minute'])->isEmpty()))
+        ->assertDontSee('secret-pass');
+});
+
+it('sends the test email to the admin when no test recipient is saved', function (): void {
+    Mail::fake();
+    $admin = emailAdmin();
+
+    $this->actingAs($admin)->post(route('system-settings.test-email'))
+        ->assertSessionHas('flash.type', 'success')
+        ->assertSessionHas('flash.message', fn (string $message): bool => str_contains($message, $admin->email));
+});

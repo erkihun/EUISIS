@@ -29,7 +29,7 @@ const CARDS: Record<string, CardDefinition[]> = {
         { key: 'transport', fields: ['mail_mailer', 'mail_host', 'mail_port', 'mail_encryption'] },
         { key: 'credentials', fields: ['mail_username', 'mail_password'] },
         { key: 'sender', fields: ['mail_from_address', 'mail_from_name'] },
-        { key: 'delivery', fields: ['email_queue_enabled', 'email_rate_limit_per_minute', 'email_test_recipient'] },
+        { key: 'delivery', fields: ['email_test_recipient'] },
     ],
     sms: [
         { key: 'provider', fields: ['sms_provider', 'sms_api_url', 'sms_api_key'] },

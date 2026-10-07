@@ -21,6 +21,8 @@ return [
         'test_channel_queued' => 'የ:channel ሙከራ በደህና ተላልፏል።',
         'test_channel_sent' => 'የ:channel የሙከራ መልእክት ለ:target ወደ ሰርቨሩ ደርሷል። መድረሱን ያረጋግጡ።',
         'test_channel_failed' => 'የ:channel ሙከራ አልተሳካም፦ :error',
+        'mail_port_ssl' => 'SSL በፖርት 465 ይገናኛል። ፖርት 465 ይጠቀሙ፣ ወይም ለፖርት 587 እና 25 TLS ይምረጡ።',
+        'mail_port_465' => 'ፖርት 465 SSL ያስፈልገዋል። SSL ይምረጡ፣ ወይም ፖርት 587ን ከTLS ጋር ይጠቀሙ።',
         'test_email_subject' => 'የ:app የሙከራ ኢሜይል',
         'test_email_body' => 'ይህ ከ:app የተላከ የሙከራ መልእክት ነው። ከደረሰዎ የኢሜይል መላኪያው ይሰራል።',
         'test_sms_body' => 'የ:app የሙከራ መልእክት፦ የኤስኤምኤስ መላኪያው ይሰራል።',

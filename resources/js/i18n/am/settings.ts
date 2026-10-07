@@ -202,6 +202,32 @@ const settings = {
     discardChanges: 'ተው',
     saveShortcut: 'አስቀምጥ (Ctrl+S)',
     saveBeforeTest: 'ከመሞከርዎ በፊት ለውጦችዎን ያስቀምጡ።',
+    emailInEffect: {
+        title: 'አሁን በሥራ ላይ ያለው',
+        help: 'ወጪ ኢሜይል በትክክል የሚጠቀመው። ከታች ባዶ የሆኑ መስኮች የሰርቨሩን ውቅር (.env) ይጠቀማሉ። የኢሜይል ሰርቨሩ እነዚህን ቅንብሮች መቀበሉን ለማረጋገጥ "ሙከራ ላክ"ን ይጠቀሙ።',
+        notSmtp: 'ማስላኪያው ":mailer" ስለሆነ ምንም ኢሜይል ወደ ኢሜይል ሰርቨር አይደርስም። እውነተኛ መልእክት ለመላክ SMTP ይምረጡ።',
+        set: 'ተቀምጧል',
+        not_set: 'አልተቀመጠም',
+        fields: {
+            mailer: 'ማስላኪያ',
+            host: 'የኢሜይል አስተናጋጅ',
+            port: 'ፖርት',
+            connection: 'ግንኙነት',
+            username: 'የተጠቃሚ ስም',
+            password: 'የይለፍ ቃል',
+            from: 'የላኪ አድራሻ',
+            timeout: 'የመጠበቂያ ገደብ',
+        },
+        connections: {
+            ssl: 'SSL (ከመጀመሪያው የተመሰጠረ)',
+            starttls: 'TLS (STARTTLS)',
+            plain: 'ያልተመሰጠረ',
+        },
+        sources: {
+            settings: 'ይህ ገጽ',
+            server: 'የሰርቨር .env',
+        },
+    },
     testChannelHelp: 'የተቀመጡትን ቅንብሮች በመጠቀም የሙከራ መልዕክት ይልካል።',
     discard: {
         title: 'ያልተቀመጡ ለውጦች ይተዉ?',
@@ -269,7 +295,7 @@ const settings = {
             sender: 'ላኪ',
             senderHelp: 'ተቀባዮች የሚያዩት ስም እና አድራሻ።',
             delivery: 'ማቅረብ እና ሙከራ',
-            deliveryHelp: 'ኪው፣ የመላኪያ ገደቦች እና የሙከራ መልዕክቶች መድረሻ።',
+            deliveryHelp: 'የሙከራ መልዕክቶች መድረሻ።',
         },
         sms: {
             provider: 'የኤስኤምኤስ መግቢያ',

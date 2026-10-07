@@ -1,6 +1,7 @@
 import PageHeader from '@/Components/PageHeader';
 import { BellIcon, CheckCircle, CreditCard, GlobeIcon, KeyIcon, MailIcon, MessageSquareIcon, PaletteIcon, RefreshIcon, SendIcon, SettingsIcon, ShieldCheck } from '@/Components/Icons';
 import SettingField from '@/Components/settings/SettingField';
+import EmailInEffect, { type EmailInEffectData } from '@/Components/settings/EmailInEffect';
 import SettingsCard from '@/Components/settings/SettingsCard';
 import SettingsNav, { type SettingsNavGroup } from '@/Components/settings/SettingsNav';
 import { AppearancePreview, BrandingPreview, IdCardTemplatesPanel } from '@/Components/settings/SettingsPreviews';
@@ -44,6 +45,8 @@ type Props = {
     settingGroups: Record<string, SettingsGroupPayload>;
     roles: RoleOption[];
     can: SettingsCan;
+    /** The mail settings in effect, saved values and server fallbacks combined. */
+    emailInEffect?: EmailInEffectData | null;
 };
 
 type FormValue = string | number | boolean | string[] | File | null;
@@ -166,7 +169,7 @@ function initialSection(available: string[]): string {
     return requested && available.includes(requested) ? requested : available[0] ?? '';
 }
 
-export default function SystemSettingsIndex({ settingGroups, roles, can }: Props) {
+export default function SystemSettingsIndex({ settingGroups, roles, can, emailInEffect = null }: Props) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
     const sections = SECTIONS.filter((section) => settingGroups[section.id] !== undefined);
@@ -281,6 +284,7 @@ export default function SystemSettingsIndex({ settingGroups, roles, can }: Props
                             roles={roles ?? []}
                             canViewTemplates={can.viewIdCardTemplates === true}
                             sidebarColor={typeof sidebarColor === 'string' ? sidebarColor : undefined}
+                            emailInEffect={emailInEffect}
                             onDirtyChange={setDirty}
                         />
                     </div>
@@ -301,6 +305,7 @@ function GroupFormPanel({
     roles,
     canViewTemplates,
     sidebarColor,
+    emailInEffect,
     onDirtyChange,
 }: {
     section: string;
@@ -311,6 +316,7 @@ function GroupFormPanel({
     roles: RoleOption[];
     canViewTemplates: boolean;
     sidebarColor?: string;
+    emailInEffect: EmailInEffectData | null;
     onDirtyChange: (dirty: boolean) => void;
 }) {
     const { locale, t } = useLocale();
@@ -379,6 +385,21 @@ function GroupFormPanel({
         });
     };
 
+    /*
+     * Port follows encryption: SSL connects on 465, TLS on 587 (or 25). Only a
+     * port that cannot work with the new choice is changed, so a deliberate
+     * 25 with TLS stays as typed. The server refuses a mismatch either way.
+     */
+    const change = (key: string, value: FormValue) => {
+        if (section === 'email' && key === 'mail_encryption') {
+            const port = Number(form.data.mail_port);
+            const nextPort = value === 'ssl' && port !== 465 ? 465 : value !== 'ssl' && (port === 465 || !port) ? 587 : null;
+            form.setData((data) => ({ ...data, mail_encryption: value, ...(nextPort === null ? {} : { mail_port: nextPort }) }));
+            return;
+        }
+        form.setData(key, value);
+    };
+
     const optional = (key: string) => {
         const text = t(key);
         return text === key ? undefined : text;
@@ -399,7 +420,7 @@ function GroupFormPanel({
             value={form.data[entry.key]}
             error={form.errors[entry.key]}
             disabled={!editable || form.processing}
-            onChange={(value) => form.setData(entry.key, value)}
+            onChange={(value) => change(entry.key, value)}
         />
     );
 
@@ -429,6 +450,7 @@ function GroupFormPanel({
             {section === 'general' && <BrandingPreview values={form.data} fields={payload.fields} sidebarColor={sidebarColor} />}
             {section === 'appearance' && <AppearancePreview values={form.data} />}
             {section === 'id_cards' && <IdCardTemplatesPanel canManage={canViewTemplates} />}
+            {section === 'email' && emailInEffect && <EmailInEffect data={emailInEffect} />}
 
             {cards.map((card) => {
                 if (section === 'security' && card.key === 'mfa') {

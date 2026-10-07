@@ -202,6 +202,32 @@ const settings = {
     discardChanges: 'Discard',
     saveShortcut: 'Save (Ctrl+S)',
     saveBeforeTest: 'Save your changes before testing.',
+    emailInEffect: {
+        title: 'In use now',
+        help: 'What outgoing email actually uses. Blank fields below fall back to the server configuration (.env). Use "Send test" to check that the mail server accepts these settings.',
+        notSmtp: 'The mailer is ":mailer", so no email reaches a mail server. Choose SMTP to send real messages.',
+        set: 'Set',
+        not_set: 'Not set',
+        fields: {
+            mailer: 'Mailer',
+            host: 'Mail host',
+            port: 'Port',
+            connection: 'Connection',
+            username: 'Username',
+            password: 'Password',
+            from: 'From address',
+            timeout: 'Gives up after',
+        },
+        connections: {
+            ssl: 'SSL (encrypted from the start)',
+            starttls: 'TLS (STARTTLS)',
+            plain: 'Not encrypted',
+        },
+        sources: {
+            settings: 'This page',
+            server: 'Server .env',
+        },
+    },
     testChannelHelp: 'Sends a test message using the saved settings.',
     discard: {
         title: 'Discard unsaved changes?',
@@ -269,7 +295,7 @@ const settings = {
             sender: 'Sender',
             senderHelp: 'The name and address recipients see.',
             delivery: 'Delivery and testing',
-            deliveryHelp: 'Queueing, sending limits and where test messages go.',
+            deliveryHelp: 'Where test messages go.',
         },
         sms: {
             provider: 'SMS gateway',

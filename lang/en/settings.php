@@ -19,6 +19,8 @@ return [
         'test_channel_queued' => ':channel test has been queued safely.',
         'test_channel_sent' => ':channel test message was delivered to the server for :target. Check that it arrives.',
         'test_channel_failed' => ':channel test failed: :error',
+        'mail_port_ssl' => 'SSL connects on port 465. Use port 465, or choose TLS for ports 587 and 25.',
+        'mail_port_465' => 'Port 465 needs SSL. Choose SSL, or use port 587 with TLS.',
         'test_email_subject' => ':app test email',
         'test_email_body' => 'This is a test message from :app. If you received it, email delivery works.',
         'test_sms_body' => ':app test message: SMS delivery works.',
