@@ -58,3 +58,25 @@ test('password can be reset with valid token', function () {
         return true;
     });
 });
+
+test('a reset link reaches the account even when the email is typed in another case', function () {
+    Notification::fake();
+    $user = User::factory()->create(['email' => 'reset.case@example.test']);
+
+    $this->post('/forgot-password', ['email' => '  Reset.Case@Example.TEST '])
+        ->assertSessionHas('status', __('password-policy.reset_link_sent'));
+
+    Notification::assertSentTo($user, ResetPassword::class);
+});
+
+test('a mail server failure gives the same answer and is recorded for administrators', function () {
+    config(['mail.default' => 'smtp', 'mail.mailers.smtp.host' => '127.0.0.1', 'mail.mailers.smtp.port' => 1, 'mail.mailers.smtp.timeout' => 2]);
+    $user = User::factory()->create(['email' => 'reset.fail@example.test']);
+
+    $this->post('/forgot-password', ['email' => $user->email])
+        ->assertRedirect()
+        ->assertSessionHas('status', __('password-policy.reset_link_sent'));
+
+    expect(App\Models\AuditLog::query()->where('event_type', 'password_reset_requested')->latest('id')->value('reason'))
+        ->toBe('password_reset_email_failed');
+});
