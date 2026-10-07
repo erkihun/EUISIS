@@ -282,3 +282,16 @@ test('too many code requests are refused beside the field, not with an error pag
         ->assertSessionHasErrors(['employee_number' => __('auth.registration_otp_throttled', ['minutes' => 10])]);
     expect(EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->count())->toBe(3);
 });
+
+test('registration:diagnose names the account that blocks an employee', function (): void {
+    $employee = registrationEmployee('EMP-DIAG', 'diag@example.test');
+    $stale = User::factory()->create(['email' => 'old-address@example.test']);
+    $stale->forceFill(['employee_id' => $employee->id, 'employee_link_locked' => true])->saveQuietly();
+
+    expect(Illuminate\Support\Facades\Artisan::call('registration:diagnose', ['employee_number' => 'EMP-DIAG']))->toBe(1)
+        ->and(Illuminate\Support\Facades\Artisan::output())->toContain('old-address@example.test')->toContain('linked to this employee record');
+
+    $stale->forceFill(['employee_id' => null])->saveQuietly();
+    expect(Illuminate\Support\Facades\Artisan::call('registration:diagnose', ['employee_number' => 'EMP-DIAG']))->toBe(0)
+        ->and(Illuminate\Support\Facades\Artisan::output())->toContain('Nothing blocks registration');
+});

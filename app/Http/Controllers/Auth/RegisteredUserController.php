@@ -321,21 +321,46 @@ class RegisteredUserController extends Controller
 
     private function ensureNotRegistered(Employee $employee): void
     {
-        if (User::query()
-            ->where('employee_reference', $employee->employee_number)
-            ->orWhere('employee_id', $employee->id)
-            ->orWhere(function ($query) use ($employee): void {
-                $query->where('email', $employee->email)
-                    ->where(function ($query): void {
-                        $query->whereNotNull('employee_reference')
-                            ->orWhereNotNull('employee_id');
-                    });
-            })
-            ->exists()) {
+        if (self::blockingAccounts($employee)->exists()) {
             throw ValidationException::withMessages([
                 'employee_number' => __('auth.employee_already_registered'),
             ]);
         }
+    }
+
+    /**
+     * Accounts that already belong to this employee: linked to the record,
+     * carrying its employee number, or an employee account using its email.
+     *
+     * A blank email or number is never compared: where('email', null) is
+     * "email IS NULL", which would match every account without an email and
+     * tell an employee with no account that one already exists.
+     * Also used by `php artisan registration:diagnose`.
+     *
+     * @return \Illuminate\Database\Eloquent\Builder<User>
+     */
+    public static function blockingAccounts(Employee $employee): \Illuminate\Database\Eloquent\Builder
+    {
+        $number = trim((string) $employee->employee_number);
+        $email = trim((string) $employee->email);
+
+        return User::query()->where(function ($query) use ($employee, $number, $email): void {
+            $query->where('employee_id', $employee->id);
+
+            if ($number !== '') {
+                $query->orWhere('employee_reference', $number);
+            }
+
+            if ($email !== '') {
+                $query->orWhere(function ($query) use ($email): void {
+                    $query->whereRaw('lower(email) = ?', [mb_strtolower($email)])
+                        ->where(function ($query): void {
+                            $query->whereNotNull('employee_reference')
+                                ->orWhereNotNull('employee_id');
+                        });
+                });
+            }
+        });
     }
 
     private function disabledRedirect(): ?RedirectResponse
