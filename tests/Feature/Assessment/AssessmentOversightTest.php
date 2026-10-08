@@ -653,6 +653,26 @@ test('every oversight page renders for a city user with real data', function ():
     }
 });
 
+test('reports use the selected institution scope for summary figures and reject a forged institution filter', function (): void {
+    $employeeA = aoEmployee($this, 'REPORT-A', $this->orgA, $this->unitA1, 'female');
+    $employeeB = aoEmployee($this, 'REPORT-B', $this->orgB, $this->unitB, 'male');
+    aoSnapshot($this);
+    aoRecord($this, $employeeA, 'reviewed', '75');
+    aoRecord($this, $employeeB, 'assigned');
+
+    $this->actingAs($this->city)->get(route('assessment-oversight.reports', [
+        'cycle' => $this->cycle->id, 'organization_id' => $this->orgA->id,
+    ]))->assertOk()->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('totals.eligible', 1)
+        ->where('totals.assessed', 1)
+        ->where('summary.institutions.expected', 1)
+        ->where('organizations.0.id', $this->orgA->id));
+
+    $this->actingAs(aoUser(['assessment_reports.view'], $this->orgA))
+        ->get(route('assessment-oversight.reports', ['cycle' => $this->cycle->id, 'organization_id' => $this->orgB->id]))
+        ->assertForbidden();
+});
+
 test('assessment pages live under /assessments and the old /performance URLs redirect permanently', function (): void {
     expect(route('assessment-forms.index', [], false))->toBe('/assessments/forms')
         ->and(route('assessment-records.index', [], false))->toBe('/assessments/records')

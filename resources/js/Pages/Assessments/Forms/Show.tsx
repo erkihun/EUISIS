@@ -276,7 +276,7 @@ function TargetRules({ rules, editable, options, organizationId, errors, onChang
                         {errors[`target_rules.${i}.target_id`] && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{errors[`target_rules.${i}.target_id`]}</p>}
                     </div>
                     <Field label={t('assessments.fields.priority')} htmlFor={`r${i}-priority`}>
-                        <input id={`r${i}-priority`} type="number" className={compactInputCls} value={rule.priority} onChange={(e) => update(i, { priority: Number(e.target.value) })} />
+                        <input id={`r${i}-priority`} type="number" className={`${compactInputCls} w-full`} value={rule.priority} onChange={(e) => update(i, { priority: Number(e.target.value) })} />
                     </Field>
                     {editable && <button type="button" className={`${dangerLinkBtn} pb-2`} onClick={() => onChange(rules.filter((_, n) => n !== i))}>{t('assessments.actions.remove')}</button>}
                 </div>

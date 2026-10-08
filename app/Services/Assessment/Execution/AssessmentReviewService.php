@@ -35,6 +35,7 @@ class AssessmentReviewService
     public function __construct(
         private readonly AssessmentResultCalculator $calculator,
         private readonly AssessmentResultDistributionService $bands,
+        private readonly AssessmentResultVersionService $versions,
         private readonly OrganizationScopeService $scope,
         private readonly WriteAuditLogAction $audit,
     ) {}
@@ -145,6 +146,7 @@ class AssessmentReviewService
             'percentage' => $result['percentage'], 'contribution' => $result['contribution'], 'score_breakdown' => $result['breakdown'],
             'band_policy_id' => $policy?->id, 'band_code' => $band?->code, 'band_label_en' => $band?->label_en, 'band_label_am' => $band?->label_am,
         ]);
+        $this->versions->ensureOriginal($record, $actor);
         $this->audit->execute(AuditEventType::AssessmentFinalized, $actor, $record, $record->organization_id,
             newValues: ['percentage' => $result['percentage'], 'band' => $band?->code, 'automatic' => $actor === null], reason: $comment, request: request());
         $employeeUsers = User::query()->where('employee_id', $record->employee_id)->where('status', 'active')->get();

@@ -142,6 +142,29 @@ and submission status.
 - No criterion responses or comments are exported.
 - Employee-level CSV is streamed in chunks of 1,000 rows. Employee-level Excel/PDF is refused above 5,000 rows, with a pointer to CSV.
 
+## Reports navigator and executive summary
+
+The **Reports** page is the report entry point, not a second operational
+dashboard. For the selected cycle and (optionally) one authorized institution,
+it shows a compact, drill-down-able summary of eligible, assessed and
+unassessed employees, coverage, institution workflow status and—only to users
+with `assessment_oversight.view_data_quality`—data-quality severities. Its
+consolidated table and exports use the same filter and `OversightScope`.
+
+It links to the existing detailed report pages for coverage/unassessed lists,
+result distribution, gender, data quality and submissions. Final result bands
+are shown only to users with `assessment_oversight.view_results`; demographic
+figures still require `assessment_oversight.view_demographics` and retain
+small-group suppression.
+
+The following requested analytics cannot be reported truthfully yet because
+their source workflows are not implemented in this module: assessment appeals,
+moderation decisions, result corrections, competency gaps and training/IDP
+plans. Result-version storage is being introduced separately, but reports must
+not treat that foundation as completed governance data. Add those report cards
+only when their workflow records, lifecycle states, scope checks and audit
+events are live.
+
 ## Scheduler
 
 `assessments:oversight-monitor` runs daily at 06:30 (`routes/console.php`).

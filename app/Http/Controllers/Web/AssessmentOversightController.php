@@ -272,6 +272,7 @@ class AssessmentOversightController extends Controller
         $filters = $this->aggregateFilters($request, $user);
         $rows = [];
         $bands = [];
+        $summary = null;
         if ($cycle) {
             $metrics = $this->coverage->institutionCoverage($cycle, $scope, $filters);
             $distribution = $user->can('assessment_oversight.view_results') ? $this->distribution->distribution($cycle, $scope, $filters, 'organization_id') : null;
@@ -283,11 +284,22 @@ class AssessmentOversightController extends Controller
                 $rows[] = ['organization' => $labels[$orgId] ?? ['id' => $orgId], 'metrics' => $m, 'bands' => $distribution['breakdown'][$orgId] ?? null];
             }
             usort($rows, fn ($a, $b) => strcmp((string) ($a['organization']['name_en'] ?? ''), (string) ($b['organization']['name_en'] ?? '')));
+            $summary = [
+                // These are report navigation metrics, not a second dashboard.
+                // They deliberately reuse the same scoped aggregate definitions as
+                // the detailed reports and exports below.
+                'institutions' => $this->query->institutionStatusCounts($cycle, $scope, $filters),
+                'quality' => $user->can('assessment_oversight.view_data_quality')
+                    ? $this->issueTotals($this->quality->summary($cycle, $scope, $filters['organization_id'] ?? null))
+                    : null,
+            ];
         }
 
         return $this->render('Reports', $request, $user, $cycle, [
             'rows' => $rows, 'bands' => $bands, 'filters' => $filters,
             'reasons' => $reasons ?? null, 'totals' => $cycle ? $this->demographics($user, $cycle, $this->coverage->totals($cycle, $scope, $filters)) : null,
+            'summary' => $summary,
+            'organizations' => $cycle ? $this->organizationOptions($cycle, $scope) : [],
         ]);
     }
 

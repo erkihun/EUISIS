@@ -1,5 +1,5 @@
-import { ExportButtons, OversightLayout, named, pct, type Band, type Metrics, type ShellProps } from '@/Components/assessmentOversight/shell';
-import { Section, Table, tdCls, thCls } from '@/Components/performance/ui';
+import { ExportButtons, Filters, IssueTile, Kpi, KpiGroup, OversightLayout, named, oversightHref, pct, type Band, type Metrics, type ShellProps } from '@/Components/assessmentOversight/shell';
+import { Section, Table, filterInputCls, tdCls, thCls } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 
 type Row = { organization: { id: string; code?: string; name_en?: string; name_am?: string | null }; metrics: Metrics; bands: Record<string, number> | null };
@@ -10,7 +10,12 @@ type Props = ShellProps & {
     bands: Band[];
     totals: Metrics | null;
     reasons: { exceptions: ReasonRow[]; reported: ReasonRow[]; excluded: ReasonRow[] } | null;
-    filters: Record<string, string>;
+    filters: { organization_id?: string };
+    organizations: Array<{ id: string; code: string; name_en: string; name_am: string | null }>;
+    summary: null | {
+        institutions: Record<string, number>;
+        quality: null | { blocking: number; warning: number; info: number };
+    };
 };
 
 const REPORTS = ['consolidated', 'unassessed', 'distribution', 'gender', 'data_quality', 'submissions'] as const;
@@ -22,7 +27,7 @@ const REPORTS = ['consolidated', 'unassessed', 'distribution', 'gender', 'data_q
  */
 export default function OversightReports(props: Props) {
     const { t, locale } = useLocale();
-    const { cycle, can, rows, bands, totals, reasons } = props;
+    const { cycle, can, rows, bands, totals, reasons, organizations, summary, filters } = props;
     const allowed = (report: (typeof REPORTS)[number]) => ({ unassessed: can.employees, distribution: can.results, gender: can.demographics, data_quality: can.dataQuality } as Record<string, boolean>)[report] ?? true;
     const label = (b: Band) => (locale === 'am' && b.label_am) || b.label_en;
 
@@ -30,6 +35,50 @@ export default function OversightReports(props: Props) {
         <OversightLayout title={t('assessmentOversight.nav.reports')} description={t('assessmentOversight.reportsHelp')} active="reports" shell={props}>
             {cycle && (
                 <>
+                    <Filters routeName="assessment-oversight.reports" cycle={cycle}>
+                        <select name="organization_id" aria-label={t('assessmentOversight.institution')} className={filterInputCls} defaultValue={filters.organization_id ?? ''}>
+                            <option value="">{t('assessmentOversight.allInstitutions')}</option>
+                            {organizations.map((organization) => <option key={organization.id} value={organization.id}>{named(organization, locale)}</option>)}
+                        </select>
+                    </Filters>
+
+                    {totals && <>
+                        <KpiGroup title={t('assessmentOversight.sections.overview')} columns={4}>
+                            <Kpi label={t('assessmentOversight.eligible')} value={totals.eligible} />
+                            <Kpi label={t('assessmentOversight.assessed')} value={totals.assessed}
+                                href={can.employees ? oversightHref('assessment-oversight.employees', cycle, { ...filters, outcome: 'assessed' }) : undefined} />
+                            <Kpi label={t('assessmentOversight.coverage')} value={totals.coverage_percent} suffix="%" />
+                            <Kpi label={t('assessmentOversight.unassessed')} value={totals.unassessed}
+                                href={can.employees ? oversightHref('assessment-oversight.employees', cycle, { ...filters, outcome: 'unassessed' }) : undefined}
+                                tone={totals.unassessed > 0 ? 'warning' : undefined} />
+                        </KpiGroup>
+
+                        {summary && <div className="grid gap-4 xl:grid-cols-2">
+                            <Section title={t('assessmentOversight.charts.submissionStatus')}>
+                                <div className="grid gap-2 sm:grid-cols-2">
+                                    <IssueTile label={t('assessmentOversight.kpi.completed')} value={summary.institutions.completed ?? 0} tone="success"
+                                        href={can.institutions ? oversightHref('assessment-oversight.institutions', cycle, filters) : undefined} />
+                                    <IssueTile label={t('assessmentOversight.kpi.inProgress')} value={summary.institutions.in_progress ?? 0} tone="info"
+                                        href={can.institutions ? oversightHref('assessment-oversight.institutions', cycle, filters) : undefined} />
+                                    <IssueTile label={t('assessmentOversight.kpi.returned')} value={(summary.institutions.returned ?? 0) + (summary.institutions.outdated ?? 0)} tone="warning"
+                                        href={can.submissions ? oversightHref('assessment-oversight.submissions', cycle, filters) : undefined} />
+                                    <IssueTile label={t('assessmentOversight.kpi.overdue')} value={summary.institutions.overdue ?? 0} tone="danger"
+                                        href={can.institutions ? oversightHref('assessment-oversight.institutions', cycle, filters) : undefined} />
+                                </div>
+                            </Section>
+                            {summary.quality && <Section title={t('assessmentOversight.sections.dataQuality')}>
+                                <div className="grid gap-2 sm:grid-cols-3">
+                                    <IssueTile label={t('assessmentOversight.kpi.blockingIssues')} value={summary.quality.blocking} tone="danger"
+                                        href={can.dataQuality ? oversightHref('assessment-oversight.data-quality', cycle, filters) : undefined} />
+                                    <IssueTile label={t('assessmentOversight.kpi.warnings')} value={summary.quality.warning} tone="warning"
+                                        href={can.dataQuality ? oversightHref('assessment-oversight.data-quality', cycle, filters) : undefined} />
+                                    <IssueTile label={t('assessmentOversight.severity.info')} value={summary.quality.info} tone="info"
+                                        href={can.dataQuality ? oversightHref('assessment-oversight.data-quality', cycle, filters) : undefined} />
+                                </div>
+                            </Section>}
+                        </div>}
+                    </>}
+
                     {can.export && (
                         <Section title={t('assessmentOversight.exportsTitle')} description={t('assessmentOversight.exportsHelp')}>
                             <ul className="divide-y divide-gray-100 dark:divide-slate-800">

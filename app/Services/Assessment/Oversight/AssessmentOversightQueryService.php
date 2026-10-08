@@ -331,9 +331,9 @@ class AssessmentOversightQueryService
     }
 
     /** Institution counts by derived/workflow status for the city dashboard (SQL, no per-row hydration of employees). */
-    public function institutionStatusCounts(AssessmentCycle $cycle, OversightScope $scope): array
+    public function institutionStatusCounts(AssessmentCycle $cycle, OversightScope $scope, array $filters = []): array
     {
-        $all = $this->institutions($cycle, $scope, [], 10000);
+        $all = $this->institutions($cycle, $scope, $filters, 10000);
         $cycleBlocked = collect($this->quality->cycleIssues($cycle))->where('severity', AssessmentDataQualityService::BLOCKING)->isNotEmpty();
         $counts = array_fill_keys(['expected', 'not_started', 'in_progress', 'ready_for_submission', 'submitted', 'returned', 'verified', 'finalized', 'rejected', 'outdated', 'started', 'completed', 'overdue'], 0);
         foreach ($all->items() as $row) {
