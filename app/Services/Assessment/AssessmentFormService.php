@@ -31,7 +31,7 @@ class AssessmentFormService
     public const VERSION_FIELDS = [
         'name_en', 'name_am', 'description_en', 'description_am', 'instructions_en', 'instructions_am',
         'period_type', 'scoring_method', 'max_total_score', 'overall_contribution_weight', 'result_scale_id',
-        'acknowledgement_required', 'review_required', 'effective_from', 'effective_to',
+        'acknowledgement_required', 'review_required', 'show_option_scores', 'effective_from', 'effective_to',
     ];
 
     public function __construct(
@@ -169,7 +169,11 @@ class AssessmentFormService
                 'published_by' => $actor->id,
                 'published_at' => now(),
             ])->save();
-            $version->form->forceFill(['current_version_id' => $version->id, 'updated_by' => $actor->id])->save();
+            $version->form->forceFill([
+                ...$version->only(['name_en', 'name_am', 'description_en', 'description_am']),
+                'current_version_id' => $version->id,
+                'updated_by' => $actor->id,
+            ])->save();
 
             $this->record(AuditEventType::AssessmentFormPublished, $actor, $version->form, ['current_version' => $previous->first()?->version_no], ['current_version' => $version->version_no]);
 

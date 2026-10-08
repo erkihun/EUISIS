@@ -5,7 +5,7 @@ import { DevelopmentPlanForm, EvidenceForm } from '@/Components/performance/form
 import { Field, Pill, Section, fill, formatScore, inputCls, nameOf, primaryBtn, secondaryBtn, smallBtn, useEnumLabel } from '@/Components/performance/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
 
 type Props = {
@@ -55,6 +55,7 @@ function PerformanceBody({ agreements, agreement, appeals, appealWindowDays, can
 
     return (
         <PortalPage title={t('performance.my.title')} description={t('performance.my.description')}>
+            <Link className={secondaryBtn} href={route('assessment-records.index')}>{locale === 'am' ? 'የሥራ ባልደረባ ምዘናዎች' : 'Peer assessments'}</Link>
             {agreements.length > 1 && (
                 <div className="flex flex-wrap gap-2">
                     {agreements.map((a) => (

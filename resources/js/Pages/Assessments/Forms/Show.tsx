@@ -3,7 +3,10 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { Field, Problems, Section, compactInputCls, dangerLinkBtn, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, type Bilingual } from '@/Components/performance/ui';
+import LookupPicker from '@/Components/assessmentForms/LookupPicker';
+import SectionsEditor, { fmt, newUid, sectionMax, withoutUids, type SectionDraft } from '@/Components/assessmentForms/SectionsEditor';
 import { useConfirm } from '@/hooks/useConfirm';
+import { StatusBadge as UiStatusBadge } from '@euisis/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
@@ -17,19 +20,13 @@ import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
  * before a version can be published.
  */
 
-type Option = { label_en: string; label_am: string; description_en: string; description_am: string; score: string };
-type Criterion = {
-    competency_id: string | null; competency_label?: string | null; code: string; title_en: string; title_am: string; description_en: string; description_am: string;
-    max_score: string; weight: string; is_required: boolean; comment_mode: string; evidence_mode: string; options: Option[];
-};
-type SectionDraft = { code: string; title_en: string; title_am: string; description_en: string; description_am: string; weight: string; max_score: string; is_required: boolean; criteria: Criterion[] };
 type Rule = { target_type: string; target_id: string | null; target_value: string | null; target_label?: string | null; include_descendants: boolean; effect: string; priority: number; effective_from: string | null; effective_to: string | null };
 type Evaluator = { evaluator_type: string; required_count: number; contribution_weight: string; selection_method: string; aggregation_method: string; is_anonymous: boolean; requires_review: boolean };
 
 type Draft = {
     name_en: string; name_am: string; description_en: string; description_am: string; instructions_en: string; instructions_am: string;
     period_type: string; scoring_method: string; max_total_score: string; overall_contribution_weight: string; result_scale_id: string;
-    acknowledgement_required: boolean; review_required: boolean; effective_from: string; effective_to: string;
+    acknowledgement_required: boolean; review_required: boolean; show_option_scores: boolean; effective_from: string; effective_to: string;
     sections: SectionDraft[]; target_rules: Rule[]; evaluators: Evaluator[];
 };
 
@@ -55,12 +52,12 @@ function toDraft(v: VersionView): Draft {
         name_en: text(v.name_en), name_am: text(v.name_am), description_en: text(v.description_en), description_am: text(v.description_am),
         instructions_en: text(v.instructions_en), instructions_am: text(v.instructions_am), period_type: text(v.period_type), scoring_method: text(v.scoring_method) || 'percent_of_max',
         max_total_score: text(v.max_total_score), overall_contribution_weight: text(v.overall_contribution_weight), result_scale_id: text(v.result_scale_id),
-        acknowledgement_required: Boolean(v.acknowledgement_required), review_required: Boolean(v.review_required), effective_from: text(v.effective_from), effective_to: text(v.effective_to),
+        acknowledgement_required: Boolean(v.acknowledgement_required), review_required: Boolean(v.review_required), show_option_scores: v.show_option_scores === undefined || v.show_option_scores === null ? true : Boolean(v.show_option_scores), effective_from: text(v.effective_from), effective_to: text(v.effective_to),
         sections: v.sections.map((s) => ({
-            code: text(s.code), title_en: text(s.title_en), title_am: text(s.title_am), description_en: text(s.description_en), description_am: text(s.description_am),
+            uid: newUid(), code: text(s.code), title_en: text(s.title_en), title_am: text(s.title_am), description_en: text(s.description_en), description_am: text(s.description_am),
             weight: text(s.weight), max_score: text(s.max_score), is_required: Boolean(s.is_required),
             criteria: s.criteria.map((c: any) => ({
-                competency_id: c.competency_id ?? null, competency_label: c.competency ? `${c.competency.code} ${c.competency.name_en}` : null,
+                uid: newUid(), competency_id: c.competency_id ?? null, competency_label: c.competency ? `${c.competency.code} ${c.competency.name_en}` : null,
                 code: text(c.code), title_en: text(c.title_en), title_am: text(c.title_am), description_en: text(c.description_en), description_am: text(c.description_am),
                 max_score: text(c.max_score), weight: text(c.weight), is_required: Boolean(c.is_required), comment_mode: c.comment_mode ?? 'optional', evidence_mode: c.evidence_mode ?? 'disabled',
                 options: c.options.map((o: any) => ({ label_en: text(o.label_en), label_am: text(o.label_am), description_en: text(o.description_en), description_am: text(o.description_am), score: text(o.score) })),
@@ -70,27 +67,6 @@ function toDraft(v: VersionView): Draft {
         evaluators: v.evaluators.map((e) => ({ ...e, contribution_weight: text(e.contribution_weight) })),
     };
 }
-
-const blankOption = (score: string): Option => ({ label_en: '', label_am: '', description_en: '', description_am: '', score });
-const blankCriterion = (): Criterion => ({ competency_id: null, code: '', title_en: '', title_am: '', description_en: '', description_am: '', max_score: '', weight: '', is_required: true, comment_mode: 'optional', evidence_mode: 'disabled', options: [blankOption('2'), blankOption('1')] });
-const blankSection = (): SectionDraft => ({ code: '', title_en: '', title_am: '', description_en: '', description_am: '', weight: '', max_score: '', is_required: true, criteria: [blankCriterion()] });
-
-function move<T>(list: T[], index: number, delta: number): T[] {
-    const target = index + delta;
-    if (target < 0 || target >= list.length) return list;
-    const next = [...list];
-    [next[index], next[target]] = [next[target], next[index]];
-    return next;
-}
-
-/** The highest score a criterion permits: its configured maximum, else its best option. */
-function criterionMax(c: Criterion): number {
-    const configured = num(c.max_score);
-    if (!Number.isNaN(configured)) return configured;
-    return c.options.reduce((best, o) => Math.max(best, Number.isNaN(num(o.score)) ? 0 : num(o.score)), 0);
-}
-const sectionMax = (s: SectionDraft) => s.criteria.reduce((sum, c) => sum + criterionMax(c), 0);
-const fmt = (value: number) => (Math.round(value * 10000) / 10000).toString();
 
 export default function AssessmentFormShow({ form: record, version, versions, problems, options, can }: Props) {
     const { t, locale } = useLocale();
@@ -104,16 +80,13 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
     const formTotal = data.sections.reduce((sum, s) => sum + sectionMax(s), 0);
 
     const set = <K extends keyof Draft>(key: K, value: Draft[K]) => form.setData(key, value as never);
-    const setSection = (i: number, patch: Partial<SectionDraft>) => set('sections', data.sections.map((s, n) => (n === i ? { ...s, ...patch } : s)));
-    const setCriterion = (si: number, ci: number, patch: Partial<Criterion>) => setSection(si, { criteria: data.sections[si].criteria.map((c, n) => (n === ci ? { ...c, ...patch } : c)) });
-    const setOption = (si: number, ci: number, oi: number, patch: Partial<Option>) => setCriterion(si, ci, { options: data.sections[si].criteria[ci].options.map((o, n) => (n === oi ? { ...o, ...patch } : o)) });
 
     function save(e?: FormEvent) {
         e?.preventDefault();
         form.transform((d) => ({
             ...d,
             target_rules: d.target_rules.map(({ target_label: _label, ...rule }) => rule),
-            sections: d.sections.map((s) => ({ ...s, criteria: s.criteria.map(({ competency_label: _c, ...c }) => c) })),
+            sections: withoutUids(d.sections),
         }));
         form.put(route('assessment-forms.versions.save', version.id), { preserveScroll: true });
     }
@@ -123,7 +96,9 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
         if (confirmed) run();
     }
 
-    const dirty = JSON.stringify(data) !== JSON.stringify(initial);
+    // Client-only keys are regenerated on every load, so they never count as a change.
+    const comparable = (d: Draft) => JSON.stringify({ ...d, sections: withoutUids(d.sections) });
+    const dirty = comparable(data) !== comparable(initial);
 
     return (
         <AuthenticatedLayout header={<PageHeader
@@ -194,27 +169,21 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                                 <div className="space-y-2 pt-6 text-sm">
                                     <label className="flex items-center gap-2"><input type="checkbox" checked={data.acknowledgement_required} onChange={(e) => set('acknowledgement_required', e.target.checked)} /> {t('assessments.fields.acknowledgement')}</label>
                                     <label className="flex items-center gap-2"><input type="checkbox" checked={data.review_required} onChange={(e) => set('review_required', e.target.checked)} /> {t('assessments.fields.reviewRequired')}</label>
+                                    <label className="flex items-center gap-2"><input type="checkbox" checked={data.show_option_scores} onChange={(e) => set('show_option_scores', e.target.checked)} /> {t('assessments.fields.showOptionScores')}</label>
                                 </div>
                                 <Field label={t('assessments.fields.effectiveFrom')} htmlFor="v-from"><LocalizedDatePicker id="v-from" value={data.effective_from} onChange={(value) => set('effective_from', value)} disabled={!editable} /></Field>
                                 <Field label={t('assessments.fields.effectiveTo')} htmlFor="v-to" error={errors.effective_to}><LocalizedDatePicker id="v-to" value={data.effective_to} onChange={(value) => set('effective_to', value)} disabled={!editable} /></Field>
                             </div>
                         </Section>
 
-                        <Section title={t('assessments.sections.content')} description={`${t('assessments.formTotal')}: ${fmt(formTotal)}${data.max_total_score !== '' && num(data.max_total_score) !== formTotal ? ` · ${t('assessments.mismatch')}` : ''}`}
-                            actions={editable ? <button type="button" className={smallBtn} onClick={() => set('sections', [...data.sections, blankSection()])}>{t('assessments.actions.addSection')}</button> : undefined}>
-                            {data.sections.length === 0 && <p className="text-sm text-gray-500 dark:text-slate-400">{t('assessments.noSections')}</p>}
-                            <div className="space-y-4">
-                                {data.sections.map((section, si) => (
-                                    <SectionCard key={si} index={si} section={section} editable={editable} options={options} scoringMethod={data.scoring_method}
-                                        onChange={(patch) => setSection(si, patch)}
-                                        onMove={(delta) => set('sections', move(data.sections, si, delta))}
-                                        onRemove={() => set('sections', data.sections.filter((_, n) => n !== si))}
-                                        setCriterion={(ci, patch) => setCriterion(si, ci, patch)}
-                                        setOption={(ci, oi, patch) => setOption(si, ci, oi, patch)} />
-                                ))}
-                            </div>
-                        </Section>
+                    </fieldset>
 
+                    <Section title={t('assessments.sections.content')} description={t('assessments.builder.contentHelp')}>
+                        <SectionsEditor sections={data.sections} editable={editable && !form.processing} scoringMethod={data.scoring_method} configuredTotal={data.max_total_score}
+                            options={options} errors={errors} onChange={(sections) => set('sections', sections)} />
+                    </Section>
+
+                    <fieldset disabled={!editable || form.processing} className="min-w-0 space-y-4">
                         <Section title={t('assessments.sections.targets')} description={t('assessments.targetsHelp')}
                             actions={editable ? <button type="button" className={smallBtn} onClick={() => set('target_rules', [...data.target_rules, { target_type: 'position', target_id: null, target_value: null, include_descendants: true, effect: 'include', priority: 0, effective_from: null, effective_to: null }])}>{t('assessments.actions.addRule')}</button> : undefined}>
                             <TargetRules rules={data.target_rules} editable={editable} options={options} organizationId={record.organization?.id ?? null} errors={errors} onChange={(rules) => set('target_rules', rules)} />
@@ -256,180 +225,6 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                 </Section>
             </div>
         </AuthenticatedLayout>
-    );
-}
-
-function StatusBadge({ status }: { status: string }) {
-    const { t } = useLocale();
-    const cls: Record<string, string> = {
-        draft: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300',
-        published: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300',
-        superseded: 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400',
-        archived: 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400',
-    };
-    return <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${cls[status] ?? cls.archived}`}>{t(`assessments.versionStatuses.${status}`)}</span>;
-}
-
-function MoveButtons({ onMove, onRemove, label }: { onMove: (delta: number) => void; onRemove: () => void; label: string }) {
-    const { t } = useLocale();
-    return (
-        <span className="flex items-center gap-2">
-            <button type="button" className={linkBtn} onClick={() => onMove(-1)} aria-label={`${t('assessments.actions.moveUp')}: ${label}`}>↑</button>
-            <button type="button" className={linkBtn} onClick={() => onMove(1)} aria-label={`${t('assessments.actions.moveDown')}: ${label}`}>↓</button>
-            <button type="button" className={dangerLinkBtn} onClick={onRemove}>{t('assessments.actions.remove')}</button>
-        </span>
-    );
-}
-
-function SectionCard({ index, section, editable, options, scoringMethod, onChange, onMove, onRemove, setCriterion, setOption }: {
-    index: number; section: SectionDraft; editable: boolean; options: Props['options']; scoringMethod: string;
-    onChange: (patch: Partial<SectionDraft>) => void; onMove: (delta: number) => void; onRemove: () => void;
-    setCriterion: (ci: number, patch: Partial<Criterion>) => void; setOption: (ci: number, oi: number, patch: Partial<Option>) => void;
-}) {
-    const { t } = useLocale();
-    const computed = sectionMax(section);
-    const mismatch = section.max_score !== '' && num(section.max_score) !== computed;
-    const id = (field: string) => `s${index}-${field}`;
-
-    return (
-        <div className="rounded-xl border border-gray-200 p-4 dark:border-slate-700">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('assessments.section')} {index + 1}</p>
-                <span className="flex items-center gap-3 text-xs">
-                    <span className={mismatch ? 'font-medium text-red-700 dark:text-red-400' : 'text-gray-500 dark:text-slate-400'}>
-                        {t('assessments.sectionMax')}: {fmt(computed)}{section.max_score !== '' && ` / ${t('assessments.configured')} ${section.max_score}`}
-                    </span>
-                    {editable && <MoveButtons onMove={onMove} onRemove={onRemove} label={section.title_en} />}
-                </span>
-            </div>
-            <div className="grid gap-3 md:grid-cols-4">
-                <Field label={t('assessments.fields.titleEn')} htmlFor={id('title-en')} className="md:col-span-2"><input id={id('title-en')} className={inputCls} value={section.title_en} onChange={(e) => onChange({ title_en: e.target.value })} /></Field>
-                <Field label={t('assessments.fields.titleAm')} htmlFor={id('title-am')} className="md:col-span-2"><input id={id('title-am')} className={inputCls} value={section.title_am} onChange={(e) => onChange({ title_am: e.target.value })} /></Field>
-                <Field label={t('assessments.fields.code')} htmlFor={id('code')}><input id={id('code')} className={inputCls} value={section.code} maxLength={40} onChange={(e) => onChange({ code: e.target.value })} /></Field>
-                <Field label={t('assessments.fields.sectionMax')} htmlFor={id('max')}><input id={id('max')} type="number" min={0} step="any" className={inputCls} value={section.max_score} onChange={(e) => onChange({ max_score: e.target.value })} /></Field>
-                {scoringMethod === 'weighted_score' && <Field label={t('assessments.fields.weight')} htmlFor={id('weight')}><input id={id('weight')} type="number" min={0} max={100} step="any" className={inputCls} value={section.weight} onChange={(e) => onChange({ weight: e.target.value })} /></Field>}
-                <label className="flex items-center gap-2 pt-6 text-sm"><input type="checkbox" checked={section.is_required} onChange={(e) => onChange({ is_required: e.target.checked })} /> {t('assessments.fields.required')}</label>
-            </div>
-
-            <div className="mt-4 space-y-3">
-                {section.criteria.map((criterion, ci) => (
-                    <CriterionCard key={ci} sectionIndex={index} index={ci} criterion={criterion} editable={editable} options={options} scoringMethod={scoringMethod}
-                        onChange={(patch) => setCriterion(ci, patch)}
-                        onMove={(delta) => onChange({ criteria: move(section.criteria, ci, delta) })}
-                        onRemove={() => onChange({ criteria: section.criteria.filter((_, n) => n !== ci) })}
-                        setOption={(oi, patch) => setOption(ci, oi, patch)} />
-                ))}
-                {editable && <button type="button" className={smallBtn} onClick={() => onChange({ criteria: [...section.criteria, blankCriterion()] })}>{t('assessments.actions.addCriterion')}</button>}
-            </div>
-        </div>
-    );
-}
-
-function CriterionCard({ sectionIndex, index, criterion, editable, options, scoringMethod, onChange, onMove, onRemove, setOption }: {
-    sectionIndex: number; index: number; criterion: Criterion; editable: boolean; options: Props['options']; scoringMethod: string;
-    onChange: (patch: Partial<Criterion>) => void; onMove: (delta: number) => void; onRemove: () => void; setOption: (oi: number, patch: Partial<Option>) => void;
-}) {
-    const { t } = useLocale();
-    const id = (field: string) => `s${sectionIndex}c${index}-${field}`;
-    const best = criterion.options.reduce((max, o) => Math.max(max, Number.isNaN(num(o.score)) ? 0 : num(o.score)), 0);
-    const maxMismatch = criterion.max_score !== '' && num(criterion.max_score) !== best;
-
-    return (
-        <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-800/50">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{t('assessments.criterion')} {sectionIndex + 1}.{index + 1}</p>
-                {editable && <MoveButtons onMove={onMove} onRemove={onRemove} label={criterion.title_en} />}
-            </div>
-            <div className="grid gap-2 md:grid-cols-2">
-                <Field label={t('assessments.fields.titleEn')} htmlFor={id('title-en')}><input id={id('title-en')} className={compactInputCls} value={criterion.title_en} onChange={(e) => onChange({ title_en: e.target.value })} /></Field>
-                <Field label={t('assessments.fields.titleAm')} htmlFor={id('title-am')}><input id={id('title-am')} className={compactInputCls} value={criterion.title_am} onChange={(e) => onChange({ title_am: e.target.value })} /></Field>
-                <Field label={t('assessments.fields.descriptionEn')} htmlFor={id('desc-en')}><textarea id={id('desc-en')} rows={2} className={compactInputCls} value={criterion.description_en} onChange={(e) => onChange({ description_en: e.target.value })} /></Field>
-                <Field label={t('assessments.fields.descriptionAm')} htmlFor={id('desc-am')}><textarea id={id('desc-am')} rows={2} className={compactInputCls} value={criterion.description_am} onChange={(e) => onChange({ description_am: e.target.value })} /></Field>
-            </div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
-                <Field label={t('assessments.fields.code')} htmlFor={id('code')}><input id={id('code')} className={compactInputCls} value={criterion.code} maxLength={40} onChange={(e) => onChange({ code: e.target.value })} /></Field>
-                <Field label={t('assessments.fields.maxScore')} htmlFor={id('max')} help={maxMismatch ? `${t('assessments.bestOption')}: ${fmt(best)}` : undefined}>
-                    <input id={id('max')} type="number" min={0} step="any" className={compactInputCls} value={criterion.max_score} placeholder={fmt(best)} onChange={(e) => onChange({ max_score: e.target.value })} />
-                </Field>
-                {scoringMethod === 'weighted_score' && <Field label={t('assessments.fields.weight')} htmlFor={id('weight')}><input id={id('weight')} type="number" min={0} max={100} step="any" className={compactInputCls} value={criterion.weight} onChange={(e) => onChange({ weight: e.target.value })} /></Field>}
-                <Field label={t('assessments.fields.comment')} htmlFor={id('comment')}>
-                    <select id={id('comment')} className={compactInputCls} value={criterion.comment_mode} onChange={(e) => onChange({ comment_mode: e.target.value })}>
-                        {options.input_modes.map((m) => <option key={m} value={m}>{t(`assessments.inputModes.${m}`)}</option>)}
-                    </select>
-                </Field>
-                <Field label={t('assessments.fields.evidence')} htmlFor={id('evidence')}>
-                    <select id={id('evidence')} className={compactInputCls} value={criterion.evidence_mode} onChange={(e) => onChange({ evidence_mode: e.target.value })}>
-                        {options.input_modes.map((m) => <option key={m} value={m}>{t(`assessments.inputModes.${m}`)}</option>)}
-                    </select>
-                </Field>
-                <label className="flex items-center gap-2 pt-5 text-xs"><input type="checkbox" checked={criterion.is_required} onChange={(e) => onChange({ is_required: e.target.checked })} /> {t('assessments.fields.required')}</label>
-            </div>
-            <div className="mt-2">
-                <LookupPicker type="competency" label={t('assessments.fields.competency')} value={criterion.competency_id} valueLabel={criterion.competency_label ?? null} editable={editable}
-                    onPick={(picked) => onChange({ competency_id: picked?.id ?? null, competency_label: picked?.label ?? null })} />
-            </div>
-
-            <table className="mt-3 w-full text-sm">
-                <thead>
-                    <tr className="text-left text-xs text-gray-500 dark:text-slate-400">
-                        <th className="py-1 pe-2 font-medium">{t('assessments.fields.optionDescriptionEn')}</th>
-                        <th className="py-1 pe-2 font-medium">{t('assessments.fields.optionDescriptionAm')}</th>
-                        <th className="w-24 py-1 pe-2 font-medium">{t('assessments.fields.score')}</th>
-                        <th className="w-28 py-1"><span className="sr-only">{t('assessments.actions.remove')}</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {criterion.options.map((option, oi) => (
-                        <tr key={oi} className="align-top">
-                            <td className="py-1 pe-2"><textarea rows={1} aria-label={`${t('assessments.fields.optionDescriptionEn')} ${oi + 1}`} className={compactInputCls} value={option.description_en} onChange={(e) => setOption(oi, { description_en: e.target.value })} /></td>
-                            <td className="py-1 pe-2"><textarea rows={1} aria-label={`${t('assessments.fields.optionDescriptionAm')} ${oi + 1}`} className={compactInputCls} value={option.description_am} onChange={(e) => setOption(oi, { description_am: e.target.value })} /></td>
-                            <td className="py-1 pe-2"><input type="number" min={0} step="any" aria-label={`${t('assessments.fields.score')} ${oi + 1}`} className={compactInputCls} value={option.score} onChange={(e) => setOption(oi, { score: e.target.value })} /></td>
-                            <td className="py-1 text-right">{editable && <MoveButtons label={`${oi + 1}`} onMove={(delta) => onChange({ options: move(criterion.options, oi, delta) })} onRemove={() => onChange({ options: criterion.options.filter((_, n) => n !== oi) })} />}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            {editable && criterion.options.length < 20 && <button type="button" className={`${smallBtn} mt-2`} onClick={() => onChange({ options: [...criterion.options, blankOption('')] })}>{t('assessments.actions.addOption')}</button>}
-        </div>
-    );
-}
-
-type Picked = { id: string; label: string } | null;
-
-/** Searches master data within the viewer's scope (assessment-forms.lookup). */
-function LookupPicker({ type, label, value, valueLabel, editable, organizationId = null, onPick }: { type: string; label: string; value: string | null; valueLabel: string | null; editable: boolean; organizationId?: string | null; onPick: (picked: Picked) => void }) {
-    const { t, locale } = useLocale();
-    const [query, setQuery] = useState('');
-    const [results, setResults] = useState<{ id: string; label_en: string; label_am: string | null }[]>([]);
-
-    async function search(q: string) {
-        setQuery(q);
-        if (q.trim().length < 2) { setResults([]); return; }
-        const response = await fetch(route('assessment-forms.lookup', { type, q, organization_id: organizationId ?? undefined }), { headers: { Accept: 'application/json' } });
-        if (response.ok) setResults((await response.json()).results);
-    }
-
-    return (
-        <div className="min-w-0">
-            <p className="mb-1 text-xs font-medium text-gray-700 dark:text-slate-300">{label}</p>
-            {value ? (
-                <p className="flex items-center gap-2 text-sm">
-                    <span className="min-w-0 truncate">{valueLabel ?? value}</span>
-                    {editable && <button type="button" className={dangerLinkBtn} onClick={() => onPick(null)}>{t('assessments.actions.clear')}</button>}
-                </p>
-            ) : editable ? (
-                <div className="relative">
-                    <input type="search" aria-label={label} className={compactInputCls} value={query} placeholder={t('assessments.searchPlaceholder')} onChange={(e) => void search(e.target.value)} />
-                    {results.length > 0 && (
-                        <ul className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-gray-200 bg-white text-sm shadow-lg dark:border-slate-700 dark:bg-slate-900">
-                            {results.map((r) => (
-                                <li key={r.id}><button type="button" className="block w-full px-3 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-slate-800" onClick={() => { onPick({ id: r.id, label: (locale === 'am' && r.label_am) || r.label_en }); setQuery(''); setResults([]); }}>{(locale === 'am' && r.label_am) || r.label_en}</button></li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            ) : <p className="text-sm text-gray-500">—</p>}
-        </div>
     );
 }
 
@@ -586,4 +381,11 @@ function CloneForm({ formId, onClose }: { formId: string; onClose: () => void })
             </form>
         </Section>
     );
+}
+
+const VERSION_TONES: Record<string, 'success' | 'warning' | 'neutral'> = { draft: 'warning', published: 'success', superseded: 'neutral', archived: 'neutral' };
+
+function StatusBadge({ status }: { status: string }) {
+    const { t } = useLocale();
+    return <UiStatusBadge tone={VERSION_TONES[status] ?? 'neutral'}>{t(`assessments.versionStatuses.${status}`)}</UiStatusBadge>;
 }

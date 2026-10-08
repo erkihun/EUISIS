@@ -91,6 +91,11 @@ class AssessmentTargetResolver
     public function preview(string $assessmentTypeId, Carbon $date, ?array $organizationIds = null, int $chunk = 1000): array
     {
         $versions = $this->candidates($assessmentTypeId, $date);
+        if ($organizationIds !== null) {
+            $versions = $versions->filter(fn (AssessmentFormVersion $version): bool =>
+                $version->form->organization_id === null
+                || in_array($version->form->organization_id, $organizationIds, true));
+        }
         $result = ['total' => 0, 'by_version' => $versions->mapWithKeys(fn (AssessmentFormVersion $v): array => [$v->id => 0])->all(), 'unmatched' => 0, 'conflicts' => 0, 'conflict_samples' => []];
         $day = $date->toDateString();
 
@@ -119,6 +124,19 @@ class AssessmentTargetResolver
         });
 
         return $result;
+    }
+
+    /**
+     * The decision for an already-resolved assignment, for callers that batch
+     * their own assignment and position lookups (the oversight eligibility
+     * snapshot). Same rules as resolveFor().
+     *
+     * @param  Collection<int, AssessmentFormVersion>  $versions
+     * @return array{status: string, version: ?AssessmentFormVersion, candidates: array<int, string>}
+     */
+    public function decideForAssignment(Collection $versions, EmployeeAssignment $assignment, ?Position $position, string $date): array
+    {
+        return $this->decide($versions, $assignment, $position, $date);
     }
 
     /**
@@ -152,6 +170,10 @@ class AssessmentTargetResolver
     /** The version's priority for this assignment, or null when it does not apply. */
     private function priority(AssessmentFormVersion $version, EmployeeAssignment $assignment, ?Position $position, string $date): ?int
     {
+        if ($version->form->organization_id !== null && $version->form->organization_id !== $assignment->organization_id) {
+            return null;
+        }
+
         $priority = null;
 
         foreach ($version->targetRules as $rule) {

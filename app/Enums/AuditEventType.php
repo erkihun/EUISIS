@@ -598,4 +598,39 @@ enum AuditEventType: string
     case AssessmentFormCloned = 'assessment_forms.cloned';
     case AssessmentFormArchived = 'assessment_forms.archived';
     case AssessmentFormDraftDiscarded = 'assessment_forms.draft_discarded';
+    case AssessmentRecordChanged = 'assessment_records.changed';
+
+    // Assessment Oversight & Compliance
+    case AssessmentCycleChanged = 'assessment_oversight.cycle_changed';
+    case AssessmentCycleOrganizationChanged = 'assessment_oversight.cycle_organization_changed';
+    case AssessmentEligibilitySnapshotCreated = 'assessment_oversight.eligibility_snapshot_created';
+    case AssessmentEligibilityFinalized = 'assessment_oversight.eligibility_finalized';
+    case AssessmentEligibilityRestored = 'assessment_oversight.eligibility_restored';
+    case AssessmentExclusionRequested = 'assessment_oversight.exclusion_requested';
+    case AssessmentExclusionApproved = 'assessment_oversight.exclusion_approved';
+    case AssessmentExclusionRejected = 'assessment_oversight.exclusion_rejected';
+    case AssessmentExclusionWithdrawn = 'assessment_oversight.exclusion_withdrawn';
+    case AssessmentUnassessedReasonChanged = 'assessment_oversight.unassessed_reason_changed';
+    case AssessmentResultBandPolicyChanged = 'assessment_oversight.result_band_policy_changed';
+    case AssessmentSubmissionSubmitted = 'assessment_submissions.submitted';
+    case AssessmentSubmissionReturned = 'assessment_submissions.returned';
+    case AssessmentSubmissionRejected = 'assessment_submissions.rejected';
+    case AssessmentSubmissionVerified = 'assessment_submissions.verified';
+    case AssessmentSubmissionFinalized = 'assessment_submissions.finalized';
+    case AssessmentSubmissionOutdated = 'assessment_submissions.outdated';
+    case AssessmentOversightExported = 'assessment_reports.exported';
+
+    // Assessment Execution & Evaluator Workspace
+    case AssessmentAssignmentsGenerated = 'assessments.assignments_generated';
+    case AssessmentAssignmentCreated = 'assessments.assignment_created';
+    case AssessmentEvaluatorChanged = 'assessments.evaluator_changed';
+    case AssessmentConflictDeclared = 'assessments.conflict_declared';
+    case AssessmentConflictRejected = 'assessments.conflict_rejected';
+    case AssessmentDraftStarted = 'assessments.draft_started';
+    case AssessmentResponseSubmitted = 'assessments.response_submitted';
+    case AssessmentResponseReturned = 'assessments.response_returned';
+    case AssessmentFinalized = 'assessments.finalized';
+    case AssessmentReopened = 'assessments.reopened';
+    case AssessmentAcknowledged = 'assessments.acknowledged';
+    case AssessmentEvidenceUploaded = 'assessments.evidence_uploaded';
 }

@@ -22,7 +22,7 @@ export default function AssessmentFormPreview({ form, version }: Props) {
     const { t, locale } = useLocale();
     const [picked, setPicked] = useState<Record<string, string>>({});
     const pick = (en: string | null | undefined, am: string | null | undefined) => (locale === 'am' && am) || en || am || '';
-    const total = Object.values(picked).reduce((sum, score) => sum + Number(score), 0);
+    const total = version.sections.reduce((sum, section) => sum + section.criteria.reduce((subtotal, criterion) => subtotal + Number(criterion.options.find((option) => option.id === picked[criterion.id])?.score ?? 0), 0), 0);
     const max = Number(version.computed_max ?? 0);
 
     return (
@@ -47,7 +47,7 @@ export default function AssessmentFormPreview({ form, version }: Props) {
                                     <div className="mt-2 space-y-1.5">
                                         {criterion.options.map((option) => (
                                             <label key={option.id} className="flex cursor-pointer items-start gap-3 rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800/50">
-                                                <input type="radio" name={criterion.id} className="mt-0.5" checked={picked[criterion.id] === option.score} onChange={() => setPicked({ ...picked, [criterion.id]: option.score })} />
+                                                <input type="radio" name={criterion.id} className="mt-0.5" checked={picked[criterion.id] === option.id} onChange={() => setPicked({ ...picked, [criterion.id]: option.id })} />
                                                 <span className="min-w-0 flex-1">
                                                     {pick(option.label_en, option.label_am) && <span className="block font-medium">{pick(option.label_en, option.label_am)}</span>}
                                                     <span className="block text-gray-700 dark:text-slate-300">{pick(option.description_en, option.description_am)}</span>

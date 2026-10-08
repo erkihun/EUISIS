@@ -131,6 +131,40 @@ beforeEach(function (): void {
 
 afterEach(fn () => Carbon::setTestNow());
 
+test('published peer form completes assignment submission review and employee acknowledgement', function (): void {
+    $employee = afEmployee('FLOW-EMP', $this->org, $this->unit, $this->officer);
+    $peerEmployee = afEmployee('FLOW-PEER', $this->org, $this->unit, $this->officer);
+    $subject = afUser(['assessments.view_own_result']);
+    $subject->forceFill(['employee_id' => $employee->id])->save();
+    $peer = afUser(['assessments.view_assigned', 'assessments.complete_assigned', 'assessments.submit']);
+    $reviewer = afUser([...AF_ALL, 'assessments.review', 'assessments.finalize']);
+    $peer->forceFill(['employee_id' => $peerEmployee->id])->save();
+    $version = afPublished($this, $this->admin, 'FLOW', [['target_type' => 'everyone', 'effect' => 'include']], [
+        'evaluators' => [['evaluator_type' => 'peer', 'required_count' => 1, 'contribution_weight' => 100, 'selection_method' => 'admin_selected', 'is_anonymous' => true, 'requires_review' => true]],
+        'review_required' => true,
+    ]);
+    $this->actingAs($this->admin)->post(route('assessment-records.store'), [
+        'employee_id' => $employee->id, 'form_id' => $version->form_id,
+        'period_start' => '2026-01-01', 'period_end' => '2026-06-30',
+        'reviewer_id' => $reviewer->id, 'evaluator_ids' => [$peer->id],
+    ])->assertSessionHasNoErrors();
+    $record = \App\Models\AssessmentRecord::query()->where('employee_id', $employee->id)->firstOrFail();
+    $this->actingAs($peer)->get(route('assessment-records.show', $record))->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('version.name_en', $version->name_en)->where('version.version_no', 1)->where('can.submit', true));
+    $this->actingAs($subject)->post(route('assessment-records.submit', $record), ['answers' => [(string) \Illuminate\Support\Str::uuid() => (string) \Illuminate\Support\Str::uuid()]])->assertForbidden();
+    $answers = $version->load('sections.criteria.options')->sections->flatMap->criteria
+        ->mapWithKeys(fn ($criterion) => [$criterion->id => $criterion->options->sortByDesc('score')->first()->id])->all();
+    $this->actingAs($peer)->post(route('assessment-records.submit', $record), ['answers' => $answers])->assertSessionHasNoErrors();
+    expect($record->fresh()->status)->toBe('submitted')->and($record->fresh()->percentage)->toBe('100.0000');
+    // A submitted evaluation is locked: a second submission is refused.
+    $this->actingAs($peer)->post(route('assessment-records.submit', $record), ['answers' => $answers])->assertForbidden();
+    $this->actingAs($reviewer)->post(route('assessment-records.review', $record))->assertSessionHasNoErrors();
+    expect($record->fresh()->status)->toBe('reviewed');
+    $this->actingAs($subject)->post(route('assessment-records.acknowledge', $record))->assertSessionHasNoErrors();
+    expect($record->fresh()->status)->toBe('acknowledged');
+});
+
 // ── Form builder ────────────────────────────────────────────────────────────
 
 test('1-4. an administrator creates a draft form with sections, criteria and decimal rating options; others cannot', function (): void {
@@ -348,4 +382,72 @@ test('the list, builder and preview pages render, and the assignment preview cou
 
     $this->actingAs($this->admin)->getJson(route('assessment-forms.assignment-preview', ['form' => $form->id, 'date' => '2026-10-08']))->assertOk()
         ->assertJson(['total' => 1, 'unmatched' => 0, 'conflicts' => 0, 'forms' => [['code' => 'AF-PAGES', 'employees' => 1]]]);
+});
+
+test('organization ownership bounds broad target rules and scoped previews', function (string $targetType, ?string $targetValue): void {
+    $inside = afEmployee('AF-INSIDE', $this->org, $this->subUnit, $this->officer);
+    $unit = OrganizationUnit::query()->create(['organization_id' => $this->otherOrg->id, 'code' => 'AF-OUT', 'name_en' => 'Other team', 'unit_type' => 'team', 'status' => 'active']);
+    $position = Position::query()->create(['organization_id' => $this->otherOrg->id, 'organization_unit_id' => $unit->id, 'job_position_code' => 'AF-OUT-P', 'title_en' => 'Officer', 'grade_level' => 'IX', 'job_family' => 'Professional', 'is_active' => true]);
+    $outside = afEmployee('AF-OUTSIDE', $this->otherOrg, $unit, $position);
+    $form = afCreate($this, $this->admin, 'AF-BOUNDED', $this->org);
+    $draft = $form->draftVersion();
+    $this->put(route('assessment-forms.versions.save', $draft), afDraft([['target_type' => $targetType, 'target_value' => $targetValue, 'effect' => 'include']]))->assertSessionHasNoErrors();
+    $this->post(route('assessment-forms.versions.publish', $draft))->assertSessionHasNoErrors();
+
+    $resolver = app(AssessmentTargetResolver::class);
+    expect($resolver->resolveFor($inside, now(), $this->type->id)['status'])->toBe(AssessmentTargetResolver::MATCHED)
+        ->and($resolver->resolveFor($outside, now(), $this->type->id)['status'])->toBe(AssessmentTargetResolver::NO_APPLICABLE_FORM);
+
+    $city = afPublished($this, $this->admin, 'AF-PUBLIC', [['target_type' => 'everyone', 'effect' => 'include']]);
+    $viewer = afUser(AF_ALL, $this->otherOrg);
+    $this->actingAs($viewer)->getJson(route('assessment-forms.assignment-preview', ['form' => $city->form_id, 'date' => '2026-10-08']))
+        ->assertOk()->assertJsonMissing(['code' => 'AF-BOUNDED'])->assertJson(['total' => 1, 'conflicts' => 0]);
+})->with([['everyone', null], ['grade_level', 'IX'], ['job_family', 'Professional']]);
+
+test('publishing updates form identity while a draft keeps the published identity intact', function (): void {
+    $version = afPublished($this, $this->admin, 'AF-NAME', [['target_type' => 'everyone', 'effect' => 'include']]);
+    expect($version->form->name_en)->toBe('Behavioural assessment');
+    $this->post(route('assessment-forms.versions.store', $version->form))->assertSessionHasNoErrors();
+    $draft = $version->form->draftVersion();
+    $this->put(route('assessment-forms.versions.save', $draft), afDraft([['target_type' => 'everyone', 'effect' => 'include']], ['name_en' => 'Updated assessment']))->assertSessionHasNoErrors();
+    expect($version->form->fresh()->name_en)->toBe('Behavioural assessment');
+    $this->post(route('assessment-forms.versions.publish', $draft))->assertSessionHasNoErrors();
+    expect($version->form->fresh()->name_en)->toBe('Updated assessment')
+        ->and($version->fresh()->name_en)->toBe('Behavioural assessment');
+    $this->get(route('assessment-forms.index'))->assertInertia(fn ($page) => $page->where('forms.data.0.name_en', 'Updated assessment'));
+});
+
+test('organization lookup respects the form owner', function (): void {
+    $this->actingAs($this->admin)->getJson(route('assessment-forms.lookup', ['type' => 'organization', 'organization_id' => $this->org->id]))
+        ->assertOk()->assertJsonCount(1, 'results')->assertJsonPath('results.0.id', $this->org->id);
+});
+
+test('the sections editor round-trips rating labels and section descriptions; client-only keys are ignored', function (): void {
+    $form = afCreate($this, $this->admin, 'AF-LBL');
+    $draft = $form->draftVersion();
+    $payload = afDraft([['target_type' => 'everyone', 'effect' => 'include']]);
+    $payload['sections'][0]['description_en'] = 'How the employee works with others';
+    $payload['sections'][0]['uid'] = 'client-key';
+    $payload['sections'][0]['criteria'][0]['options'][0]['label_en'] = 'Always';
+    $payload['sections'][0]['criteria'][0]['options'][0]['label_am'] = 'ሁልጊዜ';
+
+    $this->actingAs($this->admin)->put(route('assessment-forms.versions.save', $draft), $payload)->assertSessionHasNoErrors();
+
+    $section = $draft->fresh()->sections()->orderBy('sort_order')->firstOrFail();
+    $option = $section->criteria()->orderBy('sort_order')->firstOrFail()->options()->orderBy('sort_order')->firstOrFail();
+    expect($section->description_en)->toBe('How the employee works with others')
+        ->and($option->label_en)->toBe('Always')->and($option->label_am)->toBe('ሁልጊዜ');
+});
+
+test('the sample form seeder publishes a valid peer form once', function (): void {
+    $this->seed(\Database\Seeders\AssessmentSampleFormSeeder::class);
+    $this->seed(\Database\Seeders\AssessmentSampleFormSeeder::class);
+
+    $forms = AssessmentForm::query()->where('code', \Database\Seeders\AssessmentSampleFormSeeder::CODE)->get();
+    expect($forms)->toHaveCount(1);
+    $version = $forms->first()->versions()->firstOrFail();
+    expect($version->status)->toBe(FormVersionStatus::Published)
+        ->and($version->sections()->count())->toBe(3)
+        ->and((string) $version->max_total_score)->toBe('28.0000')
+        ->and($version->evaluatorSchemes()->first()->evaluator_type->value)->toBe('peer');
 });

@@ -1293,6 +1293,9 @@ if (! app()->isProduction()) {
 // Employee Performance Management (EPMS).
 require __DIR__.'/performance.php';
 
+// Assessment Management: forms, assessments, oversight & compliance.
+require __DIR__.'/assessments.php';
+
 require __DIR__.'/grievances.php';
 
 // Court Cases — planned standalone module, separate from Grievance Management.

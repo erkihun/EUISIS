@@ -25,6 +25,12 @@ final class PerformanceRoles
 
     public const CALIBRATOR_ROLE = 'Performance Calibrator';
 
+    /** City-level assessment oversight: reviews, returns and verifies institutional submissions. */
+    public const ASSESSMENT_OVERSIGHT_ROLE = 'Assessment Oversight Officer';
+
+    /** Aggregate assessment figures only: no employee lists, results or responses. */
+    public const ASSESSMENT_REPORT_VIEWER_ROLE = 'Assessment Report Viewer';
+
     /**
      * Runs the EPMS year inside the assigned scope: cycles, strategic goals,
      * KPIs, plans and agreements. It does not approve its own plans
@@ -129,5 +135,75 @@ final class PerformanceRoles
         'performance_reports.view', 'performance_reports.export',
         'performance_settings.view',
         'assessment_forms.view', 'assessment_forms.create', 'assessment_forms.edit_draft', 'assessment_forms.publish', 'assessment_forms.archive',
+    ];
+
+    /*
+     * Assessment Oversight & Compliance grants (docs/assessment-oversight.md).
+     * City administrators hold the whole catalog. Finalizing a submission stays
+     * with them until a city verification authority is decided (NEEDS_DECISION).
+     */
+
+    /** @var list<string> */
+    public const ASSESSMENT_OVERSIGHT_PERMISSIONS = [
+        'assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_oversight.view_employee_status',
+        'assessment_oversight.view_results', 'assessment_oversight.view_demographics', 'assessment_oversight.view_data_quality',
+        'assessment_exclusions.approve',
+        'assessment_submissions.review', 'assessment_submissions.return', 'assessment_submissions.verify',
+        'assessment_reports.view', 'assessment_reports.export',
+    ];
+
+    /** @var list<string> */
+    public const ASSESSMENT_REPORT_VIEWER_PERMISSIONS = [
+        'assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_reports.view',
+    ];
+
+    /** Institution side: monitors its own scope, requests exclusions and signs off the summary. */
+    public const ASSESSMENT_INSTITUTION_ADMIN_PERMISSIONS = [
+        'assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_oversight.view_employee_status',
+        'assessment_oversight.view_results', 'assessment_oversight.view_demographics', 'assessment_oversight.view_data_quality',
+        'assessment_exclusions.request', 'assessment_submissions.submit',
+        'assessment_reports.view', 'assessment_reports.export',
+    ];
+
+    /** @var list<string> */
+    public const ASSESSMENT_HR_PERMISSIONS = [
+        'assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_oversight.view_employee_status',
+        'assessment_oversight.view_demographics', 'assessment_oversight.view_data_quality',
+        'assessment_exclusions.request', 'assessment_reports.view', 'assessment_reports.export',
+    ];
+
+    /** @var list<string> */
+    public const ASSESSMENT_OFFICER_PERMISSIONS = [
+        'assessment_oversight.view_dashboard', 'assessment_oversight.view_institutions', 'assessment_oversight.view_employee_status',
+        'assessment_oversight.view_data_quality', 'assessment_exclusions.request', 'assessment_reports.view',
+    ];
+
+    /** Line managers: status of their own unit, nothing wider. */
+    public const ASSESSMENT_MANAGER_PERMISSIONS = [
+        'assessment_oversight.view_unit', 'assessment_oversight.view_employee_status',
+    ];
+
+    /*
+     * Assessment Execution grants (docs/assessment-execution.md). Holding a
+     * permission is never enough to open an assessment: the evaluator
+     * assignment, scope and workflow status are checked as well.
+     */
+
+    /** Every employee: rate what is assigned to them, see their own results. */
+    public const ASSESSMENT_EVALUATOR_PERMISSIONS = [
+        'assessments.view_assigned', 'assessments.complete_assigned', 'assessments.submit', 'assessments.view_own_result',
+    ];
+
+    /** Institution administration: generate, assign evaluators, review, return, finalize in scope. */
+    public const ASSESSMENT_EXECUTION_ADMIN_PERMISSIONS = [
+        'assessments.review', 'assessments.return_for_correction', 'assessments.finalize',
+        'assessment_assignments.view', 'assessment_assignments.generate', 'assessment_assignments.reassign',
+        'assessment_results.view',
+    ];
+
+    /** HR: evaluator assignment and review, but not finalization. */
+    public const ASSESSMENT_EXECUTION_HR_PERMISSIONS = [
+        'assessments.review', 'assessments.return_for_correction',
+        'assessment_assignments.view', 'assessment_assignments.reassign', 'assessment_results.view',
     ];
 }

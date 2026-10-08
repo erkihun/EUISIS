@@ -123,6 +123,10 @@ import enWorkStandards from '@/i18n/en/workStandards';
 import amWorkStandards from '@/i18n/am/workStandards';
 import enAssessments from '@/i18n/en/assessments';
 import amAssessments from '@/i18n/am/assessments';
+import enAssessmentOversight from '@/i18n/en/assessmentOversight';
+import amAssessmentOversight from '@/i18n/am/assessmentOversight';
+import enAssessmentWorkspace from '@/i18n/en/assessmentWorkspace';
+import amAssessmentWorkspace from '@/i18n/am/assessmentWorkspace';
 import type { PageProps } from '@/types';
 
 type Locale = 'en' | 'am';
@@ -188,6 +192,8 @@ const translations: Record<Locale, TranslationTree> = {
         courtCases: enCourtCases,
         workStandards: enWorkStandards,
         assessments: enAssessments,
+        assessmentOversight: enAssessmentOversight,
+        assessmentWorkspace: enAssessmentWorkspace,
         confirmations: enConfirmations,
         auth: enAuth,
         security: enSecurity,
@@ -251,6 +257,8 @@ const translations: Record<Locale, TranslationTree> = {
         courtCases: amCourtCases,
         workStandards: amWorkStandards,
         assessments: amAssessments,
+        assessmentOversight: amAssessmentOversight,
+        assessmentWorkspace: amAssessmentWorkspace,
         confirmations: amConfirmations,
         auth: amAuth,
         security: amSecurity,

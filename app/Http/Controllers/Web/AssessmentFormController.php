@@ -305,7 +305,7 @@ class AssessmentFormController extends Controller
             'organization_unit' => $like($scoped(OrganizationUnit::query())->when($data['organization_id'] ?? null, fn ($query, $org) => $query->where('organization_id', $org)), ['name_en', 'name_am', 'code'])
                 ->orderBy('name_en')->limit(20)->get(['id', 'name_en', 'name_am', 'code'])
                 ->map(fn ($u): array => ['id' => $u->id, 'label_en' => trim(($u->code ? $u->code.' ' : '').$u->name_en), 'label_am' => $u->name_am]),
-            'organization' => $like($scoped(Organization::query(), 'id'), ['name_en', 'name_am', 'code'])
+            'organization' => $like($scoped(Organization::query(), 'id')->when($data['organization_id'] ?? null, fn ($query, $org) => $query->whereKey($org)), ['name_en', 'name_am', 'code'])
                 ->orderBy('name_en')->limit(20)->get(['id', 'name_en', 'name_am'])
                 ->map(fn ($o): array => ['id' => $o->id, 'label_en' => $o->name_en, 'label_am' => $o->name_am]),
             'occupation' => $like(Occupation::query()->where('is_active', true), ['name_en', 'name_am', 'code'])
@@ -330,7 +330,7 @@ class AssessmentFormController extends Controller
             'id' => $version->id,
             'version_no' => $version->version_no,
             'status' => $version->status->value,
-            ...$version->only(['name_en', 'name_am', 'description_en', 'description_am', 'instructions_en', 'instructions_am', 'max_total_score', 'overall_contribution_weight', 'result_scale_id', 'acknowledgement_required', 'review_required']),
+            ...$version->only(['name_en', 'name_am', 'description_en', 'description_am', 'instructions_en', 'instructions_am', 'max_total_score', 'overall_contribution_weight', 'result_scale_id', 'acknowledgement_required', 'review_required', 'show_option_scores']),
             'period_type' => $version->period_type?->value,
             'scoring_method' => $version->scoring_method?->value,
             'effective_from' => $version->effective_from?->toDateString(),

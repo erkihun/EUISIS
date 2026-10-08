@@ -30,3 +30,9 @@ Schedule::command('backup:health --monitor')->everyFiveMinutes()->withoutOverlap
 // unique successor per stage), so overlapping or repeated runs are harmless;
 // withoutOverlapping/onOneServer just avoid wasted work.
 Schedule::command('grievances:process-sla')->everyFifteenMinutes()->withoutOverlapping()->onOneServer();
+
+// Assessment oversight: outdated submissions and deadline reminders (docs/assessment-oversight.md).
+Schedule::command('assessments:oversight-monitor')->dailyAt('06:30')->withoutOverlapping()->onOneServer();
+
+// Assessment execution: evaluator due-soon / overdue reminders (docs/assessment-evaluator-workflow.md).
+Schedule::command('assessments:evaluator-reminders')->dailyAt('07:00')->withoutOverlapping()->onOneServer();

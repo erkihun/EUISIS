@@ -259,12 +259,34 @@ const navGroups: NavGroup[] = [
             { routeName: 'performance.plans.index', labelKey: 'nav.performancePlans', icon: GitForkIcon, permission: 'performance_plans.view' },
             { routeName: 'performance.kpis.index', labelKey: 'nav.kpiLibrary', icon: HashIcon, permission: 'kpis.view' },
             { routeName: 'performance.agreements.index', labelKey: 'nav.performanceAgreements', icon: HandshakeIcon, permission: 'employee_performance_agreements.manage' },
-            // Configurable competency / behavioural assessment forms.
-            { routeName: 'assessment-forms.index', labelKey: 'nav.assessmentForms', icon: ClipboardListIcon, permission: 'assessment_forms.view' },
             { routeName: 'performance.calibration.index', labelKey: 'nav.performanceCalibration', icon: BadgeCheckIcon, permission: 'performance_calibration.view' },
             { routeName: 'performance.appeals.index', labelKey: 'nav.performanceAppeals', icon: MessageSquareIcon, anyPermission: ['performance_appeals.review', 'performance_appeals.decide'] },
             { routeName: 'performance.reports.index', labelKey: 'nav.performanceReports', icon: ReceiptTextIcon, permission: 'performance_reports.view' },
             { routeName: 'performance.settings.index', labelKey: 'nav.performanceSettings', icon: SettingsIcon, permission: 'performance_settings.view' },
+        ],
+    },
+    /*
+     * Assessment Management: every competency / behavioural assessment page
+     * in one group of its own, beside (not inside) Performance Management:
+     * forms and assessments first, then oversight & compliance. Pages
+     * re-check permission and scope.
+     */
+    {
+        key: 'assessments',
+        labelKey: 'nav.groupAssessmentManagement',
+        icon: ClipboardListIcon,
+        items: [
+            { routeName: 'assessment-forms.index', labelKey: 'nav.assessmentForms', icon: ClipboardListIcon, permission: 'assessment_forms.view' },
+            { routeName: 'assessment-records.index', labelKey: 'nav.assessmentRecords', icon: ClipboardCheckIcon, anyPermission: ['assessment_forms.edit_draft', 'assessment_forms.publish'] },
+            { routeName: 'assessment-oversight.dashboard', labelKey: 'nav.assessmentOversightDashboard', icon: LayoutDashboard, permission: 'assessment_oversight.view_dashboard' },
+            { routeName: 'assessment-oversight.institutions', labelKey: 'nav.assessmentOversightInstitutions', icon: Building2, permission: 'assessment_oversight.view_institutions' },
+            { routeName: 'assessment-oversight.employees', labelKey: 'nav.assessmentOversightCoverage', icon: Users, permission: 'assessment_oversight.view_employee_status' },
+            { routeName: 'assessment-oversight.distribution', labelKey: 'nav.assessmentOversightDistribution', icon: TrendingUpIcon, permission: 'assessment_oversight.view_results' },
+            { routeName: 'assessment-oversight.gender', labelKey: 'nav.assessmentOversightGender', icon: Users, permission: 'assessment_oversight.view_demographics' },
+            { routeName: 'assessment-oversight.data-quality', labelKey: 'nav.assessmentOversightDataQuality', icon: ClipboardCheckIcon, permission: 'assessment_oversight.view_data_quality' },
+            { routeName: 'assessment-oversight.submissions', labelKey: 'nav.assessmentOversightSubmissions', icon: BadgeCheckIcon, anyPermission: ['assessment_submissions.submit', 'assessment_submissions.review', 'assessment_submissions.verify', 'assessment_submissions.finalize'] },
+            { routeName: 'assessment-oversight.reports', labelKey: 'nav.assessmentOversightReports', icon: ReceiptTextIcon, permission: 'assessment_reports.view' },
+            { routeName: 'assessment-oversight.setup', labelKey: 'nav.assessmentOversightSetup', icon: SettingsIcon, anyPermission: ['assessment_oversight.manage_cycles', 'assessment_oversight.manage_policies'] },
         ],
     },
     {
@@ -471,7 +493,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
 const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 
 const sections = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];

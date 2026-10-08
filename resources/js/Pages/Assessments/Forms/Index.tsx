@@ -52,9 +52,30 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
 
     return (
         <AuthenticatedLayout header={<PageHeader title={t('assessments.title')} description={t('assessments.description')}
-            actions={can.create && !creating ? <button type="button" className={primaryBtn} onClick={() => setCreating(true)}>{t('assessments.newForm')}</button> : undefined} />}>
+            actions={<>
+                <Link className={secondaryBtn} href={route('assessment-records.index')}>{t('assessments.records.title')}</Link>
+                {can.create && !creating && <button type="button" className={primaryBtn} onClick={() => setCreating(true)}>{t('assessments.newForm')}</button>}
+            </>} />}>
             <Head title={t('assessments.title')} />
             <div className={pageCls}>
+                <Section title={t('assessments.workflow.title')} description={t('assessments.workflow.help')}>
+                    <ol className="grid gap-3 md:grid-cols-3">
+                        {([
+                            ['setupTitle', 'setupHelp'],
+                            ['configureTitle', 'configureHelp'],
+                            ['publishTitle', 'publishHelp'],
+                        ] as const).map(([title, help], index) => (
+                            <li key={title} className="flex gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+                                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-primary)] text-xs font-semibold text-white">{index + 1}</span>
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{t(`assessments.workflow.${title}`)}</p>
+                                    <p className="mt-0.5 text-xs leading-5 text-gray-600 dark:text-slate-400">{t(`assessments.workflow.${help}`)}</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ol>
+                </Section>
+
                 {creating && (
                     <Section title={t('assessments.newForm')} description={t('assessments.newFormHelp')}>
                         <form onSubmit={submit} className="grid gap-3 md:grid-cols-2">
@@ -102,12 +123,17 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                     </select>
                 </AppFilterBar>
 
+                <div>
+                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('assessments.formsListTitle')}</h2>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('assessments.formsListHelp')}</p>
+                </div>
+
                 <TablePanel page={forms} empty={t('assessments.empty')}>
                     <Table head={<>
                         <th className={thCls}>{t('assessments.fields.code')}</th>
                         <th className={thCls}>{t('assessments.fields.name')}</th>
                         <th className={thCls}>{t('assessments.fields.type')}</th>
-                        <th className={thCls}>{t('assessments.fields.currentVersion')}</th>
+                        <th className={thCls}>{t('assessments.versionProgress')}</th>
                         <th className={thCls}>{t('assessments.fields.targets')}</th>
                         <th className={thCls}>{t('assessments.fields.contribution')}</th>
                         <th className={thCls}>{t('assessments.fields.status')}</th>
@@ -123,14 +149,18 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                                 </td>
                                 <td className={tdCls}>{row.type ? nameOf(row.type, locale) : '—'}</td>
                                 <td className={tdCls}>
-                                    {row.current_version ? `v${row.current_version}` : <span className="text-gray-500">{t('assessments.notPublished')}</span>}
-                                    {row.has_draft && <span className="ms-2 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">{t('assessments.versionStatuses.draft')}</span>}
+                                    <p className="font-medium text-gray-900 dark:text-slate-100">
+                                        {row.current_version ? `${t('assessments.versionStatuses.published')} v${row.current_version}` : t('assessments.notPublished')}
+                                    </p>
+                                    <p className={row.has_draft ? 'mt-0.5 text-xs font-medium text-amber-700 dark:text-amber-300' : 'mt-0.5 text-xs text-gray-500 dark:text-slate-400'}>
+                                        {row.has_draft ? t('assessments.draftReady') : row.current_version ? t('assessments.publishedReady') : '—'}
+                                    </p>
                                 </td>
                                 <td className={tdCls}>{row.target_rules_count}</td>
                                 <td className={tdCls}>{row.overall_contribution_weight !== null ? `${Number(row.overall_contribution_weight)}%` : '—'}</td>
                                 <td className={tdCls}>{t(`assessments.formStatuses.${row.status}`)}</td>
                                 <td className={tdCls}><LocalizedDateDisplay value={row.effective_from} /></td>
-                                <td className={`${tdCls} text-right`}><Link href={route('assessment-forms.show', row.id)} className={linkBtn}>{t('assessments.actions.open')}</Link></td>
+                                <td className={`${tdCls} text-right`}><Link href={route('assessment-forms.show', row.id)} className={linkBtn}>{row.has_draft ? t('assessments.actions.continueDraft') : t('assessments.actions.open')}</Link></td>
                             </tr>
                         ))}
                     </Table>

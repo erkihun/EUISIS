@@ -53,6 +53,7 @@ class SaveAssessmentDraftRequest extends FormRequest
             'result_scale_id' => ['nullable', 'uuid', Rule::exists('performance_rating_scales', 'id')->where('scale_type', 'RESULT')],
             'acknowledgement_required' => ['boolean'],
             'review_required' => ['boolean'],
+            'show_option_scores' => ['boolean'],
             'effective_from' => ['nullable', 'date_format:Y-m-d'],
             'effective_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:effective_from'],
 

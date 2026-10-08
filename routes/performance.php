@@ -137,31 +137,3 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->prefix('my-portal
     Route::post('/checkins/{checkin}', [MyPerformanceController::class, 'checkinNote'])->whereUuid('checkin')->name('checkins.note');
     Route::post('/results/{result}/appeal', [MyPerformanceController::class, 'appeal'])->whereUuid('result')->middleware('throttle:5,60')->name('appeal');
 });
-
-/*
-|--------------------------------------------------------------------------
-| Assessment Form Builder — docs/assessment-form-builder.md
-|--------------------------------------------------------------------------
-| Configurable competency / behavioural / leadership forms, built in the UI.
-| Authorized in AssessmentFormPolicy (permission + organization scope).
-*/
-Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
-    ->prefix('performance/assessment-forms')
-    ->group(function (): void {
-        $forms = \App\Http\Controllers\Web\AssessmentFormController::class;
-
-        Route::get('/', [$forms, 'index'])->name('assessment-forms.index');
-        Route::post('/', [$forms, 'store'])->name('assessment-forms.store');
-        Route::get('/lookup', [$forms, 'lookup'])->name('assessment-forms.lookup');
-        Route::get('/{form}', [$forms, 'show'])->whereUuid('form')->name('assessment-forms.show');
-        Route::post('/{form}/versions', [$forms, 'newVersion'])->whereUuid('form')->name('assessment-forms.versions.store');
-        Route::post('/{form}/clone', [$forms, 'cloneForm'])->whereUuid('form')->name('assessment-forms.clone');
-        Route::post('/{form}/archive', [$forms, 'archive'])->whereUuid('form')->name('assessment-forms.archive');
-        Route::get('/{form}/assignment-preview', [$forms, 'assignmentPreview'])->whereUuid('form')->name('assessment-forms.assignment-preview');
-
-        Route::put('/versions/{version}', [$forms, 'saveDraft'])->whereUuid('version')->name('assessment-forms.versions.save');
-        Route::post('/versions/{version}/validate', [$forms, 'validateDraft'])->whereUuid('version')->name('assessment-forms.versions.validate');
-        Route::post('/versions/{version}/publish', [$forms, 'publish'])->whereUuid('version')->name('assessment-forms.versions.publish');
-        Route::delete('/versions/{version}', [$forms, 'discardDraft'])->whereUuid('version')->name('assessment-forms.versions.discard');
-        Route::get('/versions/{version}/preview', [$forms, 'preview'])->whereUuid('version')->name('assessment-forms.versions.preview');
-    });
