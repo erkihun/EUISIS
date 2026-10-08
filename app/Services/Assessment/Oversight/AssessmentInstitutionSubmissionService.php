@@ -29,7 +29,7 @@ use Illuminate\Validation\ValidationException;
 class AssessmentInstitutionSubmissionService
 {
     /** Statuses that hold the institution's current answer (no new submission while one is open). */
-    public const OPEN = ['submitted', 'verified', 'finalized'];
+    public const OPEN = ['submitted', 'under_city_review', 'verified', 'finalized'];
 
     public function __construct(
         private readonly AssessmentCoverageService $coverage,
@@ -95,7 +95,13 @@ class AssessmentInstitutionSubmissionService
 
     public function returnForCorrection(User $actor, AssessmentInstitutionSubmission $submission, string $reason): void
     {
-        $this->move($actor, $submission, 'assessment_submissions.return', ['submitted', 'verified', 'outdated'], 'returned', $reason, true);
+        $this->move($actor, $submission, 'assessment_submissions.return', ['submitted', 'under_city_review', 'verified', 'outdated'], 'returned', $reason, true);
+    }
+
+    /** Claim a submitted summary for city review without allowing score edits. */
+    public function startReview(User $actor, AssessmentInstitutionSubmission $submission, ?string $comment = null): void
+    {
+        $this->move($actor, $submission, 'assessment_submissions.review', ['submitted'], 'under_city_review', $comment, false);
     }
 
     public function reject(User $actor, AssessmentInstitutionSubmission $submission, string $reason): void
@@ -105,7 +111,7 @@ class AssessmentInstitutionSubmissionService
 
     public function verify(User $actor, AssessmentInstitutionSubmission $submission, ?string $comment = null): void
     {
-        $this->move($actor, $submission, 'assessment_submissions.verify', ['submitted'], 'verified', $comment, false);
+        $this->move($actor, $submission, 'assessment_submissions.verify', ['submitted', 'under_city_review'], 'verified', $comment, false);
     }
 
     public function finalize(User $actor, AssessmentInstitutionSubmission $submission, ?string $comment = null): void
@@ -122,7 +128,7 @@ class AssessmentInstitutionSubmissionService
      */
     public function detectOutdatedSubmission(AssessmentInstitutionSubmission $submission, ?User $actor = null): array
     {
-        if (! in_array($submission->status, ['submitted', 'verified', 'finalized'], true)) {
+        if (! in_array($submission->status, ['submitted', 'under_city_review', 'verified', 'finalized'], true)) {
             return ['changed' => false, 'status' => $submission->status];
         }
         $changed = $this->fingerprint($submission->cycle, $submission->organization_id) !== $submission->source_fingerprint;
@@ -201,7 +207,7 @@ class AssessmentInstitutionSubmissionService
         }
 
         // Checked (and recorded) outside the move, so the OUTDATED mark survives the refusal.
-        if (in_array($to, ['verified', 'finalized'], true) && $submission->status !== 'finalized'
+        if (in_array($to, ['under_city_review', 'verified', 'finalized'], true) && $submission->status !== 'finalized'
             && $this->detectOutdatedSubmission($submission, $actor)['changed']) {
             throw ValidationException::withMessages(['submission' => 'The institution data changed after submission. It must be resubmitted.']);
         }
@@ -211,7 +217,7 @@ class AssessmentInstitutionSubmissionService
             if ($submission->status === 'finalized') {
                 throw ValidationException::withMessages(['submission' => 'A finalized submission cannot change.']);
             }
-            if (in_array($to, ['verified', 'finalized'], true)) {
+            if (in_array($to, ['under_city_review', 'verified', 'finalized'], true)) {
                 abort_if($submission->submitted_by === $actor->id, 403, 'The person who submitted cannot verify or finalize the same submission.');
             }
             if ($to === 'finalized') {
@@ -223,6 +229,7 @@ class AssessmentInstitutionSubmissionService
 
             $columns = match ($to) {
                 'returned', 'rejected' => ['returned_by' => $actor->id, 'returned_at' => now(), 'return_reason' => $comment],
+                'under_city_review' => ['city_reviewer_id' => $actor->id, 'review_started_at' => now()],
                 'verified' => ['verified_by' => $actor->id, 'verified_at' => now()],
                 'finalized' => ['finalized_by' => $actor->id, 'finalized_at' => now()],
             };
@@ -233,6 +240,7 @@ class AssessmentInstitutionSubmissionService
             $event = match ($to) {
                 'returned' => AuditEventType::AssessmentSubmissionReturned,
                 'rejected' => AuditEventType::AssessmentSubmissionRejected,
+                'under_city_review' => AuditEventType::AssessmentSubmissionReviewStarted,
                 'verified' => AuditEventType::AssessmentSubmissionVerified,
                 'finalized' => AuditEventType::AssessmentSubmissionFinalized,
             };

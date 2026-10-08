@@ -128,6 +128,7 @@ return [
         ],
         'submission_statuses' => [
             'submitted' => 'Submitted',
+            'under_city_review' => 'Under city review',
             'returned' => 'Returned for correction',
             'verified' => 'Verified',
             'finalized' => 'Finalized',

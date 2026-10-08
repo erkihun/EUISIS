@@ -453,6 +453,25 @@ test('39. changed data after submission makes the summary outdated instead of si
     expect($submission->fresh()->status)->toBe('outdated')->and($submission->fresh()->assessed_count)->toBe(1);
 });
 
+test('city review is an auditable transition and verification reminders respect the configured deadline', function (): void {
+    $employee = aoEmployee($this, 'REVIEW-1', $this->orgA, $this->unitA1, 'male');
+    aoSnapshot($this);
+    aoRecord($this, $employee, 'reviewed', '75');
+    $institution = aoUser(AO_INSTITUTION, $this->orgA);
+    $this->actingAs($institution)->post(route('assessment-oversight.submissions.store', $this->cycle), ['organization_id' => $this->orgA->id])->assertSessionHasNoErrors();
+    $submission = AssessmentInstitutionSubmission::query()->firstOrFail();
+
+    $this->actingAs($this->reviewer)->post(route('assessment-oversight.submissions.move', [$submission, 'start-review']), ['comment' => 'Review opened'])->assertSessionHasNoErrors();
+    expect($submission->fresh()->status)->toBe('under_city_review')
+        ->and($submission->fresh()->city_reviewer_id)->toBe($this->reviewer->id)
+        ->and($submission->fresh()->review_started_at)->not->toBeNull();
+
+    $this->cycle->update(['verification_deadline' => '2026-07-05']);
+    Carbon::setTestNow('2026-07-11 08:00:00');
+    $this->artisan('assessments:oversight-monitor')->assertSuccessful();
+    expect($this->reviewer->notifications()->where('data->kind', 'assessment_verification_overdue')->count())->toBe(1);
+});
+
 // ── Data quality ────────────────────────────────────────────────────────────
 
 test('34-40. data-quality rules detect real problems; only blocking ones stop a submission', function (): void {

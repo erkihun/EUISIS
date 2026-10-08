@@ -18,7 +18,8 @@ class AssessmentInstitutionSubmission extends Model
     protected function casts(): array
     {
         return ['summary_snapshot' => 'array', 'coverage_percent' => 'decimal:4', 'submitted_at' => 'datetime', 'returned_at' => 'datetime',
-            'verified_at' => 'datetime', 'finalized_at' => 'datetime', 'outdated_at' => 'datetime'];
+            'review_started_at' => 'datetime', 'verified_at' => 'datetime', 'finalized_at' => 'datetime', 'outdated_at' => 'datetime',
+            'last_verification_reminded_at' => 'datetime'];
     }
 
     public function cycle(): BelongsTo
@@ -34,6 +35,11 @@ class AssessmentInstitutionSubmission extends Model
     public function submitter(): BelongsTo
     {
         return $this->belongsTo(User::class, 'submitted_by');
+    }
+
+    public function cityReviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'city_reviewer_id');
     }
 
     public function events(): HasMany

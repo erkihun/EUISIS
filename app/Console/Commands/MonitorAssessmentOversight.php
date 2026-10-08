@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\Notification;
  *  - marks open submissions whose source data changed as OUTDATED;
  *  - reminds institutions about due-soon (only when the cycle configures a
  *    reminder window) and overdue submissions, at most once a day each;
- *  - tells city reviewers when submissions await verification.
+ *  - tells city reviewers when submissions await verification or their
+ *    configured verification deadline is due.
  *
  * Compliance detection never depends on someone opening a page.
  */
@@ -36,8 +37,9 @@ class MonitorAssessmentOversight extends Command
         $dry = (bool) $this->option('dry-run');
         $outdated = 0;
         $reminded = 0;
+        $verificationReminded = 0;
 
-        AssessmentInstitutionSubmission::query()->whereIn('status', ['submitted', 'verified'])->with('cycle')->chunkById(200, function (Collection $rows) use ($submissions, $dry, &$outdated): void {
+        AssessmentInstitutionSubmission::query()->whereIn('status', ['submitted', 'under_city_review', 'verified'])->with('cycle')->chunkById(200, function (Collection $rows) use ($submissions, $dry, &$outdated): void {
             foreach ($rows as $submission) {
                 if ($dry) {
                     continue;
@@ -71,7 +73,31 @@ class MonitorAssessmentOversight extends Command
                 });
         });
 
-        $pending = AssessmentInstitutionSubmission::query()->where('status', 'submitted')->count();
+        AssessmentCycle::query()->where('status', 'active')->whereNotNull('verification_deadline')->each(function (AssessmentCycle $cycle) use ($today, $dry, $access, &$verificationReminded): void {
+            $deadline = $cycle->verification_deadline->toDateString();
+            $dueSoonFrom = $cycle->reminder_days_before === null ? null : $cycle->verification_deadline->copy()->subDays($cycle->reminder_days_before)->toDateString();
+            $kind = $today > $deadline ? 'assessment_verification_overdue' : ($dueSoonFrom !== null && $today >= $dueSoonFrom ? 'assessment_verification_due_soon' : null);
+            if ($kind === null) {
+                return;
+            }
+
+            AssessmentInstitutionSubmission::query()->where('assessment_cycle_id', $cycle->id)
+                ->whereIn('status', ['submitted', 'under_city_review'])
+                ->where(fn ($q) => $q->whereNull('last_verification_reminded_at')->orWhereDate('last_verification_reminded_at', '<', $today))
+                ->each(function (AssessmentInstitutionSubmission $submission) use ($cycle, $kind, $dry, $access, &$verificationReminded): void {
+                    $recipients = $this->recipients('assessment_submissions.verify', $access, $submission->organization_id);
+                    if ($recipients->isEmpty()) {
+                        return;
+                    }
+                    $verificationReminded++;
+                    if (! $dry) {
+                        Notification::send($recipients, new PerformanceNotification($kind, route('assessment-oversight.submissions', ['cycle' => $cycle->id, 'status' => $submission->status], false), ['database']));
+                        $submission->update(['last_verification_reminded_at' => now()]);
+                    }
+                });
+        });
+
+        $pending = AssessmentInstitutionSubmission::query()->whereIn('status', ['submitted', 'under_city_review'])->count();
         if ($pending > 0 && ! $dry) {
             $reviewers = User::permission('assessment_submissions.verify')->where('status', 'active')->limit(50)->get();
             // One digest a day, not one message per submission.
@@ -81,7 +107,7 @@ class MonitorAssessmentOversight extends Command
             }
         }
 
-        $this->info("Outdated submissions: {$outdated}. Institution reminders: {$reminded}. Awaiting verification: {$pending}.".($dry ? ' (dry run)' : ''));
+        $this->info("Outdated submissions: {$outdated}. Institution reminders: {$reminded}. Verification reminders: {$verificationReminded}. Awaiting verification: {$pending}.".($dry ? ' (dry run)' : ''));
 
         return self::SUCCESS;
     }

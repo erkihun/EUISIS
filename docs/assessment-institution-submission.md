@@ -2,6 +2,25 @@
 
 Implemented by `AssessmentInstitutionSubmissionService`.
 
+## Current architecture
+
+- `AssessmentCoverageService` owns the eligible/assessed/unassessed totals
+  and reconciliation rules; `AssessmentDataQualityService` owns the
+  blocking-rule queries; result bands come from
+  `AssessmentResultDistributionService`.
+- `assessment_cycles`, `assessment_cycle_organizations`, and
+  `assessment_cycle_employee_eligibility` provide the cycle, institution
+  participation, and frozen denominator. `assessment_records` remains the
+  source of assessment results.
+- `assessment_institution_submissions` stores only aggregate snapshots and a
+  source fingerprint; `assessment_submission_events` and `audit_logs` retain
+  the history. `AssessmentInstitutionSubmissionService` owns transitions.
+- `OversightAccess` and `OrganizationScopeService` enforce server-side
+  organization scope. The Inertia Institution and Submissions pages are
+  displays only; every action is authorized again by the service.
+- `MonitorAssessmentOversight` detects drift and deadline conditions without
+  relying on a user visiting a page.
+
 ```
 Institution ──validate──▶ SUBMITTED ──city review──▶ VERIFIED ──▶ FINALIZED
                               │  ▲                        │
@@ -9,6 +28,10 @@ Institution ──validate──▶ SUBMITTED ──city review──▶ VERIFIE
                               └──▶ REJECTED (with reason) ─── resubmit
      any open submission whose source data changes ──▶ OUTDATED ── resubmit
 ```
+
+The explicit city-review state is `under_city_review`; a reviewer claims a
+submitted snapshot before verification. Existing submitted snapshots remain
+compatible and may be verified directly when policy does not require a claim.
 
 ## Readiness (pre-check)
 
@@ -22,7 +45,7 @@ submission:
 | `has_population` | The institution has employees in the snapshot |
 | `no_blocking_issues` | No BLOCKING data-quality issue for the institution (see [data quality](assessment-data-quality.md)). This covers missing assignments, unfinalized assessments without a recorded reason, form conflicts, missing evaluators, invalid scores, pending exclusions and exclusions without a reason. |
 | `totals_reconcile` | Every reconciliation check holds |
-| `no_open_submission` | No submission is already submitted, verified or finalized |
+| `no_open_submission` | No submission is already submitted, under city review, verified or finalized |
 
 Warnings and information-level issues do not block.
 
@@ -47,9 +70,10 @@ Position (HR Head, Institution Head) through configuration is NEEDS_DECISION.
 
 | Action | Permission | From | Notes |
 |---|---|---|---|
-| Return for correction | `assessment_submissions.return` | submitted, verified, outdated | Reason required. Submitter notified. |
+| Start city review | `assessment_submissions.review` | submitted | Records the reviewer and review start time. The submitter cannot start their own review. |
+| Return for correction | `assessment_submissions.return` | submitted, under_city_review, verified, outdated | Reason required. Submitter notified. |
 | Reject | `assessment_submissions.return` | submitted | Reason required. Submitter notified. |
-| Verify | `assessment_submissions.verify` | submitted | The submitter cannot verify. Outdated check first. |
+| Verify | `assessment_submissions.verify` | submitted, under_city_review | The submitter cannot verify. Outdated check first. |
 | Finalize | `assessment_submissions.finalize` | verified | The submitter and the verifier cannot finalize the same revision. Outdated check first. |
 
 Reviewers are never given score-editing rights by this workflow.
@@ -82,4 +106,8 @@ The daily monitor sends:
 
 - institution reminders for overdue (and, if configured, due-soon) submissions, at most once per institution per day;
 - a daily digest to verifiers when submissions await verification;
+- scoped due-soon and overdue reminders for each pending verification when the cycle configures `verification_deadline`;
 - a notice to the submitter on return or rejection, sent immediately.
+
+See [city verification](assessment-city-verification.md) for its explicit
+review transition, controls, and deadline behavior.

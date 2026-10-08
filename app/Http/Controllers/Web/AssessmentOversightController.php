@@ -245,7 +245,7 @@ class AssessmentOversightController extends Controller
         $user = $this->viewer($request);
         abort_unless($user->canAny(['assessment_submissions.submit', 'assessment_submissions.review', 'assessment_submissions.verify', 'assessment_submissions.finalize']), 403);
         [$cycle, $scope] = $this->context($request, $user);
-        $filters = $request->validate(['organization_id' => ['nullable', 'uuid'], 'status' => ['nullable', Rule::in(['submitted', 'returned', 'verified', 'finalized', 'rejected', 'outdated'])]]);
+        $filters = $request->validate(['organization_id' => ['nullable', 'uuid'], 'status' => ['nullable', Rule::in(['submitted', 'under_city_review', 'returned', 'verified', 'finalized', 'rejected', 'outdated'])]]);
         if (! empty($filters['organization_id'])) {
             $this->access->authorizeOrganization($user, $filters['organization_id']);
         }
@@ -398,9 +398,10 @@ class AssessmentOversightController extends Controller
         $notVerifier = $s !== null && $s->verified_by !== $user->id;
 
         return [
-            'return' => $inScope && $user->can('assessment_submissions.return') && in_array($status, ['submitted', 'verified', 'outdated'], true),
+            'startReview' => $inScope && $notMine && $user->can('assessment_submissions.review') && $status === 'submitted',
+            'return' => $inScope && $user->can('assessment_submissions.return') && in_array($status, ['submitted', 'under_city_review', 'verified', 'outdated'], true),
             'reject' => $inScope && $user->can('assessment_submissions.return') && $status === 'submitted',
-            'verify' => $inScope && $notMine && $user->can('assessment_submissions.verify') && $status === 'submitted',
+            'verify' => $inScope && $notMine && $user->can('assessment_submissions.verify') && in_array($status, ['submitted', 'under_city_review'], true),
             'finalize' => $inScope && $notMine && $notVerifier && $user->can('assessment_submissions.finalize') && $status === 'verified',
         ];
     }

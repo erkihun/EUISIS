@@ -128,6 +128,7 @@ return [
         ],
         'submission_statuses' => [
             'submitted' => 'የቀረበ',
+            'under_city_review' => 'በከተማ ግምገማ ላይ',
             'returned' => 'ለእርማት የተመለሰ',
             'verified' => 'የተረጋገጠ',
             'finalized' => 'የተጠናቀቀ',

@@ -98,7 +98,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::get('/export', [$export, 'export'])->name('export');
 
         Route::post('/cycles/{cycle}/submissions', [$admin, 'submit'])->whereUuid('cycle')->name('submissions.store');
-        Route::post('/submissions/{submission}/{action}', [$admin, 'moveSubmission'])->whereUuid('submission')->whereIn('action', ['return', 'reject', 'verify', 'finalize'])->name('submissions.move');
+        Route::post('/submissions/{submission}/{action}', [$admin, 'moveSubmission'])->whereUuid('submission')->whereIn('action', ['start-review', 'return', 'reject', 'verify', 'finalize'])->name('submissions.move');
 
         Route::get('/setup', [$admin, 'setup'])->name('setup');
         Route::post('/cycles', [$admin, 'storeCycle'])->name('cycles.store');

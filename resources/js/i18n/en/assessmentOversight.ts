@@ -265,6 +265,7 @@ const assessmentOversight = {
     submissionStatuses: {
         not_submitted: 'Not submitted',
         submitted: 'Submitted',
+        under_city_review: 'Under city review',
         returned: 'Returned for correction',
         verified: 'Verified',
         finalized: 'Finalized',
@@ -282,7 +283,7 @@ const assessmentOversight = {
         everyone: 'Everyone', position: 'Position', occupation: 'Occupation', grade_level: 'Grade level', job_family: 'Job family',
         organization: 'Organization', organization_unit: 'Organization unit', exclude: 'excluded',
     },
-    events: { submitted: 'Submitted', returned: 'Returned for correction', verified: 'Verified', finalized: 'Finalized', rejected: 'Rejected', outdated: 'Marked as requiring resubmission' },
+    events: { submitted: 'Submitted', under_city_review: 'City review started', returned: 'Returned for correction', verified: 'Verified', finalized: 'Finalized', rejected: 'Rejected', outdated: 'Marked as requiring resubmission' },
     readiness: {
         title: 'Submission readiness',
         participating: 'The institution participates in this cycle',
@@ -377,6 +378,7 @@ const assessmentOversight = {
     },
     export: { csv: 'CSV', xlsx: 'Excel', pdf: 'PDF' },
     actions: {
+        startReview: 'Start city review',
         verify: 'Verify',
         finalize: 'Finalize',
         return: 'Return for correction',

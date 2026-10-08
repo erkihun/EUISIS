@@ -131,6 +131,8 @@ return [
         'assessment_submission_due_soon' => 'The institutional assessment submission deadline is approaching.',
         'assessment_submission_overdue' => 'The institutional assessment submission is overdue.',
         'assessment_verification_pending' => 'Institutional assessment summaries are waiting for verification.',
+        'assessment_verification_due_soon' => 'The city verification deadline for institutional assessment summaries is approaching.',
+        'assessment_verification_overdue' => 'The city verification deadline for institutional assessment summaries has passed.',
         'plan_assigned' => 'A performance plan was assigned to your unit.',
         'agreement_ready' => 'Your performance agreement is ready for your review.',
         'agreement_returned' => 'Your performance agreement was returned for changes.',

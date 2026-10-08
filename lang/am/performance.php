@@ -131,6 +131,8 @@ return [
         'assessment_submission_due_soon' => 'የተቋም የምዘና ማጠቃለያ ማቅረቢያ ጊዜ እየደረሰ ነው።',
         'assessment_submission_overdue' => 'የተቋም የምዘና ማጠቃለያ ማቅረቢያ ጊዜ አልፏል።',
         'assessment_verification_pending' => 'የተቋማት የምዘና ማጠቃለያዎች ማረጋገጫ እየጠበቁ ናቸው።',
+        'assessment_verification_due_soon' => 'የተቋማት የምዘና ማጠቃለያ የከተማ ማረጋገጫ ጊዜ እየደረሰ ነው።',
+        'assessment_verification_overdue' => 'የተቋማት የምዘና ማጠቃለያ የከተማ ማረጋገጫ ጊዜ አልፏል።',
         'plan_assigned' => 'ለክፍልዎ የአፈጻጸም ዕቅድ ተመድቧል።',
         'agreement_ready' => 'የአፈጻጸም ስምምነትዎ ለግምገማዎ ዝግጁ ነው።',
         'agreement_returned' => 'የአፈጻጸም ስምምነትዎ ለማስተካከያ ተመልሷል።',

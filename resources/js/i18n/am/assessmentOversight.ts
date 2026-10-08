@@ -263,6 +263,7 @@ const assessmentOversight = {
     submissionStatuses: {
         not_submitted: 'ያልቀረበ',
         submitted: 'የቀረበ',
+        under_city_review: 'በከተማ ግምገማ ላይ',
         returned: 'ለእርማት የተመለሰ',
         verified: 'የተረጋገጠ',
         finalized: 'የተጠናቀቀ',
@@ -280,7 +281,7 @@ const assessmentOversight = {
         everyone: 'ሁሉም', position: 'የሥራ መደብ', occupation: 'ሙያ', grade_level: 'የደረጃ እርከን', job_family: 'የሥራ ቤተሰብ',
         organization: 'ተቋም', organization_unit: 'የሥራ ክፍል', exclude: 'የተገለለ',
     },
-    events: { submitted: 'ቀርቧል', returned: 'ለእርማት ተመልሷል', verified: 'ተረጋግጧል', finalized: 'ተጠናቅቋል', rejected: 'ውድቅ ተደርጓል', outdated: 'እንደገና መቅረብ እንዳለበት ተለይቷል' },
+    events: { submitted: 'ቀርቧል', under_city_review: 'የከተማ ግምገማ ተጀምሯል', returned: 'ለእርማት ተመልሷል', verified: 'ተረጋግጧል', finalized: 'ተጠናቅቋል', rejected: 'ውድቅ ተደርጓል', outdated: 'እንደገና መቅረብ እንዳለበት ተለይቷል' },
     readiness: {
         title: 'ለማቅረብ ዝግጁነት',
         participating: 'ተቋሙ በዚህ ዙር ይሳተፋል',
@@ -375,6 +376,7 @@ const assessmentOversight = {
     },
     export: { csv: 'CSV', xlsx: 'Excel', pdf: 'PDF' },
     actions: {
+        startReview: 'የከተማ ግምገማ ጀምር',
         verify: 'አረጋግጥ',
         finalize: 'አጠናቅቅ',
         return: 'ለእርማት መልስ',

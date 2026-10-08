@@ -613,6 +613,7 @@ enum AuditEventType: string
     case AssessmentUnassessedReasonChanged = 'assessment_oversight.unassessed_reason_changed';
     case AssessmentResultBandPolicyChanged = 'assessment_oversight.result_band_policy_changed';
     case AssessmentSubmissionSubmitted = 'assessment_submissions.submitted';
+    case AssessmentSubmissionReviewStarted = 'assessment_submissions.review_started';
     case AssessmentSubmissionReturned = 'assessment_submissions.returned';
     case AssessmentSubmissionRejected = 'assessment_submissions.rejected';
     case AssessmentSubmissionVerified = 'assessment_submissions.verified';

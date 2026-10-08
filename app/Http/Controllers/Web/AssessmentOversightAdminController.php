@@ -271,6 +271,7 @@ class AssessmentOversightAdminController extends Controller
         $comment = $request->validate(['comment' => [in_array($action, ['return', 'reject'], true) ? 'required' : 'nullable', 'string', 'max:2000']])['comment'] ?? null;
         $user = $request->user();
         match ($action) {
+            'start-review' => $this->submissions->startReview($user, $submission, $comment),
             'return' => $this->submissions->returnForCorrection($user, $submission, (string) $comment),
             'reject' => $this->submissions->reject($user, $submission, (string) $comment),
             'verify' => $this->submissions->verify($user, $submission, $comment),

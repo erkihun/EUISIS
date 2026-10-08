@@ -29,7 +29,7 @@ type Props = ShellProps & {
     history: HistoryRow[]; changedAfterFinalization: boolean;
     readiness: null | { ready: boolean; checks: Array<{ code: string; ok: boolean; detail?: unknown }> };
     exclusions: Exclusion[];
-    actions: { submit: boolean; return: boolean; reject: boolean; verify: boolean; finalize: boolean; requestExclusion: boolean };
+    actions: { submit: boolean; startReview: boolean; return: boolean; reject: boolean; verify: boolean; finalize: boolean; requestExclusion: boolean };
     latest: { id: string; status: string; revision_no: number } | null;
 };
 
@@ -41,7 +41,7 @@ export default function OversightInstitution(props: Props) {
     const [comment, setComment] = useState('');
     const filters = { organization_id: organization.id };
 
-    function move(action: 'return' | 'reject' | 'verify' | 'finalize') {
+    function move(action: 'start-review' | 'return' | 'reject' | 'verify' | 'finalize') {
         if (!latest) return;
         router.post(route('assessment-oversight.submissions.move', { submission: latest.id, action }), { comment }, { preserveScroll: true, onSuccess: () => setComment('') });
     }
@@ -202,11 +202,12 @@ export default function OversightInstitution(props: Props) {
                                 <p className="text-xs text-gray-500">{t('assessmentOversight.submitHelp')}</p>
                             </form>
                         )}
-                        {(actions.return || actions.reject || actions.verify || actions.finalize) && latest && (
+                        {(actions.startReview || actions.return || actions.reject || actions.verify || actions.finalize) && latest && (
                             <div className="mb-4 grid gap-2 sm:max-w-xl">
                                 <label htmlFor="ao-comment" className="text-sm font-medium">{t('assessmentOversight.reviewComment')}</label>
                                 <textarea id="ao-comment" rows={2} className={inputCls} value={comment} onChange={(e) => setComment(e.target.value)} />
                                 <div className="flex flex-wrap gap-2">
+                                    {actions.startReview && <button type="button" className={primaryBtn} onClick={() => move('start-review')}>{t('assessmentOversight.actions.startReview')}</button>}
                                     {actions.verify && <button type="button" className={primaryBtn} onClick={() => move('verify')}>{t('assessmentOversight.actions.verify')}</button>}
                                     {actions.finalize && <button type="button" className={primaryBtn} onClick={() => move('finalize')}>{t('assessmentOversight.actions.finalize')}</button>}
                                     {actions.return && <button type="button" className={secondaryBtn} disabled={!comment.trim()} onClick={() => move('return')}>{t('assessmentOversight.actions.return')}</button>}
