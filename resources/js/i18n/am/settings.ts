@@ -360,6 +360,7 @@ const settings = {
         logo_position: { start: 'መጀመሪያ', center: 'መሃል' },
     },
     tabs: {
+        field_work_gps: 'Field Work GPS',
         general: 'አጠቃላይ',
         localization: 'አካባቢ ቅንብር',
         notifications: 'ማሳወቂያዎች',
@@ -372,6 +373,7 @@ const settings = {
         api_management: 'የኤፒአይ አስተዳደር',
     },
     descriptions: {
+        field_work_gps: 'Configure explicit field-work location capture and enforcement.',
         general: 'ዋና የመተግበሪያ መለያ፣ የድጋፍ መረጃ እና የመግቢያ ገጽ ብራንዲንግ።',
         localization: 'ነባሪ ቋንቋ፣ የሰዓት ክልል እና የማሳያ ምርጫዎች።',
         notifications: 'አጠቃላይ የማሳወቂያ ማቅረቢያ ቁጥጥር እና የኪው ባህሪ።',

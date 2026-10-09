@@ -5,6 +5,8 @@ declare(strict_types=1);
 use App\Http\Controllers\Employee\DailyActivityController as EmployeeDailyActivityController;
 use App\Http\Controllers\Employee\EmployeePortalController;
 use App\Http\Controllers\Employee\EmployeeSelfServiceController;
+use App\Http\Controllers\Employee\FieldWorkController as EmployeeFieldWorkController;
+use App\Http\Controllers\Employee\FieldWorkLocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProviderPortal\Auth\ProviderLoginController;
@@ -80,6 +82,7 @@ use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
 use App\Http\Controllers\Web\EntitlementRuleController;
+use App\Http\Controllers\Web\FieldWorkController;
 use App\Http\Controllers\Web\GradeLevelController;
 use App\Http\Controllers\Web\HierarchyVersionController;
 use App\Http\Controllers\Web\IdCardController;
@@ -401,6 +404,16 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
         Route::delete('/attachments/{attachment}', 'destroyAttachment')->whereUuid('attachment')->name('attachments.destroy');
     });
 
+    Route::prefix('my-portal/field-work')->name('employee.field-work.')->controller(EmployeeFieldWorkController::class)->group(function (): void {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->middleware('throttle:30,1')->name('store');
+        Route::post('/{fieldWork}/submit', 'submit')->whereUuid('fieldWork')->name('submit');
+        Route::post('/{fieldWork}/complete', 'complete')->whereUuid('fieldWork')->name('complete');
+        Route::post('/{fieldWork}/check-in', [FieldWorkLocationController::class, 'checkIn'])->whereUuid('fieldWork')->middleware('throttle:10,1')->name('check-in');
+        Route::post('/{fieldWork}/check-out', [FieldWorkLocationController::class, 'checkOut'])->whereUuid('fieldWork')->middleware('throttle:10,1')->name('check-out');
+    });
+
     // Evidence download: owner, reviewer and scoped oversight, per the log policy.
     Route::get('/daily-activities/attachments/{attachment}/download', [DailyActivityAttachmentController::class, 'download'])
         ->whereUuid('attachment')
@@ -574,6 +587,13 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/{log}/approve', [DailyActivityController::class, 'approve'])->whereUuid('log')->name('approve');
         Route::post('/{log}/return', [DailyActivityController::class, 'returnForCorrection'])->whereUuid('log')->name('return');
         Route::post('/{log}/reopen', [DailyActivityController::class, 'reopen'])->whereUuid('log')->name('reopen');
+    });
+
+    Route::prefix('field-work')->name('field-work.')->group(function (): void {
+        Route::get('/pending-approval', [FieldWorkController::class, 'pending'])->name('pending');
+        Route::post('/{fieldWork}/approve', [FieldWorkController::class, 'approve'])->whereUuid('fieldWork')->name('approve');
+        Route::post('/{fieldWork}/return', [FieldWorkController::class, 'returnForCorrection'])->whereUuid('fieldWork')->name('return');
+        Route::post('/{fieldWork}/reject', [FieldWorkController::class, 'reject'])->whereUuid('fieldWork')->name('reject');
     });
 
     Route::get('/organizational-change-requests', [OrganizationalChangeRequestController::class, 'index'])->name('organizational-change-requests.index');
@@ -960,6 +980,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::patch('/system-settings/security', [SystemSettingController::class, 'updateSecurity'])->name('system-settings.security.update');
     Route::patch('/system-settings/appearance', [SystemSettingController::class, 'updateAppearance'])->name('system-settings.appearance.update');
     Route::patch('/system-settings/id-cards', [SystemSettingController::class, 'updateIdCards'])->name('system-settings.id-cards.update');
+    Route::patch('/system-settings/field-work-gps', [SystemSettingController::class, 'updateFieldWorkGps'])->name('system-settings.field-work-gps.update');
     Route::post('/system-settings/test-email', [SystemSettingController::class, 'testEmail'])->name('system-settings.test-email');
     Route::post('/system-settings/test-sms', [SystemSettingController::class, 'testSms'])->name('system-settings.test-sms');
     Route::post('/system-settings/test-telegram', [SystemSettingController::class, 'testTelegram'])->name('system-settings.test-telegram');

@@ -118,6 +118,15 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                     { routeName: 'employee.performance.index', labelKey: 'nav.myPerformance', icon: TrendingUpIcon, permission: 'employee_performance_agreements.view_own' },
                 ],
             },
+            {
+                key: 'portalFieldWork',
+                labelKey: 'nav.myFieldWork',
+                icon: HardHatIcon,
+                items: [
+                    { routeName: 'employee.field-work.index', labelKey: 'nav.myFieldWork', icon: HardHatIcon, permission: 'field_work.view_own' },
+                    { routeName: 'employee.field-work.create', labelKey: 'nav.newFieldWork', icon: ClipboardListIcon, permission: 'field_work.create' },
+                ],
+            },
         ],
     },
     {
@@ -320,6 +329,14 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        key: 'fieldWork',
+        labelKey: 'nav.fieldWorkManagement',
+        icon: HardHatIcon,
+        items: [
+            { routeName: 'field-work.pending', labelKey: 'nav.fieldWorkPending', icon: ClipboardCheckIcon, anyPermission: ['field_work.approve', 'field_work.return', 'field_work.reject'] },
+        ],
+    },
+    {
         key: 'transferManagement',
         labelKey: 'nav.transferManagement',
         icon: ArrowLeftRightIcon,
@@ -493,7 +510,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
 const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 
 const sections = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'fieldWork', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];

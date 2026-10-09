@@ -6,6 +6,7 @@ namespace App\Providers;
 
 use App\Contracts\EmployeeLeaveProvider;
 use App\Contracts\SmsGateway;
+use App\Models\AssessmentForm;
 use App\Models\AuditLog;
 use App\Models\CafeteriaDayRule;
 use App\Models\CafeteriaProvider;
@@ -26,6 +27,7 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\EmployeeTransfer;
 use App\Models\Entitlement;
 use App\Models\EntitlementRule;
+use App\Models\FieldWorkRequest;
 use App\Models\GradeLevel;
 use App\Models\IdCard;
 use App\Models\IsicActivity;
@@ -42,8 +44,8 @@ use App\Models\PositionEstablishment;
 use App\Models\PositionService;
 use App\Models\ProviderUser;
 use App\Models\PublicHoliday;
-use App\Models\Role;
-use App\Models\ServiceProvider as ServiceProviderModel; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\Role; // alias to avoid clash with Illuminate\Support\ServiceProvider
+use App\Models\ServiceProvider as ServiceProviderModel;
 use App\Models\ServiceTransaction;
 use App\Models\ServiceType;
 use App\Models\SystemSetting;
@@ -55,6 +57,7 @@ use App\Models\UserOrganizationScope;
 use App\Models\VacancyAnnouncement;
 use App\Models\VacancyApplication;
 use App\Observers\EmployeeAssignmentCardImpactObserver;
+use App\Policies\AssessmentFormPolicy;
 use App\Policies\AuditLogPolicy;
 use App\Policies\CafeteriaDayRulePolicy;
 use App\Policies\CafeteriaProviderPolicy;
@@ -74,6 +77,7 @@ use App\Policies\EmployeeServiceFeedbackPolicy;
 use App\Policies\EmployeeTransferPolicy;
 use App\Policies\EntitlementPolicy;
 use App\Policies\EntitlementRulePolicy;
+use App\Policies\FieldWorkRequestPolicy;
 use App\Policies\GradeLevelPolicy;
 use App\Policies\IdCardPolicy;
 use App\Policies\IsicActivityPolicy;
@@ -182,13 +186,14 @@ class AppServiceProvider extends ServiceProvider
             Cache::store()->get('health:probe');
         });
 
-        Gate::policy(\App\Models\AssessmentForm::class, \App\Policies\AssessmentFormPolicy::class);
+        Gate::policy(AssessmentForm::class, AssessmentFormPolicy::class);
         Gate::policy(Organization::class, OrganizationPolicy::class);
         Gate::policy(OrganizationEdge::class, OrganizationEdgePolicy::class);
         Gate::policy(Employee::class, EmployeePolicy::class);
         Gate::policy(EmployeeServiceFeedback::class, EmployeeServiceFeedbackPolicy::class);
         Gate::policy(PositionService::class, PositionServicePolicy::class);
         Gate::policy(EmployeeTransfer::class, EmployeeTransferPolicy::class);
+        Gate::policy(FieldWorkRequest::class, FieldWorkRequestPolicy::class);
         Gate::policy(TransferSetting::class, TransferSettingPolicy::class);
         Gate::policy(TransferAnnouncement::class, TransferAnnouncementPolicy::class);
         Gate::policy(TransferApplication::class, TransferApplicationPolicy::class);

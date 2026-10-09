@@ -33,7 +33,7 @@ final class DefaultRoleMatrix
      * deletion, impersonation, and provider-portal sign-in.
      */
     private const CITY_ADMIN_WITHHELD = [
-        'system-settings.manageSecurity', 'system-settings.manageEmail', 'system-settings.manageSms',
+        'system-settings.manageSecurity', 'system-settings.manageEmail', 'system-settings.manageSms', 'system-settings.manageFieldWorkGps',
         'system-settings.manageTelegram', 'system-settings.testNotificationChannels',
         'roles.create', 'roles.update', 'roles.delete', 'roles.assignPermissions',
         'permissions.create', 'permissions.update', 'permissions.delete',
@@ -154,6 +154,7 @@ final class DefaultRoleMatrix
                 'user-organization-scopes.viewAny', 'user-organization-scopes.create', 'user-organization-scopes.update', 'user-organization-scopes.delete',
                 'service_feedback.view', 'service_feedback.review', 'service_feedback.hide', 'service_feedback.export', 'service_feedback.settings.manage',
                 ...DailyActivityRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
+                'field_work.view_scoped', 'field_work.view_reports', 'field_work.view_team_availability', 'field_work.location.view_org',
                 ...PerformanceRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_INSTITUTION_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_ADMIN_PERMISSIONS,
@@ -265,7 +266,7 @@ final class DefaultRoleMatrix
             ], 'Read-only review of audit logs, history and approved records. Creates, changes and deletes nothing.',
                 'የኦዲት ምዝግቦችን፣ ታሪክን እና የጸደቁ መዝገቦችን በንባብ ብቻ ይገመግማል። ምንም አይፈጥርም፣ አይቀይርም፣ አይሰርዝም።'),
             'Report Viewer' => self::role(self::SCOPE_SCOPED, [
-                'dashboard.view', 'reports.view', 'daily_activities.view_reports', 'performance_reports.view',
+                'dashboard.view', 'reports.view', 'daily_activities.view_reports', 'performance_reports.view', 'field_work.view_reports',
                 ...GrievanceRoles::REPORT_VIEWER_PERMISSIONS,
             ], 'Views non-sensitive reports within scope. No exports.',
                 'በወሰኑ ውስጥ ስሱ ያልሆኑ ሪፖርቶችን ይመለከታል። ወደ ውጭ መላክ የለም።'),
@@ -274,10 +275,10 @@ final class DefaultRoleMatrix
                 'የሕዝብ ድረ-ገጽ ይዘትን ያስተካክላል። የመታወቂያ ማረጋገጫን፣ OTPን፣ የፍጥነት ገደቦችን፣ የሠራተኛ መረጃን ወይም የማረጋገጫ ፖሊሲን መቀየር አይችልም።'),
 
             // ── Employee self-service, teams and performance ─────────────────
-            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
+            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS, 'field_work.view_own', 'field_work.create', 'field_work.update_own', 'field_work.submit', 'field_work.complete', 'field_work.location.capture_own', 'field_work.location.view_own'],
                 'Self-service for the signed-in employee only: own daily activity, own performance agreement, reviews and appeals. My Portal pages are tied to the linked employee record, not to extra permissions.',
                 'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች።'),
-            DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, DailyActivityRoles::REVIEWER_PERMISSIONS,
+            DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::REVIEWER_PERMISSIONS, 'field_work.view_team', 'field_work.approve', 'field_work.return', 'field_work.reject', 'field_work.complete', 'field_work.location.view_team'],
                 'Reviews the daily activity of the team named in the user\'s reviewer assignment.',
                 'በተመደበበት ቡድን ውስጥ ያሉ ሠራተኞችን ዕለታዊ እንቅስቃሴ ይገመግማል።'),
             PerformanceRoles::MANAGER_ROLE => self::role(self::SCOPE_SCOPED, [...PerformanceRoles::MANAGER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_MANAGER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],

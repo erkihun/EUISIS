@@ -27,6 +27,7 @@ import amCodeRules from '@/i18n/am/codeRules';
 import amDashboard from '@/i18n/am/dashboard';
 import amEmployees from '@/i18n/am/employees';
 import amEmployeePortal from '@/i18n/am/employeePortal';
+import amFieldWork from '@/i18n/am/fieldWork';
 import amEntitlementRules from '@/i18n/am/entitlementRules';
 import amHome from '@/i18n/am/home';
 import amHierarchyVersions from '@/i18n/am/hierarchyVersions';
@@ -79,6 +80,7 @@ import enCodeRules from '@/i18n/en/codeRules';
 import enDashboard from '@/i18n/en/dashboard';
 import enEmployees from '@/i18n/en/employees';
 import enEmployeePortal from '@/i18n/en/employeePortal';
+import enFieldWork from '@/i18n/en/fieldWork';
 import enEntitlementRules from '@/i18n/en/entitlementRules';
 import enHome from '@/i18n/en/home';
 import enHierarchyVersions from '@/i18n/en/hierarchyVersions';
@@ -142,6 +144,7 @@ const translations: Record<Locale, TranslationTree> = {
         dashboard: { ...((en.dashboard as TranslationTree | undefined) ?? {}), ...enDashboard },
         employees: { ...((en.employees as TranslationTree | undefined) ?? {}), ...enEmployees },
         employeePortal: enEmployeePortal,
+        fieldWork: enFieldWork,
         dailyActivities: enDailyActivities,
         performance: enPerformance,
         entitlements: enEntitlements,
@@ -207,6 +210,7 @@ const translations: Record<Locale, TranslationTree> = {
         dashboard: { ...(((am as { dashboard?: TranslationTree }).dashboard) ?? {}), ...amDashboard },
         employees: { ...(((am as { employees?: TranslationTree }).employees) ?? {}), ...amEmployees },
         employeePortal: amEmployeePortal,
+        fieldWork: amFieldWork,
         dailyActivities: amDailyActivities,
         performance: amPerformance,
         entitlements: amEntitlements,

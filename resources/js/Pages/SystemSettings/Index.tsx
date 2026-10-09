@@ -27,6 +27,7 @@ type SettingsCan = {
     manageSecurity: boolean;
     manageAppearance: boolean;
     manageIdCards: boolean;
+    manageFieldWorkGps: boolean;
     viewIdCardTemplates?: boolean;
     clearCache: boolean;
     testChannels: boolean;
@@ -71,6 +72,7 @@ const SECTIONS: Section[] = [
     { id: 'sms', routeName: 'system-settings.sms.update', canKey: 'manageSms', icon: MessageSquareIcon, group: 'communication' },
     { id: 'telegram', routeName: 'system-settings.telegram.update', canKey: 'manageTelegram', icon: SendIcon, group: 'communication' },
     { id: 'security', routeName: 'system-settings.security.update', canKey: 'manageSecurity', icon: ShieldCheck, group: 'security' },
+    { id: 'field_work_gps', routeName: 'system-settings.field-work-gps.update', canKey: 'manageFieldWorkGps', icon: ShieldCheck, group: 'security' },
 ];
 
 const NAV_GROUPS: NavGroupKey[] = ['organization', 'communication', 'security'];

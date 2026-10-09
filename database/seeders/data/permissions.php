@@ -353,6 +353,10 @@ return [
         'label_en' => 'Manage ID Card Settings', 'label_am' => 'የመታወቂያ ካርድ ቅንብሮችን አስተዳድሩ',
         'description_en' => 'Allows configuring ID card layout, templates, and issuance policies.',
         'description_am' => 'የመታወቂያ ካርድ አቀማመጥ፣ አብነቶች እና ማሰጣጠያ ፖሊሲዎችን ማዋቀር ያስችላል።'],
+    ['name' => 'system-settings.manageFieldWorkGps', 'group' => 'system-settings', 'sort_order' => 115, 'is_system' => true,
+        'label_en' => 'Manage Field Work GPS Policy', 'label_am' => 'Manage Field Work GPS Policy',
+        'description_en' => 'Allows configuring sensitive field-work GPS policy and enforcement.',
+        'description_am' => 'Allows configuring sensitive field-work GPS policy and enforcement.'],
     ['name' => 'system-settings.clearCache', 'group' => 'system-settings', 'sort_order' => 120, 'is_system' => true,
         'label_en' => 'Clear System Cache', 'label_am' => 'የስርዓት ካሽ አጽዱ',
         'description_en' => 'Allows clearing the application cache to refresh data.',
@@ -1453,6 +1457,8 @@ return [
 
     // Daily Activity Register — employee, reviewer and scoped-oversight duties.
     ...require database_path('seeders/data/daily-activity-permissions.php'),
+
+    ...require database_path('seeders/data/field-work-permissions.php'),
 
     // Employee Performance Management (EPMS) — docs/epms-permissions.md.
     ...require database_path('seeders/data/performance-permissions.php'),

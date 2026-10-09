@@ -358,6 +358,10 @@ const settings = {
         card_radius: { sm: 'Small', md: 'Medium', lg: 'Large', xl: 'Extra large', '2xl': 'Largest' },
         dashboard_layout: { executive: 'Executive', compact: 'Compact' },
         logo_position: { start: 'Start', center: 'Centered' },
+        low_accuracy_action: { not_configured: 'Not configured', record_only: 'Record only', require_review: 'Require supervisor review', block: 'Record and block' },
+        outside_geofence_action: { not_configured: 'Not configured', record_only: 'Record only', require_review: 'Require supervisor review', block: 'Record and block' },
+        offline_capture_policy: { not_configured: 'Not configured', disallow: 'Disallow', allow_with_review: 'Allow with review' },
+        team_capture_policy: { not_configured: 'Not configured', individual_only: 'Individual capture only' },
     },
     tabs: {
         general: 'General',
@@ -369,6 +373,7 @@ const settings = {
         security: 'Security',
         appearance: 'Appearance',
         id_cards: 'ID Cards',
+        field_work_gps: 'Field Work GPS',
         api_management: 'API Management',
     },
     descriptions: {
@@ -381,6 +386,7 @@ const settings = {
         security: 'Password, upload, maintenance, and API protection settings.',
         appearance: 'Theme, colors, density, and visual defaults for the app shell.',
         id_cards: 'Manage shared content and visibility defaults. Artwork, typography and layout are edited in ID Card Templates.',
+        field_work_gps: 'Configure explicit field-work location capture and enforcement. Values marked not configured do not impose a hidden rule.',
     },
     groups: {
         brandingPreview: 'Branding Preview',

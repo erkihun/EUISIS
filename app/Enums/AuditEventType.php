@@ -6,6 +6,14 @@ namespace App\Enums;
 
 enum AuditEventType: string
 {
+    case FieldWorkCreated = 'field_work_created';
+    case FieldWorkSubmitted = 'field_work_submitted';
+    case FieldWorkApproved = 'field_work_approved';
+    case FieldWorkReturned = 'field_work_returned';
+    case FieldWorkRejected = 'field_work_rejected';
+    case FieldWorkCompleted = 'field_work_completed';
+    case FieldWorkCheckInRecorded = 'field_work_check_in_recorded';
+    case FieldWorkCheckOutRecorded = 'field_work_check_out_recorded';
     case BackupStatusViewed = 'BACKUP_STATUS_VIEWED';
     case BackupStarted = 'BACKUP_STARTED';
     case BackupCompleted = 'BACKUP_COMPLETED';

@@ -1,0 +1,15 @@
+export default {
+    pendingTitle: 'በጥበቃ ላይ ያለ የመስክ ሥራ ማጽደቅ',
+    pendingDescription: 'የተዋቀረውን የኃላፊነት ሽፋን መሠረት በማድረግ ማጽደቅ የሚጠብቁ የመስክ ሥራ ጥያቄዎች።',
+    noPending: 'የእርስዎን ማጽደቅ የሚጠብቅ የመስክ ሥራ ጥያቄ የለም።',
+    employee: 'ሠራተኛ',
+    request: 'ጥያቄ',
+    schedule: 'የጊዜ ሰሌዳ',
+    actions: 'እርምጃዎች',
+    approve: 'አጽድቅ',
+    return: 'ለማስተካከያ መልስ',
+    reject: 'ውድቅ አድርግ',
+    returnReason: 'ጥያቄውን ለመመለስ ምክንያት',
+    rejectionReason: 'ጥያቄውን ውድቅ ለማድረግ ምክንያት',
+    pagination: 'የመስክ ሥራ ማጽደቅ ገጾች',
+};

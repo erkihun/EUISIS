@@ -1,0 +1,15 @@
+export default {
+    pendingTitle: 'Pending Field Work Approval',
+    pendingDescription: 'Official temporary work-location requests awaiting your configured supervisory review.',
+    noPending: 'No Field Work requests are pending your approval.',
+    employee: 'Employee',
+    request: 'Request',
+    schedule: 'Schedule',
+    actions: 'Actions',
+    approve: 'Approve',
+    return: 'Return',
+    reject: 'Reject',
+    returnReason: 'Reason for returning this request',
+    rejectionReason: 'Reason for rejecting this request',
+    pagination: 'Field Work approval pages',
+};
