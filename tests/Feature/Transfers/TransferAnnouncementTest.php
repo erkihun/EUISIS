@@ -134,6 +134,8 @@ test('announcement can be created as draft', function (): void {
     $org = taOrg('STORE-01');
     $pos = taPos($org->id);
     $user = taUser('transfers.announcements.create');
+    // Advertised slots must fit the position's approved capacity.
+    taEstablishment($org->id, $pos->id, 2);
 
     $this->actingAs($user)->post(route('transfer-announcements.store'), [
         'number_of_vacancies' => 2,
@@ -145,7 +147,7 @@ test('announcement can be created as draft', function (): void {
             'salary_max' => null,
             'vacancy_count' => 2,
         ]],
-        'eligibility_rules' => ['Min 2 years experience'],
+        'eligibility_rules' => [['type' => 'minimum_service_months', 'operator' => 'greater_than_or_equal', 'value' => '24']],
         'required_documents' => ['ID Card', 'CV'],
         'opening_date' => now()->addDay()->toDateString(),
         'closing_date' => now()->addDays(30)->toDateString(),
@@ -217,6 +219,7 @@ test('draft announcement can be updated', function (): void {
     $org = taOrg('UPD-01');
     $pos = taPos($org->id);
     $user = taUser('transfers.announcements.update');
+    taEstablishment($org->id, $pos->id, 3);
     $ann = taDraftAnnouncement($org->id, $pos->id);
 
     $this->actingAs($user)->patch(route('transfer-announcements.update', $ann), [

@@ -11,13 +11,32 @@ use Illuminate\Database\Seeder;
 
 /**
  * Default code rules (reference data). Idempotent: an existing rule is never
- * changed, so an administrator's edits survive a re-run.
+ * changed, so an administrator's edits survive a re-run, and no default is
+ * added where an administrator already runs an active rule for the entity.
  */
 class CodeRuleSeeder extends Seeder
 {
     public function run(): void
     {
-        $defaults = [
+        foreach (self::defaults() as $default) {
+            self::ensure($default);
+        }
+    }
+
+    /** Ensures the default rule of one entity; migrations use it to add a new default to existing databases. */
+    public static function ensureFor(CodeRuleEntityType $entityType): void
+    {
+        foreach (self::defaults() as $default) {
+            if ($default['entity_type'] === $entityType->value) {
+                self::ensure($default);
+            }
+        }
+    }
+
+    /** @return list<array<string, mixed>> */
+    public static function defaults(): array
+    {
+        return [
             [
                 'entity_type' => CodeRuleEntityType::Organization->value,
                 'scope_type' => null,
@@ -142,33 +161,50 @@ class CodeRuleSeeder extends Seeder
                 'format' => '{PREFIX}-{SEQUENCE}',
                 'sequence_length' => 4,
             ],
+            [
+                // Transfer applications are numbered on submission; without an
+                // active rule no employee could apply.
+                'entity_type' => CodeRuleEntityType::TransferApplication->value,
+                'scope_type' => null,
+                'scope_id' => null,
+                'name_en' => 'Transfer Application Number',
+                'name_am' => 'የዝውውር ማመልከቻ ቁጥር',
+                'prefix' => 'TRA',
+                'format' => '{PREFIX}-{YEAR}-{SEQUENCE}',
+                'sequence_length' => 6,
+            ],
         ];
+    }
 
-        foreach ($defaults as $default) {
-            CodeRule::query()->firstOrCreate(
-                [
-                    'entity_type' => $default['entity_type'],
-                    'scope_type' => $default['scope_type'],
-                    'scope_id' => $default['scope_id'],
-                    'name_en' => $default['name_en'],
-                ],
-                [
-                    ...$default,
-                    'active_scope_key' => CodeRule::buildActiveScopeKey(
-                        $default['entity_type'],
-                        $default['scope_type'],
-                        $default['scope_id'],
-                    ),
-                    'suffix' => null,
-                    'separator' => $default['separator'] ?? '-',
-                    'next_number' => 1,
-                    'reset_frequency' => CodeRuleResetFrequency::Never,
-                    'year_format' => 'Y',
-                    'is_active' => true,
-                    'allow_manual_override' => false,
-                    'require_approval_for_override' => true,
-                ],
-            );
+    /** @param  array<string, mixed>  $default */
+    private static function ensure(array $default): void
+    {
+        $activeScopeKey = CodeRule::buildActiveScopeKey($default['entity_type'], $default['scope_type'], $default['scope_id']);
+
+        // An administrator's own active rule for this entity and scope wins.
+        if (CodeRule::query()->where('active_scope_key', $activeScopeKey)->exists()) {
+            return;
         }
+
+        CodeRule::query()->firstOrCreate(
+            [
+                'entity_type' => $default['entity_type'],
+                'scope_type' => $default['scope_type'],
+                'scope_id' => $default['scope_id'],
+                'name_en' => $default['name_en'],
+            ],
+            [
+                ...$default,
+                'active_scope_key' => $activeScopeKey,
+                'suffix' => null,
+                'separator' => $default['separator'] ?? '-',
+                'next_number' => 1,
+                'reset_frequency' => CodeRuleResetFrequency::Never,
+                'year_format' => 'Y',
+                'is_active' => true,
+                'allow_manual_override' => false,
+                'require_approval_for_override' => true,
+            ],
+        );
     }
 }

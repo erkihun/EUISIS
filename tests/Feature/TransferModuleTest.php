@@ -468,7 +468,10 @@ test('a same-day active agreement rolls back HR transfer rather than creating an
     expect($employee->fresh()->current_assignment_id)->toBe($oldAssignment->id)
         ->and($oldAssignment->fresh()->assignment_status)->toBe(AssignmentStatus::Active)
         ->and($oldAssignment->fresh()->is_current)->toBeTrue()
-        ->and($application->fresh()->status)->toBe(TransferApplicationStatus::Approved)
+        // Rolled back, then recorded as a retryable failure with its reason (never half-applied).
+        ->and($application->fresh()->status)->toBe(TransferApplicationStatus::ImplementationFailed)
+        ->and($application->fresh()->implementation_failure)->not->toBeEmpty()
+        ->and($application->fresh()->implementation_assignment_id)->toBeNull()
         ->and($context['agreement']->fresh()->status->value)->toBe('ACTIVE');
     $this->assertDatabaseCount('employee_assignments', 1);
 });
