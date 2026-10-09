@@ -81,10 +81,15 @@ class DatabaseSeeder extends Seeder
             ['code' => 'department', 'prefix' => 'DEPT', 'name_en' => 'Department'],
             ['code' => 'team', 'prefix' => 'TEAM', 'name_en' => 'Team'],
         ])->mapWithKeys(function (array $type): array {
-            $organizationType = OrganizationType::query()->firstOrCreate(
-                ['code' => $type['code']],
-                $type + ['is_demo' => true],
-            );
+            // The model stores codes upper-cased, and mutators do not apply to
+            // WHERE clauses: look up the stored form so a re-run reuses the row.
+            $code = mb_strtoupper($type['code'], 'UTF-8');
+            $organizationType = OrganizationType::withTrashed()->where('code', $code)->first()
+                ?? OrganizationType::query()->create($type + ['is_demo' => true]);
+
+            if ($organizationType->trashed()) {
+                throw new RuntimeException("Organization type {$code} is archived; restore it before seeding demo data.");
+            }
 
             if ($organizationType->prefix === null) {
                 $organizationType->forceFill(['prefix' => $type['prefix']])->save();
@@ -418,7 +423,8 @@ class DatabaseSeeder extends Seeder
     private function purgeDemoData(): void
     {
         $demoUserIds = User::where('is_demo', true)->pluck('id');
-        $demoOrgIds = Organization::where('is_demo', true)->pluck('id');
+        // Including archived rows: a soft-deleted demo organization still holds its unique code.
+        $demoOrgIds = Organization::withTrashed()->where('is_demo', true)->pluck('id');
         $demoVersionIds = HierarchyVersion::where('is_demo', true)->pluck('id');
         $demoEmpIds = Employee::where('is_demo', true)->pluck('id');
         $demoCardIds = $demoEmpIds->isNotEmpty()
@@ -514,7 +520,7 @@ class DatabaseSeeder extends Seeder
             Organization::whereIn('merged_into_id', $demoOrgIds)->update(['merged_into_id' => null]);
         }
 
-        Organization::where('is_demo', true)->delete();
+        Organization::withTrashed()->where('is_demo', true)->forceDelete();
         HierarchyVersion::where('is_demo', true)->delete();
     }
 
