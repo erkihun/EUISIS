@@ -33,21 +33,24 @@ lists. It has no sidebar entry.
 - **Position:** its own category, directly after the *People & organization*
   section, at the same level as People, Operations and Governance. In
   `sections` it is the standalone entry `{ keys: ['fieldWork'] }`: a section
-  with no label of its own takes its heading from the group's label, so
-  "Field Work Management" appears once, as the category heading, with its
-  pages listed directly beneath it. The rest of the sidebar was not reordered.
+  with no label of its own takes its heading from the group's label. Under
+  the heading, "Field Work Management" is a collapsible button whose submenu
+  holds the seven pages, like every other module. The rest of the sidebar
+  was not reordered.
 - **Visibility:** each child is filtered by its permission. A category whose
   children are all hidden is not rendered, so it never appears empty and
   never links to a 403.
 - **Active state:** `activeRoute()` picks the item with the longest matching
-  route-name prefix. Any `field-work.*` route highlights its item:
-  `field-work.requests.show` maps to Field Work Requests, and the other
-  routes map to themselves. The pages are always listed, so the category is
-  always expanded. Breadcrumbs (`navLocation()`) use the same rule: *Field
-  Work Management → Dashboard*, *→ Pending Approvals*, and so on.
-- **Collapsed sidebar and mobile drawer:** in the collapsed rail the category
-  becomes one `MapPinned` icon that opens the usual flyout of its pages. The
-  mobile drawer shows the expanded layout.
+  route-name prefix. Any `field-work.*` route highlights its item and opens
+  the submenu: `field-work.requests.show` maps to Field Work Requests, and
+  the other routes map to themselves. Breadcrumbs (`navLocation()`) use the
+  same rule: *Field Work Management → Dashboard*, *→ Pending Approvals*, and
+  so on.
+- **Collapsed sidebar and mobile drawer:** the button is an ordinary
+  `NavGroup`, so the collapsed rail shows one `MapPinned` icon with the usual
+  flyout, and the mobile drawer renders it with no extra code.
+- **Button click:** the button opens and closes the submenu; it is not a
+  link. The first child is the Dashboard.
 
 Inside the module, a tab row (`Components/fieldWork/ManagementNav.tsx`)
 offers the same pages, built from server abilities.
