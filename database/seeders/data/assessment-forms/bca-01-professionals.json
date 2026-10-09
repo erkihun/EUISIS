@@ -1,0 +1,483 @@
+{
+  "source": "Official paper form ቅጽ. 01 (supplied .doc, 2018 E.C. first half-year). Numbering normalized; wording and scores as supplied.",
+  "form": {
+    "code": "BCA-01-PROFESSIONALS",
+    "name_en": "Professionals' behavioural competency: 6-month assessment criteria",
+    "name_am": "ባለሙያዎች የባህርይ ብቃት አፈጻጸም የ6 ወር መመዘኛ መስፈርት",
+    "description_en": "Official form No. 01. Scored out of 30 and converted to a 5% contribution.",
+    "description_am": "ቅጽ. 01 — ውጤቱ ከ30 ተመዝኖ ወደ 5% ተቀይሮ ይያዛል።",
+    "assessment_type": "BEHAVIORAL_COMPETENCY",
+    "organization_id": null
+  },
+  "version": {
+    "name_en": "Professionals' behavioural competency: 6-month assessment criteria",
+    "name_am": "ባለሙያዎች የባህርይ ብቃት አፈጻጸም የ6 ወር መመዘኛ መስፈርት",
+    "description_en": null,
+    "description_am": null,
+    "instructions_en": "Rate each competency by choosing the level that best describes the employee. Scored out of 30 and converted to a 5% contribution.",
+    "instructions_am": "ለእያንዳንዱ የባህሪ ብቃት ሰራተኛውን በተሻለ የሚገልጸውን ደረጃ ይምረጡ። ውጤቱ ከ30 ተመዝኖ ወደ 5% ተቀይሮ ይያዛል።",
+    "period_type": "six_month",
+    "scoring_method": "percent_of_max",
+    "max_total_score": "30",
+    "overall_contribution_weight": "5",
+    "result_scale_id": null,
+    "acknowledgement_required": true,
+    "review_required": true,
+    "show_option_scores": true,
+    "effective_from": null,
+    "effective_to": null,
+    "sections": [
+      {
+        "code": "1",
+        "title_en": "Behavioural competency measures",
+        "title_am": "የባህሪ ብቃት መለኪያዎች",
+        "description_en": null,
+        "description_am": null,
+        "weight": null,
+        "max_score": "30",
+        "is_required": true,
+        "criteria": [
+          {
+            "code": "1",
+            "title_en": "Strategic thinking",
+            "title_am": "ስትራቴጂያዊ አስተሳሰብ",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "3",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "1.1",
+                "label_am": "1.1",
+                "description_en": null,
+                "description_am": "የተቋሙ ራእይ ማሳካት የሚያስችል ግልጽ የሆነ እቅድ የማቀድ እና የመተግበር ክህሎት ችግሮችን የመለየት አማራጮችን የመገምገም፤ ውጤታማ መፍትሄዎችን የመተግበር አቅም የሚያዳብር እና ውስብስብ መረጃዎችን የመተንተን ብቃት",
+                "score": "3"
+              },
+              {
+                "label_en": "1.2",
+                "label_am": "1.2",
+                "description_en": null,
+                "description_am": "የተቋሙ ራእይ ማሳካት የሚያስችል ግልጽ የሆነ እቅድ የማቀድ እና የመተግበር ክህሎት ችግሮችን የመለየት አማራጮችን የመገምገም፤ ውጤታማ መፍትሄዎችን የመተግበር አቅም የሚያዳብር",
+                "score": "2"
+              },
+              {
+                "label_en": "1.3",
+                "label_am": "1.3",
+                "description_en": null,
+                "description_am": "የተቋሙ ራእይ ማሳካት የሚያስችል ግልጽ የሆነ እቅድ የማቀድ የመተግበር ክህሎት፤ ችግሮችን የመለየት እና አማራጮችን የመገምገም",
+                "score": "1"
+              },
+              {
+                "label_en": "1.4",
+                "label_am": "1.4",
+                "description_en": null,
+                "description_am": "የተቋሙ ራእይ ማሳካት የሚያስችል ግልጽ የሆነ እቅድ የማቀድና የመተግበር ክህሎት ክፍተት ያለበት",
+                "score": "0.5"
+              }
+            ]
+          },
+          {
+            "code": "2",
+            "title_en": "Innovation",
+            "title_am": "ፈጠራ",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "3",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "2.1",
+                "label_am": "2.1",
+                "description_en": null,
+                "description_am": "በሙያቸው ካለው ነባራዊ አሰራር ወጣ ያለ፣ የሥራ ጥራትን የሚያሻሽል፣ አዲስ የሥራ ስልት ተግባራዊ ያደረገ፣ ለተቋሙ የረጅም ጊዜ አገልግሎት የሚውሉ አዳዲስ የሥራ ማኑዋሎችን፣ መመሪያዎችን እና ግብዓት የሚሆኑ የጥናት ሰነዶችን ያዘጋጀ ፣ተቋሙ ሲቸገርባቸው የነበሩ ተደጋጋሚ የቴክኒክ ወይም የአሰራር እንቅፋቶችን በፈጠራ የታገዘ መፍትሄ በመስጠት በተቋም ሀላፊ የተረጋገጠ ተጨባጭ ውጤት",
+                "score": "3"
+              },
+              {
+                "label_en": "2.2",
+                "label_am": "2.2",
+                "description_en": null,
+                "description_am": "በሙያቸው ካለው ነባራዊ አሰራር ወጣ ያለ፣ የሥራ ጥራትን የሚያሻሽል፣ አዲስ የሥራ ስልት ተግባራዊ ያደረገ፣ ለተቋሙ የረጅም ጊዜ አገልግሎት የሚውሉ አዳዲስ የሥራ ማኑዋሎችን፣ መመሪያዎችን እና ግብዓት የሚሆኑ የጥናት ሰነዶችን ያዘጋጀ",
+                "score": "2"
+              },
+              {
+                "label_en": "2.3",
+                "label_am": "2.3",
+                "description_en": null,
+                "description_am": "በሙያቸው ካለው ነባራዊ አሰራር ወጣ ያለ፣ የሥራ ጥራትን የሚያሻሽል፣ አዲስ የሥራ ስልት ተግባራዊ ያደረገ፣",
+                "score": "1"
+              },
+              {
+                "label_en": "2.4",
+                "label_am": "2.4",
+                "description_en": null,
+                "description_am": "ለተቋሙ ምንም ዓይነት አዲስ ነገር ያልፈጠረ",
+                "score": "0"
+              }
+            ]
+          },
+          {
+            "code": "3",
+            "title_en": "Communication and influence",
+            "title_am": "ተግባቦትና ተጽዕኖ መፍጠር",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "2",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "3.1",
+                "label_am": "3.1",
+                "description_en": null,
+                "description_am": "በተቋሙ አብነታዊ የተግባቦት ክህሎት ያለው",
+                "score": "2"
+              },
+              {
+                "label_en": "3.2",
+                "label_am": "3.2",
+                "description_en": null,
+                "description_am": "የተግባባት ክህሎት ኖሮት ውስን ክፍተት ያለበት እና በድጋፍ የሚለወጥ",
+                "score": "1"
+              },
+              {
+                "label_en": "3.3",
+                "label_am": "3.3",
+                "description_en": null,
+                "description_am": "የተግባቦት ክህሎት ችግር ያለበት",
+                "score": "0"
+              }
+            ]
+          },
+          {
+            "code": "4",
+            "title_en": "Teamwork",
+            "title_am": "የቡድን ሥራ",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "2",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "4.1",
+                "label_am": "4.1",
+                "description_en": null,
+                "description_am": "ከሌሎች የስራ ባልደረቦቹ ጋር በቡድን የመስራት አቅም ያለው",
+                "score": "2"
+              },
+              {
+                "label_en": "4.2",
+                "label_am": "4.2",
+                "description_en": null,
+                "description_am": "ከስራ ባልደረቦቹ ጋር በቡድን የመስራት ጥረት የሚያደርግ",
+                "score": "1"
+              },
+              {
+                "label_en": "4.3",
+                "label_am": "4.3",
+                "description_en": null,
+                "description_am": "በቡድን የመስራት አቅም ውስንነት ያለበት",
+                "score": "0.5"
+              },
+              {
+                "label_en": "4.4",
+                "label_am": "4.4",
+                "description_en": null,
+                "description_am": "በቡድን መስራት የማይችል",
+                "score": "0"
+              }
+            ]
+          },
+          {
+            "code": "5",
+            "title_en": "Emotional maturity",
+            "title_am": "ራህሮታዊ ብስለት",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "2",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "5.1",
+                "label_am": "5.1",
+                "description_en": null,
+                "description_am": "የራስን ስሜት መረዳት፣ በሥራ ጫና ወቅት ስሜትን ተቆጣጥሮ በረጋ መንፈስ ስራን ማከናወን፣ የሥራ ባልደረቦችንም ሆነ የተገልጋዮችን ስሜትና ሁኔታ ተረድቶ አስፈላጊውን ድጋፍና አጋርነት ማሳየት፣ የሚፈጠሩ አለመግባባቶችን የመፍታት ብቃት",
+                "score": "2"
+              },
+              {
+                "label_en": "5.2",
+                "label_am": "5.2",
+                "description_en": null,
+                "description_am": "የራሱን ስሜት መረዳት፣ በሥራ ጫና ወቅት ስሜትን ተቆጣጥሮ በረጋ መንፈስ ስራን ማከናወን፣ የሥራ ባልደረቦችንም ሆነ የተገልጋዮችን ስሜትና ሁኔታ የሚረዳ",
+                "score": "1"
+              },
+              {
+                "label_en": "5.3",
+                "label_am": "5.3",
+                "description_en": null,
+                "description_am": "ስሜትን ተቆጣጥሮ በረጋ መንፈስ ስራን የማያከናወን፣ የሥራ ባልደረቦችንም ሆነ የተገልጋዮችን ስሜት የማይረዳ",
+                "score": "0"
+              }
+            ]
+          },
+          {
+            "code": "6",
+            "title_en": "Ethics and role-modelling",
+            "title_am": "ሥነ-ምግባርና ተምሳሌትነት",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "3",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "6.1",
+                "label_am": "6.1",
+                "description_en": null,
+                "description_am": "ሰራተኛውን እና ተገልጋይ የሚያከብር በመልካም ስነ-ምግባሩ ተምሳሌት የሆነ እና ከቅርብ ኃላፊው እንዲሁም ከስራ ባልደረቦቹ ግብረ-መልስ የሚቀበል እና የሚተገብር",
+                "score": "3"
+              },
+              {
+                "label_en": "6.2",
+                "label_am": "6.2",
+                "description_en": null,
+                "description_am": "ሰራተኛውን እና ተገልጋይን የሚያከብር፤ በመልካም ስነ-ምግባሩ የተመሰገነ የሆነ",
+                "score": "2"
+              },
+              {
+                "label_en": "6.3",
+                "label_am": "6.3",
+                "description_en": null,
+                "description_am": "ሰራተኛውን እና ተገልጋይን የሚያከብር፤",
+                "score": "1"
+              },
+              {
+                "label_en": "6.4",
+                "label_am": "6.4",
+                "description_en": null,
+                "description_am": "ሰራተኛውን እና ተገልጋይን የማያከብር የስነ- ምግባር ክፍተት ያለበት",
+                "score": "0"
+              }
+            ]
+          },
+          {
+            "code": "7",
+            "title_en": "Self-development and motivation",
+            "title_am": "መብቃትና መነሳሳት",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "3",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "7.1",
+                "label_am": "7.1",
+                "description_en": null,
+                "description_am": "በየጊዜው ተጨማሪ እውቀቶችን ለማግኘት የሚጥር ከሌሎች የሚወስድ እና ያለውን እውቀት ለሌሎች የሚያስተላልፍ",
+                "score": "3"
+              },
+              {
+                "label_en": "7.2",
+                "label_am": "7.2",
+                "description_en": null,
+                "description_am": "በየጊዜው ተጨማሪ እውቀቶችን ለማግኘት የሚጥር ግን ለሌሎች ማስተላለፍ ላይ ክፍተት ያለበት",
+                "score": "2"
+              },
+              {
+                "label_en": "7.3",
+                "label_am": "7.3",
+                "description_en": null,
+                "description_am": "በየጊዜው ራሱን ለማብቃት ጥረት የማያደርግ እና ተነሳሽነት የጐደለው",
+                "score": "1"
+              }
+            ]
+          },
+          {
+            "code": "8",
+            "title_en": "Service orientation",
+            "title_am": "አገልጋይነት",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "4",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "8.1",
+                "label_am": "8.1",
+                "description_en": null,
+                "description_am": "በአገልጋይነት ስሜት ተገልጋይን በአክብሮት መቀበል፣ በትህትና ማስተናገድ፣ ለተገልጋዩ ችግር አጋዥነትን ማሳየት ፣ የሚሰጠውን አገልግሎት በሚመለከት በቂ እውቀትና ክህሎት ኖሮት ትክክለኛ መረጃን በፍጥነት መስጠት ፣ ተገልጋይ ላነሳው ጥያቄ ሳይጉላላ በወቅቱ እና በሰዓቱ ተገቢውን ምላሽ መስጠት፣ አድሎአዊ ካልሆነ አሰራር ነፃ መሆን፣ የአገልግሎት ሂደቱን ግልጽ በሆነ መንገድ በመፈጸም ለሌሎች አርአያ ሆኖ የሚያገለግል",
+                "score": "4"
+              },
+              {
+                "label_en": "8.2",
+                "label_am": "8.2",
+                "description_en": null,
+                "description_am": "በአገልጋይነት ስሜት ተገልጋይን በአክብሮት መቀበል፣ በትህትና ማስተናገድ፣ ለተገልጋዩ ችግር አጋዥነትን ማሳየት ፣ የሚሰጠውን አገልግሎት በሚመለከት በቂ እውቀትና ክህሎት ኖሮት ትክክለኛ መረጃን በፍጥነት መስጠት ፣ ተገልጋይ ላነሳው ጥያቄ ሳይጉላላ በወቅቱ እና በሰዓቱ ተገቢውን ምላሽ መስጠት፣ አድሎአዊ ካልሆነ አሰራር ነፃ መሆን፣",
+                "score": "3"
+              },
+              {
+                "label_en": "8.3",
+                "label_am": "8.3",
+                "description_en": null,
+                "description_am": "በአገልጋይነት ስሜት ተገልጋይን በአክብሮት መቀበል፣ በትህትና ማስተናገድ፣ ለተገልጋዩ ችግር አጋዥነትን ማሳየት ፣ የሚሰጠውን አገልግሎት በሚመለከት በቂ እውቀትና ክህሎት ኖሮት ትክክለኛ መረጃን በፍጥነት መስጠት ፣ ተገልጋይ ላነሳው ጥያቄ ሳይጉላላ በወቅቱ እና በሰዓቱ ተገቢውን ምላሽ መስጠት",
+                "score": "2"
+              },
+              {
+                "label_en": "8.4",
+                "label_am": "8.4",
+                "description_en": null,
+                "description_am": "በአገልጋይነት ስሜት ተገልጋይን በአክብሮት መቀበል፣ በትህትና ማስተናገድ፣ ለተገልጋዩ ችግር አጋዥነትን ማሳየት ፣ የሚሰጠውን አገልግሎት በሚመለከት በቂ እውቀትና ክህሎት ኖሮት ትክክለኛ መረጃን በፍጥነት መስጠት ላይ ክፍተት የሚታይበት",
+                "score": "1"
+              }
+            ]
+          },
+          {
+            "code": "9",
+            "title_en": "Time management",
+            "title_am": "የጊዜ አጠቃቀም",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "2",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "9.1",
+                "label_am": "9.1",
+                "description_en": null,
+                "description_am": "የስራ ሰዓት መግቢያና መውጫ የሚያከብር፤ ጊዜውን ከፋፍሎ የሚጠቀም እና ውጤታማ የሆነ",
+                "score": "2"
+              },
+              {
+                "label_en": "9.2",
+                "label_am": "9.2",
+                "description_en": null,
+                "description_am": "የስራ ሰዓት መግቢያና መውጫ የሚያከብር፤ጊዜውን ከፋፍሎ የሚጠቀም",
+                "score": "1"
+              },
+              {
+                "label_en": "9.3",
+                "label_am": "9.3",
+                "description_en": null,
+                "description_am": "የስራ ሰዓቱን በአግባቡ ባለ መጠቀም አፈጻጸሙ ላይ ክፍተት የሚታይበት",
+                "score": "0.5"
+              },
+              {
+                "label_en": "9.4",
+                "label_am": "9.4",
+                "description_en": null,
+                "description_am": "የስራ ሰዓት አጠቃቀም ላይ ክፍተት ያለበት እና ለግል ጥቅሙ የሚያውል",
+                "score": "0"
+              }
+            ]
+          },
+          {
+            "code": "10",
+            "title_en": "Value-adding work",
+            "title_am": "እሴት ጨማሪ ሥራ",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "3",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "10.1",
+                "label_am": "10.1",
+                "description_en": null,
+                "description_am": "የአሰራር ሂደትን የሚያቀልሉ፣ ወጪ የሚቀንሱ ወይም ገቢን የሚጨምሩ አዳዲስ ሃሳቦችን ማመንጨት ተግዳሮቶች ሲያጋጥሙ በራስ ተነሳሽነት የመፍትሄ አካል መሆን አዳዲስ ቴክኖሎጂዎችን ወይም ዘዴዎችን ወደ ተቋሙ ማምጣት",
+                "score": "3"
+              },
+              {
+                "label_en": "10.2",
+                "label_am": "10.2",
+                "description_en": null,
+                "description_am": "የአሰራር ሂደትን የሚያቀልሉ፣ ወጪ የሚቀንሱ ወይም ገቢን የሚጨምሩ አዳዲስ ሃሳቦችን ማመንጨት ተግዳሮቶች ሲያጋጥሙ በራስ ተነሳሽነት የመፍትሄ አካል መሆን",
+                "score": "2"
+              },
+              {
+                "label_en": "10.3",
+                "label_am": "10.3",
+                "description_en": null,
+                "description_am": "የአሰራር ሂደትን የሚያቀልሉ፣ ወጪ የሚቀንሱ ወይም ገቢን የሚጨምሩ አዳዲስ ሃሳቦችን ማመንጨት",
+                "score": "1"
+              }
+            ]
+          },
+          {
+            "code": "11",
+            "title_en": "Fulfilling responsibilities",
+            "title_am": "ኃላፊነትን መወጣት",
+            "description_en": null,
+            "description_am": null,
+            "max_score": "3",
+            "weight": null,
+            "is_required": true,
+            "comment_mode": "disabled",
+            "evidence_mode": "disabled",
+            "options": [
+              {
+                "label_en": "11.1",
+                "label_am": "11.1",
+                "description_en": null,
+                "description_am": "ሰራተኛው የተሰጠውን ኃላፊነት የቅርብ ሃላፊን ሳይጠብቅ በራሱ መወጣት የሚችል",
+                "score": "3"
+              },
+              {
+                "label_en": "11.2",
+                "label_am": "11.2",
+                "description_en": null,
+                "description_am": "ሰራተኛው የተሰጠውን ኃላፊነት በቅርብ ኃላፊው ድጋፍ መወጣት የሚችል",
+                "score": "2"
+              },
+              {
+                "label_en": "11.3",
+                "label_am": "11.3",
+                "description_en": null,
+                "description_am": "ሰራተኛው የተሰጠውን ኃላፊነት በቅርብ ኃላፊው ድጋፍ ተደርጎለት በተሟላ መልኩ መወጣት የማይችል",
+                "score": "1"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "target_rules": [],
+    "evaluators": [
+      {
+        "evaluator_type": "peer",
+        "required_count": 4,
+        "contribution_weight": null,
+        "selection_method": "manager_selected",
+        "aggregation_method": "average",
+        "is_anonymous": false,
+        "requires_review": true
+      }
+    ]
+  }
+}

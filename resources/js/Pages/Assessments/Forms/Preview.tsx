@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
+import OfficialAssessmentSheet from '@/Components/assessmentForms/OfficialAssessmentSheet';
 import { Section, pageCls, secondaryBtn } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link } from '@inertiajs/react';
@@ -11,7 +12,7 @@ type SectionView = { id: string; code: string | null; title_en: string; title_am
 
 type Props = {
     form: { id: string; code: string; name_en: string; name_am: string | null };
-    version: { id: string; version_no: number; status: string; name_en: string; name_am: string | null; instructions_en: string | null; instructions_am: string | null; computed_max: string | null; sections: SectionView[] };
+    version: { id: string; version_no: number; status: string; name_en: string; name_am: string | null; instructions_en: string | null; instructions_am: string | null; computed_max: string | null; sections: SectionView[]; evaluators: { evaluator_type: string; required_count: number }[] };
 };
 
 /**
@@ -21,6 +22,10 @@ type Props = {
 export default function AssessmentFormPreview({ form, version }: Props) {
     const { t, locale } = useLocale();
     const [picked, setPicked] = useState<Record<string, string>>({});
+    const [view, setView] = useState<'evaluator' | 'official'>('evaluator');
+    // One blank score column per expected evaluator, as on the paper form.
+    const evaluatorColumns = Math.max(1, version.evaluators.reduce((sum, scheme) => sum + scheme.required_count, 0));
+    const toggle = (active: boolean) => `${secondaryBtn} ${active ? 'ring-2 ring-[color:var(--color-primary)]' : ''}`;
     const pick = (en: string | null | undefined, am: string | null | undefined) => (locale === 'am' && am) || en || am || '';
     const total = version.sections.reduce((sum, section) => sum + section.criteria.reduce((subtotal, criterion) => subtotal + Number(criterion.options.find((option) => option.id === picked[criterion.id])?.score ?? 0), 0), 0);
     const max = Number(version.computed_max ?? 0);
@@ -28,9 +33,19 @@ export default function AssessmentFormPreview({ form, version }: Props) {
     return (
         <AuthenticatedLayout header={<PageHeader title={`${t('assessments.actions.preview')} · ${pick(version.name_en, version.name_am)}`}
             description={`${form.code} · ${t('assessments.version')} ${version.version_no} · ${t(`assessments.versionStatuses.${version.status}`)}`}
-            actions={<Link href={route('assessment-forms.show', { form: form.id, version: version.id })} className={secondaryBtn}>{t('assessments.actions.back')}</Link>} />}>
+            actions={<div className="flex flex-wrap gap-2 print:hidden">
+                <button type="button" className={toggle(view === 'evaluator')} aria-pressed={view === 'evaluator'} onClick={() => setView('evaluator')}>{t('assessments.sheet.viewEvaluator')}</button>
+                <button type="button" className={toggle(view === 'official')} aria-pressed={view === 'official'} onClick={() => setView('official')}>{t('assessments.sheet.viewOfficial')}</button>
+                <button type="button" className={secondaryBtn} onClick={() => window.print()}>{t('assessments.sheet.print')}</button>
+                <Link href={route('assessment-forms.show', { form: form.id, version: version.id })} className={secondaryBtn}>{t('assessments.actions.back')}</Link>
+            </div>} />}>
             <Head title={t('assessments.actions.preview')} />
-            <div className={`${pageCls} max-w-4xl`}>
+            <style>{'@media print { @page { size: A4 landscape; margin: 10mm; } body * { visibility: hidden; } .official-print, .official-print * { visibility: visible; } .official-print { display: block !important; position: absolute; left: 0; top: 0; width: 100%; } }'}</style>
+            <div className={view === 'official' ? 'official-print overflow-x-auto rounded-panel border border-gray-200 print:rounded-none print:border-0 dark:border-slate-700' : 'official-print hidden'}>
+                <OfficialAssessmentSheet code={form.code} title={{ en: version.name_en, am: version.name_am }} sections={version.sections}
+                    columns={Array.from({ length: evaluatorColumns }, () => null)} />
+            </div>
+            <div className={`${pageCls} max-w-4xl ${view === 'official' ? 'hidden' : ''}`}>
                 <p role="note" className="rounded-panel border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('assessments.previewNote')}</p>
                 {pick(version.instructions_en, version.instructions_am) && <p className="whitespace-pre-line text-sm text-gray-700 dark:text-slate-300">{pick(version.instructions_en, version.instructions_am)}</p>}
 

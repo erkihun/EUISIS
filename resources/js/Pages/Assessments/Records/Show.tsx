@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import OfficialAssessmentSheet, { type SheetColumn } from '@/Components/assessmentForms/OfficialAssessmentSheet';
 import { RecordStatus } from '@/Components/assessmentOversight/RecordStatus';
 import { Details, Field, Section, formatScore, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, titleOf } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
@@ -15,13 +16,15 @@ type Props = {
         period_start: string; period_end: string; percentage: string | number | null; contribution: string | number | null;
         reviewer: { name: string } | null; reviewed_at: string | null; acknowledged_at: string | null; unassessed_reason: string | null;
     };
-    version: { name_en: string; name_am: string | null; version_no: number; sections: { id: string; title_en: string; title_am: string | null; criteria: { id: string; title_en: string; title_am: string | null; is_required: boolean; options: Option[] }[] }[] };
+    version: { name_en: string; name_am: string | null; version_no: number; code: string | null; sections: { id: string; title_en: string; title_am: string | null; criteria: { id: string; code: string | null; title_en: string; title_am: string | null; max_score: string | null; is_required: boolean; options: Option[] }[] }[] };
+    /** Official printed form: one score column per evaluator; null where the viewer may not see it. */
+    sheet: { columns: SheetColumn[] };
     response: null | { answers: Record<string, string>; submitted_at: string | null };
     can: { submit: boolean; review: boolean; acknowledge: boolean; unassessed: boolean };
 };
 
 /** One assessment: the evaluator's ratings, then review and acknowledgement. Printable. */
-export default function AssessmentRecordShow({ record, version, response, can }: Props) {
+export default function AssessmentRecordShow({ record, version, response, sheet, can }: Props) {
     const { t, locale } = useLocale();
     const form = useForm({ answers: response?.answers ?? {} as Record<string, string> });
     const signoff = useForm({});
@@ -46,7 +49,16 @@ export default function AssessmentRecordShow({ record, version, response, can }:
                 <button type="button" className={secondaryBtn} onClick={() => window.print()}>{r('print')}</button>
             </div>} />}>
             <Head title={title} />
-            <style>{'@media print { body * { visibility: hidden; } #assessment-print, #assessment-print * { visibility: visible; } #assessment-print { position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; } #assessment-print .print-hidden { display: none !important; } #assessment-print fieldset { break-inside: avoid; } #assessment-print section { border-color: #aaa; background: white; color: black; } }'}</style>
+            <style>{'@media print { @page { size: A4 landscape; margin: 10mm; } body * { visibility: hidden; } #assessment-official-sheet, #assessment-official-sheet * { visibility: visible; } #assessment-official-sheet { display: block !important; position: absolute; left: 0; top: 0; width: 100%; } }'}</style>
+            <div id="assessment-official-sheet" className="hidden">
+                <OfficialAssessmentSheet code={version.code ?? ''} title={{ en: version.name_en, am: version.name_am }} sections={version.sections} columns={sheet.columns}
+                    header={{ unit: record.employee_snapshot.unit || record.employee_snapshot.organization, employee: record.employee_snapshot.name, position: record.employee_snapshot.position, grade: record.employee_snapshot.grade, periodStart: record.period_start, periodEnd: record.period_end }}
+                    signatures={{ assessed: { name: record.employee_snapshot.name, date: record.acknowledged_at }, supervisor: { name: record.reviewer?.name, date: record.reviewed_at } }}
+                    footer={<>
+                        {record.percentage !== null && <p className="font-semibold">{t('assessments.sheet.result')}: {formatScore(record.percentage)}%{record.contribution !== null && <> · {t('assessments.sheet.contribution')}: {formatScore(record.contribution)}</>}</p>}
+                        {sheet.columns.some((column) => column === null) && <p className="text-[11px]">{t('assessments.sheet.othersHidden')}</p>}
+                    </>} />
+            </div>
             <div id="assessment-print" className={pageCls}>
                 <Section title={nameOf(version, locale)} description={`${r('version')} ${version.version_no}`}>
                     <Details items={[

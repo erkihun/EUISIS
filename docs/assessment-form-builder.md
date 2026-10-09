@@ -67,6 +67,52 @@ The **assignment preview** on the builder counts, within the viewer's scope and 
 
 An organization's form can target only that organization's positions, units and organization; occupations, grades and job families are shared.
 
+## Importing a form
+
+`php artisan assessments:import-forms [files…] [--publish] [--actor=<email>]`
+creates forms from definition files instead of typing them into the builder.
+A definition is data: `{ "form": {…}, "version": <the builder's draft payload> }`.
+`AssessmentFormImporter` validates it with the same rules as the builder's save
+request, then creates the form through `AssessmentFormService`, so it is
+validated, versioned and audited like a form made in the UI.
+
+- **New forms only:** a form whose code already exists is skipped and never
+  changed. Once imported, administrators own it.
+- **Drafts by default:** a form is published only with `--publish`, and only
+  when it passes the publishing checks. The command lists what still blocks
+  publication.
+- **Default files:** with no file arguments, it imports the official 6-month
+  behavioural competency forms in `database/seeders/data/assessment-forms/`.
+
+| Code | Paper form | Criteria | Total | Contribution |
+|---|---|---|---|---|
+| `BCA-01-PROFESSIONALS` | ቅጽ. 01, professionals | 11 | 30 | 5% |
+| `BCA-02-STAFF` | ቅጽ. 02, staff | 10 | 30 | 5% |
+| `BCA-03-DIRECTORS-TEAM-LEADERS` | ቅጽ. 03, directors and team leaders | 12 | 30 | 5% |
+
+Each is a six-month, percent-of-maximum form with a 5% contribution, scored by
+four peers whose results are averaged. Review and employee acknowledgement are
+on. Wording and scores are as supplied; numbering is normalized (1, 1.1 …).
+They have **no target rules**: nothing in master data identifies professionals,
+staff or team leaders, so an administrator sets the targets and publishes.
+
+## Printed form
+
+The form preview (**Official form**) and an assessment record's **Print** use
+the official paper layout (`OfficialAssessmentSheet`):
+
+- a header with the work unit, employee, position, grade and assessment period;
+- a numbered table with each criterion, its weight and rating levels, and one
+  score column per evaluator;
+- the total row and signature lines for the assessed employee and the
+  immediate supervisor.
+
+It prints black on white, landscape. An evaluator's printout shows only their
+own column. The reviewer and managers of the organization see every submitted
+column. Columns are anonymous: ordered by assignment, labelled 1, 2, 3 …,
+never by evaluator. The assessed employee's printout shows the final result
+instead of per-evaluator columns.
+
 ## Security
 
 - **Permissions** (category Performance Management):
@@ -99,3 +145,7 @@ An organization's form can target only that organization's positions, units and 
 | Several evaluators of one type | Averaged (`average`), the only method so far. |
 | Rounding and display precision | Stored to 4 decimals and shown to 2. Intermediate values keep 10. |
 | How assessment results combine with work-plan results in EPMS | Not defined. Results will be exposed through a service; EPMS scoring is unchanged. |
+| Official forms: who each applies to | Imported without target rules. Set them per form (position, job family, grade …) before publishing. |
+| Official forms: peers per employee and who selects them | Imported as four peers (the paper form's four score columns), chosen by the manager, results averaged. |
+| ቅጽ. 03, criterion 6 (ethics) | Levels 6.3 and 6.4 both score 0 in the supplied form, while ቅጽ. 01 scores the same wording 1. Kept as supplied until confirmed. |
+| Competency name "ራህሮታዊ ብስለት" | Kept as supplied. Its levels describe emotional maturity ("ስሜታዊ ብስለት"); confirm the intended wording. |

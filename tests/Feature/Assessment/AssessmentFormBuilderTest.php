@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\Assessment\FormVersionStatus;
 use App\Models\AssessmentForm;
 use App\Models\AssessmentFormVersion;
+use App\Models\AssessmentRecord;
 use App\Models\AssessmentType;
 use App\Models\AuditLog;
 use App\Models\Employee;
@@ -15,11 +16,15 @@ use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use App\Services\Assessment\AssessmentFormImporter;
 use App\Services\Assessment\AssessmentScoringService;
 use App\Services\Assessment\AssessmentTargetResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use Database\Seeders\AssessmentSampleFormSeeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -148,11 +153,11 @@ test('published peer form completes assignment submission review and employee ac
         'period_start' => '2026-01-01', 'period_end' => '2026-06-30',
         'reviewer_id' => $reviewer->id, 'evaluator_ids' => [$peer->id],
     ])->assertSessionHasNoErrors();
-    $record = \App\Models\AssessmentRecord::query()->where('employee_id', $employee->id)->firstOrFail();
+    $record = AssessmentRecord::query()->where('employee_id', $employee->id)->firstOrFail();
     $this->actingAs($peer)->get(route('assessment-records.show', $record))->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('version.name_en', $version->name_en)->where('version.version_no', 1)->where('can.submit', true));
-    $this->actingAs($subject)->post(route('assessment-records.submit', $record), ['answers' => [(string) \Illuminate\Support\Str::uuid() => (string) \Illuminate\Support\Str::uuid()]])->assertForbidden();
+    $this->actingAs($subject)->post(route('assessment-records.submit', $record), ['answers' => [(string) Str::uuid() => (string) Str::uuid()]])->assertForbidden();
     $answers = $version->load('sections.criteria.options')->sections->flatMap->criteria
         ->mapWithKeys(fn ($criterion) => [$criterion->id => $criterion->options->sortByDesc('score')->first()->id])->all();
     $this->actingAs($peer)->post(route('assessment-records.submit', $record), ['answers' => $answers])->assertSessionHasNoErrors();
@@ -440,14 +445,104 @@ test('the sections editor round-trips rating labels and section descriptions; cl
 });
 
 test('the sample form seeder publishes a valid peer form once', function (): void {
-    $this->seed(\Database\Seeders\AssessmentSampleFormSeeder::class);
-    $this->seed(\Database\Seeders\AssessmentSampleFormSeeder::class);
+    $this->seed(AssessmentSampleFormSeeder::class);
+    $this->seed(AssessmentSampleFormSeeder::class);
 
-    $forms = AssessmentForm::query()->where('code', \Database\Seeders\AssessmentSampleFormSeeder::CODE)->get();
+    $forms = AssessmentForm::query()->where('code', AssessmentSampleFormSeeder::CODE)->get();
     expect($forms)->toHaveCount(1);
     $version = $forms->first()->versions()->firstOrFail();
     expect($version->status)->toBe(FormVersionStatus::Published)
         ->and($version->sections()->count())->toBe(3)
         ->and((string) $version->max_total_score)->toBe('28.0000')
         ->and($version->evaluatorSchemes()->first()->evaluator_type->value)->toBe('peer');
+});
+
+// ── Official forms (ቅጽ. 01–03) and their printed layout ─────────────────────
+
+test('the official behavioural forms import as complete drafts, once, and publish once they are targeted', function (): void {
+    $this->artisan('assessments:import-forms', ['--actor' => $this->admin->email])->assertSuccessful();
+
+    $expected = ['BCA-01-PROFESSIONALS' => 11, 'BCA-02-STAFF' => 10, 'BCA-03-DIRECTORS-TEAM-LEADERS' => 12];
+    foreach ($expected as $code => $criteria) {
+        $version = AssessmentForm::query()->where('code', $code)->firstOrFail()->versions()->sole()->load('sections.criteria.options', 'evaluatorSchemes');
+        $scheme = $version->evaluatorSchemes->sole();
+        expect($version->status)->toBe(FormVersionStatus::Draft)
+            ->and($version->sections->sole()->criteria)->toHaveCount($criteria)
+            ->and(bccomp(app(AssessmentScoringService::class)->versionMax($version), '30', 4))->toBe(0)
+            ->and((string) $version->overall_contribution_weight)->toBe('5.0000')
+            ->and($version->period_type->value)->toBe('six_month')
+            ->and([$scheme->evaluator_type->value, $scheme->required_count])->toBe(['peer', 4])
+            // Every criterion's best level is its weight, as on the paper form.
+            ->and($version->sections->sole()->criteria->every(fn ($c): bool => bccomp((string) $c->max_score, (string) $c->options->max('score'), 4) === 0))->toBeTrue();
+        // Untargeted: the only thing between the draft and publishing is the administrator's target rule.
+        expect(array_values(app(AssessmentScoringService::class)->validateConfiguration($version)))->toHaveCount(1);
+    }
+
+    // Re-running never touches a form administrators may have edited since.
+    AssessmentForm::query()->where('code', 'BCA-02-STAFF')->update(['name_en' => 'Edited by an administrator']);
+    $this->artisan('assessments:import-forms', ['--actor' => $this->admin->email])->expectsOutputToContain('already exists')->assertSuccessful();
+    expect(AssessmentForm::query()->where('code', 'like', 'BCA-%')->count())->toBe(3)
+        ->and(AssessmentForm::query()->where('code', 'BCA-02-STAFF')->value('name_en'))->toBe('Edited by an administrator');
+
+    // With a target rule, the same definition publishes.
+    $definition = json_decode((string) file_get_contents(database_path('seeders/data/assessment-forms/bca-01-professionals.json')), true);
+    $definition['form']['code'] = 'BCA-01-TARGETED';
+    $definition['version']['target_rules'] = [['target_type' => 'everyone', 'effect' => 'include']];
+    $result = app(AssessmentFormImporter::class)->import($this->admin, $definition, publish: true);
+    expect($result['published'])->toBeTrue()->and($result['form']->currentVersion?->status)->toBe(FormVersionStatus::Published);
+});
+
+test('a malformed form definition is refused and creates nothing', function (): void {
+    $definition = json_decode((string) file_get_contents(database_path('seeders/data/assessment-forms/bca-02-staff.json')), true);
+    $definition['form']['code'] = 'BCA-BROKEN';
+    unset($definition['version']['sections'][0]['criteria'][0]['title_en']);
+
+    expect(fn () => app(AssessmentFormImporter::class)->import($this->admin, $definition))
+        ->toThrow(ValidationException::class);
+    expect(AssessmentForm::query()->where('code', 'BCA-BROKEN')->exists())->toBeFalse();
+});
+
+test('the printed form shows each evaluator column only to those allowed to see it, never who rated', function (): void {
+    $employee = afEmployee('SHEET-EMP', $this->org, $this->unit, $this->officer);
+    $subject = afUser(['assessments.view_own_result']);
+    $subject->forceFill(['employee_id' => $employee->id])->save();
+    $peers = collect(['SHEET-P1', 'SHEET-P2'])->map(function (string $number): User {
+        $peer = afUser(['assessments.view_assigned', 'assessments.complete_assigned', 'assessments.submit']);
+        $peer->forceFill(['employee_id' => afEmployee($number, $this->org, $this->unit, $this->officer)->id])->save();
+
+        return $peer;
+    });
+    $reviewer = afUser([...AF_ALL, 'assessments.review', 'assessments.finalize']);
+    $version = afPublished($this, $this->admin, 'SHEET', [['target_type' => 'everyone', 'effect' => 'include']], [
+        'evaluators' => [['evaluator_type' => 'peer', 'required_count' => 2, 'contribution_weight' => 100, 'selection_method' => 'admin_selected', 'is_anonymous' => true, 'requires_review' => true]],
+    ]);
+    $this->actingAs($this->admin)->post(route('assessment-records.store'), [
+        'employee_id' => $employee->id, 'form_id' => $version->form_id, 'period_start' => '2026-01-01', 'period_end' => '2026-06-30',
+        'reviewer_id' => $reviewer->id, 'evaluator_ids' => $peers->pluck('id')->all(),
+    ])->assertSessionHasNoErrors();
+    $record = AssessmentRecord::query()->where('employee_id', $employee->id)->firstOrFail();
+    $criteria = $version->load('sections.criteria.options')->sections->flatMap->criteria;
+    foreach ($peers as $peer) {
+        $answers = $criteria->mapWithKeys(fn ($c) => [$c->id => $c->options->sortByDesc('score')->first()->id])->all();
+        $this->actingAs($peer)->post(route('assessment-records.submit', $record), ['answers' => $answers])->assertSessionHasNoErrors();
+    }
+
+    $columns = fn (User $viewer): array => $this->actingAs($viewer)->get(route('assessment-records.show', $record))->assertOk()
+        ->inertiaProps('sheet.columns');
+
+    $own = $columns($peers[0]);
+    expect($own)->toHaveCount(2)
+        ->and(collect($own)->filter()->count())->toBe(1)
+        ->and(array_keys(collect($own)->filter()->first()))->toEqualCanonicalizing($criteria->pluck('id')->all());
+    expect(collect($columns($reviewer))->filter()->count())->toBe(2)
+        ->and(collect($columns($this->admin))->filter()->count())->toBe(2)
+        ->and(collect($columns($subject))->filter()->count())->toBe(0);
+    // Each column holds scores keyed by criterion only: nothing identifies an evaluator.
+    foreach (array_filter($columns($reviewer)) as $column) {
+        expect(array_diff(array_keys($column), $criteria->pluck('id')->all()))->toBe([]);
+    }
+
+    // The blank official form in the preview has one score column per expected evaluator.
+    $this->actingAs($this->admin)->get(route('assessment-forms.versions.preview', $version))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('version.evaluators.0.required_count', 2));
 });
