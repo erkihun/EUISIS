@@ -364,7 +364,7 @@ const settings = {
         team_capture_policy: { not_configured: 'አልተዋቀረም', individual_only: 'እያንዳንዱ ራሱ ብቻ' },
     },
     tabs: {
-        field_work_gps: 'Field Work GPS',
+        field_work_gps: 'የመስክ ሥራ ጂፒኤስ',
         general: 'አጠቃላይ',
         localization: 'አካባቢ ቅንብር',
         notifications: 'ማሳወቂያዎች',
@@ -377,7 +377,7 @@ const settings = {
         api_management: 'የኤፒአይ አስተዳደር',
     },
     descriptions: {
-        field_work_gps: 'Configure explicit field-work location capture and enforcement.',
+        field_work_gps: 'የመስክ ሥራ የቦታ ምዝገባን እና አፈጻጸሙን ያዋቅሩ። "አልተዋቀረም" የሆኑ እሴቶች ምንም የተደበቀ ደንብ አይጭኑም።',
         general: 'ዋና የመተግበሪያ መለያ፣ የድጋፍ መረጃ እና የመግቢያ ገጽ ብራንዲንግ።',
         localization: 'ነባሪ ቋንቋ፣ የሰዓት ክልል እና የማሳያ ምርጫዎች።',
         notifications: 'አጠቃላይ የማሳወቂያ ማቅረቢያ ቁጥጥር እና የኪው ባህሪ።',
