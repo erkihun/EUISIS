@@ -27,9 +27,10 @@ readonly class RequestEmployeeTransferAction
         ?string $toPositionId = null,
     ): EmployeeTransfer {
         return DB::transaction(function () use ($employee, $targetOrganizationId, $actor, $reason, $effectiveDate, $toPositionId): EmployeeTransfer {
-            $employee->loadMissing('currentAssignment', 'transfers');
+            $employee = Employee::query()->lockForUpdate()->findOrFail($employee->id);
+            $employee->load(['currentAssignment', 'transfers']);
             $this->ensureEmployeeCanTransfer($employee);
-            $this->ensureTransferTarget($employee, $targetOrganizationId, $toPositionId);
+            $this->ensureTransferTarget($employee, $targetOrganizationId, $toPositionId, $effectiveDate);
 
             $transfer = EmployeeTransfer::query()->create([
                 'employee_id' => $employee->id,

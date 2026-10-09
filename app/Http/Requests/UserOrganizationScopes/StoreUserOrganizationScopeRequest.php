@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreUserOrganizationScopeRequest extends FormRequest
 {
@@ -40,5 +41,10 @@ class StoreUserOrganizationScopeRequest extends FormRequest
             'effective_to' => ['nullable', 'date', 'after_or_equal:effective_from'],
             'is_active' => ['boolean'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [fn (Validator $validator) => $this->rejectUnrestrictedRoleTarget($validator)];
     }
 }

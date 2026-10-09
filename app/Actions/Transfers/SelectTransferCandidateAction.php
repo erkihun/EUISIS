@@ -14,15 +14,23 @@ use App\Models\TransferApproval;
 use App\Models\TransferScreeningReview;
 use App\Models\TransferSetting;
 use App\Models\User;
+use App\Services\Transfers\CanonicalTransferCreationService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
 readonly class SelectTransferCandidateAction
 {
-    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+    public function __construct(
+        private WriteAuditLogAction $writeAuditLogAction,
+        private CanonicalTransferCreationService $canonicalTransfers,
+    ) {}
 
-    public function execute(TransferApplication $application, User $actor, ?string $notes = null): TransferApplication
-    {
+    public function execute(
+        TransferApplication $application,
+        User $actor,
+        ?string $notes = null,
+        ?string $effectiveDate = null,
+    ): TransferApplication {
         if (! in_array($application->status, [
             TransferApplicationStatus::UnderReview,
             TransferApplicationStatus::Verified,
@@ -33,10 +41,19 @@ readonly class SelectTransferCandidateAction
         $settings = TransferSetting::current();
 
         return DB::transaction(function () use ($application, $actor, $notes, $settings): TransferApplication {
+            $application = TransferApplication::query()->lockForUpdate()->findOrFail($application->id);
+            if (! in_array($application->status, [
+                TransferApplicationStatus::UnderReview,
+                TransferApplicationStatus::Verified,
+            ], true)) {
+                throw new DomainException('Application must be under review or verified before selection.');
+            }
+
             $application->update([
                 'status' => TransferApplicationStatus::Selected->value,
                 'selected_at' => now(),
                 'selected_by' => $actor->id,
+                'effective_date' => $effectiveDate ?? $application->effective_date ?? now()->toDateString(),
             ]);
 
             TransferScreeningReview::query()->create([
@@ -48,10 +65,17 @@ readonly class SelectTransferCandidateAction
 
             // Determine next status based on required approvals
             $nextStatus = $this->determineApprovalChainEntry($settings);
-            $application->update(['status' => $nextStatus->value]);
+            $application->update([
+                'status' => $nextStatus->value,
+                'approved_at' => $nextStatus === TransferApplicationStatus::Approved ? now() : null,
+            ]);
 
             // Create pending approval records based on settings
             $this->createApprovalRecords($application, $settings);
+
+            if ($nextStatus === TransferApplicationStatus::Approved) {
+                $this->canonicalTransfers->create($application, $actor);
+            }
 
             $this->writeAuditLogAction->execute(
                 AuditEventType::TransferApplicationSelected,

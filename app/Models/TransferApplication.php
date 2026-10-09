@@ -19,18 +19,31 @@ class TransferApplication extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'application_number',
         'announcement_id',
+        'announcement_position_id',
         'employee_id',
         'current_assignment_id',
         'releasing_organization_id',
         'receiving_organization_id',
         'status',
+        'effective_date',
         'eligibility_snapshot',
+        'source_assignment_snapshot',
+        'destination_snapshot',
         'applicant_notes',
         'selected_at',
         'selected_by',
         'rejected_reason',
         'submitted_at',
+        'approved_at',
+        'implementation_assignment_id',
+        'implemented_by',
+        'implemented_at',
+        'implementation_failed_at',
+        'implementation_failure',
+        'withdrawn_at',
+        'withdrawal_reason',
     ];
 
     protected function casts(): array
@@ -38,14 +51,26 @@ class TransferApplication extends Model
         return [
             'status' => TransferApplicationStatus::class,
             'eligibility_snapshot' => 'array',
+            'source_assignment_snapshot' => 'array',
+            'destination_snapshot' => 'array',
             'selected_at' => 'datetime',
             'submitted_at' => 'datetime',
+            'effective_date' => 'date',
+            'approved_at' => 'datetime',
+            'implemented_at' => 'datetime',
+            'implementation_failed_at' => 'datetime',
+            'withdrawn_at' => 'datetime',
         ];
     }
 
     public function announcement(): BelongsTo
     {
         return $this->belongsTo(TransferAnnouncement::class, 'announcement_id');
+    }
+
+    public function announcementPosition(): BelongsTo
+    {
+        return $this->belongsTo(TransferAnnouncementPosition::class, 'announcement_position_id');
     }
 
     public function employee(): BelongsTo
@@ -71,6 +96,16 @@ class TransferApplication extends Model
     public function selectedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'selected_by');
+    }
+
+    public function implementationAssignment(): BelongsTo
+    {
+        return $this->belongsTo(EmployeeAssignment::class, 'implementation_assignment_id');
+    }
+
+    public function implementedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'implemented_by');
     }
 
     public function documents(): HasMany
@@ -106,6 +141,11 @@ class TransferApplication extends Model
     public function finalApproval(): HasOne
     {
         return $this->hasOne(TransferApproval::class)->where('approval_type', 'final');
+    }
+
+    public function canonicalTransfer(): HasOne
+    {
+        return $this->hasOne(EmployeeTransfer::class, 'transfer_application_id');
     }
 
     public function scopePending(Builder $query): void

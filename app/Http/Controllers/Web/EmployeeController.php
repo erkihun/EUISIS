@@ -749,15 +749,18 @@ class EmployeeController extends Controller
         EmployeeTransferRequest $request,
         Employee $employee,
         RequestEmployeeTransferAction $requestEmployeeTransferAction,
+        OrganizationScopeService $organizationScopeService,
     ): RedirectResponse {
         $this->authorize('transfer', $employee);
+        abort_unless($organizationScopeService->canAccessOrganization($request->user(), $request->string('organization_id')->toString()), 403);
 
         $transfer = $requestEmployeeTransferAction->execute(
             $employee,
             $request->string('organization_id')->toString(),
             $request->user(),
             $request->input('reason'),
-            now()->toDateString(),
+            $request->input('effective_date'),
+            $request->input('position_id'),
         );
 
         return to_route('transfers.dashboard')

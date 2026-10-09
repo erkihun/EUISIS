@@ -10,6 +10,7 @@ use App\Enums\TransferAnnouncementStatus;
 use App\Models\TransferAnnouncement;
 use App\Models\User;
 use DomainException;
+use Illuminate\Support\Facades\DB;
 
 readonly class CancelTransferAnnouncementAction
 {
@@ -17,13 +18,16 @@ readonly class CancelTransferAnnouncementAction
 
     public function execute(TransferAnnouncement $announcement, User $actor): TransferAnnouncement
     {
-        if ($announcement->status->isFinal()) {
-            throw new DomainException(__('transfers.cancelNotAllowed'));
-        }
+        [$announcement, $old] = DB::transaction(function () use ($announcement): array {
+            $locked = TransferAnnouncement::query()->lockForUpdate()->findOrFail($announcement->id);
+            if ($locked->status->isFinal()) {
+                throw new DomainException(__('transfers.cancelNotAllowed'));
+            }
+            $old = $locked->status->value;
+            $locked->update(['status' => TransferAnnouncementStatus::Cancelled->value]);
 
-        $old = $announcement->status->value;
-
-        $announcement->update(['status' => TransferAnnouncementStatus::Cancelled->value]);
+            return [$locked->fresh(), $old];
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::TransferAnnouncementCancelled,

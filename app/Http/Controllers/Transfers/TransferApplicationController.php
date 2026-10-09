@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Transfers;
 
 use App\Actions\Transfers\ApproveTransferApprovalAction;
+use App\Actions\Transfers\CompleteTransferAction;
 use App\Actions\Transfers\CreateTransferApplicationAction;
 use App\Actions\Transfers\RejectTransferApplicationAction;
 use App\Actions\Transfers\RejectTransferApprovalAction;
 use App\Actions\Transfers\ScreenTransferApplicationAction;
 use App\Actions\Transfers\SelectTransferCandidateAction;
+use App\Actions\Transfers\WithdrawTransferApplicationAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transfers\StoreTransferApplicationRequest;
 use App\Models\Employee;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
 use App\Models\TransferApproval;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,20 +28,28 @@ use Inertia\Response;
 
 class TransferApplicationController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, OrganizationScopeService $scopeService): Response
     {
         $this->authorize('viewAny', TransferApplication::class);
 
         $user = Auth::user();
 
+        $scopeIds = $scopeService->accessibleOrganizationIds($user);
         $query = TransferApplication::query()
             ->with(['employee', 'announcement.position', 'releasingOrganization', 'receivingOrganization'])
+            ->when(! $scopeService->isUnrestricted($user), function ($query) use ($scopeIds): void {
+                $query->where(function ($scoped) use ($scopeIds): void {
+                    $scoped->whereIn('releasing_organization_id', $scopeIds)
+                        ->orWhereIn('receiving_organization_id', $scopeIds);
+                });
+            })
+            ->when($request->filled('announcement_id'), fn ($q) => $q->where('announcement_id', $request->string('announcement_id')))
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
             ->latest();
 
         return Inertia::render('Transfers/Applications/Index', [
             'applications' => $query->paginate(20)->withQueryString(),
-            'filters' => $request->only('status'),
+            'filters' => $request->only('status', 'announcement_id'),
         ]);
     }
 
@@ -113,7 +124,13 @@ class TransferApplicationController extends Controller
         $this->authorize('select', $transferApplication);
 
         try {
-            $action->execute($transferApplication, Auth::user(), $request->string('notes')->toString() ?: null);
+            $request->validate(['effective_date' => ['nullable', 'date', 'after_or_equal:today']]);
+            $action->execute(
+                $transferApplication,
+                Auth::user(),
+                $request->string('notes')->toString() ?: null,
+                $request->input('effective_date'),
+            );
         } catch (\DomainException $e) {
             throw ValidationException::withMessages(['status' => $e->getMessage()]);
         }
@@ -135,13 +152,33 @@ class TransferApplicationController extends Controller
         return back()->with('flash', ['message' => __('transfers.applicationRejected'), 'type' => 'success']);
     }
 
-    public function withdraw(TransferApplication $transferApplication): RedirectResponse
+    public function withdraw(TransferApplication $transferApplication, WithdrawTransferApplicationAction $action, Request $request): RedirectResponse
     {
         $this->authorize('withdraw', $transferApplication);
+        $data = $request->validate(['reason' => ['required', 'string', 'max:1000']]);
 
-        $transferApplication->update(['status' => 'withdrawn']);
+        try {
+            $action->execute($transferApplication, Auth::user(), $data['reason']);
+        } catch (\DomainException $e) {
+            throw ValidationException::withMessages(['status' => $e->getMessage()]);
+        }
 
         return back()->with('flash', ['message' => __('transfers.applicationWithdrawn'), 'type' => 'success']);
+    }
+
+    public function complete(
+        TransferApplication $transferApplication,
+        CompleteTransferAction $action,
+    ): RedirectResponse {
+        $this->authorize('complete', $transferApplication);
+
+        try {
+            $action->execute($transferApplication, Auth::user());
+        } catch (\DomainException $e) {
+            throw ValidationException::withMessages(['status' => $e->getMessage()]);
+        }
+
+        return back()->with('flash', ['message' => __('transfers.transferCompleted'), 'type' => 'success']);
     }
 
     public function approveRelease(

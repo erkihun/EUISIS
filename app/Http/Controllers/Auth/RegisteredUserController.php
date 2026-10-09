@@ -14,6 +14,7 @@ use App\Notifications\EmployeeRegistrationOtpNotification;
 use App\Security\Passwords\PasswordPolicy;
 use App\Support\DailyActivity\DailyActivityRoles;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,8 +61,6 @@ class RegisteredUserController extends Controller
             'employee_number' => ['required', 'string', 'max:255'],
         ]);
 
-        $this->throttleCodeRequests($request, (string) $validated['employee_number']);
-
         $employee = $this->eligibleEmployee((string) $validated['employee_number']);
         $email = trim((string) $employee->email);
         $phone = trim((string) $employee->phone);
@@ -71,6 +70,11 @@ class RegisteredUserController extends Controller
                 'employee_number' => __('auth.employee_no_contact'),
             ]);
         }
+
+        // Only a request for an eligible employee with both delivery channels
+        // can reserve quota. Invalid records must not let an accidental or
+        // malicious form submission lock the employee out of registration.
+        $rateLimitKeys = $this->reserveCodeRequestQuota($request, (string) $validated['employee_number']);
 
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
@@ -118,6 +122,14 @@ class RegisteredUserController extends Controller
 
         if (! $emailDelivered || ! $smsDelivered) {
             $otp->forceFill(['expires_at' => now()->subSecond()])->save();
+
+            // Do not consume quota when neither channel received a code. If
+            // one channel succeeded, retain the reservation: refunding it
+            // would permit unlimited messages to that contact while the other
+            // provider is unavailable.
+            if (! $emailDelivered && ! $smsDelivered) {
+                $this->refundCodeRequestQuota($rateLimitKeys);
+            }
 
             throw ValidationException::withMessages([
                 'employee_number' => __('auth.registration_otp_delivery_failed'),
@@ -225,7 +237,7 @@ class RegisteredUserController extends Controller
                 ]);
             }
 
-            $user ??= new User();
+            $user ??= new User;
 
             $user->fill([
                 'name' => $employee->full_name ?? trim(($employee->first_name ?? '').' '.($employee->last_name ?? '')),
@@ -270,11 +282,15 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * At most 3 codes per employee number and 10 per address in 10 minutes.
-     * Counted here rather than by route middleware so that reaching the limit
-     * is a message beside the field, not an error page that loses the form.
+     * At most 3 codes per employee number and 10 per IP address in 10 minutes.
+     * This is kept in the controller so the limit is a field message instead
+     * of an error page that loses the form. The reservation is refunded when
+     * neither delivery channel succeeds, so a provider outage cannot consume
+     * a person's registration attempts.
+     *
+     * @return array<int, string>
      */
-    private function throttleCodeRequests(Request $request, string $employeeNumber): void
+    private function reserveCodeRequestQuota(Request $request, string $employeeNumber): array
     {
         $keys = [
             'registration-send:'.mb_strtolower(trim($employeeNumber)).'|'.$request->ip() => 3,
@@ -291,8 +307,20 @@ class RegisteredUserController extends Controller
             }
         }
 
-        foreach (array_keys($keys) as $key) {
+        $keys = array_keys($keys);
+
+        foreach ($keys as $key) {
             RateLimiter::hit($key, 600);
+        }
+
+        return $keys;
+    }
+
+    /** @param array<int, string> $keys */
+    private function refundCodeRequestQuota(array $keys): void
+    {
+        foreach ($keys as $key) {
+            RateLimiter::decrement($key, 600);
         }
     }
 
@@ -337,9 +365,9 @@ class RegisteredUserController extends Controller
      * tell an employee with no account that one already exists.
      * Also used by `php artisan registration:diagnose`.
      *
-     * @return \Illuminate\Database\Eloquent\Builder<User>
+     * @return Builder<User>
      */
-    public static function blockingAccounts(Employee $employee): \Illuminate\Database\Eloquent\Builder
+    public static function blockingAccounts(Employee $employee): Builder
     {
         $number = trim((string) $employee->employee_number);
         $email = trim((string) $employee->email);

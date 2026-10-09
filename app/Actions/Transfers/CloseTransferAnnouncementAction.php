@@ -10,6 +10,7 @@ use App\Enums\TransferAnnouncementStatus;
 use App\Models\TransferAnnouncement;
 use App\Models\User;
 use DomainException;
+use Illuminate\Support\Facades\DB;
 
 readonly class CloseTransferAnnouncementAction
 {
@@ -17,11 +18,15 @@ readonly class CloseTransferAnnouncementAction
 
     public function execute(TransferAnnouncement $announcement, User $actor): TransferAnnouncement
     {
-        if ($announcement->status !== TransferAnnouncementStatus::Published) {
-            throw new DomainException(__('transfers.announcementNotPublished'));
-        }
+        $announcement = DB::transaction(function () use ($announcement): TransferAnnouncement {
+            $locked = TransferAnnouncement::query()->lockForUpdate()->findOrFail($announcement->id);
+            if ($locked->status !== TransferAnnouncementStatus::Published) {
+                throw new DomainException(__('transfers.announcementNotPublished'));
+            }
+            $locked->update(['status' => TransferAnnouncementStatus::Closed->value]);
 
-        $announcement->update(['status' => TransferAnnouncementStatus::Closed->value]);
+            return $locked->fresh();
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::TransferAnnouncementClosed,

@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class TransferAnnouncementPosition extends Model
 {
@@ -44,5 +45,10 @@ class TransferAnnouncementPosition extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(TransferApplication::class, 'announcement_position_id');
     }
 }

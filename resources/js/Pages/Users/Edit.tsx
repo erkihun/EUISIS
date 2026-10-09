@@ -64,6 +64,7 @@ export default function EditUser({
     userRoles,
     organizations,
     can,
+    organizationScopeUnavailable,
 }: {
     user: {
         id: number;
@@ -78,8 +79,9 @@ export default function EditUser({
     };
     roles: Role[];
     userRoles: string[];
-    organizations?: OrgOption[];
+    organizations?: OrgOption[] | null;
     can?: { assignOrganizationScopes?: boolean };
+    organizationScopeUnavailable: boolean;
 }) {
     const { t } = useLocale();
     const { auth } = usePage<PageProps>().props;
@@ -425,7 +427,11 @@ export default function EditUser({
                     </div>
                 </form>
 
-                {organizations && (
+                {organizationScopeUnavailable ? (
+                    <aside className="rounded-panel border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
+                        {t('users.userOrganizationScopes.unavailableForUnrestrictedRole')}
+                    </aside>
+                ) : organizations && (
                     <OrganizationScopesCard
                         userId={String(user.id)}
                         scopes={user.organization_scopes ?? []}

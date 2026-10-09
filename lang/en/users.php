@@ -61,6 +61,7 @@ return [
     'organization_scope_inactive_organization' => 'An inactive organization cannot be assigned as a scope.',
     'organization_scope_outside_actor_scope' => 'You cannot assign an organization outside your own scope.',
     'organization_scope_citywide_forbidden' => 'You cannot assign a citywide organization scope.',
+    'organization_scope_unrestricted_role_forbidden' => 'Organization scopes cannot be assigned to a user with an unrestricted administrative role.',
     'organization_scope_required' => 'An organization scope is required.',
     'access_denied_outside_scope' => 'Access denied outside your organization scope.',
     'manage_only_within_scope' => 'You can manage only records within your assigned organization.',

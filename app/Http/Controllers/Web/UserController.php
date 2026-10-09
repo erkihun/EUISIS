@@ -197,6 +197,7 @@ class UserController extends Controller
 
         /** @var User $actor */
         $actor = Auth::user();
+        $organizationScopeUnavailable = $this->organizationScopeService->hasUnrestrictedRole($user);
 
         $user->load([
             'organizationScopes' => function ($query) use ($actor): void {
@@ -228,10 +229,12 @@ class UserController extends Controller
             ),
             'roles' => $this->assignableRoles($actor),
             'userRoles' => $user->getRoleNames()->toArray(),
-            'organizations' => $this->scopeAssignableOrganizations($user),
+            'organizations' => $organizationScopeUnavailable ? null : $this->scopeAssignableOrganizations($user),
             'can' => [
-                'assignOrganizationScopes' => $actor->can('users.assignOrganizationScopes'),
+                'assignOrganizationScopes' => ! $organizationScopeUnavailable
+                    && $actor->can('assignOrganizationScope', $user),
             ],
+            'organizationScopeUnavailable' => $organizationScopeUnavailable,
         ]);
     }
 

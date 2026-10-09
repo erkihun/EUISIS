@@ -9,9 +9,11 @@ use App\Enums\AuditEventType;
 use App\Enums\TransferApplicationStatus;
 use App\Enums\TransferApprovalStatus;
 use App\Enums\TransferApprovalType;
+use App\Models\TransferApplication;
 use App\Models\TransferApproval;
 use App\Models\TransferSetting;
 use App\Models\User;
+use App\Services\Transfers\CanonicalTransferCreationService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
@@ -19,7 +21,7 @@ readonly class ApproveTransferApprovalAction
 {
     public function __construct(
         private WriteAuditLogAction $writeAuditLogAction,
-        private CompleteTransferAction $completeTransferAction,
+        private CanonicalTransferCreationService $canonicalTransfers,
     ) {}
 
     public function execute(TransferApproval $approval, User $actor): TransferApproval
@@ -29,6 +31,11 @@ readonly class ApproveTransferApprovalAction
         }
 
         return DB::transaction(function () use ($approval, $actor): TransferApproval {
+            $approval = TransferApproval::query()->lockForUpdate()->findOrFail($approval->id);
+            if (! $approval->isPending()) {
+                throw new DomainException('This approval has already been decided.');
+            }
+
             $approval->update([
                 'status' => TransferApprovalStatus::Approved->value,
                 'approver_id' => $actor->id,
@@ -56,9 +63,11 @@ readonly class ApproveTransferApprovalAction
             $nextStatus = $this->resolveNextStatus($approval->approval_type, $settings);
             $application->update(['status' => $nextStatus->value]);
 
-            // If all approvals are done, complete the transfer
+            // Approval is not implementation.  Capacity and assignment state are
+            // rechecked by the separately authorized implementation operation.
             if ($nextStatus === TransferApplicationStatus::Approved) {
-                $this->completeTransferAction->execute($application->fresh(), $actor);
+                $application->update(['approved_at' => now()]);
+                $this->createCanonicalTransfer($application, $actor);
             }
 
             return $approval->fresh();
@@ -80,5 +89,14 @@ readonly class ApproveTransferApprovalAction
 
             TransferApprovalType::Final => TransferApplicationStatus::Approved,
         };
+    }
+
+    /**
+     * Selection/approval creates the HR movement record, never an assignment.
+     * The unique transfer_application_id constraint makes retries idempotent.
+     */
+    private function createCanonicalTransfer(TransferApplication $application, User $actor): void
+    {
+        $this->canonicalTransfers->create($application, $actor);
     }
 }

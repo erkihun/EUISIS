@@ -7,14 +7,21 @@ namespace App\Actions\Transfers;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\TransferAnnouncementStatus;
+use App\Jobs\Transfers\NotifyEligibleTransferAudience;
+use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\TransferAnnouncement;
 use App\Models\User;
+use App\Services\Transfers\TransferAnnouncementReadinessService;
 use DomainException;
+use Illuminate\Support\Facades\DB;
 
 readonly class PublishTransferAnnouncementAction
 {
-    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+    public function __construct(
+        private WriteAuditLogAction $writeAuditLogAction,
+        private TransferAnnouncementReadinessService $readiness,
+    ) {}
 
     public function execute(TransferAnnouncement $announcement, User $actor): TransferAnnouncement
     {
@@ -22,41 +29,53 @@ readonly class PublishTransferAnnouncementAction
             throw new DomainException(__('transfers.announcementNotDraft'));
         }
 
-        if ($announcement->organization_id === null) {
-            throw new DomainException(__('transfers.publishMissingOrganization'));
-        }
+        DB::transaction(function () use ($announcement, $actor): void {
+            $announcement = TransferAnnouncement::query()->lockForUpdate()->findOrFail($announcement->id);
+            if ($announcement->status !== TransferAnnouncementStatus::Draft) {
+                throw new DomainException(__('transfers.announcementNotDraft'));
+            }
 
-        if ($announcement->position_id === null) {
-            throw new DomainException(__('transfers.publishMissingPosition'));
-        }
+            // This is deliberately repeated after acquiring the workflow row
+            // lock; a UI readiness result is advisory and capacity can change.
+            $result = $this->readiness->assess($announcement);
+            if (! $result['ready']) {
+                throw new DomainException($result['issues'][0]['message'] ?? 'This announcement is not ready for publication.');
+            }
+            $positions = $announcement->positions()->lockForUpdate()->get();
 
-        if (($announcement->number_of_vacancies ?? 0) < 1) {
-            throw new DomainException(__('transfers.publishNoVacancies'));
-        }
+            // Legacy single-position announcements remain supported during rollout.
+            if ($positions->isEmpty()) {
+                $positions = collect([(object) [
+                    'organization_id' => $announcement->organization_id,
+                    'position_id' => $announcement->position_id,
+                    'vacancy_count' => $announcement->number_of_vacancies,
+                ]]);
+            }
 
-        if ($announcement->opening_date === null || $announcement->closing_date === null) {
-            throw new DomainException(__('transfers.publishMissingDates'));
-        }
+            foreach ($positions as $line) {
+                $position = Position::query()->lockForUpdate()->find($line->position_id);
+                if ($position === null || ! $position->isSelectable()) {
+                    throw new DomainException('An announced position is no longer active or selectable.');
+                }
+                $establishments = PositionEstablishment::query()
+                    ->where('organization_id', $line->organization_id)
+                    ->where('position_id', $line->position_id)
+                    ->where('status', 'approved')
+                    ->lockForUpdate()
+                    ->get();
+                $available = $establishments->sum(fn (PositionEstablishment $e) => $e->availableSlots());
 
-        if ($announcement->closing_date->lessThanOrEqualTo($announcement->opening_date)) {
-            throw new DomainException(__('transfers.publishInvalidDateRange'));
-        }
+                if ($available < (int) $line->vacancy_count) {
+                    throw new DomainException(__('transfers.publishNoEstablishment'));
+                }
+            }
 
-        $establishment = PositionEstablishment::query()
-            ->where('organization_id', $announcement->organization_id)
-            ->where('position_id', $announcement->position_id)
-            ->where('status', 'approved')
-            ->first();
-
-        if ($establishment === null) {
-            throw new DomainException(__('transfers.publishNoEstablishment'));
-        }
-
-        $announcement->update([
-            'status' => TransferAnnouncementStatus::Published->value,
-            'published_by' => $actor->id,
-            'published_at' => now(),
-        ]);
+            $announcement->update([
+                'status' => TransferAnnouncementStatus::Published->value,
+                'published_by' => $actor->id,
+                'published_at' => now(),
+            ]);
+        });
 
         $this->writeAuditLogAction->execute(
             AuditEventType::TransferAnnouncementPublished,
@@ -66,6 +85,8 @@ readonly class PublishTransferAnnouncementAction
             oldValues: ['status' => TransferAnnouncementStatus::Draft->value],
             newValues: ['status' => TransferAnnouncementStatus::Published->value],
         );
+
+        NotifyEligibleTransferAudience::dispatch($announcement->id)->afterCommit();
 
         return $announcement->fresh();
     }

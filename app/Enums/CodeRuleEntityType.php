@@ -34,6 +34,7 @@ enum CodeRuleEntityType: string
     case PositionEstablishment = 'position_establishment';
     case VacancyAnnouncement = 'vacancy_announcement';
     case VacancyApplication = 'vacancy_application';
+    case TransferApplication = 'transfer_application';
     case InstitutionOffice = 'institution_office';
     case GrievanceCase = 'grievance_case';
     case GrievanceDecision = 'grievance_decision';

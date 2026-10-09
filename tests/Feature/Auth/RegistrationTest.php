@@ -7,8 +7,10 @@ use App\Models\Employee;
 use App\Models\EmployeeRegistrationOtp;
 use App\Models\User;
 use App\Notifications\EmployeeRegistrationOtpNotification;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Testing\TestResponse;
 
 beforeEach(function (): void {
     $this->sms = new class implements SmsGateway
@@ -203,7 +205,7 @@ function registrationEmployee(string $number, string $email): Employee
     ]);
 }
 
-function finishRegistration(object $test, Employee $employee): Illuminate\Testing\TestResponse
+function finishRegistration(object $test, Employee $employee): TestResponse
 {
     $test->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])->assertSessionHasNoErrors();
     EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->latest('created_at')->firstOrFail()
@@ -256,8 +258,15 @@ test('no email code is sent when the SMS cannot be delivered', function (): void
     Notification::fake();
     app()->instance(SmsGateway::class, new class implements SmsGateway
     {
-        public function send(string $phoneNumber, string $message): bool { return false; }
-        public function isConfigured(): bool { return false; }
+        public function send(string $phoneNumber, string $message): bool
+        {
+            return false;
+        }
+
+        public function isConfigured(): bool
+        {
+            return false;
+        }
     });
     $employee = registrationEmployee('EMP-NOSMS', 'nosms@example.test');
 
@@ -266,6 +275,52 @@ test('no email code is sent when the SMS cannot be delivered', function (): void
 
     Notification::assertNothingSent();
     expect(EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->first()->isExpired())->toBeTrue();
+});
+
+test('failed delivery does not consume the registration code quota', function (): void {
+    config(['security.registration_enabled' => true]);
+    Notification::fake();
+    $employee = registrationEmployee('EMP-RETRY-DELIVERY', 'retry-delivery@example.test');
+
+    app()->instance(SmsGateway::class, new class implements SmsGateway
+    {
+        public function send(string $phoneNumber, string $message): bool
+        {
+            return false;
+        }
+
+        public function isConfigured(): bool
+        {
+            return false;
+        }
+    });
+
+    foreach (range(1, 3) as $attempt) {
+        $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
+            ->assertSessionHasErrors('employee_number');
+    }
+
+    app()->instance(SmsGateway::class, $this->sms);
+
+    $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
+        ->assertSessionHasNoErrors();
+});
+
+test('an employee missing a contact does not consume the registration code quota', function (): void {
+    config(['security.registration_enabled' => true]);
+    Notification::fake();
+    $employee = registrationEmployee('EMP-RETRY-CONTACT', 'retry-contact@example.test');
+    $employee->forceFill(['phone' => null])->save();
+
+    foreach (range(1, 3) as $attempt) {
+        $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
+            ->assertSessionHasErrors('employee_number');
+    }
+
+    $employee->forceFill(['phone' => '+251911000888'])->save();
+
+    $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
+        ->assertSessionHasNoErrors();
 });
 
 test('too many code requests are refused beside the field, not with an error page', function (): void {
@@ -288,10 +343,10 @@ test('registration:diagnose names the account that blocks an employee', function
     $stale = User::factory()->create(['email' => 'old-address@example.test']);
     $stale->forceFill(['employee_id' => $employee->id, 'employee_link_locked' => true])->saveQuietly();
 
-    expect(Illuminate\Support\Facades\Artisan::call('registration:diagnose', ['employee_number' => 'EMP-DIAG']))->toBe(1)
-        ->and(Illuminate\Support\Facades\Artisan::output())->toContain('old-address@example.test')->toContain('linked to this employee record');
+    expect(Artisan::call('registration:diagnose', ['employee_number' => 'EMP-DIAG']))->toBe(1)
+        ->and(Artisan::output())->toContain('old-address@example.test')->toContain('linked to this employee record');
 
     $stale->forceFill(['employee_id' => null])->saveQuietly();
-    expect(Illuminate\Support\Facades\Artisan::call('registration:diagnose', ['employee_number' => 'EMP-DIAG']))->toBe(0)
-        ->and(Illuminate\Support\Facades\Artisan::output())->toContain('Nothing blocks registration');
+    expect(Artisan::call('registration:diagnose', ['employee_number' => 'EMP-DIAG']))->toBe(0)
+        ->and(Artisan::output())->toContain('Nothing blocks registration');
 });

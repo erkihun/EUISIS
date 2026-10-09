@@ -17,6 +17,8 @@ class EmployeeTransferRequest extends FormRequest
     {
         return [
             'organization_id' => ['required', 'uuid', 'exists:organizations,id'],
+            'position_id' => ['nullable', 'uuid', 'exists:positions,id'],
+            'effective_date' => ['nullable', 'date', 'after_or_equal:today'],
             'reason' => ['nullable', 'string'],
         ];
     }

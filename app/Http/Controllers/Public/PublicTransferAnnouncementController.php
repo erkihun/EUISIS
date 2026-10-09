@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Transfers\PublicStoreTransferApplicationRequest;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferApplication;
+use App\Models\TransferSetting;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,7 @@ class PublicTransferAnnouncementController extends Controller
     {
         $announcements = TransferAnnouncement::query()
             ->where('status', TransferAnnouncementStatus::Published)
+            ->whereDate('closing_date', '>=', today())
             ->with(['organization', 'position'])
             ->orderByDesc('closing_date')
             ->orderByDesc('published_at')
@@ -66,7 +68,7 @@ class PublicTransferAnnouncementController extends Controller
 
     public function show(TransferAnnouncement $announcement): Response
     {
-        if ($announcement->status !== TransferAnnouncementStatus::Published) {
+        if ($announcement->status !== TransferAnnouncementStatus::Published || ($announcement->closing_date?->isPast() ?? true)) {
             throw new NotFoundHttpException;
         }
 
@@ -103,7 +105,11 @@ class PublicTransferAnnouncementController extends Controller
                 'opening_date' => $announcement->opening_date?->toDateString(),
                 'closing_date' => $announcement->closing_date?->toDateString(),
                 'eligibility_rules' => $announcement->eligibility_rules,
-                'required_documents' => $announcement->required_documents,
+                'required_documents' => collect([
+                    ...(array) TransferSetting::current()->required_documents,
+                    ...(array) $announcement->required_documents,
+                ])->filter(fn (mixed $type): bool => is_string($type) && trim($type) !== '')
+                    ->map(fn (string $type): string => trim($type))->unique()->values()->all(),
                 'status' => $announcement->status->value,
                 'is_open' => $announcement->isAcceptingApplications(),
                 'published_at' => $announcement->published_at?->toDateString(),
@@ -180,8 +186,10 @@ class PublicTransferAnnouncementController extends Controller
                 $employee,
                 $user,
                 [
+                    'announcement_position_id' => $request->input('announcement_position_id'),
                     'cover_letter' => $request->input('cover_letter'),
                     'documents' => $request->file('documents') ?? [],
+                    'reuse_document_ids' => $request->input('reuse_document_ids') ?? [],
                 ],
             );
         } catch (DomainException $e) {

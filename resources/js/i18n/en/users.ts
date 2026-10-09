@@ -151,6 +151,7 @@ const users = {
         scopedOrganizations: 'Scoped Organizations',
         cancel: 'Cancel',
         addScopeAfterCreate: 'You can assign organization scopes after creating the user.',
+        unavailableForUnrestrictedRole: 'Organization scopes do not apply to this unrestricted administrative role.',
     },
 } as const;
 

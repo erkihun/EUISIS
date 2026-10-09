@@ -23,6 +23,7 @@ use App\Models\OrganizationUnitType;
 use App\Models\Position;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
+use App\Models\TransferApplication;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -270,6 +271,7 @@ class CodeGeneratorService
             CodeRuleEntityType::ServiceType => ServiceType::withTrashed()->where('code', $generatedCode)->exists(),
             CodeRuleEntityType::OrganizationUnit => OrganizationUnit::withTrashed()->where('code', $generatedCode)->exists(),
             CodeRuleEntityType::OrganizationUnitType => OrganizationUnitType::withTrashed()->where('code', $generatedCode)->exists(),
+            CodeRuleEntityType::TransferApplication => TransferApplication::withTrashed()->where('application_number', $generatedCode)->exists(),
             default => false,
         };
     }

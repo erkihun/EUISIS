@@ -6,16 +6,23 @@ namespace App\Actions\Transfers;
 
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
+use App\Enums\EstablishmentStatus;
 use App\Enums\TransferAnnouncementStatus;
+use App\Models\Position;
+use App\Models\PositionEstablishment;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferAnnouncementPosition;
 use App\Models\User;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use DomainException;
 use Illuminate\Support\Facades\DB;
 
 readonly class UpdateTransferAnnouncementAction
 {
-    public function __construct(private WriteAuditLogAction $writeAuditLogAction) {}
+    public function __construct(
+        private WriteAuditLogAction $writeAuditLogAction,
+        private OrganizationScopeService $scopeService,
+    ) {}
 
     public function execute(TransferAnnouncement $announcement, array $data, User $actor): TransferAnnouncement
     {
@@ -24,7 +31,32 @@ readonly class UpdateTransferAnnouncementAction
         }
 
         DB::transaction(function () use ($announcement, $data, $actor): void {
+            $announcement = TransferAnnouncement::query()->lockForUpdate()->findOrFail($announcement->id);
+            if ($announcement->status !== TransferAnnouncementStatus::Draft) {
+                throw new DomainException(__('transfers.announcementNotDraft'));
+            }
             $positions = $data['positions'] ?? [];
+            $seen = [];
+            foreach ($positions as $posData) {
+                $positionId = $posData['position_id'];
+                $organizationId = $posData['organization_id'];
+                if (isset($seen[$positionId]) || ! $this->scopeService->canAccessOrganization($actor, $organizationId)) {
+                    throw new DomainException('The requested position is duplicated or outside your organization scope.');
+                }
+                $seen[$positionId] = true;
+
+                $position = Position::query()->lockForUpdate()->find($positionId);
+                $available = PositionEstablishment::query()
+                    ->where('organization_id', $organizationId)
+                    ->where('position_id', $positionId)
+                    ->where('status', EstablishmentStatus::Approved->value)
+                    ->lockForUpdate()
+                    ->get()
+                    ->sum(fn (PositionEstablishment $establishment): int => $establishment->availableSlots());
+                if ($position === null || $position->organization_id !== $organizationId || ! $position->isSelectable() || $available < (int) $posData['vacancy_count']) {
+                    throw new DomainException('The requested position is no longer available with the requested capacity.');
+                }
+            }
             $firstPos = $positions[0] ?? null;
             $totalVacancies = $positions
                 ? array_sum(array_column($positions, 'vacancy_count'))

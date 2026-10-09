@@ -123,6 +123,7 @@ const users = {
     restored: 'ተጠቃሚ ተመልሷል።',
     rolesUpdated: 'ሚናዎች ተዘምነዋል።',
     userOrganizationScopes: {
+        unavailableForUnrestrictedRole: 'የተቋም ወሰኖች በዚህ ያልተገደበ አስተዳዳሪ ሚና ላይ አይተገበሩም።',
         title: 'የተቋም ወሰኖች',
         addScope: 'ወሰን ያክሉ',
         editScope: 'ወሰን አርትዕ',

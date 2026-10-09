@@ -1,250 +1,58 @@
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import { useConfirm } from '@/hooks/useConfirm';
+import { useLocale } from '@/hooks/useLocale';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
-import { useLocale } from '@/hooks/useLocale';
-import { useConfirm } from '@/hooks/useConfirm';
+import type { ReactNode } from 'react';
 
-type Application = {
-    id: string;
-    status: string;
-    submitted_at: string;
-    employee: { employee_number: string; full_name: string } | null;
-    releasingOrganization: { name_en: string; name_am: string | null } | null;
-};
+type Rule = { type: string; operator: string; value: string };
+type PositionLine = { id: string; advertised_slots: number; current_available: number; position: { code: string; title_en: string; title_am: string | null; grade_level: string | null; organization_unit_name_en: string | null; organization_unit_name_am: string | null } | null };
+type Announcement = { id: string; organization: { name_en: string; name_am: string | null } | null; position: { title_en: string; title_am: string | null } | null; opening_date: string; closing_date: string; status: string; created_at: string; published_at: string | null; created_by: { name: string } | null; published_by: { name: string } | null; eligibility_rules: Rule[] | null; required_documents: string[] | null };
+type Readiness = { ready: boolean; issues: { code: string; message: string }[]; positions: PositionLine[] };
+type Summary = { total: number; pending_screening: number; eligible: number; ineligible: number; selected: number; transfers_created: number } | null;
+type TimelineEvent = { event_type: string; actor_user_id: number | null; reason: string | null; created_at: string | null };
+type Props = { announcement: Announcement; readiness: Readiness; applicationSummary: Summary; applicationWindowState: string; timeline: TimelineEvent[]; can: { update: boolean; publish: boolean; close: boolean; cancel: boolean; delete: boolean; viewApplications: boolean } };
 
-type Announcement = {
-    id: string;
-    organization: { name_en: string; name_am: string | null } | null;
-    position: { title_en: string; title_am: string | null } | null;
-    grade_level: string | null;
-    salary_min: string | null;
-    salary_max: string | null;
-    number_of_vacancies: number;
-    eligibility_rules: string[] | null;
-    required_documents: string[] | null;
-    opening_date: string;
-    closing_date: string;
-    status: string;
-    published_at: string | null;
-    published_by: { name: string } | null;
-    applications: Application[];
-};
+const button = 'inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none';
+const card = 'rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900';
 
-type Props = {
-    announcement: Announcement;
-    can: { update: boolean; publish: boolean; close: boolean; cancel: boolean; delete: boolean };
-};
-
-const btnBase = 'inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-medium transition-colors focus:outline-none';
-
-export default function TransferAnnouncementShow({ announcement, can }: Props) {
+export default function TransferAnnouncementShow({ announcement, readiness, applicationSummary, applicationWindowState, timeline, can }: Props) {
     const { locale, t } = useLocale();
     const { confirm } = useConfirm();
-    const useAmharic = locale === 'am';
+    const am = locale === 'am';
+    const org = (am ? announcement.organization?.name_am : null) ?? announcement.organization?.name_en ?? '—';
+    const primaryPosition = (am ? announcement.position?.title_am : null) ?? announcement.position?.title_en ?? t('transfers.announcement');
+    const totalSlots = readiness.positions.reduce((sum, line) => sum + line.advertised_slots, 0);
+    const ruleLabel = (rule: Rule) => `${t(`transfers.rule${rule.type.split('_').map(s => s[0].toUpperCase() + s.slice(1)).join('')}`)} ${t(`transfers.rule${rule.operator === 'greater_than_or_equal' ? 'AtLeast' : rule.operator === 'equals' ? 'Equals' : 'In'}`)} ${rule.value}`;
 
-    const positionLabel = (useAmharic ? announcement.position?.title_am : null) ?? announcement.position?.title_en ?? t('transfers.announcement');
-    const orgLabel      = (useAmharic ? announcement.organization?.name_am : null) ?? announcement.organization?.name_en ?? '';
+    async function publish() { const { confirmed } = await confirm({ title: t('transfers.publishAnnouncement'), description: `${t('transfers.publishConfirmation')} ${totalSlots} ${t('transfers.totalVacancies')} · ${announcement.opening_date} – ${announcement.closing_date}`, confirmLabel: t('transfers.publishAnnouncement'), cancelLabel: t('common.cancel'), variant: 'default' }); if (confirmed) router.post(route('transfer-announcements.publish', announcement.id), {}, { preserveScroll: true }); }
+    async function close() { const { confirmed } = await confirm({ title: t('transfers.closeAnnouncement'), description: t('transfers.closeConfirmation'), confirmLabel: t('transfers.closeAnnouncement'), cancelLabel: t('common.cancel'), variant: 'warning' }); if (confirmed) router.post(route('transfer-announcements.close', announcement.id), {}, { preserveScroll: true }); }
+    async function cancel() { const { confirmed } = await confirm({ title: t('transfers.cancelAnnouncement'), description: t('transfers.cancelConfirmation'), confirmLabel: t('transfers.cancelAnnouncement'), cancelLabel: t('common.cancel'), variant: 'danger' }); if (confirmed) router.post(route('transfer-announcements.cancel', announcement.id), {}, { preserveScroll: true }); }
 
-    async function handlePublish() {
-        const { confirmed } = await confirm({
-            title: t('transfers.publishAnnouncement'),
-            description: `${positionLabel} — ${orgLabel}`,
-            confirmLabel: t('transfers.publishAnnouncement'),
-            cancelLabel: t('common.cancel'),
-            variant: 'default',
-        });
-        if (confirmed) router.post(route('transfer-announcements.publish', announcement.id), {}, { preserveScroll: true });
-    }
+    const actions = <div className="flex flex-wrap gap-2">
+        {can.update && <Link href={route('transfer-announcements.edit', announcement.id)} className={`${button} border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300`}>{t('common.edit')}</Link>}
+        {announcement.status === 'draft' && <Link href={route('transfer-announcements.preview', announcement.id)} className={`${button} border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300`}>{t('common.preview')}</Link>}
+        {can.publish && announcement.status === 'draft' && <button type="button" disabled={!readiness.ready} title={!readiness.ready ? t('transfers.resolveReadinessIssues') : undefined} onClick={publish} className={`${button} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50`}>{t('transfers.publishAnnouncement')}</button>}
+        {can.viewApplications && announcement.status !== 'draft' && <Link href={`${route('transfer-applications.index')}?announcement_id=${announcement.id}`} className={`${button} border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300`}>{t('transfers.viewApplications')}</Link>}
+        {can.close && announcement.status === 'published' && <button type="button" onClick={close} className={`${button} border border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400`}>{t('transfers.closeAnnouncement')}</button>}
+        {can.cancel && ['draft', 'published'].includes(announcement.status) && <button type="button" onClick={cancel} className={`${button} border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400`}>{t('transfers.cancelAnnouncement')}</button>}
+    </div>;
 
-    async function handleClose() {
-        const { confirmed } = await confirm({
-            title: t('transfers.closeAnnouncement'),
-            description: `${positionLabel} — ${orgLabel}`,
-            confirmLabel: t('transfers.closeAnnouncement'),
-            cancelLabel: t('common.cancel'),
-            variant: 'warning',
-        });
-        if (confirmed) router.post(route('transfer-announcements.close', announcement.id), {}, { preserveScroll: true });
-    }
-
-    async function handleCancel() {
-        const { confirmed } = await confirm({
-            title: t('transfers.cancelAnnouncement'),
-            description: `${positionLabel} — ${orgLabel}`,
-            confirmLabel: t('transfers.cancelAnnouncement'),
-            cancelLabel: t('common.cancel'),
-            variant: 'danger',
-        });
-        if (confirmed) router.post(route('transfer-announcements.cancel', announcement.id), {}, { preserveScroll: true });
-    }
-
-    async function handleDelete() {
-        const { confirmed } = await confirm({
-            title: t('common.delete'),
-            description: `${positionLabel} — ${orgLabel}`,
-            confirmLabel: t('common.delete'),
-            cancelLabel: t('common.cancel'),
-            variant: 'danger',
-        });
-        if (confirmed) router.delete(route('transfer-announcements.destroy', announcement.id));
-    }
-
-    return (
-        <AuthenticatedLayout
-            header={
-                <PageHeader
-                    backHref={route('transfer-announcements.index')}
-                    title={positionLabel}
-                    description={orgLabel}
-                    actions={
-                        <div className="flex flex-wrap gap-2">
-                            {can.update && announcement.status === 'draft' && (
-                                <Link
-                                    href={route('transfer-announcements.edit', announcement.id)}
-                                    className={`${btnBase} border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800`}
-                                >
-                                    {t('common.edit')}
-                                </Link>
-                            )}
-                            {can.publish && announcement.status === 'draft' && (
-                                <button
-                                    type="button"
-                                    onClick={handlePublish}
-                                    className={`${btnBase} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)]`}
-                                >
-                                    {t('transfers.publishAnnouncement')}
-                                </button>
-                            )}
-                            {can.close && announcement.status === 'published' && (
-                                <button
-                                    type="button"
-                                    onClick={handleClose}
-                                    className={`${btnBase} border border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400`}
-                                >
-                                    {t('transfers.closeAnnouncement')}
-                                </button>
-                            )}
-                            {can.cancel && !['closed', 'cancelled'].includes(announcement.status) && (
-                                <button
-                                    type="button"
-                                    onClick={handleCancel}
-                                    className={`${btnBase} border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400`}
-                                >
-                                    {t('transfers.cancelAnnouncement')}
-                                </button>
-                            )}
-                            {can.delete && announcement.status === 'draft' && (
-                                <button
-                                    type="button"
-                                    onClick={handleDelete}
-                                    className={`${btnBase} border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400`}
-                                >
-                                    {t('common.delete')}
-                                </button>
-                            )}
-                        </div>
-                    }
-                />
-            }
-        >
-            <Head title={announcement.position?.title_en ?? t('transfers.announcement')} />
-
-            <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-                {/* Details */}
-                <div className="space-y-6">
-                    <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <h3 className="font-semibold text-gray-900 dark:text-slate-100">{positionLabel}</h3>
-                                <p className="text-sm text-gray-500 dark:text-slate-400">{orgLabel || '—'}</p>
-                            </div>
-                            <StatusBadge status={announcement.status} />
-                        </div>
-
-                        <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
-                            {[
-                                { label: t('transfers.gradeLevel'), value: announcement.grade_level ?? '—' },
-                                { label: t('transfers.numberOfVacancies'), value: String(announcement.number_of_vacancies) },
-                            ].map(({ label, value }) => (
-                                <div key={label}>
-                                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
-                                    <dd className="mt-1 text-gray-800 dark:text-slate-200">{value}</dd>
-                                </div>
-                            ))}
-                            <div>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('transfers.openingDate')}</dt>
-                                <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={announcement.opening_date} /></dd>
-                            </div>
-                            <div>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('transfers.closingDate')}</dt>
-                                <dd className="mt-1 text-gray-800 dark:text-slate-200"><LocalizedDateDisplay value={announcement.closing_date} /></dd>
-                            </div>
-                        </dl>
-
-                        {announcement.eligibility_rules && announcement.eligibility_rules.length > 0 && (
-                            <div className="mt-4">
-                                <p className="mb-2 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">
-                                    {t('transfers.eligibilityRules')}
-                                </p>
-                                <ul className="space-y-1">
-                                    {announcement.eligibility_rules.map((rule, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-slate-300">
-                                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />
-                                            {rule}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-
-                        {announcement.required_documents && announcement.required_documents.length > 0 && (
-                            <div className="mt-4">
-                                <p className="mb-2 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">
-                                    {t('transfers.requiredDocuments')}
-                                </p>
-                                <ul className="space-y-1">
-                                    {announcement.required_documents.map((doc, i) => (
-                                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-slate-300">
-                                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />
-                                            {doc}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </section>
-                </div>
-
-                {/* Applications */}
-                <section className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <div className="mb-3 flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('transfers.applications')}</h3>
-                        <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
-                            {announcement.applications.length}
-                        </span>
-                    </div>
-
-                    {announcement.applications.length === 0 ? (
-                        <p className="text-sm text-gray-400 dark:text-slate-500">{t('transfers.noApplications')}</p>
-                    ) : (
-                        <ul className="space-y-2 text-sm">
-                            {announcement.applications.map((app) => (
-                                <li key={app.id} className="flex items-center justify-between gap-3">
-                                    <Link
-                                        href={route('transfer-applications.show', app.id)}
-                                        className="truncate text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
-                                    >
-                                        {app.employee?.full_name ?? app.employee?.employee_number ?? app.id}
-                                    </Link>
-                                    <StatusBadge status={app.status} />
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </section>
-            </div>
-        </AuthenticatedLayout>
-    );
+    return <AuthenticatedLayout header={<PageHeader backHref={route('transfer-announcements.index')} title={primaryPosition} description={org} actions={actions} />}>
+        <Head title={primaryPosition} />
+        <div className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">{[[t('transfers.includedPositions'), readiness.positions.length], [t('transfers.totalVacancies'), totalSlots], [t('transfers.applications'), applicationSummary?.total ?? '—'], [t('transfers.eligibleApplications'), applicationSummary?.eligible ?? '—'], [t('transfers.selectedApplicants'), applicationSummary?.selected ?? '—']].map(([label, value]) => <div key={String(label)} className={card}><p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</p><p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{value}</p></div>)}</div>
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(19rem,1fr)]"><div className="space-y-6">
+                <section className={card}><div className="flex justify-between gap-4"><div><h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('transfers.announcementInformation')}</h2><p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{org}</p></div><StatusBadge status={announcement.status} /></div><dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2"><Field label={t('transfers.recordId')} value={announcement.id} /><Field label={t('transfers.applicationPeriod')} value={<><LocalizedDateDisplay value={announcement.opening_date} /> – <LocalizedDateDisplay value={announcement.closing_date} /></>} /><Field label={t('transfers.createdBy')} value={announcement.created_by?.name ?? '—'} /><Field label={t('transfers.createdAt')} value={<LocalizedDateDisplay value={announcement.created_at} />} /><Field label={t('transfers.publishedBy')} value={announcement.published_by?.name ?? '—'} /><Field label={t('transfers.publishedAt')} value={announcement.published_at ? <LocalizedDateDisplay value={announcement.published_at} /> : '—'} /></dl></section>
+                <section className={card}><h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('transfers.includedPositions')}</h2>{readiness.positions.length === 0 ? <p className="mt-3 text-sm text-gray-500">{t('transfers.noPositionsConfigured')}</p> : <div className="mt-4 overflow-x-auto"><table className="w-full min-w-[42rem] text-left text-sm"><thead className="border-b text-xs uppercase text-gray-500"><tr><th className="pb-2">{t('transfers.position')}</th><th className="pb-2">{t('transfers.organizationUnit')}</th><th className="pb-2">{t('transfers.gradeLevel')}</th><th className="pb-2">{t('transfers.advertisedSlots')}</th><th className="pb-2">{t('transfers.currentAvailableVacancy')}</th></tr></thead><tbody>{readiness.positions.map(line => <tr key={line.id} className="border-b last:border-0 dark:border-slate-800"><td className="py-3 font-medium text-gray-900 dark:text-white">{line.position ? `${line.position.code} · ${(am ? line.position.title_am : null) ?? line.position.title_en}` : '—'}</td><td className="py-3">{(am ? line.position?.organization_unit_name_am : null) ?? line.position?.organization_unit_name_en ?? '—'}</td><td className="py-3">{line.position?.grade_level ?? '—'}</td><td className="py-3">{line.advertised_slots}</td><td className="py-3">{line.current_available}</td></tr>)}</tbody></table></div>}</section>
+                <section className={card}><h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('transfers.eligibilityRules')}</h2>{announcement.eligibility_rules?.length ? <ul className="mt-3 space-y-2 text-sm">{announcement.eligibility_rules.map((rule, i) => <li key={i}>• {ruleLabel(rule)}</li>)}</ul> : <p className="mt-3 text-sm text-gray-500">{t('transfers.noEligibilityRulesConfigured')}</p>}</section>
+                <section className={card}><h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('transfers.requiredDocuments')}</h2>{announcement.required_documents?.length ? <ul className="mt-3 space-y-2 text-sm">{announcement.required_documents.map((doc, i) => <li key={i}>• {doc}</li>)}</ul> : <p className="mt-3 text-sm text-gray-500">{t('transfers.noRequiredDocumentsConfigured')}</p>}</section>
+            </div><aside className="space-y-6"><section className={card}><h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('transfers.publicationReadiness')}</h2><p className={`mt-2 text-sm font-medium ${readiness.ready ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>{readiness.ready ? t('transfers.readyToPublish') : t('transfers.notReadyToPublish')}</p><ul className="mt-3 space-y-2 text-sm text-gray-700 dark:text-slate-300">{readiness.ready ? <><li>✓ {t('transfers.announcementInformation')}</li><li>✓ {readiness.positions.length} {t('transfers.includedPositions').toLowerCase()}</li><li>✓ {t('transfers.applicationPeriod')}</li></> : readiness.issues.map(issue => <li key={`${issue.code}-${issue.message}`} className="text-red-700 dark:text-red-400">✕ {issue.message}</li>)}</ul></section><section className={card}><h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('transfers.applicationPeriod')}</h2><p className="mt-2 text-sm font-medium capitalize">{t(`transfers.window${applicationWindowState[0].toUpperCase()}${applicationWindowState.slice(1)}`)}</p><div className="mt-3 text-sm text-gray-600 dark:text-slate-300"><LocalizedDateDisplay value={announcement.opening_date} /><span className="mx-2">→</span><LocalizedDateDisplay value={announcement.closing_date} /></div></section>{applicationSummary && <section className={card}><h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('transfers.applications')}</h2><dl className="mt-3 space-y-2 text-sm">{[[t('transfers.pendingApplications'), applicationSummary.pending_screening], [t('transfers.eligibleApplications'), applicationSummary.eligible], [t('transfers.ineligibleApplications'), applicationSummary.ineligible], [t('transfers.selectedApplicants'), applicationSummary.selected], [t('transfers.transfersCreated'), applicationSummary.transfers_created]].map(([label, value]) => <div key={String(label)} className="flex justify-between"><dt>{label}</dt><dd className="font-semibold">{value}</dd></div>)}</dl></section>}</aside></div>
+            {timeline.length > 0 && <section className={card}><h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('transfers.workflowHistory')}</h2><ol className="mt-3 space-y-2 text-sm">{timeline.map((event, index) => <li key={`${event.event_type}-${event.created_at}-${index}`} className="flex justify-between gap-4"><span>{t(`transfers.timeline${event.event_type.replace(/(^|_)([a-z])/g, (_, __, letter) => letter.toUpperCase())}`)}</span><span className="text-gray-500"><LocalizedDateDisplay value={event.created_at ?? ''} /></span></li>)}</ol></section>}
+        </div>
+    </AuthenticatedLayout>;
 }
+
+function Field({ label, value }: { label: string; value: ReactNode }) { return <div><dt className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-slate-400">{label}</dt><dd className="mt-1 break-words text-gray-800 dark:text-slate-200">{value}</dd></div>; }

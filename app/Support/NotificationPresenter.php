@@ -9,6 +9,7 @@ use App\Notifications\EmployeePortalNotification;
 use App\Notifications\GrievanceNotification;
 use App\Notifications\PasswordSecurityNotification;
 use App\Notifications\PerformanceNotification;
+use App\Notifications\TransferAnnouncementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
 
@@ -27,6 +28,7 @@ final class NotificationPresenter
         'account_security' => PasswordSecurityNotification::class,
         'performance' => PerformanceNotification::class,
         'grievance' => GrievanceNotification::class,
+        'transfer' => TransferAnnouncementNotification::class,
     ];
 
     /** The UI language is chosen in the browser, so it arrives with the request. */

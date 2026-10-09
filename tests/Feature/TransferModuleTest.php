@@ -20,6 +20,7 @@ use App\Enums\TransferApprovalType;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeePerformanceAgreement;
+use App\Models\EmployeeTransfer;
 use App\Models\Kpi;
 use App\Models\KpiActual;
 use App\Models\Organization;
@@ -71,12 +72,23 @@ function makeTransferPos(string $orgId): Position
     static $counter = 0;
     $counter++;
 
-    return Position::query()->create([
+    $position = Position::query()->create([
         'organization_id' => $orgId,
         'title_en' => 'Test Position '.$counter,
         'job_position_code' => 'POS-TM-'.$counter,
         'is_active' => true,
     ]);
+
+    PositionEstablishment::query()->create([
+        'organization_id' => $orgId,
+        'position_id' => $position->id,
+        'establishment_number' => 'EST-TM-'.$counter,
+        'approved_slots' => 5,
+        'status' => EstablishmentStatus::Approved,
+        'effective_from' => now()->subYear()->toDateString(),
+    ]);
+
+    return $position;
 }
 
 function makeTransferEmployee(Organization $org, Position $pos): Employee
@@ -494,6 +506,68 @@ test('transfer cannot complete without full approval when approvals are required
         ->toThrow(DomainException::class);
 });
 
+test('approved transfer waits for its effective date without changing the assignment', function (): void {
+    $fromOrg = makeTransferOrg('FUTURE-FROM');
+    $toOrg = makeTransferOrg('FUTURE-TO');
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+    $target = makeTransferPos($toOrg->id);
+    $actor = makeTransferActor('transfers.complete');
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $target->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => $actor->id,
+    ]);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id,
+        'receiving_organization_id' => $toOrg->id,
+        'effective_date' => now()->addWeek()->toDateString(),
+        'status' => TransferApplicationStatus::Approved,
+        'submitted_at' => now(),
+    ]);
+
+    expect(fn () => app(CompleteTransferAction::class)->execute($application, $actor))->toThrow(DomainException::class);
+    expect($employee->fresh()->current_assignment_id)->toBe($application->current_assignment_id)
+        ->and($application->fresh()->status)->toBe(TransferApplicationStatus::Approved);
+});
+
+test('implementation rejects a destination with no approved capacity', function (): void {
+    $fromOrg = makeTransferOrg('CAPACITY-FROM');
+    $toOrg = makeTransferOrg('CAPACITY-TO');
+    $employee = makeTransferEmployee($fromOrg, makeTransferPos($fromOrg->id));
+    $target = makeTransferPos($toOrg->id);
+    PositionEstablishment::query()->where('position_id', $target->id)->update(['approved_slots' => 0]);
+    $actor = makeTransferActor('transfers.complete');
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $toOrg->id,
+        'position_id' => $target->id,
+        'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published,
+        'created_by' => $actor->id,
+    ]);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $fromOrg->id,
+        'receiving_organization_id' => $toOrg->id,
+        'status' => TransferApplicationStatus::Approved,
+        'submitted_at' => now(),
+    ]);
+
+    expect(fn () => app(CompleteTransferAction::class)->execute($application, $actor))->toThrow(DomainException::class);
+    expect($employee->fresh()->current_assignment_id)->toBe($application->current_assignment_id)
+        ->and($application->fresh()->status)->toBe(TransferApplicationStatus::ImplementationFailed);
+});
+
 test('approval chain advances correctly from release to receiving to final', function (): void {
     $fromOrg = makeTransferOrg('CHAIN-FROM');
     $toOrg = makeTransferOrg('CHAIN-TO');
@@ -557,10 +631,11 @@ test('approval chain advances correctly from release to receiving to final', fun
     $action->execute($receivingApproval, $actor);
     $application->refresh();
 
-    // Application should now be transferred
-    expect($application->status)->toBe(TransferApplicationStatus::Transferred);
+    // Approval must remain distinct from implementation.
+    expect($application->status)->toBe(TransferApplicationStatus::Approved);
     $employee->refresh();
-    expect($employee->current_assignment_id)->not->toBeNull();
+    expect($employee->current_assignment_id)->toBe($application->current_assignment_id);
+    expect(EmployeeTransfer::query()->where('transfer_application_id', $application->id)->count())->toBe(1);
 });
 
 // ─── Announcement Action Tests ───────────────────────────────────────────────

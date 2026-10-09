@@ -83,6 +83,7 @@ const codeRules = {
         position_establishment: 'Position Establishment Code',
         vacancy_announcement: 'Vacancy Announcement Code',
         vacancy_application: 'Vacancy Application Code',
+        transfer_application: 'Transfer Application Number',
         institution_office: 'Institution Office Code',
         grievance_case: 'Grievance Case Number',
         grievance_decision: 'Grievance Decision Number',

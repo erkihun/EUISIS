@@ -4,28 +4,34 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Transfers;
 
+use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Transfers\CancelTransferAnnouncementAction;
 use App\Actions\Transfers\CloseTransferAnnouncementAction;
 use App\Actions\Transfers\PublishTransferAnnouncementAction;
 use App\Actions\Transfers\UpdateTransferAnnouncementAction;
-use App\Enums\AssignmentStatus;
+use App\Enums\AuditEventType;
 use App\Enums\EstablishmentStatus;
 use App\Enums\TransferAnnouncementStatus;
+use App\Enums\TransferApplicationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transfers\StoreTransferAnnouncementRequest;
 use App\Http\Requests\Transfers\UpdateTransferAnnouncementRequest;
+use App\Models\AuditLog;
 use App\Models\Organization;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\TransferAnnouncement;
 use App\Models\TransferAnnouncementPosition;
+use App\Models\TransferApplication;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Transfers\TransferAnnouncementReadinessService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -87,20 +93,39 @@ class TransferAnnouncementController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function create(OrganizationScopeService $scopeService): Response
     {
         $this->authorize('create', TransferAnnouncement::class);
 
-        return Inertia::render('Transfers/Announcements/Create', $this->formOptions());
+        return Inertia::render('Transfers/Announcements/Create', $this->formOptions(scopeService: $scopeService, actor: Auth::user()));
     }
 
-    public function store(StoreTransferAnnouncementRequest $request): RedirectResponse
+    public function store(StoreTransferAnnouncementRequest $request, WriteAuditLogAction $writeAuditLogAction): RedirectResponse
     {
         $data = $request->validated();
 
         $announcement = DB::transaction(function () use ($data): TransferAnnouncement {
             $positions = $data['positions'] ?? [];
             $firstPos = $positions[0] ?? null;
+
+            // The browser's displayed capacity is advisory only. Recheck under
+            // locks immediately before persisting the draft position rows.
+            foreach ($positions as $index => $posData) {
+                $position = Position::query()->lockForUpdate()->find($posData['position_id']);
+                $establishments = PositionEstablishment::query()
+                    ->where('organization_id', $posData['organization_id'])
+                    ->where('position_id', $posData['position_id'])
+                    ->where('status', EstablishmentStatus::Approved->value)
+                    ->lockForUpdate()
+                    ->get();
+                $available = $establishments->sum(fn (PositionEstablishment $e): int => $e->availableSlots());
+
+                if ($position === null || $position->organization_id !== $posData['organization_id'] || ! $position->isSelectable() || $available < (int) $posData['vacancy_count']) {
+                    throw ValidationException::withMessages([
+                        "positions.$index.position_id" => 'The position is no longer available with the requested capacity.',
+                    ]);
+                }
+            }
 
             $totalVacancies = array_sum(array_column($positions, 'vacancy_count'));
 
@@ -134,35 +159,103 @@ class TransferAnnouncementController extends Controller
             return $announcement;
         });
 
+        $writeAuditLogAction->execute(
+            AuditEventType::TransferAnnouncementCreated,
+            Auth::user(),
+            $announcement,
+            $announcement->organization_id,
+            newValues: ['status' => TransferAnnouncementStatus::Draft->value],
+        );
+
         return to_route('transfer-announcements.show', $announcement)
             ->with('flash', ['message' => __('transfers.announcementCreated'), 'type' => 'success']);
     }
 
-    public function show(TransferAnnouncement $transferAnnouncement): Response
-    {
+    public function show(
+        TransferAnnouncement $transferAnnouncement,
+        TransferAnnouncementReadinessService $readiness,
+    ): Response {
         $this->authorize('view', $transferAnnouncement);
 
         $transferAnnouncement->load([
             'organization',
             'position',
             'positions.organization',
-            'positions.position',
+            'positions.position.organizationUnit',
+            'createdBy',
             'publishedBy',
-            'applications.employee',
-            'applications.releasingOrganization',
         ]);
 
         /** @var User $user */
         $user = Auth::user();
 
+        $canViewApplications = $user->can('transfers.applications.view') || $user->can('transfers.viewAny');
+        $applicationSummary = null;
+        if ($canViewApplications && $transferAnnouncement->status !== TransferAnnouncementStatus::Draft) {
+            $applications = TransferApplication::query()->where('announcement_id', $transferAnnouncement->id);
+            $applicationSummary = [
+                'total' => (clone $applications)->count(),
+                'pending_screening' => (clone $applications)->whereIn('status', [
+                    TransferApplicationStatus::Submitted->value,
+                    TransferApplicationStatus::UnderReview->value,
+                ])->count(),
+                'eligible' => (clone $applications)->whereIn('status', [
+                    TransferApplicationStatus::Verified->value,
+                    TransferApplicationStatus::Selected->value,
+                    TransferApplicationStatus::ReleasePending->value,
+                    TransferApplicationStatus::ReceivingPending->value,
+                    TransferApplicationStatus::FinalApprovalPending->value,
+                    TransferApplicationStatus::Approved->value,
+                    TransferApplicationStatus::Transferred->value,
+                ])->count(),
+                'ineligible' => (clone $applications)->where('status', TransferApplicationStatus::Rejected->value)->count(),
+                'selected' => (clone $applications)->whereIn('status', [
+                    TransferApplicationStatus::Selected->value,
+                    TransferApplicationStatus::ReleasePending->value,
+                    TransferApplicationStatus::ReceivingPending->value,
+                    TransferApplicationStatus::FinalApprovalPending->value,
+                    TransferApplicationStatus::Approved->value,
+                    TransferApplicationStatus::Transferred->value,
+                ])->count(),
+                'transfers_created' => (clone $applications)->whereHas('canonicalTransfer')->count(),
+            ];
+        }
+
+        $windowState = 'not_published';
+        if ($transferAnnouncement->status === TransferAnnouncementStatus::Published) {
+            $windowState = $transferAnnouncement->opening_date === null || $transferAnnouncement->closing_date === null
+                ? 'closed'
+                : ($transferAnnouncement->opening_date->isFuture()
+                ? 'scheduled'
+                : ($transferAnnouncement->closing_date->isPast() ? 'closed' : 'open'));
+        }
+
+        $timeline = AuditLog::query()
+            ->where('auditable_type', TransferAnnouncement::class)
+            ->where('auditable_id', $transferAnnouncement->id)
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get(['event_type', 'actor_user_id', 'reason', 'created_at'])
+            ->map(fn (AuditLog $event): array => [
+                'event_type' => $event->event_type->value,
+                'actor_user_id' => $event->actor_user_id,
+                'reason' => $event->reason,
+                'created_at' => $event->created_at?->toIso8601String(),
+            ]);
+
         return Inertia::render('Transfers/Announcements/Show', [
             'announcement' => $transferAnnouncement,
+            'readiness' => $readiness->assess($transferAnnouncement),
+            'applicationSummary' => $applicationSummary,
+            'applicationWindowState' => $windowState,
+            'timeline' => $timeline,
             'can' => [
                 'update' => $user->can('update', $transferAnnouncement),
                 'publish' => $user->can('publish', $transferAnnouncement),
                 'close' => $user->can('close', $transferAnnouncement),
                 'cancel' => $user->can('cancel', $transferAnnouncement),
                 'delete' => $user->can('delete', $transferAnnouncement),
+                'viewApplications' => $canViewApplications,
             ],
         ]);
     }
@@ -180,6 +273,32 @@ class TransferAnnouncementController extends Controller
             ['announcement' => $transferAnnouncement],
             $this->formOptions($currentPositionIds),
         ));
+    }
+
+    /** A staff-only rendering of the employee-facing content; it exposes no apply action. */
+    public function preview(
+        TransferAnnouncement $transferAnnouncement,
+        TransferAnnouncementReadinessService $readiness,
+    ): Response {
+        $this->authorize('view', $transferAnnouncement);
+
+        $transferAnnouncement->load(['organization', 'position', 'createdBy', 'publishedBy']);
+
+        return Inertia::render('Transfers/Announcements/Show', [
+            'announcement' => $transferAnnouncement,
+            'readiness' => $readiness->assess($transferAnnouncement),
+            'applicationSummary' => null,
+            'applicationWindowState' => 'not_published',
+            'timeline' => [],
+            'can' => [
+                'update' => false,
+                'publish' => false,
+                'close' => false,
+                'cancel' => false,
+                'delete' => false,
+                'viewApplications' => false,
+            ],
+        ]);
     }
 
     public function update(
@@ -258,10 +377,13 @@ class TransferAnnouncementController extends Controller
     }
 
     /** @param string[] $includePositionIds Positions to always include regardless of occupancy (for edit). */
-    private function formOptions(array $includePositionIds = []): array
+    private function formOptions(array $includePositionIds = [], ?OrganizationScopeService $scopeService = null, ?User $actor = null): array
     {
+        $scopeService ??= app(OrganizationScopeService::class);
+        $actor ??= Auth::user();
         $establishments = PositionEstablishment::query()
             ->where('status', EstablishmentStatus::Approved->value)
+            ->when($actor !== null, fn ($query) => $scopeService->applyOrganizationScope($query, $actor))
             ->withCount(['occupancies as active_count' => fn ($q) => $q->where('status', 'active')])
             ->get(['id', 'organization_id', 'position_id', 'approved_slots']);
 
@@ -271,13 +393,12 @@ class TransferAnnouncementController extends Controller
             return ["{$e->organization_id}_{$e->position_id}" => $available];
         });
 
-        // Only include positions not currently occupied by an active employee assignment
+        // Capacity, not a single assignment, is authoritative: a position can
+        // remain selectable while other approved slots are occupied.
         $positions = Position::query()
             ->where('is_active', true)
-            ->whereDoesntHave('assignments', fn ($q) => $q
-                ->where('assignment_status', AssignmentStatus::Active->value)
-                ->where('is_current', true)
-            )
+            ->when($actor !== null, fn ($query) => $scopeService->applyOrganizationScope($query, $actor))
+            ->with('organizationUnit:id,name_en,name_am,code')
             ->orderBy('title_en')
             ->get(['id', 'title_en', 'title_am', 'grade_level', 'organization_id']);
 
@@ -290,15 +411,18 @@ class TransferAnnouncementController extends Controller
                 'title_am' => $pos->title_am,
                 'grade_level' => $pos->grade_level,
                 'organization_id' => $pos->organization_id,
+                'organization_unit_id' => $pos->organization_unit_id,
+                'organization_unit_name' => $pos->organizationUnit?->name_en,
+                'code' => $pos->job_position_code,
                 'available_slots' => $vacancyLookup->get("{$pos->organization_id}_{$pos->id}", 0),
             ])
             ->filter(fn ($p) => $p['available_slots'] > 0 || in_array($p['id'], $includePositionIds, true))
             ->values();
 
         return [
-            'organizations' => Organization::query()
+            'organizations' => $scopeService->applyOrganizationScope(Organization::query()
                 ->where('status', 'active')
-                ->orderBy('name_en')
+                ->orderBy('name_en'), $actor)
                 ->get(['id', 'name_en', 'name_am']),
             'positions' => $positionsWithSlots,
         ];

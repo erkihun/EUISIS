@@ -26,10 +26,20 @@ type Announcement = {
     id: string;
     opening_date: string;
     closing_date: string;
-    eligibility_rules: string[] | null;
+    eligibility_rules: unknown[] | null;
     required_documents: string[] | null;
     positions: AnnouncementPosition[];
 };
+
+type EligibilityRule = {
+    type: 'employment_status' | 'current_grade' | 'current_organization' | 'current_position' | 'minimum_service_months';
+    operator: 'equals' | 'in' | 'greater_than_or_equal';
+    value: string;
+};
+
+function supportedRules(rules: unknown[] | null): EligibilityRule[] {
+    return (rules ?? []).filter((rule): rule is EligibilityRule => typeof rule === 'object' && rule !== null && 'type' in rule && 'operator' in rule && 'value' in rule);
+}
 
 type Props = {
     announcement: Announcement;
@@ -72,7 +82,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
 
     const { data, setData, patch, processing, errors } = useForm({
         positions:          (announcement.positions?.length ? announcement.positions.map(toRow) : [emptyRow()]) as PositionRow[],
-        eligibility_rules:  (announcement.eligibility_rules ?? []) as string[],
+        eligibility_rules:  supportedRules(announcement.eligibility_rules),
         required_documents: (announcement.required_documents ?? []) as string[],
         opening_date:       announcement.opening_date ?? '',
         closing_date:       announcement.closing_date ?? '',
@@ -280,24 +290,21 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
                             <label className={labelCls}>{t('transfers.eligibilityRules')}</label>
                             <button
                                 type="button"
-                                onClick={() => setData('eligibility_rules', [...data.eligibility_rules, ''])}
+                                onClick={() => setData('eligibility_rules', [...data.eligibility_rules, { type: 'employment_status', operator: 'equals', value: 'active' }])}
                                 className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
                             >
                                 + {t('transfers.addEligibilityRule')}
                             </button>
                         </div>
                         {data.eligibility_rules.map((rule, i) => (
-                            <div key={i} className="flex gap-2">
-                                <input
-                                    type="text"
-                                    className={`${inputCls} flex-1`}
-                                    value={rule}
-                                    onChange={(e) => {
-                                        const next = [...data.eligibility_rules];
-                                        next[i] = e.target.value;
-                                        setData('eligibility_rules', next);
-                                    }}
-                                />
+                            <div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
+                                <select aria-label={t('transfers.ruleType')} className={inputCls} value={rule.type} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, type: e.target.value as EligibilityRule['type'] }; setData('eligibility_rules', next); }}>
+                                    <option value="employment_status">{t('transfers.ruleEmploymentStatus')}</option><option value="current_grade">{t('transfers.ruleCurrentGrade')}</option><option value="current_organization">{t('transfers.ruleCurrentOrganization')}</option><option value="current_position">{t('transfers.ruleCurrentPosition')}</option><option value="minimum_service_months">{t('transfers.ruleMinimumService')}</option>
+                                </select>
+                                <select aria-label={t('transfers.ruleOperator')} className={inputCls} value={rule.operator} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, operator: e.target.value as EligibilityRule['operator'] }; setData('eligibility_rules', next); }}>
+                                    <option value="equals">{t('transfers.ruleEquals')}</option><option value="in">{t('transfers.ruleIn')}</option><option value="greater_than_or_equal">{t('transfers.ruleAtLeast')}</option>
+                                </select>
+                                <input aria-label={t('transfers.ruleValue')} type="text" className={inputCls} value={rule.value} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, value: e.target.value }; setData('eligibility_rules', next); }} />
                                 <button
                                     type="button"
                                     onClick={() => setData('eligibility_rules', data.eligibility_rules.filter((_, j) => j !== i))}

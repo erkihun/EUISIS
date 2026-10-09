@@ -35,6 +35,10 @@ type Filters = { search: string; group: string; guard: string };
 
 const CRITICAL = new Set([
     'users.assignRoles',
+    'users.assignOrganizationScopes',
+    'user-organization-scopes.create',
+    'user-organization-scopes.update',
+    'user-organization-scopes.delete',
     'roles.assignPermissions',
     'permissions.delete',
     'system-settings.manageSecurity',

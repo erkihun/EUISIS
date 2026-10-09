@@ -14,6 +14,7 @@ enum TransferApplicationStatus: string
     case ReceivingPending = 'receiving_pending';
     case FinalApprovalPending = 'final_approval_pending';
     case Approved = 'approved';
+    case ImplementationFailed = 'implementation_failed';
     case Transferred = 'transferred';
     case Rejected = 'rejected';
     case Withdrawn = 'withdrawn';
@@ -64,6 +65,7 @@ enum TransferApplicationStatus: string
             self::ReceivingPending => 'Receiving Pending',
             self::FinalApprovalPending => 'Final Approval Pending',
             self::Approved => 'Approved',
+            self::ImplementationFailed => 'Implementation Failed',
             self::Transferred => 'Transferred',
             self::Rejected => 'Rejected',
             self::Withdrawn => 'Withdrawn',

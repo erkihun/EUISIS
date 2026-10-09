@@ -14,6 +14,7 @@ use App\Models\OrganizationUnitType;
 use App\Models\Position;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
+use App\Models\TransferApplication;
 
 /**
  * Central registry mapping entity_type values to their table metadata.
@@ -95,6 +96,13 @@ class CodeRuleTargetRegistry
                 'code_column' => 'code',
                 'label' => 'Service Type Code',
                 'immutable_after_create' => false,
+            ],
+            CodeRuleEntityType::TransferApplication->value => [
+                'model' => TransferApplication::class,
+                'table' => 'transfer_applications',
+                'code_column' => 'application_number',
+                'label' => 'Transfer Application Number',
+                'immutable_after_create' => true,
             ],
         ];
     }

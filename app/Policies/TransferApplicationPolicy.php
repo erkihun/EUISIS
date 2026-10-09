@@ -37,7 +37,11 @@ readonly class TransferApplicationPolicy
 
     public function withdraw(User $user, TransferApplication $application): bool
     {
-        return $this->isApplicant($user, $application) && ! $application->status->isFinal();
+        return $this->isApplicant($user, $application) && in_array($application->status, [
+            TransferApplicationStatus::Submitted,
+            TransferApplicationStatus::UnderReview,
+            TransferApplicationStatus::Verified,
+        ], true);
     }
 
     public function screen(User $user, TransferApplication $application): bool
@@ -54,7 +58,10 @@ readonly class TransferApplicationPolicy
     {
         return $user->can('transfers.approve')
             && $this->view($user, $application)
-            && $application->status === TransferApplicationStatus::Verified;
+            && in_array($application->status, [
+                TransferApplicationStatus::UnderReview,
+                TransferApplicationStatus::Verified,
+            ], true);
     }
 
     public function reject(User $user, TransferApplication $application): bool
@@ -89,7 +96,10 @@ readonly class TransferApplicationPolicy
     {
         return $user->can('transfers.complete')
             && $this->view($user, $application)
-            && $application->status === TransferApplicationStatus::Approved;
+            && in_array($application->status, [
+                TransferApplicationStatus::Approved,
+                TransferApplicationStatus::ImplementationFailed,
+            ], true);
     }
 
     private function isApplicant(User $user, TransferApplication $application): bool

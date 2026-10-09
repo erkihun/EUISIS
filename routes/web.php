@@ -103,7 +103,6 @@ use App\Http\Controllers\Web\PermissionController;
 use App\Http\Controllers\Web\PositionController;
 use App\Http\Controllers\Web\PositionEstablishmentController;
 use App\Http\Controllers\Web\PositionServiceController;
-use App\Http\Controllers\Web\WorkStructureController;
 use App\Http\Controllers\Web\ProviderUserController;
 use App\Http\Controllers\Web\PublicHolidayController;
 use App\Http\Controllers\Web\PublicIdCheckerController;
@@ -121,6 +120,7 @@ use App\Http\Controllers\Web\UserController;
 use App\Http\Controllers\Web\UserOrganizationScopeController;
 use App\Http\Controllers\Web\VacancyAnnouncementController;
 use App\Http\Controllers\Web\VacancyApplicationController;
+use App\Http\Controllers\Web\WorkStructureController;
 use App\Models\IdCard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -353,6 +353,10 @@ Route::middleware(['auth', 'force.password', 'admin.access'])->group(function ()
 
     Route::get('/my-portal/transfer-applications', [EmployeePortalController::class, 'myTransferApplications'])
         ->name('employee.transfer-applications');
+    Route::post('/my-portal/transfer-applications/{application}/withdraw', [EmployeePortalController::class, 'withdrawTransferApplication'])
+        ->whereUuid('application')->name('employee.transfer-applications.withdraw');
+    Route::get('/my-portal/transfer-application-documents/{document}', [EmployeePortalController::class, 'downloadTransferApplicationDocument'])
+        ->whereUuid('document')->name('employee.transfer-application-documents.download');
 
     /*
      * Transfer announcements inside the portal. The public pages render in
@@ -709,6 +713,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/transfer-announcements/create', [TransferAnnouncementController::class, 'create'])->name('transfer-announcements.create');
     Route::post('/transfer-announcements', [TransferAnnouncementController::class, 'store'])->name('transfer-announcements.store');
     Route::get('/transfer-announcements/{transferAnnouncement}', [TransferAnnouncementController::class, 'show'])->name('transfer-announcements.show');
+    Route::get('/transfer-announcements/{transferAnnouncement}/preview', [TransferAnnouncementController::class, 'preview'])->name('transfer-announcements.preview');
     Route::get('/transfer-announcements/{transferAnnouncement}/edit', [TransferAnnouncementController::class, 'edit'])->name('transfer-announcements.edit');
     Route::patch('/transfer-announcements/{transferAnnouncement}', [TransferAnnouncementController::class, 'update'])->name('transfer-announcements.update');
     Route::post('/transfer-announcements/{transferAnnouncement}/publish', [TransferAnnouncementController::class, 'publish'])->name('transfer-announcements.publish');
@@ -724,6 +729,7 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/transfer-applications/{transferApplication}/select', [TransferApplicationController::class, 'select'])->name('transfer-applications.select');
     Route::post('/transfer-applications/{transferApplication}/reject', [TransferApplicationController::class, 'reject'])->name('transfer-applications.reject');
     Route::post('/transfer-applications/{transferApplication}/withdraw', [TransferApplicationController::class, 'withdraw'])->name('transfer-applications.withdraw');
+    Route::post('/transfer-applications/{transferApplication}/complete', [TransferApplicationController::class, 'complete'])->name('transfer-applications.complete');
     Route::post('/transfer-applications/{transferApplication}/approve-release', [TransferApplicationController::class, 'approveRelease'])->name('transfer-applications.approve-release');
     Route::post('/transfer-applications/{transferApplication}/reject-release', [TransferApplicationController::class, 'rejectRelease'])->name('transfer-applications.reject-release');
     Route::post('/transfer-applications/{transferApplication}/approve-receiving', [TransferApplicationController::class, 'approveReceiving'])->name('transfer-applications.approve-receiving');

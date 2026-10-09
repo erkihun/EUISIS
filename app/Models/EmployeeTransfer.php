@@ -41,6 +41,10 @@ class EmployeeTransfer extends Model
         'transfer_source',
         'vacancy_application_id',
         'vacancy_announcement_id',
+        'transfer_application_id',
+        'destination_assignment_id',
+        'source_assignment_snapshot',
+        'destination_assignment_snapshot',
     ];
 
     protected function casts(): array
@@ -55,6 +59,8 @@ class EmployeeTransfer extends Model
             'rejected_at' => 'datetime',
             'completed_at' => 'datetime',
             'metadata' => 'array',
+            'source_assignment_snapshot' => 'array',
+            'destination_assignment_snapshot' => 'array',
         ];
     }
 

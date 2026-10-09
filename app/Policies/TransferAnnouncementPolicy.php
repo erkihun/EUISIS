@@ -8,10 +8,13 @@ use App\Enums\TransferAnnouncementStatus;
 use App\Models\TransferAnnouncement;
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
+use App\Services\OrganizationScope\OrganizationScopeService;
 
-class TransferAnnouncementPolicy
+readonly class TransferAnnouncementPolicy
 {
     use DeniesNonAdminUsers;
+
+    public function __construct(private OrganizationScopeService $organizationScopeService) {}
 
     public function viewAny(User $user): bool
     {
@@ -20,7 +23,8 @@ class TransferAnnouncementPolicy
 
     public function view(User $user, TransferAnnouncement $announcement): bool
     {
-        return $user->can('transfers.announcements.view');
+        return $user->can('transfers.announcements.view')
+            && $this->organizationScopeService->canAccessOrganization($user, $announcement->organization_id);
     }
 
     public function create(User $user): bool
@@ -32,12 +36,14 @@ class TransferAnnouncementPolicy
     public function update(User $user, TransferAnnouncement $announcement): bool
     {
         return $user->can('transfers.announcements.update')
+            && $this->organizationScopeService->canAccessOrganization($user, $announcement->organization_id)
             && $announcement->status === TransferAnnouncementStatus::Draft;
     }
 
     public function publish(User $user, TransferAnnouncement $announcement): bool
     {
-        return $user->can('transfers.announcements.publish');
+        return $user->can('transfers.announcements.publish')
+            && $this->organizationScopeService->canAccessOrganization($user, $announcement->organization_id);
     }
 
     /**
@@ -47,7 +53,8 @@ class TransferAnnouncementPolicy
      */
     public function close(User $user, TransferAnnouncement $announcement): bool
     {
-        return $user->can('transfers.announcements.close');
+        return $user->can('transfers.announcements.close')
+            && $this->organizationScopeService->canAccessOrganization($user, $announcement->organization_id);
     }
 
     /**
@@ -57,13 +64,16 @@ class TransferAnnouncementPolicy
     public function cancel(User $user, TransferAnnouncement $announcement): bool
     {
         // Cancelling a draft is part of closing announcements.
-        return $user->can('transfers.announcements.close');
+        return $user->can('transfers.announcements.close')
+            && $this->organizationScopeService->canAccessOrganization($user, $announcement->organization_id);
     }
 
     /** Deletion uses the 'update' permission (drafts only). */
     public function delete(User $user, TransferAnnouncement $announcement): bool
     {
-        return $user->can('transfers.announcements.update');
+        return $user->can('transfers.announcements.update')
+            && $this->organizationScopeService->canAccessOrganization($user, $announcement->organization_id)
+            && $announcement->status === TransferAnnouncementStatus::Draft;
     }
 
     public function restore(User $user, TransferAnnouncement $announcement): bool

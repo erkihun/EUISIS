@@ -92,6 +92,8 @@ class TransferAnnouncement extends Model
     public function isAcceptingApplications(): bool
     {
         return $this->status === TransferAnnouncementStatus::Published
+            && $this->opening_date !== null
+            && $this->closing_date !== null
             && $this->opening_date->lte(now())
             && $this->closing_date->gte(now());
     }

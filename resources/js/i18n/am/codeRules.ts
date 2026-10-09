@@ -83,6 +83,7 @@ const codeRules = {
         position_establishment: 'የስራ መደብ ምደባ ኮድ',
         vacancy_announcement: 'የክፍት ቦታ ማስታወቂያ ኮድ',
         vacancy_application: 'የክፍት ቦታ ማመልከቻ ኮድ',
+        transfer_application: 'የዝውውር ማመልከቻ ቁጥር',
         institution_office: 'የተቋም ቢሮ ኮድ',
         grievance_case: 'የቅሬታ ጉዳይ ቁጥር',
         grievance_decision: 'የቅሬታ ውሳኔ ቁጥር',

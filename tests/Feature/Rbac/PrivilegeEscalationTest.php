@@ -202,3 +202,43 @@ test('a Super Admin can grant a citywide scope', function (): void {
 
     expect($target->organizationScopes()->where('scope_type', 'citywide')->exists())->toBeTrue();
 });
+
+test('a Super Admin cannot receive an ineffective organization scope', function (): void {
+    $actor = escSuperAdmin();
+    $target = escSuperAdmin();
+
+    actingAs($actor)
+        ->post(route('users.organization-scopes.store', $target), ['scope_type' => 'citywide'])
+        ->assertSessionHasErrors('scope_type');
+
+    expect($target->organizationScopes()->count())->toBe(0);
+});
+
+test('a Super Admin cannot assign an organization scope to their own account', function (): void {
+    $actor = escSuperAdmin();
+
+    actingAs($actor)
+        ->post(route('users.organization-scopes.store', $actor), ['scope_type' => 'citywide'])
+        ->assertForbidden();
+
+    expect($actor->organizationScopes()->count())->toBe(0);
+});
+
+test('a legacy scope on a Super Admin cannot be changed through the endpoint', function (): void {
+    $actor = escSuperAdmin();
+    $target = escSuperAdmin();
+    $scope = UserOrganizationScope::query()->create([
+        'user_id' => $target->id,
+        'scope_type' => OrganizationScopeType::Citywide,
+        'is_active' => true,
+    ]);
+
+    actingAs($actor)
+        ->put(route('users.organization-scopes.update', [$target, $scope]), [
+            'scope_type' => 'citywide',
+            'is_active' => false,
+        ])
+        ->assertSessionHasErrors('scope_type');
+
+    expect($scope->fresh()->is_active)->toBeTrue();
+});

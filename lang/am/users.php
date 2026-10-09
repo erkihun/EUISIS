@@ -56,6 +56,7 @@ return [
     'roles_updated' => 'ሚናዎች ተዘምነዋል።',
 
     // Organization scopes
+    'organization_scope_unrestricted_role_forbidden' => 'ላልተገደበ አስተዳዳሪ ሚና የተቋም ወሰን መመደብ አይቻልም።',
     'organization_scope_assigned' => 'የተጠቃሚው የተቋም ወሰን በተሳካ ሁኔታ ተመድቧል።',
     'organization_scope_updated' => 'የተጠቃሚው የተቋም ወሰኖች በተሳካ ሁኔታ ተዘምነዋል።',
     'organization_scope_removed' => 'የተጠቃሚው የተቋም ወሰን በተሳካ ሁኔታ ተወግዷል።',

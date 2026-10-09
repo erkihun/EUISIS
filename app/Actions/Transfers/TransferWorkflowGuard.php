@@ -12,6 +12,7 @@ use App\Models\EmployeeTransfer;
 use App\Models\Organization;
 use App\Models\Position;
 use DomainException;
+use Illuminate\Support\Carbon;
 
 trait TransferWorkflowGuard
 {
@@ -40,7 +41,7 @@ trait TransferWorkflowGuard
         }
     }
 
-    private function ensureTransferTarget(Employee $employee, string $toOrganizationId, ?string $toPositionId): void
+    private function ensureTransferTarget(Employee $employee, string $toOrganizationId, ?string $toPositionId, ?string $effectiveDate = null): void
     {
         $fromOrganizationId = $employee->currentAssignment?->organization_id;
 
@@ -61,7 +62,11 @@ trait TransferWorkflowGuard
         if ($toPositionId !== null) {
             $position = Position::query()->findOrFail($toPositionId);
 
-            if (! $position->isSelectable()) {
+            if ($position->organization_id !== $toOrganizationId) {
+                throw new DomainException('Destination position must belong to the destination organization.');
+            }
+
+            if (! $position->isSelectable($effectiveDate === null ? null : Carbon::parse($effectiveDate))) {
                 throw new DomainException('Inactive or archived positions cannot be used for a new transfer.');
             }
         }

@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Closure;
+use Illuminate\Validation\Validator;
 
 /**
  * Shared organization rules for assigning a user organization scope.
@@ -23,6 +24,21 @@ use Closure;
  */
 trait ValidatesAssignableOrganization
 {
+    /**
+     * An unrestricted administrative role always bypasses organization scope.
+     * Persisting a scope on it is therefore misleading configuration rather
+     * than a restriction.  Keep legacy rows readable, but reject new/changed
+     * assignments through every write endpoint.
+     */
+    protected function rejectUnrestrictedRoleTarget(Validator $validator): void
+    {
+        $target = $this->route('user');
+
+        if ($target instanceof User && app(OrganizationScopeService::class)->hasUnrestrictedRole($target)) {
+            $validator->errors()->add('scope_type', __('users.organization_scope_unrestricted_role_forbidden'));
+        }
+    }
+
     /**
      * Guards the `scope_type` field: an actor who carries any explicit
      * organization-scope record is a *scoped* admin and may never grant a

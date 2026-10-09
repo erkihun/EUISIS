@@ -1,12 +1,13 @@
 import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import type { PageProps } from '@/types';
 
 type Application = {
     id: string;
+    application_number: string | null;
     status: string;
     status_label: string;
     submitted_at: string | null;
@@ -18,11 +19,13 @@ type Application = {
     announcement_id: string;
     closing_date: string | null;
     rejected_reason: string | null;
+    can_withdraw: boolean;
 };
 
 type Props = PageProps & {
-    applications: Application[];
+    applications: { data: Application[]; current_page: number; last_page: number } | null;
     has_employee: boolean;
+    filters: { status?: string; search?: string };
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -39,7 +42,7 @@ const STATUS_COLOR: Record<string, string> = {
     final_approval_pending: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
 };
 
-export default function MyTransferApplications({ applications, has_employee }: Props) {
+export default function MyTransferApplications({ applications, has_employee, filters }: Props) {
     const { t, locale } = useLocale();
     const name = (en: string | null, am: string | null) => localizedName(en ?? '', am, locale) || null;
     const statusLabel = (app: Application) => {
@@ -67,7 +70,7 @@ export default function MyTransferApplications({ applications, has_employee }: P
                 <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
                     <p className="font-medium text-amber-800 dark:text-amber-300">{t('transfers.noEmployeeProfile')}</p>
                 </div>
-            ) : applications.length === 0 ? (
+            ) : !applications || applications.data.length === 0 ? (
                 <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
                     <p className="text-sm text-gray-400 dark:text-slate-500">{t('transfers.noApplications')}</p>
                     <Link href={route('employee.announcements')} className="mt-4 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline">
@@ -76,7 +79,8 @@ export default function MyTransferApplications({ applications, has_employee }: P
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {applications.map(app => {
+                    <div className="grid gap-2 sm:grid-cols-[1fr_auto]"><input aria-label={t('common.search')} defaultValue={filters.search ?? ''} onChange={(event) => router.get(route('employee.transfer-applications'), { ...filters, search: event.target.value || undefined }, { preserveState: true, replace: true })} placeholder={t('common.search')} className="rounded-control border border-gray-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" /><select aria-label={t('common.status')} value={filters.status ?? ''} onChange={(event) => router.get(route('employee.transfer-applications'), { ...filters, status: event.target.value || undefined }, { preserveState: true, replace: true })} className="rounded-control border border-gray-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"><option value="">{t('common.all')}</option><option value="submitted">{t('transfers.statusSubmitted')}</option><option value="under_review">{t('transfers.statusUnderReview')}</option><option value="selected">{t('transfers.statusSelected')}</option><option value="withdrawn">{t('transfers.statusWithdrawn')}</option></select></div>
+                    {applications.data.map(app => {
                         const statusCls = STATUS_COLOR[app.status] ?? 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400';
                         return (
                             <div key={app.id} className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
@@ -91,6 +95,7 @@ export default function MyTransferApplications({ applications, has_employee }: P
                                         {app.organization_name && (
                                             <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{name(app.organization_name, app.organization_name_am)}</p>
                                         )}
+                                        {app.application_number && <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{t('transfers.applicationNumber')}: {app.application_number}</p>}
                                     </div>
                                     <span className={`inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusCls}`}>
                                         {statusLabel(app)}
@@ -115,9 +120,11 @@ export default function MyTransferApplications({ applications, has_employee }: P
                                         {app.rejected_reason}
                                     </div>
                                 )}
+                                {app.can_withdraw && <button type="button" onClick={() => { const reason = window.prompt(t('transfers.withdrawReasonPrompt')); if (reason?.trim()) router.post(route('employee.transfer-applications.withdraw', { application: app.id }), { reason: reason.trim() }); }} className="mt-3 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">{t('transfers.withdrawApplication')}</button>}
                             </div>
                         );
                     })}
+                    {applications.last_page > 1 && <div className="flex justify-between text-sm"><button type="button" disabled={applications.current_page <= 1} onClick={() => router.get(route('employee.transfer-applications'), { ...filters, page: applications.current_page - 1 }, { preserveState: true })} className="disabled:opacity-50">{t('common.previous')}</button><span>{applications.current_page} / {applications.last_page}</span><button type="button" disabled={applications.current_page >= applications.last_page} onClick={() => router.get(route('employee.transfer-applications'), { ...filters, page: applications.current_page + 1 }, { preserveState: true })} className="disabled:opacity-50">{t('common.next')}</button></div>}
                 </div>
             )}
         </PortalPage>

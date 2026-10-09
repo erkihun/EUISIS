@@ -14,6 +14,9 @@ type Application = {
     id: string;
     status: string;
     submitted_at: string | null;
+    effective_date: string | null;
+    approved_at: string | null;
+    implementation_failure: string | null;
     applicant_notes: string | null;
     rejected_reason: string | null;
     employee: { id: string; employee_number: string; full_name: string } | null;
@@ -48,6 +51,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
 
     const [rejectOpen, setRejectOpen] = useState(false);
     const rejectForm = useForm({ reason: '' });
+    const [effectiveDate, setEffectiveDate] = useState('');
 
     const APPROVAL_TYPE_LABELS: Record<string, string> = {
         release:   t('transfers.approvalTypeRelease'),
@@ -82,9 +86,19 @@ export default function TransferApplicationShow({ application, can }: Props) {
                                 </button>
                             )}
                             {can.select && ['under_review', 'verified'].includes(application.status) && (
-                                <button type="button" onClick={() => router.post(route('transfer-applications.select', application.id))} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700">
-                                    {t('transfers.select')}
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        aria-label={t('transfers.effectiveDate')}
+                                        className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+                                        min={new Date().toISOString().slice(0, 10)}
+                                        type="date"
+                                        value={effectiveDate}
+                                        onChange={(event) => setEffectiveDate(event.target.value)}
+                                    />
+                                    <button type="button" onClick={() => router.post(route('transfer-applications.select', application.id), effectiveDate ? { effective_date: effectiveDate } : {})} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700">
+                                        {t('transfers.select')}
+                                    </button>
+                                </div>
                             )}
                             {can.reject && !['rejected', 'withdrawn', 'cancelled', 'transferred'].includes(application.status) && (
                                 <button type="button" onClick={() => setRejectOpen(true)} className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400">
@@ -92,7 +106,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
                                 </button>
                             )}
                             {can.withdraw && (
-                                <button type="button" onClick={() => router.post(route('transfer-applications.withdraw', application.id))} className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-400">
+                                <button type="button" onClick={() => { const reason = window.prompt(t('transfers.withdrawReasonPrompt')); if (reason?.trim()) router.post(route('transfer-applications.withdraw', application.id), { reason: reason.trim() }); }} className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-400">
                                     {t('transfers.withdrawApplication')}
                                 </button>
                             )}
@@ -109,6 +123,11 @@ export default function TransferApplicationShow({ application, can }: Props) {
                             {can.approveFinal && application.status === 'final_approval_pending' && (
                                 <button type="button" onClick={() => router.post(route('transfer-applications.approve-final', application.id))} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-700">
                                     {t('transfers.approveFinal')}
+                                </button>
+                            )}
+                            {can.complete && ['approved', 'implementation_failed'].includes(application.status) && (
+                                <button type="button" onClick={() => router.post(route('transfer-applications.complete', application.id))} className="rounded-lg bg-emerald-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-800">
+                                    {t('transfers.implementTransfer')}
                                 </button>
                             )}
                         </div>

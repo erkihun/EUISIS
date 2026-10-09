@@ -24,9 +24,10 @@ type Announcement = {
     number_of_vacancies: number;
     opening_date: string | null;
     closing_date: string | null;
-    eligibility_rules: string | null;
-    required_documents: string | null;
+    eligibility_rules: Array<{ type: string; operator: string; value: string }> | null;
+    required_documents: string[] | null;
     is_open: boolean;
+    positions: Array<{ id: string | null; position_title_en: string | null; position_title_am: string | null; position_code: string | null; organization_unit_en: string | null; organization_unit_am: string | null; grade_level: string | null; advertised_slots: number; eligible: boolean | null; eligibility_reasons: string[] }>;
 };
 
 type Props = PageProps & {
@@ -49,7 +50,7 @@ export default function AnnouncementShow({ announcement, already_applied, has_em
     const name = (en: string | null, am: string | null) => localizedName(en ?? '', am, locale) || '—';
 
     const position = name(announcement.position_title_en, announcement.position_title_am);
-    const canApply = announcement.is_open && has_employee && !already_applied;
+    const canApply = announcement.is_open && has_employee && !already_applied && announcement.positions.some((position) => position.eligible !== false);
 
     return (
         <PortalPage
@@ -126,25 +127,32 @@ export default function AnnouncementShow({ announcement, already_applied, has_em
                     </dl>
                 </div>
 
-                {announcement.eligibility_rules && (
+                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('transfers.includedPositions')}</h2>
+                    <div className="mt-3 space-y-3">
+                        {announcement.positions.map((item, index) => <article key={item.id ?? `legacy-${index}`} className="rounded-lg border border-gray-200 p-4 dark:border-slate-700">
+                            <div className="flex flex-wrap items-start justify-between gap-2"><div><h3 className="font-medium text-gray-900 dark:text-white">{name(item.position_title_en, item.position_title_am)}</h3><p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{item.position_code ?? '—'} {item.grade_level ? `· ${t('transfers.gradeLevel')} ${item.grade_level}` : ''} {item.organization_unit_en ? `· ${name(item.organization_unit_en, item.organization_unit_am)}` : ''}</p></div><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.eligible === false ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300' : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'}`}>{item.eligible === false ? t('transfers.notEligible') : t('transfers.eligible')}</span></div>
+                            <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">{t('transfers.advertisedSlots')}: {item.advertised_slots}</p>
+                            {item.eligible === false && <p className="mt-2 text-xs text-amber-800 dark:text-amber-300">{t('transfers.requirementsNotMet')}</p>}
+                        </article>)}
+                    </div>
+                </section>
+
+                {announcement.eligibility_rules && announcement.eligibility_rules.length > 0 && (
                     <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {t('transfers.eligibilityRequirements')}
                         </h2>
-                        <p className="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-slate-300">
-                            {announcement.eligibility_rules}
-                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-gray-700 dark:text-slate-300">{announcement.eligibility_rules.map((rule, index) => <li key={index}>• {rule.type.replaceAll('_', ' ')}: {rule.value}</li>)}</ul>
                     </div>
                 )}
 
-                {announcement.required_documents && (
+                {announcement.required_documents && announcement.required_documents.length > 0 && (
                     <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                         <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
                             {t('transfers.requiredDocuments')}
                         </h2>
-                        <p className="mt-2 whitespace-pre-line text-sm text-gray-700 dark:text-slate-300">
-                            {announcement.required_documents}
-                        </p>
+                        <ul className="mt-2 space-y-1 text-sm text-gray-700 dark:text-slate-300">{announcement.required_documents.map((document, index) => <li key={index}>• {document}</li>)}</ul>
                     </div>
                 )}
             </div>
