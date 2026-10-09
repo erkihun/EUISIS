@@ -526,8 +526,14 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
 
 const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 
-const sections = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'fieldWork', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
+/**
+ * A section without its own labelKey is a standalone category: its single
+ * group's label is the heading and its pages are listed directly beneath it,
+ * so the label appears once (docs/field-work-navigation.md).
+ */
+const sections: { labelKey?: string; keys: string[] }[] = [
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
+    { keys: ['fieldWork'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];
@@ -751,13 +757,16 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         });
     }
 
-    function renderSection(labelKey: string, groups: NavGroup[]) {
+    /** A standalone category lists its pages directly; the collapsed rail keeps the group flyout. */
+    function renderSection(labelKey: string, groups: NavGroup[], standalone = false) {
         if (!groups.some((group) => matchingItems(group).length)) return null;
         return <div key={labelKey} className="mb-4 last:mb-0">
             {collapsed
                 ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
                 : <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase leading-relaxed tracking-[0.07em] text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
-            <div className="space-y-0.5">{groups.map(renderGroup)}</div>
+            {standalone && !collapsed
+                ? <ul className="space-y-px">{groups.flatMap((group) => matchingItems(group).map((item) => renderLink(item)))}</ul>
+                : <div className="space-y-0.5">{groups.map(renderGroup)}</div>}
         </div>;
     }
 
@@ -875,6 +884,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     ? visiblePortalSections.map((section) => renderSection(section.labelKey, section.groups))
                     : sections.map((section) => {
                         const groups = section.keys.flatMap((key) => visibleGroups.filter((group) => group.key === key));
+                        if (section.labelKey === undefined) return groups[0] ? renderSection(groups[0].labelKey, groups, true) : null;
                         if (section.labelKey === 'nav.sidebarGovernance' && visibleAdminNav.length) groups.push(adminGroup);
                         return renderSection(section.labelKey, groups);
                     })}

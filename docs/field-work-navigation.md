@@ -30,22 +30,24 @@ lists. It has no sidebar entry.
   use `nav.fieldWork*`. Nothing is hard-coded in JSX.
 - **Icon:** `MapPinned`, the Lucide glyph, added to the house icon set
   `Components/Icons.tsx`. No new icon library.
-- **Position:** the *People & organization* section, between Daily Activity
-  and Transfer Management. The rest of the sidebar was not reordered.
-- **Visibility:** each child is filtered by its permission. The existing
-  sidebar logic drops a group whose children are all hidden, so the category
-  never appears empty and never links to a 403.
+- **Position:** its own category, directly after the *People & organization*
+  section, at the same level as People, Operations and Governance. In
+  `sections` it is the standalone entry `{ keys: ['fieldWork'] }`: a section
+  with no label of its own takes its heading from the group's label, so
+  "Field Work Management" appears once, as the category heading, with its
+  pages listed directly beneath it. The rest of the sidebar was not reordered.
+- **Visibility:** each child is filtered by its permission. A category whose
+  children are all hidden is not rendered, so it never appears empty and
+  never links to a 403.
 - **Active state:** `activeRoute()` picks the item with the longest matching
-  route-name prefix. Any `field-work.*` route highlights its item and opens
-  the category: `field-work.requests.show` maps to Field Work Requests, and
-  the other routes map to themselves. Breadcrumbs (`navLocation()`) use the
-  same rule: *Field Work Management → Dashboard*, *→ Pending Approvals*, and
-  so on.
-- **Collapsed sidebar and mobile drawer:** the category is an ordinary
-  `NavGroup`, so the existing collapsed popover (icon plus tooltip) and the
-  mobile drawer render it with no extra code.
-- **Parent click:** groups in this sidebar toggle open and closed; they are
-  not links. The first child is the Dashboard.
+  route-name prefix. Any `field-work.*` route highlights its item:
+  `field-work.requests.show` maps to Field Work Requests, and the other
+  routes map to themselves. The pages are always listed, so the category is
+  always expanded. Breadcrumbs (`navLocation()`) use the same rule: *Field
+  Work Management → Dashboard*, *→ Pending Approvals*, and so on.
+- **Collapsed sidebar and mobile drawer:** in the collapsed rail the category
+  becomes one `MapPinned` icon that opens the usual flyout of its pages. The
+  mobile drawer shows the expanded layout.
 
 Inside the module, a tab row (`Components/fieldWork/ManagementNav.tsx`)
 offers the same pages, built from server abilities.

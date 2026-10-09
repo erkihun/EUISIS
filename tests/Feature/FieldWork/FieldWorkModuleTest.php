@@ -624,7 +624,9 @@ test('the admin sidebar has exactly one correctly spelled Field Work Management 
         ->and($am)->toContain("fieldWorkManagement: 'የመስክ ሥራ አስተዳደር'")
         ->and(substr_count($sidebar, "key: 'fieldWork'"))->toBe(1)
         ->and(substr_count($sidebar, "labelKey: 'nav.fieldWorkManagement'"))->toBe(1)
-        ->and($sidebar)->toMatch("/'dailyActivity', 'fieldWork', 'transferManagement'/");
+        // Its own category (a standalone section headed by the group's label), not a group inside People.
+        ->and($sidebar)->toContain("{ keys: ['fieldWork'] },")
+        ->and($sidebar)->toMatch("/labelKey: 'nav.sidebarPeople', keys: \\[[^\\]]*'dailyActivity', 'transferManagement'/");
 
     foreach (['Fild Work', 'Field Work Amangment', 'Field Work Managment', 'Fieldwork Management'] as $typo) {
         expect($en.$am.$sidebar)->not->toContain($typo);
