@@ -197,6 +197,7 @@ class FieldWorkPresenter
             'id' => $event->id,
             'event_type' => $event->event_type->value,
             'validation_status' => $event->validation_status->value,
+            'review_state' => $event->review_state,
             'captured_at' => $this->settings->local($event->captured_at),
             'received_at' => $this->settings->local($event->received_at),
             ...($precise ? [

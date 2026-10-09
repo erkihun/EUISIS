@@ -8,6 +8,7 @@ namespace App\Enums;
  * Lifecycle of a field work request (docs/field-work-management.md §Workflow).
  *
  *   draft ─submit→ pending_supervisor_approval ─approve→ approved ─first check-in→ in_field ─complete→ completed
+ *                     │            │                       ├─complete (only if GPS policy does not require check-in)→ completed
  *                     │            │                       │
  *                     │            ├─return→ returned_for_correction ─submit→ pending…
  *                     │            └─reject→ rejected
@@ -35,7 +36,8 @@ enum FieldWorkStatus: string
         return match ($this) {
             self::Draft, self::ReturnedForCorrection => [self::PendingSupervisorApproval, self::Cancelled],
             self::PendingSupervisorApproval => [self::Approved, self::ReturnedForCorrection, self::Rejected, self::Cancelled],
-            self::Approved => [self::InField, self::Cancelled],
+            // Approved -> Completed only when the GPS policy does not require a check-in.
+            self::Approved => [self::InField, self::Completed, self::Cancelled],
             self::InField => [self::Completed],
             self::Completed, self::Rejected, self::Cancelled => [],
         };

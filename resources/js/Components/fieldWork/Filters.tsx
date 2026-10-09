@@ -49,7 +49,7 @@ export default function Filters({ routeName, filters, options, showStatus = true
             )}
             <select aria-label={t('fieldWork.flags.overdue')} className={field} value={values.flag} onChange={(e) => set('flag', e.target.value)}>
                 <option value="">{t('fieldWork.filters.allFlags')}</option>
-                {(['overdue', 'check_in_missing', 'supervisor_not_resolved'] as const).map((f) => <option key={f} value={f}>{t(`fieldWork.flags.${f}`)}</option>)}
+                {(['overdue', 'check_in_missing', 'supervisor_not_resolved', 'gps_issues'] as const).map((f) => <option key={f} value={f}>{t(`fieldWork.flags.${f}`)}</option>)}
             </select>
             <select aria-label={t('fieldWork.columns.type')} className={field} value={values.field_work_type_id} onChange={(e) => set('field_work_type_id', e.target.value)}>
                 <option value="">{t('fieldWork.filters.allTypes')}</option>

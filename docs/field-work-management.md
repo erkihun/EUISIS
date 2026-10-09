@@ -19,6 +19,41 @@ category label for daily activity items. There were no field work tables,
 models, routes, pages, permissions, translations or tests, and no sidebar
 entry, so there was nothing to fix or merge. The module was built new.
 
+### Reconciliation with the earlier implementation on `main`
+
+While this module was in review, a second, independent Field Work
+implementation was committed to `main` (`98ba71b`). The two were reconciled.
+This module is the base, and the earlier one's distinctive pieces were ported
+into it:
+
+| From the earlier implementation | Here |
+|---|---|
+| GPS policy in System Settings (`FieldWorkGpsPolicyService`, `field_work_gps` group, `system-settings.manageFieldWorkGps`) | Wired into check-in/out and completion (see [GPS policy](#gps-policy)) |
+| `EmployeeAvailabilityService` + `EmployeeAvailabilityStatus` | Rewritten on participant check-ins; **Team Availability** page |
+| Attendance reconciliation shape | `FieldWorkAttendanceService::reconcileEmployeeDate()` |
+| `FieldWorkTypeSeeder` (10 starter types) | The one starter catalog (seeder and migration) |
+| CI workflow, `phpunit.pgsql.xml.dist`, PostgreSQL test-database guard | Kept; the CI workflow fixed (PHP 8.3, `bcmath`, Vite build) |
+| Sessions, location service/controller, duplicate pages | Superseded by participant check-in/out and the existing pages |
+
+**Database.** The earlier `2026_10_09_120000_create_field_work_management_tables`
+is kept unchanged, because it may have run somewhere. Its next migration
+(`120100`) wrote a non-existent `permissions.description` column and failed
+on every database, so nothing after `120000` ever ran. Those later files
+were replaced. `2026_10_09_122000_create_or_convert_field_work_schema` takes
+every database to the current schema by the same path:
+
+- `field_work_types` stays in place, with `sort_order`, `created_by` and
+  `updated_by` added.
+- `field_work_requests` and `field_work_participants` rows are read, the old
+  tables are dropped, the current tables are created, and the rows are
+  re-inserted with their ids, references, decisions (approver employees
+  mapped to their user accounts), snapshots and team membership.
+- `field_work_number_sequences` is dropped.
+
+Each converted request gets a history row recording the conversion. The
+conversion is idempotent, and it is tested on SQLite and verified on
+PostgreSQL 16, including from a real stuck `120000` state with rows.
+
 The domains it would integrate with do not exist yet either: **attendance,
 leave, training, official travel/mission, and an employee-availability
 service**. Where a contract already exists (`EmployeeLeaveProvider`), the
@@ -43,8 +78,9 @@ remote work, an attendance correction, daily work or EPMS.
 Field Work Management   (admin sidebar group, docs/field-work-navigation.md)
 ├── Dashboard            field-work.dashboard          /field-work
 ├── Field Work Requests  field-work.requests.index     /field-work/requests
-├── Pending Approvals    field-work.approvals.index    /field-work/approvals
+├── Pending Approvals    field-work.pending            /field-work/pending-approval
 ├── Team Field Work      field-work.team.index         /field-work/team
+├── Team Availability    field-work.availability.index /field-work/availability
 ├── Overdue / Unclosed   field-work.overdue.index      /field-work/overdue
 └── Field Work Types     field-work.types.index        /field-work/types
 
@@ -54,23 +90,25 @@ My Portal               (employee self-service)
 └── My Field Work History employee.field-work.history  /my-portal/field-work/history
 ```
 
-Not built in this release (see [Roadmap](#roadmap)): Team Availability,
-Field Work Calendar, Reports and exports, module settings page.
+GPS policy settings live in **System Settings → Field Work GPS** (shown with
+`system-settings.manageFieldWorkGps`). Not built in this release (see
+[Roadmap](#roadmap)): the Field Work Calendar, and reports and exports.
 
 ## Code map
 
 | Layer | Where |
 |---|---|
-| Tables | `2026_10_09_120000_create_field_work_tables.php`: `field_work_types`, `field_work_requests`, `field_work_participants`, `field_work_location_events`, `field_work_histories` |
-| Permissions and starter types | `2026_10_09_120100_register_field_work_permissions.php`, `database/seeders/data/field-work-permissions.php`, `App\Support\FieldWork\FieldWorkRoles` |
+| Tables | `2026_10_09_120000_create_field_work_management_tables.php` (earlier schema, kept) then `2026_10_09_122000_create_or_convert_field_work_schema.php`: `field_work_types`, `field_work_requests`, `field_work_participants`, `field_work_location_events`, `field_work_histories` |
+| Permissions and starter types | `2026_10_09_122100_register_field_work_permissions.php`, `database/seeders/data/field-work-permissions.php`, `App\Support\FieldWork\FieldWorkRoles`, `database/seeders/FieldWorkTypeSeeder.php` |
 | Enums | `App\Enums\FieldWork*` (status, destination type, schedule type, GPS event type, GPS validation, participant role, supervisor resolution, history action, monitoring flag) |
 | Models | `FieldWorkType`, `FieldWorkRequest`, `FieldWorkParticipant`, `FieldWorkLocationEvent` (immutable), `FieldWorkHistory` (append-only) |
 | Workflow | `App\Services\FieldWork\FieldWorkService`: every state change, row-locked |
 | Supervisor | `FieldWorkSupervisorResolver` |
 | Authorization | `FieldWorkAccess`, `App\Policies\FieldWorkRequestPolicy` |
-| GPS | `FieldWorkGeofence` (server-side haversine) |
+| GPS | `FieldWorkGeofence` (server-side haversine), `FieldWorkGpsPolicyService` (System Settings policy) |
 | Conflicts | `FieldWorkConflictDetector` |
 | Attendance read model | `FieldWorkAttendanceService` |
+| Availability | `EmployeeAvailabilityService` (docs/employee-availability.md) |
 | Lists and figures | `FieldWorkQueryService` |
 | Presentation | `FieldWorkPresenter` |
 | Notifications | `FieldWorkNotifier`, `App\Notifications\FieldWorkNotification` |
@@ -156,6 +194,23 @@ checked in) are *derived at read time* by the `overdue()` and
 them current, and no page visit is needed to detect them. No return time is
 invented.
 
+## GPS policy
+
+**System Settings → Field Work GPS** holds the policy. By default nothing is
+configured, and an unconfigured policy enforces nothing.
+
+| Setting | Effect |
+|---|---|
+| `max_accuracy_meters` + `low_accuracy_action` | `record_only`, `require_review` (stored with `review_state = pending_supervisor_review`), or `block` (refused: nothing is stored, so a corrected retry still works) |
+| `outside_geofence_action` | The same three choices, for readings outside a request's expected point and radius |
+| `require_check_in` / `require_check_out` | Whether the requester's GPS check-in and/or check-out must exist before completion |
+| `location_retention_days` | Recorded policy. There is no automatic purge yet. |
+| `offline_capture_policy`, `team_capture_policy` | Documented policy state only. Captures are live and per participant. |
+
+Readings that need a human look count toward the dashboard's **GPS
+verification issues** figure and its `gps_issues` filter: outside the area,
+low accuracy, or pending review.
+
 ## Dashboard figures
 
 All figures are scoped SQL `COUNT`s over team coverage plus organization
@@ -187,12 +242,12 @@ there is no attendance module to compare against (NEEDS_DECISION).
 | # | Decision | Current behaviour |
 |---|---|---|
 | 1 | Who may see exact GPS coordinates (`field_work.location.view_precise`) | Super Admin and System Admin only. It is withheld from City Admin and Public Service Bureau Admin. |
-| 2 | GPS data retention period | Kept indefinitely. No purge job. |
-| 3 | Refuse an OUTSIDE_EXPECTED_AREA check-in, or record and flag it | Recorded and flagged (`FIELD_WORK_GPS_BLOCK_OUTSIDE_AREA=false`) |
-| 4 | Accuracy threshold for LOW_ACCURACY | 100 m (`FIELD_WORK_GPS_MAX_ACCURACY_M`) |
+| 2 | GPS data retention period | Now a **setting** (`location_retention_days`). The policy is recorded, but there is no purge job yet. Data is kept until one is approved. |
+| 3 | Refuse an OUTSIDE_EXPECTED_AREA check-in, or record and flag it | Now a **setting** (`outside_geofence_action`). Unconfigured records the reading without enforcing anything. |
+| 4 | Accuracy threshold for LOW_ACCURACY | Now a **setting** (`max_accuracy_meters`, with `low_accuracy_action`). The fallback for classification only is 100 m (`FIELD_WORK_GPS_MAX_ACCURACY_M`). |
 | 5 | Acting / delegated supervisors | Not supported. There is no general delegation model. |
 | 6 | Whether completion needs a supervisor completion review | No review. Completion is final. |
-| 7 | Whether field work can be completed without any GPS check-in (GPS unavailable) | Not possible. Completion needs `in_field`. Unstarted work is cancelled instead. |
+| 7 | Whether field work can be completed without any GPS check-in (GPS unavailable) | Now a **setting** (`require_check_in`, `require_check_out`). Unconfigured allows completing approved work without GPS. A missing check-out is never fabricated. |
 | 8 | Conflict checks against training and official travel/mission | Not possible: those modules do not exist. Leave uses `EmployeeLeaveProvider`, whose current binding returns no leave. |
 | 9 | Attendance status name and reconciliation | `OFFICIAL_FIELD_WORK` intervals are exposed. Nothing is written until an attendance module exists. |
 | 10 | Line managers without `dashboard.view` | They use the My Portal sidebar, so the admin group is hidden from them. See [navigation](field-work-navigation.md#known-gap). |
@@ -203,9 +258,10 @@ there is no attendance module to compare against (NEEDS_DECISION).
 These were left out of this release on purpose, so it stays reviewable. Each
 needs either its own design or a module that does not exist yet:
 
-- **Team Availability.** Needs an authoritative `EmployeeAvailabilityService`
-  built across attendance, leave, training and travel. Today only field work
-  data exists.
+- **More availability statuses.** Statuses such as IN_OFFICE, LEAVE,
+  TRAINING and OFFICIAL_TRAVEL need those modules to exist first.
+- **Location retention job.** It should enforce `location_retention_days`
+  once a retention period is approved.
 - **Field Work Calendar.** A bounded day, week or month view over
   `FieldWorkRequest::overlapping()`, with no coordinates in the payload.
 - **Reports and exports.** The register by employee, organization, unit, type

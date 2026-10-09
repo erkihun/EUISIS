@@ -6,6 +6,7 @@ namespace App\Services\FieldWork;
 
 use App\Enums\AssignmentStatus;
 use App\Enums\FieldWorkDestinationType;
+use App\Enums\FieldWorkLocationValidation;
 use App\Enums\FieldWorkStatus;
 use App\Enums\FieldWorkSupervisorResolution;
 use App\Models\EmployeeAssignment;
@@ -97,6 +98,7 @@ class FieldWorkQueryService
             'check_in_missing' => $query->checkInMissing(),
             'supervisor_not_resolved' => $query->where('status', FieldWorkStatus::PendingSupervisorApproval->value)
                 ->where('supervisor_resolution', FieldWorkSupervisorResolution::NotResolved->value),
+            'gps_issues' => $this->withGpsIssues($query),
             default => null,
         };
 
@@ -181,7 +183,22 @@ class FieldWorkQueryService
             'supervisor_not_resolved' => $base()->where('status', FieldWorkStatus::PendingSupervisorApproval->value)
                 ->where('supervisor_resolution', FieldWorkSupervisorResolution::NotResolved->value)->count(),
             'completed_today' => $base()->where('status', FieldWorkStatus::Completed->value)->whereBetween('completed_at', [$dayStart, $dayEnd])->count(),
+            'gps_issues' => $this->withGpsIssues($base()->whereIn('status', [...FieldWorkStatus::openValues(), FieldWorkStatus::Completed->value]))->count(),
         ];
+    }
+
+    /**
+     * Requests with a GPS reading that needs a human look: outside the expected
+     * area, low accuracy, or flagged for review by the configured GPS policy.
+     *
+     * @param  Builder<FieldWorkRequest>  $query
+     * @return Builder<FieldWorkRequest>
+     */
+    public function withGpsIssues(Builder $query): Builder
+    {
+        return $query->whereHas('locationEvents', fn (Builder $events) => $events
+            ->where('review_state', 'pending_supervisor_review')
+            ->orWhereIn('validation_status', [FieldWorkLocationValidation::OutsideExpectedArea->value, FieldWorkLocationValidation::LowAccuracy->value]));
     }
 
     /** Employees currently placed in the user's team coverage or oversight scope. */

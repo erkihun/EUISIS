@@ -7,8 +7,10 @@ namespace App\Http\Controllers\FieldWork;
 use App\Enums\FieldWorkStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FieldWork\DecideFieldWorkRequest;
+use App\Models\FieldWorkParticipant;
 use App\Models\FieldWorkRequest;
 use App\Models\User;
+use App\Services\FieldWork\EmployeeAvailabilityService;
 use App\Services\FieldWork\FieldWorkPresenter;
 use App\Services\FieldWork\FieldWorkQueryService;
 use App\Services\FieldWork\FieldWorkService;
@@ -35,6 +37,7 @@ class FieldWorkManagementController extends Controller
         private readonly FieldWorkPresenter $presenter,
         private readonly FieldWorkService $service,
         private readonly FieldWorkSettings $settings,
+        private readonly EmployeeAvailabilityService $availability,
     ) {}
 
     public function dashboard(Request $request): Response
@@ -68,7 +71,7 @@ class FieldWorkManagementController extends Controller
         $user = $request->user();
         abort_unless($user->can('field_work.approve') || $user->can('field_work.return') || $user->can('field_work.reject'), 403);
 
-        return $this->listPage($request, 'FieldWork/Approvals', $this->queries->approvalQueue($user), 'field-work.approvals.index', oldestFirst: true);
+        return $this->listPage($request, 'FieldWork/Approvals', $this->queries->approvalQueue($user), 'field-work.pending', oldestFirst: true);
     }
 
     public function team(Request $request): Response
@@ -87,6 +90,36 @@ class FieldWorkManagementController extends Controller
         $query = $this->queries->managed($user)->where(fn (Builder $q) => $q->overdue()->orWhere(fn (Builder $c) => $c->checkInMissing()));
 
         return $this->listPage($request, 'FieldWork/Overdue', $query, 'field-work.overdue.index', oldestFirst: true);
+    }
+
+    /** Who is on field work right now, within team coverage / organization scope. */
+    public function availability(Request $request): Response
+    {
+        $user = $request->user();
+        abort_unless($this->canManage($user), 403);
+
+        $now = now();
+        $page = $this->availability->teamAvailability($user, $now, $this->perPage($request));
+
+        return Inertia::render('FieldWork/Availability', [
+            'rows' => [
+                'data' => collect($page->items())->map(fn (FieldWorkParticipant $p): array => [
+                    'id' => $p->id,
+                    'status' => $this->availability->statusOf($p, $now)->value,
+                    'employee' => $this->presenter->employee($p->employee),
+                    'organization_unit' => $p->organizationUnit ? ['name_en' => $p->organizationUnit->name_en, 'name_am' => $p->organizationUnit->name_am] : null,
+                    'request' => ['id' => $p->request->id, 'reference_number' => $p->request->reference_number],
+                    'destination' => $p->request->destinationOrganization
+                        ? ['name_en' => $p->request->destinationOrganization->name_en, 'name_am' => $p->request->destinationOrganization->name_am]
+                        : ['name_en' => $p->request->external_organization_name ?? $p->request->site_name ?? $p->request->destination_address, 'name_am' => null],
+                    'expected_return_at' => $this->settings->local($p->request->expected_return_at),
+                ])->all(),
+                'meta' => ['current_page' => $page->currentPage(), 'last_page' => $page->lastPage(), 'total' => $page->total(), 'from' => $page->firstItem(), 'to' => $page->lastItem(), 'per_page' => $page->perPage()],
+                'links' => $page->linkCollection()->toArray(),
+            ],
+            'at' => $this->settings->local($now),
+            'can' => $this->abilities($user),
+        ]);
     }
 
     public function show(Request $request, FieldWorkRequest $fieldWorkRequest): Response
@@ -162,6 +195,7 @@ class FieldWorkManagementController extends Controller
             'requests' => $this->canManage($user),
             'approvals' => $user->can('field_work.approve') || $user->can('field_work.return') || $user->can('field_work.reject'),
             'team' => $user->can('field_work.view_team'),
+            'availability' => $this->canManage($user),
             'overdue' => $this->canManage($user),
             'types' => $user->can('field_work.manage_types'),
             'oversight' => $user->can('field_work.view_org'),

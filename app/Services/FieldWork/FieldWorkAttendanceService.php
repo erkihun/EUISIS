@@ -73,6 +73,36 @@ class FieldWorkAttendanceService
         return $result;
     }
 
+    /**
+     * One employee-day, clipped to the local day, in the shape a future
+     * attendance module consumes. The state is always NEEDS_DECISION: with no
+     * attendance summary or biometric source installed, nothing here may
+     * decide present / absent, and no attendance row is ever written.
+     *
+     * @return array{state: string, attendance_status: ?string, status_source: ?string, reference_ids: list<string>, intervals: list<array{from: string, to: string, reference_id: string, reference_number: string, checked_in: bool}>, reason: string}
+     */
+    public function reconcileEmployeeDate(string $employeeId, Carbon $localDate): array
+    {
+        $dayStart = $localDate->copy()->startOfDay();
+        $dayEnd = $localDate->copy()->endOfDay();
+        $intervals = array_map(static fn (array $i): array => [
+            'from' => $i['starts_at']->copy()->max($dayStart)->toIso8601String(),
+            'to' => $i['ends_at']->copy()->min($dayEnd)->toIso8601String(),
+            'reference_id' => $i['field_work_request_id'],
+            'reference_number' => $i['reference_number'],
+            'checked_in' => $i['checked_in_at'] !== null,
+        ], $this->intervals([$employeeId], $dayStart, $dayEnd)[$employeeId] ?? []);
+
+        return [
+            'state' => 'needs_decision',
+            'attendance_status' => collect($intervals)->contains('checked_in', true) ? self::ATTENDANCE_STATUS : null,
+            'status_source' => $intervals === [] ? null : 'field_work',
+            'reference_ids' => array_values(array_unique(array_column($intervals, 'reference_id'))),
+            'intervals' => $intervals,
+            'reason' => 'No authoritative attendance summary or biometric integration is installed; no attendance row was changed.',
+        ];
+    }
+
     /** The covering interval at one instant, or null when the employee was not on field work. */
     public function at(string $employeeId, Carbon $instant): ?array
     {

@@ -13,6 +13,7 @@ return [
         'security_updated' => 'Security settings updated successfully.',
         'appearance_updated' => 'Appearance settings updated successfully.',
         'id_cards_updated' => 'ID card settings updated successfully.',
+        'field_work_gps_updated' => 'Field Work GPS policy updated.',
         'setting_updated' => 'Setting updated successfully.',
         'cache_cleared' => 'Settings cache cleared successfully.',
         'test_channel_missing' => ':channel test target is not configured.',

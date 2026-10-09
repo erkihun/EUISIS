@@ -91,7 +91,7 @@ readonly class FieldWorkRequestPolicy
     public function complete(User $user, FieldWorkRequest $request): bool
     {
         return $this->access->isRequester($user, $request)
-            && $request->status === FieldWorkStatus::InField
+            && in_array($request->status, [FieldWorkStatus::Approved, FieldWorkStatus::InField], true)
             && $user->can('field_work.complete');
     }
 }

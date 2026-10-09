@@ -29,6 +29,10 @@ Each interval contains:
 | `checked_in_at`, `checked_out_at` | Actual GPS times, `null` when absent |
 | `request_status` | `approved`, `in_field` or `completed` |
 
+`reconcileEmployeeDate($employeeId, $localDate)` returns the same intervals
+clipped to one local day, in the shape an attendance module would consume.
+Its `state` is always `needs_decision`, and it never writes anything.
+
 Only authorised statuses count (`approved`, `in_field`, `completed`). Drafts,
 pending, returned, rejected and cancelled requests explain no absence.
 

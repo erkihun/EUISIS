@@ -1,4 +1,5 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX, ReactNode } from 'react';
 import { FieldWorkStatusBadge, FlagBadge, LocationBadge } from './Badges';
@@ -104,6 +105,7 @@ export default function DetailSections({ fieldWork }: { fieldWork: FieldWorkDeta
                                         <li key={e.id} className="flex flex-wrap items-center gap-2 text-xs text-gray-700 dark:text-slate-300">
                                             <span className="font-medium">{t(`fieldWork.eventTypes.${e.event_type}`)}</span>
                                             <LocationBadge status={e.validation_status} />
+                                            {e.review_state === 'pending_supervisor_review' && <StatusBadge status="returned" label={t('fieldWork.gps.reviewRequired')} />}
                                             <LocalizedDateDisplay value={e.captured_at} withTime />
                                             {e.latitude !== undefined && (
                                                 <span className="tabular-nums text-gray-500 dark:text-slate-400">

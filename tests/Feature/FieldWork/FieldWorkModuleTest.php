@@ -19,16 +19,23 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Notifications\FieldWorkNotification;
 use App\Services\FieldWork\FieldWorkAttendanceService;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\SystemSettings\SystemSettingsRegistry;
+use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\DailyActivity\DailyActivityRoles;
 use App\Support\FieldWork\FieldWorkRoles;
+use App\Support\Rbac\DefaultRoleMatrix;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -566,15 +573,15 @@ test('HR oversight is scoped to the source organization; the destination organiz
 test('a manager sees only their own team in lists and the approval queue', function (): void {
     fwCreate($this->userA, ['action' => 'submit']);
 
-    $this->actingAs($this->supervisor)->get(route('field-work.approvals.index'))
+    $this->actingAs($this->supervisor)->get(route('field-work.pending'))
         ->assertInertia(fn (Assert $page) => $page->where('requests.meta.total', 1));
-    $this->actingAs($this->financeManager)->get(route('field-work.approvals.index'))
+    $this->actingAs($this->financeManager)->get(route('field-work.pending'))
         ->assertInertia(fn (Assert $page) => $page->where('requests.meta.total', 0));
     $this->actingAs($this->userA)->get(route('field-work.requests.index'))->assertForbidden();
 });
 
 test('management pages and type configuration require their own permissions', function (): void {
-    foreach (['field-work.dashboard', 'field-work.requests.index', 'field-work.approvals.index', 'field-work.team.index', 'field-work.overdue.index', 'field-work.types.index'] as $name) {
+    foreach (['field-work.dashboard', 'field-work.requests.index', 'field-work.pending', 'field-work.team.index', 'field-work.overdue.index', 'field-work.types.index'] as $name) {
         $this->actingAs($this->userA)->get(route($name))->assertForbidden();
     }
 
@@ -613,21 +620,21 @@ test('the admin sidebar has exactly one correctly spelled Field Work Management 
     $en = (string) file_get_contents(resource_path('js/i18n/en/navigation.ts'));
     $am = (string) file_get_contents(resource_path('js/i18n/am/navigation.ts'));
 
-    expect($en)->toContain("groupFieldWorkManagement: 'Field Work Management'")
-        ->and($am)->toContain("groupFieldWorkManagement: 'የመስክ ሥራ አስተዳደር'")
-        ->and(substr_count($sidebar, "key: 'fieldWorkManagement'"))->toBe(1)
-        ->and(substr_count($sidebar, "labelKey: 'nav.groupFieldWorkManagement'"))->toBe(1)
-        ->and($sidebar)->toMatch("/'dailyActivity', 'fieldWorkManagement', 'transferManagement'/");
+    expect($en)->toContain("fieldWorkManagement: 'Field Work Management'")
+        ->and($am)->toContain("fieldWorkManagement: 'የመስክ ሥራ አስተዳደር'")
+        ->and(substr_count($sidebar, "key: 'fieldWork'"))->toBe(1)
+        ->and(substr_count($sidebar, "labelKey: 'nav.fieldWorkManagement'"))->toBe(1)
+        ->and($sidebar)->toMatch("/'dailyActivity', 'fieldWork', 'transferManagement'/");
 
     foreach (['Fild Work', 'Field Work Amangment', 'Field Work Managment', 'Fieldwork Management'] as $typo) {
         expect($en.$am.$sidebar)->not->toContain($typo);
     }
 
     // The admin group: every child is a real route and carries a permission gate.
-    $start = strpos($sidebar, "key: 'fieldWorkManagement'");
+    $start = strpos($sidebar, "key: 'fieldWork'");
     $group = substr($sidebar, $start, strpos($sidebar, "key: 'transferManagement'") - $start);
     preg_match_all("/\\{ routeName: '([^']+)'[^}]*\\}/", $group, $items);
-    expect($items[1])->toBe(['field-work.dashboard', 'field-work.requests.index', 'field-work.approvals.index', 'field-work.team.index', 'field-work.overdue.index', 'field-work.types.index']);
+    expect($items[1])->toBe(['field-work.dashboard', 'field-work.requests.index', 'field-work.pending', 'field-work.team.index', 'field-work.availability.index', 'field-work.overdue.index', 'field-work.types.index']);
     foreach ($items[0] as $index => $item) {
         expect(Route::has($items[1][$index]))->toBeTrue()
             ->and($item)->toMatch('/(permission|anyPermission): /');
@@ -643,14 +650,14 @@ test('the admin sidebar has exactly one correctly spelled Field Work Management 
 
 test('each sidebar entry opens for the users it is shown to and is refused to the rest', function (): void {
     // Supervisor: dashboard, requests, approvals, team, overdue — not types.
-    foreach (['field-work.dashboard', 'field-work.requests.index', 'field-work.approvals.index', 'field-work.team.index', 'field-work.overdue.index'] as $name) {
+    foreach (['field-work.dashboard', 'field-work.requests.index', 'field-work.pending', 'field-work.team.index', 'field-work.overdue.index'] as $name) {
         $this->actingAs($this->supervisor)->get(route($name))->assertOk();
     }
     $this->actingAs($this->supervisor)->get(route('field-work.types.index'))->assertForbidden();
 
     // HR oversight: no approvals or team pages (their gates are approve/view_team).
     $this->actingAs($this->orgHr)->get(route('field-work.dashboard'))->assertOk();
-    $this->actingAs($this->orgHr)->get(route('field-work.approvals.index'))->assertForbidden();
+    $this->actingAs($this->orgHr)->get(route('field-work.pending'))->assertForbidden();
     $this->actingAs($this->orgHr)->get(route('field-work.team.index'))->assertForbidden();
 
     // Employee: My Portal pages only.
@@ -697,4 +704,212 @@ test('the browser may ask for location on this origin only (GPS check-in), and n
         ->toContain('payment=()')
         ->toContain('usb=()')
         ->not->toContain('geolocation=*');
+});
+
+// ── GPS policy (System Settings > Field Work GPS) ──────────────────────────
+
+/** @param array<string, mixed> $values */
+function fwGpsPolicy(array $values): void
+{
+    foreach ($values as $key => $value) {
+        $definition = SystemSettingsRegistry::definition(SystemSettingsRegistry::GROUP_FIELD_WORK_GPS, $key);
+        SystemSetting::query()->updateOrCreate(
+            ['group' => SystemSettingsRegistry::GROUP_FIELD_WORK_GPS, 'key' => $key],
+            ['value' => is_bool($value) ? ($value ? 'true' : 'false') : (string) $value, 'type' => $definition['type'], 'label_en' => $definition['label_en']],
+        );
+    }
+    app(SystemSettingsService::class)->clearCache();
+}
+
+test('a "block" GPS policy refuses an outside-area reading without storing it, and a corrected retry succeeds', function (): void {
+    fwGpsPolicy(['outside_geofence_action' => 'block']);
+    $request = fwApproved();
+    fwAt('09:00');
+
+    $this->actingAs($this->userA)->post(route('employee.field-work.check-in', $request), fwGps(9.08, 38.74))->assertSessionHasErrors('location');
+    expect(FieldWorkLocationEvent::query()->count())->toBe(0)
+        ->and($request->refresh()->status)->toBe(FieldWorkStatus::Approved);
+
+    $this->actingAs($this->userA)->post(route('employee.field-work.check-in', $request), fwGps(9.0301, 38.7401))->assertSessionHasNoErrors();
+    expect(FieldWorkLocationEvent::query()->sole()->validation_status)->toBe(FieldWorkLocationValidation::WithinExpectedArea);
+});
+
+test('a "require_review" policy stores the reading flagged and surfaces it as a GPS verification issue', function (): void {
+    fwGpsPolicy(['max_accuracy_meters' => 25, 'low_accuracy_action' => 'require_review']);
+    $request = fwApproved();
+    fwAt('09:00');
+
+    $this->actingAs($this->userA)->post(route('employee.field-work.check-in', $request), fwGps(9.0301, 38.7401, 40.0))->assertSessionHasNoErrors();
+    expect(FieldWorkLocationEvent::query()->sole()->review_state)->toBe('pending_supervisor_review');
+
+    $this->actingAs($this->supervisor)->get(route('field-work.dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('figures.gps_issues', 1));
+    $this->actingAs($this->supervisor)->get(route('field-work.requests.index', ['flag' => 'gps_issues']))
+        ->assertInertia(fn (Assert $page) => $page->where('requests.meta.total', 1));
+    $this->actingAs($this->supervisor)->get(route('field-work.requests.show', $request))
+        ->assertInertia(fn (Assert $page) => $page->where('fieldWork.participants.0.events.0.review_state', 'pending_supervisor_review'));
+});
+
+test('completion follows the configured check-in / check-out policy and never fabricates a check-out', function (): void {
+    $complete = fn (FieldWorkRequest $r) => $this->actingAs($this->userA)->post(route('employee.field-work.complete', $r), [
+        'actual_return_date' => FW_DAY, 'actual_return_time' => '11:00', 'completion_note' => 'Visit done.', 'follow_up_required' => false,
+    ]);
+
+    // Unconfigured: approved work can be closed without GPS (nothing enforced).
+    $plain = fwApproved();
+    fwAt('11:30');
+    $complete($plain)->assertSessionHasNoErrors();
+    expect($plain->refresh()->status)->toBe(FieldWorkStatus::Completed)
+        ->and(FieldWorkLocationEvent::query()->count())->toBe(0);
+
+    // Check-in required.
+    fwAt('08:00', '2026-10-13');
+    fwGpsPolicy(['require_check_in' => true, 'require_check_out' => true]);
+    $request = fwCreate($this->userA, ['action' => 'submit', 'start_date' => '2026-10-13', 'return_date' => '2026-10-13']);
+    $this->actingAs($this->supervisor)->post(route('field-work.requests.approve', $request));
+    fwAt('11:30', '2026-10-13');
+    $complete($request)->assertSessionHasErrors('status');
+
+    // Checked in, but check-out also required.
+    fwAt('09:00', '2026-10-13');
+    $this->actingAs($this->userA)->post(route('employee.field-work.check-in', $request), fwGps())->assertSessionHasNoErrors();
+    fwAt('11:30', '2026-10-13');
+    $complete($request)->assertSessionHasErrors('status');
+    expect($request->refresh()->status)->toBe(FieldWorkStatus::InField);
+});
+
+// ── Ported from the earlier implementation's checks (as behaviour) ────────
+
+test('switching the destination type clears the fields of the previous type', function (): void {
+    $request = fwCreate($this->userA, ['destination_organization_unit_id' => $this->foreignUnit->id]);
+
+    $this->actingAs($this->userA)->put(route('employee.field-work.update', $request), fwPayload([
+        'destination_type' => 'external_organization', 'external_organization_name' => 'Ethio Telecom', 'destination_address' => 'Bole',
+        'destination_organization_id' => $this->otherOrg->id, 'destination_organization_unit_id' => $this->foreignUnit->id,
+    ]))->assertSessionHasNoErrors();
+
+    $request->refresh();
+    expect($request->destination_organization_id)->toBeNull()
+        ->and($request->destination_organization_unit_id)->toBeNull()
+        ->and($request->external_organization_name)->toBe('Ethio Telecom');
+});
+
+test('an unresolved supervisor is announced to the requester with the localized SUPERVISOR_NOT_RESOLVED warning', function (): void {
+    DailyActivityReviewerAssignment::query()->delete();
+
+    $this->actingAs($this->userA)->post(route('employee.field-work.store'), fwPayload(['action' => 'submit']))
+        ->assertSessionHas('warning', __('field-work.supervisor_not_resolved'));
+    expect(__('field-work.supervisor_not_resolved', [], 'en'))->toContain('SUPERVISOR_NOT_RESOLVED')
+        ->and(__('field-work.supervisor_not_resolved', [], 'am'))->toContain('SUPERVISOR_NOT_RESOLVED');
+});
+
+test('the approval queue is SQL-scoped and paginated', function (): void {
+    foreach (range(1, 3) as $day) {
+        fwCreate($this->userA, ['action' => 'submit', 'start_date' => "2026-10-1{$day}", 'return_date' => "2026-10-1{$day}"]);
+    }
+
+    $this->actingAs($this->supervisor)->get(route('field-work.pending', ['per_page' => 10]))
+        ->assertInertia(fn (Assert $page) => $page->where('requests.meta.total', 3)->where('requests.meta.per_page', 10)->has('requests.data', 3));
+    $this->actingAs($this->financeManager)->get(route('field-work.pending'))
+        ->assertInertia(fn (Assert $page) => $page->where('requests.meta.total', 0));
+});
+
+test('every Field Work permission in the catalog is granted to at least one default role', function (): void {
+    $catalog = array_column(require database_path('seeders/data/field-work-permissions.php'), 'name');
+    $granted = collect(DefaultRoleMatrix::roles())->flatMap(fn (array $role): array => $role['permissions'])->unique();
+
+    expect($catalog)->toHaveCount(count(array_unique($catalog)))
+        ->and(array_values(array_diff($catalog, $granted->all())))->toBe([])
+        ->and($granted)->toContain('system-settings.manageFieldWorkGps');
+});
+
+// ── Team Availability ──────────────────────────────────────────────────────
+
+test('Team Availability lists who is in the field now, scoped, with no coordinates', function (): void {
+    $request = fwApproved();
+    fwAt('09:00');
+    $this->actingAs($this->userA)->post(route('employee.field-work.check-in', $request), fwGps(9.0301, 38.7401));
+    fwAt('10:00');
+
+    $this->actingAs($this->supervisor)->get(route('field-work.availability.index'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('FieldWork/Availability')
+            ->where('rows.meta.total', 1)
+            ->where('rows.data.0.status', 'official_field_work')
+            ->where('rows.data.0.employee.id', $this->employeeA->id)
+            ->missing('rows.data.0.latitude'));
+    $this->actingAs($this->destinationHr)->get(route('field-work.availability.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('rows.meta.total', 0));
+    $this->actingAs($this->userA)->get(route('field-work.availability.index'))->assertForbidden();
+});
+
+// ── Schema conversion (2026_10_09_122000) ──────────────────────────────────
+
+test('the schema conversion keeps the earlier implementation\'s rows, ids and references', function (): void {
+    $convert = require database_path('migrations/2026_10_09_122000_create_or_convert_field_work_schema.php');
+    $legacy = require database_path('migrations/2026_10_09_120000_create_field_work_management_tables.php');
+
+    // Back to the earlier schema, as a database that ran only the older 120000.
+    foreach (['field_work_histories', 'field_work_location_events', 'field_work_participants', 'field_work_requests'] as $table) {
+        Schema::dropIfExists($table);
+    }
+    // Out of the way rather than dropped: SQLite cannot drop a table carrying
+    // foreign keys inside the test's wrapping transaction.
+    Schema::rename('field_work_types', 'field_work_types_current');
+    DB::statement('DROP INDEX IF EXISTS field_work_types_code_unique');
+    DB::statement('DROP INDEX IF EXISTS fwt_active_sort_idx');
+    DB::statement('DROP INDEX IF EXISTS fwt_created_by_idx');
+    $legacy->up();
+
+    $typeId = (string) Str::uuid7();
+    DB::table('field_work_types')->insert(['id' => $typeId, 'code' => 'LEGACY_INSPECTION', 'name_en' => 'Inspection', 'name_am' => 'ምርመራ', 'is_active' => true, 'requires_location' => true, 'created_at' => now(), 'updated_at' => now()]);
+    $approvedId = (string) Str::uuid7();
+    $rejectedId = (string) Str::uuid7();
+    $base = [
+        'requester_employee_id' => $this->employeeA->id, 'requester_assignment_id' => $this->employeeA->current_assignment_id,
+        'organization_id' => $this->org->id, 'organization_unit_id' => $this->subUnit->id, 'position_id' => $this->position->id,
+        'organization_name_snapshot' => 'Civil Service Bureau', 'organization_unit_name_snapshot' => 'Records Team', 'position_name_snapshot' => 'HR Officer',
+        'field_work_type_id' => $typeId, 'destination_type' => 'field_site', 'destination_location' => 'Kality site', 'destination_address' => 'Akaki',
+        'external_contact_person' => 'Ato Kebede', 'external_contact_phone' => '+251911000000', 'purpose' => 'Legacy purpose',
+        'starts_at' => '2026-10-12 06:00:00', 'expected_return_at' => '2026-10-13 12:00:00', 'is_multi_day' => true,
+        'submitted_at' => '2026-10-11 07:00:00', 'created_by' => $this->userA->id, 'created_at' => now(), 'updated_at' => now(),
+    ];
+    $supervisorEmployee = fwEmployee('FW-S', 'supervisor@fw.test', $this->org, $this->unit, $this->position);
+    $this->supervisor->forceFill(['employee_id' => $supervisorEmployee->id])->save();
+    DB::table('field_work_requests')->insert([
+        ['id' => $approvedId, 'reference_number' => 'FW-2026-000001', ...$base, 'status' => 'approved', 'approved_by_employee_id' => $supervisorEmployee->id, 'approved_at' => '2026-10-11 09:00:00', 'approval_note' => 'OK',
+            'rejected_by_employee_id' => null, 'rejected_at' => null, 'rejection_reason' => null],
+        ['id' => $rejectedId, 'reference_number' => 'FW-2026-000002', ...$base, 'status' => 'rejected', 'approved_by_employee_id' => null, 'approved_at' => null, 'approval_note' => null,
+            'rejected_by_employee_id' => $supervisorEmployee->id, 'rejected_at' => '2026-10-11 10:00:00', 'rejection_reason' => 'Not needed'],
+    ]);
+    DB::table('field_work_participants')->insert([
+        ['id' => (string) Str::uuid7(), 'field_work_request_id' => $approvedId, 'employee_id' => $this->employeeA->id, 'organization_id' => $this->org->id, 'is_primary_requester' => true, 'created_at' => now(), 'updated_at' => now()],
+        ['id' => (string) Str::uuid7(), 'field_work_request_id' => $approvedId, 'employee_id' => $this->employeeB->id, 'organization_id' => null, 'is_primary_requester' => false, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+
+    $convert->up();
+    $convert->up(); // Idempotent.
+
+    $approved = FieldWorkRequest::query()->findOrFail($approvedId);
+    expect($approved->reference_number)->toBe('FW-2026-000001')
+        ->and($approved->status)->toBe(FieldWorkStatus::Approved)
+        ->and($approved->employee_assignment_id)->toBe($this->employeeA->current_assignment_id)
+        ->and($approved->context_snapshot['organization']['name_en'])->toBe('Civil Service Bureau')
+        ->and($approved->schedule_type->value)->toBe('multi_day')
+        ->and($approved->site_name)->toBe('Kality site')
+        ->and($approved->contact_person)->toBe('Ato Kebede')
+        ->and($approved->decided_by)->toBe($this->supervisor->id)
+        ->and($approved->decision_reason)->toBe('OK')
+        ->and($approved->is_team)->toBeTrue()
+        ->and($approved->participants()->where('role', 'lead')->value('employee_id'))->toBe($this->employeeA->id)
+        ->and($approved->participants()->where('employee_id', $this->employeeB->id)->value('organization_id'))->toBe($this->org->id)
+        ->and($approved->histories()->count())->toBe(1);
+    expect(FieldWorkRequest::query()->findOrFail($rejectedId)->decision_reason)->toBe('Not needed')
+        ->and(FieldWorkType::query()->findOrFail($typeId)->name_am)->toBe('ምርመራ')
+        ->and(Schema::hasTable('field_work_number_sequences'))->toBeFalse()
+        ->and(Schema::hasColumn('field_work_types', 'sort_order'))->toBeTrue();
+
+    // The converted request works in the current workflow.
+    fwAt('09:00');
+    $this->actingAs($this->userA)->post(route('employee.field-work.check-in', $approved), fwGps())->assertSessionHasNoErrors();
+    expect($approved->refresh()->status)->toBe(FieldWorkStatus::InField);
 });

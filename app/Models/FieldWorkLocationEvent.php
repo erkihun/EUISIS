@@ -44,6 +44,7 @@ class FieldWorkLocationEvent extends Model
         return [
             'event_type' => FieldWorkLocationEventType::class,
             'validation_status' => FieldWorkLocationValidation::class,
+            'review_state' => 'string',
             'latitude' => 'float',
             'longitude' => 'float',
             'accuracy_m' => 'float',

@@ -8,6 +8,18 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (config('database.default') === 'pgsql') {
+            $database = (string) config('database.connections.pgsql.database');
+            if (! str_ends_with($database, '_test')) {
+                throw new \RuntimeException('PostgreSQL tests require DB_TEST_DATABASE to name a dedicated database ending in _test.');
+            }
+        }
+    }
+
     /**
      * `actingAs()` stands for signing in. In a browser that starts a fresh
      * authenticated session: a new idle clock and a password-hash binding for

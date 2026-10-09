@@ -15,6 +15,7 @@ return [
         'security_updated' => 'የደህንነት ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
         'appearance_updated' => 'የገጽታ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
         'id_cards_updated' => 'የመታወቂያ ካርድ ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
+        'field_work_gps_updated' => 'የመስክ ሥራ የጂፒኤስ ፖሊሲ ተዘምኗል።',
         'setting_updated' => 'ቅንብሩ በተሳካ ሁኔታ ተዘምኗል።',
         'cache_cleared' => 'የቅንብር ካሽ በተሳካ ሁኔታ ተጽድቷል።',
         'test_channel_missing' => 'የ:channel የሙከራ መዳረሻ አልተቀናበረም።',

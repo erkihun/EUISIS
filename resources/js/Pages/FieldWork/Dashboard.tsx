@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link } from '@inertiajs/react';
 import type { JSX } from 'react';
 
-type Figures = Record<'team_members' | 'pending_approval' | 'approved_today' | 'in_field' | 'returning_today' | 'check_in_missing' | 'overdue' | 'supervisor_not_resolved' | 'completed_today', number>;
+type Figures = Record<'team_members' | 'pending_approval' | 'approved_today' | 'in_field' | 'returning_today' | 'check_in_missing' | 'overdue' | 'supervisor_not_resolved' | 'completed_today' | 'gps_issues', number>;
 
 type Props = {
     figures: Figures;
@@ -26,7 +26,7 @@ export default function FieldWorkDashboard({ figures, awaitingApproval, attentio
     const { t } = useLocale();
     const tiles: { key: keyof Figures; tone: 'primary' | 'success' | 'warning' | 'neutral'; href?: string }[] = [
         { key: 'team_members', tone: 'neutral' },
-        { key: 'pending_approval', tone: 'primary', href: can.approvals ? route('field-work.approvals.index') : undefined },
+        { key: 'pending_approval', tone: 'primary', href: can.approvals ? route('field-work.pending') : undefined },
         { key: 'approved_today', tone: 'success' },
         { key: 'in_field', tone: 'primary', href: route('field-work.requests.index', { status: 'in_field' }) },
         { key: 'returning_today', tone: 'neutral' },
@@ -34,6 +34,7 @@ export default function FieldWorkDashboard({ figures, awaitingApproval, attentio
         { key: 'overdue', tone: 'warning', href: route('field-work.overdue.index', { flag: 'overdue' }) },
         { key: 'supervisor_not_resolved', tone: 'warning', href: route('field-work.requests.index', { flag: 'supervisor_not_resolved' }) },
         { key: 'completed_today', tone: 'success' },
+        { key: 'gps_issues', tone: 'warning', href: route('field-work.requests.index', { flag: 'gps_issues' }) },
     ];
     const show = (row: FieldWorkSummary) => route('field-work.requests.show', row.id);
 

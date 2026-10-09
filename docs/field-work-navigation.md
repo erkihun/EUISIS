@@ -16,15 +16,16 @@ only related string was the Daily Activity category "Field work".
 |---|---|---|---|
 | Dashboard | `field-work.dashboard` (`/field-work`) | `FieldWork/Dashboard` | `field_work.view_team` or `field_work.view_org` |
 | Field Work Requests | `field-work.requests.index` | `FieldWork/Requests` | `field_work.view_team` or `field_work.view_org` |
-| Pending Approvals | `field-work.approvals.index` | `FieldWork/Approvals` | `field_work.approve`, `field_work.return` or `field_work.reject` |
+| Pending Approvals | `field-work.pending` | `FieldWork/Approvals` | `field_work.approve`, `field_work.return` or `field_work.reject` |
 | Team Field Work | `field-work.team.index` | `FieldWork/Team` | `field_work.view_team` |
+| Team Availability | `field-work.availability.index` | `FieldWork/Availability` | `field_work.view_team` or `field_work.view_org` |
 | Overdue / Unclosed | `field-work.overdue.index` | `FieldWork/Overdue` | `field_work.view_team` or `field_work.view_org` |
 | Field Work Types | `field-work.types.index` | `FieldWork/Types` | `field_work.manage_types` |
 
 The request detail page (`field-work.requests.show`) is opened from the
 lists. It has no sidebar entry.
 
-- **Label:** `nav.groupFieldWorkManagement`, which reads "Field Work
+- **Label:** `nav.fieldWorkManagement`, which reads "Field Work
   Management" in English and "የመስክ ሥራ አስተዳደር" in Amharic. Child labels
   use `nav.fieldWork*`. Nothing is hard-coded in JSX.
 - **Icon:** `MapPinned`, the Lucide glyph, added to the house icon set
@@ -65,10 +66,15 @@ who also have an employee record see the same three links in their
 duplicate definition. **No employee self-service link appears in the admin
 category, and no management link appears in My Portal.**
 
+Group key `fieldWork`, label key `nav.fieldWorkManagement` and the approvals
+route `field-work.pending` (`/field-work/pending-approval`) are the names the
+earlier implementation on `main` already used. They were kept, so nothing
+that referenced them breaks.
+
 ## Duplicate check
 
 Every navigation source was searched: the sidebar, the portal sections, the
-breadcrumbs and the module tab rows. There is exactly one `fieldWorkManagement` group,
+breadcrumbs and the module tab rows. There is exactly one `fieldWork` group,
 one definition of each route, and no "Official Duty" or second Field Work
 category. The test *the admin sidebar has exactly one correctly spelled Field
 Work Management category…* enforces this and rejects the misspellings "Fild

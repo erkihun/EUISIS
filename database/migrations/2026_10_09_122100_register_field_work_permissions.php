@@ -6,15 +6,17 @@ use App\Models\Permission;
 use App\Support\DailyActivity\DailyActivityRoles;
 use App\Support\FieldWork\FieldWorkRoles;
 use App\Support\Performance\PerformanceRoles;
+use App\Support\Rbac\PermissionCatalog;
+use Database\Seeders\FieldWorkTypeSeeder;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Registers Field Work permissions, grants them to the existing default roles
- * (the same sets DefaultRoleMatrix uses), and seeds a starter type catalog.
+ * (the same sets DefaultRoleMatrix uses), registers the Field Work GPS policy
+ * settings permission, and seeds the starter type catalog.
  *
  * Additive only: no grant is revoked, no user assignment changes, and the
  * starter types are inserted only when the catalog is empty, so an
@@ -54,27 +56,17 @@ return new class extends Migration
             Role::query()->where('name', $roleName)->where('guard_name', 'web')->first()?->givePermissionTo($permissions);
         }
 
+        // GPS policy administration lives in System Settings (system-settings group).
+        $gps = PermissionCatalog::all()['system-settings.manageFieldWorkGps'];
+        Permission::query()->updateOrCreate(['name' => $gps['name'], 'guard_name' => 'web'], array_diff_key($gps, ['name' => true]));
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        foreach (['Super Admin', 'System Admin'] as $roleName) {
+            Role::query()->where('name', $roleName)->where('guard_name', 'web')->first()?->givePermissionTo($gps['name']);
+        }
+
+        // Same editable starter catalog as FieldWorkTypeSeeder; only into an empty table.
         if (! DB::table('field_work_types')->exists()) {
-            $now = now();
-            $starter = [
-                ['INSPECTION', 'Inspection', 'ኢንስፔክሽን'],
-                ['SUPERVISION', 'Supervision', 'ሱፐርቪዥን'],
-                ['TECH_SUPPORT', 'Technical Support', 'የቴክኒክ ድጋፍ'],
-                ['MONITORING', 'Monitoring', 'ክትትል'],
-                ['SITE_VISIT', 'Site Visit', 'የቦታ ጉብኝት'],
-                ['FIELD_VERIFICATION', 'Field Verification', 'የመስክ ማረጋገጫ'],
-                ['SERVICE_DELIVERY', 'Service Delivery', 'የአገልግሎት አሰጣጥ'],
-            ];
-            DB::table('field_work_types')->insert(array_map(static fn (array $row, int $index): array => [
-                'id' => (string) Str::uuid7(),
-                'code' => $row[0],
-                'name_en' => $row[1],
-                'name_am' => $row[2],
-                'is_active' => true,
-                'sort_order' => ($index + 1) * 10,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ], $starter, array_keys($starter)));
+            (new FieldWorkTypeSeeder)->run();
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();

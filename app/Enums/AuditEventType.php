@@ -6,6 +6,16 @@ namespace App\Enums;
 
 enum AuditEventType: string
 {
+    // Written only by the earlier Field Work implementation; kept so audit rows
+    // it may have produced still load. Current events: FieldWork* below.
+    case LegacyFieldWorkCreated = 'field_work_created';
+    case LegacyFieldWorkSubmitted = 'field_work_submitted';
+    case LegacyFieldWorkApproved = 'field_work_approved';
+    case LegacyFieldWorkReturned = 'field_work_returned';
+    case LegacyFieldWorkRejected = 'field_work_rejected';
+    case LegacyFieldWorkCompleted = 'field_work_completed';
+    case LegacyFieldWorkCheckInRecorded = 'field_work_check_in_recorded';
+    case LegacyFieldWorkCheckOutRecorded = 'field_work_check_out_recorded';
     case BackupStatusViewed = 'BACKUP_STATUS_VIEWED';
     case BackupStarted = 'BACKUP_STARTED';
     case BackupCompleted = 'BACKUP_COMPLETED';

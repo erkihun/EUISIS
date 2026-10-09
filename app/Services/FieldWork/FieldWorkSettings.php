@@ -16,7 +16,10 @@ use Illuminate\Support\Carbon;
  */
 class FieldWorkSettings
 {
-    public function __construct(private readonly SystemSettingsService $settings) {}
+    public function __construct(
+        private readonly SystemSettingsService $settings,
+        private readonly FieldWorkGpsPolicyService $gpsPolicy,
+    ) {}
 
     public function timezone(): string
     {
@@ -58,9 +61,16 @@ class FieldWorkSettings
         return $instant->copy()->setTimezone(date_default_timezone_get());
     }
 
+    /**
+     * Accuracy above which a reading is classified LOW_ACCURACY: the GPS policy
+     * value when an administrator configured one, otherwise the config default.
+     * Classification only; enforcement follows the policy's low-accuracy action.
+     */
     public function maxAccuracyMeters(): float
     {
-        return (float) config('field-work.gps.max_acceptable_accuracy_m', 100);
+        $configured = $this->gpsPolicy->snapshot()['max_accuracy_meters'];
+
+        return is_int($configured) ? (float) $configured : (float) config('field-work.gps.max_acceptable_accuracy_m', 100);
     }
 
     public function maxCaptureAgeMinutes(): int
@@ -71,11 +81,6 @@ class FieldWorkSettings
     public function maxFutureSkewMinutes(): int
     {
         return (int) config('field-work.gps.max_future_skew_minutes', 2);
-    }
-
-    public function blockOutsideExpectedArea(): bool
-    {
-        return (bool) config('field-work.gps.block_outside_expected_area', false);
     }
 
     public function maxGeofenceRadius(): int

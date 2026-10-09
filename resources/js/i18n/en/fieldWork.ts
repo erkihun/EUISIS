@@ -19,6 +19,7 @@ export default {
         overdue: 'Overdue / not closed',
         check_in_missing: 'Check-in missing',
         supervisor_not_resolved: 'Supervisor not resolved',
+        gps_issues: 'GPS verification issues',
     },
     destinationTypes: {
         registered_organization: 'Registered organization',
@@ -144,6 +145,7 @@ export default {
         coordinates: 'Coordinates',
         noEvents: 'No check-in recorded yet.',
         precise: 'Exact coordinates are shown because you hold the privileged location permission. This view is audited.',
+        reviewRequired: 'Needs supervisor review',
     },
 
     my: {
@@ -215,6 +217,7 @@ export default {
             overdue: 'Check-out overdue',
             supervisor_not_resolved: 'Supervisor not resolved',
             completed_today: 'Completed today',
+            gps_issues: 'GPS verification issues',
         },
         awaiting: 'Awaiting your decision',
         attention: 'Needs attention',
@@ -224,6 +227,19 @@ export default {
         emptyTeam: 'No employees currently in field work.',
         emptyOverdue: 'No overdue field work.',
         emptyPreview: 'Nothing here.',
+    },
+
+    availability: {
+        title: 'Team Availability',
+        description: 'Who is on official field work right now. This is workflow status, not live location or attendance.',
+        empty: 'No employees are on field work right now.',
+        expectedReturn: 'Expected return',
+        unknownNote: 'Employees not listed are UNKNOWN, not absent: EUISIS has no attendance, leave, training or travel source yet.',
+        status: {
+            official_field_work: 'On official field work',
+            approved_not_checked_in: 'Approved, not checked in',
+            unknown: 'Unknown',
+        },
     },
 
     filters: {

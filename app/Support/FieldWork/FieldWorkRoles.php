@@ -60,5 +60,7 @@ final class FieldWorkRoles
      */
     public const CITY_ADMIN_WITHHELD = [
         'field_work.location.view_precise',
+        // GPS enforcement policy is a security decision (System Settings).
+        'system-settings.manageFieldWorkGps',
     ];
 }

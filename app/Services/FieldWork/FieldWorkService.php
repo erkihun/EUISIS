@@ -54,6 +54,7 @@ class FieldWorkService
         private readonly FieldWorkGeofence $geofence,
         private readonly FieldWorkSettings $settings,
         private readonly FieldWorkNotifier $notifier,
+        private readonly FieldWorkGpsPolicyService $gpsPolicy,
         private readonly WriteAuditLogAction $audit,
     ) {}
 
@@ -296,9 +297,10 @@ class FieldWorkService
             $locked = $this->lock($request);
             $from = $locked->status;
             $this->assertCanMove($locked, FieldWorkStatus::Completed);
+            $this->assertGpsCompletionPolicy($locked);
 
             $actualReturn = $data['actual_return_at'];
-            if ($actualReturn->gt(now()) || ($locked->actual_start_at !== null && $actualReturn->lt($locked->actual_start_at))) {
+            if ($actualReturn->gt(now()) || $actualReturn->lt($locked->actual_start_at ?? $locked->starts_at)) {
                 throw ValidationException::withMessages(['actual_return_date' => __('field-work.errors.actual_return_range')]);
             }
 
@@ -324,6 +326,22 @@ class FieldWorkService
     }
 
     // ── Workflow internals ───────────────────────────────────────────────────
+
+    /**
+     * System Settings > Field Work GPS decides whether a check-in and/or a
+     * check-out must exist before completion. Unconfigured enforces neither,
+     * and a missing check-out is never fabricated.
+     */
+    private function assertGpsCompletionPolicy(FieldWorkRequest $request): void
+    {
+        if ($request->status === FieldWorkStatus::Approved && $this->gpsPolicy->requiresCheckIn()) {
+            throw ValidationException::withMessages(['status' => __('field-work.errors.check_in_required')]);
+        }
+        if ($this->gpsPolicy->requiresCheckOut()
+            && ! $request->participants()->where('employee_id', $request->requester_employee_id)->whereNotNull('checked_out_at')->exists()) {
+            throw ValidationException::withMessages(['status' => __('field-work.errors.check_out_required')]);
+        }
+    }
 
     private function decide(User $actor, FieldWorkRequest $request, FieldWorkStatus $to, FieldWorkHistoryAction $action, AuditEventType $event, ?string $comment, string $notice): FieldWorkRequest
     {
@@ -579,8 +597,11 @@ class FieldWorkService
     {
         $check = $this->geofence->evaluate($request, $gps['latitude'], $gps['longitude'], $gps['accuracy']);
 
-        if ($check['status'] === FieldWorkLocationValidation::OutsideExpectedArea && $this->settings->blockOutsideExpectedArea()) {
-            throw ValidationException::withMessages(['location' => __('field-work.errors.outside_area')]);
+        // Configured policy: "block" refuses the reading (nothing is stored, so a
+        // corrected retry is still possible); "require_review" stores it flagged.
+        $verdict = $this->gpsPolicy->evaluate($this->gpsPolicy->snapshot(), $gps['accuracy'], $check['status'] === FieldWorkLocationValidation::OutsideExpectedArea);
+        if ($verdict['blocked']) {
+            throw ValidationException::withMessages(['location' => __('field-work.errors.gps_blocked')]);
         }
 
         $event = new FieldWorkLocationEvent;
@@ -596,6 +617,7 @@ class FieldWorkService
             'received_at' => now(),
             'distance_m' => $check['distance_m'],
             'validation_status' => $check['status'],
+            'review_state' => $verdict['review_state'],
             'recorded_by' => $actor->getKey(),
         ])->save();
 

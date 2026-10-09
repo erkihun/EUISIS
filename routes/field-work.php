@@ -51,8 +51,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     ->group(function (): void {
         Route::get('/', [FieldWorkManagementController::class, 'dashboard'])->name('dashboard');
         Route::get('/requests', [FieldWorkManagementController::class, 'index'])->name('requests.index');
-        Route::get('/approvals', [FieldWorkManagementController::class, 'approvals'])->name('approvals.index');
+        Route::get('/pending-approval', [FieldWorkManagementController::class, 'approvals'])->name('pending');
         Route::get('/team', [FieldWorkManagementController::class, 'team'])->name('team.index');
+        Route::get('/availability', [FieldWorkManagementController::class, 'availability'])->name('availability.index');
         Route::get('/overdue', [FieldWorkManagementController::class, 'overdue'])->name('overdue.index');
 
         Route::get('/requests/{fieldWorkRequest}', [FieldWorkManagementController::class, 'show'])->whereUuid('fieldWorkRequest')->name('requests.show');

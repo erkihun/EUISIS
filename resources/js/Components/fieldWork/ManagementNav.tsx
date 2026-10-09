@@ -12,14 +12,15 @@ export default function ManagementNav({ can, current }: { can: ManagementAbiliti
     const entries = [
         { route: 'field-work.dashboard', label: 'nav.fieldWorkDashboard', show: can.dashboard },
         { route: 'field-work.requests.index', label: 'nav.fieldWorkRequests', show: can.requests },
-        { route: 'field-work.approvals.index', label: 'nav.fieldWorkApprovals', show: can.approvals },
+        { route: 'field-work.pending', label: 'nav.fieldWorkApprovals', show: can.approvals },
         { route: 'field-work.team.index', label: 'nav.fieldWorkTeam', show: can.team },
+        { route: 'field-work.availability.index', label: 'nav.fieldWorkAvailability', show: can.availability },
         { route: 'field-work.overdue.index', label: 'nav.fieldWorkOverdue', show: can.overdue },
         { route: 'field-work.types.index', label: 'nav.fieldWorkTypes', show: can.types },
     ].filter((entry) => entry.show);
 
     return (
-        <nav className="-mx-1 flex gap-1 overflow-x-auto border-b border-gray-200 pb-px text-sm dark:border-slate-800" aria-label={t('nav.groupFieldWorkManagement')}>
+        <nav className="-mx-1 flex gap-1 overflow-x-auto border-b border-gray-200 pb-px text-sm dark:border-slate-800" aria-label={t('nav.fieldWorkManagement')}>
             {entries.map((entry) => {
                 const active = entry.route === current;
                 return (

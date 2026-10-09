@@ -8,6 +8,7 @@ use App\Enums\AssignmentStatus;
 use App\Enums\FieldWorkDestinationType;
 use App\Enums\FieldWorkLocationValidation;
 use App\Enums\FieldWorkStatus;
+use App\Enums\FieldWorkSupervisorResolution;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\FieldWork\CompleteFieldWorkRequest;
 use App\Http\Requests\FieldWork\RecordFieldWorkLocationRequest;
@@ -81,8 +82,7 @@ class FieldWorkController extends Controller
 
         $fieldWork = $this->service->create($request->user(), $request->payload(), $request->submitting());
 
-        return redirect()->route('employee.field-work.show', $fieldWork)
-            ->with('success', __($request->submitting() ? 'field-work.flash.submitted' : 'field-work.flash.saved'));
+        return $this->afterSave(redirect()->route('employee.field-work.show', $fieldWork), $fieldWork, $request->submitting());
     }
 
     public function show(Request $request, FieldWorkRequest $fieldWorkRequest): Response
@@ -121,18 +121,17 @@ class FieldWorkController extends Controller
         $this->authorize('update', $fieldWorkRequest);
         abort_if($request->submitting() && ! $request->user()->can('field_work.submit_own'), 403);
 
-        $this->service->update($request->user(), $fieldWorkRequest, $request->payload(), $request->submitting());
+        $fieldWork = $this->service->update($request->user(), $fieldWorkRequest, $request->payload(), $request->submitting());
 
-        return redirect()->route('employee.field-work.show', $fieldWorkRequest)
-            ->with('success', __($request->submitting() ? 'field-work.flash.submitted' : 'field-work.flash.saved'));
+        return $this->afterSave(redirect()->route('employee.field-work.show', $fieldWork), $fieldWork, $request->submitting());
     }
 
     public function submit(Request $request, FieldWorkRequest $fieldWorkRequest): RedirectResponse
     {
         $this->authorize('submit', $fieldWorkRequest);
-        $this->service->submit($request->user(), $fieldWorkRequest);
+        $fieldWork = $this->service->submit($request->user(), $fieldWorkRequest);
 
-        return back()->with('success', __('field-work.flash.submitted'));
+        return $this->afterSave(back(), $fieldWork, true);
     }
 
     public function cancel(Request $request, FieldWorkRequest $fieldWorkRequest): RedirectResponse
@@ -286,6 +285,16 @@ class FieldWorkController extends Controller
             'canSubmit' => $request->user()->can('field_work.submit_own'),
             'today' => $this->settings->today()->toDateString(),
         ];
+    }
+
+    /** A submission nobody can decide is announced as a warning, not a plain success. */
+    private function afterSave(RedirectResponse $response, FieldWorkRequest $fieldWork, bool $submitted): RedirectResponse
+    {
+        if ($submitted && $fieldWork->supervisor_resolution === FieldWorkSupervisorResolution::NotResolved) {
+            return $response->with('warning', __('field-work.supervisor_not_resolved'));
+        }
+
+        return $response->with('success', __($submitted ? 'field-work.flash.submitted' : 'field-work.flash.saved'));
     }
 
     private function ownsOrParticipates(Request $request, FieldWorkRequest $fieldWorkRequest): bool

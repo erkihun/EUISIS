@@ -340,14 +340,15 @@ const navGroups: NavGroup[] = [
          * the permission its page checks; the page re-checks permission,
          * scope and the record server-side.
          */
-        key: 'fieldWorkManagement',
-        labelKey: 'nav.groupFieldWorkManagement',
+        key: 'fieldWork',
+        labelKey: 'nav.fieldWorkManagement',
         icon: MapPinned,
         items: [
             { routeName: 'field-work.dashboard', labelKey: 'nav.fieldWorkDashboard', icon: LayoutDashboard, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
             { routeName: 'field-work.requests.index', labelKey: 'nav.fieldWorkRequests', icon: ClipboardListIcon, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
-            { routeName: 'field-work.approvals.index', labelKey: 'nav.fieldWorkApprovals', icon: ClipboardCheckIcon, anyPermission: ['field_work.approve', 'field_work.return', 'field_work.reject'] },
+            { routeName: 'field-work.pending', labelKey: 'nav.fieldWorkApprovals', icon: ClipboardCheckIcon, anyPermission: ['field_work.approve', 'field_work.return', 'field_work.reject'] },
             { routeName: 'field-work.team.index', labelKey: 'nav.fieldWorkTeam', icon: Users, permission: 'field_work.view_team' },
+            { routeName: 'field-work.availability.index', labelKey: 'nav.fieldWorkAvailability', icon: UserIcon, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
             { routeName: 'field-work.overdue.index', labelKey: 'nav.fieldWorkOverdue', icon: AlertTriangle, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
             { routeName: 'field-work.types.index', labelKey: 'nav.fieldWorkTypes', icon: TagsIcon, permission: 'field_work.manage_types' },
         ],
@@ -526,7 +527,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
 const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 
 const sections = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'fieldWorkManagement', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'fieldWork', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];

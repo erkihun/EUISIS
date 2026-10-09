@@ -19,6 +19,7 @@ export default {
         overdue: 'ጊዜው ያለፈ / ያልተዘጋ',
         check_in_missing: 'መግቢያ ያልተመዘገበ',
         supervisor_not_resolved: 'የቅርብ ኃላፊ አልተለየም',
+        gps_issues: 'የጂፒኤስ ማረጋገጫ ችግሮች',
     },
     destinationTypes: {
         registered_organization: 'የተመዘገበ ተቋም',
@@ -144,6 +145,7 @@ export default {
         coordinates: 'መጋጠሚያዎች',
         noEvents: 'እስካሁን የተመዘገበ መግቢያ የለም።',
         precise: 'ትክክለኛ መጋጠሚያዎች የሚታዩት ልዩ የቦታ ፈቃድ ስላለዎት ነው። ይህ እይታ በኦዲት ይመዘገባል።',
+        reviewRequired: 'የኃላፊ ግምገማ ያስፈልገዋል',
     },
 
     my: {
@@ -215,6 +217,7 @@ export default {
             overdue: 'መውጫ ጊዜው ያለፈ',
             supervisor_not_resolved: 'የቅርብ ኃላፊ ያልተለየ',
             completed_today: 'ዛሬ የተጠናቀቁ',
+            gps_issues: 'የጂፒኤስ ማረጋገጫ ችግሮች',
         },
         awaiting: 'የእርስዎን ውሳኔ የሚጠብቁ',
         attention: 'ትኩረት የሚያስፈልጋቸው',
@@ -224,6 +227,19 @@ export default {
         emptyTeam: 'አሁን በመስክ ሥራ ላይ ያለ ሠራተኛ የለም።',
         emptyOverdue: 'ጊዜው ያለፈ የመስክ ሥራ የለም።',
         emptyPreview: 'እዚህ ምንም የለም።',
+    },
+
+    availability: {
+        title: 'የቡድን ተገኝነት',
+        description: 'አሁን በመደበኛ የመስክ ሥራ ላይ ያሉ። ይህ የሥራ ሂደት ሁኔታ ነው እንጂ ቀጥታ ቦታ ወይም የሰዓት መቆጣጠሪያ አይደለም።',
+        empty: 'አሁን በመስክ ሥራ ላይ ያለ ሠራተኛ የለም።',
+        expectedReturn: 'የሚጠበቅ መመለሻ',
+        unknownNote: 'ያልተዘረዘሩ ሠራተኞች "ያልታወቀ" ናቸው እንጂ ቀሪ አይደሉም፤ EUISIS እስካሁን የሰዓት፣ የፈቃድ፣ የሥልጠና ወይም የጉዞ መረጃ ምንጭ የለውም።',
+        status: {
+            official_field_work: 'በመደበኛ የመስክ ሥራ ላይ',
+            approved_not_checked_in: 'ጸድቋል፣ አልገባም',
+            unknown: 'ያልታወቀ',
+        },
     },
 
     filters: {

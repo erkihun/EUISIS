@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 return [
+    // Shown when no immediate supervisor resolves; the request waits, never auto-approved.
+    'supervisor_not_resolved' => 'Submitted, but no immediate supervisor could be resolved (SUPERVISOR_NOT_RESOLVED). The request waits until HR configures the line-manager assignment for your unit; it is never approved automatically.',
+
     'status' => [
         'draft' => 'Draft',
         'pending_supervisor_approval' => 'Pending supervisor approval',
@@ -39,7 +42,9 @@ return [
         'not_checked_in' => 'Check in before checking out.',
         'not_in_field' => 'This field work is not in progress.',
         'stale_capture' => 'The location reading is too old or from the future. Try again.',
-        'outside_area' => 'You are outside the expected area for this field work.',
+        'check_in_required' => 'The GPS policy requires a check-in before this field work can be completed.',
+        'check_out_required' => 'The GPS policy requires your GPS check-out before this field work can be completed.',
+        'gps_blocked' => 'This location reading does not satisfy the configured GPS policy, so it was not recorded. Move to the destination or wait for better accuracy and try again.',
         'actual_return_range' => 'The actual return must be after the actual start and not in the future.',
         'reason_required' => 'A reason is required.',
     ],

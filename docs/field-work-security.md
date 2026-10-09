@@ -14,6 +14,7 @@ module.
 | GPS status | `location.view_status` | all of the above |
 | Exact GPS | `location.view_precise` | Super Admin, System Admin only. **Withheld from City Admin and Public Service Bureau Admin** |
 | Config | `manage_types` | Super Admin, System Admin, City Admin, Public Service Bureau Admin |
+| GPS policy | `system-settings.manageFieldWorkGps` (System Settings) | Super Admin, System Admin. **Withheld from City Admin** |
 
 A permission is necessary but not enough on its own:
 

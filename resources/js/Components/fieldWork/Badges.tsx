@@ -9,7 +9,7 @@ export function FieldWorkStatusBadge({ status }: { status: string }) {
 }
 
 /** Derived monitoring flags (never stored): overdue, check-in missing, supervisor not resolved. */
-export function FlagBadge({ flag }: { flag: MonitoringFlag | 'supervisor_not_resolved' }) {
+export function FlagBadge({ flag }: { flag: MonitoringFlag | 'supervisor_not_resolved' | 'gps_issues' }) {
     const { t } = useLocale();
 
     return <StatusBadge status={flag === 'overdue' ? 'overdue' : flag} label={t(`fieldWork.flags.${flag}`)} />;

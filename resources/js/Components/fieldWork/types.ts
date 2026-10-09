@@ -47,6 +47,7 @@ export type LocationEvent = {
     id: string;
     event_type: 'field_check_in' | 'field_check_out';
     validation_status: LocationValidation;
+    review_state: 'not_required' | 'pending_supervisor_review';
     captured_at: string;
     received_at: string;
     latitude?: number;
@@ -110,6 +111,7 @@ export type ManagementAbilities = {
     requests: boolean;
     approvals: boolean;
     team: boolean;
+    availability: boolean;
     overdue: boolean;
     types: boolean;
     oversight: boolean;

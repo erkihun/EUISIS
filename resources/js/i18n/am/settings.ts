@@ -358,8 +358,13 @@ const settings = {
         card_radius: { sm: 'ትንሽ', md: 'መካከለኛ', lg: 'ትልቅ', xl: 'በጣም ትልቅ', '2xl': 'ትልቁ' },
         dashboard_layout: { executive: 'የአመራር', compact: 'የታመቀ' },
         logo_position: { start: 'መጀመሪያ', center: 'መሃል' },
+        low_accuracy_action: { not_configured: 'አልተዋቀረም', record_only: 'መዝግብ ብቻ', require_review: 'የኃላፊ ግምገማ ይጠይቅ', block: 'ንባቡን አትቀበል (አይመዘገብም፤ ሠራተኛው እንደገና ይሞክራል)' },
+        outside_geofence_action: { not_configured: 'አልተዋቀረም', record_only: 'መዝግብ ብቻ', require_review: 'የኃላፊ ግምገማ ይጠይቅ', block: 'ንባቡን አትቀበል (አይመዘገብም፤ ሠራተኛው እንደገና ይሞክራል)' },
+        offline_capture_policy: { not_configured: 'አልተዋቀረም', disallow: 'አይፈቀድም', allow_with_review: 'በግምገማ ይፈቀዳል' },
+        team_capture_policy: { not_configured: 'አልተዋቀረም', individual_only: 'እያንዳንዱ ራሱ ብቻ' },
     },
     tabs: {
+        field_work_gps: 'Field Work GPS',
         general: 'አጠቃላይ',
         localization: 'አካባቢ ቅንብር',
         notifications: 'ማሳወቂያዎች',
@@ -372,6 +377,7 @@ const settings = {
         api_management: 'የኤፒአይ አስተዳደር',
     },
     descriptions: {
+        field_work_gps: 'Configure explicit field-work location capture and enforcement.',
         general: 'ዋና የመተግበሪያ መለያ፣ የድጋፍ መረጃ እና የመግቢያ ገጽ ብራንዲንግ።',
         localization: 'ነባሪ ቋንቋ፣ የሰዓት ክልል እና የማሳያ ምርጫዎች።',
         notifications: 'አጠቃላይ የማሳወቂያ ማቅረቢያ ቁጥጥር እና የኪው ባህሪ።',
