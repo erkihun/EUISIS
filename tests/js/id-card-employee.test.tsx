@@ -23,6 +23,8 @@ test('maps real identity fields without mutating the employee or card', () => {
         gender: 'female', dateOfBirth: '15 Mar 1990', dateOfBirthAm: 'መጋቢት 6, 1982',
         nationality: 'Ethiopian', employmentStatus: 'contract',
         phoneNumber: '+251911223344', photoUrl: '/storage/photos/real.png',
+        // Optional, administrator-configured card fields; absent on this employee.
+        email: undefined, address: undefined,
     });
     assert.deepEqual(card, before);
     assert.deepEqual(buildBilingualFields(mapCardEmployee(card)).map((field) => field.key),
@@ -62,7 +64,8 @@ test('preserves an explicitly saved legacy Amharic translation', () => {
 });
 
 test('renders an Amharic label and value before each English label and value', () => {
-    const fields = buildBilingualFields(mapCardEmployee(card));
+    // Callers pass the employee number beside the mapped identity; it fills the ID number row.
+    const fields = buildBilingualFields({ ...mapCardEmployee(card), employeeNumber: 'EMP-0042' });
     assert.equal(fields[3].valueAm, 'ኢትዮጵያዊ');
     for (const field of fields) {
         const { key, ...rows } = field;
