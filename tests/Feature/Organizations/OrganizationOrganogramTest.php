@@ -303,17 +303,21 @@ it('offers png and pdf export controls on the organogram page', function (): voi
 
 it('captures the chart with the shared html-to-image settings', function (): void {
     $hook = file_get_contents(dirname(__DIR__, 3).'/resources/js/hooks/useOrganogramExport.ts');
+    $typography = file_get_contents(dirname(__DIR__, 3).'/resources/js/lib/typography.ts');
 
     expect($hook)
         ->toContain("import { toPng } from 'html-to-image'")
-        // High-DPI raster; skipFonts avoids the cross-origin SecurityError.
+        // High-DPI raster. Fonts are passed as explicit fontEmbedCSS (Ethiopic names keep their
+        // typeface) so html-to-image never reads cross-origin stylesheets (SecurityError) ...
         ->toContain('pixelRatio: 2')
-        ->toContain('skipFonts: true')
+        ->toContain('...(await captureFontOptions())')
         // Full structure, not just the visible viewport.
         ->toContain('node.scrollWidth')
         ->toContain('node.scrollHeight')
         // Filename carries organization code and date.
         ->toContain('buildFileName');
+    // ... and fall back to skipping fonts when they cannot be embedded.
+    expect($typography)->toContain('return { fontEmbedCSS };')->toContain('return { skipFonts: true };');
 });
 
 it('exports use only the already-authorized on-screen payload', function (): void {

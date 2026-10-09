@@ -422,9 +422,9 @@ test('my transfer applications carry Amharic names and no hardcoded English', fu
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Employee/MyTransferApplications')
-            ->where('applications.0.status', 'release_pending')
-            ->where('applications.0.organization_name_am', 'የፖርታል ተቋም')
-            ->where('applications.0.position_title_am', 'የፖርታል ኦፊሰር'));
+            ->where('applications.data.0.status', 'release_pending')
+            ->where('applications.data.0.organization_name_am', 'የፖርታል ተቋም')
+            ->where('applications.data.0.position_title_am', 'የፖርታል ኦፊሰር'));
 
     $source = file_get_contents(dirname(__DIR__, 3).'/resources/js/Pages/Employee/MyTransferApplications.tsx');
     expect($source)->not->toContain('Applied:')->not->toContain('Browse open announcements')

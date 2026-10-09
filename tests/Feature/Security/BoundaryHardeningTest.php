@@ -36,7 +36,9 @@ use Inertia\Testing\AssertableInertia;
  * by typing its URL. The three pages below are self-service by design.
  */
 test('SBH-001 a plain employee cannot open admin pages by URL', function (): void {
-    $selfService = ['vacancy-applications/my', 'grievances/my', 'grievances/create'];
+    // Assessment records is the participant workflow linked from My Performance ("Peer assessments"):
+    // it lists only the records the user takes part in; its administrative data is checked below.
+    $selfService = ['vacancy-applications/my', 'grievances/my', 'grievances/create', 'assessments/records'];
 
     $user = User::factory()->create(['status' => 'active']);
     $user->assignRole(DailyActivityRoles::EMPLOYEE_ROLE);
@@ -61,6 +63,11 @@ test('SBH-001 a plain employee cannot open admin pages by URL', function (): voi
 
     expect($checked)->toBeGreaterThan(50)
         ->and($opened)->toBe([]);
+
+    // The self-service assessment page gives a plain employee no administrative data.
+    $this->actingAs($user)->get('/assessments/records')->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('summary', null)->where('forms', [])->where('employees', [])->where('users', []));
 });
 
 /*

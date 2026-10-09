@@ -34,6 +34,7 @@ use App\Models\OrganizationEdge;
 use App\Models\OrganizationNameHistory;
 use App\Models\OrganizationType;
 use App\Models\Position;
+use App\Models\PositionEstablishment;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\TransferAnnouncement;
@@ -204,7 +205,8 @@ it('registers employee, flags duplicates, and preserves identity across transfer
     ], [
         'organization_id' => $root->id,
         'hierarchy_version_id' => $version->id,
-        'effective_from' => now()->toDateString(),
+        // Placed before today: a same-day transfer would leave an empty source assignment.
+        'effective_from' => now()->subMonth()->toDateString(),
     ], $actor);
 
     $second = app(RegisterEmployeeAction::class)->execute([
@@ -233,6 +235,15 @@ it('registers employee, flags duplicates, and preserves identity across transfer
         'title_en' => 'Transfer Target Position',
         'job_position_code' => 'TTP-001',
         'is_active' => true,
+    ]);
+    // A transfer needs approved capacity at the destination.
+    PositionEstablishment::query()->create([
+        'organization_id' => $child->id,
+        'position_id' => $toPosition->id,
+        'establishment_number' => 'EST-TTP-001',
+        'approved_slots' => 1,
+        'status' => 'approved',
+        'effective_from' => now()->subYear()->toDateString(),
     ]);
 
     $announcement = TransferAnnouncement::query()->create([
