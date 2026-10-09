@@ -67,6 +67,24 @@ php artisan queue:failed                                  # empty
 tail -n 100 storage/logs/laravel-$(date +%F).log          # no new errors
 ```
 
+### Employee portal mobile delivery check
+
+Before ending the deployment window, test the login and `/my-portal` on an
+actual Android and iPhone over mobile data as well as Wi-Fi. The live `.env`
+must retain these values:
+
+```dotenv
+APP_URL=https://ems.pshrdb.gov.et
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=lax
+SANCTUM_STATEFUL_DOMAINS=ems.pshrdb.gov.et
+CORS_ALLOWED_ORIGINS=https://ems.pshrdb.gov.et
+```
+
+Nginx/Plesk must compress JavaScript and CSS. Confirm the deployed main
+JavaScript response includes `Content-Encoding: gzip` or `br` when requested;
+without it, low-bandwidth phones can spend too long loading the portal bundle.
+
 Then one real counter scan at one cafeteria, watched by the provider, and the
 transaction visible in both the provider portal and the back office.
 

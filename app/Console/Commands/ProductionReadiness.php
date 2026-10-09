@@ -39,6 +39,7 @@ class ProductionReadiness extends Command
         $this->section('Application');
         $this->check('APP_ENV is production', app()->isProduction(), $production, 'Environment-specific safety rules key off APP_ENV=production.');
         $this->check('APP_URL uses https', str_starts_with((string) config('app.url'), 'https://'), $production, 'Card QR codes, reset links and signed URLs are built from APP_URL.');
+        $this->check('Session SameSite is lax', config('session.same_site') === 'lax', $production, 'The employee portal uses first-party sign-in links; Strict breaks normal mobile browser and e-mail-link session continuity.');
         $qrBase = trim((string) config('id_cards.qr.base_url', ''));
         $this->check('Card QR base URL uses https', $qrBase === '' || str_starts_with($qrBase, 'https://'), $production, 'Printed cards carry this URL for years; it cannot be changed without reprinting.');
         $this->info_('Timezone', (string) config('app.timezone'));

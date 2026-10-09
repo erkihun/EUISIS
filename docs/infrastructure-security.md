@@ -24,10 +24,10 @@ All production traffic must be served over HTTPS. HTTP must redirect to HTTPS wi
 ```nginx
 server {
     listen 443 ssl http2;
-    server_name euisis.addisababa.gov.et;
+    server_name ems.pshrdb.gov.et;
 
-    ssl_certificate     /etc/letsencrypt/live/euisis.addisababa.gov.et/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/euisis.addisababa.gov.et/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/ems.pshrdb.gov.et/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/ems.pshrdb.gov.et/privkey.pem;
 
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:TLS_AES_256_GCM_SHA384;
@@ -40,6 +40,14 @@ server {
 
     # HSTS (enable only after confirming HTTPS works)
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # Mobile users must not download React bundles uncompressed.
+    # Keep this in the nginx http/server context, or enable the equivalent
+    # Plesk "gzip compression" setting for this domain.
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/css application/javascript application/json application/wasm image/svg+xml;
 
     root /var/www/euisis/public;
     index index.php;
@@ -70,7 +78,7 @@ server {
 # Redirect all HTTP to HTTPS
 server {
     listen 80;
-    server_name euisis.addisababa.gov.et;
+    server_name ems.pshrdb.gov.et;
     return 301 https://$host$request_uri;
 }
 ```

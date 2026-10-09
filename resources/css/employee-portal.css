@@ -25,7 +25,8 @@
 .portal-shell .app-page-heading h1:lang(am) { letter-spacing: normal; line-height: 1.45; }
 .portal-shell .app-page-heading p { max-width: 65ch; line-height: 1.7; }
 .portal-shell .app-page-heading > div { gap: 1rem; }
-.portal-content { color: #334155; overflow-wrap: anywhere; }
+.portal-content { min-width: 0; max-width: 100%; color: #334155; overflow-wrap: anywhere; }
+.portal-shell #main-content { min-width: 0; overflow-x: hidden; }
 .portal-content .portal-panel {
     min-width: 0;
     border-color: #e2e8f0;
@@ -58,6 +59,10 @@
 @media (min-width: 1024px) {
     .portal-shell .app-page-heading { padding-inline: 2rem; }
     .portal-content .portal-panel.p-4 { padding: 1.5rem; }
+}
+@media (max-width: 374px) {
+    /* Keep the seven-day activity strip usable on compact phones. */
+    .portal-content .grid-cols-7 { gap: .25rem; }
 }
 @media print {
     .portal-shell, .portal-shell .app-page-heading { background: white; }

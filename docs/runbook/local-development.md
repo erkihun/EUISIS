@@ -66,6 +66,32 @@ php artisan demo-data:validate
 - Horizon: `php artisan horizon`
 - Vite: `npm run dev`
 
+### Testing My Portal from a phone or tablet
+
+`127.0.0.1` and `localhost` identify the phone itself, not the development
+computer. The normal development configuration deliberately binds to that
+loopback address. To test on the same trusted Wi-Fi/LAN:
+
+1. Find the computer's IPv4 address (`ipconfig` on Windows). For the current
+   Wi-Fi network it is `192.168.8.2`; use the current address if it changes.
+2. Add this **only to the untracked local `.env`**:
+
+   ```dotenv
+   VITE_DEV_SERVER_HOST=192.168.8.2
+   VITE_DEV_SERVER_PORT=5173
+   ```
+
+3. Run the application with `php artisan serve --host=0.0.0.0 --port=8000`
+   and run `npm run dev` in a second terminal. Vite will publish its assets and
+   HMR connection using the configured LAN address.
+4. On the phone, open `http://192.168.8.2:8000` (never `127.0.0.1:8000`).
+   Allow inbound TCP 8000 and 5173 only on the Windows **Private** network if
+   Windows Firewall asks.
+
+For a production-like local check, run `npm run build`, stop Vite, and expose
+only the Laravel server on the trusted network. Do not bind a production
+deployment directly to `0.0.0.0`; use its HTTPS reverse proxy/domain instead.
+
 ## Storage Notes
 
 - Employee photos and documents must use private storage.
