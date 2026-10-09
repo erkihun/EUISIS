@@ -23,7 +23,7 @@ function backupHealth(?bool $enforce = null): array
 
 function infoFails(int $exit, string $stderr): array
 {
-    return ['* version' => Process::result("pgBackRest 2.54.0\n"), '* info' => Process::result(output: '', errorOutput: $stderr, exitCode: $exit)];
+    return ['*version*' => Process::result("pgBackRest 2.54.0\n"), '*info*' => Process::result(output: '', errorOutput: $stderr, exitCode: $exit)];
 }
 
 function ranCommand(string $last): Closure
@@ -124,7 +124,7 @@ it('distinguishes INVALID_COMMAND_OUTPUT from missing binaries and failed runs',
 })->with([['{not json', 'INVALID_JSON'], ['', 'EMPTY_OR_OVERSIZED_OUTPUT'], ['{"stanza":"euisis"}', 'UNEXPECTED_SHAPE']]);
 
 it('rejects an unrecognized version banner as invalid output', function () {
-    fakeBackupInfrastructure(processes: ['* version' => Process::result('something else'), '* info' => Process::result(pgbackrestInfo())]);
+    fakeBackupInfrastructure(processes: ['*version*' => Process::result('something else'), '*info*' => Process::result(pgbackrestInfo())]);
     expect(backupHealth())->reason_code->toBe('INVALID_COMMAND_OUTPUT');
     Process::assertDidntRun(ranCommand('info'));
 });
@@ -181,8 +181,8 @@ it('grades restore tests and verification from recorded evidence', function ($mu
 ]);
 
 it('reports COMMAND_TIMEOUT as UNKNOWN in development and CRITICAL when enforced', function () {
-    fakeBackupInfrastructure(processes: ['* version' => Process::result("pgBackRest 2.54.0\n"),
-        '* info' => fn () => new ProcessTimedOutException(new SymfonyTimeout(new SymfonyProcess(['pgbackrest']), SymfonyTimeout::TYPE_GENERAL), new FakeProcessResult)]);
+    fakeBackupInfrastructure(processes: ['*version*' => Process::result("pgBackRest 2.54.0\n"),
+        '*info*' => fn () => new ProcessTimedOutException(new SymfonyTimeout(new SymfonyProcess(['pgbackrest']), SymfonyTimeout::TYPE_GENERAL), new FakeProcessResult)]);
     expect(backupHealth())->overall_status->toBe('UNKNOWN')->infrastructure_status->toBe('UNKNOWN')->reason_code->toBe('COMMAND_TIMEOUT');
     expect(backupHealth(enforce: true))->overall_status->toBe('CRITICAL');
 });

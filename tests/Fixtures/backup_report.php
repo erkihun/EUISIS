@@ -88,7 +88,7 @@ function fakeBackupInfrastructure(?string $info = null, ?array $wal = null, ?arr
         config(['backup.alert_user_ids' => [1]]);
     }
     Process::preventStrayProcesses();
-    Process::fake($processes ?? ['* version' => Process::result("pgBackRest 2.54.0\n"), '* info' => Process::result($info ?? pgbackrestInfo())]);
+    Process::fake($processes ?? ['*version*' => Process::result("pgBackRest 2.54.0\n"), '*info*' => Process::result($info ?? pgbackrestInfo())]);
     fakeWal($wal ?? healthyWal());
     fakeEvidence($evidence ?? healthyEvidence());
 }
