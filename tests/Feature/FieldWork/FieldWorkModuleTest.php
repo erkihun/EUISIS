@@ -854,12 +854,17 @@ test('the schema conversion keeps the earlier implementation\'s rows, ids and re
     foreach (['field_work_histories', 'field_work_location_events', 'field_work_participants', 'field_work_requests'] as $table) {
         Schema::dropIfExists($table);
     }
-    // Out of the way rather than dropped: SQLite cannot drop a table carrying
-    // foreign keys inside the test's wrapping transaction.
-    Schema::rename('field_work_types', 'field_work_types_current');
-    DB::statement('DROP INDEX IF EXISTS field_work_types_code_unique');
-    DB::statement('DROP INDEX IF EXISTS fwt_active_sort_idx');
-    DB::statement('DROP INDEX IF EXISTS fwt_created_by_idx');
+    if (DB::getDriverName() === 'pgsql') {
+        // PostgreSQL drops it inside the test transaction; a renamed table would keep its constraint names.
+        DB::statement('DROP TABLE field_work_types CASCADE');
+    } else {
+        // Out of the way rather than dropped: SQLite cannot drop a table carrying
+        // foreign keys inside the test's wrapping transaction.
+        Schema::rename('field_work_types', 'field_work_types_current');
+        DB::statement('DROP INDEX IF EXISTS field_work_types_code_unique');
+        DB::statement('DROP INDEX IF EXISTS fwt_active_sort_idx');
+        DB::statement('DROP INDEX IF EXISTS fwt_created_by_idx');
+    }
     $legacy->up();
 
     $typeId = (string) Str::uuid7();

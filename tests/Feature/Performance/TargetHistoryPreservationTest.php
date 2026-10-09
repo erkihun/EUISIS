@@ -28,12 +28,12 @@ test('amending a target preserves published downstream lineage and copies explic
     $assignment = EmployeeAssignment::query()->create(['employee_id' => $employee->id, 'organization_id' => $organization->id, 'organization_unit_id' => $unit->id, 'position_id' => $position->id, 'assignment_status' => 'active', 'effective_from' => '2026-01-01', 'is_current' => true]);
     $cycle = PerformanceCycle::query()->create(['code' => 'HIST-2026', 'name_en' => 'History cycle', 'organization_id' => $organization->id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
     $plan = new PerformancePlan(['cycle_id' => $cycle->id, 'organization_id' => $organization->id, 'organization_unit_id' => $unit->id, 'position_id' => $position->id, 'plan_type' => 'POSITION', 'title' => 'Published position plan']);
-    $plan->forceFill(['status' => 'PUBLISHED', 'lineage_key' => 'history-position-plan'])->save();
+    $plan->forceFill(['status' => 'PUBLISHED', 'lineage_key' => (string) \Illuminate\Support\Str::uuid()])->save();
     $objective = $plan->objectives()->create(['code' => 'HIST-O', 'title_en' => 'Complete requests', 'objective_type' => 'LOCAL', 'weight' => 100]);
     $kpi = Kpi::query()->create(['code' => 'HIST-K', 'name_en' => 'Requests', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL', 'frequency' => 'ANNUAL']);
     $target = $objective->targets()->create(['performance_plan_id' => $plan->id, 'kpi_id' => $kpi->id, 'period_start' => '2026-01-01', 'period_end' => '2026-12-31', 'target_value' => 100, 'weight' => 100]);
-    $quarter = $target->periodTargets()->create(['period_type' => 'QUARTERLY', 'period_number' => 1, 'target_value' => '17.2500', 'is_cumulative' => false]);
-    $month = $target->periodTargets()->create(['period_type' => 'MONTHLY', 'period_number' => 2, 'target_numerator' => 3, 'target_denominator' => 4, 'is_cumulative' => true]);
+    $quarter = $target->periodTargets()->create(['period_type' => 'QUARTER', 'period_number' => 1, 'target_value' => '17.2500', 'is_cumulative' => false]);
+    $month = $target->periodTargets()->create(['period_type' => 'MONTH', 'period_number' => 2, 'target_numerator' => 3, 'target_denominator' => 4, 'is_cumulative' => true]);
     $child = $target->replicate();
     $child->forceFill(['parent_target_id' => $target->id, 'target_value' => 50])->save();
     $agreement = EmployeePerformanceAgreement::query()->create(['cycle_id' => $cycle->id, 'employee_id' => $employee->id, 'employee_assignment_id' => $assignment->id, 'performance_plan_id' => $plan->id, 'organization_id' => $organization->id, 'organization_unit_id' => $unit->id, 'position_id' => $position->id, 'effective_from' => '2026-01-01', 'effective_to' => '2026-12-31']);

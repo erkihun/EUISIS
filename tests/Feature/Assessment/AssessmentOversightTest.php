@@ -469,7 +469,7 @@ test('city review is an auditable transition and verification reminders respect 
     $this->cycle->update(['verification_deadline' => '2026-07-05']);
     Carbon::setTestNow('2026-07-11 08:00:00');
     $this->artisan('assessments:oversight-monitor')->assertSuccessful();
-    expect($this->reviewer->notifications()->where('data->kind', 'assessment_verification_overdue')->count())->toBe(1);
+    expect($this->reviewer->notifications()->get()->filter(fn ($notification): bool => ($notification->data['kind'] ?? null) === 'assessment_verification_overdue')->count())->toBe(1);
 });
 
 // ── Data quality ────────────────────────────────────────────────────────────
@@ -611,8 +611,8 @@ test('65-66. the scheduled monitor marks outdated submissions and reminds overdu
     $this->artisan('assessments:oversight-monitor')->assertSuccessful();
 
     expect(AssessmentInstitutionSubmission::query()->first()->status)->toBe('outdated')
-        ->and($institutionB->notifications()->where('data->kind', 'assessment_submission_overdue')->count())->toBe(1)
-        ->and($institutionA->notifications()->where('data->kind', 'assessment_submission_overdue')->count())->toBe(1);
+        ->and($institutionB->notifications()->get()->filter(fn ($notification): bool => ($notification->data['kind'] ?? null) === 'assessment_submission_overdue')->count())->toBe(1)
+        ->and($institutionA->notifications()->get()->filter(fn ($notification): bool => ($notification->data['kind'] ?? null) === 'assessment_submission_overdue')->count())->toBe(1);
 });
 
 test('every oversight page renders for a city user with real data', function (): void {

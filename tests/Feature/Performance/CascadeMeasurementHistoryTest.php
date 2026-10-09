@@ -37,7 +37,7 @@ beforeEach(function (): void {
     $this->employee->update(['current_assignment_id' => $this->assignment->id]);
     $this->cycle = PerformanceCycle::query()->create(['code' => 'MEAS-2026', 'name_en' => 'Measurement cycle', 'organization_id' => $this->organization->id, 'start_date' => '2026-01-01', 'end_date' => '2026-12-31']);
     $this->plan = new PerformancePlan(['cycle_id' => $this->cycle->id, 'organization_id' => $this->organization->id, 'organization_unit_id' => $this->unit->id, 'position_id' => $this->position->id, 'plan_type' => 'POSITION', 'title' => 'Position plan']);
-    $this->plan->forceFill(['status' => 'PUBLISHED', 'lineage_key' => 'measurement-position-plan'])->save();
+    $this->plan->forceFill(['status' => 'PUBLISHED', 'lineage_key' => (string) \Illuminate\Support\Str::uuid()])->save();
     $this->objective = $this->plan->objectives()->create(['code' => 'MEAS-O', 'title_en' => 'Complete requests', 'objective_type' => 'LOCAL', 'weight' => 100]);
     $this->kpi = Kpi::query()->create(['code' => 'MEAS-K', 'name_en' => 'Requests', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'DAILY_ACTIVITY', 'frequency' => 'ANNUAL']);
     $this->target = $this->objective->targets()->create(['performance_plan_id' => $this->plan->id, 'kpi_id' => $this->kpi->id, 'period_start' => '2026-01-01', 'period_end' => '2026-12-31', 'target_value' => 100, 'weight' => 100]);

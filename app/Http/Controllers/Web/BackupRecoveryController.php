@@ -12,6 +12,7 @@ use App\Services\Backup\RestoreWorkflow;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
@@ -31,22 +32,26 @@ class BackupRecoveryController extends Controller
         $approver = $actor->can('backups.restore_approve');
         // Without the backup tables (migration not applied) the status reports HISTORY_UNAVAILABLE
         // instead of the page failing.
-        try {
-            $history = $actor->can('backups.view_history') ? BackupOperation::query()->latest('started_at')->limit(50)->get() : [];
-            $requests = BackupRestoreRequest::query()
-                ->with(['requester:id,name', 'reviewer:id,name', 'approver:id,name', 'productionAuthorizer:id,name'])
-                ->when(! $approver && ! $actor->can('backups.restore_review'), fn ($query) => $query->where('requested_by', $actor->id))
-                ->latest()->limit(50)->get()
-                ->map(fn (BackupRestoreRequest $record) => [
-                    ...$record->only(['id', 'restore_type', 'incident_reference', 'reason', 'backup_reference', 'status', 'evidence_reference', 'failure_summary', 'requested_by']),
-                    ...collect(['target_time', 'started_at', 'completed_at', 'created_at'])->mapWithKeys(fn ($key) => [$key => $record->{$key}?->toIso8601String()]),
-                    'requester' => $record->requester?->name, 'reviewer' => $record->reviewer?->name,
-                    'approver' => $record->approver?->name, 'production_authorizer' => $record->productionAuthorizer?->name,
-                    'can_cancel' => in_array($record->status, ['REQUESTED', 'UNDER_REVIEW', 'APPROVED', 'TEST_RESTORE_VERIFIED', 'PRODUCTION_RESTORE_AUTHORIZED'], true)
-                        && ($approver || ($actor->can('backups.restore_request') && $record->requested_by === $actor->id)),
-                ]);
-        } catch (QueryException) {
-            [$history, $requests] = [[], []];
+        // Tables are checked first: a failed query would abort an enclosing PostgreSQL transaction.
+        [$history, $requests] = [[], []];
+        if (Schema::hasTable('backup_operations') && Schema::hasTable('backup_restore_requests')) {
+            try {
+                $history = $actor->can('backups.view_history') ? BackupOperation::query()->latest('started_at')->limit(50)->get() : [];
+                $requests = BackupRestoreRequest::query()
+                    ->with(['requester:id,name', 'reviewer:id,name', 'approver:id,name', 'productionAuthorizer:id,name'])
+                    ->when(! $approver && ! $actor->can('backups.restore_review'), fn ($query) => $query->where('requested_by', $actor->id))
+                    ->latest()->limit(50)->get()
+                    ->map(fn (BackupRestoreRequest $record) => [
+                        ...$record->only(['id', 'restore_type', 'incident_reference', 'reason', 'backup_reference', 'status', 'evidence_reference', 'failure_summary', 'requested_by']),
+                        ...collect(['target_time', 'started_at', 'completed_at', 'created_at'])->mapWithKeys(fn ($key) => [$key => $record->{$key}?->toIso8601String()]),
+                        'requester' => $record->requester?->name, 'reviewer' => $record->reviewer?->name,
+                        'approver' => $record->approver?->name, 'production_authorizer' => $record->productionAuthorizer?->name,
+                        'can_cancel' => in_array($record->status, ['REQUESTED', 'UNDER_REVIEW', 'APPROVED', 'TEST_RESTORE_VERIFIED', 'PRODUCTION_RESTORE_AUTHORIZED'], true)
+                            && ($approver || ($actor->can('backups.restore_request') && $record->requested_by === $actor->id)),
+                    ]);
+            } catch (QueryException) {
+                [$history, $requests] = [[], []];
+            }
         }
 
         return Inertia::render('System/BackupRecovery', [

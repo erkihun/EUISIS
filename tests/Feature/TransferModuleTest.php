@@ -402,7 +402,7 @@ function makeTransferPerformanceContext(Employee $employee, User $actor, bool $s
     $assignment = $employee->currentAssignment;
     $cycle = PerformanceCycle::query()->create(['code' => 'TRANSFER-EP', 'name_en' => 'Transfer performance cycle', 'organization_id' => $assignment->organization_id, 'start_date' => now()->startOfYear()->toDateString(), 'end_date' => now()->endOfYear()->toDateString()]);
     $plan = new PerformancePlan(['cycle_id' => $cycle->id, 'organization_id' => $assignment->organization_id, 'position_id' => $assignment->position_id, 'plan_type' => 'POSITION', 'title' => 'Original position plan']);
-    $plan->forceFill(['lineage_key' => 'transfer-history-plan', 'status' => 'PUBLISHED'])->save();
+    $plan->forceFill(['lineage_key' => (string) \Illuminate\Support\Str::uuid(), 'status' => 'PUBLISHED'])->save();
     $objective = $plan->objectives()->create(['code' => 'TRANSFER-O', 'title_en' => 'Complete requests', 'objective_type' => 'LOCAL', 'weight' => 100]);
     $kpi = Kpi::query()->create(['code' => 'TRANSFER-K', 'name_en' => 'Requests', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL', 'frequency' => 'ANNUAL']);
     $target = $objective->targets()->create(['performance_plan_id' => $plan->id, 'kpi_id' => $kpi->id, 'period_start' => $cycle->start_date->toDateString(), 'period_end' => $cycle->end_date->toDateString(), 'target_value' => 100, 'weight' => 100]);
