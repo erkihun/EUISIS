@@ -15,7 +15,7 @@ type Application = {
         title_en: string;
         application_closes_at: string | null;
     } | null;
-    positionEntry: {
+    position_entry: {
         organization: { name_en: string } | null;
         position: { title_en: string } | null;
     } | null;
@@ -51,9 +51,9 @@ export default function VacancyApplicationsMyApplications({ applications }: Prop
                                         {app.announcement?.title_en ?? app.application_number}
                                     </Link>
                                     <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
-                                        {app.positionEntry?.organization?.name_en}
-                                        {app.positionEntry?.position?.title_en && (
-                                            <> · {app.positionEntry.position.title_en}</>
+                                        {app.position_entry?.organization?.name_en}
+                                        {app.position_entry?.position?.title_en && (
+                                            <> · {app.position_entry.position.title_en}</>
                                         )}
                                     </p>
                                 </div>

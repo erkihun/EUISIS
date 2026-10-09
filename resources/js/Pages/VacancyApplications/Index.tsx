@@ -12,13 +12,16 @@ type Application = {
     applied_at: string;
     employee: { name_en: string } | null;
     announcement: { title_en: string } | null;
-    positionEntry: {
+    // Eloquent serializes the positionEntry relation in snake_case.
+    position_entry: {
         organization: { name_en: string } | null;
         position: { title_en: string } | null;
     } | null;
 };
 
-type Meta = {
+/** A plain Laravel length-aware paginator (the controller sends paginate(), not a resource collection). */
+type Paginated<T> = {
+    data: T[];
     current_page: number;
     last_page: number;
     from: number | null;
@@ -27,7 +30,7 @@ type Meta = {
 };
 
 type Props = {
-    applications: { data: Application[]; meta: Meta };
+    applications: Paginated<Application>;
     filters: { vacancy_announcement_id?: string; status?: string };
 };
 
@@ -72,7 +75,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                         </button>
                     )}
                     <span className="ml-auto text-sm text-gray-500 dark:text-slate-400">
-                        {applications.meta.from ?? 0}–{applications.meta.to ?? 0} / {applications.meta.total}
+                        {applications.from ?? 0}–{applications.to ?? 0} / {applications.total}
                     </span>
                 </div>
 
@@ -103,8 +106,8 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                                     </td>
                                     <td className="px-4 py-3 text-gray-700 dark:text-slate-200">{a.employee?.name_en ?? '—'}</td>
                                     <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.announcement?.title_en ?? '—'}</td>
-                                    <td className="px-4 py-3 text-gray-700 dark:text-slate-200">{a.positionEntry?.position?.title_en ?? '—'}</td>
-                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.positionEntry?.organization?.name_en ?? '—'}</td>
+                                    <td className="px-4 py-3 text-gray-700 dark:text-slate-200">{a.position_entry?.position?.title_en ?? '—'}</td>
+                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.position_entry?.organization?.name_en ?? '—'}</td>
                                     <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.applied_at} /></td>
                                     <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
                                 </tr>
@@ -116,23 +119,23 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                     )}
                 </div>
 
-                {applications.meta.last_page > 1 && (
+                {applications.last_page > 1 && (
                     <div className="flex items-center justify-end gap-2 text-sm">
                         <button
                             type="button"
-                            disabled={applications.meta.current_page <= 1}
-                            onClick={() => goToPage(applications.meta.current_page - 1)}
+                            disabled={applications.current_page <= 1}
+                            onClick={() => goToPage(applications.current_page - 1)}
                             className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700"
                         >
                             {t('common.previous')}
                         </button>
                         <span className="text-gray-500 dark:text-slate-400">
-                            {t('common.page')} {applications.meta.current_page} {t('common.of')} {applications.meta.last_page}
+                            {t('common.page')} {applications.current_page} {t('common.of')} {applications.last_page}
                         </span>
                         <button
                             type="button"
-                            disabled={applications.meta.current_page >= applications.meta.last_page}
-                            onClick={() => goToPage(applications.meta.current_page + 1)}
+                            disabled={applications.current_page >= applications.last_page}
+                            onClick={() => goToPage(applications.current_page + 1)}
                             className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700"
                         >
                             {t('common.next')}

@@ -425,7 +425,7 @@ const navGroups: NavGroup[] = [
             { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: MessageSquareIcon, permission: 'service_feedback.view' },
             { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: StarIcon,          permission: 'service_feedback.view' },
             { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', icon: Layers,            permission: 'service-types.viewAny' },
-            { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: BadgeCheckIcon },
+            { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: BadgeCheckIcon,    permission: 'entitlements.view' },
             { routeName: 'entitlement-rules.index', labelKey: 'nav.entitlementRules', icon: ReceiptTextIcon,   permission: 'entitlement-rules.viewAny' },
         ],
     },
@@ -478,7 +478,7 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupProviders',
         icon: HandshakeIcon,
         items: [
-            { routeName: 'service-providers.index', labelKey: 'nav.providers',              icon: HandshakeIcon },
+            { routeName: 'service-providers.index', labelKey: 'nav.providers',              icon: HandshakeIcon, permission: 'service-providers.viewAny' },
             { routeName: 'api-management.index', labelKey: 'nav.apiManagement', icon: NetworkIcon, permission: 'api_management.view' },
         ],
     },

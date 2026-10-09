@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Models\VacancyAnnouncement;
 use App\Models\VacancyAnnouncementPosition;
 use App\Models\VacancyApplication;
+use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -354,4 +355,23 @@ it('announcement auto-closes when all slots are filled by transfer', function ()
     ]);
 
     expect($announcement->fresh()->status)->toBe(VacancyAnnouncementStatus::Closed);
+});
+
+it('sends the applications list as a plain paginator with snake_case relations', function (): void {
+    $announcement = makePublishedAnnouncementForApp();
+    [$employee] = makeEmployeeWithAssignment(makeTestOrgForApp()->id);
+    makeApplicationForTest($announcement, $employee->id, 'submitted');
+
+    // VacancyApplications/Index reads from/to/total/current_page/last_page at the top level and
+    // position_entry (not meta.* or positionEntry): a mismatch crashed the page.
+    $this->actingAs(superAdminForApplications())
+        ->get(route('vacancy-applications.index'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('VacancyApplications/Index')
+            ->where('applications.from', 1)->where('applications.to', 1)->where('applications.total', 1)
+            ->where('applications.current_page', 1)->where('applications.last_page', 1)
+            ->missing('applications.meta')
+            ->has('applications.data.0.position_entry.position.title_en')
+            ->has('applications.data.0.position_entry.organization.name_en'));
 });

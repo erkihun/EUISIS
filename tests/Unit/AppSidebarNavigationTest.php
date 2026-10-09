@@ -32,3 +32,13 @@ it('keeps Field Work management separate from employee self-service', function (
         ->and($english)->toContain("fieldWorkManagement: 'Field Work Management'")
         ->and($amharic)->toContain("fieldWorkManagement: 'የመስክ ሥራ አስተዳደር'");
 });
+
+it('gates the Entitlements and Service Providers links with the permissions their pages require', function (): void {
+    $sidebar = file_get_contents(__DIR__.'/../../resources/js/Components/AppSidebar.tsx');
+
+    // The pages authorize entitlements.view / service-providers.viewAny (EntitlementPolicy,
+    // ServiceProviderPolicy); without the same gate every admin saw both links and got a 403.
+    expect($sidebar)
+        ->toMatch("/routeName: 'entitlements\\.index',[^}]*permission: 'entitlements\\.view' \\}/")
+        ->toMatch("/routeName: 'service-providers\\.index',[^}]*permission: 'service-providers\\.viewAny' \\}/");
+});

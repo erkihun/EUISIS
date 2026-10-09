@@ -19,7 +19,7 @@ type Application = {
     rejection_reason: string | null;
     employee: { name_en: string; code?: string } | null;
     announcement: { id: string; title_en: string } | null;
-    positionEntry: {
+    position_entry: {
         vacancy_slots: number;
         organization: { name_en: string } | null;
         organizationUnit: { name_en: string } | null;
@@ -167,8 +167,8 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                         {[
                             { label: t('employees.employee'), value: application.employee?.name_en ?? '—' },
                             { label: t('vacancies.announcement'), value: application.announcement?.title_en ?? '—' },
-                            { label: t('positionEstablishments.organization'), value: application.positionEntry?.organization?.name_en ?? '—' },
-                            { label: t('positionEstablishments.position'), value: application.positionEntry?.position?.title_en ?? '—' },
+                            { label: t('positionEstablishments.organization'), value: application.position_entry?.organization?.name_en ?? '—' },
+                            { label: t('positionEstablishments.position'), value: application.position_entry?.position?.title_en ?? '—' },
                             { label: t('vacancies.screeningScore'), value: application.screening_score ?? '—' },
                             ...(application.rejection_reason ? [{ label: t('vacancies.rejectionReason'), value: application.rejection_reason }] : []),
                         ].map(({ label, value }) => (
