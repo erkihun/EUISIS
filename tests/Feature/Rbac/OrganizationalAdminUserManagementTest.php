@@ -326,6 +326,31 @@ test('super admin sees global and scoped roles but scoped role assignment requir
     expect(User::query()->where('email', 'global-created@example.test')->firstOrFail()->hasRole('Global Operator'))->toBeTrue();
 });
 
+test('creating a scoped user with multiple organizations creates every scope row', function (): void {
+    $first = oumOrganization('MULTI-SCOPE-A');
+    $second = oumOrganization('MULTI-SCOPE-B');
+    $admin = User::factory()->create()->assignRole('Super Admin');
+    $hrRole = Role::findByName('HR Officer', 'web');
+
+    $this->actingAs($admin)
+        ->post(route('users.store'), [
+            'name' => 'Multi Scope User',
+            'email' => 'multi-scope@example.test',
+            'password' => 'Valid-Password-123!',
+            'password_confirmation' => 'Valid-Password-123!',
+            'status' => 'active',
+            'role_ids' => [$hrRole->id],
+            'organization_scope_ids' => [$first->id, $second->id],
+            'scope_type' => 'self',
+        ])
+        ->assertSessionHasNoErrors();
+
+    $user = User::query()->where('email', 'multi-scope@example.test')->firstOrFail();
+
+    expect($user->organizationScopes()->pluck('organization_id')->sort()->values()->all())
+        ->toBe(collect([$first->id, $second->id])->sort()->values()->all());
+});
+
 test('organizational admin cannot grant protected or globally privileged roles on create', function (string $role): void {
     $organization = oumOrganization('ROLE-BLOCK');
     $admin = oumOrganizationalAdmin($organization);

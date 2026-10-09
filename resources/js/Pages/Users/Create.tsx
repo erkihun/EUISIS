@@ -336,17 +336,25 @@ export default function CreateUser({
                         >
                             <Field label={t('users.userOrganizationScopes.organization')} error={form.errors.organization_scope_ids}>
                                 <select
-                                    className={inputCls}
-                                    value={form.data.organization_scope_ids[0] ?? ''}
-                                    onChange={(e) => form.setData('organization_scope_ids', e.target.value ? [e.target.value] : [])}
+                                    multiple
+                                    size={Math.min(Math.max(organizations.length, 3), 8)}
+                                    className={`${inputCls} min-h-28`}
+                                    value={form.data.organization_scope_ids}
+                                    onChange={(e) => form.setData(
+                                        'organization_scope_ids',
+                                        Array.from(e.currentTarget.selectedOptions, (option) => option.value),
+                                    )}
+                                    aria-describedby="organization-scope-help"
                                 >
-                                    <option value="">{t('users.userOrganizationScopes.noOrganizations')}</option>
                                     {organizations.map((organization) => (
                                         <option key={organization.id} value={organization.id}>
                                             {organization.name_en}
                                         </option>
                                     ))}
                                 </select>
+                                <p id="organization-scope-help" className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                    {t('users.userOrganizationScopes.selectOrganizations')}
+                                </p>
                             </Field>
 
                             <Field label={t('users.userOrganizationScopes.scopeType')} error={form.errors.scope_type}>
