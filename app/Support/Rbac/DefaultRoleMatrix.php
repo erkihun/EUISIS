@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Rbac;
 
 use App\Support\DailyActivity\DailyActivityRoles;
+use App\Support\FieldWork\FieldWorkRoles;
 use App\Support\Grievances\GrievanceRoles;
 use App\Support\Performance\PerformanceRoles;
 use InvalidArgumentException;
@@ -119,7 +120,7 @@ final class DefaultRoleMatrix
     private static function build(bool $validate = true): array
     {
         $all = PermissionCatalog::names();
-        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
+        $cityAdmin = array_values(array_diff($all, self::CITY_ADMIN_WITHHELD, GrievanceRoles::CITY_ADMIN_WITHHELD, FieldWorkRoles::CITY_ADMIN_WITHHELD, PermissionCatalog::matching(...self::CITY_ADMIN_WITHHELD_MODULES)));
 
         $roles = [
             // ── Administration ────────────────────────────────────────────────
@@ -154,6 +155,7 @@ final class DefaultRoleMatrix
                 'user-organization-scopes.viewAny', 'user-organization-scopes.create', 'user-organization-scopes.update', 'user-organization-scopes.delete',
                 'service_feedback.view', 'service_feedback.review', 'service_feedback.hide', 'service_feedback.export', 'service_feedback.settings.manage',
                 ...DailyActivityRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
+                ...FieldWorkRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_INSTITUTION_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_ADMIN_PERMISSIONS,
@@ -174,6 +176,7 @@ final class DefaultRoleMatrix
                 'transfers.viewAny', 'transfers.view', 'transfers.create', 'transfers.update', 'transfers.submit',
                 'transfers.applications.view',
                 ...DailyActivityRoles::HR_OVERSIGHT_PERMISSIONS,
+                ...FieldWorkRoles::HR_OVERSIGHT_PERMISSIONS,
                 ...PerformanceRoles::HR_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_HR_PERMISSIONS,
                 ...PerformanceRoles::ASSESSMENT_EXECUTION_HR_PERMISSIONS,
@@ -274,13 +277,13 @@ final class DefaultRoleMatrix
                 'የሕዝብ ድረ-ገጽ ይዘትን ያስተካክላል። የመታወቂያ ማረጋገጫን፣ OTPን፣ የፍጥነት ገደቦችን፣ የሠራተኛ መረጃን ወይም የማረጋገጫ ፖሊሲን መቀየር አይችልም።'),
 
             // ── Employee self-service, teams and performance ─────────────────
-            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
-                'Self-service for the signed-in employee only: own daily activity, own performance agreement, reviews and appeals. My Portal pages are tied to the linked employee record, not to extra permissions.',
-                'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች።'),
-            DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, DailyActivityRoles::REVIEWER_PERMISSIONS,
-                'Reviews the daily activity of the team named in the user\'s reviewer assignment.',
-                'በተመደበበት ቡድን ውስጥ ያሉ ሠራተኞችን ዕለታዊ እንቅስቃሴ ይገመግማል።'),
-            PerformanceRoles::MANAGER_ROLE => self::role(self::SCOPE_SCOPED, [...PerformanceRoles::MANAGER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_MANAGER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
+            DailyActivityRoles::EMPLOYEE_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::EMPLOYEE_PERMISSIONS, ...FieldWorkRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::EMPLOYEE_PERMISSIONS, ...GrievanceRoles::EMPLOYEE_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
+                'Self-service for the signed-in employee only: own daily activity, own field work requests and GPS check-in/out, own performance agreement, reviews and appeals. My Portal pages are tied to the linked employee record, not to extra permissions.',
+                'ለገባው ሠራተኛ ብቻ የራስ አገልግሎት፡ የራሱ ዕለታዊ እንቅስቃሴ፣ የመስክ ሥራ ጥያቄ፣ የአፈጻጸም ስምምነት፣ ግምገማዎች እና ይግባኞች።'),
+            DailyActivityRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, [...DailyActivityRoles::REVIEWER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS],
+                'Reviews the daily activity, and decides the field work requests, of the team named in the user\'s reviewer assignment.',
+                'በተመደበበት ቡድን ውስጥ ያሉ ሠራተኞችን ዕለታዊ እንቅስቃሴ ይገመግማል፤ የመስክ ሥራ ጥያቄዎቻቸውን ይወስናል።'),
+            PerformanceRoles::MANAGER_ROLE => self::role(self::SCOPE_SCOPED, [...PerformanceRoles::MANAGER_PERMISSIONS, ...FieldWorkRoles::SUPERVISOR_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_MANAGER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_EVALUATOR_PERMISSIONS],
                 'Unit manager / supervisor for EPMS: agreements, actuals, check-ins and reviews of the covered team only.',
                 'የክፍል ኃላፊ፡ ለሚመራው ቡድን ብቻ ስምምነቶች፣ ክንውኖች፣ ውይይቶች እና ግምገማዎች።'),
             PerformanceRoles::OFFICER_ROLE => self::role(self::SCOPE_SCOPED, [...PerformanceRoles::OFFICER_PERMISSIONS, ...PerformanceRoles::ASSESSMENT_OFFICER_PERMISSIONS],

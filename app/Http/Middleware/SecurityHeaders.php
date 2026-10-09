@@ -27,9 +27,15 @@ class SecurityHeaders
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // ── Browser feature restrictions ─────────────────────────────────────
+        // geolocation=(self): Field Work GPS check-in/out reads the position
+        // once, on an explicit button press (docs/field-work-security.md).
+        // Same-origin only, and the browser's own permission prompt remains
+        // the consent gate. It cannot be scoped per page: this is an Inertia
+        // SPA, so the policy of the first document loaded applies to every
+        // page visited after it.
         $response->headers->set(
             'Permissions-Policy',
-            'camera=(self), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()'
+            'camera=(self), microphone=(), geolocation=(self), payment=(), usb=(), interest-cohort=()'
         );
 
         // ── Cross-domain policy files ─────────────────────────────────────────

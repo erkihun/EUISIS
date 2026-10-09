@@ -47,6 +47,7 @@ import {
     ClockIcon,
     MailIcon,
     FileChartIcon,
+    MapPinned,
 } from '@/Components/Icons';
 import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
@@ -108,6 +109,18 @@ const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
                     { routeName: 'employee.daily-activity.entry', labelKey: 'nav.registerActivity', icon: ClipboardListIcon, permission: 'daily_activities.view_own' },
                     { routeName: 'employee.daily-activity.calendar', labelKey: 'nav.myActivityCalendar', icon: CalendarIcon, permission: 'daily_activities.view_own' },
                     { routeName: 'employee.daily-activity.history', labelKey: 'nav.myActivityHistory', icon: HistoryIcon, permission: 'daily_activities.view_own' },
+                ],
+            },
+            {
+                // Own field work only. Supervising and overseeing it is the
+                // admin "Field Work Management" group, never this one.
+                key: 'portalFieldWork',
+                labelKey: 'nav.groupMyFieldWork',
+                icon: MapPinned,
+                items: [
+                    { routeName: 'employee.field-work.index', labelKey: 'nav.myFieldWork', icon: MapPinned, permission: 'field_work.view_own' },
+                    { routeName: 'employee.field-work.create', labelKey: 'nav.newFieldWork', icon: ClipboardListIcon, permission: 'field_work.create_own' },
+                    { routeName: 'employee.field-work.history', labelKey: 'nav.myFieldWorkHistory', icon: HistoryIcon, permission: 'field_work.view_own' },
                 ],
             },
             {
@@ -320,6 +333,26 @@ const navGroups: NavGroup[] = [
         ],
     },
     {
+        /*
+         * Field Work Management (docs/field-work-navigation.md): the ONE admin
+         * category for supervising and overseeing field work. Employees' own
+         * requests live in My Portal above, never here. Each entry is gated by
+         * the permission its page checks; the page re-checks permission,
+         * scope and the record server-side.
+         */
+        key: 'fieldWorkManagement',
+        labelKey: 'nav.groupFieldWorkManagement',
+        icon: MapPinned,
+        items: [
+            { routeName: 'field-work.dashboard', labelKey: 'nav.fieldWorkDashboard', icon: LayoutDashboard, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
+            { routeName: 'field-work.requests.index', labelKey: 'nav.fieldWorkRequests', icon: ClipboardListIcon, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
+            { routeName: 'field-work.approvals.index', labelKey: 'nav.fieldWorkApprovals', icon: ClipboardCheckIcon, anyPermission: ['field_work.approve', 'field_work.return', 'field_work.reject'] },
+            { routeName: 'field-work.team.index', labelKey: 'nav.fieldWorkTeam', icon: Users, permission: 'field_work.view_team' },
+            { routeName: 'field-work.overdue.index', labelKey: 'nav.fieldWorkOverdue', icon: AlertTriangle, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
+            { routeName: 'field-work.types.index', labelKey: 'nav.fieldWorkTypes', icon: TagsIcon, permission: 'field_work.manage_types' },
+        ],
+    },
+    {
         key: 'transferManagement',
         labelKey: 'nav.transferManagement',
         icon: ArrowLeftRightIcon,
@@ -493,7 +526,7 @@ const adminGroups: { labelKey: string; items: NavItem[] }[] = [
 const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 
 const sections = [
-    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'fieldWorkManagement', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
     { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];

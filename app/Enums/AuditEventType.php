@@ -583,6 +583,20 @@ enum AuditEventType: string
     case DailyActivityReviewerRemoved = 'daily_activity.reviewer_removed';
     case DailyActivityReviewPolicyChanged = 'daily_activity.review_policy_changed';
 
+    // Field Work Management (docs/field-work-security.md §Audit).
+    case FieldWorkCreated = 'field_work.created';
+    case FieldWorkUpdated = 'field_work.updated';
+    case FieldWorkSubmitted = 'field_work.submitted';
+    case FieldWorkApproved = 'field_work.approved';
+    case FieldWorkReturned = 'field_work.returned';
+    case FieldWorkRejected = 'field_work.rejected';
+    case FieldWorkCancelled = 'field_work.cancelled';
+    case FieldWorkCheckedIn = 'field_work.checked_in';
+    case FieldWorkCheckedOut = 'field_work.checked_out';
+    case FieldWorkCompleted = 'field_work.completed';
+    case FieldWorkPreciseLocationViewed = 'field_work.precise_location_viewed';
+    case FieldWorkTypeSaved = 'field_work.type_saved';
+
     // Work standards: sub-services, main tasks and task standards (BPR plans)
     case WorkStructureChanged = 'work_standards.structure_changed';
     case WorkStandardSaved = 'work_standards.standard_saved';

@@ -1304,6 +1304,9 @@ require __DIR__.'/assessments.php';
 
 require __DIR__.'/grievances.php';
 
+// Field Work Management (docs/field-work-management.md).
+require __DIR__.'/field-work.php';
+
 // Court Cases — planned standalone module, separate from Grievance Management.
 require __DIR__.'/court-cases.php';
 

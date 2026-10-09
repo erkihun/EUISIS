@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'status' => [
+        'draft' => 'ረቂቅ',
+        'pending_supervisor_approval' => 'የቅርብ ኃላፊ ውሳኔ በመጠባበቅ ላይ',
+        'returned_for_correction' => 'ለእርማት የተመለሰ',
+        'approved' => 'የጸደቀ',
+        'rejected' => 'ውድቅ የተደረገ',
+        'in_field' => 'በመስክ ላይ',
+        'completed' => 'የተጠናቀቀ',
+        'cancelled' => 'የተሰረዘ',
+    ],
+
+    'errors' => [
+        'no_employee' => 'መለያዎ ከሠራተኛ መዝገብ ጋር አልተገናኘም።',
+        'not_active' => 'የመስክ ሥራ መጠየቅ የሚችሉት ንቁ ሠራተኞች ብቻ ናቸው።',
+        'no_assignment' => 'የአሁን ምደባ ስለሌለዎት የመስክ ሥራ መጠየቅ አይቻልም።',
+        'not_requester' => 'ይህን ማድረግ የሚችለው የመስክ ሥራውን የጠየቀው ሠራተኛ ብቻ ነው።',
+        'not_participant' => 'የዚህ የመስክ ሥራ ተሳታፊ አይደሉም።',
+        'not_supervisor' => 'ይህን ጥያቄ መወሰን የሚችለው ለጥያቄው የተለየው የቅርብ ኃላፊ ብቻ ነው።',
+        'invalid_transition' => 'ጥያቄው ":status" ሆኖ እያለ ይህ አይቻልም።',
+        'inactive_type' => 'ንቁ የመስክ ሥራ ዓይነት ይምረጡ።',
+        'team_not_allowed' => 'የቡድን አባላትን ለመጨመር አልተፈቀደልዎትም።',
+        'too_many_participants' => 'ቢበዛ :max የቡድን አባላት መጨመር ይቻላል።',
+        'invalid_participant' => 'የቡድን አባላት አሁን በተቋምዎ የተመደቡ ንቁ ሠራተኞች መሆን አለባቸው።',
+        'return_before_start' => 'የሚጠበቀው መመለሻ ከመጀመሪያው በኋላ መሆን አለበት።',
+        'start_too_old' => 'መጀመሪያው ከ30 ቀናት በላይ ያለፈ መሆን አይችልም።',
+        'too_long' => 'የመስክ ሥራ ከ90 ቀናት በላይ መሆን አይችልም።',
+        'unit_not_in_organization' => 'ክፍሉ የተመረጠው ተቋም አካል አይደለም።',
+        'conflict_field_work' => ':employee በዚህ ጊዜ ውስጥ የመስክ ሥራ :reference አለው።',
+        'conflict_leave' => ':employee በዚህ ጊዜ ውስጥ በጸደቀ ፈቃድ ላይ ነው።',
+        'already_started' => 'አንድ ሰው የገባበትን የመስክ ሥራ መሰረዝ አይቻልም።',
+        'not_approved' => 'መግባት የሚቻለው በጸደቀ የመስክ ሥራ ላይ ብቻ ነው።',
+        'too_early' => 'ወደዚህ የመስክ ሥራ ለመግባት ገና ነው።',
+        'window_closed' => 'የሚጠበቀው መመለሻ አልፏል፤ መግቢያ ተዘግቷል።',
+        'not_checked_in' => 'ከመውጣትዎ በፊት ይግቡ።',
+        'not_in_field' => 'ይህ የመስክ ሥራ በሂደት ላይ አይደለም።',
+        'stale_capture' => 'የቦታ ንባቡ የቆየ ወይም ወደፊት ያለ ነው። እንደገና ይሞክሩ።',
+        'outside_area' => 'ለዚህ የመስክ ሥራ ከሚጠበቀው ቦታ ውጭ ነዎት።',
+        'actual_return_range' => 'ትክክለኛው መመለሻ ከትክክለኛው መጀመሪያ በኋላ እና ወደፊት ያልሆነ መሆን አለበት።',
+        'reason_required' => 'ምክንያት ያስፈልጋል።',
+    ],
+
+    'flash' => [
+        'saved' => 'የመስክ ሥራ ጥያቄ በረቂቅነት ተቀምጧል።',
+        'submitted' => 'የመስክ ሥራ ጥያቄ ለቅርብ ኃላፊዎ ቀርቧል።',
+        'cancelled' => 'የመስክ ሥራ ጥያቄ ተሰርዟል።',
+        'approved' => 'የመስክ ሥራ ጥያቄ ጸድቋል።',
+        'returned' => 'የመስክ ሥራ ጥያቄ ለእርማት ተመልሷል።',
+        'rejected' => 'የመስክ ሥራ ጥያቄ ውድቅ ተደርጓል።',
+        'checked_in' => 'የጂፒኤስ መግቢያ ተመዝግቧል።',
+        'already_checked_in' => 'ቀድሞውኑ ገብተው ነበር፤ ምንም አልተቀየረም።',
+        'checked_out' => 'የጂፒኤስ መውጫ ተመዝግቧል።',
+        'already_checked_out' => 'ቀድሞውኑ ወጥተው ነበር፤ ምንም አልተቀየረም።',
+        'completed' => 'የመስክ ሥራ ተጠናቋል።',
+        'type_saved' => 'የመስክ ሥራ ዓይነት ተቀምጧል።',
+    ],
+
+    'notifications' => [
+        'action' => 'የመስክ ሥራውን ይክፈቱ',
+        'approval_required_subject' => 'የመስክ ሥራ :reference የእርስዎን ውሳኔ ይጠብቃል',
+        'approval_required_body' => 'ከቡድንዎ የቀረበ የመስክ ሥራ ጥያቄ (:reference) የእርስዎን ውሳኔ እየጠበቀ ነው።',
+        'approved_subject' => 'የመስክ ሥራ :reference ጸድቋል',
+        'approved_body' => 'የመስክ ሥራ ጥያቄዎ :reference ጸድቋል።',
+        'returned_subject' => 'የመስክ ሥራ :reference ለእርማት ተመልሷል',
+        'returned_body' => 'የመስክ ሥራ ጥያቄዎ :reference ለእርማት ተመልሷል፦ :comment',
+        'rejected_subject' => 'የመስክ ሥራ :reference ውድቅ ተደርጓል',
+        'rejected_body' => 'የመስክ ሥራ ጥያቄዎ :reference ውድቅ ተደርጓል፦ :comment',
+    ],
+];

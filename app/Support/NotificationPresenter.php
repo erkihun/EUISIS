@@ -6,6 +6,7 @@ namespace App\Support;
 
 use App\Notifications\DailyActivityNotification;
 use App\Notifications\EmployeePortalNotification;
+use App\Notifications\FieldWorkNotification;
 use App\Notifications\GrievanceNotification;
 use App\Notifications\PasswordSecurityNotification;
 use App\Notifications\PerformanceNotification;
@@ -25,6 +26,7 @@ final class NotificationPresenter
     private const RENDERERS = [
         'daily_activity' => DailyActivityNotification::class,
         'employee_portal' => EmployeePortalNotification::class,
+        'field_work' => FieldWorkNotification::class,
         'account_security' => PasswordSecurityNotification::class,
         'performance' => PerformanceNotification::class,
         'grievance' => GrievanceNotification::class,

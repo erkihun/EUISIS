@@ -204,6 +204,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(OrganizationType::class, OrganizationTypePolicy::class);
         Gate::policy(OrganizationalChangeRequest::class, OrganizationalChangeRequestPolicy::class);
         Gate::policy(DailyActivityLog::class, DailyActivityLogPolicy::class);
+        Gate::policy(\App\Models\FieldWorkRequest::class, \App\Policies\FieldWorkRequestPolicy::class);
         Gate::policy(OrganizationUnit::class, OrganizationUnitPolicy::class);
         Gate::policy(OrganizationUnitType::class, OrganizationUnitTypePolicy::class);
         Gate::policy(Occupation::class, OccupationPolicy::class);

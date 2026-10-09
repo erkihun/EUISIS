@@ -8,6 +8,7 @@ import amCalendar from '@/i18n/am/calendar';
 import amCafeteria from '@/i18n/am/cafeteria';
 import amCommon from '@/i18n/am/common';
 import amDailyActivities from '@/i18n/am/dailyActivities';
+import amFieldWork from '@/i18n/am/fieldWork';
 import amPerformance from '@/i18n/am/performance';
 import amAuth from '@/i18n/am/auth';
 import amConfirmations from '@/i18n/am/confirmations';
@@ -60,6 +61,7 @@ import enCalendar from '@/i18n/en/calendar';
 import enCafeteria from '@/i18n/en/cafeteria';
 import enCommon from '@/i18n/en/common';
 import enDailyActivities from '@/i18n/en/dailyActivities';
+import enFieldWork from '@/i18n/en/fieldWork';
 import enPerformance from '@/i18n/en/performance';
 import enAuth from '@/i18n/en/auth';
 import enConfirmations from '@/i18n/en/confirmations';
@@ -143,6 +145,7 @@ const translations: Record<Locale, TranslationTree> = {
         employees: { ...((en.employees as TranslationTree | undefined) ?? {}), ...enEmployees },
         employeePortal: enEmployeePortal,
         dailyActivities: enDailyActivities,
+        fieldWork: enFieldWork,
         performance: enPerformance,
         entitlements: enEntitlements,
         gradeLevels: enGradeLevels,
@@ -208,6 +211,7 @@ const translations: Record<Locale, TranslationTree> = {
         employees: { ...(((am as { employees?: TranslationTree }).employees) ?? {}), ...amEmployees },
         employeePortal: amEmployeePortal,
         dailyActivities: amDailyActivities,
+        fieldWork: amFieldWork,
         performance: amPerformance,
         entitlements: amEntitlements,
         gradeLevels: amGradeLevels,

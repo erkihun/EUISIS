@@ -1454,6 +1454,9 @@ return [
     // Daily Activity Register — employee, reviewer and scoped-oversight duties.
     ...require database_path('seeders/data/daily-activity-permissions.php'),
 
+    // Field Work Management — docs/field-work-security.md.
+    ...require database_path('seeders/data/field-work-permissions.php'),
+
     // Employee Performance Management (EPMS) — docs/epms-permissions.md.
     ...require database_path('seeders/data/performance-permissions.php'),
 

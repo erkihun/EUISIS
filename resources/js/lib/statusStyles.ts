@@ -83,6 +83,8 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     not_assigned: ['Not assigned', 'neutral'],
     future: ['Future', 'neutral'],
     carried_forward: ['Carried forward', 'neutral'],
+    // Field work: a GPS capture with no expected point to compare against.
+    cannot_validate: ['Not verified', 'neutral'],
 
     /* ── Good terminal states ─────────────────────────────── */
     active: ['Active', 'success'],
@@ -96,6 +98,7 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     occupied: ['Occupied', 'success'],
     provisioned: ['Provisioned', 'success'],
     success: ['Success', 'success'],
+    within_expected_area: ['Verified', 'success'],
 
     /* ── Moving through a workflow ────────────────────────── */
     pending: ['Pending', 'info'],
@@ -110,6 +113,8 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     scheduled: ['Scheduled', 'info'],
     resubmitted: ['Resubmitted', 'info'],
     required: ['Required', 'info'],
+    pending_supervisor_approval: ['Pending supervisor approval', 'info'],
+    in_field: ['In field', 'info'],
 
     /* ── Needs a person to act ────────────────────────────── */
     suspended: ['Suspended', 'warning'],
@@ -123,6 +128,10 @@ const STATUS_MAP: Record<string, [label: string, tone: StatusTone]> = {
     expiring_soon: ['Expiring Soon', 'warning'],
     returned_for_correction: ['Returned for correction', 'warning'],
     returned: ['Returned', 'warning'],
+    check_in_missing: ['Check-in missing', 'warning'],
+    supervisor_not_resolved: ['Supervisor not resolved', 'warning'],
+    outside_expected_area: ['Outside expected area', 'warning'],
+    low_accuracy: ['Low accuracy', 'warning'],
 
     /* ── Blocked / refused / lost ─────────────────────────── */
     revoked: ['Revoked', 'danger'],
