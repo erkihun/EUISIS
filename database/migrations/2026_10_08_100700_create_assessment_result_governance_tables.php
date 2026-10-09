@@ -24,7 +24,10 @@ return new class extends Migration
             $table->string('result_band_label_am')->nullable();
             // original | appeal_decision | moderation | technical_correction
             $table->string('change_type', 32);
-            $table->foreignUuid('supersedes_version_id')->nullable()->constrained('assessment_result_versions')->restrictOnDelete();
+            // Self-reference: the key is added below, once the primary key exists.
+            // Declared inline, PostgreSQL received the foreign key before the
+            // primary key and refused it (no unique constraint on id yet).
+            $table->uuid('supersedes_version_id')->nullable();
             $table->dateTime('effective_at');
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->string('decision_reference', 100)->nullable();
@@ -35,6 +38,10 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['assessment_record_id', 'version_no'], 'arv_record_version_unique');
             $table->index(['assessment_record_id', 'is_current'], 'arv_record_current_idx');
+        });
+
+        Schema::table('assessment_result_versions', function (Blueprint $table): void {
+            $table->foreign('supersedes_version_id')->references('id')->on('assessment_result_versions')->restrictOnDelete();
         });
 
         Schema::create('assessment_appeal_reasons', function (Blueprint $table): void {
