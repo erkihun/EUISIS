@@ -22,7 +22,7 @@ return [
     'employee_no_contact' => 'This employee record must have an email address and phone number on file. Please contact HR.',
     'employee_inactive' => 'Only active employees can create an account. Please contact HR.',
     'employee_already_registered' => 'An account already exists for this employee. Please sign in instead.',
-    'registration_otp_sent' => 'A verification code was sent to the email address and phone number held in your employee record.',
+    'registration_otp_sent' => 'A verification code was sent to the email address held in your employee record.',
     'registration_otp_invalid' => 'The verification code is invalid.',
     'registration_otp_expired' => 'The verification code has expired. Request a new code.',
     'registration_otp_attempts' => 'Too many incorrect attempts. Request a new code.',

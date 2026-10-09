@@ -50,7 +50,7 @@ class RegisteredUserController extends Controller
         ]);
     }
 
-    /** Send one code to both contacts already held in the employee record. */
+    /** Send one code to the verified employee email, and SMS when available. */
     public function sendOtp(Request $request): RedirectResponse
     {
         if ($redirect = $this->disabledRedirect()) {
@@ -65,14 +65,14 @@ class RegisteredUserController extends Controller
         $email = trim((string) $employee->email);
         $phone = trim((string) $employee->phone);
 
-        if ($email === '' || $phone === '') {
+        if ($email === '') {
             throw ValidationException::withMessages([
-                'employee_number' => __('auth.employee_no_contact'),
+                'employee_number' => __('auth.employee_no_email'),
             ]);
         }
 
-        // Only a request for an eligible employee with both delivery channels
-        // can reserve quota. Invalid records must not let an accidental or
+        // Only a request for an eligible employee with a verified email can
+        // reserve quota. Invalid records must not let an accidental or
         // malicious form submission lock the employee out of registration.
         $rateLimitKeys = $this->reserveCodeRequestQuota($request, (string) $validated['employee_number']);
 
@@ -97,37 +97,37 @@ class RegisteredUserController extends Controller
         $emailDelivered = false;
         $smsDelivered = false;
 
-        // SMS first: it is the channel that fails most often, and an email
-        // code sent before a failed SMS would be one that can never be used.
+        // Email is the required registration channel, matching account
+        // recovery. SMS is a supplementary notification when a provider is
+        // configured; an unavailable SMS gateway must not block registration.
         try {
-            $smsDelivered = $this->smsGateway->send($phone, $notification->toSmsText());
+            Notification::route('mail', $email)->notify($notification);
+            $emailDelivered = true;
         } catch (Throwable $exception) {
-            Log::error('Employee registration OTP SMS failed.', [
+            Log::error('Employee registration OTP email failed.', [
                 'employee_id' => $employee->getKey(),
                 'error' => $exception->getMessage(),
             ]);
         }
 
-        if ($smsDelivered) {
+        if ($phone !== '' && $this->smsGateway->isConfigured()) {
             try {
-                Notification::route('mail', $email)->notify($notification);
-                $emailDelivered = true;
+                $smsDelivered = $this->smsGateway->send($phone, $notification->toSmsText());
             } catch (Throwable $exception) {
-                Log::error('Employee registration OTP email failed.', [
+                Log::warning('Employee registration OTP SMS failed after email delivery.', [
                     'employee_id' => $employee->getKey(),
                     'error' => $exception->getMessage(),
                 ]);
             }
         }
 
-        if (! $emailDelivered || ! $smsDelivered) {
+        if (! $emailDelivered) {
             $otp->forceFill(['expires_at' => now()->subSecond()])->save();
 
             // Do not consume quota when neither channel received a code. If
-            // one channel succeeded, retain the reservation: refunding it
-            // would permit unlimited messages to that contact while the other
-            // provider is unavailable.
-            if (! $emailDelivered && ! $smsDelivered) {
+            // SMS succeeded but email failed, retain the reservation: refunding
+            // it would permit unlimited messages while email is unavailable.
+            if (! $smsDelivered) {
                 $this->refundCodeRequestQuota($rateLimitKeys);
             }
 

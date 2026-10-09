@@ -253,7 +253,7 @@ test('registration starts a new session when it signs the employee in', function
     $this->assertAuthenticated();
 });
 
-test('no email code is sent when the SMS cannot be delivered', function (): void {
+test('registration sends an email code when the SMS gateway is unavailable', function (): void {
     config(['security.registration_enabled' => true]);
     Notification::fake();
     app()->instance(SmsGateway::class, new class implements SmsGateway
@@ -271,15 +271,15 @@ test('no email code is sent when the SMS cannot be delivered', function (): void
     $employee = registrationEmployee('EMP-NOSMS', 'nosms@example.test');
 
     $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
-        ->assertSessionHasErrors(['employee_number' => __('auth.registration_otp_delivery_failed')]);
+        ->assertSessionHasNoErrors();
 
-    Notification::assertNothingSent();
-    expect(EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->first()->isExpired())->toBeTrue();
+    Notification::assertSentOnDemand(EmployeeRegistrationOtpNotification::class);
+    expect(EmployeeRegistrationOtp::query()->where('employee_id', $employee->id)->first()->isExpired())->toBeFalse();
 });
 
-test('failed delivery does not consume the registration code quota', function (): void {
+test('failed required email delivery does not consume the registration code quota', function (): void {
     config(['security.registration_enabled' => true]);
-    Notification::fake();
+    config(['mail.default' => 'missing']);
     $employee = registrationEmployee('EMP-RETRY-DELIVERY', 'retry-delivery@example.test');
 
     app()->instance(SmsGateway::class, new class implements SmsGateway
@@ -300,24 +300,25 @@ test('failed delivery does not consume the registration code quota', function ()
             ->assertSessionHasErrors('employee_number');
     }
 
+    Notification::fake();
     app()->instance(SmsGateway::class, $this->sms);
 
     $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
         ->assertSessionHasNoErrors();
 });
 
-test('an employee missing a contact does not consume the registration code quota', function (): void {
+test('an employee missing an email does not consume the registration code quota', function (): void {
     config(['security.registration_enabled' => true]);
     Notification::fake();
     $employee = registrationEmployee('EMP-RETRY-CONTACT', 'retry-contact@example.test');
-    $employee->forceFill(['phone' => null])->save();
+    $employee->forceFill(['email' => null])->save();
 
     foreach (range(1, 3) as $attempt) {
         $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
             ->assertSessionHasErrors('employee_number');
     }
 
-    $employee->forceFill(['phone' => '+251911000888'])->save();
+    $employee->forceFill(['email' => 'retry-contact@example.test'])->save();
 
     $this->post(route('register.send-otp'), ['employee_number' => $employee->employee_number])
         ->assertSessionHasNoErrors();
