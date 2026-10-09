@@ -98,7 +98,7 @@ class DatabaseSeeder extends Seeder
             return [$type['code'] => $organizationType->fresh()];
         });
 
-        $root = Organization::query()->create([
+        $root = $this->demoOrganization([
             'organization_type_id' => $organizationTypes['city_government']->id,
             'code' => 'AA-ROOT',
             'name_en' => 'Addis Ababa City Administration',
@@ -128,7 +128,7 @@ class DatabaseSeeder extends Seeder
             'Gulele',
             'Kolfe Keraniyo',
         ])->map(function (string $name, int $index) use ($organizationTypes, $root, $version): Organization {
-            $organization = Organization::query()->create([
+            $organization = $this->demoOrganization([
                 'organization_type_id' => $organizationTypes['sub_city']->id,
                 'code' => sprintf('SC-%02d', $index + 1),
                 'name_en' => $name,
@@ -143,7 +143,7 @@ class DatabaseSeeder extends Seeder
             return $organization;
         });
 
-        $publicServiceBureau = Organization::query()->create([
+        $publicServiceBureau = $this->demoOrganization([
             'organization_type_id' => $organizationTypes['bureau']->id,
             'code' => 'BUR-PSHRDB',
             'name_en' => 'Public Service and Human Resource Development Bureau',
@@ -154,7 +154,7 @@ class DatabaseSeeder extends Seeder
         $this->createNameHistory($publicServiceBureau);
         $this->attachEdge($version, $root, $publicServiceBureau);
 
-        $woreda = Organization::query()->create([
+        $woreda = $this->demoOrganization([
             'organization_type_id' => $organizationTypes['woreda']->id,
             'code' => 'WRD-01-DEMO',
             'name_en' => 'Woreda 01 Demo',
@@ -520,7 +520,9 @@ class DatabaseSeeder extends Seeder
             Organization::whereIn('merged_into_id', $demoOrgIds)->update(['merged_into_id' => null]);
         }
 
-        Organization::withTrashed()->where('is_demo', true)->forceDelete();
+        // Archived, never deleted: other records (performance plans, …) may still
+        // reference a demo organization. The next run restores it by code.
+        Organization::where('is_demo', true)->delete();
         HierarchyVersion::where('is_demo', true)->delete();
     }
 
@@ -607,6 +609,28 @@ class DatabaseSeeder extends Seeder
                 .'. Run "php artisan migrate --seed" for first-time setup, or "php artisan migrate:fresh --seed" for a local reset.'
             );
         }
+    }
+
+    /**
+     * Restore the archived demo organization with this code, or create it.
+     * Reusing the row keeps records that still reference it valid and keeps
+     * its unique code free of duplicates.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    private function demoOrganization(array $attributes): Organization
+    {
+        $organization = Organization::withTrashed()->firstOrNew(['code' => $attributes['code']]);
+
+        if ($organization->exists && ! $organization->is_demo) {
+            throw new RuntimeException("Organization {$attributes['code']} already exists and is not demo data; the demo seeder will not take it over.");
+        }
+
+        $organization->fill([...$attributes, 'deleted_by' => null, 'deletion_reason' => null]);
+        $organization->deleted_at = null;
+        $organization->save();
+
+        return $organization;
     }
 
     private function attachEdge(HierarchyVersion $version, Organization $parent, Organization $child): void
