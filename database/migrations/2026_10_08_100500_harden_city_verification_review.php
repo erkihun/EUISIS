@@ -21,8 +21,13 @@ return new class extends Migration
 
         Schema::table('assessment_institution_submissions', function (Blueprint $table): void {
             if (! Schema::hasColumn('assessment_institution_submissions', 'city_reviewer_id')) {
+                // constrained($table, $column, $indexName): the constraint name is the
+                // THIRD argument. Passing it second made the key reference a
+                // non-existent users column, which PostgreSQL refuses outright and
+                // SQLite accepts but then fails every users update ("foreign key
+                // mismatch"). 2026_10_09_115000 repairs databases that ran the old form.
                 $table->foreignId('city_reviewer_id')->nullable()->after('return_reason')
-                    ->constrained('users', 'ais_city_reviewer_fk')->restrictOnDelete();
+                    ->constrained('users', 'id', 'ais_city_reviewer_fk')->restrictOnDelete();
             }
             if (! Schema::hasColumn('assessment_institution_submissions', 'review_started_at')) {
                 $table->dateTime('review_started_at')->nullable()->after('city_reviewer_id');
