@@ -1,0 +1,910 @@
+import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
+import { Link, usePage } from '@inertiajs/react';
+import {
+    LayoutDashboard,
+    Building2,
+    Users,
+    CreditCard,
+    Layers,
+    ScrollText,
+    X,
+    SettingsIcon,
+    ShieldCheck,
+    Briefcase,
+    TrashIcon,
+    TagsIcon,
+    GitBranchIcon,
+    HashIcon,
+    GitForkIcon,
+    ArrowLeftRightIcon,
+    ClipboardCheckIcon,
+    ClipboardListIcon,
+    MegaphoneIcon,
+    Inbox,
+    BadgeCheckIcon,
+    ReceiptTextIcon,
+    HandshakeIcon,
+    KeyIcon,
+    UserCogIcon,
+    TrendingUpIcon,
+    HardHatIcon,
+    ActivityIcon,
+    BoxesIcon,
+    QrCodeIcon,
+    UserIcon,
+    NetworkIcon,
+    MessageSquareIcon,
+    StarIcon,
+    NfcIcon,
+    RouterIcon,
+    ScaleIcon,
+    SearchIcon,
+    ChevronRight,
+    ChevronDown,
+    CalendarIcon,
+    HistoryIcon,
+    AlertTriangle,
+    ClockIcon,
+    MailIcon,
+    FileChartIcon,
+    MapPinned,
+} from '@/Components/Icons';
+import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
+import ApplicationLogo from '@/Components/ApplicationLogo';
+import { useCan } from '@/hooks/useCan';
+import { useLocale } from '@/hooks/useLocale';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
+
+/** A leaf nav item — renders as a clickable link. */
+type NavSubItem = {
+    routeName: string;
+    labelKey: string;
+    icon: (p: SVGProps<SVGSVGElement>) => JSX.Element;
+    permission?: string;
+    /** Shown when the user holds any one of these (for pages that accept several). */
+    anyPermission?: string[];
+    tab?: string;
+    /** Also listed in an admin group, so staff see it there and not twice. */
+    listedInAdmin?: boolean;
+};
+
+/** A nav item — either a plain link OR a parent with expandable children. */
+type NavItem = NavSubItem & {
+    /** When present, this item renders as a dropdown toggle instead of a link. */
+    children?: NavSubItem[];
+};
+
+type NavGroup = {
+    key: string;
+    labelKey: string;
+    icon: (p: SVGProps<SVGSVGElement>) => JSX.Element;
+    items: NavItem[];
+};
+
+/*
+ * My Portal navigation, categorized like the admin sidebar: labeled sections,
+ * collapsible groups, pages. Employee-only accounts get exactly this; staff
+ * who are also employees get the same pages as one "Self-service" group
+ * (selfServiceNav below), so every page is defined once.
+ *
+ * Deliberately absent (the routes still work when linked from a page):
+ * My Profile (the account menu and the dashboard's profile card open it),
+ * transfer announcements (reached from My Applications and the dashboard),
+ * /my-portal/organization and /my-portal/position (subsets of My Employment),
+ * /my-portal/service-tasks (only points to Daily Activity) and
+ * /my-portal/security (redirects to the sign-in block of My Profile).
+ */
+const portalDashboard: NavItem = { routeName: 'employee.portal', labelKey: 'nav.myPortal', icon: LayoutDashboard };
+
+const portalSections: { labelKey: string; groups: NavGroup[] }[] = [
+    {
+        // Day-to-day work: what the employee records and is measured on.
+        labelKey: 'nav.portalSectionWork',
+        groups: [
+            {
+                key: 'portalDailyActivity',
+                labelKey: 'nav.myDailyActivity',
+                icon: ClipboardListIcon,
+                items: [
+                    { routeName: 'employee.daily-activity.entry', labelKey: 'nav.registerActivity', icon: ClipboardListIcon, permission: 'daily_activities.view_own' },
+                    { routeName: 'employee.daily-activity.calendar', labelKey: 'nav.myActivityCalendar', icon: CalendarIcon, permission: 'daily_activities.view_own' },
+                    { routeName: 'employee.daily-activity.history', labelKey: 'nav.myActivityHistory', icon: HistoryIcon, permission: 'daily_activities.view_own' },
+                ],
+            },
+            {
+                // Own field work only. Supervising and overseeing it is the
+                // admin "Field Work Management" group, never this one.
+                key: 'portalFieldWork',
+                labelKey: 'nav.groupMyFieldWork',
+                icon: MapPinned,
+                items: [
+                    { routeName: 'employee.field-work.index', labelKey: 'nav.myFieldWork', icon: MapPinned, permission: 'field_work.view_own' },
+                    { routeName: 'employee.field-work.create', labelKey: 'nav.newFieldWork', icon: ClipboardListIcon, permission: 'field_work.create_own' },
+                    { routeName: 'employee.field-work.history', labelKey: 'nav.myFieldWorkHistory', icon: HistoryIcon, permission: 'field_work.view_own' },
+                ],
+            },
+            {
+                key: 'portalPerformance',
+                labelKey: 'nav.myPerformance',
+                icon: TrendingUpIcon,
+                items: [
+                    { routeName: 'employee.performance.index', labelKey: 'nav.myPerformance', icon: TrendingUpIcon, permission: 'employee_performance_agreements.view_own' },
+                ],
+            },
+        ],
+    },
+    {
+        // What HR holds about the employee.
+        labelKey: 'nav.portalSectionRecords',
+        groups: [
+            {
+                key: 'portalRecords',
+                labelKey: 'nav.groupMyRecords',
+                icon: UserIcon,
+                items: [
+                    { routeName: 'employee.employment', labelKey: 'nav.myEmployment', icon: Briefcase },
+                    { routeName: 'employee.id-card', labelKey: 'nav.myIdCard', icon: CreditCard },
+                    { routeName: 'employee.documents', labelKey: 'nav.myDocuments', icon: ScrollText },
+                ],
+            },
+        ],
+    },
+    {
+        // What the employee can use, apply for or ask for.
+        labelKey: 'nav.portalSectionServices',
+        groups: [
+            {
+                key: 'portalServices',
+                labelKey: 'nav.myEntitlements',
+                icon: BadgeCheckIcon,
+                items: [
+                    { routeName: 'employee.services', labelKey: 'nav.myEntitlements', icon: BadgeCheckIcon },
+                ],
+            },
+            {
+                key: 'portalCareer',
+                labelKey: 'nav.groupCareer',
+                icon: ArrowLeftRightIcon,
+                items: [
+                    { routeName: 'employee.transfer-applications', labelKey: 'nav.myTransferApplications', icon: Inbox },
+                ],
+            },
+            {
+                key: 'portalRequests',
+                labelKey: 'nav.groupRequestsMessages',
+                icon: MessageSquareIcon,
+                items: [
+                    { routeName: 'employee.requests', labelKey: 'nav.myRequests', icon: ClipboardCheckIcon },
+                    { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: ScrollText, permission: 'grievances.view_own', listedInAdmin: true },
+                    { routeName: 'employee.notifications', labelKey: 'nav.myNotifications', icon: MessageSquareIcon },
+                ],
+            },
+        ],
+    },
+];
+
+/** Staff with an employee record: the same pages as one group, in the same order. */
+const selfServiceNav: NavItem[] = [
+    portalDashboard,
+    ...portalSections.flatMap((section) => section.groups.flatMap((group) => group.items)).filter((item) => !item.listedInAdmin),
+];
+
+/*
+ * Sidebar categories.
+ *
+ * Grouped by what an administrator is trying to DO, not by which table a page
+ * touches: HR reference data (grades, occupations, positions) is separated from
+ * day-to-day employee work, and everything facing an outside party sits
+ * together under Providers.
+ *
+ * Rendering is unchanged. Each item is hidden when the user lacks its
+ * permission, and a group whose items are all hidden disappears with it, so no
+ * empty headers appear. Public pages (/id-checker, /service-feedback) are
+ * deliberately absent: they are for citizens, not administrators.
+ */
+const navGroups: NavGroup[] = [
+    {
+        // The same entries as employee-only mode, never a second list.
+        key: 'myWork',
+        labelKey: 'nav.groupSelfService',
+        icon: UserIcon,
+        items: selfServiceNav,
+    },
+    {
+        key: 'organization',
+        labelKey: 'nav.groupOrganization',
+        icon: Building2,
+        items: [
+            { routeName: 'organizations.index', labelKey: 'nav.organizations', icon: Building2,     permission: 'organizations.view' },
+            { routeName: 'organization-types.index', labelKey: 'nav.organizationTypes', icon: TagsIcon,      permission: 'organization-types.viewAny' },
+            { routeName: 'organization-units.index', labelKey: 'nav.organizationUnits', icon: GitBranchIcon, permission: 'organization-units.viewAny' },
+            { routeName: 'organization-unit-types.index', labelKey: 'nav.organizationUnitTypes', icon: BoxesIcon, permission: 'organization-unit-types.viewAny' },
+            { routeName: 'hierarchy-versions.index', labelKey: 'nav.hierarchyVersions', icon: GitForkIcon,   permission: 'hierarchy-versions.viewAny' },
+            /*
+             * Change requests. Four entries, each gated by the permission for
+             * that stage, so a requester never sees the review or
+             * implementation queues and vice versa.
+             */
+            { routeName: 'organizational-change-requests.index', labelKey: 'nav.changeRequestsMine', icon: Inbox, permission: 'organizational-change-requests.view_own' },
+            { routeName: 'organizational-change-requests.review-queue', labelKey: 'nav.changeRequestsReview', icon: ClipboardCheckIcon, permission: 'organizational-change-requests.review' },
+            { routeName: 'organizational-change-requests.pending-implementation', labelKey: 'nav.changeRequestsImplement', icon: HardHatIcon, permission: 'organizational-change-requests.view_approved' },
+            { routeName: 'organizational-change-requests.completed', labelKey: 'nav.changeRequestsCompleted', icon: BadgeCheckIcon, permission: 'organizational-change-requests.view_own' },
+            /*
+             * The controller also accepts `functional-reporting.viewReports`;
+             * only one permission can gate a nav entry, so the broader of the
+             * two is used and the page re-checks both on arrival.
+             */
+            { routeName: 'reporting-lines.index', labelKey: 'nav.reportingLines', icon: NetworkIcon,   permission: 'relationships.viewAny' },
+        ],
+    },
+    {
+        /*
+         * Reference data that changes rarely and underpins everything else.
+         * Kept apart from Employee Management so daily HR work is not buried
+         * among catalog screens.
+         */
+        key: 'hrMasterData',
+        labelKey: 'nav.groupHrMasterData',
+        icon: Briefcase,
+        items: [
+            { routeName: 'positions.index', labelKey: 'nav.positions', icon: Briefcase,          permission: 'positions.viewAny' },
+            { routeName: 'positions.status', labelKey: 'nav.newJobPositionsStatus', icon: ClipboardCheckIcon, permission: 'positions.viewAny' },
+            { routeName: 'position-establishments.index', labelKey: 'nav.positionEstablishments', icon: ClipboardListIcon, permission: 'position-establishments.viewAny' },
+            { routeName: 'position-services.index', labelKey: 'nav.positionServices', icon: Layers,             permission: 'service_feedback.settings.manage' },
+            { routeName: 'grade-levels.index', labelKey: 'nav.gradeLevels', icon: TrendingUpIcon,     permission: 'grade-levels.viewAny' },
+            { routeName: 'occupations.index', labelKey: 'nav.occupations', icon: HardHatIcon,        permission: 'occupations.viewAny' },
+            { routeName: 'isic-activities.index', labelKey: 'nav.isicActivities', icon: ActivityIcon,       permission: 'isic-activities.viewAny' },
+        ],
+    },
+    /*
+     * Employee Performance Management (EPMS). Each entry is gated by the
+     * permission its page checks; the pages re-check scope server-side.
+     */
+    {
+        key: 'performance',
+        labelKey: 'nav.groupPerformance',
+        icon: TrendingUpIcon,
+        items: [
+            // Line managers (agreements) use the dashboard for their teams, as the page allows.
+            { routeName: 'performance.dashboard', labelKey: 'nav.performanceDashboard', icon: LayoutDashboard, anyPermission: ['performance_reports.view', 'employee_performance_agreements.manage'] },
+            { routeName: 'performance.cycles.index', labelKey: 'nav.performanceCycles', icon: CalendarIcon, permission: 'performance_cycles.view' },
+            { routeName: 'performance.strategic-goals.index', labelKey: 'nav.strategicGoals', icon: TrendingUpIcon, permission: 'strategic_goals.view' },
+            { routeName: 'performance.plans.index', labelKey: 'nav.performancePlans', icon: GitForkIcon, permission: 'performance_plans.view' },
+            { routeName: 'performance.kpis.index', labelKey: 'nav.kpiLibrary', icon: HashIcon, permission: 'kpis.view' },
+            { routeName: 'performance.agreements.index', labelKey: 'nav.performanceAgreements', icon: HandshakeIcon, permission: 'employee_performance_agreements.manage' },
+            { routeName: 'performance.calibration.index', labelKey: 'nav.performanceCalibration', icon: BadgeCheckIcon, permission: 'performance_calibration.view' },
+            { routeName: 'performance.appeals.index', labelKey: 'nav.performanceAppeals', icon: MessageSquareIcon, anyPermission: ['performance_appeals.review', 'performance_appeals.decide'] },
+            { routeName: 'performance.reports.index', labelKey: 'nav.performanceReports', icon: ReceiptTextIcon, permission: 'performance_reports.view' },
+            { routeName: 'performance.settings.index', labelKey: 'nav.performanceSettings', icon: SettingsIcon, permission: 'performance_settings.view' },
+        ],
+    },
+    /*
+     * Assessment Management: every competency / behavioural assessment page
+     * in one group of its own, beside (not inside) Performance Management:
+     * forms and assessments first, then oversight & compliance. Pages
+     * re-check permission and scope.
+     */
+    {
+        key: 'assessments',
+        labelKey: 'nav.groupAssessmentManagement',
+        icon: ClipboardListIcon,
+        items: [
+            { routeName: 'assessment-forms.index', labelKey: 'nav.assessmentForms', icon: ClipboardListIcon, permission: 'assessment_forms.view' },
+            { routeName: 'assessment-records.index', labelKey: 'nav.assessmentRecords', icon: ClipboardCheckIcon, anyPermission: ['assessment_forms.edit_draft', 'assessment_forms.publish'] },
+            { routeName: 'assessment-oversight.dashboard', labelKey: 'nav.assessmentOversightDashboard', icon: LayoutDashboard, permission: 'assessment_oversight.view_dashboard' },
+            { routeName: 'assessment-oversight.institutions', labelKey: 'nav.assessmentOversightInstitutions', icon: Building2, permission: 'assessment_oversight.view_institutions' },
+            { routeName: 'assessment-oversight.employees', labelKey: 'nav.assessmentOversightCoverage', icon: Users, permission: 'assessment_oversight.view_employee_status' },
+            { routeName: 'assessment-oversight.distribution', labelKey: 'nav.assessmentOversightDistribution', icon: TrendingUpIcon, permission: 'assessment_oversight.view_results' },
+            { routeName: 'assessment-oversight.gender', labelKey: 'nav.assessmentOversightGender', icon: Users, permission: 'assessment_oversight.view_demographics' },
+            { routeName: 'assessment-oversight.data-quality', labelKey: 'nav.assessmentOversightDataQuality', icon: ClipboardCheckIcon, permission: 'assessment_oversight.view_data_quality' },
+            { routeName: 'assessment-oversight.submissions', labelKey: 'nav.assessmentOversightSubmissions', icon: BadgeCheckIcon, anyPermission: ['assessment_submissions.submit', 'assessment_submissions.review', 'assessment_submissions.verify', 'assessment_submissions.finalize'] },
+            { routeName: 'assessment-oversight.reports', labelKey: 'nav.assessmentOversightReports', icon: ReceiptTextIcon, permission: 'assessment_reports.view' },
+            { routeName: 'assessment-oversight.setup', labelKey: 'nav.assessmentOversightSetup', icon: SettingsIcon, anyPermission: ['assessment_oversight.manage_cycles', 'assessment_oversight.manage_policies'] },
+        ],
+    },
+    {
+        key: 'employeeManagement',
+        labelKey: 'nav.groupEmployeeManagement',
+        icon: Users,
+        items: [
+            { routeName: 'employees.index', labelKey: 'nav.employees', icon: Users,              permission: 'employees.view' },
+            { routeName: 'employees.import.create', labelKey: 'nav.employeeImport', icon: ClipboardListIcon,  permission: 'employees.import.view' },
+            { routeName: 'vacancy-announcements.index', labelKey: 'nav.vacancyAnnouncements', icon: MegaphoneIcon,      permission: 'vacancy-announcements.viewAny' },
+            { routeName: 'vacancy-applications.my-applications', labelKey: 'nav.myApplications',        icon: Inbox },
+        ],
+    },
+    {
+        /*
+         * Daily Activity Register: its own module, not employee records. The
+         * dashboard and missing list are gated by the broadest permission that
+         * reaches them; each page re-checks the exact permission server-side.
+         */
+        key: 'dailyActivity',
+        labelKey: 'nav.groupDailyActivity',
+        icon: ActivityIcon,
+        items: [
+            { routeName: 'daily-activities.dashboard', labelKey: 'nav.dailyActivityDashboard', icon: ActivityIcon, anyPermission: ['daily_activities.view_reports', 'daily_activities.view_team', 'daily_activities.view_scoped'] },
+            { routeName: 'daily-activities.index', labelKey: 'nav.dailyActivityRegister', icon: ClipboardListIcon, anyPermission: ['daily_activities.view_scoped', 'daily_activities.view_team'] },
+            { routeName: 'daily-activities.missing', labelKey: 'nav.dailyActivityMissing', icon: AlertTriangle, anyPermission: ['daily_activities.view_reports', 'daily_activities.view_scoped', 'daily_activities.view_team'] },
+            { routeName: 'daily-activities.review-queue', labelKey: 'nav.dailyActivityReviewQueue', icon: ClipboardCheckIcon, permission: 'daily_activities.review' },
+            { routeName: 'daily-activities.reports', labelKey: 'nav.dailyActivityReports', icon: ReceiptTextIcon, permission: 'daily_activities.view_reports' },
+            { routeName: 'daily-activities.reviewers.index', labelKey: 'nav.dailyActivityReviewers', icon: UserCogIcon, permission: 'daily_activities.manage_reviewers' },
+            { routeName: 'daily-activities.settings', labelKey: 'nav.dailyActivitySettings', icon: SettingsIcon, anyPermission: ['daily_activity_settings.view', 'daily_activity_settings.update'] },
+        ],
+    },
+    {
+        /*
+         * Field Work Management (docs/field-work-navigation.md): the ONE admin
+         * category for supervising and overseeing field work. Employees' own
+         * requests live in My Portal above, never here. Each entry is gated by
+         * the permission its page checks; the page re-checks permission,
+         * scope and the record server-side.
+         */
+        key: 'fieldWork',
+        labelKey: 'nav.fieldWorkManagement',
+        icon: MapPinned,
+        items: [
+            { routeName: 'field-work.dashboard', labelKey: 'nav.fieldWorkDashboard', icon: LayoutDashboard, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
+            { routeName: 'field-work.requests.index', labelKey: 'nav.fieldWorkRequests', icon: ClipboardListIcon, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
+            { routeName: 'field-work.pending', labelKey: 'nav.fieldWorkApprovals', icon: ClipboardCheckIcon, anyPermission: ['field_work.approve', 'field_work.return', 'field_work.reject'] },
+            { routeName: 'field-work.team.index', labelKey: 'nav.fieldWorkTeam', icon: Users, permission: 'field_work.view_team' },
+            { routeName: 'field-work.availability.index', labelKey: 'nav.fieldWorkAvailability', icon: UserIcon, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
+            { routeName: 'field-work.overdue.index', labelKey: 'nav.fieldWorkOverdue', icon: AlertTriangle, anyPermission: ['field_work.view_team', 'field_work.view_org'] },
+            { routeName: 'field-work.types.index', labelKey: 'nav.fieldWorkTypes', icon: TagsIcon, permission: 'field_work.manage_types' },
+        ],
+    },
+    {
+        key: 'transferManagement',
+        labelKey: 'nav.transferManagement',
+        icon: ArrowLeftRightIcon,
+        items: [
+            { routeName: 'transfers.dashboard', labelKey: 'nav.transferDashboard', icon: ArrowLeftRightIcon, permission: 'transfers.view' },
+            { routeName: 'transfer-announcements.index', labelKey: 'nav.transferAnnouncements', icon: MegaphoneIcon, permission: 'transfers.announcements.view' },
+            { routeName: 'transfer-applications.index', labelKey: 'nav.transferApplications', icon: Inbox,              permission: 'transfers.applications.view' },
+            { routeName: 'transfer-settings.show', labelKey: 'nav.transferSettings', icon: SettingsIcon,       permission: 'transfers.settings.manage' },
+        ],
+    },
+    {
+        key: 'identity',
+        labelKey: 'nav.groupIdentity',
+        icon: CreditCard,
+        items: [
+            { routeName: 'id-cards.index', labelKey: 'nav.idCards', icon: CreditCard,         permission: 'cards.view' },
+            { routeName: 'id-cards.reprint-required', labelKey: 'nav.reprintRequired', icon: CreditCard, permission: 'cards.view' },
+            { routeName: 'employee-corrections.index', labelKey: 'nav.employeeCorrections', icon: ClipboardCheckIcon, permission: 'employees.manage' },
+            { routeName: 'card-requests.index', labelKey: 'nav.cardRequests', icon: ClipboardCheckIcon, permission: 'id-cards.viewAny' },
+            { routeName: 'nfc-management.dashboard', labelKey: 'nav.nfcManagement', icon: NfcIcon,       permission: 'nfc_credentials.view' },
+            { routeName: 'nfc-management.terminals.index', labelKey: 'nav.nfcTerminals', icon: RouterIcon,     permission: 'nfc_terminals.view' },
+            { routeName: 'nfc-management.logs.index', labelKey: 'nav.nfcVerificationLogs', icon: ScrollText,     permission: 'nfc_logs.view' },
+        ],
+    },
+    {
+        key: 'grievances',
+        labelKey: 'nav.groupGrievances',
+        icon: ScrollText,
+        items: [
+            { routeName: 'grievances.dashboard', labelKey: 'nav.grievanceDashboard', icon: LayoutDashboard, anyPermission: ['grievances.view_assigned', 'grievances.intake_review', 'grievances.assign', 'grievances.oversight_view', 'grievances.tribunal', 'grievance_decisions.approve', 'grievance_reports.view'] },
+            { routeName: 'employee.grievances.index', labelKey: 'nav.myGrievances', icon: Inbox, permission: 'grievances.view_own' },
+            { routeName: 'grievances.cases.index', tab: 'assigned', labelKey: 'nav.grievanceAssigned', icon: ClipboardListIcon, anyPermission: ['grievances.view_assigned', 'grievances.assign', 'grievances.tribunal'] },
+            { routeName: 'grievances.cases.index', tab: 'intake', labelKey: 'nav.grievanceIntake', icon: ClipboardCheckIcon, permission: 'grievances.intake_review' },
+            { routeName: 'grievances.cases.index', tab: 'authorized', labelKey: 'nav.grievanceAuthorized', icon: ScrollText, anyPermission: ['grievances.oversight_view', 'grievances.view_assigned', 'grievances.assign'] },
+            { routeName: 'grievances.approvals.index', labelKey: 'nav.grievanceApprovals', icon: BadgeCheckIcon, permission: 'grievance_decisions.approve' },
+            { routeName: 'grievances.appeals.index', labelKey: 'nav.grievanceAppeals', icon: ArrowLeftRightIcon, anyPermission: ['grievances.view_assigned', 'grievances.intake_review', 'grievances.assign', 'grievances.oversight_view', 'grievances.tribunal', 'grievance_decisions.approve', 'grievance_reports.view'] },
+            { routeName: 'grievances.correspondence.index', labelKey: 'nav.grievanceCorrespondence', icon: MailIcon, permission: 'grievance_correspondence.view' },
+            { routeName: 'grievances.committees.index', labelKey: 'nav.grievanceCommittees', icon: Users, permission: 'grievance_committees.view' },
+            { routeName: 'grievances.routes.index', labelKey: 'nav.grievanceRouting', icon: GitBranchIcon, permission: 'grievance_routes.view' },
+            { routeName: 'grievances.sla.index', labelKey: 'nav.grievanceSla', icon: ClockIcon, permission: 'grievance_sla.view' },
+            { routeName: 'grievances.reports.index', labelKey: 'nav.grievanceReports', icon: FileChartIcon, permission: 'grievance_reports.view' },
+            { routeName: 'grievances.settings.index', labelKey: 'nav.grievanceSettings', icon: SettingsIcon, permission: 'grievance_settings.view' },
+            { routeName: 'tribunal-cases.index', labelKey: 'nav.tribunalCases', icon: ShieldCheck, permission: 'grievances.tribunal' },
+        ],
+    },
+    {
+        /*
+         * Court Cases is its own domain, not part of Grievance Management
+         * (docs/court-cases.md). One entry until the module is designed.
+         */
+        key: 'courtCases',
+        labelKey: 'nav.groupCourtCases',
+        icon: ScaleIcon,
+        items: [
+            { routeName: 'court-cases.index', labelKey: 'nav.courtCases', icon: ScaleIcon, permission: 'court_cases.view' },
+        ],
+    },
+    {
+        /*
+         * Client-facing service delivery: what a position offers, and what
+         * citizens said about it. The entitlements catalog sits here too, as
+         * the other half of what "service" means in this system.
+         */
+        key: 'serviceManagement',
+        labelKey: 'nav.groupServiceManagement',
+        icon: MessageSquareIcon,
+        items: [
+            { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: MessageSquareIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: StarIcon,          permission: 'service_feedback.view' },
+            { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', icon: Layers,            permission: 'service-types.viewAny' },
+            { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: BadgeCheckIcon,    permission: 'entitlements.view' },
+            { routeName: 'entitlement-rules.index', labelKey: 'nav.entitlementRules', icon: ReceiptTextIcon,   permission: 'entitlement-rules.viewAny' },
+        ],
+    },
+    {
+        key: 'cafeteria',
+        labelKey: 'nav.groupCafeteria',
+        icon: QrCodeIcon,
+        items: [
+            // Cafeteria Management (docs/cafeteria-policy-architecture.md): who operates,
+            // where, who may eat where, on which terms, and what is owed.
+            { routeName: 'cafeteria.dashboard', labelKey: 'nav.cafeteriaDashboard', icon: LayoutDashboard, permission: 'cafeteria_transactions.view' },
+            { routeName: 'cafeteria.scan', labelKey: 'nav.cafeteriaScan', icon: QrCodeIcon,      permission: 'cafeteria_transactions.scan' },
+            { routeName: 'cafeteria.payees.index', labelKey: 'cafeteriaPolicy.navProviders', icon: HandshakeIcon, permission: 'cafeteria_providers.viewAny' },
+            { routeName: 'cafeteria.networks.index', labelKey: 'cafeteriaPolicy.navNetworks', icon: NetworkIcon, permission: 'cafeteria_networks.view' },
+            { routeName: 'cafeteria.providers.index', labelKey: 'cafeteriaPolicy.navCafeterias', icon: Building2, permission: 'cafeteria_providers.viewAny' },
+            { routeName: 'cafeteria.access.index', labelKey: 'cafeteriaPolicy.navAccess', icon: KeyIcon, permission: 'cafeteria_access.view' },
+            { routeName: 'cafeteria.assignments.index', labelKey: 'cafeteriaPolicy.navAssignments', icon: ClipboardListIcon, permission: 'cafeteria_assignments.view' },
+            { routeName: 'cafeteria.policies.index', labelKey: 'cafeteriaPolicy.navPolicies', icon: ClipboardCheckIcon, permission: 'cafeteria_policies.view' },
+            { routeName: 'cafeteria.day-rules.index', labelKey: 'cafeteriaPolicy.navWorkingDays', icon: CalendarIcon, permission: 'cafeteria_day_rules.view' },
+            { routeName: 'cafeteria.holidays.index', labelKey: 'cafeteriaPolicy.navHolidays', icon: CalendarIcon, permission: 'public_holidays.viewAny' },
+            { routeName: 'cafeteria.transactions.index', labelKey: 'nav.cafeteriaTransactions', icon: ReceiptTextIcon, permission: 'cafeteria_transactions.view' },
+            { routeName: 'cafeteria.ledger.index', labelKey: 'nav.cafeteriaLedger', icon: ScrollText,      permission: 'cafeteria_ledger.view' },
+            { routeName: 'cafeteria.settlements.index', labelKey: 'cafeteriaPolicy.navSettlements', icon: BadgeCheckIcon, permission: 'cafeteria_settlements.view' },
+            { routeName: 'cafeteria.reports.index', labelKey: 'nav.cafeteriaReports', icon: ActivityIcon,    permission: 'cafeteria_reports.view' },
+            { routeName: 'cafeteria.analytics.index', labelKey: 'cafeteriaPolicy.navAnalytics', icon: TrendingUpIcon, permission: 'cafeteria_reports.view' },
+            { routeName: 'cafeteria.settings.index', labelKey: 'cafeteriaPolicy.navSystemDefaults', icon: SettingsIcon,    permission: 'cafeteria_settings.view' },
+        ],
+    },
+    {
+        key: 'transport',
+        labelKey: 'nav.groupTransport',
+        icon: ActivityIcon,
+        items: [
+            { routeName: 'transport.providers.index', labelKey: 'nav.transportProviders', icon: HandshakeIcon, permission: 'transport-providers.viewAny' },
+            { routeName: 'transport.scan', labelKey: 'nav.transportScan', icon: QrCodeIcon,      permission: 'transport-scan.create' },
+            { routeName: 'transport.routes.index', labelKey: 'nav.transportRoutes', icon: ScrollText,      permission: 'transport-routes.viewAny' },
+            { routeName: 'transport.vehicles.index', labelKey: 'nav.transportVehicles', icon: ActivityIcon,    permission: 'transport-vehicles.viewAny' },
+            { routeName: 'transport.drivers.index', labelKey: 'nav.transportDrivers', icon: UserIcon,        permission: 'transport-drivers.viewAny' },
+            { routeName: 'transport.passes.index', labelKey: 'nav.transportPasses', icon: BadgeCheckIcon,  permission: 'transport-passes.viewAny' },
+            { routeName: 'transport.reports.index', labelKey: 'nav.transportReports', icon: ReceiptTextIcon, permission: 'transport-reports.view' },
+            { routeName: 'transport.settings.index', labelKey: 'nav.transportSettings', icon: SettingsIcon,    permission: 'transport-settings.view' },
+        ],
+    },
+    {
+        /*
+         * Everything that talks to a party outside the bureau: service
+         * providers, their portal accounts, and the integration API.
+         */
+        key: 'providers',
+        labelKey: 'nav.groupProviders',
+        icon: HandshakeIcon,
+        items: [
+            { routeName: 'service-providers.index', labelKey: 'nav.providers',              icon: HandshakeIcon, permission: 'service-providers.viewAny' },
+            { routeName: 'api-management.index', labelKey: 'nav.apiManagement', icon: NetworkIcon, permission: 'api_management.view' },
+        ],
+    },
+    {
+        key: 'auditMonitoring',
+        labelKey: 'nav.groupAuditMonitoring',
+        icon: ScrollText,
+        items: [
+            { routeName: 'audit-logs.index', labelKey: 'nav.auditLogs', icon: ScrollText, permission: 'audit.view' },
+        ],
+    },
+];
+
+const dashboardNav: NavItem = {
+    routeName: 'dashboard',
+    labelKey: 'nav.dashboard',
+    icon: LayoutDashboard,
+};
+
+
+/** Administration is split into labeled sub-clusters so unrelated concerns stay scannable. */
+const adminGroups: { labelKey: string; items: NavItem[] }[] = [
+    {
+        labelKey: 'nav.adminAccess',
+        items: [
+            { routeName: 'users.index', labelKey: 'nav.users', icon: UserCogIcon,   permission: 'users.viewAny' },
+            { routeName: 'provider-users.index', labelKey: 'nav.cafeteriaProviderUsers', icon: HandshakeIcon, permission: 'cafeteria-provider-users.viewAny' },
+            { routeName: 'roles.index', labelKey: 'nav.roles', icon: ShieldCheck,   permission: 'roles.viewAny' },
+            { routeName: 'permissions.index', labelKey: 'nav.permissions', icon: KeyIcon,       permission: 'permissions.viewAny' },
+        ],
+    },
+    {
+        labelKey: 'nav.adminSystem',
+        items: [
+            { routeName: 'code-rules.index', labelKey: 'nav.codeRules', icon: HashIcon, permission: 'code-rules.viewAny' },
+            { routeName: 'recycle-bin.index', labelKey: 'nav.recycleBin', icon: TrashIcon,    permission: 'recycle-bin.view' },
+            // API Management lives as a tab inside System Settings, beside
+            // Security — not as a separate sidebar entry.
+            { routeName: 'system-settings.index', labelKey: 'nav.systemSettings', icon: SettingsIcon, permission: 'system-settings.view' },
+            { routeName: 'backups.index', labelKey: 'nav.backupRecovery', icon: SettingsIcon, permission: 'backups.view_status' },
+            { routeName: 'public-site-management.index', labelKey: 'publicSite.admin.title', icon: MegaphoneIcon, permission: 'public_site.view' },
+        ],
+    },
+];
+
+const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
+
+/**
+ * A section without its own labelKey is a standalone category headed by its
+ * single group's label; the group itself renders as the usual collapsible
+ * button with its submenu (docs/field-work-navigation.md).
+ */
+const sections: { labelKey?: string; keys: string[] }[] = [
+    { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
+    { keys: ['fieldWork'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
+    { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
+];
+
+interface Props {
+    onClose?: () => void;
+    collapsed?: boolean;
+    onToggleCollapse?: () => void;
+}
+
+const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--sidebar-accent)]';
+const hoverSurface = 'hover:bg-[color:var(--sidebar-hover)]';
+const selectedSurface = 'bg-[color:var(--sidebar-accent-wash)] text-[color:var(--sidebar-accent)]';
+
+/** Exact routes win; otherwise select the nearest permitted module (index or a page's own sub-routes). */
+function activeRoute(items: NavSubItem[], current: string): string | undefined {
+    if (items.some((item) => item.routeName === current)) return current;
+    return items
+        .map((item) => ({ name: item.routeName, prefix: item.routeName.replace(/\.(index|dashboard)$/, '') }))
+        .filter((item) => current.startsWith(item.prefix + '.'))
+        .sort((a, b) => b.prefix.length - a.prefix.length)[0]?.name;
+}
+
+export type NavLocation = { groupLabelKey: string; item: NavSubItem };
+
+/**
+ * Where a route sits in this navigation tree, found with the same nearest-module rule that highlights
+ * the sidebar, so breadcrumbs and the selected item always agree. Null for home and for routes the
+ * tree does not cover. Permissions are not applied here; callers decide what to link.
+ */
+export function navLocation(current: string, employeePortal: boolean, tab: string | null = null): NavLocation | null {
+    const flatten = (items: NavItem[]) => items.flatMap((item) => item.children ?? [item]);
+    const groups = employeePortal
+        ? portalSections.flatMap((section) => section.groups.map((group) => ({ labelKey: group.labelKey, items: flatten(group.items) })))
+        : [...navGroups, ...adminGroups].map((group) => ({ labelKey: group.labelKey, items: flatten(group.items) }));
+    const home = employeePortal ? portalDashboard : dashboardNav;
+    const match = activeRoute([home, ...groups.flatMap((group) => group.items)], current);
+    if (!match || match === home.routeName) return null;
+    for (const group of groups) {
+        const candidates = group.items.filter((item) => item.routeName === match);
+        const item = candidates.find((candidate) => (candidate.tab ?? null) === tab) ?? candidates[0];
+        if (item) return { groupLabelKey: group.labelKey, item };
+    }
+    return null;
+}
+
+export default function AppSidebar({ onClose, collapsed = false, onToggleCollapse }: Props) {
+    const { can } = useCan();
+    const { locale, t } = useLocale();
+    const { getString } = useSystemSettings();
+    const { props: pageProps, url: pageUrl } = usePage();
+    const isEmployeeUser = pageProps.is_employee_user === true;
+    const hasEmployeeRecord = pageProps.has_employee_record === true;
+    const instanceId = useId();
+    const searchRef = useRef<HTMLInputElement>(null);
+    const navRef = useRef<HTMLElement>(null);
+    const focusSearchAfterExpand = useRef(false);
+    const [query, setQuery] = useState('');
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+
+    const appName = getString('app.short_name', 'AA Employee ID');
+    const orgName = locale === 'am'
+        ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
+        : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
+    const environmentLabel = getString('general.system_environment_label');
+    const logoCentered = getString('appearance.logo_position', 'start') === 'center';
+
+    // Keep the existing permission contract, including independently permitted child links.
+    const permitted = (item: NavSubItem) => (!item.permission || can(item.permission))
+        && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
+    const allowedItems = (items: NavItem[]): NavSubItem[] => items
+        .filter(permitted)
+        .flatMap((item) => item.children ? item.children.filter(permitted) : [item]);
+    const visibleGroups = navGroups
+        // "My Work" is self-service: an account with no employee record has
+        // no activity of its own to register, whatever its permissions.
+        .filter((group) => group.key !== 'myWork' || hasEmployeeRecord)
+        .map((group) => ({ ...group, items: allowedItems(group.items) }))
+        .filter((group) => group.items.length > 0);
+    const visibleAdminGroups = adminGroups.map((group) => ({ ...group, items: allowedItems(group.items) }))
+        .filter((group) => group.items.length > 0);
+    const visibleAdminNav = visibleAdminGroups.flatMap((group) => group.items);
+    const adminGroup: NavGroup = { key: 'admin', labelKey: 'nav.admin', icon: ShieldCheck, items: visibleAdminNav };
+    const visiblePortalSections = portalSections
+        .map((section) => ({
+            ...section,
+            groups: section.groups.map((group) => ({ ...group, items: allowedItems(group.items) })).filter((group) => group.items.length > 0),
+        }))
+        .filter((section) => section.groups.length > 0);
+    // Employee-only accounts see My Portal; everyone else the admin structure.
+    const allGroups = isEmployeeUser
+        ? visiblePortalSections.flatMap((section) => section.groups)
+        : [...visibleGroups, ...(visibleAdminNav.length ? [adminGroup] : [])];
+    const homeNav = isEmployeeUser ? portalDashboard : dashboardNav;
+    const currentRoute = String(route().current() ?? '');
+    const currentItem = activeRoute([homeNav, ...allGroups.flatMap((group) => group.items)], currentRoute);
+    const activeGroupKeys = allGroups.filter((group) => group.items.some((item) => item.routeName === currentItem)).map((group) => group.key);
+    const activeGroupSignature = activeGroupKeys.join(',');
+
+    const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+        try {
+            const parsed: unknown = JSON.parse(window.localStorage.getItem(SIDEBAR_GROUPS_STORAGE_KEY) ?? '{}');
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+                return Object.fromEntries(Object.entries(parsed).filter(([, value]) => typeof value === 'boolean'));
+            }
+        } catch { /* Storage is optional. */ }
+        return {};
+    });
+
+    useEffect(() => {
+        setOpenGroups((previous) => {
+            const next = { ...previous };
+            for (const key of activeGroupKeys) next[key] = true;
+            return next;
+        });
+        setQuery('');
+        // The stable signature avoids reopening a manually collapsed group on every render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pageUrl, activeGroupSignature]);
+
+    // Deep items in long groups can sit below the fold; keep the current page visible after each visit.
+    // The active group opens in a follow-up render and hidden items cannot scroll, so this also re-runs
+    // once that group is open (but not when unrelated groups are toggled).
+    const activeGroupOpen = activeGroupKeys.every((key) => openGroups[key] ?? isEmployeeUser);
+    useEffect(() => {
+        if (activeGroupOpen) navRef.current?.querySelector('[aria-current="page"]')?.scrollIntoView({ block: 'nearest' });
+    }, [pageUrl, collapsed, activeGroupOpen]);
+
+    useEffect(() => {
+        try {
+            window.localStorage.setItem(SIDEBAR_GROUPS_STORAGE_KEY, JSON.stringify(openGroups));
+        } catch { /* Navigation remains usable without storage. */ }
+    }, [openGroups]);
+
+    useEffect(() => {
+        if (collapsed) setQuery('');
+        if (!collapsed && focusSearchAfterExpand.current) {
+            focusSearchAfterExpand.current = false;
+            searchRef.current?.focus();
+        }
+    }, [collapsed]);
+
+    const matches = (item: NavSubItem) => t(item.labelKey).toLocaleLowerCase().includes(normalizedQuery);
+    const matchingItems = (group: NavGroup) => !normalizedQuery || t(group.labelKey).toLocaleLowerCase().includes(normalizedQuery)
+        ? group.items : group.items.filter(matches);
+    const matchingGroups = allGroups.filter((group) => matchingItems(group).length > 0);
+
+    // "/" jumps to the menu filter (desktop sidebar only; ignored while typing elsewhere).
+    useEffect(() => {
+        if (!onToggleCollapse) return;
+        function onKey(event: KeyboardEvent) {
+            if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey) return;
+            const target = event.target as HTMLElement | null;
+            if (target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) return;
+            if (!navRef.current?.offsetParent) return;
+            event.preventDefault();
+            if (collapsed) {
+                focusSearchAfterExpand.current = true;
+                onToggleCollapse?.();
+            } else {
+                searchRef.current?.focus();
+            }
+        }
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [collapsed, onToggleCollapse]);
+
+    /** Marks the part of a label that matched the filter, so it is clear why an item is listed. */
+    function highlight(text: string): ReactNode {
+        const index = normalizedQuery ? text.toLocaleLowerCase().indexOf(normalizedQuery) : -1;
+        if (index < 0) return text;
+        return <>{text.slice(0, index)}<mark className="rounded-sm bg-[color:var(--sidebar-accent-wash)] font-semibold text-[color:var(--sidebar-fg)]">{text.slice(index, index + normalizedQuery.length)}</mark>{text.slice(index + normalizedQuery.length)}</>;
+    }
+
+    /**
+     * nested: a page inside a group (quieter, no icon). compact: the icon-only collapsed rail.
+     * onNavigate: closes a collapsed-rail flyout after choosing a page.
+     */
+    function renderLink(item: NavSubItem, { nested = false, compact = collapsed, onNavigate }: { nested?: boolean; compact?: boolean; onNavigate?: () => void } = {}) {
+        const selected = currentItem === item.routeName && (!item.tab
+            || new URLSearchParams(pageUrl.split('?')[1] ?? '').get('tab') === item.tab);
+        const Icon = item.icon;
+        const label = t(item.labelKey);
+        return (
+            <li key={item.routeName + (item.tab ?? '')}>
+                <Link
+                    href={item.tab ? route(item.routeName) + '?tab=' + item.tab : route(item.routeName)}
+                    onClick={() => { onClose?.(); onNavigate?.(); }}
+                    aria-current={selected ? 'page' : undefined}
+                    aria-label={compact ? label : undefined}
+                    title={compact ? label : undefined}
+                    className={[
+                        // scroll-my keeps an auto-scrolled current page clear of the list's fading edges.
+                        'relative flex scroll-my-12 items-center gap-2.5 rounded-lg text-sm transition-colors',
+                        focusRing, hoverSurface,
+                        compact ? 'mx-auto h-10 w-10 justify-center' : nested ? 'min-h-8 px-3 py-1.5' : 'min-h-9 px-3 py-2',
+                        selected ? selectedSurface + ' font-semibold'
+                            : nested ? 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]' : 'font-medium text-[color:var(--sidebar-fg)]',
+                    ].join(' ')}
+                >
+                    {selected && <span aria-hidden="true" className="absolute inset-y-1.5 start-0 w-0.5 rounded-full bg-[color:var(--sidebar-accent)]" />}
+                    {(!nested || compact) && <Icon aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />}
+                    {!compact && <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{highlight(label)}</span>}
+                </Link>
+            </li>
+        );
+    }
+
+    /** A group's pages; Administration keeps its labeled sub-clusters. */
+    function renderGroupItems(group: NavGroup, items: NavSubItem[], onNavigate?: () => void) {
+        const link = (item: NavSubItem) => renderLink(item, { nested: true, compact: false, onNavigate });
+        if (group.key !== 'admin') return <ul className="space-y-px">{items.map(link)}</ul>;
+        return visibleAdminGroups.map((subgroup) => {
+            const subItems = subgroup.items.filter((item) => items.some((match) => match.routeName === item.routeName));
+            return subItems.length > 0 && (
+                <div key={subgroup.labelKey} className="py-1 first:pt-0">
+                    <p className="px-3 pb-1 pt-1.5 text-[11px] font-semibold text-[color:var(--sidebar-muted)]">{t(subgroup.labelKey)}</p>
+                    <ul className="space-y-px">{subItems.map(link)}</ul>
+                </div>
+            );
+        });
+    }
+
+    function renderSection(labelKey: string, groups: NavGroup[]) {
+        if (!groups.some((group) => matchingItems(group).length)) return null;
+        return <div key={labelKey} className="mb-4 last:mb-0">
+            {collapsed
+                ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
+                : <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase leading-relaxed tracking-[0.07em] text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
+            <div className="space-y-0.5">{groups.map(renderGroup)}</div>
+        </div>;
+    }
+
+    function renderGroup(group: NavGroup) {
+        const items = matchingItems(group);
+        if (!items.length) return null;
+        const Icon = group.icon;
+        const selected = activeGroupKeys.includes(group.key);
+        const isOpen = Boolean(normalizedQuery || (openGroups[group.key] ?? isEmployeeUser));
+        const panelId = instanceId + '-group-' + group.key;
+        const label = t(group.labelKey);
+        if (group.items.length === 1 && group.key !== 'admin') {
+            return <ul key={group.key}>{renderLink(group.items[0])}</ul>;
+        }
+        if (collapsed) {
+            // The rail stays compact: a group opens as a flyout of its pages instead of expanding the sidebar.
+            return (
+                <Popover key={group.key}>
+                    <PopoverButton title={label} aria-label={label}
+                        className={['mx-auto flex h-10 w-10 items-center justify-center rounded-lg transition-colors data-[open]:bg-[color:var(--sidebar-hover)]', focusRing, hoverSurface,
+                            selected ? selectedSurface : 'text-[color:var(--sidebar-fg)]'].join(' ')}>
+                        <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                    </PopoverButton>
+                    <PopoverPanel anchor="right start" transition
+                        className="z-50 w-64 rounded-xl border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] p-2 text-[color:var(--sidebar-fg)] shadow-xl outline-none transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-[closed]:-translate-x-1 data-[closed]:opacity-0">
+                        {({ close }) => (
+                            <>
+                                <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--sidebar-muted)]">{label}</p>
+                                {renderGroupItems(group, items, close)}
+                            </>
+                        )}
+                    </PopoverPanel>
+                </Popover>
+            );
+        }
+        return (
+            <div key={group.key}>
+                <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    onClick={() => { if (!normalizedQuery) setOpenGroups((previous) => ({ ...previous, [group.key]: !isOpen })); }}
+                    className={[
+                        'flex min-h-9 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[color:var(--sidebar-fg)] transition-colors',
+                        focusRing, hoverSurface,
+                        // Only the page itself carries the selected surface; its group is marked by weight and an accent icon.
+                        selected ? 'font-semibold' : 'font-medium',
+                    ].join(' ')}
+                >
+                    <Icon className={['h-[18px] w-[18px] shrink-0', selected ? 'text-[color:var(--sidebar-accent)]' : ''].join(' ')} aria-hidden="true" />
+                    <span className="min-w-0 flex-1 whitespace-normal break-words leading-snug">{highlight(label)}</span>
+                    <ChevronDown className={['h-3.5 w-3.5 shrink-0 text-[color:var(--sidebar-muted)] transition-transform', isOpen ? '' : '-rotate-90'].join(' ')} aria-hidden="true" />
+                </button>
+                <div id={panelId} hidden={!isOpen}>
+                    <div className="ms-5 mt-0.5 mb-1.5 border-s border-[color:var(--sidebar-border)] ps-2">
+                        {renderGroupItems(group, items)}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]">
+            <div className={collapsed ? 'flex min-h-20 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'shrink-0 border-b border-[color:var(--sidebar-border)] p-4'}>
+                <div className="flex items-start gap-2">
+                    <Link
+                        href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
+                        onClick={onClose}
+                        aria-label={appName}
+                        title={collapsed ? appName : undefined}
+                        className={['flex min-w-0 flex-1 gap-3 rounded-lg', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
+                    >
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center">
+                            <ApplicationLogo className="h-full w-full object-contain" />
+                        </span>
+                        {!collapsed && <div className="min-w-0">
+                            <p className="whitespace-normal break-words text-[15px] font-medium leading-snug">{appName}</p>
+                            <p className="mt-1 whitespace-normal break-words text-xs leading-relaxed text-[color:var(--sidebar-muted)]">{orgName}</p>
+                        </div>}
+                    </Link>
+                    {onClose && <button type="button" onClick={onClose} aria-label={t('nav.closeMenu')} className={['flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', focusRing, hoverSurface].join(' ')}><X className="h-4 w-4" aria-hidden="true" /></button>}
+                </div>
+            </div>
+
+            <div className={collapsed ? 'px-2 pt-3' : 'px-3 pt-3'}>
+                {collapsed ? <button
+                    type="button"
+                    aria-label={t('nav.filterMenu')}
+                    title={t('nav.filterMenu')}
+                    onClick={() => { focusSearchAfterExpand.current = true; onToggleCollapse?.(); }}
+                    className={['mx-auto flex h-11 w-11 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)]', focusRing, hoverSurface].join(' ')}
+                ><SearchIcon className="h-[18px] w-[18px]" aria-hidden="true" /></button> : (
+                    <div className="flex items-center gap-2 rounded-lg border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-hover)] px-3 focus-within:ring-2 focus-within:ring-[color:var(--sidebar-accent)]">
+                        <SearchIcon className="h-4 w-4 shrink-0 text-[color:var(--sidebar-muted)]" aria-hidden="true" />
+                        <input
+                            ref={searchRef}
+                            type="search"
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            onKeyDown={(event) => { if (event.key === 'Escape' && query) { event.preventDefault(); event.stopPropagation(); setQuery(''); } }}
+                            aria-label={t('nav.filterMenu')}
+                            placeholder={t('nav.filterMenu')}
+                            aria-keyshortcuts={onToggleCollapse ? '/' : undefined}
+                            className="peer h-9 w-full min-w-0 border-0 bg-transparent p-0 text-sm text-[color:var(--sidebar-fg)] placeholder:text-[color:var(--sidebar-muted)] focus:ring-0"
+                        />
+                        {onToggleCollapse && !query && <kbd aria-hidden="true" className="shrink-0 rounded border border-[color:var(--sidebar-border)] px-1.5 font-sans text-[10px] font-medium leading-4 text-[color:var(--sidebar-muted)] peer-focus:hidden">/</kbd>}
+                    </div>
+                )}
+            </div>
+
+            <nav ref={navRef} className="sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-6 pt-3 [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)] [mask-image:linear-gradient(to_bottom,transparent,#000_12px,#000_94%,transparent)]" aria-label={t('publicSite.mainNavigation')}>
+                {(!normalizedQuery || matches(homeNav)) && <ul className="mb-4">{renderLink(homeNav)}</ul>}
+                {isEmployeeUser
+                    ? visiblePortalSections.map((section) => renderSection(section.labelKey, section.groups))
+                    : sections.map((section) => {
+                        const groups = section.keys.flatMap((key) => visibleGroups.filter((group) => group.key === key));
+                        if (section.labelKey === undefined) return groups[0] ? renderSection(groups[0].labelKey, groups) : null;
+                        if (section.labelKey === 'nav.sidebarGovernance' && visibleAdminNav.length) groups.push(adminGroup);
+                        return renderSection(section.labelKey, groups);
+                    })}
+                {normalizedQuery && !matchingGroups.length && !matches(homeNav) && (
+                    <p role="status" className="px-3 py-5 text-sm leading-relaxed text-[color:var(--sidebar-muted)]">{t('nav.noResults')}</p>
+                )}
+            </nav>
+
+            <div className="shrink-0 border-t border-[color:var(--sidebar-border)] p-2">
+                {onToggleCollapse ? (
+                    <button type="button" onClick={onToggleCollapse} aria-label={t(collapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')} title={collapsed ? t('nav.expandSidebar') : undefined}
+                        className={['flex min-h-11 items-center gap-3 rounded-lg text-sm text-[color:var(--sidebar-muted)]', focusRing, hoverSurface, collapsed ? 'mx-auto w-11 justify-center' : 'w-full px-3'].join(' ')}>
+                        <ChevronRight className={collapsed ? 'h-4 w-4' : 'h-4 w-4 rotate-180'} aria-hidden="true" />
+                        {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
+                    </button>
+                ) : <p className="px-3 py-2 text-xs text-[color:var(--sidebar-muted)]">{t(isEmployeeUser ? 'nav.myPortal' : 'nav.admin')}</p>}
+                {/* Non-production environments are flagged where every page shows it, so test data is never mistaken for live. */}
+                {environmentLabel && environmentLabel.toLowerCase() !== 'production' && (collapsed
+                    ? <span title={environmentLabel} aria-label={environmentLabel} className="mx-auto mb-1 mt-1 block h-2 w-2 rounded-full bg-amber-400" />
+                    : <p className="px-3 pb-1 pt-1"><span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2 py-0.5 text-[11px] font-semibold text-amber-600 ring-1 ring-inset ring-amber-400/40 dark:text-amber-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true" />{environmentLabel}
+                    </span></p>)}
+            </div>
+        </div>
+    );
+}

@@ -1,0 +1,2 @@
+import TransportProviderLayout from '@/Layouts/TransportProviderLayout';
+export default function Index({ summary }: { summary: Record<string, number> }) { return <TransportProviderLayout title="Transport Reports"><div className="grid gap-4 sm:grid-cols-3">{Object.entries(summary).map(([key, value]) => <div key={key} className="rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"><p className="text-xs uppercase text-slate-500">{key}</p><p className="text-2xl font-bold">{value}</p></div>)}</div></TransportProviderLayout>; }

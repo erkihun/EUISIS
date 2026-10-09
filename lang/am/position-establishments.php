@@ -1,0 +1,35 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'title' => 'የሥራ መደብ ምደባዎች',
+    'establishment' => 'የሥራ መደብ ምደባ',
+    'establishmentNumber' => 'የምደባ ቁጥር',
+    'organization' => 'ተቋም',
+    'organizationUnit' => 'የተቋም መዋቅራዊ ክፍል',
+    'position' => 'የሥራ መደብ',
+    'occupation' => 'ሙያ',
+    'approvedSlots' => 'የተፈቀዱ መደቦች',
+    'effectiveFrom' => 'ከ',
+    'effectiveTo' => 'እስከ',
+    'status' => 'ሁኔታ',
+    'approvalReference' => 'የፈቃድ ማጣቀሻ',
+    'approvedBy' => 'ያጸደቀ',
+    'approvedAt' => 'የፀደቀበት ጊዜ',
+    'notes' => 'ማስታወሻ',
+    'activeOccupancies' => 'የተያዙ መደቦች',
+    'availableSlots' => 'ክፍት መደቦች',
+    'statusDraft' => 'ረቂቅ',
+    'statusApproved' => 'ፀድቋል',
+    'statusArchived' => 'በማኅደር',
+    'create' => 'ምደባ ፍጠር',
+    'edit' => 'ምደባ አርትዕ',
+    'approve' => 'አፅድቅ',
+    'archive' => 'ወደ ማኅደር አዛውር',
+    'created' => 'የሥራ መደብ ምደባ በተሳካ ሁኔታ ተፈጥሯል።',
+    'updated' => 'የሥራ መደብ ምደባ በተሳካ ሁኔታ ተዘምኗል።',
+    'approved' => 'የሥራ መደብ ምደባ ፀድቋል።',
+    'archived' => 'የሥራ መደብ ምደባው ወደ ማኅደር ተዛውሯል።',
+    'alreadyApproved' => 'ይህ ምደባ ቀደም ሲል ፀድቋል።',
+];

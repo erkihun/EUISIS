@@ -1,0 +1,542 @@
+@import '@euisis/ui/tokens.css';
+
+/*
+ * ── Typography ────────────────────────────────────────────────
+ *
+ * UI fonts are self-hosted (fonts.css) — never a CDN stylesheet, which the
+ * CSP (`font-src 'self' data:`) blocks and which would disclose every visitor
+ * to a third party. English = Inter, Amharic = Abyssinica SIL; the stack
+ * switches on the `lang` attribute (see the typography tokens below), so no
+ * component chooses a font family itself. Full rules: docs/ui-typography.md.
+ */
+@import './fonts.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens ─────────────────────────────────────────────
+ *
+ * Brand: #122170 (institutional navy) and #D12908 (signal red).
+ *
+ * These were previously Tailwind's stock blue-600/orange-600, which is the
+ * single strongest "generic dashboard template" tell in the whole app. The
+ * navy is the identity colour; the red is a SIGNAL, not a decoration — it
+ * marks the one thing on a screen that needs attention (the accent rail on
+ * the header, a destructive confirmation, an overdue queue), and nothing
+ * else. If red appears twice on a page, one of them is wrong.
+ *
+ * `appearance.*` settings can override primary/secondary/accent at runtime
+ * (see AuthenticatedLayout); the values below are the shipped defaults and
+ * must stay in sync with the defaults declared there.
+ */
+:root {
+    /* Navy scale — 700 is the brand value. */
+    --color-primary-50:    #eef1fa;
+    --color-primary-100:   #dde3f5;
+    --color-primary-200:   #bcc7eb;
+    --color-primary-300:   #8f9fd8;
+    --color-primary-400:   #5d72bf;
+    --color-primary-500:   #33499f;
+    --color-primary-600:   #1d3084;
+    --color-primary-700:   #122170;
+    --color-primary-800:   #0f1c5c;
+    --color-primary-900:   #0d1749;
+    --color-primary-950:   #070d2c;
+
+    /*
+     * `--color-primary-strong` / `--color-primary-soft` are the two theme
+     * variants; `--color-primary` just picks one. AuthenticatedLayout writes
+     * the two variants (derived from the admin-configurable brand colour) and
+     * deliberately never writes `--color-primary` itself — an inline value
+     * there would outrank the `.dark` rule below and strand dark mode on the
+     * light-theme colour.
+     */
+    --color-primary-strong: #122170;
+    --color-primary-soft:   #5d72bf;
+    --color-primary:        var(--color-primary-strong);
+    /* Navy is already near-black, so hover LIGHTENS rather than darkens —
+       darkening reads as "disabled" against a white surface. */
+    --color-primary-hover:  #1d3084;
+    --color-primary-light:  #dde3f5;
+
+    --color-accent-strong:  #d12908;
+    --color-accent-soft:    #f76b3c;
+    --color-accent:         var(--color-accent-strong);
+    --color-accent-hover:   #ae2108;
+    --color-accent-light:   #fee2d6;
+
+    --color-success:       #15803d;
+    --color-warning:       #b45309;
+    --color-danger:        #b91c1c;
+
+    /* ── Surfaces ──────────────────────────────────────────────
+       Four levels, used consistently: the page sits one step below the
+       cards on it, so borders stay thin and shadows stay unnecessary. */
+    --app-background:      #f4f6fb;
+    --app-foreground:      #0f172a;
+    --app-surface:         #ffffff;
+    --app-surface-muted:   #f1f3f6;
+    --app-border:          #e2e5ea;
+    --app-border-strong:   #cbd2dc;
+    --app-muted-foreground:#5b6472;
+
+    /* ── Cards (light theme) ───────────────────────────────────
+       Admin cards are tonal, not white: a soft navy tint for content
+       panels, and a tint per meaning for KPI cards (card-tone-*). Form
+       fields, menus and dialogs stay on --app-surface so they read as
+       controls. Dark theme keeps its surfaces; see "Tonal cards" below. */
+    --app-card:            #edf1fb;
+    --app-card-border:     #d5ddf1;
+    --app-card-hover:      #e3e9f8;
+    --app-card-inset:      #e0e7f7;
+    --app-card-muted-text: #5b6472;
+
+    --tone-info-bg:        #e6ecfb;
+    --tone-info-border:    #c9d4f2;
+    --tone-success-bg:     #dff3ea;
+    --tone-success-border: #b7e2cd;
+    --tone-warning-bg:     #fdf0d9;
+    --tone-warning-border: #f2d59b;
+    --tone-danger-bg:      #fbe4e1;
+    --tone-danger-border:  #f1c0ba;
+
+    /* ── Sidebar ───────────────────────────────────────────────
+     *
+     * Driven by the `appearance.sidebar_color` setting. Only the background
+     * and foreground are supplied by AuthenticatedLayout (per theme); the
+     * border, muted text and hover wash are mixed from those two here, so an
+     * administrator configures one colour and the rest of the sidebar stays
+     * in proportion to it whatever they pick.
+     *
+     * The literals in the `var()` fallbacks are what renders before the layout
+     * effect runs, and on any page that does not set them.
+     */
+    --sidebar-bg:      var(--sidebar-bg-light, #ffffff);
+    --sidebar-fg:      var(--sidebar-fg-light, #1f2937);
+    --sidebar-border:  color-mix(in srgb, var(--sidebar-fg) 14%, var(--sidebar-bg));
+    /* Menu labels are body-sized text, so the muted tone must retain enough
+       foreground to stay readable on user-configured light and dark colours. */
+    --sidebar-muted:   color-mix(in srgb, var(--sidebar-fg) 72%, var(--sidebar-bg));
+    --sidebar-hover:   color-mix(in srgb, var(--sidebar-fg) 12%, var(--sidebar-bg));
+    /* Selected item. Normally the brand colour; falls back to the sidebar
+       foreground when the sidebar is set to the brand colour itself. */
+    --sidebar-accent:  var(--sidebar-accent-light, var(--color-primary));
+    --sidebar-accent-wash: color-mix(in srgb, var(--sidebar-accent) 18%, var(--sidebar-bg));
+
+    /* ── Radius ────────────────────────────────────────────────
+       One scale, 6–10px. `--radius-card` is the only value a card should
+       use; controls use `--radius-control`. */
+    --radius-control:      6px;
+    --radius-card:         8px;
+    --radius-panel:        10px;
+
+    /* ── Control heights ───────────────────────────────────────
+       Inputs and buttons share these so a filter row lines up without
+       per-page nudging. */
+    --control-h-sm:        30px;
+    --control-h-md:        36px;
+    --control-h-lg:        40px;
+
+    /* ── Typography tokens ─────────────────────────────────────
+     *
+     * The ONLY place UI font stacks are defined. Tailwind's `font-sans` /
+     * `font-ui` resolve to `--font-ui`, which the [lang] rules below point at
+     * the English or Amharic stack.
+     *
+     * Each stack names the other language's font second, so a stray Ethiopic
+     * word in English UI (or a Latin code in Amharic UI) still renders in a
+     * designed face rather than a system fallback. After those come locally
+     * installed Ethiopic faces (Nyala on Windows, Kefa on Apple) and the
+     * system UI font, so the interface stays readable if a webfont fails.
+     */
+    --font-ui-en: 'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-ui-am: 'Abyssinica SIL', 'Inter', 'Inter Fallback', 'Noto Sans Ethiopic', 'Nyala', 'Kefa', system-ui, sans-serif;
+    /* Formal documents and long-form official text (see docs). */
+    --font-document-am: 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', serif;
+    --font-document-en: 'Noto Sans', 'Inter', system-ui, sans-serif;
+    /* ID cards: Latin first so codes and English lines use Inter; Ethiopic
+       falls through to Abyssinica SIL. Mirrors config/typography.php,
+       which the server-rendered card SVG uses. */
+    --font-id-card: 'Inter', 'Inter Fallback', 'Abyssinica SIL', 'Noto Sans Ethiopic', 'Nyala', sans-serif;
+
+    --font-ui: var(--font-ui-en);
+    --font-document: var(--font-document-en);
+
+    /* Line heights. Ethiopic glyphs are taller than Latin x-height text and
+       need more vertical room; the [lang|="am"] rule raises these slightly. */
+    --ui-line-height: 1.5;
+    --fs-xs: 0.75rem;
+    --lh-xs: 1rem;
+    --lh-sm: 1.25rem;
+    --lh-base: 1.5rem;
+    --lh-title: 1.3;
+    --lh-section: 1.4;
+    --lh-table: 1.25rem;
+    --fs-helper: 0.75rem;
+    --lh-helper: 1rem;
+}
+
+/*
+ * Language-driven typography. `lang` on <html> is set by the server
+ * (app.blade.php) and kept in sync by LocaleContext, so switching language
+ * re-points every token at once. An element carrying its own `lang` (a
+ * bilingual ID card field, an English name inside Amharic UI) re-points the
+ * tokens for its subtree.
+ */
+[lang|="en"] {
+    --font-ui: var(--font-ui-en);
+    --font-document: var(--font-document-en);
+    --ui-line-height: 1.5;
+    --fs-xs: 0.75rem;
+    --lh-xs: 1rem;
+    --lh-sm: 1.25rem;
+    --lh-base: 1.5rem;
+    --lh-title: 1.3;
+    --lh-section: 1.4;
+    --lh-table: 1.25rem;
+    --fs-helper: 0.75rem;
+    --lh-helper: 1rem;
+}
+
+[lang|="am"] {
+    --font-ui: var(--font-ui-am);
+    --font-document: var(--font-document-am);
+    --ui-line-height: 1.6;
+    /* 12px Ethiopic is hard to read; the smallest step becomes 12.8px. */
+    --fs-xs: 0.8rem;
+    --lh-xs: 1.25rem;
+    --lh-sm: 1.375rem;
+    --lh-base: 1.625rem;
+    --lh-title: 1.45;
+    --lh-section: 1.55;
+    --lh-table: 1.3125rem;
+    --fs-helper: 0.8rem;
+    --lh-helper: 1.25rem;
+}
+
+.dark {
+    --app-background:      #0b1020;
+    --app-foreground:      #f8fafc;
+    --app-surface:         #111827;
+    --app-surface-muted:   #171f31;
+    --app-border:          #1f2937;
+    --app-border-strong:   #334155;
+    --app-muted-foreground:#94a3b8;
+
+    /* On a dark surface the 700 navy has too little contrast to read as an
+       action colour, so the interactive primary steps up the scale. */
+    --color-primary:       var(--color-primary-soft);
+    --color-primary-hover: #8f9fd8;
+    --color-primary-light: #1d3084;
+    --color-accent:        var(--color-accent-soft);
+    --color-accent-hover:  #fb9770;
+
+    /* A light sidebar colour is not carried into dark mode — the layout
+       substitutes the dark surface instead, so the two themes stay coherent
+       whatever is configured. */
+    --sidebar-bg: var(--sidebar-bg-dark, #0b1020);
+    --sidebar-fg: var(--sidebar-fg-dark, #f1f5f9);
+    --sidebar-accent: var(--sidebar-accent-dark, var(--color-primary));
+}
+
+html,
+body,
+#app {
+    min-height: 100vh;
+    background: var(--app-background);
+    color: var(--app-foreground);
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-ui);
+    line-height: var(--ui-line-height);
+}
+
+/* ── Locale typography ──────────────────────────────────────────
+ *
+ * Font family is inherited, so it is declared on <body> and re-declared only
+ * on elements that change language. Unlike the previous `:lang(am) *` rule
+ * this leaves `font-mono` codes, SVG icons, QR and charts alone. `:where()`
+ * keeps specificity at zero so a utility class on the same element wins.
+ */
+:where([lang]) {
+    font-family: var(--font-ui);
+}
+
+/* Toasts: Sonner injects its own system-font stack at runtime. */
+html [data-sonner-toaster] {
+    font-family: var(--font-ui);
+}
+
+/*
+ * English label conventions do not apply to Ethiopic, which has no letter
+ * case and reads worse when tracked out. Scoped with `:lang(am)` on the
+ * element itself, so an English island (`lang="en"`) keeps its styling.
+ */
+.uppercase:lang(am) {
+    text-transform: none;
+}
+:is(.tracking-tighter, .tracking-tight, .tracking-wide, .tracking-wider, .tracking-widest, [class*="tracking-["]):lang(am) {
+    letter-spacing: normal;
+}
+
+/*
+ * Readable floor for Ethiopic. Dense English metadata uses 9–11px arbitrary
+ * sizes; Ethiopic at that size loses its distinguishing marks, so in Amharic
+ * those steps render at the smallest scale step instead. ID card faces are
+ * exempt: their sizes come from the card template and must match the print.
+ */
+:is([class~="text-[9px]"], [class~="text-[10px]"], [class~="text-[10.5px]"], [class~="text-[11px]"]):lang(am):not([data-card-template], [data-card-template] *) {
+    font-size: var(--fs-xs);
+}
+
+/*
+ * ID card faces use one stack for both languages (Latin → Inter, Ethiopic →
+ * Abyssinica SIL) — the same stack the server-rendered card SVG names, so
+ * the preview, print and PNG export agree. Zero specificity: `font-mono` on a
+ * code field still wins.
+ */
+:where([data-card-template]),
+:where([data-card-template] [lang]) {
+    font-family: var(--font-id-card);
+}
+
+/* ── Sidebar scrollbar ──────────────────────────────────────── */
+.sidebar-scroll::-webkit-scrollbar       { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+
+/* ── Sticky table headers (controlled by setting) ───────────── */
+html[data-sticky-tables="true"] thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: inherit;
+}
+.table-sticky thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: inherit;
+}
+
+/* ── Disable animations (setting) ──────────────────────────── */
+html[data-animations="false"] *,
+html[data-animations="false"] *::before,
+html[data-animations="false"] *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+}
+
+/* ── Table density (controlled by setting) ──────────────────── */
+html[data-table-density="compact"] td,
+html[data-table-density="compact"] th {
+    padding-top: 0.375rem !important;
+    padding-bottom: 0.375rem !important;
+}
+html[data-table-density="spacious"] td,
+html[data-table-density="spacious"] th {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+/* ── Card radius (controlled by setting) ──────────────────────
+ *
+ * This used to be ~30 lines of `!important` overrides matching on Tailwind's
+ * own radius classes, duplicated once without `!important` and again with it.
+ * Because it keyed on `.rounded-lg`, it also resized every button, input and
+ * badge that happened to share that class — the setting was never only about
+ * cards.
+ *
+ * Now it moves the two radius tokens instead. Anything built on
+ * `rounded-card` / `rounded-panel` follows; controls keep their own
+ * `--radius-control` and stay put, which is what "card radius" should mean.
+ */
+html[data-card-radius="sm"]  { --radius-card: 2px;  --radius-panel: 3px;  }
+html[data-card-radius="md"]  { --radius-card: 4px;  --radius-panel: 6px;  }
+html[data-card-radius="lg"]  { --radius-card: 6px;  --radius-panel: 8px;  }
+/* xl is the shipped default — declared for completeness, not as an override. */
+html[data-card-radius="xl"]  { --radius-card: 8px;  --radius-panel: 10px; }
+html[data-card-radius="2xl"] { --radius-card: 12px; --radius-panel: 16px; }
+
+/* ── Button style (controlled by setting) ─────────────────────
+ *
+ * Likewise scoped to the control token rather than blanket-matching every
+ * `button` and `a[class*="rounded"]` on the page, which previously squared off
+ * avatars and pill toggles along with the buttons.
+ */
+html[data-button-style="square"]  { --radius-control: 0; }
+html[data-button-style="soft"]    { --radius-control: 8px; }
+
+/* ── Tonal cards (admin layout, light theme) ──────────────────
+ *
+ * Cards are recognised by their semantic classes: `rounded-card` /
+ * `rounded-panel` (and the `--radius-card/panel` arbitrary forms), plus
+ * bordered `rounded-xl/2xl` blocks, when they are painted with the white
+ * surface. So every admin page gets tonal cards without each page choosing a
+ * colour, and anything already given a colour (an amber "due soon" card, a
+ * red alert) keeps it. Form fields, buttons and floating menus are excluded.
+ *
+ * Scope: `.admin-shell` (AuthenticatedLayout, not the employee portal) and
+ * `:root:not(.dark)`, so the dark theme is unchanged. A card inside a card
+ * goes back to white, so nested content still reads as a layer.
+ * Mock: Claude Design canvas "EUISIS Admin Colorful Cards", direction A.
+ */
+:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex),
+:root:not(.dark) .admin-shell #main-content .app-card {
+    background-color: var(--app-card);
+    border-color: var(--app-card-border);
+}
+
+:root:not(.dark) .admin-shell #main-content :is(a, button):is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(.inline-flex):hover,
+:root:not(.dark) .admin-shell #main-content a.app-card:hover {
+    background-color: var(--app-card-hover);
+}
+
+/* A card inside a card: back to white. */
+:root:not(.dark) .admin-shell #main-content :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"], .app-card) :is(.rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]):is(.bg-white, [class*="bg-[color:var(--app-surface)]"]):not(input, select, textarea, button, .fixed, .absolute, .inline-flex) {
+    background-color: var(--app-surface);
+    border-color: var(--app-border);
+}
+
+/* Inside a tonal card: table headers and footers take a deeper tint, table
+   rows are see-through, hairlines use the card border, and grey-500 text is
+   darkened to keep 4.5:1 on the tint. */
+:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(thead, tfoot, div, section, footer, tr).bg-gray-50,
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(thead, tfoot, div, footer, tr)[class*="bg-[color:var(--app-surface-muted)]"] {
+    background-color: var(--app-card-inset);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(table, tbody, tr, td).bg-white {
+    background-color: transparent;
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(.border-gray-100, .border-gray-200, tbody > tr) {
+    border-color: var(--app-card-border);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) :is(.divide-gray-100, .divide-gray-200, [class*="divide-[color:var(--app-border)]"]) > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--app-card-border);
+}
+:root:not(.dark) .admin-shell #main-content :is(.app-card, [class*="card-tone-"], .rounded-card, .rounded-panel, .rounded-xl.border, .rounded-2xl.border, [class*="rounded-[var(--radius-card)]"], [class*="rounded-[var(--radius-panel)]"]) .text-gray-500 {
+    color: var(--app-card-muted-text);
+}
+
+/* KPI cards tinted by meaning (KpiCard `tone`). Light theme only. */
+:root:not(.dark) .card-tone-neutral { background-color: var(--app-card);       border-color: var(--app-card-border); }
+:root:not(.dark) .card-tone-info    { background-color: var(--tone-info-bg);    border-color: var(--tone-info-border); }
+:root:not(.dark) .card-tone-success { background-color: var(--tone-success-bg); border-color: var(--tone-success-border); }
+:root:not(.dark) .card-tone-warning { background-color: var(--tone-warning-bg); border-color: var(--tone-warning-border); }
+:root:not(.dark) .card-tone-danger  { background-color: var(--tone-danger-bg);  border-color: var(--tone-danger-border); }
+:root:not(.dark) a[class*="card-tone-"]:hover { filter: brightness(0.97); }
+
+/* ── Focus ring ─────────────────────────────────────────────── */
+@layer base {
+    *:focus-visible {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+    }
+}
+
+/* ── Status badge – no letter-spacing stretch ───────────────── */
+.badge {
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+/* ── Toast progress bar ─────────────────────────────────────── */
+@keyframes toast-shrink {
+    from { width: 100%; }
+    to   { width: 0%; }
+}
+
+/* ── Toast slide-in / fade-out ──────────────────────────────── */
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toast-fade-out {
+    from { opacity: 1; transform: scale(1); }
+    to   { opacity: 0; transform: scale(0.95); }
+}
+
+.toast-enter {
+    animation: toast-slide-in 0.22s ease-out forwards;
+}
+
+.toast-exit {
+    animation: toast-fade-out 0.18s ease-in forwards;
+}
+
+@media print {
+    /* Common chrome we never want on paper. */
+    .no-print,
+    nav,
+    aside,
+    header,
+    footer,
+    [data-sidebar],
+    .modal-backdrop {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+}
+
+
+
+/* ── Org tree connectors ────────────────────────────────────── */
+.org-tree-connector::before {
+    content: '';
+    position: absolute;
+    left: -1rem;
+    top: 50%;
+    width: 1rem;
+    height: 1px;
+    background: #cbd5e1;
+}
+.dark .org-tree-connector::before {
+    background: #475569;
+}
+
+/* ── Public site long-form text ───────────────────────────────
+ * Styles the sanitized HTML that Public Site Management produces
+ * (announcements, service details, FAQ answers). Only the elements the
+ * server-side allow-list permits are styled, because nothing else can
+ * reach the page. Kept here rather than pulling in a typography plugin.
+ */
+/* In the components layer so a utility on the element (text-sm, a
+   colour) overrides the base size/colour, as utilities should. */
+@layer components {
+    .public-prose {
+        color: var(--app-foreground);
+        font-size: 1rem;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+    }
+    .public-prose > * + * { margin-top: 1em; }
+    .public-prose h2 { font-size: 1.25rem; font-weight: 600; line-height: 1.35; margin-top: 1.75em; }
+    .public-prose h3 { font-size: 1.0625rem; font-weight: 600; line-height: 1.4; margin-top: 1.5em; }
+    .public-prose h4 { font-size: 1rem; font-weight: 600; margin-top: 1.25em; }
+    .public-prose ul { list-style: disc; padding-inline-start: 1.25em; }
+    .public-prose ol { list-style: decimal; padding-inline-start: 1.25em; }
+    .public-prose li + li { margin-top: 0.35em; }
+    .public-prose a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 2px; }
+    .public-prose strong { font-weight: 600; }
+    .public-prose blockquote { border-inline-start: 3px solid var(--app-border-strong); padding-inline-start: 1em; color: var(--app-muted-foreground); }
+    .public-prose code { font-size: 0.875em; background: var(--app-surface-muted); padding: 0.1em 0.3em; border-radius: 4px; }
+    .public-prose hr { border-color: var(--app-border); }
+    .public-prose table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; display: block; overflow-x: auto; }
+    .public-prose th, .public-prose td { border: 1px solid var(--app-border); padding: 0.5em 0.75em; text-align: start; }
+    .public-prose th { background: var(--app-surface-muted); font-weight: 600; }
+}

@@ -1,0 +1,23 @@
+# EXAMPLE only: choose host timezone, cadence and non-overlapping windows after
+# timing real backups. Install under the dedicated PostgreSQL/backup OS account.
+# Absolute paths below are deployment choices. Protect runner/config from PHP.
+# Each repository needs its OWN backup schedule; WAL archive-push uses both.
+# Configure scheduler failure/dead-man alerts OUTSIDE Laravel (see runbook).
+SHELL=/bin/sh
+PATH=/usr/bin:/bin
+0 1 * * 0 /usr/bin/python3 /opt/euisis-backup/backup.py full --repo=1 --config=/etc/euisis-backup/runner.json
+0 4 * * 0 /usr/bin/python3 /opt/euisis-backup/backup.py full --repo=2 --config=/etc/euisis-backup/runner.json
+0 1 * * 1-6 /usr/bin/python3 /opt/euisis-backup/backup.py diff --repo=1 --config=/etc/euisis-backup/runner.json
+0 4 * * 1-6 /usr/bin/python3 /opt/euisis-backup/backup.py diff --repo=2 --config=/etc/euisis-backup/runner.json
+*/5 * * * * /usr/bin/python3 /opt/euisis-backup/backup.py collect --config=/etc/euisis-backup/runner.json
+0 8 * * 1 /usr/bin/python3 /opt/euisis-backup/backup.py verify --repo=1 --config=/etc/euisis-backup/runner.json
+0 8 * * 2 /usr/bin/python3 /opt/euisis-backup/backup.py verify --repo=2 --config=/etc/euisis-backup/runner.json
+# Enable only after reviewing retained chains/WAL and validating restore tests.
+# 0 8 * * 3 /usr/bin/python3 /opt/euisis-backup/backup.py expire --repo=1 --config=/etc/euisis-backup/runner.json
+# 0 8 * * 4 /usr/bin/python3 /opt/euisis-backup/backup.py expire --repo=2 --config=/etc/euisis-backup/runner.json
+# Optional supplementary encrypted logical archive (never the primary DR path). Enable
+# together with BACKUP_LOGICAL_ENABLED=true once output_dir is private independent storage.
+# 0 6 1 * * /usr/bin/python3 /opt/euisis-backup/backup.py logical --config=/etc/euisis-backup/runner.json
+# On the ISOLATED runner only, with its own config and read-only repository access:
+# 0 1 1 * * /usr/bin/python3 /opt/euisis-backup/backup.py restore-test --repo=1 --config=/etc/euisis-backup/restore-runner.json
+# 0 1 2 * * /usr/bin/python3 /opt/euisis-backup/backup.py restore-test --repo=2 --config=/etc/euisis-backup/restore-runner.json

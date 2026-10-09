@@ -1,0 +1,374 @@
+import PageHeader from '@/Components/PageHeader';
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, useForm } from '@inertiajs/react';
+import { useLocale } from '@/hooks/useLocale';
+import { FormEventHandler } from 'react';
+
+type Org = { id: string; name_en: string; name_am: string | null };
+type Pos = {
+    id: string;
+    title_en: string;
+    title_am: string | null;
+    grade_level: string | null;
+    organization_id: string;
+    available_slots: number;
+};
+type AnnouncementPosition = {
+    organization_id: string;
+    position_id: string;
+    grade_level: string | null;
+    salary_min: string | null;
+    salary_max: string | null;
+    vacancy_count: number;
+};
+type Announcement = {
+    id: string;
+    opening_date: string;
+    closing_date: string;
+    eligibility_rules: unknown[] | null;
+    required_documents: string[] | null;
+    positions: AnnouncementPosition[];
+};
+
+type EligibilityRule = {
+    type: 'employment_status' | 'current_grade' | 'current_organization' | 'current_position' | 'minimum_service_months';
+    operator: 'equals' | 'in' | 'greater_than_or_equal';
+    value: string;
+};
+
+function supportedRules(rules: unknown[] | null): EligibilityRule[] {
+    return (rules ?? []).filter((rule): rule is EligibilityRule => typeof rule === 'object' && rule !== null && 'type' in rule && 'operator' in rule && 'value' in rule);
+}
+
+type Props = {
+    announcement: Announcement;
+    organizations: Org[];
+    positions: Pos[];
+};
+
+type PositionRow = {
+    organization_id: string;
+    position_id: string;
+    grade_level: string;
+    salary_min: string;
+    salary_max: string;
+    vacancy_count: number;
+};
+
+function toRow(p: AnnouncementPosition): PositionRow {
+    return {
+        organization_id: p.organization_id ?? '',
+        position_id:     p.position_id ?? '',
+        grade_level:     p.grade_level ?? '',
+        salary_min:      p.salary_min ?? '',
+        salary_max:      p.salary_max ?? '',
+        vacancy_count:   p.vacancy_count ?? 1,
+    };
+}
+
+const emptyRow = (): PositionRow => ({
+    organization_id: '',
+    position_id:     '',
+    grade_level:     '',
+    salary_min:      '',
+    salary_max:      '',
+    vacancy_count:   1,
+});
+
+export default function TransferAnnouncementEdit({ announcement, organizations, positions }: Props) {
+    const { locale, t } = useLocale();
+    const useAmharic = locale === 'am';
+
+    const { data, setData, patch, processing, errors } = useForm({
+        positions:          (announcement.positions?.length ? announcement.positions.map(toRow) : [emptyRow()]) as PositionRow[],
+        eligibility_rules:  supportedRules(announcement.eligibility_rules),
+        required_documents: (announcement.required_documents ?? []) as string[],
+        opening_date:       announcement.opening_date ?? '',
+        closing_date:       announcement.closing_date ?? '',
+    });
+
+    function updateRow(index: number, patch: Partial<PositionRow>) {
+        setData('positions', data.positions.map((row, i) => (i === index ? { ...row, ...patch } : row)));
+    }
+
+    function handlePositionSelect(index: number, positionId: string) {
+        const pos = positions.find((p) => p.id === positionId);
+        updateRow(index, { position_id: positionId, grade_level: pos?.grade_level ?? '' });
+    }
+
+    function handleOrgChange(index: number, orgId: string) {
+        updateRow(index, { organization_id: orgId, position_id: '', grade_level: '', vacancy_count: 1 });
+    }
+
+    function addRow() {
+        setData('positions', [...data.positions, emptyRow()]);
+    }
+
+    function removeRow(index: number) {
+        setData('positions', data.positions.filter((_, i) => i !== index));
+    }
+
+    const submit: FormEventHandler = (e) => {
+        e.preventDefault();
+        patch(route('transfer-announcements.update', announcement.id));
+    };
+
+    const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300';
+    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50';
+    const errorCls = 'mt-1 text-xs text-red-500';
+
+    return (
+        <AuthenticatedLayout
+            header={
+                <PageHeader
+                    backHref={route('transfer-announcements.show', announcement.id)}
+                    title={t('transfers.editAnnouncement')}
+                />
+            }
+        >
+            <Head title={t('transfers.editAnnouncement')} />
+
+            <div className="mx-auto max-w-5xl">
+                <form onSubmit={submit} className="space-y-6 rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+
+                    {/* ── Positions ── */}
+                    <section className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                                {t('transfers.includedPositions')}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={addRow}
+                                className="inline-flex items-center justify-center rounded-lg border border-blue-300 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950"
+                            >
+                                + {t('transfers.addPosition')}
+                            </button>
+                        </div>
+
+                        {data.positions.map((row, index) => {
+                            const filteredPositions = row.organization_id
+                                ? positions.filter((p) => p.organization_id === row.organization_id)
+                                : positions;
+
+                            return (
+                                <div key={index} className="rounded-lg border border-gray-200 p-4 dark:border-slate-700">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <span className="text-sm font-semibold text-gray-800 dark:text-slate-200">
+                                            {t('transfers.positionLine')} {index + 1}
+                                        </span>
+                                        {data.positions.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeRow(index)}
+                                                className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400"
+                                            >
+                                                {t('common.remove')}
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <label className={labelCls}>{t('transfers.organization')}</label>
+                                            <select
+                                                className={inputCls}
+                                                value={row.organization_id}
+                                                onChange={(e) => handleOrgChange(index, e.target.value)}
+                                                required
+                                            >
+                                                <option value="">—</option>
+                                                {organizations.map((o) => (
+                                                    <option key={o.id} value={o.id}>
+                                                        {(useAmharic ? o.name_am : null) ?? o.name_en}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {errors[`positions.${index}.organization_id` as never] && (
+                                                <p className={errorCls}>{errors[`positions.${index}.organization_id` as never]}</p>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <label className={labelCls}>{t('transfers.position')}</label>
+                                            <select
+                                                className={inputCls}
+                                                value={row.position_id}
+                                                onChange={(e) => handlePositionSelect(index, e.target.value)}
+                                                disabled={!row.organization_id}
+                                                required
+                                            >
+                                                <option value="">—</option>
+                                                {filteredPositions.map((p) => (
+                                                    <option key={p.id} value={p.id}>
+                                                        {(useAmharic ? p.title_am : null) ?? p.title_en}
+                                                        {p.available_slots > 0 ? ` (${p.available_slots} ${t('transfers.availableSlots')})` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            {errors[`positions.${index}.position_id` as never] && (
+                                                <p className={errorCls}>{errors[`positions.${index}.position_id` as never]}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 grid gap-4 sm:grid-cols-4">
+                                        <div>
+                                            <label className={labelCls}>{t('transfers.gradeLevel')}</label>
+                                            <input
+                                                type="text"
+                                                className={`${inputCls} bg-gray-50 dark:bg-slate-900`}
+                                                value={row.grade_level}
+                                                readOnly
+                                                placeholder="—"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={labelCls}>{t('transfers.salaryMin')}</label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                className={inputCls}
+                                                value={row.salary_min}
+                                                onChange={(e) => updateRow(index, { salary_min: e.target.value })}
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={labelCls}>{t('transfers.salaryMax')}</label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                className={inputCls}
+                                                value={row.salary_max}
+                                                onChange={(e) => updateRow(index, { salary_max: e.target.value })}
+                                                placeholder="0.00"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={labelCls}>{t('transfers.numberOfVacancies')}</label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                className={inputCls}
+                                                value={row.vacancy_count}
+                                                onChange={(e) => updateRow(index, { vacancy_count: Number(e.target.value) })}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </section>
+
+                    {/* ── Dates ── */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label className={labelCls}>{t('transfers.openingDate')}</label>
+                            <LocalizedDatePicker
+                                className={inputCls}
+                                value={data.opening_date}
+                                onChange={(v) => setData('opening_date', v)}
+                            />
+                            {errors.opening_date && <p className={errorCls}>{errors.opening_date}</p>}
+                        </div>
+                        <div>
+                            <label className={labelCls}>{t('transfers.closingDate')}</label>
+                            <LocalizedDatePicker
+                                className={inputCls}
+                                value={data.closing_date}
+                                onChange={(v) => setData('closing_date', v)}
+                            />
+                            {errors.closing_date && <p className={errorCls}>{errors.closing_date}</p>}
+                        </div>
+                    </div>
+
+                    {/* ── Eligibility Rules ── */}
+                    <section className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className={labelCls}>{t('transfers.eligibilityRules')}</label>
+                            <button
+                                type="button"
+                                onClick={() => setData('eligibility_rules', [...data.eligibility_rules, { type: 'employment_status', operator: 'equals', value: 'active' }])}
+                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                            >
+                                + {t('transfers.addEligibilityRule')}
+                            </button>
+                        </div>
+                        {data.eligibility_rules.map((rule, i) => (
+                            <div key={i} className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
+                                <select aria-label={t('transfers.ruleType')} className={inputCls} value={rule.type} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, type: e.target.value as EligibilityRule['type'] }; setData('eligibility_rules', next); }}>
+                                    <option value="employment_status">{t('transfers.ruleEmploymentStatus')}</option><option value="current_grade">{t('transfers.ruleCurrentGrade')}</option><option value="current_organization">{t('transfers.ruleCurrentOrganization')}</option><option value="current_position">{t('transfers.ruleCurrentPosition')}</option><option value="minimum_service_months">{t('transfers.ruleMinimumService')}</option>
+                                </select>
+                                <select aria-label={t('transfers.ruleOperator')} className={inputCls} value={rule.operator} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, operator: e.target.value as EligibilityRule['operator'] }; setData('eligibility_rules', next); }}>
+                                    <option value="equals">{t('transfers.ruleEquals')}</option><option value="in">{t('transfers.ruleIn')}</option><option value="greater_than_or_equal">{t('transfers.ruleAtLeast')}</option>
+                                </select>
+                                <input aria-label={t('transfers.ruleValue')} type="text" className={inputCls} value={rule.value} onChange={(e) => { const next = [...data.eligibility_rules]; next[i] = { ...rule, value: e.target.value }; setData('eligibility_rules', next); }} />
+                                <button
+                                    type="button"
+                                    onClick={() => setData('eligibility_rules', data.eligibility_rules.filter((_, j) => j !== i))}
+                                    className="rounded-lg border border-red-200 px-3 text-sm text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                                >
+                                    {t('common.remove')}
+                                </button>
+                            </div>
+                        ))}
+                    </section>
+
+                    {/* ── Required Documents ── */}
+                    <section className="space-y-2">
+                        <div className="flex items-center justify-between">
+                            <label className={labelCls}>{t('transfers.requiredDocuments')}</label>
+                            <button
+                                type="button"
+                                onClick={() => setData('required_documents', [...data.required_documents, ''])}
+                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                            >
+                                + {t('transfers.addDocument')}
+                            </button>
+                        </div>
+                        {data.required_documents.map((doc, i) => (
+                            <div key={i} className="flex gap-2">
+                                <input
+                                    type="text"
+                                    className={`${inputCls} flex-1`}
+                                    value={doc}
+                                    onChange={(e) => {
+                                        const next = [...data.required_documents];
+                                        next[i] = e.target.value;
+                                        setData('required_documents', next);
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setData('required_documents', data.required_documents.filter((_, j) => j !== i))}
+                                    className="rounded-lg border border-red-200 px-3 text-sm text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                                >
+                                    {t('common.remove')}
+                                </button>
+                            </div>
+                        ))}
+                    </section>
+
+                    {/* ── Actions ── */}
+                    <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+                        <a
+                            href={route('transfer-announcements.show', announcement.id)}
+                            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >
+                            {t('common.cancel')}
+                        </a>
+                        <button
+                            type="submit"
+                            disabled={processing || data.positions.some((r) => !r.organization_id || !r.position_id)}
+                            className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                        >
+                            {processing ? t('common.saving') : t('common.save')}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

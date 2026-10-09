@@ -1,0 +1,132 @@
+import PortalPage from '@/Components/employees/portal/PortalPage';
+import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import { Link, router } from '@inertiajs/react';
+import { useLocale } from '@/hooks/useLocale';
+import { localizedName } from '@/utils/localizedName';
+import type { PageProps } from '@/types';
+
+type Application = {
+    id: string;
+    application_number: string | null;
+    status: string;
+    status_label: string;
+    submitted_at: string | null;
+    applicant_notes: string | null;
+    organization_name: string | null;
+    organization_name_am: string | null;
+    position_title: string | null;
+    position_title_am: string | null;
+    announcement_id: string;
+    closing_date: string | null;
+    rejected_reason: string | null;
+    can_withdraw: boolean;
+};
+
+type Props = PageProps & {
+    applications: { data: Application[]; current_page: number; last_page: number } | null;
+    has_employee: boolean;
+    filters: { status?: string; search?: string };
+};
+
+const STATUS_COLOR: Record<string, string> = {
+    submitted:              'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300',
+    under_review:           'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+    verified:               'bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300',
+    selected:               'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+    approved:               'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+    rejected:               'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300',
+    withdrawn:              'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400',
+    transferred:            'bg-teal-100 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300',
+    release_pending:        'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
+    receiving_pending:      'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
+    final_approval_pending: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300',
+};
+
+export default function MyTransferApplications({ applications, has_employee, filters }: Props) {
+    const { t, locale } = useLocale();
+    const name = (en: string | null, am: string | null) => localizedName(en ?? '', am, locale) || null;
+    const statusLabel = (app: Application) => {
+        const key = `employeePortal.applicationStatuses.${app.status}`;
+        const translated = t(key);
+
+        return translated !== key ? translated : app.status_label;
+    };
+
+    return (
+        <PortalPage
+            title={t('transfers.myApplications')}
+            actions={
+                // With Announcements out of the menu, this is how an employee finds open posts.
+                <Link
+                    href={route('employee.announcements')}
+                    className="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:opacity-90"
+                >
+                    {t('employeePortal.browseAnnouncements')}
+                </Link>
+            }
+        >
+
+            {!has_employee ? (
+                <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-900/50 dark:bg-amber-950/20">
+                    <p className="font-medium text-amber-800 dark:text-amber-300">{t('transfers.noEmployeeProfile')}</p>
+                </div>
+            ) : !applications || applications.data.length === 0 ? (
+                <div className="rounded-panel border border-gray-200 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
+                    <p className="text-sm text-gray-400 dark:text-slate-500">{t('transfers.noApplications')}</p>
+                    <Link href={route('employee.announcements')} className="mt-4 inline-block text-sm font-medium text-[var(--color-primary)] hover:underline">
+                        {t('employeePortal.browseAnnouncements')}
+                    </Link>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    <div className="grid gap-2 sm:grid-cols-[1fr_auto]"><input aria-label={t('common.search')} defaultValue={filters.search ?? ''} onChange={(event) => router.get(route('employee.transfer-applications'), { ...filters, search: event.target.value || undefined }, { preserveState: true, replace: true })} placeholder={t('common.search')} className="rounded-control border border-gray-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" /><select aria-label={t('common.status')} value={filters.status ?? ''} onChange={(event) => router.get(route('employee.transfer-applications'), { ...filters, status: event.target.value || undefined }, { preserveState: true, replace: true })} className="rounded-control border border-gray-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"><option value="">{t('common.all')}</option><option value="submitted">{t('transfers.statusSubmitted')}</option><option value="under_review">{t('transfers.statusUnderReview')}</option><option value="selected">{t('transfers.statusSelected')}</option><option value="withdrawn">{t('transfers.statusWithdrawn')}</option></select></div>
+                    {applications.data.map(app => {
+                        const statusCls = STATUS_COLOR[app.status] ?? 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400';
+                        return (
+                            <div key={app.id} className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <Link
+                                            href={route('employee.announcements.show', { announcement: app.announcement_id })}
+                                            className="font-semibold text-gray-900 hover:text-[var(--color-primary)] dark:text-slate-100"
+                                        >
+                                            {name(app.position_title, app.position_title_am) ?? '—'}
+                                        </Link>
+                                        {app.organization_name && (
+                                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{name(app.organization_name, app.organization_name_am)}</p>
+                                        )}
+                                        {app.application_number && <p className="mt-0.5 text-xs text-gray-400 dark:text-slate-500">{t('transfers.applicationNumber')}: {app.application_number}</p>}
+                                    </div>
+                                    <span className={`inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${statusCls}`}>
+                                        {statusLabel(app)}
+                                    </span>
+                                </div>
+
+                                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400 dark:text-slate-500">
+                                    {app.submitted_at && <span>{t('employeePortal.appliedOn')}: <LocalizedDateDisplay value={app.submitted_at} /></span>}
+                                    {app.closing_date && <span>{t('transfers.closes')}: <LocalizedDateDisplay value={app.closing_date} /></span>}
+                                </div>
+
+                                {app.applicant_notes && (
+                                    <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                        <span className="font-medium text-gray-700 dark:text-slate-300">{t('transfers.applicantNotes')}: </span>
+                                        {app.applicant_notes}
+                                    </div>
+                                )}
+
+                                {app.rejected_reason && (
+                                    <div className="mt-3 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-300">
+                                        <span className="font-medium">{t('transfers.rejectedReason')}: </span>
+                                        {app.rejected_reason}
+                                    </div>
+                                )}
+                                {app.can_withdraw && <button type="button" onClick={() => { const reason = window.prompt(t('transfers.withdrawReasonPrompt')); if (reason?.trim()) router.post(route('employee.transfer-applications.withdraw', { application: app.id }), { reason: reason.trim() }); }} className="mt-3 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">{t('transfers.withdrawApplication')}</button>}
+                            </div>
+                        );
+                    })}
+                    {applications.last_page > 1 && <div className="flex justify-between text-sm"><button type="button" disabled={applications.current_page <= 1} onClick={() => router.get(route('employee.transfer-applications'), { ...filters, page: applications.current_page - 1 }, { preserveState: true })} className="disabled:opacity-50">{t('common.previous')}</button><span>{applications.current_page} / {applications.last_page}</span><button type="button" disabled={applications.current_page >= applications.last_page} onClick={() => router.get(route('employee.transfer-applications'), { ...filters, page: applications.current_page + 1 }, { preserveState: true })} className="disabled:opacity-50">{t('common.next')}</button></div>}
+                </div>
+            )}
+        </PortalPage>
+    );
+}

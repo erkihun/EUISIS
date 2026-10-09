@@ -1,0 +1,237 @@
+import { Head, Link, useForm } from '@inertiajs/react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import PageHeader from '@/Components/PageHeader';
+import { useLocale } from '@/hooks/useLocale';
+
+type Permission = {
+    id: number;
+    name: string;
+    guard_name: string;
+    label_en: string | null;
+    label_am: string | null;
+    description_en: string | null;
+    description_am: string | null;
+    group: string | null;
+    sort_order: number;
+    is_system: boolean;
+};
+
+const inputCls =
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+
+const inputDisabledCls =
+    'w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 cursor-not-allowed';
+
+const textareaCls =
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+
+const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
+
+export default function EditPermission({
+    permission,
+    groups,
+}: {
+    permission: Permission;
+    groups: string[];
+}) {
+    const { t } = useLocale();
+
+    const form = useForm<{
+        name: string;
+        label_en: string;
+        label_am: string;
+        description_en: string;
+        description_am: string;
+        group: string;
+        sort_order: string;
+    }>({
+        name: permission.name,
+        label_en: permission.label_en ?? '',
+        label_am: permission.label_am ?? '',
+        description_en: permission.description_en ?? '',
+        description_am: permission.description_am ?? '',
+        group: permission.group ?? '',
+        sort_order: String(permission.sort_order ?? ''),
+    });
+
+    function submit(e: React.FormEvent) {
+        e.preventDefault();
+        form.patch(route('permissions.update', permission.id));
+    }
+
+    return (
+        <AuthenticatedLayout
+            header={
+                <PageHeader
+                    title={t('permissions.editPermission')}
+                    description={permission.name}
+                />
+            }
+        >
+            <Head title={t('permissions.editPermission')} />
+
+            <div className="mx-auto max-w-2xl">
+                <form onSubmit={submit} className="space-y-5">
+                    {permission.is_system && (
+                        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
+                            {t('permissions.systemPermissionNameWarning')}
+                        </div>
+                    )}
+
+                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                        <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                            {t('permissions.basicInformation')}
+                        </h2>
+                        <div className="space-y-4">
+                            <div>
+                                <label className={labelCls}>{t('permissions.permissionKey')}</label>
+                                <div className="mt-1">
+                                    {permission.is_system ? (
+                                        <input
+                                            className={inputDisabledCls}
+                                            value={form.data.name}
+                                            disabled
+                                            readOnly
+                                        />
+                                    ) : (
+                                        <input
+                                            className={inputCls}
+                                            value={form.data.name}
+                                            onChange={(e) => form.setData('name', e.target.value)}
+                                        />
+                                    )}
+                                </div>
+                                {form.errors.name && (
+                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.name}</p>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelCls}>{t('permissions.labelEn')}</label>
+                                    <div className="mt-1">
+                                        <input
+                                            className={inputCls}
+                                            value={form.data.label_en}
+                                            onChange={(e) => form.setData('label_en', e.target.value)}
+                                        />
+                                    </div>
+                                    {form.errors.label_en && (
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.label_en}</p>
+                                    )}
+                                </div>
+                                <div>
+                                    <label className={labelCls}>{t('permissions.labelAm')}</label>
+                                    <div className="mt-1">
+                                        <input
+                                            className={inputCls}
+                                            value={form.data.label_am}
+                                            onChange={(e) => form.setData('label_am', e.target.value)}
+                                            dir="auto"
+                                        />
+                                    </div>
+                                    {form.errors.label_am && (
+                                        <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.label_am}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className={labelCls}>{t('permissions.descriptionEn')}</label>
+                                <div className="mt-1">
+                                    <textarea
+                                        className={textareaCls}
+                                        rows={3}
+                                        value={form.data.description_en}
+                                        onChange={(e) => form.setData('description_en', e.target.value)}
+                                    />
+                                </div>
+                                {form.errors.description_en && (
+                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.description_en}</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className={labelCls}>{t('permissions.descriptionAm')}</label>
+                                <div className="mt-1">
+                                    <textarea
+                                        className={textareaCls}
+                                        rows={3}
+                                        dir="auto"
+                                        value={form.data.description_am}
+                                        onChange={(e) => form.setData('description_am', e.target.value)}
+                                    />
+                                </div>
+                                {form.errors.description_am && (
+                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.description_am}</p>
+                                )}
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                        <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                            {t('permissions.classification')}
+                        </h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className={labelCls}>{t('permissions.permissionGroup')}</label>
+                                <div className="mt-1">
+                                    <input
+                                        list="group-suggestions"
+                                        className={inputCls}
+                                        value={form.data.group}
+                                        onChange={(e) => form.setData('group', e.target.value)}
+                                    />
+                                    <datalist id="group-suggestions">
+                                        {groups.map((g) => <option key={g} value={g} />)}
+                                    </datalist>
+                                </div>
+                                {form.errors.group && (
+                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.group}</p>
+                                )}
+                            </div>
+                            <div>
+                                <label className={labelCls}>{t('permissions.sortOrder')}</label>
+                                <div className="mt-1">
+                                    <input
+                                        type="number"
+                                        className={inputCls}
+                                        value={form.data.sort_order}
+                                        onChange={(e) => form.setData('sort_order', e.target.value)}
+                                    />
+                                </div>
+                                {form.errors.sort_order && (
+                                    <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.sort_order}</p>
+                                )}
+                            </div>
+                            <div>
+                                <label className={labelCls}>{t('permissions.guardName')}</label>
+                                <div className="mt-1">
+                                    <input className={inputDisabledCls} value={permission.guard_name} disabled readOnly />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3">
+                        <Link
+                            href={route('permissions.index')}
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >
+                            {t('common.cancel')}
+                        </Link>
+                        <button
+                            type="submit"
+                            disabled={form.processing}
+                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                        >
+                            {form.processing ? t('common.saving') : t('common.saveChanges')}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

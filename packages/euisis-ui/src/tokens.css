@@ -1,0 +1,68 @@
+:root {
+    --color-primary-50: #eef1fa;
+    --color-primary-100: #dde3f5;
+    --color-primary-200: #bcc7eb;
+    --color-primary-300: #8f9fd8;
+    --color-primary-400: #5d72bf;
+    --color-primary-500: #33499f;
+    --color-primary-600: #1d3084;
+    --color-primary-700: #122170;
+    --color-primary-800: #0f1c5c;
+    --color-primary-900: #0d1749;
+    --color-primary-950: #070d2c;
+    --color-primary: #122170;
+    --color-primary-hover: #1d3084;
+    --color-primary-light: #dde3f5;
+    --color-accent: #d12908;
+    --color-accent-hover: #ae2108;
+    --color-accent-light: #fee2d6;
+    --color-success: #15803d;
+    --color-warning: #b45309;
+    --color-danger: #b91c1c;
+    --app-background: #f6f7f9;
+    --app-foreground: #0f172a;
+    --app-surface: #ffffff;
+    --app-surface-muted: #f1f3f6;
+    --app-border: #e2e5ea;
+    --app-border-strong: #cbd2dc;
+    --app-muted-foreground: #5b6472;
+    --radius-control: 6px;
+    --radius-card: 8px;
+    --radius-panel: 10px;
+    --control-h-sm: 30px;
+    --control-h-md: 36px;
+    --control-h-lg: 40px;
+    --space-field: 1rem;
+    --space-section: 1.5rem;
+    --card-padding: 1.25rem;
+    --icon-sm: 1rem;
+    --icon-md: 1.125rem;
+    --icon-lg: 1.25rem;
+}
+
+.dark {
+    --color-primary: #5d72bf;
+    --color-primary-hover: #8f9fd8;
+    --color-primary-light: #1d3084;
+    --color-accent: #f76b3c;
+    --color-accent-hover: #fb9770;
+    --app-background: #0b1020;
+    --app-foreground: #f8fafc;
+    --app-surface: #111827;
+    --app-surface-muted: #171f31;
+    --app-border: #1f2937;
+    --app-border-strong: #334155;
+    --app-muted-foreground: #94a3b8;
+}
+
+html,
+body,
+#app {
+    background: var(--app-background);
+    color: var(--app-foreground);
+}
+
+*:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
