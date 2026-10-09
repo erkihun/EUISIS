@@ -30,6 +30,8 @@ it('does not require archiving when PITR is not required', function () {
 });
 
 it('is UNKNOWN, never healthy, when the database cannot be inspected', function () {
+    // The case under test is a non-PostgreSQL connection, whatever database the suite runs on.
+    config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:']);
     expect((new WalArchiveInspector)->inspect())->status->toBe('UNKNOWN')->reason_code->toBe('DATABASE_NOT_POSTGRESQL')
         ->and((new WalArchiveInspector)->evaluate(null, 'DATABASE_UNAVAILABLE'))->status->toBe('UNKNOWN');
 });
