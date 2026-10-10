@@ -4,6 +4,7 @@ return [
     'title' => 'የካፍቴሪያ ክፍያ መግለጫ', 'provider' => 'ካፍቴሪያ / አቅራቢ',
     'period' => 'የመግለጫ ጊዜ', 'prepared' => 'ያዘጋጀው', 'filters' => 'ማጣሪያዎች',
     'all_providers' => 'ሁሉም የተፈቀዱ ካፍቴሪያዎች', 'all_time' => 'ሁሉም ቀናት', 'all_statuses' => 'ሁሉም ሁኔታዎች',
+    'export_too_large' => 'ይህ መግለጫ :count ግብይቶች አሉት፤ አንድ ኤክስፖርት ቢበዛ :limit ብቻ ሊይዝ ይችላል። አጭር ጊዜ ወይም አንድ ካፍቴሪያ ይምረጡ።',
     'extra_only' => 'ተጨማሪ ቅኝቶች ብቻ', 'number' => 'ግብይት', 'date' => 'ቀን', 'employee' => 'ሠራተኛ / ቁጥር',
     'status' => 'ሁኔታ', 'meal' => 'የምግብ ዋጋ', 'subsidy' => 'ድጎማ', 'employee_payable' => 'በሠራተኛ የሚከፈል',
     'deduction' => 'ተላላፊ ቅናሽ', 'accepted_totals' => 'ድምር — የተቀበሉ ብቻ',

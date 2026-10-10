@@ -69,10 +69,19 @@ class CafeteriaAnalyticsController extends Controller
             $this->assertOrganizationInScope($request->user(), $data['organization_id']);
         }
 
+        $from = $data['date_from'] ?? today()->startOfMonth()->toDateString();
+        $to = $data['date_to'] ?? today()->toDateString();
+        // A report covers at most one year of transactions (risk register SCL-5).
+        if (\Illuminate\Support\Carbon::parse($from)->diffInDays(\Illuminate\Support\Carbon::parse($to)) > 366) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'date_to' => __('provider-portal.period_too_long', ['days' => 366]),
+            ]);
+        }
+
         return [
             'type' => $data['type'] ?? 'daily_transactions',
-            'date_from' => $data['date_from'] ?? today()->startOfMonth()->toDateString(),
-            'date_to' => $data['date_to'] ?? today()->toDateString(),
+            'date_from' => $from,
+            'date_to' => $to,
             'organization_id' => $data['organization_id'] ?? null,
             'provider_id' => $data['provider_id'] ?? null,
             'network_id' => $data['network_id'] ?? null,

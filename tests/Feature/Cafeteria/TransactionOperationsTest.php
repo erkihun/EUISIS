@@ -116,3 +116,18 @@ it('refunds only once when two people reverse the same meal at the same time', f
     expect(fn () => app(ReverseCafeteriaTransactionAction::class)->execute($second, $actor))->toThrow(ValidationException::class)
         ->and(CafeteriaSubsidyLedger::query()->where('cafeteria_transaction_id', $first->id)->where('entry_type', 'reversal')->count())->toBe(1);
 });
+
+it('refuses a statement export larger than the row limit instead of loading it all', function (): void {
+    app(CafeteriaQrScanService::class)->process($this->card, $this->s->main, now());
+    $this->travelTo(Carbon::parse('2026-09-22 12:00'));
+    app(CafeteriaQrScanService::class)->process($this->card, $this->s->main, now());
+    config(['cafeteria.statement_export_row_limit' => 1]);
+    $exporter = cafeteriaStaff($this, ['cafeteria_transactions.view', 'cafeteria_reports.export']);
+
+    $this->actingAs($exporter)->get(route('cafeteria.transactions.export', ['format' => 'xlsx', 'period' => 'all']))
+        ->assertSessionHasErrors('period');
+
+    config(['cafeteria.statement_export_row_limit' => 20000]);
+    $this->actingAs($exporter)->get(route('cafeteria.transactions.export', ['format' => 'xlsx', 'period' => 'all']))
+        ->assertOk();
+});
