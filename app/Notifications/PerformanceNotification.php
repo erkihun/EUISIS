@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -13,10 +15,16 @@ use Illuminate\Notifications\Notification;
  * read time in the reader's language by NotificationPresenter; never carries
  * scores, ratings or comments — only what happened and where to look.
  */
-class PerformanceNotification extends Notification
+class PerformanceNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     /** @param list<string> $channels */
-    public function __construct(public string $kind, public ?string $url, public array $channels) {}
+    public function __construct(public string $kind, public ?string $url, public array $channels)
+    {
+        // Delivered by the queue workers, not inside the request (INF-3).
+        $this->onQueue('notifications');
+    }
 
     public function via(object $notifiable): array
     {

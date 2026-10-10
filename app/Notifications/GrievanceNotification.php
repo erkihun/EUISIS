@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -13,15 +15,20 @@ use Illuminate\Notifications\Notification;
  * kind of action is needed — never the subject, description, decision text
  * or any other confidential content (docs/grievance-management.md §11).
  */
-class GrievanceNotification extends Notification
+class GrievanceNotification extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     /** @param list<string> $channels */
     public function __construct(
         public string $kind,
         public string $caseNumber,
         public ?string $url,
         public array $channels,
-    ) {}
+    ) {
+        // Delivered by the queue workers, not inside the request (INF-3).
+        $this->onQueue('notifications');
+    }
 
     public function via(object $notifiable): array
     {
