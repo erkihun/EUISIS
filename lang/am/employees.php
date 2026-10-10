@@ -87,7 +87,7 @@ return [
             'positionNotInOrganization' => 'የሥራ መደብ :code የዚህ ተቋም አይደለም።',
             'positionNotInUnit' => 'የሥራ መደብ :code የተጠቀሰው ክፍል አይደለም።',
             'positionOccupied' => 'የሥራ መደብ :code አስቀድሞ ተይዟል።',
-            'positionDuplicatedInFile' => 'የሥራ መደብ :code በዚህ ፋይል ውስጥ ከአንድ ጊዜ በላይ ተጠቅሷል።',
+            'positionDuplicatedInFile' => 'የሥራ መደብ :code ለዚህ ረድፍ ክፍት ቦታ የለውም፤ በዚህ ፋይል ውስጥ ያሉ ቀደምት ረድፎች ሞልተውታል።',
             'employeeNumberExists' => 'የሠራተኛ ቁጥር :number አስቀድሞ አለ።',
             'employeeNumberDuplicatedInFile' => 'የሠራተኛ ቁጥር :number በዚህ ፋይል ውስጥ ከአንድ ጊዜ በላይ ተጠቅሷል።',
         ],

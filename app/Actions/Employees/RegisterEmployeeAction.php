@@ -16,6 +16,7 @@ use App\Models\EmploymentStatusHistory;
 use App\Models\Position;
 use App\Models\User;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
+use App\Services\Vacancy\PositionCapacityService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -39,13 +40,9 @@ readonly class RegisterEmployeeAction
                     ->lockForUpdate()
                     ->first();
 
-                $occupied = EmployeeAssignment::query()
-                    ->where('position_id', $positionId)
-                    ->where('is_current', true)
-                    ->where('assignment_status', AssignmentStatus::Active)
-                    ->exists();
-
-                if ($occupied) {
+                // Checked under the position lock: approved establishment
+                // slots, or one person (CON-5).
+                if (! app(PositionCapacityService::class)->hasFreeSlot((string) $positionId)) {
                     throw ValidationException::withMessages([
                         'position_id' => __('validation.position_already_occupied'),
                     ]);

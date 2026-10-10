@@ -7,6 +7,7 @@ use App\Enums\CodeRuleEntityType;
 use App\Enums\CodeRuleResetFrequency;
 use App\Enums\CodeRuleScopeStrategy;
 use App\Enums\EmployeeStatus;
+use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationScopeType;
 use App\Models\CodeRule;
 use App\Models\Employee;
@@ -17,6 +18,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Services\Employees\EmployeeCsvImportService;
@@ -395,6 +397,30 @@ it('rejects the same position claimed twice in one file', function (): void {
 
     expect($batch->valid_rows)->toBe(1)
         ->and($batch->failed_rows)->toBe(1);
+});
+
+it('fills a position up to its approved establishment slots across rows', function (): void {
+    // Capacity rule (CON-5): approved slots, or one person without an establishment.
+    PositionEstablishment::query()->create([
+        'establishment_number' => 'EST-IMP-1',
+        'organization_id' => $this->alpha['org']->id,
+        'position_id' => $this->alpha['positions'][1]->id,
+        'approved_slots' => 2,
+        'effective_from' => now()->subYear()->toDateString(),
+        'status' => EstablishmentStatus::Approved->value,
+    ]);
+
+    $batch = $this->service->validate(csvUpload([
+        importRow($this->alpha, 1),
+        importRow($this->alpha, 1, ['first_name' => 'Second']),
+        importRow($this->alpha, 1, ['first_name' => 'Third']),
+    ]), $this->admin);
+
+    expect($batch->valid_rows)->toBe(2)
+        ->and($batch->failed_rows)->toBe(1);
+
+    $template = $this->actingAs($this->admin)->get(route('employees.import.template', ['organization_id' => $this->alpha['org']->id]))->assertOk()->getContent();
+    expect($template)->toContain($this->alpha['positions'][1]->id);
 });
 
 it('rejects an unknown organization code', function (): void {

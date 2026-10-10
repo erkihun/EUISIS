@@ -8,7 +8,6 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\CodeRules\GenerateCodeAction;
 use App\Actions\Employees\RegisterEmployeeAction;
 use App\Actions\Transfers\RequestEmployeeTransferAction;
-use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\EmploymentType;
@@ -21,7 +20,6 @@ use App\Http\Requests\EmployeeUpdateRequest;
 use App\Http\Resources\EmployeeDetailResource;
 use App\Http\Resources\EmployeeResource;
 use App\Models\Employee;
-use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
@@ -30,6 +28,7 @@ use App\Models\User;
 use App\Services\IdCards\IdCardQrCodeRenderer;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
+use App\Services\Vacancy\PositionCapacityService;
 use App\Support\EmployeePhotoStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -282,12 +281,9 @@ class EmployeeController extends Controller
             }
         }
 
-        $selectedPositionQuery = Position::query()
-            ->where('is_active', true)
-            ->whereDoesntHave('assignments', fn ($q) => $q
-                ->where('is_current', true)
-                ->where('assignment_status', AssignmentStatus::Active)
-            )
+        // Positions with a free slot: approved establishment slots, or one
+        // person when there is no establishment (CON-5).
+        $selectedPositionQuery = app(PositionCapacityService::class)->whereHasFreeSlot(Position::query()->where('is_active', true))
             ->when($selectedOrganizationId !== null, fn ($query) => $query->where('organization_id', $selectedOrganizationId));
         $organizationScopeService->applyOrganizationScope($selectedPositionQuery, $user);
         $selectedPosition = $selectedPositionId ? $selectedPositionQuery->firstWhere('id', $selectedPositionId) : null;
@@ -339,13 +335,9 @@ class EmployeeController extends Controller
             ->whereNull('deleted_at')
             ->orderBy('name_en');
 
-        $positionQuery = Position::query()
+        $positionQuery = app(PositionCapacityService::class)->whereHasFreeSlot(Position::query()
             ->where('is_active', true)
-            ->whereNull('deleted_at')
-            ->whereDoesntHave('assignments', fn ($q) => $q
-                ->where('is_current', true)
-                ->where('assignment_status', AssignmentStatus::Active)
-            )
+            ->whereNull('deleted_at'))
             ->orderBy('title_en');
 
         $organizationScopeService->applyOrganizationScope($organizationUnitQuery, $user);
@@ -380,16 +372,14 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Whether an active, current assignment already holds the position. Mirrors
-     * the vacancy rule used by the create-page query and EmployeeStoreRequest.
+     * Whether the position has no free slot: its current, active assignments
+     * fill its approved establishment slots (one person without an
+     * establishment). The same rule as the create-page query and
+     * EmployeeStoreRequest (PositionCapacityService, CON-5).
      */
     private function positionIsOccupied(string $positionId): bool
     {
-        return EmployeeAssignment::query()
-            ->where('position_id', $positionId)
-            ->where('is_current', true)
-            ->where('assignment_status', AssignmentStatus::Active)
-            ->exists();
+        return ! app(PositionCapacityService::class)->hasFreeSlot($positionId);
     }
 
     /**
@@ -448,15 +438,16 @@ class EmployeeController extends Controller
             ->get(['id', 'organization_id', 'parent_unit_id', 'code', 'name_en', 'name_am', 'status'])
             ->groupBy('organization_id');
 
+        // "occupied" means no free slot under the capacity rule (CON-5).
+        [$fullSql, $fullBindings] = app(PositionCapacityService::class)->fullExpression();
         $positionQuery = Position::query()
             ->whereNull('deleted_at')
-            ->withExists(['assignments as is_occupied' => fn ($query) => $query
-                ->where('is_current', true)
-                ->where('assignment_status', AssignmentStatus::Active->value)])
+            ->select(['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am', 'is_active'])
+            ->selectRaw("{$fullSql} as is_occupied", $fullBindings)
             ->orderBy('title_en');
         $organizationScopeService->applyOrganizationScope($positionQuery, $user);
         $positionsByUnit = $positionQuery
-            ->get(['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am', 'is_active'])
+            ->get()
             ->groupBy('organization_unit_id');
 
         return $organizations->map(function (Organization $organization) use ($unitsByOrganization, $positionsByUnit): array {

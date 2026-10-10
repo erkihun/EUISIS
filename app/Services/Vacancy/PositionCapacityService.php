@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\Vacancy;
 
+use App\Enums\AssignmentStatus;
 use App\Enums\EstablishmentStatus;
 use App\Enums\OccupancyStatus;
 use App\Models\EmployeeAssignment;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\PositionOccupancy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
 class PositionCapacityService
@@ -49,6 +51,69 @@ class PositionCapacityService
     public function hasVacancy(string $positionId, ?Carbon $onDate = null): bool
     {
         return $this->availableSlotsForPosition($positionId, $onDate) > 0;
+    }
+
+    /*
+     * The placement rule (risk register CON-5, decision D-2). A position holds
+     * as many people as its approved establishment slots effective on the
+     * day, and one person when it has no approved establishment. Occupants are
+     * the current, active assignments — the record of who holds the position;
+     * occupancy rows are the establishment's ledger and are rebuilt from them
+     * (backfillOccupanciesForPosition). Registration, both imports and
+     * transfer completion all place people by this rule.
+     */
+
+    public function capacity(string $positionId, ?Carbon $onDate = null): int
+    {
+        $approved = $this->approvedSlotsForPosition($positionId, $onDate);
+
+        return $approved > 0 ? $approved : 1;
+    }
+
+    public function currentOccupants(string $positionId): int
+    {
+        return EmployeeAssignment::query()
+            ->where('position_id', $positionId)
+            ->where('is_current', true)
+            ->where('assignment_status', AssignmentStatus::Active->value)
+            ->count();
+    }
+
+    public function hasFreeSlot(string $positionId, ?Carbon $onDate = null): bool
+    {
+        return $this->currentOccupants($positionId) < $this->capacity($positionId, $onDate);
+    }
+
+    /**
+     * The same rule as SQL over `positions`, for lists: true when the position
+     * has no free slot.
+     *
+     * @return array{0: string, 1: list<mixed>}
+     */
+    public function fullExpression(?Carbon $onDate = null): array
+    {
+        $day = ($onDate ?? now())->toDateString();
+
+        return [
+            '((select count(*) from employee_assignments pc_ea where pc_ea.position_id = positions.id'
+            .' and pc_ea.is_current = ? and pc_ea.assignment_status = ?)'
+            .' >= (select case when coalesce(sum(pc_pe.approved_slots), 0) > 0 then sum(pc_pe.approved_slots) else 1 end'
+            .' from position_establishments pc_pe where pc_pe.position_id = positions.id and pc_pe.status = ?'
+            .' and pc_pe.deleted_at is null and date(pc_pe.effective_from) <= ?'
+            .' and (pc_pe.effective_to is null or date(pc_pe.effective_to) >= ?)))',
+            [true, AssignmentStatus::Active->value, EstablishmentStatus::Approved->value, $day, $day],
+        ];
+    }
+
+    /**
+     * @param  Builder<Position>  $positions
+     * @return Builder<Position>
+     */
+    public function whereHasFreeSlot(Builder $positions, ?Carbon $onDate = null): Builder
+    {
+        [$sql, $bindings] = $this->fullExpression($onDate);
+
+        return $positions->whereRaw("not {$sql}", $bindings);
     }
 
     public function recordOccupancy(

@@ -18,6 +18,7 @@ use App\Services\Vacancy\PositionCapacityService;
 use App\Services\Vacancy\VacancyTransferService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 readonly class CompleteVacancyTransferAction
 {
@@ -48,6 +49,12 @@ readonly class CompleteVacancyTransferAction
             $currentAssignment = $employee->currentAssignment()->lockForUpdate()->firstOrFail();
 
             $effectiveDate = Carbon::parse($data['effective_date'] ?? now());
+
+            // The position as a whole, under its lock (CON-5): people placed
+            // by registration hold slots without an occupancy row.
+            if (! $this->capacityService->hasFreeSlot($positionEntry->position_id, $effectiveDate)) {
+                throw ValidationException::withMessages(['slots' => __('vacancies.noSlotsRemaining')]);
+            }
 
             $currentAssignment->update([
                 'assignment_status' => AssignmentStatus::Closed,

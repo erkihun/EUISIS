@@ -84,7 +84,7 @@ return [
             'positionNotInOrganization' => 'Position :code does not belong to this organization.',
             'positionNotInUnit' => 'Position :code does not belong to the given unit.',
             'positionOccupied' => 'Position :code is already occupied.',
-            'positionDuplicatedInFile' => 'Position :code is used more than once in this file.',
+            'positionDuplicatedInFile' => 'Position :code has no free slot left for this row: earlier rows in this file fill it.',
             'employeeNumberExists' => 'Employee number :number already exists.',
             'employeeNumberDuplicatedInFile' => 'Employee number :number appears more than once in this file.',
         ],

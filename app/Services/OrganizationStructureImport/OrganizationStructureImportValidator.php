@@ -8,7 +8,6 @@ use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\CodeRuleEntityType;
 use App\Enums\EmployeeStatus;
-use App\Enums\EstablishmentStatus;
 use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Models\CodeRule;
@@ -21,11 +20,11 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Position;
-use App\Models\PositionEstablishment;
 use App\Models\User;
 use App\Services\CodeGeneration\CodeFormatTokenResolver;
 use App\Services\CodeGeneration\PositionCodeContextResolver;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\Vacancy\PositionCapacityService;
 use Illuminate\Support\Carbon;
 use Throwable;
 
@@ -1118,16 +1117,8 @@ class OrganizationStructureImportValidator
      */
     private function existingPositionCapacity(?Position $position): int
     {
-        if ($position === null) {
-            return 1;
-        }
-
-        $approved = (int) PositionEstablishment::query()
-            ->where('position_id', $position->id)
-            ->where('status', EstablishmentStatus::Approved->value)
-            ->sum('approved_slots');
-
-        return $approved > 0 ? $approved : 1;
+        // The shared placement rule (CON-5): slots effective today, or one.
+        return $position === null ? 1 : app(PositionCapacityService::class)->capacity($position->id);
     }
 
     // ── Row references ───────────────────────────────────────────────────────

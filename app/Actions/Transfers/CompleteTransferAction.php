@@ -75,6 +75,11 @@ readonly class CompleteTransferAction
                     $application->announcementPosition?->position_id ?? $announcement->position_id,
                 );
                 $establishment = $this->lockAvailableEstablishment($position, $application, $effectiveDate);
+                // The position as a whole (CON-5): people placed by
+                // registration hold slots without an occupancy row.
+                if (! $this->capacityService->hasFreeSlot($position->id, $effectiveDate)) {
+                    throw new DomainException('The transfer destination has no available approved capacity.');
+                }
 
                 $sourceSnapshot = $currentAssignment->toArray();
                 $currentAssignment->update([

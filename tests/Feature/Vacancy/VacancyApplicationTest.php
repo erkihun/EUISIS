@@ -443,6 +443,25 @@ it('two applications cannot both take the last vacancy slot', function (): void 
     expect(VacancyApplication::query()->where('status', VacancyApplicationStatus::Transferred->value)->count())->toBe(1);
 });
 
+it('refuses a transfer into a position its registered occupants already fill', function (): void {
+    // Capacity rule (CON-5): occupants are the current assignments, including
+    // people registered directly, who leave no occupancy row behind.
+    $user = superAdminForApplications();
+    $announcement = makePublishedAnnouncementForApp(slots: 2);
+    $entry = $announcement->positions()->firstOrFail();
+    foreach ([1, 2] as $n) {
+        [$sitting, $assignment] = makeEmployeeWithAssignment($entry->organization_id);
+        $assignment->update(['position_id' => $entry->position_id]);
+    }
+    [$employee] = makeEmployeeWithAssignment(makeTestOrgForApp()->id);
+    $application = makeApplicationForTest($announcement, $employee->id, VacancyApplicationStatus::Selected->value);
+
+    expect(fn () => app(CompleteVacancyTransferAction::class)->execute($application, ['effective_date' => '2026-06-01'], $user))
+        ->toThrow(ValidationException::class);
+
+    expect(EmployeeAssignment::query()->where('position_id', $entry->position_id)->where('is_current', true)->count())->toBe(2);
+});
+
 it('the closed assignment ends the day before the new one starts', function (): void {
     $user = superAdminForApplications();
     $announcement = makePublishedAnnouncementForApp();
