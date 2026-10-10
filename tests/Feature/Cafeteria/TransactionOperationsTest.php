@@ -131,3 +131,9 @@ it('refuses a statement export larger than the row limit instead of loading it a
     $this->actingAs($exporter)->get(route('cafeteria.transactions.export', ['format' => 'xlsx', 'period' => 'all']))
         ->assertOk();
 });
+
+it('gives each transaction a number with enough entropy for city-scale daily volume', function (): void {
+    app(CafeteriaQrScanService::class)->process($this->card, $this->s->main, now());
+
+    expect(CafeteriaTransaction::query()->sole()->transaction_number)->toMatch('/^CAF-\d{8}-[A-Z0-9]{12}$/');
+});
