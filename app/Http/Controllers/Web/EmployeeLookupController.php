@@ -31,7 +31,8 @@ class EmployeeLookupController extends Controller
         'cafeteria_employee_exclusions.create',
         'cafeteria_employee_exclusions.view',
         'cafeteria_ledger.view',
-        'card-requests.create',
+        'id-cards.submitRequest',
+        'cards.manage',
     ];
 
     public function __invoke(Request $request, OrganizationScopeService $scope): JsonResponse

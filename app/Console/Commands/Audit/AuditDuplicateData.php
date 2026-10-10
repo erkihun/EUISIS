@@ -71,6 +71,31 @@ class AuditDuplicateData extends ReadOnlyAuditCommand
                 'rows' => fn () => DB::table('id_cards')->where('is_current', true)
                     ->select('employee_id')->groupBy('employee_id')->havingRaw('count(*) > 1')->pluck('employee_id'),
             ],
+            // Pre-checks for the integrity migrations: each duplicate below stops
+            // its migration with NEEDS_DATA_REVIEW (risk register CON-1/2/9).
+            [
+                'key' => 'employee_transfers.vacancy_application', 'severity' => 'HIGH',
+                'label' => 'Vacancy applications completed by more than one transfer',
+                'why' => 'One application moves the employee once; blocks employee_transfers_one_per_vacancy_application. Rows: application ids.',
+                'rows' => fn () => DB::table('employee_transfers')->whereNotNull('vacancy_application_id')
+                    ->select('vacancy_application_id')->groupBy('vacancy_application_id')->havingRaw('count(*) > 1')->pluck('vacancy_application_id'),
+            ],
+            [
+                'key' => 'service_transactions.reference', 'severity' => 'HIGH',
+                'label' => 'Service transactions sharing a provider reference',
+                'why' => 'A provider reference records one service once; blocks the (service_provider_id, reference) uniqueness. Rows: provider → reference.',
+                'rows' => fn () => DB::table('service_transactions')->whereNotNull('reference')
+                    ->select('service_provider_id', 'reference')->groupBy('service_provider_id', 'reference')->havingRaw('count(*) > 1')->get()
+                    ->map(fn ($row) => "{$row->service_provider_id} → {$row->reference}"),
+            ],
+            [
+                'key' => 'cafeteria_provider_ledger_entries.transaction', 'severity' => 'HIGH',
+                'label' => 'Provider ledger postings repeated for one transaction',
+                'why' => 'A scan is credited once and reversed once; a repeat overstates what the provider is owed. Blocks cp_ledger_transaction_type_unique. Rows: transaction (entry type).',
+                'rows' => fn () => DB::table('cafeteria_provider_ledger_entries')->whereNotNull('cafeteria_transaction_id')
+                    ->select('cafeteria_transaction_id', 'entry_type')->groupBy('cafeteria_transaction_id', 'entry_type')->havingRaw('count(*) > 1')->get()
+                    ->map(fn ($row) => "{$row->cafeteria_transaction_id} ({$row->entry_type})"),
+            ],
             [
                 'key' => 'card_requests.pending', 'severity' => 'MEDIUM',
                 'label' => 'Employees with more than one open card request',

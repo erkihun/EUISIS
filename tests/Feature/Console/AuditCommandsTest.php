@@ -46,6 +46,16 @@ it('reports an employee holding two live cards without changing anything', funct
     expect(DB::table('id_cards')->orderBy('id')->get()->toArray())->toEqual($before);
 });
 
+it('pre-checks every uniqueness the integrity migrations add', function (): void {
+    // Run before migrating: these duplicates stop the migrations with
+    // NEEDS_DATA_REVIEW (risk register CON-1, CON-2, CON-9).
+    $this->artisan('data:audit-duplicates')
+        ->expectsOutputToContain('Vacancy applications completed by more than one transfer')
+        ->expectsOutputToContain('Service transactions sharing a provider reference')
+        ->expectsOutputToContain('Provider ledger postings repeated for one transaction')
+        ->assertExitCode(0);
+});
+
 it('reports organization units that form a parent cycle', function (): void {
     $type = OrganizationType::query()->create(['code' => 'AUD-T', 'name_en' => 'Audit type']);
     $organization = Organization::query()->create(['organization_type_id' => $type->id, 'code' => 'AUD-ORG', 'name_en' => 'Audit organization', 'status' => 'active']);
