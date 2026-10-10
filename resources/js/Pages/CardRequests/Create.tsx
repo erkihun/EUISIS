@@ -1,8 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Head, useForm, Link } from '@inertiajs/react';
+import { Head, useForm, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 
 type Employee = {
     id: string;
@@ -12,16 +12,29 @@ type Employee = {
     eligible_request_types: string[];
     current_assignment?: { organization?: { name_en: string; name_am?: string } | null } | null;
 };
-type PageProps = { employees: Employee[]; requestTypes: string[] };
+type PageProps = { employees: Employee[]; employeesTruncated: boolean; filters: { q: string }; requestTypes: string[] };
 const panel = 'rounded-panel border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
 const input = 'w-full rounded-control border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100';
 const textButton = 'rounded px-2 py-1.5 text-xs font-semibold text-[color:var(--color-primary)] hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 disabled:opacity-40 dark:hover:bg-slate-800';
 
-export default function CardRequestCreate({ employees, requestTypes }: PageProps) {
+export default function CardRequestCreate({ employees, employeesTruncated, filters, requestTypes }: PageProps) {
     const { t, locale } = useLocale();
     const label = (key: string) => t('idCards.' + key);
     const form = useForm({ employee_ids: [] as string[], request_type: 'new', reason: '' });
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(filters.q ?? '');
+    const firstRender = useRef(true);
+    // The employee list is searched on the server and bounded (SCL-10); the
+    // selection lives in the form, so it survives each reload.
+    useEffect(() => {
+        if (firstRender.current) {
+            firstRender.current = false;
+            return;
+        }
+        const timer = window.setTimeout(() => {
+            router.reload({ only: ['employees', 'employeesTruncated', 'filters'], data: { q: search.trim() } });
+        }, 300);
+        return () => window.clearTimeout(timer);
+    }, [search]);
     const [selectedOnly, setSelectedOnly] = useState(false);
     const selected = new Set(form.data.employee_ids);
     const eligibleEmployees = employees.filter((employee) => employee.eligible_request_types.includes(form.data.request_type));
@@ -104,6 +117,7 @@ export default function CardRequestCreate({ employees, requestTypes }: PageProps
                             <span>{label('matchingEmployees').replace(':count', String(visibleEmployees.length))}</span>
                             <span aria-live="polite">{countLabel}</span>
                         </div>
+                        {employeesTruncated && <p role="status" className="border-b border-gray-100 px-5 py-2.5 text-xs text-amber-700 dark:border-slate-800 dark:text-amber-300 sm:px-6">{label('employeesTruncated').replace(':count', String(employees.length))}</p>}
                         <div className="max-h-[32rem] overflow-y-auto overscroll-contain">
                             {visibleEmployees.map((employee) => {
                                 const checked = selected.has(employee.id);

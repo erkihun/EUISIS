@@ -115,6 +115,33 @@ it('scopes the card request picker list and submissions to accessible organizati
         ->assertInertia(fn (AssertableInertia $page) => $page->has('cardRequests.data', 2));
 });
 
+it('bounds the card request picker and searches it on the server', function (): void {
+    // Risk register SCL-10: the page used to ship every employee in scope
+    // (and every one of their cards) as a page prop.
+    config(['id_cards.request_picker_limit' => 2]);
+    $actor = User::factory()->create();
+    $actor->assignRole('Super Admin');
+    $first = makeActiveEmployee();
+    $first->update(['full_name' => 'Abebe Kebede']);
+    makeActiveEmployee();
+    makeActiveEmployee();
+
+    $this->actingAs($actor)->get(route('card-requests.create'))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('employees', 2)->where('employeesTruncated', true)->where('filters.q', ''));
+
+    $this->get(route('card-requests.create', ['q' => 'abebe']))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('employees', 1)->where('employees.0.id', $first->id)
+            ->where('employeesTruncated', false)->where('filters.q', 'abebe'));
+
+    $this->get(route('card-requests.create', ['q' => $first->employee_number]))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->has('employees', 1));
+
+    $this->get(route('card-requests.create', ['q' => 'test org']))->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->has('employees', 2)->where('employeesTruncated', true));
+});
+
 it('filters eligibility by request type and rejects mismatched submissions', function (?string $status, array $types): void {
     $actor = User::factory()->create();
     $actor->assignRole('Super Admin');

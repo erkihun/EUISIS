@@ -46,4 +46,8 @@ return [
         'short_path' => 'c',
     ],
 
+    // Card-request picker: candidates loaded per page view, searched on the
+    // server (risk register SCL-10). Narrow the search to see the rest.
+    'request_picker_limit' => (int) env('ID_CARD_REQUEST_PICKER_LIMIT', 1000),
+
 ];

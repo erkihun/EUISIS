@@ -16,6 +16,7 @@ const idCards = {
     clearSelection: 'ምርጫውን አጽዳ',
     matchingEmployees: ':count ሠራተኞች ተገኝተዋል',
     adjustEmployeeFilters: 'ሌላ ፍለጋ ይሞክሩ ወይም የተመረጡትን ብቻ የሚያሳየውን ማጣሪያ ያጥፉ።',
+    employeesTruncated: 'የመጀመሪያዎቹ :count ሠራተኞች ብቻ ይታያሉ። ሌሎችን ለማግኘት በስም፣ በቁጥር ወይም በተቋም ይፈልጉ።',
     selectionLimitReached: '500 ሠራተኞች ተመርጠዋል። ሌላ ቡድን ከመፍጠርዎ በፊት ይህን ቡድን ያስገቡ።',
     searchEmployees: 'በሠራተኛ ስም፣ ቁጥር ወይም ተቋም ይፈልጉ',
     bulkRequestHelp: 'እስከ 500 ሠራተኞች ይምረጡ። የጥያቄው ዓይነትና ምክንያት ለሁሉም ይተገበራሉ። የአንድ ሠራተኛ ጥያቄ መላክ ካልተቻለ ምንም ጥያቄ አይፈጠርም።',
