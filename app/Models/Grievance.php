@@ -72,6 +72,19 @@ class Grievance extends Model
         'legal_hold_reason',
         'retention_until',
         'appeal_deadline_at',
+        'initial_issue_id',
+        'position_id',
+        'immediate_supervisor_employee_id',
+        'filing_clock_started_at',
+        'filing_deadline_at',
+        'is_late_submission',
+        'late_submission_reason',
+        'cause_started_at',
+        'cause_ended_at',
+        'late_review_status',
+        'late_reviewed_by',
+        'late_reviewed_at',
+        'late_decision_reason',
         'respondent_type',
         'respondent_employee_id',
         'respondent_organization_unit_id',
@@ -108,8 +121,19 @@ class Grievance extends Model
             'closed_at' => 'datetime',
             'archived_at' => 'datetime',
             'appeal_deadline_at' => 'datetime',
+            'filing_clock_started_at' => 'datetime',
+            'filing_deadline_at' => 'datetime',
+            'is_late_submission' => 'boolean',
+            'cause_started_at' => 'datetime',
+            'cause_ended_at' => 'datetime',
+            'late_reviewed_at' => 'datetime',
             'metadata' => 'array',
         ];
+    }
+
+    public function initialIssue(): BelongsTo
+    {
+        return $this->belongsTo(GrievanceInitialIssue::class, 'initial_issue_id');
     }
 
     public function submittedByUser(): BelongsTo
