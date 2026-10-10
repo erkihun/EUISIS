@@ -193,6 +193,7 @@ const transfers = {
     currentAssignment: 'ወቅታዊ ምደባ',
     destinationPosition: 'መድረሻ የስራ መደብ',
     selectPosition: 'የስራ መደብ ይምረጡ',
+    positionsTruncated: 'ክፍት ቦታ ያላቸው የመጀመሪያዎቹ :count የስራ መደቦች ብቻ ተዘርዝረዋል። ሌሎቹን ለማስታወቅ ጠባብ የተቋም ወሰን ያለውን አስተዳዳሪ ይጠይቁ።',
     eligible: 'ብቁ',
     notEligible: 'ብቁ አይደሉም',
     requirementsNotMet: 'ለዚህ የስራ መደብ የታተሙ መስፈርቶችን በአሁኑ ጊዜ አላሟሉም።',

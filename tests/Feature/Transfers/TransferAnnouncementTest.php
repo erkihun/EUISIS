@@ -12,6 +12,7 @@ use App\Models\OrganizationType;
 use App\Models\Position;
 use App\Models\PositionEstablishment;
 use App\Models\TransferAnnouncement;
+use App\Models\TransferAnnouncementPosition;
 use App\Models\User;
 use Spatie\Permission\Models\Permission;
 
@@ -118,6 +119,28 @@ test('create page loads for authorized user', function (): void {
         ->get(route('transfer-announcements.create'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page->component('Transfers/Announcements/Create'));
+});
+
+test('form offers only positions with a free approved slot, plus the one being edited', function (): void {
+    // Risk register SCL-10: the free-slot filter runs in SQL, not over every position.
+    $org = taOrg('FORM-01');
+    $free = taPos($org->id);
+    taEstablishment($org->id, $free->id, 2);
+    $unestablished = taPos($org->id);
+    $user = taUser('transfers.announcements.view', 'transfers.announcements.create', 'transfers.announcements.update');
+
+    $this->actingAs($user)->get(route('transfer-announcements.create'))->assertOk()
+        ->assertInertia(fn ($page) => $page->has('positions', 1)
+            ->where('positions.0.id', $free->id)->where('positions.0.available_slots', 2)
+            ->where('positionsTruncated', false));
+
+    $ann = taDraftAnnouncement($org->id, $unestablished->id);
+    TransferAnnouncementPosition::query()->create([
+        'transfer_announcement_id' => $ann->id, 'organization_id' => $org->id,
+        'position_id' => $unestablished->id, 'vacancy_count' => 1,
+    ]);
+    $this->get(route('transfer-announcements.edit', $ann))->assertOk()
+        ->assertInertia(fn ($page) => $page->has('positions', 2));
 });
 
 test('create page returns 403 for user without create permission', function (): void {

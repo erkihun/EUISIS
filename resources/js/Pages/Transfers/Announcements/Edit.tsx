@@ -45,6 +45,7 @@ type Props = {
     announcement: Announcement;
     organizations: Org[];
     positions: Pos[];
+    positionsTruncated?: boolean;
 };
 
 type PositionRow = {
@@ -76,7 +77,7 @@ const emptyRow = (): PositionRow => ({
     vacancy_count:   1,
 });
 
-export default function TransferAnnouncementEdit({ announcement, organizations, positions }: Props) {
+export default function TransferAnnouncementEdit({ announcement, organizations, positions, positionsTruncated = false }: Props) {
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
 
@@ -134,6 +135,7 @@ export default function TransferAnnouncementEdit({ announcement, organizations, 
 
                     {/* ── Positions ── */}
                     <section className="space-y-4">
+                        {positionsTruncated && <p role="status" className="text-xs text-amber-700 dark:text-amber-300">{t('transfers.positionsTruncated').replace(':count', String(positions.length))}</p>}
                         <div className="flex items-center justify-between">
                             <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">
                                 {t('transfers.includedPositions')}

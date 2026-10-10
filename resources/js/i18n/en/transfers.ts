@@ -193,6 +193,7 @@ const transfers = {
     currentAssignment: 'Current Assignment',
     destinationPosition: 'Destination Position',
     selectPosition: 'Select a position',
+    positionsTruncated: 'Only the first :count positions with a free slot are listed. Ask an administrator with a narrower organization scope to announce the others.',
     eligible: 'Eligible',
     notEligible: 'Not eligible',
     requirementsNotMet: 'You do not currently meet the published requirements for this position.',
