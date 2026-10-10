@@ -45,8 +45,10 @@ class IdCardController extends Controller
                 'employee.currentAssignment.organizationUnit',
                 'employee.currentAssignment.position',
             ])
+            // A scoped user is always filtered — an empty (e.g. expired) scope
+            // means no cards, never every card in the city (risk SEC-5).
             ->when(
-                $allowedOrgIds->isNotEmpty(),
+                ! $scopeService->isUnrestricted($request->user()),
                 fn ($q) => $q->whereHas(
                     'employee.currentAssignment',
                     fn ($aq) => $aq->whereIn('organization_id', $allowedOrgIds)
@@ -94,7 +96,7 @@ class IdCardController extends Controller
 
         $organizations = Organization::query()
             ->select(['id', 'name_en', 'name_am'])
-            ->when($allowedOrgIds->isNotEmpty(), fn ($query) => $query->whereIn('id', $allowedOrgIds))
+            ->when(! $scopeService->isUnrestricted($request->user()), fn ($query) => $query->whereIn('id', $allowedOrgIds))
             ->orderBy('name_en')
             ->get();
 

@@ -241,9 +241,9 @@ class CafeteriaProviderController extends Controller
 
         $isSuperAdmin = $user?->hasRole('Super Admin') || $user?->hasRole('City Admin');
         if (! $isSuperAdmin && $user !== null) {
-            $allowedIds = $this->orgScope->accessibleOrganizationIds($user);
-            if ($allowedIds->isNotEmpty()) {
-                $query->whereIn('id', $allowedIds);
+            // An empty (e.g. expired) scope means no organizations, never all (SEC-5).
+            if (! $this->orgScope->isUnrestricted($user)) {
+                $query->whereIn('id', $this->orgScope->accessibleOrganizationIds($user));
             }
         }
 

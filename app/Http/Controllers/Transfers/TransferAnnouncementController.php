@@ -52,14 +52,17 @@ class TransferAnnouncementController extends Controller
         $query = TransferAnnouncement::query()
             ->with(['organization', 'position', 'positions.organization', 'positions.position'])
             ->withCount('applications')
-            ->when($accessibleOrgIds->isNotEmpty(), function ($q) use ($accessibleOrgIds): void {
+            // Always filtered for a scoped user: an empty scope means nothing (SEC-5).
+            ->when(! $scopeService->isUnrestricted($user), function ($q) use ($accessibleOrgIds): void {
                 $q->whereHas('positions', fn ($p) => $p->whereIn('organization_id', $accessibleOrgIds));
             })
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            // Grouped so the OR cannot escape the scope and status filters above.
             ->when($request->filled('search'), function ($q) use ($request): void {
                 $term = '%'.$request->string('search').'%';
-                $q->whereHas('organization', fn ($o) => $o->where('name_en', ci_like_operator(), $term)->orWhere('name_am', ci_like_operator(), $term))
-                    ->orWhereHas('position', fn ($p) => $p->where('title_en', ci_like_operator(), $term)->orWhere('title_am', ci_like_operator(), $term));
+                $q->where(fn ($search) => $search
+                    ->whereHas('organization', fn ($o) => $o->where('name_en', ci_like_operator(), $term)->orWhere('name_am', ci_like_operator(), $term))
+                    ->orWhereHas('position', fn ($p) => $p->where('title_en', ci_like_operator(), $term)->orWhere('title_am', ci_like_operator(), $term)));
             })
             ->latest();
 
