@@ -27,6 +27,9 @@ const data = new SharedArray('data', () => [JSON.parse(open(__ENV.DATA || './loa
 
 export const errors = new Rate('euisis_errors');
 const loginTime = new Trend('euisis_login_ms', true);
+// The public checker is rate-limited per client IP. A load generator sends
+// everything from one IP, so 429 there is the limiter working, not an error.
+const throttled = new Rate('euisis_public_throttled');
 
 // Arrival-rate profiles: requests are driven at a target rate regardless of
 // response time, so slow responses show as latency and dropped iterations
@@ -36,6 +39,11 @@ const PROFILES = {
     baseline: { employees: 20, hr: 5, public: 10, duration: '3m' },
     peak: { employees: 60, hr: 15, public: 30, duration: '3m' },
     stress: { employees: 150, hr: 30, public: 60, duration: '3m' },
+    // Step testing: -e PROFILE=custom -e EMPLOYEE_RATE=10 -e HR_RATE=2 -e PUBLIC_RATE=5 -e DURATION=3m
+    custom: {
+        employees: Number(__ENV.EMPLOYEE_RATE || 10), hr: Number(__ENV.HR_RATE || 2),
+        public: Number(__ENV.PUBLIC_RATE || 5), duration: __ENV.DURATION || '3m',
+    },
 };
 const p = PROFILES[PROFILE];
 
@@ -126,7 +134,12 @@ export function hrOfficer() {
 
 export function publicIdChecker() {
     const uuid = pick(data.publicCardUuids);
-    const res = http.get(`${node()}/id-checker/${uuid}`, { tags: { kind: 'public', name: 'id_checker' } });
+    const res = http.get(`${node()}/id-checker/${uuid}`, {
+        tags: { kind: 'public', name: 'id_checker' },
+        responseCallback: http.expectedStatuses(200, 429),
+    });
+    throttled.add(res.status === 429);
+    if (res.status === 429) return;
     const ok = check(res, { 'id checker 200': (r) => r.status === 200 });
     errors.add(!ok);
 }

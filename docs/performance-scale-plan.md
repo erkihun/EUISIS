@@ -9,7 +9,8 @@ Support a dashboard experience that remains safe and responsive as the platform 
 - Dashboard payloads use aggregate counts, grouped series, and bounded lists only.
 - `recentActivity` is limited to 12 items.
 - provider ranking and top charts are limited to 10 records.
-- Dashboard results are cached for 120 seconds per user/scope/filter combination.
+- Dashboard figures are cached for 120 seconds per scope/filter/visible-sections combination and shared by users with the same scope (risk register DB-5); the header stays per user.
+- Measured limits and sizing: [load-testing.md](load-testing.md), [capacity-plan.md](capacity-plan.md).
 - Organization subtree resolution reuses closure paths instead of recursive runtime traversal.
 
 ## Query Strategy

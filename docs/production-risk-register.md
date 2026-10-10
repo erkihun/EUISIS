@@ -64,6 +64,8 @@ are recorded only where Transport code is exposed or touches shared code.
 | SCL-8 | Transfer announcement job: whole workforce, no timeout, re-run by queue, per-employee settings query. | FIXED (4826aae) |
 | SCL-9 | Daily-activity citywide reports walk employees × 92 days in request. | FIXED (bc85d83, request budget) |
 | SCL-10 | Unbounded pickers/loads: subsidy ledger, card request create, print batch, transfer form positions, unit/vacancy pickers, org-structure API, grievance reports in PHP. | FIXED (4c7c00f, 8e23f3c, d374c7b, f1afcf4) — org-structure API `depth=employee` still returns every occupant of one organization (API contract; NEEDS_DECISION) |
+| SCL-11 | City-wide dashboard aggregates raw event tables (2.6M transactions, 4.4M audit rows at 220k employees): first computation 7–11 s (load test 2026-10-11); provider ranking and transaction joins fixed (04b3337), remaining cost is the volume itself. | OPEN — needs daily rollup tables for transaction and audit charts (docs/capacity-plan.md) |
+| SCL-12 | Every page, public ones included, inlines ~515 KB of script: Ziggy route map with all 1,160 routes (405 KB, also discloses every admin URI to anonymous visitors) and Vite prefetch list (110 KB, makes each browser fetch every chunk). | OPEN — gzip at the edge; limit the route map per audience (needs frontend route() audit); reconsider `Vite::prefetch` |
 | REL-1 | Transport fully built and reachable (admin, provider portal, roles, sidebar, homepage says "available"). | FIXED (260e62a) |
 | REL-2 | `DatabaseSeeder` has no production guard; creates demo provider/user accounts. | FIXED (f4714b6, 1917922) |
 
