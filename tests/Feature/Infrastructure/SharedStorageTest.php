@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Support\Storage\StoredFileChecksum;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\AwsS3V3\AwsS3V3Adapter;
 
 /*
  * Production risk register INF-1: behind a load balancer every app node must
@@ -62,7 +63,7 @@ it('moves the public disk to shared object storage by environment', function ():
 });
 
 it('has the S3 adapter installed', function (): void {
-    expect(class_exists(\League\Flysystem\AwsS3V3\AwsS3V3Adapter::class))->toBeTrue();
+    expect(class_exists(AwsS3V3Adapter::class))->toBeTrue();
 });
 
 it('checks a stored file checksum by streaming through the disk', function (): void {

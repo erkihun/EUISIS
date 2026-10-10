@@ -7,6 +7,7 @@ use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -222,7 +223,7 @@ test('a scoped admin cannot remove a user\'s last scope and make them citywide',
         ->assertSessionHasErrors('scope');
 
     expect(UserOrganizationScope::query()->whereKey($scope->id)->exists())->toBeTrue()
-        ->and(app(\App\Services\OrganizationScope\OrganizationScopeService::class)->isUnrestricted($target->fresh()))->toBeFalse();
+        ->and(app(OrganizationScopeService::class)->isUnrestricted($target->fresh()))->toBeFalse();
 });
 
 test('a scoped admin may remove a scope when another scope remains', function (): void {

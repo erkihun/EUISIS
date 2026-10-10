@@ -85,7 +85,7 @@ return new class extends Migration
     {
         try {
             DB::statement('CREATE EXTENSION IF NOT EXISTS pg_trgm');
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             Log::warning('pg_trgm unavailable; employee search trigram indexes skipped. A DBA must run CREATE EXTENSION pg_trgm.', [
                 'error' => $e->getMessage(),
             ]);

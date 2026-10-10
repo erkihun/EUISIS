@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
-use App\Enums\GrievanceStatus;
 use App\Services\Grievances\GrievanceCaseService;
 use Illuminate\Support\Carbon;
 use Tests\Support\GrievanceScenario;

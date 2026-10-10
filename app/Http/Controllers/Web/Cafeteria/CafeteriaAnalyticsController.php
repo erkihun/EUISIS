@@ -8,7 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Cafeteria\Concerns\CafeteriaAdminContext;
 use App\Services\Cafeteria\Reports\CafeteriaAnalyticsReportService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -72,8 +74,8 @@ class CafeteriaAnalyticsController extends Controller
         $from = $data['date_from'] ?? today()->startOfMonth()->toDateString();
         $to = $data['date_to'] ?? today()->toDateString();
         // A report covers at most one year of transactions (risk register SCL-5).
-        if (\Illuminate\Support\Carbon::parse($from)->diffInDays(\Illuminate\Support\Carbon::parse($to)) > 366) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+        if (Carbon::parse($from)->diffInDays(Carbon::parse($to)) > 366) {
+            throw ValidationException::withMessages([
                 'date_to' => __('provider-portal.period_too_long', ['days' => 366]),
             ]);
         }

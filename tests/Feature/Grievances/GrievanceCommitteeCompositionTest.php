@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 use App\Enums\CommitteeType;
 use App\Enums\Grievance\GrievanceCommitteeSelectionSource as Source;
-use App\Models\Employee;
 use App\Models\GrievanceCommittee;
 use App\Models\GrievanceCommitteeMember;
+use App\Models\User;
 use App\Services\Grievances\GrievanceCommitteeService;
 use App\Support\Grievances\GrievanceRoles;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\GrievanceScenario;
 
 /** A user who may approve committees in the woreda (and is not the creator). */
-function committeeApprover(GrievanceScenario $s): \App\Models\User
+function committeeApprover(GrievanceScenario $s): User
 {
     $approver = GrievanceScenario::user(
         GrievanceScenario::employee($s->woreda, $s->woredaUnit),

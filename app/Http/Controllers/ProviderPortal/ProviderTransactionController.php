@@ -11,7 +11,9 @@ use App\Models\CafeteriaTransaction;
 use App\Services\Cafeteria\ProviderTransactionExportService;
 use App\Services\ProviderPortal\ProviderPortalContext;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -147,8 +149,8 @@ class ProviderTransactionController extends Controller
             ?: $request->string('date')->toString()
             ?: now()->toDateString();
 
-        if (\Illuminate\Support\Carbon::parse($startDate)->diffInDays(\Illuminate\Support\Carbon::parse($endDate)) > self::MAX_PERIOD_DAYS) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+        if (Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) > self::MAX_PERIOD_DAYS) {
+            throw ValidationException::withMessages([
                 'end_date' => __('provider-portal.period_too_long', ['days' => self::MAX_PERIOD_DAYS]),
             ]);
         }

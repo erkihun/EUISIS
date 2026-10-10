@@ -14,6 +14,7 @@ use App\Services\IdCards\IdCardTemplateService;
 use App\Services\PublicSite\PublicSiteContent;
 use App\Services\Security\SessionActivityService;
 use App\Services\SystemSettings\SystemSettingsService;
+use App\Support\Features;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Inertia\Middleware;
@@ -61,7 +62,7 @@ class HandleInertiaRequests extends Middleware
             'cafeteriaProviderAuth' => null,
 
             // Module feature flags (config/features.php): hide out-of-scope modules.
-            'features' => \App\Support\Features::shared(),
+            'features' => Features::shared(),
 
             'locale' => $locale,
             'calendar' => [

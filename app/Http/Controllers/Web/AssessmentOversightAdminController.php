@@ -15,6 +15,7 @@ use App\Models\AssessmentType;
 use App\Models\AssessmentUnassessedReason;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\Assessment\Execution\AssessmentAssignmentService;
 use App\Services\Assessment\Oversight\AssessmentCycleService;
 use App\Services\Assessment\Oversight\AssessmentEligibilityService;
 use App\Services\Assessment\Oversight\AssessmentInstitutionSubmissionService;
@@ -146,7 +147,7 @@ class AssessmentOversightAdminController extends Controller
     }
 
     /** Queue evaluator-assignment generation for the cycle (chunked jobs; nothing heavy in this request). */
-    public function generateAssignments(Request $request, AssessmentCycle $cycle, \App\Services\Assessment\Execution\AssessmentAssignmentService $assignments): RedirectResponse
+    public function generateAssignments(Request $request, AssessmentCycle $cycle, AssessmentAssignmentService $assignments): RedirectResponse
     {
         $assignments->queueGeneration($request->user(), $cycle);
 

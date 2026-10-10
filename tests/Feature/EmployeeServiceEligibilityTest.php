@@ -17,6 +17,7 @@ use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Services\EmployeeServiceEligibilityService;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 function serviceEmployee(EmployeeStatus $status = EmployeeStatus::Active): Employee
 {
@@ -214,5 +215,5 @@ it('the database refuses a second transaction with the same provider reference',
     ]);
 
     $row();
-    expect($row)->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class);
+    expect($row)->toThrow(UniqueConstraintViolationException::class);
 });

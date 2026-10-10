@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
+use App\Models\Grievance;
+use App\Models\PublicHoliday;
 use App\Models\StatutoryDeadline;
+use App\Services\Calendar\PublicHolidayCalendar;
 use App\Services\Grievances\GrievanceCaseService;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
@@ -12,7 +15,7 @@ use Tests\Support\GrievanceScenario;
 
 afterEach(fn () => Carbon::setTestNow());
 
-function fileGrievanceFromUnresolved(GrievanceScenario $scenario): \App\Models\Grievance
+function fileGrievanceFromUnresolved(GrievanceScenario $scenario): Grievance
 {
     $service = app(GrievanceCaseService::class);
     $issue = $service->raiseInitialIssue($scenario->complainant, ['issue_subject' => 'A', 'issue_description' => 'B']);
@@ -55,12 +58,12 @@ it('rolls the filing deadline past a public holiday inside the window', function
     $scenario = GrievanceScenario::build();
 
     // A one-off holiday on a working day inside the Mon 03-02 → Mon 03-16 window.
-    App\Models\PublicHoliday::query()->create([
+    PublicHoliday::query()->create([
         'name_en' => 'Test holiday',
         'holiday_date' => '2026-03-10',
         'is_active' => true,
     ]);
-    app(App\Services\Calendar\PublicHolidayCalendar::class)->clearCache();
+    app(PublicHolidayCalendar::class)->clearCache();
 
     $grievance = fileGrievanceFromUnresolved($scenario);
 

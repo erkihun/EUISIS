@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Support\Features;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 use function Pest\Laravel\actingAs;
 

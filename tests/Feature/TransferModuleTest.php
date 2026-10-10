@@ -8,15 +8,18 @@ use App\Actions\Transfers\CompleteTransferAction;
 use App\Actions\Transfers\CreateTransferAnnouncementAction;
 use App\Actions\Transfers\CreateTransferApplicationAction;
 use App\Actions\Transfers\PublishTransferAnnouncementAction;
+use App\Actions\Transfers\RejectTransferApprovalAction;
 use App\Actions\Transfers\UpdateTransferSettingsAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\EmployeeStatus;
 use App\Enums\EstablishmentStatus;
+use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Enums\TransferAnnouncementStatus;
 use App\Enums\TransferApplicationStatus;
 use App\Enums\TransferApprovalStatus;
 use App\Enums\TransferApprovalType;
+use App\Jobs\Transfers\NotifyEligibleTransferAudience;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeePerformanceAgreement;
@@ -35,10 +38,15 @@ use App\Models\TransferApplication;
 use App\Models\TransferApproval;
 use App\Models\TransferSetting;
 use App\Models\User;
+use App\Models\UserOrganizationScope;
 use App\Services\Performance\EmployeeAgreementService;
 use App\Services\Performance\KpiActualService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function (): void {
@@ -402,7 +410,7 @@ function makeTransferPerformanceContext(Employee $employee, User $actor, bool $s
     $assignment = $employee->currentAssignment;
     $cycle = PerformanceCycle::query()->create(['code' => 'TRANSFER-EP', 'name_en' => 'Transfer performance cycle', 'organization_id' => $assignment->organization_id, 'start_date' => now()->startOfYear()->toDateString(), 'end_date' => now()->endOfYear()->toDateString()]);
     $plan = new PerformancePlan(['cycle_id' => $cycle->id, 'organization_id' => $assignment->organization_id, 'position_id' => $assignment->position_id, 'plan_type' => 'POSITION', 'title' => 'Original position plan']);
-    $plan->forceFill(['lineage_key' => (string) \Illuminate\Support\Str::uuid(), 'status' => 'PUBLISHED'])->save();
+    $plan->forceFill(['lineage_key' => (string) Str::uuid(), 'status' => 'PUBLISHED'])->save();
     $objective = $plan->objectives()->create(['code' => 'TRANSFER-O', 'title_en' => 'Complete requests', 'objective_type' => 'LOCAL', 'weight' => 100]);
     $kpi = Kpi::query()->create(['code' => 'TRANSFER-K', 'name_en' => 'Requests', 'measurement_type' => 'COUNT', 'direction' => 'HIGHER_IS_BETTER', 'aggregation_method' => 'SUM', 'data_source_type' => 'MANUAL', 'frequency' => 'ANNUAL']);
     $target = $objective->targets()->create(['performance_plan_id' => $plan->id, 'kpi_id' => $kpi->id, 'period_start' => $cycle->start_date->toDateString(), 'period_end' => $cycle->end_date->toDateString(), 'target_value' => 100, 'weight' => 100]);
@@ -840,16 +848,16 @@ test('the transfer dashboard shows a scoped user only their organizations and no
     makeScopedTransferPair('B');
 
     $actor = makeTransferActor('transfers.viewAny');
-    \App\Models\UserOrganizationScope::query()->create([
+    UserOrganizationScope::query()->create([
         'user_id' => $actor->id, 'organization_id' => $mineOrg->id,
-        'scope_type' => \App\Enums\OrganizationScopeType::Self, 'is_active' => true,
+        'scope_type' => OrganizationScopeType::Self, 'is_active' => true,
         'effective_from' => now()->subDay()->toDateString(),
     ]);
 
     $this->actingAs($actor->fresh())
         ->get(route('transfers.dashboard'))
         ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('stats.active_announcements', 0) // both announcements belong to receiving orgs outside scope
             ->has('recent_transfers', 1)
             ->where('recent_transfers.0.id', $mine->id)
@@ -873,7 +881,7 @@ test('a stale rejection cannot relabel an application that a parallel approval a
     $settings->update(['releasing_consent_required' => false, 'receiving_consent_required' => false]);
     app(ApproveTransferApprovalAction::class)->execute($final, makeTransferActor('transfers.final.approve'));
 
-    expect(fn () => app(\App\Actions\Transfers\RejectTransferApprovalAction::class)->execute($stale, makeTransferActor('transfers.final.approve'), 'late'))
+    expect(fn () => app(RejectTransferApprovalAction::class)->execute($stale, makeTransferActor('transfers.final.approve'), 'late'))
         ->toThrow(DomainException::class);
     expect($application->fresh()->status)->toBe(TransferApplicationStatus::Approved);
 });
@@ -899,7 +907,7 @@ test('transfer application pages send employee display fields only, not contact 
 
     $this->actingAs($actor)->get(route('transfer-applications.index'))
         ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('applications.data.0.employee.employee_number', $application->employee->employee_number)
             ->missing('applications.data.0.employee.phone')
             ->missing('applications.data.0.employee.date_of_birth')
@@ -907,7 +915,7 @@ test('transfer application pages send employee display fields only, not contact 
 
     $this->actingAs($actor)->get(route('transfer-applications.show', $application))
         ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (AssertableInertia $page) => $page
             ->missing('application.employee.phone')
             ->missing('application.employee.date_of_birth'));
 });
@@ -915,8 +923,8 @@ test('transfer application pages send employee display fields only, not contact 
 // ── Announcement audience fan-out (SCL-8) ────────────────────────────────────
 
 test('the announcement audience job stops after its batch budget and continues from a cursor', function (): void {
-    \Illuminate\Support\Facades\Queue::fake();
-    \Illuminate\Support\Facades\Notification::fake();
+    Queue::fake();
+    Notification::fake();
     $org = makeTransferOrg('AUD-1');
     $first = makeTransferEmployee($org, makeTransferPos($org->id));
     makeTransferEmployee($org, makeTransferPos($org->id));
@@ -926,11 +934,11 @@ test('the announcement audience job stops after its batch budget and continues f
         'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
     ]);
 
-    $job = new \App\Jobs\Transfers\NotifyEligibleTransferAudience($announcement->id);
+    $job = new NotifyEligibleTransferAudience($announcement->id);
     $job->batchSize = 1;
     $job->batchesPerRun = 1;
     app()->call([$job, 'handle']);
 
-    \Illuminate\Support\Facades\Queue::assertPushedOn('long', \App\Jobs\Transfers\NotifyEligibleTransferAudience::class,
+    Queue::assertPushedOn('long', NotifyEligibleTransferAudience::class,
         fn ($next) => $next->announcementId === $announcement->id && $next->afterEmployeeId !== null);
 });

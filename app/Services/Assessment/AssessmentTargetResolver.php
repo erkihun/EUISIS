@@ -109,8 +109,7 @@ class AssessmentTargetResolver
     {
         $versions = $this->candidates($assessmentTypeId, $date);
         if ($organizationIds !== null) {
-            $versions = $versions->filter(fn (AssessmentFormVersion $version): bool =>
-                $version->form->organization_id === null
+            $versions = $versions->filter(fn (AssessmentFormVersion $version): bool => $version->form->organization_id === null
                 || in_array($version->form->organization_id, $organizationIds, true));
         }
         $result = ['total' => 0, 'by_version' => $versions->mapWithKeys(fn (AssessmentFormVersion $v): array => [$v->id => 0])->all(), 'unmatched' => 0, 'conflicts' => 0, 'conflict_samples' => []];
@@ -125,28 +124,28 @@ class AssessmentTargetResolver
                 ->where('effective_from', '<=', $day)
                 ->where(fn ($q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', $day))))
             ->chunkById($chunk, function ($employees) use (&$result, $versions, $date, $day, $organizationIds): void {
-            $assignments = $this->context->assignmentsFor($employees->pluck('id')->all(), $date, $date);
-            $picked = $employees->mapWithKeys(fn ($employee): array => [$employee->id => $this->context->pickAssignment($assignments->get($employee->id, collect()), $day)])->filter();
-            if ($organizationIds !== null) {
-                $picked = $picked->filter(fn (EmployeeAssignment $assignment): bool => in_array($assignment->organization_id, $organizationIds, true));
-            }
-            $positions = Position::query()->whereIn('id', $picked->pluck('position_id')->filter()->unique())->get(['id', 'occupation_id', 'grade_level', 'job_family'])->keyBy('id');
-
-            foreach ($picked as $employeeId => $assignment) {
-                $result['total']++;
-                $decision = $this->decide($versions, $assignment, $positions->get($assignment->position_id), $day);
-                if ($decision['status'] === self::MATCHED) {
-                    $result['by_version'][$decision['version']->id]++;
-                } elseif ($decision['status'] === self::CONFLICT) {
-                    $result['conflicts']++;
-                    if (count($result['conflict_samples']) < 20) {
-                        $result['conflict_samples'][] = ['employee_id' => (string) $employeeId, 'versions' => $decision['candidates']];
-                    }
-                } else {
-                    $result['unmatched']++;
+                $assignments = $this->context->assignmentsFor($employees->pluck('id')->all(), $date, $date);
+                $picked = $employees->mapWithKeys(fn ($employee): array => [$employee->id => $this->context->pickAssignment($assignments->get($employee->id, collect()), $day)])->filter();
+                if ($organizationIds !== null) {
+                    $picked = $picked->filter(fn (EmployeeAssignment $assignment): bool => in_array($assignment->organization_id, $organizationIds, true));
                 }
-            }
-        });
+                $positions = Position::query()->whereIn('id', $picked->pluck('position_id')->filter()->unique())->get(['id', 'occupation_id', 'grade_level', 'job_family'])->keyBy('id');
+
+                foreach ($picked as $employeeId => $assignment) {
+                    $result['total']++;
+                    $decision = $this->decide($versions, $assignment, $positions->get($assignment->position_id), $day);
+                    if ($decision['status'] === self::MATCHED) {
+                        $result['by_version'][$decision['version']->id]++;
+                    } elseif ($decision['status'] === self::CONFLICT) {
+                        $result['conflicts']++;
+                        if (count($result['conflict_samples']) < 20) {
+                            $result['conflict_samples'][] = ['employee_id' => (string) $employeeId, 'versions' => $decision['candidates']];
+                        }
+                    } else {
+                        $result['unmatched']++;
+                    }
+                }
+            });
 
         return $result;
     }

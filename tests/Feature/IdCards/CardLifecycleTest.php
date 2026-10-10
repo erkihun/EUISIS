@@ -11,12 +11,14 @@ use App\Actions\IdCards\RevokeCardAction;
 use App\Enums\CardStatus;
 use App\Enums\EmployeeStatus;
 use App\Models\CardReplacement;
+use App\Models\CardRequest;
 use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\ServiceProvider;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Services\Verification\VerifyCardForServiceAction;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -182,7 +184,7 @@ it('a double-submitted replacement creates only one card request (re-checked und
     expect(fn () => app(ReplaceCardAction::class)->execute($stale, $actor, 'Lost'))
         ->toThrow(DomainException::class);
 
-    expect(\App\Models\CardRequest::query()->where('employee_id', $employee->id)->count())->toBe(1);
+    expect(CardRequest::query()->where('employee_id', $employee->id)->count())->toBe(1);
 });
 
 it('the database refuses a second live current card for one employee', function (): void {
@@ -192,7 +194,7 @@ it('the database refuses a second live current card for one employee', function 
         'employee_id' => $employee->id, 'card_number' => 'CARD-LC-'.uniqid(),
         'status' => CardStatus::PendingPrint, 'expires_at' => now()->addYear(),
         'token_version' => 0, 'is_current' => true,
-    ]))->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class);
+    ]))->toThrow(UniqueConstraintViolationException::class);
 });
 
 it('a retired current card does not block a new live card', function (): void {

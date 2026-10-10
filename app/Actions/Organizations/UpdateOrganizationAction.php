@@ -9,6 +9,7 @@ use App\Enums\AuditEventType;
 use App\Models\Organization;
 use App\Models\OrganizationNameHistory;
 use App\Models\User;
+use App\Support\Storage\PublicImageExtension;
 use DateTimeInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,7 @@ readonly class UpdateOrganizationAction
                     Storage::disk('public')->delete($organization->logo_path);
                 }
                 // From the detected content, never the uploader's file name (SEC-10).
-                $ext = \App\Support\Storage\PublicImageExtension::for($logoFile);
+                $ext = PublicImageExtension::for($logoFile);
                 $path = $logoFile->storeAs(
                     "organizations/logos/{$organization->id}",
                     Str::uuid().'.'.$ext,

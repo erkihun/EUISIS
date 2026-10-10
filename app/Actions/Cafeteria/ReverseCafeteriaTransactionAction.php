@@ -8,9 +8,11 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\CafeteriaSettlementStatus;
 use App\Enums\CafeteriaTransactionStatus;
+use App\Models\CafeteriaSettlement;
 use App\Models\CafeteriaTransaction;
 use App\Models\User;
 use App\Services\Cafeteria\CafeteriaLedgerService;
+use App\Services\Cafeteria\CafeteriaProviderLedgerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +39,7 @@ readonly class ReverseCafeteriaTransactionAction
             // paths cannot deadlock (risk register CON-8).
             $settlementId = CafeteriaTransaction::query()->whereKey($transaction->getKey())->value('cafeteria_settlement_id');
             if ($settlementId !== null) {
-                \App\Models\CafeteriaSettlement::query()->whereKey($settlementId)->lockForUpdate()->first();
+                CafeteriaSettlement::query()->whereKey($settlementId)->lockForUpdate()->first();
             }
             $transaction = CafeteriaTransaction::query()->whereKey($transaction->getKey())->lockForUpdate()->firstOrFail();
             if ($transaction->cafeteria_settlement_id !== $settlementId) {
@@ -88,7 +90,7 @@ readonly class ReverseCafeteriaTransactionAction
 
             // The provider-portal ledger is debited for a credited scan, in the
             // same transaction, so the provider balance follows reversals (CON-9).
-            app(\App\Services\Cafeteria\CafeteriaProviderLedgerService::class)->reverse($transaction, $actor->id);
+            app(CafeteriaProviderLedgerService::class)->reverse($transaction, $actor->id);
 
             return $transaction;
         });

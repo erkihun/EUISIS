@@ -434,7 +434,7 @@ test('Super Admin sees the full organization unit and position structure on the 
 
     actingAs($superAdmin)->get(route('employees.index'))
         ->assertOk()
-        ->assertInertia(function (Assert $page) use ($a, $b, $unit, $position): void {
+        ->assertInertia(function (Assert $page) use ($a, $b): void {
             // The index now sends flat option lists instead of a nested tree.
             $props = $page->toArray()['props'];
 

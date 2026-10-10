@@ -11,6 +11,7 @@ use App\Models\DailyActivityReminder;
 use App\Models\Employee;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * Scheduled reminders for missing daily activity.
@@ -101,7 +102,7 @@ class DailyActivityReminderService
                         // Evaluated, nothing due (leave, not required...): record it
                         // so the next run does not evaluate this employee again.
                         $skipped[] = [
-                            'id' => (string) \Illuminate\Support\Str::uuid7(),
+                            'id' => (string) Str::uuid7(),
                             'employee_id' => $row['employee']->id, 'activity_date' => $date->toDateString(),
                             'reminder_type' => $type, 'sent_at' => now(), 'skipped' => true,
                         ];

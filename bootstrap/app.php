@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateSession;
+use App\Http\Middleware\BlockDisabledModules;
 use App\Http\Middleware\EnforceIdempotencyKey;
 use App\Http\Middleware\EnforceSessionIdleTimeout;
 use App\Http\Middleware\EnsureAdminAccess;
@@ -36,6 +37,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -51,7 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         // Liveness/readiness probes, outside the web group (no session per probe).
         then: function (): void {
-            \Illuminate\Support\Facades\Route::group([], __DIR__.'/../routes/health.php');
+            Route::group([], __DIR__.'/../routes/health.php');
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -71,7 +73,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             // Modules outside the current production scope (config/features.php) answer 404.
-            \App\Http\Middleware\BlockDisabledModules::class,
+            BlockDisabledModules::class,
             SetClientLocale::class,
             EnforceSessionIdleTimeout::class,
             HandleInertiaRequests::class,

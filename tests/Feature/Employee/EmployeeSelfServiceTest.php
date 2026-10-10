@@ -21,6 +21,7 @@ use App\Services\Employees\EmployeePortalNotifier;
 use App\Services\IdCards\IdCardPrintSnapshotService;
 use App\Services\IdCards\IdCardSnapshotComparisonService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -354,5 +355,5 @@ test('the self-service page holds no hardcoded English chrome', function () {
 
 test('reprint notifications are queued, never sent inside the request', function () {
     expect(new EmployeePortalNotification('officer_notice', ['database']))
-        ->toBeInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class);
+        ->toBeInstanceOf(ShouldQueue::class);
 });

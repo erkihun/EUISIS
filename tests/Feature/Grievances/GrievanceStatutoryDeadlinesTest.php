@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
 use App\Models\Grievance;
+use App\Models\PublicHoliday;
 use App\Models\StatutoryDeadline;
+use App\Services\Calendar\PublicHolidayCalendar;
 use App\Services\Grievances\GrievanceCaseService;
 use App\Services\Grievances\GrievanceDecisionService;
 use App\Services\Grievances\GrievanceEscalationService;
@@ -124,12 +126,12 @@ it('keeps a snapshotted deadline unchanged when a holiday is added later', funct
     $before = $grievance->statutoryDeadline(Regulation201::GRIEVANCE_COMMITTEE_REPORT)->due_at->toDateTimeString();
 
     // Insert a public holiday inside the window AFTER the snapshot was taken.
-    App\Models\PublicHoliday::query()->create([
+    PublicHoliday::query()->create([
         'name_en' => 'Late-added holiday',
         'holiday_date' => '2026-03-10',
         'is_active' => true,
     ]);
-    app(App\Services\Calendar\PublicHolidayCalendar::class)->clearCache();
+    app(PublicHolidayCalendar::class)->clearCache();
 
     $after = $grievance->fresh()->statutoryDeadline(Regulation201::GRIEVANCE_COMMITTEE_REPORT)->due_at->toDateTimeString();
 

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Jobs\Assessment\BuildAssessmentEligibilitySnapshotJob;
 use App\Models\AssessmentCycle;
 use App\Models\AssessmentCycleEligibility;
 use App\Models\AssessmentExclusionRequest;
@@ -32,6 +33,7 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia;
@@ -693,15 +695,15 @@ it('builds the eligibility snapshot in key-ordered batches with the same result 
 
     expect($batched)->toBe($once)
         ->and($this->cycle->fresh()->eligibility_snapshot_at)->not->toBeNull()
-        ->and(\App\Models\AssessmentCycleEligibility::query()->where('assessment_cycle_id', $this->cycle->id)->count())
+        ->and(AssessmentCycleEligibility::query()->where('assessment_cycle_id', $this->cycle->id)->count())
         ->toBe($once['eligible'] + $once['excluded']);
 });
 
 it('queues the eligibility snapshot instead of building it in the request', function (): void {
-    \Illuminate\Support\Facades\Queue::fake();
+    Queue::fake();
 
     app(AssessmentEligibilityService::class)->queueSnapshot($this->city, $this->cycle->fresh());
 
-    \Illuminate\Support\Facades\Queue::assertPushedOn('long', \App\Jobs\Assessment\BuildAssessmentEligibilitySnapshotJob::class);
+    Queue::assertPushedOn('long', BuildAssessmentEligibilitySnapshotJob::class);
     expect($this->cycle->fresh()->eligibility_snapshot_at)->toBeNull();
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
 use App\Enums\GrievanceStatus;
+use App\Models\Grievance;
 use App\Models\GrievanceStatusHistory;
 use App\Services\Grievances\GrievanceCaseService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -12,13 +13,14 @@ use Tests\Support\GrievanceScenario;
 
 afterEach(fn () => Carbon::setTestNow());
 
-function lateGrievance(GrievanceScenario $scenario): \App\Models\Grievance
+function lateGrievance(GrievanceScenario $scenario): Grievance
 {
     $service = app(GrievanceCaseService::class);
     Carbon::setTestNow(Carbon::parse('2026-03-02 09:00:00'));
     $issue = $service->raiseInitialIssue($scenario->complainant, ['issue_subject' => 'A', 'issue_description' => 'B']);
     $service->recordInitialResolution($issue->refresh(), $scenario->complainant, Outcome::Unresolved, []);
     Carbon::setTestNow(Carbon::parse('2026-03-18 09:00:00')); // past the 10-wd deadline
+
     return $service->submitFormalGrievance($issue->refresh(), $scenario->complainant, [
         'cause_of_grievance' => 'x', 'requested_remedy' => 'y', 'incident_date' => '2026-02-20',
         'category_id' => $scenario->category->id,

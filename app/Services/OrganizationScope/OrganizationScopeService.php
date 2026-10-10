@@ -8,6 +8,7 @@ use App\Enums\HierarchyVersionStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\HierarchyVersion;
 use App\Models\Organization;
 use App\Models\OrganizationClosurePath;
@@ -214,7 +215,7 @@ class OrganizationScopeService
 
         return Employee::query()->select('employees.id')->whereIn(
             'current_assignment_id',
-            \App\Models\EmployeeAssignment::query()->select('id')
+            EmployeeAssignment::query()->select('id')
                 ->where('is_current', true)
                 ->whereIn('organization_id', $this->allowedOrganizationIds($user)),
         );

@@ -6,9 +6,11 @@ use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
 use App\Enums\CafeteriaTransactionStatus;
 use App\Models\AuditLog;
 use App\Models\CafeteriaProviderAssignment;
+use App\Models\CafeteriaProviderLedgerEntry;
 use App\Models\CafeteriaSubsidyLedger;
 use App\Models\CafeteriaTransaction;
 use App\Models\User;
+use App\Services\Cafeteria\CafeteriaProviderLedgerService;
 use App\Services\Cafeteria\CafeteriaQrScanService;
 use App\Services\IdCards\CardQrPayloadService;
 use Illuminate\Support\Carbon;
@@ -139,18 +141,18 @@ it('gives each transaction a number with enough entropy for city-scale daily vol
 });
 
 it('posts one provider-ledger credit per scan and a matching debit when it is reversed', function (): void {
-    $ledger = app(\App\Services\Cafeteria\CafeteriaProviderLedgerService::class);
+    $ledger = app(CafeteriaProviderLedgerService::class);
     app(CafeteriaQrScanService::class)->process($this->card, $this->s->main, now());
     $transaction = CafeteriaTransaction::query()->sole();
 
     $ledger->credit($transaction, null);
     $ledger->credit($transaction, null); // a retry posts nothing
 
-    expect(\App\Models\CafeteriaProviderLedgerEntry::query()->where('cafeteria_transaction_id', $transaction->id)->count())->toBe(1)
+    expect(CafeteriaProviderLedgerEntry::query()->where('cafeteria_transaction_id', $transaction->id)->count())->toBe(1)
         ->and((string) $this->s->main->fresh()->ledger_balance)->toBe('120.00');
 
     app(ReverseCafeteriaTransactionAction::class)->execute($transaction, cafeteriaStaff($this, ['cafeteria_transactions.reverse']), 'mistake');
 
-    expect(\App\Models\CafeteriaProviderLedgerEntry::query()->where('cafeteria_transaction_id', $transaction->id)->where('entry_type', 'scan_reversal')->value('debit'))->toBe('120.00')
+    expect(CafeteriaProviderLedgerEntry::query()->where('cafeteria_transaction_id', $transaction->id)->where('entry_type', 'scan_reversal')->value('debit'))->toBe('120.00')
         ->and((string) $this->s->main->fresh()->ledger_balance)->toBe('0.00');
 });

@@ -42,16 +42,16 @@ class EmployeeCafeteriaExclusionController extends Controller
         $exclusions = $query->paginate(30)->withQueryString();
 
         return Inertia::render('Cafeteria/EmployeeExclusions/Index', [
-            'exclusions'       => EmployeeCafeteriaExclusionResource::collection($exclusions)->resolve(),
-            'meta'             => ['current_page' => $exclusions->currentPage(), 'last_page' => $exclusions->lastPage(), 'total' => $exclusions->total()],
-            'filters'          => $request->only(['search', 'archived', 'status']),
-            'exclusion_types'  => collect(CafeteriaExclusionType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
-            'status_options'   => collect(CafeteriaExclusionStatus::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
-            'active_count'     => EmployeeCafeteriaExclusion::query()
+            'exclusions' => EmployeeCafeteriaExclusionResource::collection($exclusions)->resolve(),
+            'meta' => ['current_page' => $exclusions->currentPage(), 'last_page' => $exclusions->lastPage(), 'total' => $exclusions->total()],
+            'filters' => $request->only(['search', 'archived', 'status']),
+            'exclusion_types' => collect(CafeteriaExclusionType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
+            'status_options' => collect(CafeteriaExclusionStatus::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
+            'active_count' => EmployeeCafeteriaExclusion::query()
                 ->where('status', CafeteriaExclusionStatus::Active->value)
                 ->when($inScope !== null, fn ($q) => $q->whereIn('employee_id', $inScope))
                 ->count(),
-            'can'              => ['create' => $request->user()?->can('create', EmployeeCafeteriaExclusion::class) ?? false],
+            'can' => ['create' => $request->user()?->can('create', EmployeeCafeteriaExclusion::class) ?? false],
         ]);
     }
 
@@ -95,7 +95,7 @@ class EmployeeCafeteriaExclusionController extends Controller
         $employeeCafeteriaExclusion->load('employee');
 
         return Inertia::render('Cafeteria/EmployeeExclusions/Edit', [
-            'exclusion'       => (new EmployeeCafeteriaExclusionResource($employeeCafeteriaExclusion))->resolve(),
+            'exclusion' => (new EmployeeCafeteriaExclusionResource($employeeCafeteriaExclusion))->resolve(),
             'exclusion_types' => collect(CafeteriaExclusionType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
         ]);
     }

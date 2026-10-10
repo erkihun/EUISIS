@@ -187,7 +187,7 @@ class GenerateScaleData extends Command
                 ]);
             }
         }
-        $this->info("Load-test accounts: sc-<n>@scale.invalid (every tenth is a scoped HR Officer). Password: --password option.");
+        $this->info('Load-test accounts: sc-<n>@scale.invalid (every tenth is a scoped HR Officer). Password: --password option.');
     }
 
     /** @return array{0: string, 1: string, 2: string, 3: string} cafeteria, provider, service type, service provider */

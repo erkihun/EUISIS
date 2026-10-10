@@ -8,7 +8,6 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\Cafeteria\ProcessCafeteriaQrScanAction;
 use App\Actions\Cafeteria\ReverseCafeteriaTransactionAction;
 use App\Enums\AuditEventType;
-use App\Enums\CafeteriaTransactionStatus;
 use App\Exports\Cafeteria\TransactionStatementExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProcessCafeteriaQrScanRequest;
@@ -28,6 +27,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Maatwebsite\Excel\Facades\Excel;
@@ -111,7 +111,7 @@ class CafeteriaTransactionController extends Controller
         $rowLimit = (int) config('cafeteria.statement_export_row_limit', self::STATEMENT_EXPORT_ROW_LIMIT);
         $rowCount = (clone $query)->count();
         if ($rowCount > $rowLimit) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'period' => __('cafeteria-statement.export_too_large', ['count' => number_format($rowCount), 'limit' => number_format($rowLimit)]),
             ]);
         }

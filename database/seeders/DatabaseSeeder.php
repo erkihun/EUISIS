@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
         // This seeder builds demo organizations, employees and provider/user
         // accounts and purges is_demo rows: never against production.
         if (app()->environment('production')) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'DatabaseSeeder creates demo data and is disabled in production. Seed reference data with: '
                 .'PermissionSeeder, RoleSeeder, RolePermissionSeeder, SystemSettingsSeeder, CodeRuleSeeder, '
                 .'GrievanceDefaultsSeeder, FieldWorkTypeSeeder, OrganizationTypeSeeder, OrganizationUnitTypeSeeder, '
