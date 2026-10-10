@@ -354,6 +354,27 @@ test('memoised status counts are keyed by scope and never leak across organizati
         ->and(array_sum($metrics->cardStatusCounts($emptyScope)))->toBe(0);
 });
 
+test('users with the same scope and permissions share one dashboard computation', function (): void {
+    // Risk register DB-5: ~50 COUNTs per dashboard were cached per user, so
+    // every officer of one organization recomputed the same figures.
+    $first = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $second = User::factory()->create(['name' => 'Second Admin']);
+    $second->assignRole('Super Admin');
+    $props = fn (User $user) => $this->actingAs($user)->get(route('dashboard'))->viewData('page')['props'];
+
+    $this->travelTo(now()->startOfMinute());
+    $a = $props($first);
+    $this->travel(30)->seconds();
+    $b = $props($second);
+
+    expect($b['header']['generatedAt'])->toBe($a['header']['generatedAt'])
+        ->and($b['kpis'])->toEqual($a['kpis']);
+
+    // A different scope never reuses it.
+    $narrowed = $this->actingAs($second)->get(route('dashboard', ['organization_id' => EmployeeAssignment::query()->value('organization_id')]))->viewData('page')['props'];
+    expect($narrowed['header']['generatedAt'])->not->toBe($a['header']['generatedAt']);
+});
+
 test('recent activity leaves out audited page views but keeps them in the audit log', function (): void {
     $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
     app(WriteAuditLogAction::class)->execute(AuditEventType::BackupStatusViewed, $user);

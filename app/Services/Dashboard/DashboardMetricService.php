@@ -178,7 +178,7 @@ class DashboardMetricService
             $kpis[] = $this->kpi(
                 'todayVerifications',
                 $this->verificationQuery($scope)
-                    ->whereDate('card_verifications.created_at', now()->toDateString())
+                    ->whereBetween('card_verifications.created_at', $this->todayBounds())
                     ->count(),
                 'shield',
                 'primary',
@@ -193,7 +193,7 @@ class DashboardMetricService
             $kpis[] = $this->kpi(
                 'todayTransactions',
                 $this->transactionQuery($scope)
-                    ->whereDate('service_transactions.occurred_at', now()->toDateString())
+                    ->whereBetween('service_transactions.occurred_at', $this->todayBounds())
                     ->count(),
                 'activity',
                 'primary',
@@ -327,11 +327,11 @@ class DashboardMetricService
         if ($can['verification']) {
             $cards['verification'] = [
                 'allowedToday' => $this->verificationQuery($scope)
-                    ->whereDate('card_verifications.created_at', now()->toDateString())
+                    ->whereBetween('card_verifications.created_at', $this->todayBounds())
                     ->where('card_verifications.allowed', true)
                     ->count(),
                 'deniedToday' => $this->verificationQuery($scope)
-                    ->whereDate('card_verifications.created_at', now()->toDateString())
+                    ->whereBetween('card_verifications.created_at', $this->todayBounds())
                     ->where('card_verifications.allowed', false)
                     ->count(),
             ];
@@ -395,7 +395,7 @@ class DashboardMetricService
                 // NFC taps are counted separately from QR card verifications:
                 // they are different credentials and must never be summed.
                 'verificationsToday' => NfcVerificationLog::query()
-                    ->whereDate('nfc_verification_logs.occurred_at', now()->toDateString())
+                    ->whereBetween('nfc_verification_logs.occurred_at', $this->todayBounds())
                     ->whereIn('nfc_verification_logs.nfc_credential_id', $this->nfcCredentialQuery($scope)->select('nfc_credentials.id'))
                     ->count(),
             ];
@@ -404,7 +404,7 @@ class DashboardMetricService
         if ($can['integration'] ?? false) {
             // API Management is system-level configuration, not organizational
             // data, so it is gated on the permission rather than on scope.
-            $today = now()->toDateString();
+            $today = $this->todayBounds();
 
             $cards['integration'] = [
                 'activeApplications' => ExternalApplication::query()->where('status', 'active')->count(),
@@ -412,8 +412,8 @@ class DashboardMetricService
                     ->where('tokenable_type', ExternalApplication::class)
                     ->count(),
                 'activeEndpoints' => ApiEndpointDefinition::query()->where('status', 'active')->count(),
-                'requestsToday' => ApiRequestLog::query()->whereDate('requested_at', $today)->count(),
-                'failedToday' => ApiRequestLog::query()->whereDate('requested_at', $today)->where('success', false)->count(),
+                'requestsToday' => ApiRequestLog::query()->whereBetween('requested_at', $today)->count(),
+                'failedToday' => ApiRequestLog::query()->whereBetween('requested_at', $today)->where('success', false)->count(),
             ];
         }
 
@@ -892,6 +892,17 @@ class DashboardMetricService
         }
 
         return $total;
+    }
+
+    /**
+     * Today as a timestamp range: whereDate() wraps the column in a function,
+     * so it cannot use the index on large event tables (risk register DB-5).
+     *
+     * @return array{0: \Illuminate\Support\Carbon, 1: \Illuminate\Support\Carbon}
+     */
+    private function todayBounds(): array
+    {
+        return [now()->startOfDay(), now()->endOfDay()];
     }
 
     private function scopeKey(array $scope): string

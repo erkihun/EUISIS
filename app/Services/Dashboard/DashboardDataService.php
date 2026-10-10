@@ -21,51 +21,65 @@ class DashboardDataService
         $scope = $this->scopeService->resolve($user, $filters);
         $can = $this->sectionPermissions($user);
 
-        return Cache::remember(
-            $this->cacheKey($user, $scope, $can),
+        // The figures depend only on the resolved scope and the visible
+        // sections, so every user with the same scope and permissions shares
+        // one computation (risk register DB-5); the header stays per user.
+        // kpis() receives the user that first fills the entry: it must stay
+        // scope-only, never user-specific.
+        $figures = Cache::remember(
+            $this->cacheKey($scope, $can),
             now()->addSeconds(120),
             fn (): array => [
-                'filters' => [
-                    'dateRange' => $scope['date_range'],
-                    'dateFrom' => $scope['date_from']->toDateString(),
-                    'dateTo' => $scope['date_to']->toDateString(),
-                    'organizationId' => $scope['selected_organization_id'],
-                    'organizationOptions' => $scope['organization_options'],
-                ],
-                'can' => $can,
-                'header' => $this->header($user, $scope),
+                'computedAt' => now()->toIso8601String(),
                 'kpis' => $this->metricService->kpis($user, $scope, $can),
                 'cards' => $this->metricService->sectionCards($scope, $can),
                 'charts' => $this->chartService->charts($scope, $can),
                 'workflowQueues' => $this->metricService->workflowQueues($scope, $can),
                 'alerts' => $this->metricService->alerts($scope, $can),
                 'recentActivity' => $this->metricService->recentActivity($scope, $can['audit']),
-                'meta' => [
-                    'scope' => [
-                        'providerOnly' => $scope['provider_only'],
-                        'globalAccess' => $scope['global_access'],
-                    ],
-                ],
             ],
         );
+
+        return [
+            'filters' => [
+                'dateRange' => $scope['date_range'],
+                'dateFrom' => $scope['date_from']->toDateString(),
+                'dateTo' => $scope['date_to']->toDateString(),
+                'organizationId' => $scope['selected_organization_id'],
+                'organizationOptions' => $scope['organization_options'],
+            ],
+            'can' => $can,
+            'header' => $this->header($user, $scope, $figures['computedAt']),
+            'kpis' => $figures['kpis'],
+            'cards' => $figures['cards'],
+            'charts' => $figures['charts'],
+            'workflowQueues' => $figures['workflowQueues'],
+            'alerts' => $figures['alerts'],
+            'recentActivity' => $figures['recentActivity'],
+            'meta' => [
+                'scope' => [
+                    'providerOnly' => $scope['provider_only'],
+                    'globalAccess' => $scope['global_access'],
+                ],
+            ],
+        ];
     }
 
     /**
      * Page header context: whose data this is, when it was computed, and the
      * actions this user may actually take.
      *
-     * `generatedAt` is built inside the cached payload on purpose, so it
-     * reports when the figures were computed rather than when the page was
-     * rendered — otherwise a cached dashboard would claim to be fresh.
+     * `generatedAt` is the time the shared figures were computed, not when the
+     * page was rendered — otherwise a cached dashboard would claim to be fresh.
      */
-    private function header(User $user, array $scope): array
+    private function header(User $user, array $scope, string $computedAt): array
     {
         $selectedId = $scope['selected_organization_id'];
         $selected = $selectedId === null ? null : collect($scope['organization_options'])
             ->firstWhere('id', $selectedId);
 
         return [
-            'generatedAt' => now()->toIso8601String(),
+            'generatedAt' => $computedAt,
             'organizationName' => $selected['name'] ?? null,
             'organizationCount' => count($scope['organization_ids']),
             'globalAccess' => $scope['global_access'],
@@ -166,10 +180,12 @@ class DashboardDataService
         return false;
     }
 
-    private function cacheKey(User $user, array $scope, array $can): string
+    private function cacheKey(array $scope, array $can): string
     {
-        return 'dashboard:'.md5(json_encode([
-            'user' => $user->id,
+        return 'dashboard:figures:'.md5(json_encode([
+            'global_access' => $scope['global_access'],
+            'provider_only' => $scope['provider_only'],
+            'selected_organization_id' => $scope['selected_organization_id'],
             'date_range' => $scope['date_range'],
             'date_from' => $scope['date_from']->toDateString(),
             'date_to' => $scope['date_to']->toDateString(),
