@@ -15,6 +15,7 @@ import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tan
 import { useUiMessages } from './context';
 import { EmptyState } from './feedback';
 import { Button, Skeleton, cx } from './primitives';
+import { tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from './table';
 import { SearchInput, controlClassName } from './forms';
 
 export type { ColumnDef } from '@tanstack/react-table';
@@ -79,14 +80,14 @@ export function DataTable<T>({ data, columns, loading = false, emptyTitle, empty
 }) {
     const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
     return <div className={cx('space-y-3', className)}>
-        <div className="overflow-hidden rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+        <div className={tableContainerClassName}>
             {!loading && data.length === 0 ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} /> : <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                    <thead className="border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)]">
-                        {table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} className="px-4 py-3 text-xs font-medium text-[color:var(--app-muted-foreground)]">{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>)}</tr>)}
+                <table className={tableClassName}>
+                    <thead className={tableHeadClassName}>
+                        {table.getHeaderGroups().map((group) => <tr key={group.id}>{group.headers.map((header) => <th key={header.id} scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}</th>)}</tr>)}
                     </thead>
-                    <tbody className="divide-y divide-[color:var(--app-border)]">
-                        {loading ? Array.from({ length: pagination?.perPage ?? 6 }, (_, row) => <tr key={row}>{columns.map((_, col) => <td key={col} className="px-4 py-3"><Skeleton className="h-4 w-full" /></td>)}</tr>) : table.getRowModel().rows.map((row) => <tr key={row.id} className="hover:bg-[color:var(--app-surface-muted)]">{row.getVisibleCells().map((cell) => <td key={cell.id} className="px-4 py-3">{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}
+                    <tbody className={tableBodyClassName}>
+                        {loading ? Array.from({ length: pagination?.perPage ?? 6 }, (_, row) => <tr key={row}>{columns.map((_, col) => <td key={col} className={tableCellClassName}><Skeleton className="h-4 w-full" /></td>)}</tr>) : table.getRowModel().rows.map((row) => <tr key={row.id} className={tableRowClassName}>{row.getVisibleCells().map((cell) => <td key={cell.id} className={tableCellClassName}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>)}</tr>)}
                     </tbody>
                 </table>
             </div>}

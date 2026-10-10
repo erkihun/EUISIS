@@ -1,10 +1,10 @@
 import { FormEvent, ReactNode } from 'react';
 import { router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { Button, controlClassName, cx } from '@euisis/ui';
 
-/** Tailwind classes for any filter input/select. Import and reuse in pages. */
-export const filterInputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:border-[color:var(--color-primary)]';
+/** Classes for any filter input/select: the shared control style, sized to its content. */
+export const filterInputCls = cx(controlClassName, 'w-auto min-w-40');
 
 interface AppFilterBarProps {
     /** Route name used for `router.get` on submit. */
@@ -53,24 +53,17 @@ export default function AppFilterBar({
     const hasActiveFilters = Object.values(filters).some(Boolean);
 
     return (
-        <form className="flex flex-wrap items-center gap-3" onSubmit={handleSubmit}>
+        <form className="flex flex-wrap items-center gap-2 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3" onSubmit={handleSubmit}>
             {children}
 
-            <button
-                type="submit"
-                className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]"
-            >
+            <Button type="submit" variant="primary">
                 {t('common.filter')}
-            </button>
+            </Button>
 
             {hasActiveFilters && (
-                <button
-                    type="button"
-                    onClick={handleReset}
-                    className="text-sm text-gray-500 hover:text-gray-700 underline dark:text-slate-400 dark:hover:text-slate-200"
-                >
+                <Button variant="ghost" onClick={handleReset}>
                     {t('common.reset')}
-                </button>
+                </Button>
             )}
         </form>
     );
