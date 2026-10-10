@@ -12,6 +12,8 @@ use Database\Seeders\DatabaseSeeder;
 it('refuses to run in production', function (): void {
     app()->detectEnvironment(fn () => 'production');
 
-    expect(fn () => $this->seed(DatabaseSeeder::class))
+    // Invoke the seeder directly: `db:seed` would first stop at Laravel's own
+    // production confirmation prompt, which an operator can answer "yes" to.
+    expect(fn () => app(DatabaseSeeder::class)->setContainer(app())->__invoke())
         ->toThrow(RuntimeException::class, 'DatabaseSeeder creates demo data');
 });
