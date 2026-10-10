@@ -62,3 +62,19 @@ it('blocks go-live when production rules are enforced on a test configuration', 
     // The test environment is not production and serves plain HTTP.
     $this->artisan('production:readiness', ['--strict' => true])->assertExitCode(1);
 });
+
+it('checks the multi-node and scale requirements', function (): void {
+    $this->artisan('production:readiness')
+        ->expectsOutputToContain('Multi-node and scale')
+        ->expectsOutputToContain('Every scheduled task runs on one server')
+        ->expectsOutputToContain('Transport Management is disabled')
+        ->expectsOutputToContain('Private files on shared storage');
+});
+
+it('blocks when a queued job could outlive the queue retry window', function (): void {
+    config(['queue.default' => 'database', 'queue.connections.database.retry_after' => 90]);
+
+    $this->artisan('production:readiness', ['--strict' => true])
+        ->expectsOutputToContain('Queue retry_after (90s) exceeds the longest job timeout (600s)')
+        ->assertExitCode(1);
+});

@@ -69,6 +69,25 @@ class ProductionReadiness extends Command
             $this->check("{$path} is writable", is_writable(base_path($path)), $production, 'The web and queue users must be able to write here.');
         }
 
+        $this->section('Multi-node and scale (docs/load-balancing.md)');
+        $this->check('Trusted proxies configured', config('trustedproxy.proxies') !== null, false, 'Behind a load balancer HTTPS is not detected and every client shares the balancer IP for rate limits; set APP_TRUSTED_PROXIES.');
+        $this->check('Sessions shared across nodes', ! in_array(config('session.driver'), ['file', 'array'], true), $production, 'A file session exists on one node only; use database or redis.');
+        $this->check('Maintenance mode shared across nodes', config('app.maintenance.driver') !== 'file', false, 'The file driver puts only one node in maintenance; use APP_MAINTENANCE_DRIVER=cache with a shared store.');
+        $this->check('Private files on shared storage', config('filesystems.disks.local.driver') !== 'local', false, 'Uploads on node-local disk are missing on the other nodes; set STORAGE_PRIVATE_DRIVER=s3 for a multi-node deployment.');
+        $this->check('Public files on shared storage', config('filesystems.disks.public.driver') !== 'local', false, 'Logos and photos on node-local disk are missing on the other nodes; set STORAGE_PUBLIC_DRIVER=s3 for a multi-node deployment.');
+        $retryAfter = (int) config('queue.connections.'.config('queue.default').'.retry_after', 0);
+        $longestTimeout = $this->longestJobTimeout();
+        $this->check("Queue retry_after ({$retryAfter}s) exceeds the longest job timeout ({$longestTimeout}s)", config('queue.default') === 'sync' || $retryAfter > $longestTimeout, $production, 'A job still running at retry_after is handed to a second worker and runs twice.');
+        $notOnOneServer = collect($schedule->events())->reject(fn ($event) => $event->onOneServer)->map(fn ($event) => (string) ($event->command ?? $event->description))->values()->all();
+        $this->check('Every scheduled task runs on one server', $notOnOneServer === [], $production, 'Duplicates on a multi-node scheduler: '.implode(', ', $notOnOneServer));
+        $this->check('Transport Management is disabled (out of current scope)', ! (bool) config('features.transport'), false, 'FEATURE_TRANSPORT is on; Transport is a future phase and not part of this release.');
+        if (config('database.default') === 'pgsql') {
+            $sslmode = (string) config('database.connections.pgsql.sslmode', 'prefer');
+            $this->check("PostgreSQL TLS (sslmode={$sslmode})", in_array($sslmode, ['require', 'verify-ca', 'verify-full'], true), false, 'Database traffic leaves the host; use DB_SSLMODE=require or verify-full unless the network is private and trusted.');
+        } else {
+            $this->check('Database engine is PostgreSQL', false, false, 'PostgreSQL is the production engine (decision D-5).');
+        }
+
         $this->section('PHP extensions');
         $driver = (string) config('database.connections.'.config('database.default').'.driver');
         $this->check("pdo_{$driver}", extension_loaded('pdo_'.$driver), $production, 'Required by the configured database.');
@@ -141,5 +160,23 @@ class ProductionReadiness extends Command
         $ran = $migrator->getRepository()->getRan();
 
         return array_values(array_diff(array_keys($files), $ran));
+    }
+
+    /** Longest `$timeout` declared by a queued job class in app/Jobs. */
+    private function longestJobTimeout(): int
+    {
+        $longest = 60; // worker default
+        foreach (glob(app_path('Jobs/**/*.php')) ?: [] as $file) {
+            if (preg_match('/public\s+int\s+\$timeout\s*=\s*(\d+)/', (string) file_get_contents($file), $match)) {
+                $longest = max($longest, (int) $match[1]);
+            }
+        }
+        foreach (glob(app_path('Jobs/*.php')) ?: [] as $file) {
+            if (preg_match('/public\s+int\s+\$timeout\s*=\s*(\d+)/', (string) file_get_contents($file), $match)) {
+                $longest = max($longest, (int) $match[1]);
+            }
+        }
+
+        return $longest;
     }
 }
