@@ -88,9 +88,12 @@ it('shows the organization structure section on the positions page', function ()
 
 it('nests organization units and positions under each organization', function (): void {
     $superAdmin = posStructureUser('Super Admin');
+    $organizationId = \App\Models\Organization::query()->where('code', 'POS-IN')->value('id');
 
+    // Units and positions are expanded for the selected organization only
+    // (the citywide tree cannot be built per page view at 3M employees).
     $this->actingAs($superAdmin)
-        ->get(route('positions.index'))
+        ->get(route('positions.index', ['organization_id' => $organizationId]))
         ->assertInertia(function (Assert $page): void {
             $structure = collect($page->toArray()['props']['organizationStructure']);
             $organization = $structure->firstWhere('code', 'POS-IN');

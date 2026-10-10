@@ -28,7 +28,7 @@ readonly class ScopedPositionStructureService
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function build(User $user): array
+    public function build(User $user, ?string $expandedOrganizationId = null): array
     {
         $organizations = $this->scopedOrganizations($user);
 
@@ -36,7 +36,17 @@ readonly class ScopedPositionStructureService
             return [];
         }
 
-        $organizationIds = $organizations->pluck('id')->all();
+        // Units and positions are loaded for ONE organization: the selected
+        // one, or the only one in scope. At 3M employees a citywide tree of
+        // every unit and position cannot be built per page view (risk SCL-1);
+        // the other organizations are listed and expand when selected.
+        if ($expandedOrganizationId === null && $organizations->count() === 1) {
+            $expandedOrganizationId = (string) $organizations->first()->id;
+        }
+        $organizationIds = $organizations->pluck('id')->map(fn ($id) => (string) $id)
+            ->filter(fn (string $id) => $id === $expandedOrganizationId)
+            ->values()
+            ->all();
 
         $units = OrganizationUnit::query()
             ->whereIn('organization_id', $organizationIds)
