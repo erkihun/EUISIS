@@ -37,6 +37,7 @@ use App\Models\ServiceTransaction;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -898,7 +899,7 @@ class DashboardMetricService
      * Today as a timestamp range: whereDate() wraps the column in a function,
      * so it cannot use the index on large event tables (risk register DB-5).
      *
-     * @return array{0: \Illuminate\Support\Carbon, 1: \Illuminate\Support\Carbon}
+     * @return array{0: Carbon, 1: Carbon}
      */
     private function todayBounds(): array
     {
