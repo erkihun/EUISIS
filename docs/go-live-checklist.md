@@ -39,6 +39,9 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 - [ ] **C3 — Data audits.** On a copy of production data, `data:audit-duplicates`, `structure:audit` and `cafeteria:audit-configuration` report no HIGH finding, or each finding has an owner and a repair plan approved separately (repairs are never automatic).
 - [ ] **C4 — Staging UAT.** The UAT script below passes on staging with real roles (not Super Admin), on the release tag being deployed.
 - [ ] **C5 — Decisions recorded.** D-1 … D-7 each have an answer from the business owner (they do not all need code before go-live, but the answer decides whether they do).
+- [ ] **C6 — Scale evidence.** A load test against staging-sized infrastructure and data meets the agreed SLOs (docs/load-testing.md, docs/capacity-plan.md). Local measurements are not production capacity.
+- [ ] **C7 — Credentials rotated.** Every credential found in git history (risk register SEC-11, commit `19ab6b8`, incl. the Gmail app password) is revoked and replaced.
+- [ ] **C8 — Integrity pre-checks.** `data:audit-duplicates` on a copy of production shows no duplicated live cards, current assignments, vacancy-application transfers, provider references or provider ledger postings; otherwise the integrity migrations stop with NEEDS_DATA_REVIEW.
 
 ## B. Environment (`.env` on the production host)
 
@@ -50,13 +53,19 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 - [ ] `LOG_LEVEL=warning` (or info), daily log rotation
 - [ ] `MAIL_*` delivers; SMS gateway configured with daily and monthly caps
 - [ ] Self-registration off unless deliberately enabled
+- [ ] `FEATURE_TRANSPORT=false` and `FEATURE_COURT_CASES=false` (Transport is out of production scope; routes return 404 when off)
+- [ ] `STORAGE_PRIVATE_DRIVER=s3` and `STORAGE_PUBLIC_DRIVER=s3` with `STORAGE_PRIVATE_BUCKET`, `STORAGE_PUBLIC_BUCKET`, `STORAGE_PUBLIC_URL` and `AWS_*` credentials when more than one app server runs (node-local disks are not shared)
+- [ ] `DB_QUEUE_RETRY_AFTER` / `REDIS_QUEUE_RETRY_AFTER` (default 900) above the longest job timeout (600); `production:readiness` checks it
+- [ ] `REDIS_*` or database cache shared by every node; scheduler locks (`onOneServer`) need a shared cache
 - [ ] PHP extensions: `pdo_<engine>`, `mbstring`, `openssl`, `intl`, `fileinfo`, `redis` if Redis is used, `imagick` if PNG card export is needed
 
 ## C. Infrastructure
 
 - [ ] TLS certificate valid; HTTP redirects to HTTPS; HSTS present (smoke test)
-- [ ] Load balancer health check on `GET /up`
-- [ ] Cron runs `schedule:run` every minute; queue worker supervised
+- [ ] Load balancer liveness on `GET /health/live`, readiness on `GET /health/ready` (database, cache, storage); `/up` still answers
+- [ ] Cron runs `schedule:run` every minute on every app node (tasks run once via `onOneServer`)
+- [ ] Queue workers supervised for the `default`, `notifications` and `long` queues, e.g. `queue:work --queue=default,notifications` and a separate `queue:work --queue=long --timeout=600`
+- [ ] PgBouncer (transaction pooling) or a sized `max_connections` in front of PostgreSQL; see docs/load-balancing.md
 - [ ] Backup and recovery gates at the top of this checklist signed (pgBackRest, WAL/PITR, isolated restore test)
 - [ ] `storage/app` on persistent, backed-up storage (employee photos and card templates are private files; see runbooks/object-storage-recovery.md)
 - [ ] Database not reachable from the internet; application DB user has no superuser rights
@@ -65,6 +74,8 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 
 - [ ] Tagged release; CI green (tests, type check, build, `composer audit --locked`, `npm audit --omit=dev`)
 - [ ] `migrate --pretend` output reviewed; includes the pending `2026_09_26_000000_add_rbac_metadata_and_register_permission_catalog`
+- [ ] The `2026_10_10_3000xx` integrity and index migrations reviewed: they build indexes `CONCURRENTLY` outside a transaction and stop with NEEDS_DATA_REVIEW on duplicates instead of changing data (docs/database-scale.md)
+- [ ] `php artisan db:seed` is never run on production (`DatabaseSeeder` refuses in production; reference seeders are run individually)
 - [ ] Pre-deploy recovery evidence recorded: verified pgBackRest backup labels in both repositories and a current isolated restore test (runbook/deployment-and-rollback.md §1)
 - [ ] Rollback owner named; runbook read (runbook/deployment-and-rollback.md)
 
