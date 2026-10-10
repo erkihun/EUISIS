@@ -438,10 +438,21 @@ test('Super Admin sees the full organization unit and position structure on the 
             // The index now sends flat option lists instead of a nested tree.
             $props = $page->toArray()['props'];
 
+            // Every organization is listed; unit and position options are
+            // sent for a chosen organization only (risk register SCL-2).
             expect($props['isOrganizationScoped'])->toBeFalse()
                 ->and(collect($props['organizations'])->pluck('id'))->toContain($a->id)
                 ->and(collect($props['organizations'])->pluck('id'))->toContain($b->id)
-                ->and(collect($props['organizationUnits'])->pluck('id'))->toContain($unit->id)
+                ->and($props['organizationUnits'])->toBe([])
+                ->and($props['positions'])->toBe([]);
+        });
+
+    actingAs($superAdmin)->get(route('employees.index', ['organization_id' => $a->id]))
+        ->assertOk()
+        ->assertInertia(function (Assert $page) use ($unit, $position): void {
+            $props = $page->toArray()['props'];
+
+            expect(collect($props['organizationUnits'])->pluck('id'))->toContain($unit->id)
                 ->and(collect($props['positions'])->pluck('id'))->toContain($position->id);
         });
 });
