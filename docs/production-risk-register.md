@@ -41,18 +41,18 @@ are recorded only where Transport code is exposed or touches shared code.
 | --- | --- | --- |
 | SEC-5 | Empty accessible-org set treated as "all" in ID cards, transfer announcements, cafeteria providers. | FIXED (fc8875f) |
 | SEC-6 | Cafeteria employee exclusions unscoped (read + write). | FIXED (3e3a8c8) |
-| SEC-7 | Scoped Cafeteria Admin holds `cafeteria_providers.viewAll` → city-wide transactions; provider policy update/archive unscoped. | PARTIAL (694d4fd: update/archive scoped) — `viewAll` for scoped admins NEEDS_DECISION |
+| SEC-7 | Scoped Cafeteria Admin holds `cafeteria_providers.viewAll` → city-wide transactions; provider policy update/archive unscoped. | FIXED (694d4fd, 4296b60) — decision: `viewAll` is city-wide only for users without an organization scope; scoped holders see their assigned cafeterias |
 | SEC-8 | Transport admin pages unscoped (resolved by Transport gating, REL-1). | FIXED by REL-1 (Transport disabled by default, 260e62a) |
 | SEC-9 | Raw `Employee` serialization bypasses `employees.viewPii` (transfer applications, print batches). | FIXED (7593906) |
 | SEC-10 | Profile photos / logos / system assets stored on public disk with client extension → stored XSS via `.html`. | FIXED (07424b6) |
 | SEC-11 | Git history contains real credentials (`.env.backup-*`, commit `19ab6b8`) incl. a Gmail app password. | NEEDS_DECISION — owner must revoke; history rewrite is destructive |
 | CON-4 | No DB backstop for one current assignment per employee. | FIXED (19d2616, partial unique index) |
-| CON-5 | Position occupancy counted inconsistently (assignments vs occupancies); import bypasses lock. | NEEDS_DECISION — registration allows one occupant per position (assignments, locked; import uses the same action), transfers allow the approved slots (occupancies). Decide which is authoritative. |
+| CON-5 | Position occupancy counted inconsistently (assignments vs occupancies); import bypasses lock. | FIXED (f34fcd3) — decision: a position holds its approved establishment slots effective on the day, or one person without an establishment; occupants = current active assignments; every placement path uses `PositionCapacityService` |
 | CON-6 | Transfer rejection unlocked; can relabel approved/transferred applications. | FIXED (c9e399b) |
 | CON-7 | Discipline service takes no row locks → duplicate decisions/deliveries/cases. | OPEN — discipline module is uncommitted WIP; reported to owner, not changed |
 | CON-8 | Settlement finalize vs transaction reversal race → provider paid for reversed meal. | FIXED (2a6c349) |
 | CON-9 | Provider ledger written outside scan transaction; no unique per transaction; reversals never debited. | FIXED (be720f9) |
-| CON-10 | Duplicate employees by national ID (hash index not unique). | NEEDS_DATA_REVIEW — `data:audit-duplicates` lists shared national IDs; add the unique index after review |
+| CON-10 | Duplicate employees by national ID (hash index not unique). | FIXED (be16ee8) — audit found no shared IDs on the development data; partial unique index, migration stops with NEEDS_DATA_REVIEW on duplicates. Keyed hash (D-1) still open |
 | INF-2 | Long jobs (600s) exceed queue `retry_after` (90s) → duplicate execution. | FIXED (e2a6450) |
 | INF-3 | Single `default` queue; OTP/SMS/most notifications synchronous; ~34 synchronous exports. | PARTIAL (e2a6450, 01e5d51: notifications queued) — exports stay synchronous but row-capped |
 | DB-4 | Audit log search: `ILIKE` on bigint column (500), full COUNT per page, `whereDate`. | FIXED (7fbc4f9) |
@@ -60,10 +60,10 @@ are recorded only where Transport code is exposed or touches shared code.
 | DB-6 | Cafeteria transaction number random 6 chars → ~2,000 collisions/day at 3M scans. | FIXED (97fa479) |
 | DB-7 | Missing FK indexes on hot tables (`id_cards.employee_id`, `employee_duplicate_flags.employee_id`, etc.). | FIXED (e64de35) |
 | DB-8 | Large-table migrations: non-concurrent indexes, validated FKs, row-by-row backfills, type-change rewrites. | PROCEDURE (docs/database-scale.md, large-table migration rules); the new integrity and index migrations follow it. Older migrations already ran. |
-| DB-9 | No retention/pruning for audit, notifications, security events, verification logs, reminders. | NEEDS_DECISION (retention periods) |
+| DB-9 | No retention/pruning for audit, notifications, security events, verification logs, reminders. | FIXED (a1d6bea) — decision: audit/security 730 days (admin setting), verification logs 365, notifications 90 read / 365 any, reminders 90; financial, history and case records never pruned (config/retention.php) |
 | SCL-8 | Transfer announcement job: whole workforce, no timeout, re-run by queue, per-employee settings query. | FIXED (4826aae) |
 | SCL-9 | Daily-activity citywide reports walk employees × 92 days in request. | FIXED (bc85d83, request budget) |
-| SCL-10 | Unbounded pickers/loads: subsidy ledger, card request create, print batch, transfer form positions, unit/vacancy pickers, org-structure API, grievance reports in PHP. | FIXED (4c7c00f, 8e23f3c, d374c7b, f1afcf4) — org-structure API `depth=employee` still returns every occupant of one organization (API contract; NEEDS_DECISION) |
+| SCL-10 | Unbounded pickers/loads: subsidy ledger, card request create, print batch, transfer form positions, unit/vacancy pickers, org-structure API, grievance reports in PHP. | FIXED (4c7c00f, 8e23f3c, d374c7b, f1afcf4); org-structure API bounded by `api.structure_max_nodes` (047be52) |
 | SCL-11 | City-wide dashboard aggregates raw event tables (2.6M transactions, 4.4M audit rows at 220k employees): first computation 7–11 s (load test 2026-10-11); provider ranking and transaction joins fixed (04b3337), remaining cost is the volume itself. | OPEN — needs daily rollup tables for transaction and audit charts (docs/capacity-plan.md) |
 | SCL-12 | Every page, public ones included, inlines ~515 KB of script: Ziggy route map with all 1,160 routes (405 KB, also discloses every admin URI to anonymous visitors) and Vite prefetch list (110 KB, makes each browser fetch every chunk). | OPEN — gzip at the edge; limit the route map per audience (needs frontend route() audit); reconsider `Vite::prefetch` |
 | REL-1 | Transport fully built and reachable (admin, provider portal, roles, sidebar, homepage says "available"). | FIXED (260e62a) |

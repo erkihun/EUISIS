@@ -200,8 +200,8 @@ If C1 or C4 fails, the decision becomes **NO-GO** until fixed and re-verified.
 
 | ID | Question | Why the code cannot decide | Default if unanswered |
 |---|---|---|---|
-| D-1 | Protect national IDs with a keyed hash and enforce uniqueness in the database? | Requires a secret-management choice and a one-time re-hash of every employee | Keep as is; duplicates detected by `data:audit-duplicates` |
-| D-2 | How many people may hold one position: always one, or the approved establishment slots? Should transfers and imports enforce it? | Registration and the vacancy module disagree | Registration keeps refusing a second occupant; audit flags over-capacity |
+| D-1 | Protect national IDs with a keyed hash and enforce uniqueness in the database? | Requires a secret-management choice and a one-time re-hash of every employee | **Partly answered 2026-10-11:** uniqueness enforced by a partial unique index (CON-10, be16ee8). The keyed hash still needs a secret-management decision |
+| D-2 | How many people may hold one position: always one, or the approved establishment slots? Should transfers and imports enforce it? | Registration and the vacancy module disagree | **Answered 2026-10-11:** approved establishment slots effective on the day, one person without an establishment; registration, both imports and transfers enforce it (f34fcd3) |
 | D-3 | When do cards printed with the legacy URL (card primary key, no token) stop being accepted at the counter? | Depends on how many such cards are in circulation | Keep accepting them |
 | D-4 | Must the portrait card front show nationality and employment type as the landscape front does? | Deliberate design change on 2026-09-20 | Current portrait design |
 | D-5 | Which database engine is production — MySQL (as developed) or PostgreSQL (as documented)? | Documents and development disagree | **Answered 2026-09-26: PostgreSQL** (`.env.production`); C1 is to be run on PostgreSQL |

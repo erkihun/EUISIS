@@ -44,7 +44,7 @@ Organization liability ─► Settlement (draft ─► finalize) ─► Exports
 |---|---|
 | Routes | `POST /organization-units`, `POST /positions` |
 | Rules | unit code unique per organization; `parent_unit_id` must stay in the same organization and must not form a cycle; position `code` and `job_position_code` unique; position code from the Position code rule |
-| Capacity | `position_establishments.approved_slots` (vacancy module, `PositionCapacityService`) — see NEEDS_DECISION D-2 in the readiness assessment |
+| Capacity | `position_establishments.approved_slots` (vacancy module, `PositionCapacityService`) — approved slots effective on the day, or one person without an establishment; enforced on every placement path (D-2, answered 2026-10-11) |
 | Gaps | `positions.organization_id` has no foreign key; detected by `structure:audit` |
 
 ## 3. Staff users, roles and organization scope

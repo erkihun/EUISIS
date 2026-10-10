@@ -66,7 +66,7 @@ below, not by request count. Before go-live:
 | City-wide dashboard (Super Admin / oversight) first computation | 7–11 s at 220k employees; grows with transactions and audit rows | Risk register **SCL-11**: needs daily rollup tables for transaction and audit charts. Cached and shared for 120 s once computed. |
 | City-wide `/positions/status` | ~0.9 s at 220k positions | Grows linearly with positions; acceptable for a few administrators, re-measure at 3M. |
 | Inline page payload | ~515 KB per page (Ziggy 405 KB + Vite prefetch 110 KB) | Risk register **SCL-12**. Enable gzip/brotli at the load balancer; reduce the route map. |
-| Org-structure API `depth=employee` | Returns every occupant of one organization | NEEDS_DECISION (API contract). |
+| Org-structure API | Nested document per organization | Bounded: above `API_STRUCTURE_MAX_NODES` (10,000) it answers `422 structure_too_large` and names the paginated endpoints. |
 
 Scoped users (one organization) did not hit these limits: a scoped HR
 officer's first dashboard computation took ~0.66 s with ~0.11 s in the
