@@ -136,6 +136,30 @@ class Grievance extends Model
         return $this->belongsTo(GrievanceInitialIssue::class, 'initial_issue_id');
     }
 
+    /**
+     * The open statutory deadline (Regulation 201/2018) for $ruleKey, if one
+     * has been snapshotted. The stored due date is immutable: it is never
+     * recalculated when holidays or the work week change later.
+     */
+    public function statutoryDeadline(string $ruleKey): ?StatutoryDeadline
+    {
+        return StatutoryDeadline::query()
+            ->whereMorphedTo('subject', $this)
+            ->where('rule_key', $ruleKey)
+            ->whereNull('superseded_at')
+            ->latest('started_at')
+            ->first();
+    }
+
+    /**
+     * The deadline that legally governs $ruleKey. The statutory snapshot is
+     * authoritative and always wins over any internal SLA target (spec §70).
+     */
+    public function effectiveDeadline(string $ruleKey): ?\Illuminate\Support\Carbon
+    {
+        return $this->statutoryDeadline($ruleKey)?->due_at;
+    }
+
     public function submittedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'submitted_by_user_id');

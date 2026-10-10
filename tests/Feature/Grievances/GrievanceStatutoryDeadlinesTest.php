@@ -93,3 +93,34 @@ it('snapshots the 10-wd head-decision on submission and the 5-wd delivery on fin
     expect($delivery)->not->toBeNull();
     expect($delivery->amount)->toBe(5);
 });
+
+it('keeps a snapshotted deadline unchanged when a holiday is added later', function () {
+    Carbon::setTestNow(Carbon::parse('2026-03-02 09:00:00'));
+    $scenario = GrievanceScenario::build();
+    $grievance = acceptedGrievance($scenario);
+
+    $before = $grievance->statutoryDeadline(Regulation201::GRIEVANCE_COMMITTEE_REPORT)->due_at->toDateTimeString();
+
+    // Insert a public holiday inside the window AFTER the snapshot was taken.
+    App\Models\PublicHoliday::query()->create([
+        'name_en' => 'Late-added holiday',
+        'holiday_date' => '2026-03-10',
+        'is_active' => true,
+    ]);
+    app(App\Services\Calendar\PublicHolidayCalendar::class)->clearCache();
+
+    $after = $grievance->fresh()->statutoryDeadline(Regulation201::GRIEVANCE_COMMITTEE_REPORT)->due_at->toDateTimeString();
+
+    expect($after)->toBe($before);
+});
+
+it('reports the statutory deadline as the effective deadline, not the internal SLA', function () {
+    Carbon::setTestNow(Carbon::parse('2026-03-02 09:00:00'));
+    $scenario = GrievanceScenario::build();
+    $grievance = acceptedGrievance($scenario);
+
+    $statutory = $grievance->statutoryDeadline(Regulation201::GRIEVANCE_COMMITTEE_REPORT);
+
+    expect($grievance->effectiveDeadline(Regulation201::GRIEVANCE_COMMITTEE_REPORT)->toDateTimeString())
+        ->toBe($statutory->due_at->toDateTimeString());
+});
