@@ -496,6 +496,12 @@ final class GrievanceCaseService
         }
 
         $grievance->forceFill(['accepted_at' => now()])->save();
+
+        // Regulation 201/2018 Art. 34(3): the committee has 15 working days
+        // from receipt to report to the institution head. Snapshotted once so
+        // later holiday/work-week changes never move an open deadline.
+        app(StatutoryDeadlineService::class)->snapshot($grievance, Regulation201::GRIEVANCE_COMMITTEE_REPORT, now());
+
         $this->routing->createStage($grievance, $initial['type'], $initial['id'], GrievanceMovementType::InitialAssignment, $initial['route'], null, $notes, $actor);
         $this->notifier->toComplainant($grievance, 'accepted');
     }
