@@ -6,6 +6,9 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import SearchPicker from '@/Components/fieldWork/SearchPicker';
+
+type EmployeeOption = { id: string; full_name: string; employee_number: string };
 
 type LedgerEntry = {
     id: string;
@@ -28,7 +31,6 @@ export default function LedgerIndex({
     filters,
     employee,
     balance,
-    employees,
     entryTypes,
     summary,
 }: {
@@ -37,7 +39,6 @@ export default function LedgerIndex({
     filters: Record<string, string>;
     employee: { id: string; full_name: string; employee_number: string } | null;
     balance: number | null;
-    employees: { id: string; full_name: string; employee_number: string }[];
     entryTypes: string[];
     summary: { credits: number; debits: number; net: number };
 }) {
@@ -47,6 +48,8 @@ export default function LedgerIndex({
     const [loading, setLoading] = useState(false);
     const [dateFrom, setDateFrom] = useState(filters.date_from ?? '');
     const [dateTo, setDateTo] = useState(filters.date_to ?? '');
+    // Searched on the server through lookup.employees (SCL-10).
+    const [picked, setPicked] = useState<EmployeeOption | null>(employee);
 
     const inputCls =
         'w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
@@ -89,13 +92,32 @@ export default function LedgerIndex({
                     <h2 className="font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.ledgerFilters')}</h2>
                     <form className="mt-4 space-y-4" onSubmit={submit}>
                         <fieldset disabled={loading} className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                            <label className="space-y-2 text-sm text-gray-600 dark:text-slate-300"><span>{t('cafeteria.employeeInfo')}</span><select name="employee_id" defaultValue={filters.employee_id ?? ''} className={inputCls}><option value="">{t('common.all')}</option>{employees.map(person => <option key={person.id} value={person.id}>{person.employee_number} · {person.full_name}</option>)}</select></label>
+                            <div className="space-y-2 text-sm text-gray-600 dark:text-slate-300">
+                                <input type="hidden" name="employee_id" value={picked?.id ?? ''} />
+                                {picked ? (
+                                    <>
+                                        <span className="block">{t('cafeteria.employeeInfo')}</span>
+                                        <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-300 px-3 py-2.5 dark:border-slate-700">
+                                            <span className="min-w-0 truncate text-gray-900 dark:text-slate-100">{picked.employee_number} · {picked.full_name}</span>
+                                            <button type="button" className="text-xs font-medium text-[color:var(--color-primary)] hover:underline" onClick={() => setPicked(null)}>{t('common.change')}</button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <SearchPicker<EmployeeOption>
+                                        url={route('lookup.employees')}
+                                        label={t('cafeteria.employeeInfo')}
+                                        placeholder={t('common.searchEmployee')}
+                                        render={(person) => `${person.employee_number} · ${person.full_name}`}
+                                        onPick={setPicked}
+                                    />
+                                )}
+                            </div>
                             <label className="space-y-2 text-sm text-gray-600 dark:text-slate-300"><span>{t('cafeteria.entryType')}</span><select name="entry_type" defaultValue={filters.entry_type ?? ''} className={inputCls}><option value="">{t('common.all')}</option>{entryTypes.map(type => <option key={type} value={type}>{entryTypeLabel(type)}</option>)}</select></label>
                             <div className="space-y-2 text-sm text-gray-600 dark:text-slate-300"><label htmlFor="ledger-from">{t('cafeteria.ledgerDateFrom')}</label><LocalizedDatePicker id="ledger-from" className={inputCls} value={dateFrom} onChange={setDateFrom} /></div>
                             <div className="space-y-2 text-sm text-gray-600 dark:text-slate-300"><label htmlFor="ledger-to">{t('cafeteria.ledgerDateTo')}</label><LocalizedDatePicker id="ledger-to" className={inputCls} value={dateTo} min={dateFrom || undefined} onChange={setDateTo} /></div>
                         </fieldset>
                         {Object.entries(errors).map(([key, error]) => <p key={key} role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>)}
-                        <div className="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-slate-800"><button type="button" disabled={loading} onClick={() => navigate({}, true)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-slate-700 dark:text-slate-200">{t('common.clear')}</button><button type="submit" disabled={loading} className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{t('common.filter')}</button></div>
+                        <div className="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-slate-800"><button type="button" disabled={loading} onClick={() => { setPicked(null); navigate({}, true); }} className="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-slate-700 dark:text-slate-200">{t('common.clear')}</button><button type="submit" disabled={loading} className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{t('common.filter')}</button></div>
                     </form>
                 </section>
                 <section aria-label={t('cafeteria.ledgerSummary')}>

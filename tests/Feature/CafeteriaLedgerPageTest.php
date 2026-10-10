@@ -46,12 +46,15 @@ it('scopes entries employee choices and all-page totals and supports pagination'
     ledgerPageEntry($this->people[1], ['amount' => 999]);
     $this->actingAs($this->actor)->get(route('cafeteria.ledger.index'))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('Cafeteria/Ledger/Index')
-            ->has('entries', 50)->has('employees', 1)->where('meta.total', 51)
+            ->has('entries', 50)->missing('employees')->where('meta.total', 51)
             ->where('summary.credits', 510)->where('summary.debits', 0)
             ->where('entries.0.employee.employee_number', 'A'));
     $this->get(route('cafeteria.ledger.index', ['page' => 2]))->assertOk()
         ->assertInertia(fn (Assert $page) => $page->has('entries', 1)->where('meta.current_page', 2));
+    // The employee filter is a scoped server-side search (SCL-10), not a page prop.
     $this->get(route('cafeteria.ledger.index', ['employee_id' => $this->people[1]->id]))->assertNotFound();
+    $this->get(route('cafeteria.ledger.index', ['employee_id' => $this->people[0]->id]))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('employee.employee_number', 'A'));
 });
 
 it('filters by date and type without changing the selected employee current balance', function (): void {
