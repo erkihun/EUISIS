@@ -49,6 +49,10 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        // Liveness/readiness probes, outside the web group (no session per probe).
+        then: function (): void {
+            \Illuminate\Support\Facades\Route::group([], __DIR__.'/../routes/health.php');
+        },
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->prepend(RequestCorrelationId::class);
