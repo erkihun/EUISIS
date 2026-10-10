@@ -87,7 +87,13 @@ class CardPrintBatchController extends Controller
     {
         $this->authorize('view', $batch);
 
-        $batch->load(['creator', 'printer', 'items.card.employee.currentAssignment.organization']);
+        // Display fields only: never card holders' contact or birth data (SEC-9).
+        $batch->load([
+            'creator:id,name', 'printer:id,name',
+            'items.card.employee:id,employee_number,full_name,name_en,current_assignment_id',
+            'items.card.employee.currentAssignment:id,organization_id',
+            'items.card.employee.currentAssignment.organization:id,name_en,name_am',
+        ]);
 
         $user = request()->user();
 

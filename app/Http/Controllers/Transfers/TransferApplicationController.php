@@ -36,7 +36,8 @@ class TransferApplicationController extends Controller
 
         $scopeIds = $scopeService->accessibleOrganizationIds($user);
         $query = TransferApplication::query()
-            ->with(['employee', 'announcement.position', 'releasingOrganization', 'receivingOrganization'])
+            // Display fields only: never the applicant's contact or birth data (SEC-9).
+            ->with(['employee:id,employee_number,full_name,name_en', 'announcement.position', 'releasingOrganization', 'receivingOrganization'])
             ->when(! $scopeService->isUnrestricted($user), function ($query) use ($scopeIds): void {
                 $query->where(function ($scoped) use ($scopeIds): void {
                     $scoped->whereIn('releasing_organization_id', $scopeIds)
@@ -58,6 +59,8 @@ class TransferApplicationController extends Controller
         $this->authorize('view', $transferApplication);
 
         $transferApplication->load([
+            // Display fields only: never the applicant's contact or birth data (SEC-9).
+            'employee:id,employee_number,full_name,name_en,current_assignment_id',
             'employee.currentAssignment.position',
             'announcement.organization',
             'announcement.position',

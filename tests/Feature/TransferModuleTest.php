@@ -891,3 +891,23 @@ test('an approval of a stage the application has already left is refused', funct
         ->toThrow(DomainException::class);
     expect($application->fresh()->status)->toBe(TransferApplicationStatus::Approved);
 });
+
+test('transfer application pages send employee display fields only, not contact or birth data', function (): void {
+    [$from, $application] = makeScopedTransferPair('PII');
+    $application->employee->forceFill(['phone' => '0911000000', 'date_of_birth' => '1990-01-01', 'address' => 'Bole'])->save();
+    $actor = makeTransferActor('transfers.applications.view');
+
+    $this->actingAs($actor)->get(route('transfer-applications.index'))
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('applications.data.0.employee.employee_number', $application->employee->employee_number)
+            ->missing('applications.data.0.employee.phone')
+            ->missing('applications.data.0.employee.date_of_birth')
+            ->missing('applications.data.0.employee.address'));
+
+    $this->actingAs($actor)->get(route('transfer-applications.show', $application))
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->missing('application.employee.phone')
+            ->missing('application.employee.date_of_birth'));
+});
