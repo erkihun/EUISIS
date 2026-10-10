@@ -122,7 +122,7 @@ const home = {
     faq2Q: 'Is EUISIS only an Employee ID Card system?',
     faq2A: 'No. The ID card is one part. EUISIS also manages institution structure, positions, the employee registry, daily activity, performance, service feedback, grievances and employee services.',
     faq3Q: 'What services can the Employee ID Card support?',
-    faq3A: 'Cafeteria and transport services are supported through authorized providers. Consumer association, health, welfare and insurance-related verification are planned integrations.',
+    faq3A: 'Cafeteria services are supported through authorized providers. Transport, consumer association, health, welfare and insurance-related verification are planned integrations.',
     faq4Q: 'Does every employee automatically receive every service?',
     faq4A: 'No. Eligibility depends on approved policy, employment status, institution, service rules and the service provider’s authorization.',
     faq5Q: 'What happens when an employee transfers to another institution?',

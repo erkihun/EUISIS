@@ -601,8 +601,15 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const environmentLabel = getString('general.system_environment_label');
     const logoCentered = getString('appearance.logo_position', 'start') === 'center';
 
+    // Modules outside the current production scope (config/features.php) are never listed.
+    const features = (pageProps as { features?: Record<string, boolean> }).features ?? {};
+    const moduleEnabled = (routeName: string) => !(
+        (!features.transport && routeName.startsWith('transport.'))
+        || (!features.court_cases && routeName.startsWith('court-cases.'))
+    );
     // Keep the existing permission contract, including independently permitted child links.
-    const permitted = (item: NavSubItem) => (!item.permission || can(item.permission))
+    const permitted = (item: NavSubItem) => moduleEnabled(item.routeName)
+        && (!item.permission || can(item.permission))
         && (!item.anyPermission || item.anyPermission.some((permission) => can(permission)));
     const allowedItems = (items: NavItem[]): NavSubItem[] => items
         .filter(permitted)

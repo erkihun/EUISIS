@@ -60,6 +60,9 @@ class HandleInertiaRequests extends Middleware
             // Null on non-portal routes so the frontend can always type-check safely.
             'cafeteriaProviderAuth' => null,
 
+            // Module feature flags (config/features.php): hide out-of-scope modules.
+            'features' => \App\Support\Features::shared(),
+
             'locale' => $locale,
             'calendar' => [
                 'system' => $calendarSystem->value,

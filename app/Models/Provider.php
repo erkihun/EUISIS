@@ -119,6 +119,11 @@ class Provider extends Model
 
     public function hasService(string $serviceCode): bool
     {
+        // A service of a disabled module (config/features.php) is never offered.
+        if (! \App\Support\Features::serviceAvailable($serviceCode)) {
+            return false;
+        }
+
         return $this->services()
             ->where('status', 'active')
             ->whereHas('serviceType', fn ($query) => $query->where('code', $serviceCode)->where('is_active', true))

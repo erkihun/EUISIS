@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
+beforeEach(function (): void {
+    // Exercises a module that is feature-flagged off in production (config/features.php).
+    config(['features.transport' => true]);
+});
+
 /**
  * A provider-portal account whose provider runs the given services.
  *

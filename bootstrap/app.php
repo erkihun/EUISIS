@@ -66,6 +66,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->encryptCookies(except: [SetClientLocale::COOKIE]);
 
         $middleware->web(append: [
+            // Modules outside the current production scope (config/features.php) answer 404.
+            \App\Http\Middleware\BlockDisabledModules::class,
             SetClientLocale::class,
             EnforceSessionIdleTimeout::class,
             HandleInertiaRequests::class,

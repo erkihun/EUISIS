@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
+beforeEach(function (): void {
+    // Exercises a module that is feature-flagged off in production (config/features.php).
+    config(['features.court_cases' => true]);
+});
+
 /*
  * Court Cases is a planned standalone module (docs/court-cases.md): one
  * protected placeholder page behind court_cases.view, its own sidebar group,

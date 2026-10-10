@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Command } from 'cmdk';
 import { Dialog, Transition, TransitionChild, DialogPanel } from '@headlessui/react';
 import { Fragment } from 'react';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 /*
  * These are the same nav icons the sidebar renders, so they come from the same
  * set. They were previously pulled from `lucide-react` while the sidebar drew
@@ -105,8 +105,12 @@ export default function AppCommandPalette({ open, onClose }: Props) {
         }
     }, [open]);
 
+    // Modules outside the current production scope (config/features.php) are never offered.
+    const features = (usePage().props as { features?: Record<string, boolean> }).features ?? {};
     const visible = allEntries.filter(
-        (e) => !e.permission || can(e.permission),
+        (e) => (features.transport || !e.routeName.startsWith('transport.'))
+            && (features.court_cases || !e.routeName.startsWith('court-cases.'))
+            && (!e.permission || can(e.permission)),
     );
 
     // Group visible entries

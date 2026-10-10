@@ -9,6 +9,8 @@ use Spatie\Permission\Models\Role;
 use function Pest\Laravel\actingAs;
 
 beforeEach(function (): void {
+    // Exercises a module that is feature-flagged off in production (config/features.php).
+    config(['features.transport' => true]);
     foreach ([
         'roles.viewAny', 'permissions.viewAny', 'system-settings.view',
         'transport-reports.view', 'transport-settings.view', 'transport-providers.viewAny',
