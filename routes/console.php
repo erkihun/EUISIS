@@ -9,21 +9,21 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // API request logs grow with every integration call; keep 90 days.
-Schedule::command('api:prune-logs')->dailyAt('02:30');
+Schedule::command('api:prune-logs')->dailyAt('02:30')->withoutOverlapping()->onOneServer();
 
 // Challenge nonces are only meaningful until they expire; keep a short tail.
-Schedule::command('nfc:prune-challenges')->dailyAt('02:45');
+Schedule::command('nfc:prune-challenges')->dailyAt('02:45')->withoutOverlapping()->onOneServer();
 
 // Cafeteria policy status bookkeeping (approved → active, ended → expired).
 // Scans follow policy dates, so this only keeps the labels current.
-Schedule::command('cafeteria:sync-policy-statuses')->dailyAt('00:05');
+Schedule::command('cafeteria:sync-policy-statuses')->dailyAt('00:05')->withoutOverlapping()->onOneServer();
 
 // Daily activity reminders. Idempotent, so a frequent cadence only means
 // reminders land close to the configured time; each is sent at most once.
-Schedule::command('daily-activities:send-reminders')->everyFifteenMinutes()->withoutOverlapping();
+Schedule::command('daily-activities:send-reminders')->everyFifteenMinutes()->withoutOverlapping()->onOneServer();
 
 // Database backups themselves run independently under the infrastructure scheduler.
-Schedule::command('backup:health --monitor')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('backup:health --monitor')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 
 // Grievance SLA: reminders, automatic escalation of overdue stages, and
 // closure after the appeal window when enabled. Idempotent (row locks + a

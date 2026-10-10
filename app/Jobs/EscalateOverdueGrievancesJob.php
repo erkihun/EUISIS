@@ -21,6 +21,11 @@ class EscalateOverdueGrievancesJob implements ShouldBeUnique, ShouldQueue
 
     public int $timeout = 600;
 
+    public function __construct()
+    {
+        $this->onQueue('long');
+    }
+
     public function uniqueId(): string
     {
         return 'grievance-sla-sweep';

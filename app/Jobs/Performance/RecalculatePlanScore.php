@@ -25,7 +25,10 @@ class RecalculatePlanScore implements ShouldBeUnique, ShouldQueue
 
     public int $timeout = 600;
 
-    public function __construct(public string $planId, public string $asOf) {}
+    public function __construct(public string $planId, public string $asOf)
+    {
+        $this->onQueue('long');
+    }
 
     public function uniqueId(): string
     {

@@ -26,7 +26,13 @@ class NotifyEligibleTransferAudience implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public function __construct(public readonly string $announcementId) {}
+    /** Walks the eligible workforce: runs on the `long` queue, inside retry_after. */
+    public int $timeout = 600;
+
+    public function __construct(public readonly string $announcementId)
+    {
+        $this->onQueue('long');
+    }
 
     public function handle(
         TransferEligibilityService $eligibility,
