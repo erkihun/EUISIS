@@ -28,8 +28,12 @@ it('renders the new cafeteria exclusion page with employee names', function (): 
         'full_name' => 'Hana Girma', 'status' => EmployeeStatus::Active,
     ]);
 
+    // The form no longer ships an employee list (3M rows); it searches the
+    // scoped lookup, which must select only columns that exist.
     $this->actingAs($this->admin)->get(route('cafeteria.employee-exclusions.create'))->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('employees.0.name', 'Hana Girma')->where('employees.0.number', 'EXC-1'));
+        ->assertInertia(fn (Assert $page) => $page->missing('employees'));
+    $this->actingAs($this->admin)->getJson(route('lookup.employees', ['q' => 'Hana']))->assertOk()
+        ->assertJsonPath('data.0.full_name', 'Hana Girma')->assertJsonPath('data.0.employee_number', 'EXC-1');
 });
 
 it('answers the scan day endpoints without a cafeteria with a validation error', function (string $route): void {

@@ -3,12 +3,15 @@ import PageHeader from '@/Components/PageHeader';
 import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import SearchPicker from '@/Components/fieldWork/SearchPicker';
+import { useState } from 'react';
 
 type ExclusionTypeOption = { value: string; label: string };
-type EmployeeOption = { id: string; name: string; number: string };
+type EmployeeOption = { id: string; employee_number: string; full_name: string };
 
-export default function EmployeeExclusionCreate({ exclusion_types, employees }: { exclusion_types: ExclusionTypeOption[]; employees: EmployeeOption[] }) {
+export default function EmployeeExclusionCreate({ exclusion_types }: { exclusion_types: ExclusionTypeOption[] }) {
     const { t } = useLocale();
+    const [selected, setSelected] = useState<EmployeeOption | null>(null);
     const { data, setData, post, processing, errors } = useForm({
         employee_id: '',
         exclusion_type: exclusion_types[0]?.value ?? 'leave',
@@ -36,13 +39,25 @@ export default function EmployeeExclusionCreate({ exclusion_types, employees }: 
                 <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
                     <form onSubmit={submit} className="space-y-5">
                         <div>
-                            <label className={labelCls}>{t('common.employee')} *</label>
-                            <select className={inputCls} value={data.employee_id} onChange={e => setData('employee_id', e.target.value)}>
-                                <option value="">— select employee —</option>
-                                {employees.map(e => (
-                                    <option key={e.id} value={e.id}>{e.name} ({e.number})</option>
-                                ))}
-                            </select>
+                            {selected ? (
+                                <>
+                                    <span className={labelCls}>{t('common.employee')} *</span>
+                                    <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-slate-700">
+                                        <span>{selected.full_name} ({selected.employee_number})</span>
+                                        <button type="button" className="text-xs font-medium text-[color:var(--color-primary)] hover:underline" onClick={() => { setSelected(null); setData('employee_id', ''); }}>
+                                            {t('common.change')}
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <SearchPicker<EmployeeOption>
+                                    url={route('lookup.employees')}
+                                    label={`${t('common.employee')} *`}
+                                    placeholder={t('common.searchEmployee')}
+                                    render={(e) => `${e.full_name} (${e.employee_number})`}
+                                    onPick={(e) => { setSelected(e); setData('employee_id', e.id); }}
+                                />
+                            )}
                             {errors.employee_id && <p className={errorCls}>{errors.employee_id}</p>}
                         </div>
 

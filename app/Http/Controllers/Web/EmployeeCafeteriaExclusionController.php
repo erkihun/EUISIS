@@ -17,6 +17,7 @@ use App\Http\Requests\UpdateEmployeeCafeteriaExclusionRequest;
 use App\Http\Resources\EmployeeCafeteriaExclusionResource;
 use App\Models\Employee;
 use App\Models\EmployeeCafeteriaExclusion;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,8 +29,11 @@ class EmployeeCafeteriaExclusionController extends Controller
     {
         $this->authorize('viewAny', EmployeeCafeteriaExclusion::class);
 
+        $inScope = app(OrganizationScopeService::class)->employeeIdsInScope($request->user());
+
         $query = EmployeeCafeteriaExclusion::query()
             ->with('employee')
+            ->when($inScope !== null, fn ($q) => $q->whereIn('employee_id', $inScope))
             ->when($request->boolean('archived'), fn ($q) => $q->onlyTrashed(), fn ($q) => $q->withoutTrashed())
             ->when($request->string('status')->toString() !== '', fn ($q) => $q->where('status', $request->string('status')->toString()))
             ->when($request->string('employee_id')->toString() !== '', fn ($q) => $q->where('employee_id', $request->string('employee_id')->toString()))
@@ -43,7 +47,10 @@ class EmployeeCafeteriaExclusionController extends Controller
             'filters'          => $request->only(['search', 'archived', 'status']),
             'exclusion_types'  => collect(CafeteriaExclusionType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
             'status_options'   => collect(CafeteriaExclusionStatus::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
-            'active_count'     => EmployeeCafeteriaExclusion::query()->where('status', CafeteriaExclusionStatus::Active->value)->count(),
+            'active_count'     => EmployeeCafeteriaExclusion::query()
+                ->where('status', CafeteriaExclusionStatus::Active->value)
+                ->when($inScope !== null, fn ($q) => $q->whereIn('employee_id', $inScope))
+                ->count(),
             'can'              => ['create' => $request->user()?->can('create', EmployeeCafeteriaExclusion::class) ?? false],
         ]);
     }
@@ -53,13 +60,17 @@ class EmployeeCafeteriaExclusionController extends Controller
         $this->authorize('create', EmployeeCafeteriaExclusion::class);
 
         return Inertia::render('Cafeteria/EmployeeExclusions/Create', [
+            // Employees are searched through the scoped /lookup/employees endpoint.
             'exclusion_types' => collect(CafeteriaExclusionType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
-            'employees'       => Employee::query()->where('status', 'active')->select('id', 'full_name', 'employee_number')->get()->map(fn ($e) => ['id' => $e->id, 'name' => $e->full_name, 'number' => $e->employee_number]),
         ]);
     }
 
     public function store(StoreEmployeeCafeteriaExclusionRequest $request, CreateEmployeeCafeteriaExclusionAction $action): RedirectResponse
     {
+        $this->authorize('create', EmployeeCafeteriaExclusion::class);
+        $employee = Employee::query()->findOrFail($request->validated('employee_id'));
+        abort_unless(app(OrganizationScopeService::class)->canAccessEmployee($request->user(), $employee), 403);
+
         $action->execute($request->validated(), $request->user(), $request);
 
         return to_route('cafeteria.employee-exclusions.index')
