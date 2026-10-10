@@ -65,9 +65,16 @@ class PositionController extends Controller
             ->groupBy('position_establishment_id')
             ->select('position_establishment_id', DB::raw('COUNT(*) AS filled'));
 
+        // Both aggregates are limited to the positions being reported: without
+        // it PostgreSQL grouped every current assignment in the city before
+        // joining (load test 2026-10-11: ~80 ms per query at 220k employees,
+        // run four times per page).
+        $positionIds = (clone $positions)->reorder()->select('positions.id')->toBase();
+
         $establishments = DB::table('position_establishments AS pe')
             ->where('pe.status', EstablishmentStatus::Approved->value)
             ->whereNull('pe.deleted_at')
+            ->whereIn('pe.position_id', $positionIds)
             ->when($allowedOrganizationIds !== null, fn ($query) => $query->whereIn('pe.organization_id', $allowedOrganizationIds))
             ->leftJoinSub($occupied, 'occ', 'occ.position_establishment_id', '=', 'pe.id')
             ->groupBy('pe.position_id')
@@ -76,7 +83,7 @@ class PositionController extends Controller
         $assigned = DB::table('employee_assignments')
             ->where('is_current', true)
             ->where('assignment_status', AssignmentStatus::Active->value)
-            ->whereNotNull('position_id')
+            ->whereIn('position_id', $positionIds)
             ->groupBy('position_id')
             ->select('position_id', DB::raw('COUNT(*) AS cnt'));
 

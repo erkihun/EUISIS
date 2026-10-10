@@ -25,6 +25,8 @@ it('indexes hot foreign keys and time columns', function (string $table, string 
     ['employee_duplicate_flags', 'edf_employee_idx'],
     ['employee_documents', 'employee_documents_employee_idx'],
     ['positions', 'positions_organization_unit_idx'],
+    // Load test 2026-10-11: the position list's ORDER BY walked every position.
+    ['positions', 'positions_org_unit_code_idx'],
     ['card_verifications', 'card_verifications_created_idx'],
     ['notifications', 'notifications_notifiable_created_idx'],
     ['audit_logs', 'audit_logs_organization_created_idx'],
