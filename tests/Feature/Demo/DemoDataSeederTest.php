@@ -281,9 +281,9 @@ test('09 grievance: approved committee of existing employees, approved routes, a
     $members = $committee->members()->get();
     expect($committee->status)->toBe('active')
         ->and($committee->approved_by)->not->toBe($committee->created_by)
-        ->and($members)->toHaveCount(3)
-        ->and($members->pluck('role')->map(fn ($r) => $r instanceof BackedEnum ? $r->value : $r)->sort()->values()->all())->toBe(['chairperson', 'member', 'writer'])
-        ->and(Employee::query()->whereIn('id', $members->pluck('employee_id'))->count())->toBe(3);
+        ->and($members)->toHaveCount(5)
+        ->and($members->pluck('role')->map(fn ($r) => $r instanceof BackedEnum ? $r->value : $r)->sort()->values()->all())->toBe(['chairperson', 'member', 'member', 'member', 'writer'])
+        ->and(Employee::query()->whereIn('id', $members->pluck('employee_id'))->count())->toBe(5);
 
     expect(GrievanceRoute::query()->whereNotNull('approved_at')->count())->toBe(3);
 

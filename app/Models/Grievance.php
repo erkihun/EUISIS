@@ -11,11 +11,13 @@ use App\Enums\Grievance\GrievanceRecordState;
 use App\Enums\GrievanceOriginLevel;
 use App\Enums\GrievanceStatus;
 use App\Models\Concerns\HasUuidPrimaryKey;
+use App\Support\Legal\Regulation201;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 
 /**
  * A formal employee grievance case (docs/grievance-management.md).
@@ -155,7 +157,7 @@ class Grievance extends Model
      * The deadline that legally governs $ruleKey. The statutory snapshot is
      * authoritative and always wins over any internal SLA target (spec §70).
      */
-    public function effectiveDeadline(string $ruleKey): ?\Illuminate\Support\Carbon
+    public function effectiveDeadline(string $ruleKey): ?Carbon
     {
         return $this->statutoryDeadline($ruleKey)?->due_at;
     }
@@ -179,9 +181,9 @@ class Grievance extends Model
         };
 
         return [
-            'committee_report' => $overdue(\App\Support\Legal\Regulation201::GRIEVANCE_COMMITTEE_REPORT),
-            'head_decision' => $overdue(\App\Support\Legal\Regulation201::GRIEVANCE_HEAD_DECISION),
-            'decision_delivery' => $overdue(\App\Support\Legal\Regulation201::GRIEVANCE_DECISION_DELIVERY),
+            'committee_report' => $overdue(Regulation201::GRIEVANCE_COMMITTEE_REPORT),
+            'head_decision' => $overdue(Regulation201::GRIEVANCE_HEAD_DECISION),
+            'decision_delivery' => $overdue(Regulation201::GRIEVANCE_DECISION_DELIVERY),
         ];
     }
 

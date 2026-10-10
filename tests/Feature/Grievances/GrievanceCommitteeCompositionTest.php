@@ -28,7 +28,7 @@ function committeeApprover(GrievanceScenario $s): \App\Models\User
  * Seat one member on $committee. $gender only matters for elected members
  * (the "at least one woman" rule).
  */
-function seat(GrievanceCommittee $committee, GrievanceScenario $s, string $role, string $source, ?string $gender = null): void
+function seatGrievanceMember(GrievanceCommittee $committee, GrievanceScenario $s, string $role, string $source, ?string $gender = null): void
 {
     $employee = GrievanceScenario::employee($s->woreda, $s->woredaUnit);
     if ($gender !== null) {
@@ -59,21 +59,21 @@ function pendingGrievanceCommittee(GrievanceScenario $s): GrievanceCommittee
 
 function seatStatutoryFive(GrievanceCommittee $committee, GrievanceScenario $s): void
 {
-    seat($committee, $s, 'chairperson', Source::AppointedByHead->value);
-    seat($committee, $s, 'writer', Source::HrRepresentative->value);
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'female');
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seatGrievanceMember($committee, $s, 'chairperson', Source::AppointedByHead->value);
+    seatGrievanceMember($committee, $s, 'writer', Source::HrRepresentative->value);
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'female');
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
 }
 
 it('refuses to approve a grievance committee without exactly five members', function () {
     $s = GrievanceScenario::build(withRoutes: false, withSla: false);
     $committee = pendingGrievanceCommittee($s);
     // Only four members.
-    seat($committee, $s, 'chairperson', Source::AppointedByHead->value);
-    seat($committee, $s, 'writer', Source::HrRepresentative->value);
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'female');
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seatGrievanceMember($committee, $s, 'chairperson', Source::AppointedByHead->value);
+    seatGrievanceMember($committee, $s, 'writer', Source::HrRepresentative->value);
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'female');
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
 
     app(GrievanceCommitteeService::class)->approve($committee->refresh(), committeeApprover($s));
 })->throws(ValidationException::class);
@@ -81,11 +81,11 @@ it('refuses to approve a grievance committee without exactly five members', func
 it('refuses to approve when the chair is not appointed by the head', function () {
     $s = GrievanceScenario::build(withRoutes: false, withSla: false);
     $committee = pendingGrievanceCommittee($s);
-    seat($committee, $s, 'chairperson', Source::ElectedByEmployees->value); // wrong source
-    seat($committee, $s, 'writer', Source::HrRepresentative->value);
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'female');
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seatGrievanceMember($committee, $s, 'chairperson', Source::ElectedByEmployees->value); // wrong source
+    seatGrievanceMember($committee, $s, 'writer', Source::HrRepresentative->value);
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'female');
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
 
     app(GrievanceCommitteeService::class)->approve($committee->refresh(), committeeApprover($s));
 })->throws(ValidationException::class);
@@ -103,11 +103,11 @@ it('approves a statutorily complete grievance committee', function () {
 it('refuses approval when no elected member is a woman', function () {
     $s = GrievanceScenario::build(withRoutes: false, withSla: false);
     $committee = pendingGrievanceCommittee($s);
-    seat($committee, $s, 'chairperson', Source::AppointedByHead->value);
-    seat($committee, $s, 'writer', Source::HrRepresentative->value);
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seatGrievanceMember($committee, $s, 'chairperson', Source::AppointedByHead->value);
+    seatGrievanceMember($committee, $s, 'writer', Source::HrRepresentative->value);
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
 
     app(GrievanceCommitteeService::class)->approve($committee->refresh(), committeeApprover($s));
 })->throws(ValidationException::class);
@@ -115,12 +115,12 @@ it('refuses approval when no elected member is a woman', function () {
 it('does not treat unknown gender as satisfying the woman requirement', function () {
     $s = GrievanceScenario::build(withRoutes: false, withSla: false);
     $committee = pendingGrievanceCommittee($s);
-    seat($committee, $s, 'chairperson', Source::AppointedByHead->value);
-    seat($committee, $s, 'writer', Source::HrRepresentative->value);
+    seatGrievanceMember($committee, $s, 'chairperson', Source::AppointedByHead->value);
+    seatGrievanceMember($committee, $s, 'writer', Source::HrRepresentative->value);
     // All three elected members have no recorded gender.
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, null);
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, null);
-    seat($committee, $s, 'member', Source::ElectedByEmployees->value, null);
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, null);
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, null);
+    seatGrievanceMember($committee, $s, 'member', Source::ElectedByEmployees->value, null);
 
     app(GrievanceCommitteeService::class)->approve($committee->refresh(), committeeApprover($s));
 })->throws(ValidationException::class);

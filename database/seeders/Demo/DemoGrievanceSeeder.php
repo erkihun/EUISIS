@@ -22,9 +22,10 @@ use App\Support\Demo\DemoDataset;
  * A small Grievance Management dataset for Organization 5, through the
  * grievance services and with separation of duties as in production:
  *
- *   - a grievance committee (chairperson, writer, member — existing demo
- *     employees) created by the DEMO Grievance Administrator and approved by
- *     the DEMO City Admin;
+ *   - a grievance committee of five statutory members (Reg. 201/2018 Art. 30:
+ *     an appointed chair, an HR writer/secretary, and three elected members
+ *     including women) created by the DEMO Grievance Administrator and approved
+ *     by the DEMO City Admin;
  *   - routes: Organization 5 → its committee → Organization 4's Customer
  *     Service Team → Organization 4's Human Resource Directorate (routes and
  *     categories are saved as the settings pages save them, then approved by
@@ -104,10 +105,21 @@ class DemoGrievanceSeeder extends DemoSeeder
             'effective_from' => $from,
         ]);
 
-        foreach (['E-5-2' => 'chairperson', 'E-5-3' => 'writer', 'E-5-4' => 'member'] as $employeeKey => $role) {
+        // Regulation 201/2018 Art. 30: five voting members — a chair appointed
+        // by the head, three elected members (at least one woman: E-5-2 and
+        // E-5-4 are female), and an HR professional serving as writer/secretary.
+        $members = [
+            ['E-5-1', 'chairperson', 'appointed'],
+            ['E-5-3', 'writer', 'hr_representative'],
+            ['E-5-2', 'member', 'elected'],
+            ['E-5-4', 'member', 'elected'],
+            ['E-5-5', 'member', 'elected'],
+        ];
+        foreach ($members as [$employeeKey, $role, $selectionSource]) {
             $committees->addMember($committee, $admin, [
                 'employee_id' => DemoDataset::requireEmployee($employeeKey)->id,
                 'role' => $role,
+                'selection_source' => $selectionSource,
                 'effective_from' => $from,
                 'appointment_reference' => 'DEMO-APPOINTMENT',
             ]);
