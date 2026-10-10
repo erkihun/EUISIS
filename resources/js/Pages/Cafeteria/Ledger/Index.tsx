@@ -137,7 +137,7 @@ export default function LedgerIndex({
                 )}
 
                 <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <div className="flex flex-wrap justify-between gap-2 border-b border-[color:var(--app-border)] px-5 py-4"><h2 className="font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.ledger')}</h2><p className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.transactionResults').replace(':from', String(entries.length ? (meta.current_page - 1) * meta.per_page + 1 : 0)).replace(':to', String(entries.length ? (meta.current_page - 1) * meta.per_page + entries.length : 0)).replace(':total', String(meta.total))}</p></div>
+                    <div className="flex flex-wrap justify-between gap-2 border-b border-[color:var(--app-border)] px-5 py-4"><h2 className="font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.ledger')}</h2><p className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.transactionResults').replace(':from', String(entries.length ? (meta.current_page - 1) * meta.per_page + 1 : 0)).replace(/:to\b/, String(entries.length ? (meta.current_page - 1) * meta.per_page + entries.length : 0)).replace(':total', String(meta.total))}</p></div>
                     {entries.length === 0 ? (
                         <EmptyState title={t('common.noResults')} />
                     ) : (

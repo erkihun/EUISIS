@@ -233,7 +233,7 @@ export default function EmployeesIndex({
     const resultTotal = employees_pagination?.total ?? employees.length;
     const resultStart = employees.length === 0 ? 0 : ((employees_pagination?.current_page ?? 1) - 1) * (employees_pagination?.per_page ?? employees.length) + 1;
     const resultEnd = employees.length === 0 ? 0 : resultStart + employees.length - 1;
-    const resultSummary = t('employees.registryResults').replace(':from', countFormat.format(resultStart)).replace(':to', countFormat.format(resultEnd)).replace(':total', countFormat.format(resultTotal));
+    const resultSummary = t('employees.registryResults').replace(':from', countFormat.format(resultStart)).replace(/:to\b/, countFormat.format(resultEnd)).replace(':total', countFormat.format(resultTotal));
 
     /* Columns carry their own sort key so the header row and the query agree on
      * what is sortable; the assignment columns live on a joined table and are

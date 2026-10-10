@@ -227,7 +227,7 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                             <span>
                                 {t('serviceFeedback.showingRange')
                                     .replace(':from', String(feedback.from ?? 0))
-                                    .replace(':to', String(feedback.to ?? 0))
+                                    .replace(/:to\b/, String(feedback.to ?? 0))
                                     .replace(':total', feedback.total.toLocaleString())}
                             </span>
                             <PaginatorLinks links={feedback.links} label={t('serviceFeedback.pagination')} />

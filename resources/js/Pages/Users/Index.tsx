@@ -109,7 +109,7 @@ export default function UsersIndex({
     const end = users.length === 0 ? 0 : start + users.length - 1;
     const resultSummary = t('users.results')
         .replace(':from', countFormat.format(start))
-        .replace(':to', countFormat.format(end))
+        .replace(/:to\b/, countFormat.format(end))
         .replace(':total', countFormat.format(total));
 
     const inputCls = cx(inputClassName, 'w-full');

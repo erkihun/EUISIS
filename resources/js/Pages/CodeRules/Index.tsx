@@ -169,7 +169,7 @@ export default function CodeRulesIndex({
                 </section>
 
                 <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[color:var(--app-muted-foreground)]">
-                    <span>{t('codeRules.showingResults').replace(':from', String(codeRules.meta.from ?? 0)).replace(':to', String(codeRules.meta.to ?? 0)).replace(':total', String(codeRules.meta.total))}</span>
+                    <span>{t('codeRules.showingResults').replace(':from', String(codeRules.meta.from ?? 0)).replace(/:to\b/, String(codeRules.meta.to ?? 0)).replace(':total', String(codeRules.meta.total))}</span>
                     <div className="flex gap-2">
                         <button
                             type="button"

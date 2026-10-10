@@ -32,7 +32,7 @@ export default function TransactionsIndex({ transactions, meta, filters, provide
     const money = new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const start = transactions.length ? (meta.current_page - 1) * meta.per_page + 1 : 0;
     const end = transactions.length ? start + transactions.length - 1 : 0;
-    const resultsLabel = t('cafeteria.transactionResults').replace(':from', String(start)).replace(':to', String(end)).replace(':total', String(meta.total));
+    const resultsLabel = t('cafeteria.transactionResults').replace(':from', String(start)).replace(/:to\b/, String(end)).replace(':total', String(meta.total));
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();

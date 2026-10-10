@@ -312,7 +312,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                 <span>
                                     {t('providers.showingRange')
                                         .replace(':from', String(providers.from ?? 0))
-                                        .replace(':to', String(providers.to ?? 0))
+                                        .replace(/:to\b/, String(providers.to ?? 0))
                                         .replace(':total', providers.total.toLocaleString())}
                                 </span>
                                 <PaginatorLinks links={providers.links} label={t('providers.pagination')} />
