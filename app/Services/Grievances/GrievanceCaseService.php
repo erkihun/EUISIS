@@ -37,6 +37,8 @@ use App\Models\GrievanceNote;
 use App\Models\GrievanceReasonCode;
 use App\Models\GrievanceTask;
 use App\Models\User;
+use App\Services\Legal\StatutoryDeadlineService;
+use App\Support\Legal\Regulation201;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -278,7 +280,11 @@ final class GrievanceCaseService
 
         $category = $this->activeCategory($data['category_id'] ?? null);
 
-        $grievance = DB::transaction(function () use ($actor, $data, $issue, $category): Grievance {
+        $deadlines = app(StatutoryDeadlineService::class);
+        $clockStart = $issue->resolved_at ?? now();
+        $filingDueAt = $deadlines->dueAt(Regulation201::GRIEVANCE_COMMITTEE_FILING, $clockStart);
+
+        $grievance = DB::transaction(function () use ($actor, $data, $issue, $category, $clockStart, $filingDueAt, $deadlines): Grievance {
             $grievance = Grievance::query()->create([
                 'reference_number' => 'DRAFT-'.strtoupper((string) Str::ulid()),
                 'submitted_by_user_id' => $actor->getKey(),
@@ -301,10 +307,14 @@ final class GrievanceCaseService
                 'confidentiality_level' => GrievanceConfidentiality::tryFrom((string) $category->default_confidentiality) ?? GrievanceConfidentiality::NormalConfidential,
                 'status' => GrievanceStatus::Draft,
                 'record_state' => GrievanceRecordState::Active,
+                'filing_clock_started_at' => $clockStart,
+                'filing_deadline_at' => $filingDueAt,
+                'is_late_submission' => now()->greaterThan($filingDueAt),
                 'metadata' => ['requested_remedy' => $data['requested_remedy'] ?? null],
             ]);
 
             $issue->update(['grievance_id' => $grievance->getKey()]);
+            $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_COMMITTEE_FILING, $clockStart);
             $this->audit->record(AuditEventType::GrievanceDraftCreated, $actor, $grievance, [
                 'category_id' => $category->getKey(),
                 'initial_issue_id' => $issue->getKey(),
