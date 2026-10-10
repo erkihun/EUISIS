@@ -6,6 +6,8 @@ use App\Enums\Grievance\GrievanceInitialResolutionOutcome as Outcome;
 use App\Models\Grievance;
 use App\Models\StatutoryDeadline;
 use App\Services\Grievances\GrievanceCaseService;
+use App\Services\Grievances\GrievanceDecisionService;
+use App\Services\Grievances\GrievanceEscalationService;
 use App\Services\Legal\StatutoryDeadlineService;
 use App\Support\Legal\Regulation201;
 use Illuminate\Support\Carbon;
@@ -55,4 +57,39 @@ it('snapshots a 15-working-day committee-report deadline on acceptance', functio
     $expected = app(StatutoryDeadlineService::class)
         ->dueAt(Regulation201::GRIEVANCE_COMMITTEE_REPORT, $deadline->started_at);
     expect($deadline->due_at->toDateTimeString())->toBe($expected->toDateTimeString());
+});
+
+it('snapshots the 10-wd head-decision on submission and the 5-wd delivery on finalize', function () {
+    Carbon::setTestNow(Carbon::parse('2026-10-05 09:00:00')); // Monday
+    $scenario = GrievanceScenario::build();
+    $scenario->requireDirectorateApproval();
+    $grievance = acceptedGrievance($scenario);
+
+    // Escalate twice (committee → team → directorate, where approval is required),
+    // past each stage's SLA timeout, matching the committee 3-wd / team 10-wd seed.
+    Carbon::setTestNow(Carbon::parse('2026-10-09 10:00:00'));
+    app(GrievanceEscalationService::class)->autoEscalate($grievance->refresh()->current_stage_id);
+    Carbon::setTestNow(Carbon::parse('2026-10-26 10:00:00'));
+    app(GrievanceEscalationService::class)->autoEscalate($grievance->refresh()->current_stage_id);
+    $grievance->refresh();
+    expect($grievance->currentStage->handler_id)->toBe($scenario->directorate->id);
+
+    $decisions = app(GrievanceDecisionService::class);
+    $decision = $decisions->createDraft($grievance, $scenario->directorateOfficer, [
+        'decision_type' => 'upheld', 'decision_text' => 'Upheld.', 'findings' => 'F',
+    ]);
+    $decision = $decisions->submitForApproval($decision, $scenario->directorateOfficer);
+
+    $head = openDeadline($grievance, Regulation201::GRIEVANCE_HEAD_DECISION);
+    expect($head)->not->toBeNull();
+    expect($head->amount)->toBe(10);
+
+    $decisions->approve($decision, $scenario->approver, null);
+    $decisions->finalize($decision->refresh(), $scenario->directorateOfficer);
+
+    // Head-decision deadline is completed; delivery (5 wd) is now open.
+    expect($head->refresh()->completed_at)->not->toBeNull();
+    $delivery = openDeadline($grievance, Regulation201::GRIEVANCE_DECISION_DELIVERY);
+    expect($delivery)->not->toBeNull();
+    expect($delivery->amount)->toBe(5);
 });

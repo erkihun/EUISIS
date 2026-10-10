@@ -16,6 +16,8 @@ use App\Enums\Grievance\GrievanceStageStatus;
 use App\Enums\Grievance\GrievanceVoteType;
 use App\Enums\GrievanceStatus;
 use App\Models\Grievance;
+use App\Services\Legal\StatutoryDeadlineService;
+use App\Support\Legal\Regulation201;
 use App\Models\GrievanceCaseStage;
 use App\Models\GrievanceDecision;
 use App\Models\GrievanceDecisionApproval;
@@ -238,6 +240,10 @@ final class GrievanceDecisionService
             $this->logAction($decision, $actor, GrievanceApprovalAction::SubmitForApproval, null);
             $this->cases->setWorkingStatus($grievance->setRelation('currentStage', $decision->stage), GrievanceStageStatus::PendingApproval);
 
+            // Regulation 201/2018 Art. 35(1): the institution head decides on the
+            // grievance report within 10 working days of receiving it.
+            app(StatutoryDeadlineService::class)->snapshot($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, now());
+
             $this->audit->record(AuditEventType::GrievanceDecisionSubmittedForApproval, $actor, $decision, ['version_no' => $decision->version_no, 'approver_position_id' => $requirement['position_id']]);
             $this->timeline->record($grievance, 'decision_submitted_for_approval', $actor, ['version_no' => $decision->version_no], $decision->case_stage_id);
             $this->notifier->toUsers(array_map(fn ($a) => $a['user'], $approvers), 'decision_submitted', $grievance, '/grievances/approvals');
@@ -307,6 +313,12 @@ final class GrievanceDecisionService
             ])->save();
             $decision->stage->forceFill(['decision_id' => $decision->getKey()])->save();
             $this->logAction($decision, $actor, GrievanceApprovalAction::Finalize, null);
+
+            // The head-decision deadline (Art. 35(1)) is met at finalization, and
+            // the Art. 35(2) 5-working-day delivery clock starts now.
+            $deadlines = app(StatutoryDeadlineService::class);
+            $deadlines->complete($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, now());
+            $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_DECISION_DELIVERY, now());
 
             $this->audit->record(AuditEventType::GrievanceDecisionFinalized, $actor, $decision, ['decision_no' => $decision->decision_no]);
             $this->timeline->record($grievance, 'decision_finalized', $actor, ['decision_no' => $decision->decision_no], $decision->case_stage_id);
