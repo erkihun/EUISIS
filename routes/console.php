@@ -14,6 +14,10 @@ Schedule::command('api:prune-logs')->dailyAt('02:30')->withoutOverlapping()->onO
 // Challenge nonces are only meaningful until they expire; keep a short tail.
 Schedule::command('nfc:prune-challenges')->dailyAt('02:45')->withoutOverlapping()->onOneServer();
 
+// Retention (config/retention.php; audit logs follow Security → Audit
+// Retention Days). Financial, employee-history and case records are never pruned.
+Schedule::command('data:prune-retention')->dailyAt('03:15')->withoutOverlapping()->onOneServer();
+
 // Cafeteria policy status bookkeeping (approved → active, ended → expired).
 // Scans follow policy dates, so this only keeps the labels current.
 Schedule::command('cafeteria:sync-policy-statuses')->dailyAt('00:05')->withoutOverlapping()->onOneServer();
