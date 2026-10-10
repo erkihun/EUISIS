@@ -317,6 +317,12 @@ final class GrievanceDecisionService
             // The head-decision deadline (Art. 35(1)) is met at finalization, and
             // the Art. 35(2) 5-working-day delivery clock starts now.
             $deadlines = app(StatutoryDeadlineService::class);
+            // Without an executive-approval step, submitForApproval() never ran,
+            // so the report reaches the deciding authority at finalization:
+            // record the Art. 35(1) clock here so it is tracked on every path.
+            if ($grievance->statutoryDeadline(Regulation201::GRIEVANCE_HEAD_DECISION) === null) {
+                $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, now());
+            }
             $deadlines->complete($grievance, Regulation201::GRIEVANCE_HEAD_DECISION, now());
             $deadlines->snapshot($grievance, Regulation201::GRIEVANCE_DECISION_DELIVERY, now());
 
