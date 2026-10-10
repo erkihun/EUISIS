@@ -35,7 +35,8 @@ class UploadSystemAssetAction
         ]);
 
         $oldPath = $existing->value;
-        $extension = $file->getClientOriginalExtension() ?: $file->extension() ?: 'bin';
+        // From the detected content, never the uploader's file name (SEC-10).
+        $extension = \App\Support\Storage\PublicImageExtension::for($file);
         $path = $file->storeAs(
             'system-assets/'.SystemSettingsRegistry::GROUP_GENERAL,
             sprintf('%s-%s.%s', $key, Str::uuid7(), strtolower($extension)),

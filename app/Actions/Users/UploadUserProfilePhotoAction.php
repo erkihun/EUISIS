@@ -24,7 +24,8 @@ class UploadUserProfilePhotoAction
             Storage::disk('public')->delete($user->profile_photo_path);
         }
 
-        $ext = $photo->getClientOriginalExtension();
+        // From the detected content, never the uploader's file name (SEC-10).
+        $ext = \App\Support\Storage\PublicImageExtension::for($photo);
         $path = $photo->storeAs(
             "users/profile-photos/{$user->id}",
             Str::uuid().'.'.$ext,

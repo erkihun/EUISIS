@@ -59,7 +59,8 @@ readonly class CreateOrganizationAction
             $organization = Organization::query()->create($attributes);
 
             if ($logoFile !== null) {
-                $ext = $logoFile->getClientOriginalExtension();
+                // From the detected content, never the uploader's file name (SEC-10).
+                $ext = \App\Support\Storage\PublicImageExtension::for($logoFile);
                 $path = $logoFile->storeAs(
                     "organizations/logos/{$organization->id}",
                     Str::uuid().'.'.$ext,
