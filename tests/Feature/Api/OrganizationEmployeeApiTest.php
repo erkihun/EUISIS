@@ -404,6 +404,25 @@ it('supports depth=employee with a safe employee summary', function (): void {
         ->not->toContain('0911000000');
 });
 
+it('refuses a structure larger than the node limit and points to the paginated endpoints', function (): void {
+    // Decision 2026-10-11: one nested document is kept for normal
+    // organizations; past api.structure_max_nodes a 100k-employee bureau
+    // would be a multi-megabyte response, so callers page the flat lists.
+    config(['api.structure_max_nodes' => 1]);
+    [, $token] = orgDataApplication();
+
+    $this->withToken($token)
+        ->getJson("/api/v1/organizations/{$this->org->id}/structure?depth=employee")
+        ->assertStatus(422)
+        ->assertJsonPath('error_code', 'structure_too_large')
+        ->assertJsonPath('max_nodes', 1)
+        ->assertJsonFragment(['employees' => "/api/v1/organizations/{$this->org->id}/employees"]);
+
+    $this->withToken($token)
+        ->getJson("/api/v1/organizations/{$this->org->id}/structure?depth=unit")
+        ->assertOk();
+});
+
 it('falls back to depth=position for an unknown depth', function (): void {
     [, $token] = orgDataApplication();
 

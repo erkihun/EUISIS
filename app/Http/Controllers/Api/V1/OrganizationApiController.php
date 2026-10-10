@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Api\V1\Concerns\FiltersOrganizationData;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\EmployeeAssignment;
 use App\Models\Organization;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
@@ -130,6 +131,31 @@ class OrganizationApiController extends Controller
 
         if (! in_array($depth, self::DEPTHS, true)) {
             $depth = 'position';
+        }
+
+        // One nested document stays the contract for normal organizations.
+        // Past api.structure_max_nodes positions (plus occupants at employee
+        // depth) the document would run to megabytes for a large bureau, so
+        // the caller is pointed at the paginated flat endpoints instead.
+        // Units alone are always returned.
+        if ($depth !== 'unit') {
+            $nodes = Position::query()->where('organization_id', $organization->getKey())->count()
+                + ($depth === 'employee'
+                    ? EmployeeAssignment::query()->where('organization_id', $organization->getKey())->where('is_current', true)->count()
+                    : 0);
+            $limit = (int) config('api.structure_max_nodes', 10000);
+
+            if ($nodes > $limit) {
+                $base = "/api/v1/organizations/{$organization->getKey()}";
+
+                return response()->json([
+                    'message' => __('The structure is too large for one document; use the paginated endpoints.'),
+                    'error_code' => 'structure_too_large',
+                    'max_nodes' => $limit,
+                    'nodes' => $nodes,
+                    'paginated_endpoints' => ['units' => "{$base}/units", 'positions' => "{$base}/positions", 'employees' => "{$base}/employees"],
+                ], 422);
+            }
         }
 
         $organization->load('type:id,code,name_en,name_am');

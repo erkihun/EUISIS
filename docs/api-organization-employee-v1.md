@@ -239,6 +239,28 @@ Organization
 
 An unrecognised value falls back to `position`.
 
+### Size limit
+
+One document is meant for normal organizations. When an organization has
+more than `API_STRUCTURE_MAX_NODES` nodes (default 10,000; positions, plus
+current occupants at `depth=employee`) the endpoint answers `422` with
+`error_code: structure_too_large` and the paginated endpoints to use instead.
+`depth=unit` is always served.
+
+```json
+{
+  "message": "The structure is too large for one document; use the paginated endpoints.",
+  "error_code": "structure_too_large",
+  "max_nodes": 10000,
+  "nodes": 48210,
+  "paginated_endpoints": {
+    "units": "/api/v1/organizations/9c1f.../units",
+    "positions": "/api/v1/organizations/9c1f.../positions",
+    "employees": "/api/v1/organizations/9c1f.../employees"
+  }
+}
+```
+
 ### Sample response (`depth=employee`)
 
 ```json
@@ -350,6 +372,7 @@ asked for a delta.
 | `404` | — | Organization, unit, position or employee not found |
 | `404` | `assignment_not_found` | Employee has no current assignment |
 | `422` | — | Invalid query parameter (e.g. malformed `updated_after`) |
+| `422` | `structure_too_large` | Structure document above the node limit; use the paginated endpoints it names (§5) |
 | `429` | `rate_limit_exceeded` | Per-application rate limit exceeded; see `Retry-After` |
 
 `error_code` values are lowercase snake_case on the wire, unchanged from the
