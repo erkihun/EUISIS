@@ -35,6 +35,7 @@ use App\Models\GrievanceDisciplinaryReferral;
 use App\Models\GrievanceInitialIssue;
 use App\Models\GrievanceNote;
 use App\Models\GrievanceReasonCode;
+use App\Models\GrievanceStatusHistory;
 use App\Models\GrievanceTask;
 use App\Models\User;
 use App\Services\Legal\StatutoryDeadlineService;
@@ -323,7 +324,57 @@ final class GrievanceCaseService
             return $grievance;
         });
 
-        return $this->submit($grievance, $actor);
+        $submitted = $this->submit($grievance, $actor);
+        $this->recordStatusTransition($submitted, GrievanceStatus::Draft, GrievanceStatus::Submitted, $actor, 'formal_submission');
+
+        return $submitted;
+    }
+
+    /**
+     * Record the force-majeure late-filing review (Regulation 201/2018
+     * Art. 33(2)). A late filing is never auto-accepted; only an authorized
+     * intake reviewer may accept or reject it.
+     */
+    public function reviewLateSubmission(Grievance $grievance, User $actor, bool $accept, string $reason): Grievance
+    {
+        $this->access->authorize($actor->can('grievances.intake_review'));
+
+        return DB::transaction(function () use ($grievance, $actor, $accept, $reason): Grievance {
+            $grievance = $this->lock($grievance);
+            if (! $grievance->is_late_submission) {
+                throw ValidationException::withMessages(['grievance' => __('grievances.errors.not_late_submission')]);
+            }
+            $grievance->forceFill([
+                'late_review_status' => $accept ? 'accepted' : 'rejected',
+                'late_reviewed_by' => $actor->getKey(),
+                'late_reviewed_at' => now(),
+                'late_decision_reason' => $reason,
+            ])->save();
+
+            $this->audit->record(AuditEventType::GrievanceSubmitted, $actor, $grievance, [
+                'late_review_status' => $grievance->late_review_status,
+            ]);
+
+            return $grievance->refresh();
+        });
+    }
+
+    private function recordStatusTransition(
+        Grievance $grievance,
+        ?GrievanceStatus $from,
+        GrievanceStatus $to,
+        ?User $actor,
+        ?string $reason = null,
+    ): void {
+        GrievanceStatusHistory::query()->create([
+            'grievance_id' => $grievance->getKey(),
+            'from_status' => $from?->value,
+            'to_status' => $to->value,
+            'actor_user_id' => $actor?->getKey(),
+            'actor_employee_id' => $actor?->employee_id,
+            'reason' => $reason,
+            'transitioned_at' => now(),
+        ]);
     }
 
     // ── Submission and intake ────────────────────────────────────────────────
