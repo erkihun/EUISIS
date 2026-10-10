@@ -160,6 +160,31 @@ class Grievance extends Model
         return $this->statutoryDeadline($ruleKey)?->due_at;
     }
 
+    /**
+     * Operational overdue flags (spec §69), derived from the open statutory
+     * deadlines. These never change the legal workflow status — a passed
+     * deadline is reported, not silently advanced.
+     *
+     * @return array{committee_report: bool, head_decision: bool, decision_delivery: bool}
+     */
+    public function overdueFlags(): array
+    {
+        $overdue = function (string $ruleKey): bool {
+            $deadline = $this->statutoryDeadline($ruleKey);
+
+            return $deadline !== null
+                && $deadline->completed_at === null
+                && $deadline->due_at !== null
+                && now()->greaterThan($deadline->due_at);
+        };
+
+        return [
+            'committee_report' => $overdue(\App\Support\Legal\Regulation201::GRIEVANCE_COMMITTEE_REPORT),
+            'head_decision' => $overdue(\App\Support\Legal\Regulation201::GRIEVANCE_HEAD_DECISION),
+            'decision_delivery' => $overdue(\App\Support\Legal\Regulation201::GRIEVANCE_DECISION_DELIVERY),
+        ];
+    }
+
     public function submittedByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'submitted_by_user_id');
