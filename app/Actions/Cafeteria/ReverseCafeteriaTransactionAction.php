@@ -86,6 +86,10 @@ readonly class ReverseCafeteriaTransactionAction
                 );
             }
 
+            // The provider-portal ledger is debited for a credited scan, in the
+            // same transaction, so the provider balance follows reversals (CON-9).
+            app(\App\Services\Cafeteria\CafeteriaProviderLedgerService::class)->reverse($transaction, $actor->id);
+
             return $transaction;
         });
 

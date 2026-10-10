@@ -53,6 +53,8 @@ class CafeteriaProvider extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'metadata' => 'array',
+        // Running provider-portal ledger balance (CafeteriaProviderLedgerService).
+        'ledger_balance' => 'decimal:2',
         'location_type' => CafeteriaLocationType::class,
         'operational_status' => CafeteriaOperationalStatus::class,
         'capacity' => 'integer',
