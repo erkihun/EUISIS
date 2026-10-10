@@ -146,6 +146,20 @@ return [
         'delegate_lacks_permission' => 'The delegate must hold the decision approval permission.',
     ],
 
+    // Regulation 201/2018 Art. 30 grievance committee composition problems.
+    'committee_rules' => [
+        'selection_source_missing' => 'Every committee member must record how they were selected (appointed, elected, or HR representative).',
+        'chair_must_be_appointed' => 'The committee must have exactly one chairperson appointed by the institution head.',
+        'hr_secretary_required' => 'The committee must include one HR professional serving as secretary.',
+        'appointed_count' => 'A grievance committee must have exactly one member appointed by the institution head.',
+        'elected_count' => 'A grievance committee must have exactly three members elected by employees.',
+        'member_count' => 'A grievance committee must have exactly five voting members.',
+        'elected_woman_required' => 'At least one of the elected members must be a woman.',
+        'term_limit_exceeded' => 'A member may not serve more than two terms.',
+        'term_longer_than_two_years' => 'A committee term may not exceed two years.',
+        'qualification_not_verifiable' => 'A member’s eligibility could not be verified from available records.',
+    ],
+
     'labels' => [
         'information_response_file' => 'Response attachment',
         'appeal_attachment' => 'Appeal attachment',

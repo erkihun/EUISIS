@@ -145,6 +145,20 @@ return [
         'delegate_lacks_permission' => 'ተወካዩ የውሳኔ ማጽደቅ ፈቃድ ሊኖረው ይገባል።',
     ],
 
+    // የደንብ ቁጥር 201/2018 አንቀጽ 30 የቅሬታ አጣሪ ኮሚቴ ስብጥር ችግሮች።
+    'committee_rules' => [
+        'selection_source_missing' => 'እያንዳንዱ የኮሚቴ አባል እንዴት እንደተመረጠ (በሹመት፣ በምርጫ ወይም የሰው ሀብት ተወካይ) መመዝገብ አለበት።',
+        'chair_must_be_appointed' => 'ኮሚቴው በመሥሪያ ቤቱ የበላይ ኃላፊ የተሾመ አንድ ሰብሳቢ ብቻ ሊኖረው ይገባል።',
+        'hr_secretary_required' => 'ኮሚቴው እንደ ጸሐፊ የሚያገለግል አንድ የሰው ሀብት ባለሙያ ማካተት አለበት።',
+        'appointed_count' => 'የቅሬታ አጣሪ ኮሚቴ በበላይ ኃላፊው የተሾመ አንድ አባል ብቻ ሊኖረው ይገባል።',
+        'elected_count' => 'የቅሬታ አጣሪ ኮሚቴ በሠራተኞች የተመረጡ ሦስት አባላት ሊኖሩት ይገባል።',
+        'member_count' => 'የቅሬታ አጣሪ ኮሚቴ አምስት ድምጽ ሰጪ አባላት ብቻ ሊኖሩት ይገባል።',
+        'elected_woman_required' => 'ከተመረጡት አባላት ቢያንስ አንዷ ሴት መሆን አለባት።',
+        'term_limit_exceeded' => 'አንድ አባል ከሁለት የሥራ ዘመን በላይ ሊያገለግል አይችልም።',
+        'term_longer_than_two_years' => 'የኮሚቴ የሥራ ዘመን ከሁለት ዓመት ሊበልጥ አይችልም።',
+        'qualification_not_verifiable' => 'የአባሉ ብቁነት ካሉ መዝገቦች ማረጋገጥ አልተቻለም።',
+    ],
+
     'labels' => [
         'information_response_file' => 'የምላሽ አባሪ',
         'appeal_attachment' => 'የይግባኝ አባሪ',
