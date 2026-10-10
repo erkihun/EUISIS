@@ -44,6 +44,7 @@ return [
         'cycle_saved' => 'የምዘና ዙሩ ተቀምጧል።',
         'participation_saved' => 'ተሳታፊ ተቋማት ተዘምነዋል።',
         'snapshot_created' => 'የብቁነት ቅጽበታዊ መረጃ ተፈጥሯል፦ :eligible ብቁ፣ :excluded የተገለሉ።',
+        'snapshot_queued' => 'የብቁነት ቅጽበታዊ መረጃው ከበስተጀርባ እየተዘጋጀ ነው። ሲጠናቀቅ በዙሩ ላይ ይታያል።',
         'eligibility_finalized' => 'ብቁነት ተጠናቅቋል። ከአሁን በኋላ መለያው የሚለወጠው በጸደቀ ማግለል ብቻ ነው።',
         'eligibility_restored' => 'የጸደቀው ልዩ ሁኔታ ተሽሯል፤ ሠራተኛው እንደገና ብቁ ነው።',
         'exclusion_requested' => 'የማግለል ጥያቄው ለማጽደቅ ተልኳል።',

@@ -138,9 +138,11 @@ class AssessmentOversightAdminController extends Controller
     {
         $user = $this->manager($request);
         abort_unless($this->access->scopeFor($user)->isCityWide(), 403);
-        $counts = $this->eligibility->snapshotCycleEligibility($user, $cycle);
+        // Built by a queued, resumable job: the whole workforce never runs in
+        // this request (risk register SCL-6).
+        $this->eligibility->queueSnapshot($user, $cycle);
 
-        return back()->with('success', __('assessments.oversight.snapshot_created', $counts));
+        return back()->with('success', __('assessments.oversight.snapshot_queued'));
     }
 
     /** Queue evaluator-assignment generation for the cycle (chunked jobs; nothing heavy in this request). */

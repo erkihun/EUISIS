@@ -7,6 +7,7 @@ namespace App\Services\Assessment\Oversight;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AssignmentStatus;
 use App\Enums\AuditEventType;
+use App\Jobs\Assessment\BuildAssessmentEligibilitySnapshotJob;
 use App\Models\AssessmentCycle;
 use App\Models\AssessmentCycleEligibility;
 use App\Models\AssessmentExclusionRequest;
@@ -107,6 +108,117 @@ class AssessmentEligibilityService
      */
     public function snapshotCycleEligibility(User $actor, AssessmentCycle $cycle, int $chunk = 1000): array
     {
+        $this->beginSnapshot($cycle);
+        $after = null;
+        $counts = ['eligible' => 0, 'excluded' => 0];
+        do {
+            [$after, $counts] = $this->buildSnapshotBatch($cycle, $after, $counts, $chunk, PHP_INT_MAX);
+        } while ($after !== null);
+
+        return $this->completeSnapshot($actor, $cycle, $counts);
+    }
+
+    /**
+     * Start a rebuild from a web request: validate, mark the snapshot as not
+     * ready, and queue the build (risk register SCL-6). Nothing the size of the
+     * workforce runs in the request.
+     */
+    public function queueSnapshot(User $actor, AssessmentCycle $cycle): void
+    {
+        $this->beginSnapshot($cycle);
+        BuildAssessmentEligibilitySnapshotJob::dispatch($cycle->id, $actor->id);
+    }
+
+    /**
+     * Validate and reset: the old snapshot is cleared and the cycle reads as
+     * "no snapshot" (eligibility_snapshot_at null) until completeSnapshot().
+     */
+    public function beginSnapshot(AssessmentCycle $cycle): void
+    {
+        $this->snapshotScope($cycle);
+
+        $cycle->update(['eligibility_snapshot_at' => null]);
+        // Batched delete: never one statement over a whole cycle's rows.
+        do {
+            $ids = AssessmentCycleEligibility::query()->where('assessment_cycle_id', $cycle->id)->limit(5000)->pluck('id');
+            if ($ids->isNotEmpty()) {
+                AssessmentCycleEligibility::query()->whereKey($ids->all())->delete();
+            }
+        } while ($ids->count() === 5000);
+    }
+
+    /**
+     * Resolve and insert up to $maxChunks chunks of employees, walking by key
+     * after $after (keyset, not OFFSET). Each chunk commits on its own, so no
+     * transaction ever spans the workforce.
+     *
+     * @param  array{eligible: int, excluded: int}  $counts
+     * @return array{0: string|null, 1: array{eligible: int, excluded: int}} next cursor (null when done) and counts
+     */
+    public function buildSnapshotBatch(AssessmentCycle $cycle, ?string $after, array $counts, int $chunk = 1000, int $maxChunks = 20): array
+    {
+        [$organizationIds, $date] = $this->snapshotScope($cycle);
+        $versions = $this->targets->candidates($cycle->assessment_type_id, Carbon::parse($date));
+        $reasons = $this->systemReasons();
+        $now = now();
+
+        for ($i = 0; $i < $maxChunks; $i++) {
+            $employeeIds = EmployeeAssignment::query()
+                ->whereIn('organization_id', $organizationIds)
+                ->where('assignment_status', '!=', AssignmentStatus::PendingTransfer->value)
+                ->where('effective_from', '<=', $date)
+                ->where(fn ($q) => $q->whereNull('effective_to')->orWhere('effective_to', '>=', $date))
+                ->when($after !== null, fn ($q) => $q->where('employee_id', '>', $after))
+                ->select('employee_id')->distinct()->orderBy('employee_id')
+                ->limit($chunk)
+                ->pluck('employee_id')
+                ->map(fn ($id): string => (string) $id)
+                ->all();
+
+            if ($employeeIds === []) {
+                return [null, $counts];
+            }
+
+            DB::transaction(function () use ($cycle, $employeeIds, $organizationIds, $versions, $reasons, $now, &$counts): void {
+                $insert = [];
+                foreach ($this->resolveEligibility($cycle, $employeeIds, $organizationIds, $versions, $reasons) as $decision) {
+                    $counts[$decision['eligibility_status']]++;
+                    $insert[] = [
+                        'id' => (string) Str::uuid7(), 'assessment_cycle_id' => $cycle->id,
+                        ...array_intersect_key($decision, array_flip(['employee_id', 'employee_assignment_id', 'organization_id', 'organization_unit_id', 'position_id', 'eligibility_status', 'reason_id', 'reason_source', 'form_resolution', 'expected_form_version_id'])),
+                        'snapshot_at' => $now, 'created_at' => $now, 'updated_at' => $now,
+                    ];
+                }
+                foreach (array_chunk($insert, 500) as $part) {
+                    DB::table('assessment_cycle_employee_eligibility')->insert($part);
+                }
+            });
+
+            $after = end($employeeIds);
+            if (count($employeeIds) < $chunk) {
+                return [null, $counts];
+            }
+        }
+
+        return [$after, $counts];
+    }
+
+    /**
+     * @param  array{eligible: int, excluded: int}  $counts
+     * @return array{eligible: int, excluded: int}
+     */
+    public function completeSnapshot(User $actor, AssessmentCycle $cycle, array $counts): array
+    {
+        $cycle->update(['eligibility_snapshot_at' => now()]);
+        $this->audit->execute(AuditEventType::AssessmentEligibilitySnapshotCreated, $actor, $cycle, newValues: $counts + ['reference_date' => Carbon::parse($cycle->reference_date)->toDateString()], request: request());
+        AssessmentCoverageService::bump($cycle->id);
+
+        return $counts;
+    }
+
+    /** @return array{0: list<string>, 1: string} participating organization ids and reference date */
+    private function snapshotScope(AssessmentCycle $cycle): array
+    {
         if ($cycle->isEligibilityFinalized()) {
             throw ValidationException::withMessages(['eligibility' => 'Eligibility is finalized. The denominator now changes only through approved exclusions.']);
         }
@@ -119,42 +231,7 @@ class AssessmentEligibilityService
             throw ValidationException::withMessages(['eligibility' => 'System unassessed reasons are missing: '.implode(', ', $missing).'.']);
         }
 
-        $date = Carbon::parse($cycle->reference_date)->toDateString();
-        $versions = $this->targets->candidates($cycle->assessment_type_id, Carbon::parse($date));
-        $reasons = $this->systemReasons();
-        $counts = ['eligible' => 0, 'excluded' => 0];
-        $now = now();
-
-        DB::transaction(function () use ($cycle, $organizationIds, $date, $versions, $reasons, $chunk, $now, &$counts): void {
-            AssessmentCycleEligibility::query()->where('assessment_cycle_id', $cycle->id)->delete();
-            EmployeeAssignment::query()
-                ->whereIn('organization_id', $organizationIds)
-                ->where('assignment_status', '!=', AssignmentStatus::PendingTransfer->value)
-                ->whereDate('effective_from', '<=', $date)
-                ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $date))
-                ->select('employee_id')->distinct()->orderBy('employee_id')
-                ->chunk($chunk, function ($rows) use ($cycle, $organizationIds, $versions, $reasons, $now, &$counts): void {
-                    $decisions = $this->resolveEligibility($cycle, $rows->pluck('employee_id')->map(fn ($id): string => (string) $id)->all(), $organizationIds, $versions, $reasons);
-                    $insert = [];
-                    foreach ($decisions as $decision) {
-                        $counts[$decision['eligibility_status']]++;
-                        $insert[] = [
-                            'id' => (string) Str::uuid7(), 'assessment_cycle_id' => $cycle->id,
-                            ...array_intersect_key($decision, array_flip(['employee_id', 'employee_assignment_id', 'organization_id', 'organization_unit_id', 'position_id', 'eligibility_status', 'reason_id', 'reason_source', 'form_resolution', 'expected_form_version_id'])),
-                            'snapshot_at' => $now, 'created_at' => $now, 'updated_at' => $now,
-                        ];
-                    }
-                    foreach (array_chunk($insert, 500) as $part) {
-                        DB::table('assessment_cycle_employee_eligibility')->insert($part);
-                    }
-                });
-            $cycle->update(['eligibility_snapshot_at' => $now]);
-        });
-
-        $this->audit->execute(AuditEventType::AssessmentEligibilitySnapshotCreated, $actor, $cycle, newValues: $counts + ['reference_date' => $date], request: request());
-        AssessmentCoverageService::bump($cycle->id);
-
-        return $counts;
+        return [$organizationIds, Carbon::parse($cycle->reference_date)->toDateString()];
     }
 
     public function finalize(User $actor, AssessmentCycle $cycle): void

@@ -683,3 +683,25 @@ test('assessment pages live under /assessments and the old /performance URLs red
     $this->actingAs($this->city)->get('/performance/assessment-forms')->assertStatus(301)->assertRedirect('/assessments/forms');
     $this->actingAs($this->city)->get('/performance/assessments')->assertStatus(301)->assertRedirect('/assessments/records');
 });
+
+it('builds the eligibility snapshot in key-ordered batches with the same result as one pass', function (): void {
+    $service = app(AssessmentEligibilityService::class);
+    $once = $service->snapshotCycleEligibility($this->city, $this->cycle->fresh());
+
+    // Tiny chunks force many independently committed batches.
+    $batched = $service->snapshotCycleEligibility($this->city, $this->cycle->fresh(), chunk: 1);
+
+    expect($batched)->toBe($once)
+        ->and($this->cycle->fresh()->eligibility_snapshot_at)->not->toBeNull()
+        ->and(\App\Models\AssessmentCycleEligibility::query()->where('assessment_cycle_id', $this->cycle->id)->count())
+        ->toBe($once['eligible'] + $once['excluded']);
+});
+
+it('queues the eligibility snapshot instead of building it in the request', function (): void {
+    \Illuminate\Support\Facades\Queue::fake();
+
+    app(AssessmentEligibilityService::class)->queueSnapshot($this->city, $this->cycle->fresh());
+
+    \Illuminate\Support\Facades\Queue::assertPushedOn('long', \App\Jobs\Assessment\BuildAssessmentEligibilitySnapshotJob::class);
+    expect($this->cycle->fresh()->eligibility_snapshot_at)->toBeNull();
+});
