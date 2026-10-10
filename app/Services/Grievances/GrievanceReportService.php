@@ -14,7 +14,6 @@ use App\Models\GrievanceLetter;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -200,36 +199,45 @@ final class GrievanceReportService
         return ['columns' => array_keys($row), 'rows' => [$row], 'suppressed' => 0];
     }
 
-    /** Average/median days from submission to decision issued (calendar days). */
+    /**
+     * Average/median days from submission to decision issued (calendar days).
+     * Aggregated in SQL; the median reads only the middle one or two rows
+     * (risk register SCL-10).
+     */
     private function resolutionTime(Builder $cases): array
     {
-        $durations = (clone $cases)->whereNotNull('resolved_at')->whereNotNull('submitted_at')->get(['submitted_at', 'resolved_at', 'category_id'])
-            ->map(fn ($g) => $g->submitted_at->diffInHours($g->resolved_at) / 24);
-        $sorted = $durations->sort()->values();
-        $median = $sorted->isEmpty() ? null : ($sorted->count() % 2 ? $sorted[intdiv($sorted->count(), 2)] : ($sorted[$sorted->count() / 2 - 1] + $sorted[$sorted->count() / 2]) / 2);
+        $resolved = (clone $cases)->whereNotNull('resolved_at')->whereNotNull('submitted_at')->toBase()->reorder();
+        $days = $this->daysBetween('submitted_at', 'resolved_at');
+        $agg = (clone $resolved)->selectRaw("count(*) as n, avg({$days}) as average, max({$days}) as maximum")->first();
+        $n = (int) ($agg->n ?? 0);
+        $median = $n === 0 ? null : (clone $resolved)->selectRaw("{$days} as d")->orderByRaw($days)
+            ->offset(intdiv($n - 1, 2))->limit($n % 2 === 1 ? 1 : 2)->pluck('d')->map(fn ($d) => (float) $d)->avg();
         $row = [
-            'resolved_cases' => $durations->count(),
-            'average_days' => $durations->isEmpty() ? null : round($durations->avg(), 1),
+            'resolved_cases' => $n,
+            'average_days' => $n === 0 ? null : round((float) $agg->average, 1),
             'median_days' => $median === null ? null : round($median, 1),
-            'max_days' => $durations->isEmpty() ? null : round($durations->max(), 1),
+            'max_days' => $n === 0 ? null : round((float) $agg->maximum, 1),
         ];
 
         return ['columns' => array_keys($row), 'rows' => [$row], 'suppressed' => 0];
     }
 
-    /** Stages decided within their SLA vs late, per handler type. */
+    /** Stages decided within their SLA vs late, per handler type (grouped in SQL). */
     private function slaCompliance(Builder $cases): array
     {
-        $stages = GrievanceCaseStage::query()->whereIn('grievance_id', (clone $cases)->select('id'))->whereNotNull('due_at')->whereNotNull('completed_at')
-            ->whereIn('status', ['resolved', 'escalated'])->get(['handler_type', 'due_at', 'completed_at', 'status']);
-        $rows = $stages->groupBy(fn ($s) => $s->handler_type->value)->map(function (Collection $group, string $type) {
-            $onTime = $group->filter(fn ($s) => $s->status->value === 'resolved' && $s->completed_at->lte($s->due_at))->count();
+        $rows = GrievanceCaseStage::query()->whereIn('grievance_id', (clone $cases)->select('id'))->whereNotNull('due_at')->whereNotNull('completed_at')
+            ->whereIn('status', ['resolved', 'escalated'])->toBase()
+            ->selectRaw("handler_type, count(*) as stages, sum(case when status = 'resolved' and completed_at <= due_at then 1 else 0 end) as on_time")
+            ->groupBy('handler_type')->orderBy('handler_type')->get()
+            ->map(fn ($row) => [
+                'handler_type' => $this->enumValue($row->handler_type),
+                'stages' => (int) $row->stages,
+                'on_time' => (int) $row->on_time,
+                'late_or_escalated' => (int) $row->stages - (int) $row->on_time,
+                'compliance_percent' => (int) $row->stages ? round(100 * (int) $row->on_time / (int) $row->stages, 1) : null,
+            ]);
 
-            return ['handler_type' => $type, 'stages' => $group->count(), 'on_time' => $onTime, 'late_or_escalated' => $group->count() - $onTime,
-                'compliance_percent' => $group->count() ? round(100 * $onTime / $group->count(), 1) : null];
-        })->values();
-
-        return ['columns' => ['handler_type', 'stages', 'on_time', 'late_or_escalated', 'compliance_percent'], 'rows' => $rows->all(), 'suppressed' => 0];
+        return ['columns' => ['handler_type', 'stages', 'on_time', 'late_or_escalated', 'compliance_percent'], 'rows' => $rows->values()->all(), 'suppressed' => 0];
     }
 
     private function correspondence(Builder $cases): array
@@ -241,20 +249,41 @@ final class GrievanceReportService
         return ['columns' => ['letter_type', 'status', 'total'], 'rows' => $rows->values()->all(), 'suppressed' => 0];
     }
 
-    /** Monthly counts per category (aggregate only). */
+    /** Monthly counts per category (aggregate only, grouped in SQL). */
     private function trend(Builder $cases): array
     {
-        $rows = (clone $cases)->whereNotNull('submitted_at')->with('category:id,name_en,name_am')->get(['id', 'submitted_at', 'category_id', 'systemic_issue_flag'])
-            ->groupBy(fn ($g) => Carbon::parse($g->submitted_at)->format('Y-m').'|'.$g->category_id)
-            ->map(fn (Collection $group, string $key) => [
-                'month' => explode('|', $key)[0],
-                'category' => $group->first()->category?->name_en,
-                'category_am' => $group->first()->category?->name_am,
-                'total' => $group->count(),
-                'systemic_flagged' => $group->where('systemic_issue_flag', true)->count(),
-            ])->sortBy('month')->values();
+        $month = $this->monthOf('submitted_at');
+        $groups = (clone $cases)->whereNotNull('submitted_at')->toBase()->reorder()
+            ->selectRaw("{$month} as month, category_id, count(*) as total, sum(case when systemic_issue_flag = {$this->true()} then 1 else 0 end) as systemic_flagged")
+            ->groupByRaw("{$month}, category_id")->orderBy('month')->orderBy('category_id')->get();
+        $categories = GrievanceCategory::query()->whereIn('id', $groups->pluck('category_id')->filter()->unique()->all())->get(['id', 'name_en', 'name_am'])->keyBy('id');
+        $rows = $groups->map(fn ($g) => [
+            'month' => (string) $g->month,
+            'category' => $categories->get($g->category_id)?->name_en,
+            'category_am' => $categories->get($g->category_id)?->name_am,
+            'total' => (int) $g->total,
+            'systemic_flagged' => (int) $g->systemic_flagged,
+        ]);
 
         return $this->threshold($rows, ['month', 'category', 'total', 'systemic_flagged']);
+    }
+
+    private function daysBetween(string $from, string $to): string
+    {
+        return match (DB::getDriverName()) {
+            'pgsql' => "(EXTRACT(EPOCH FROM ({$to} - {$from})) / 86400.0)",
+            'mysql', 'mariadb' => "(TIMESTAMPDIFF(SECOND, {$from}, {$to}) / 86400.0)",
+            default => "(julianday({$to}) - julianday({$from}))",
+        };
+    }
+
+    private function monthOf(string $column): string
+    {
+        return match (DB::getDriverName()) {
+            'pgsql' => "to_char({$column}, 'YYYY-MM')",
+            'mysql', 'mariadb' => "DATE_FORMAT({$column}, '%Y-%m')",
+            default => "strftime('%Y-%m', {$column})",
+        };
     }
 
     /**
