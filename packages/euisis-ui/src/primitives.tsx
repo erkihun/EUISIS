@@ -16,8 +16,9 @@ export type ButtonVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'g
 export type ButtonSize = 'xs' | 'sm' | 'default' | 'md' | 'lg' | 'icon';
 
 const buttonVariants: Record<ButtonVariant, string> = {
-    default: 'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)]',
-    primary: 'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)]',
+    // --color-on-primary: readable text on the theme's primary (dark text on a bright dark-mode variant)
+    default: 'bg-[color:var(--color-primary)] text-[color:var(--color-on-primary,#fff)] hover:bg-[color:var(--color-primary-hover)]',
+    primary: 'bg-[color:var(--color-primary)] text-[color:var(--color-on-primary,#fff)] hover:bg-[color:var(--color-primary-hover)]',
     secondary: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)] hover:brightness-95',
     outline: 'border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]',
     ghost: 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]',

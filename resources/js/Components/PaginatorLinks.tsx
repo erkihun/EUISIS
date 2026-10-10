@@ -29,7 +29,7 @@ export default function PaginatorLinks({ links, label }: { links: PaginatorLink[
                 const className = cx(
                     'inline-flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-control)] px-2 text-[13px] tabular-nums transition-colors',
                     link.active
-                        ? 'bg-[color:var(--color-primary)] font-semibold text-white'
+                        ? 'bg-[color:var(--color-primary)] font-semibold text-[color:var(--color-on-primary,#fff)]'
                         : link.url
                           ? 'border border-[color:var(--app-border)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'
                           : 'text-[color:var(--app-muted-foreground)]',

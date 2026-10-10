@@ -55,6 +55,12 @@
     --color-primary-strong: #122170;
     --color-primary-soft:   #5d72bf;
     --color-primary:        var(--color-primary-strong);
+    /* Text on a primary fill, chosen per variant by AuthenticatedLayout
+       (readableForeground): a bright brand colour's lighter dark-theme
+       variant needs dark text. */
+    --color-on-primary-strong: #ffffff;
+    --color-on-primary-soft:   #ffffff;
+    --color-on-primary:        var(--color-on-primary-strong);
     /* Navy is already near-black, so hover LIGHTENS rather than darkens —
        darkening reads as "disabled" against a white surface. */
     --color-primary-hover:  #1d3084;
@@ -227,6 +233,7 @@
     /* On a dark surface the 700 navy has too little contrast to read as an
        action colour, so the interactive primary steps up the scale. */
     --color-primary:       var(--color-primary-soft);
+    --color-on-primary:    var(--color-on-primary-soft);
     --color-primary-hover: #8f9fd8;
     --color-primary-light: #1d3084;
     --color-accent:        var(--color-accent-soft);

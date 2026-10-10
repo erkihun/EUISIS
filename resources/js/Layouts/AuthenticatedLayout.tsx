@@ -11,6 +11,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { darkThemeVariant, isLight, readableForeground, sidebarAccent } from '@/lib/brandColor';
 
+import { buttonClassName } from '@/Components/ui';
 const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 // Page chrome and content share one measure, so titles line up with the content below them
 // and very wide screens keep a readable line length.
@@ -74,6 +75,10 @@ export default function Authenticated({
            dark mode stuck on the light-theme colour. */
         root.style.setProperty('--color-primary-strong', primary);
         root.style.setProperty('--color-primary-soft', darkThemeVariant(primary));
+        // Text on a primary fill: the lighter dark-theme variant of a bright
+        // brand colour needs dark text, not white.
+        root.style.setProperty('--color-on-primary-strong', readableForeground(primary));
+        root.style.setProperty('--color-on-primary-soft', readableForeground(darkThemeVariant(primary)));
         root.style.setProperty('--color-secondary', secondary);
         root.style.setProperty('--color-accent-strong', accent);
         root.style.setProperty('--color-accent-soft', darkThemeVariant(accent));
@@ -115,7 +120,7 @@ export default function Authenticated({
         <div className={`${variant === 'portal' ? 'portal-shell' : 'admin-shell'} min-h-screen bg-[color:var(--app-background)]`}>
             <a
                 href="#main-content"
-                className="sr-only fixed left-4 top-4 z-[60] rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg focus:not-sr-only"
+                className={buttonClassName({ variant: 'primary', className: 'sr-only fixed left-4 top-4 z-[60]' })}
             >
                 {t('publicSite.skipToContent')}
             </a>
