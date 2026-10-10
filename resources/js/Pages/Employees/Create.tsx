@@ -213,6 +213,10 @@ export default function EmployeesCreate({
             organization_unit_id: '',
             position_id: '',
         });
+        // Unit and position options are sent for one organization at a time.
+        if (organizationId !== '') {
+            router.reload({ only: ['organizationUnits', 'positions'], data: { organization_id: organizationId } });
+        }
     }
 
     function changeOrganizationUnit(organizationUnitId: string) {

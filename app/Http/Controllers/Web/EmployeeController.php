@@ -40,6 +40,9 @@ use Inertia\Response;
 
 class EmployeeController extends Controller
 {
+    /** Most position options sent to one form/filter (one organization at a time). */
+    private const OPTION_LIMIT = 1000;
+
     public function index(Request $request, OrganizationScopeService $organizationScopeService): Response
     {
         $this->authorize('viewAny', Employee::class);
@@ -206,8 +209,10 @@ class EmployeeController extends Controller
                 'name_en' => $organization->name_en,
                 'name_am' => $organization->name_am,
             ])->values(),
-            'organizationUnits' => $organizationUnitOptionsQuery
-                ->get(['id', 'organization_id', 'code', 'name_en', 'name_am'])
+            // Filter options exist only for a chosen organization (the page
+            // reloads on change), so a citywide view never ships every unit.
+            'organizationUnits' => ($selectedOrganizationId === null ? collect() : $organizationUnitOptionsQuery
+                ->get(['id', 'organization_id', 'code', 'name_en', 'name_am']))
                 ->map(fn (OrganizationUnit $unit): array => [
                     'id' => $unit->id,
                     'organization_id' => $unit->organization_id,
@@ -215,8 +220,9 @@ class EmployeeController extends Controller
                     'name_en' => $unit->name_en,
                     'name_am' => $unit->name_am,
                 ]),
-            'positions' => $positionOptionsQuery
-                ->get(['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am'])
+            'positions' => ($selectedOrganizationId === null ? collect() : $positionOptionsQuery
+                ->limit(self::OPTION_LIMIT)
+                ->get(['id', 'organization_id', 'organization_unit_id', 'job_position_code', 'title_en', 'title_am']))
                 ->map(fn (Position $position): array => [
                     'id' => $position->id,
                     'organization_id' => $position->organization_id,
@@ -344,6 +350,12 @@ class EmployeeController extends Controller
 
         $organizationScopeService->applyOrganizationScope($organizationUnitQuery, $user);
         $organizationScopeService->applyOrganizationScope($positionQuery, $user);
+
+        // Options for one organization only — the selected one, or the form's
+        // default (the first available). The form reloads them on change.
+        $optionsOrganizationId = $selectedOrganizationId ?? $availableOrganizations->first()?->id;
+        $organizationUnitQuery->where('organization_id', $optionsOrganizationId);
+        $positionQuery->where('organization_id', $optionsOrganizationId)->limit(self::OPTION_LIMIT);
 
         return Inertia::render('Employees/Create', [
             'organizations' => $availableOrganizations,
@@ -504,11 +516,10 @@ class EmployeeController extends Controller
 
         $employee->load(['currentAssignment.organization', 'currentAssignment.position']);
 
+        // The edit form never used a position list (placement changes go
+        // through transfers), so none is sent.
         return Inertia::render('Employees/Edit', [
             'employee' => (new EmployeeDetailResource($employee))->resolve(),
-            'positions' => $organizationScopeService
-                ->applyOrganizationScope(Position::query()->where('is_active', true)->orderBy('title_en'), request()->user())
-                ->get(['id', 'title_en']),
         ]);
     }
 
