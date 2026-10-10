@@ -21,6 +21,9 @@ use App\Models\OrganizationUnit;
 use App\Models\PerformanceResult;
 use App\Models\Position;
 use App\Models\PositionService;
+use App\Models\PositionServiceSubService;
+use App\Models\PositionServiceTask;
+use App\Models\PositionServiceTaskStandard;
 use App\Models\PublicHoliday;
 use App\Models\SystemSetting;
 use App\Models\User;
@@ -920,6 +923,24 @@ test('P5. chunked reports give the same figures as one batch and stop at the row
     expect($limited['rows'])->toHaveCount(1)->and($limited['truncated'])->toBeTrue();
 });
 
+test('P5b. full-walk reports refuse an employee × day volume over the request budget', function (): void {
+    // Risk register SCL-9: unit activity and missing walk every employee-day
+    // in the request; citywide over 92 days is ~276M visits.
+    $coverage = new DailyActivityCoverage(organizationIds: [$this->org->id]);
+    $filters = ['date_from' => '2026-09-14', 'date_to' => DA_TODAY];
+    $reports = app(DailyActivityReportService::class);
+
+    expect($reports->build('unit_activity', $coverage, $filters)['too_broad'])->toBeFalse();
+
+    config(['daily_activity.report_work_budget' => 2]);
+    foreach (['unit_activity', 'missing'] as $type) {
+        $report = $reports->build($type, $coverage, $filters);
+        expect($report['too_broad'])->toBeTrue()->and($report['rows'])->toBe([]);
+    }
+    // Row-limited reports stop early and are not refused.
+    expect($reports->build('daily_submission', $coverage, $filters)['too_broad'])->toBeFalse();
+});
+
 test('P6. evidence is private, type- and size-checked, and stays linked after review', function (): void {
     daSetting('evidence_attachments_enabled', true);
     daPost($this->userA, DA_TODAY, daItems());
@@ -1224,14 +1245,14 @@ test('W4. EPMS treats a day as final according to its organization review policy
  * Sub-service → main task → approved standard under the HR Officer's service.
  *
  * @param  array<string, mixed>  $standard
- * @return array{0: App\Models\PositionServiceSubService, 1: App\Models\PositionServiceTask, 2: App\Models\PositionServiceTaskStandard}
+ * @return array{0: PositionServiceSubService, 1: PositionServiceTask, 2: PositionServiceTaskStandard}
  */
 function wxStructure(object $test, array $standard = [], ?PositionService $service = null): array
 {
     $service ??= $test->task;
-    $sub = App\Models\PositionServiceSubService::query()->create(['position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'code' => 'SS-'.Illuminate\Support\Str::random(4), 'name_en' => 'Employee Transfer Processing', 'is_active' => true]);
-    $task = App\Models\PositionServiceTask::query()->create(['sub_service_id' => $sub->id, 'position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'code' => 'T-'.Illuminate\Support\Str::random(4), 'name_en' => 'Review Transfer Application', 'is_active' => true]);
-    $row = App\Models\PositionServiceTaskStandard::query()->create([
+    $sub = PositionServiceSubService::query()->create(['position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'code' => 'SS-'.Illuminate\Support\Str::random(4), 'name_en' => 'Employee Transfer Processing', 'is_active' => true]);
+    $task = PositionServiceTask::query()->create(['sub_service_id' => $sub->id, 'position_service_id' => $service->id, 'organization_id' => $service->organization_id, 'code' => 'T-'.Illuminate\Support\Str::random(4), 'name_en' => 'Review Transfer Application', 'is_active' => true]);
+    $row = PositionServiceTaskStandard::query()->create([
         'task_id' => $task->id, 'organization_id' => $service->organization_id, 'version_no' => 1, 'status' => 'approved',
         'planned_quantity' => 10, 'quantity_unit' => 'applications', 'planned_time_minutes' => 60,
         'planned_quality' => 100, 'quality_unit' => '%', 'quality_measure' => 'Share of applications complete and correct',
@@ -1243,7 +1264,7 @@ function wxStructure(object $test, array $standard = [], ?PositionService $servi
 }
 
 /** @param array<string, mixed> $overrides */
-function wxItem(App\Models\PositionServiceTask $task, array $overrides = []): array
+function wxItem(PositionServiceTask $task, array $overrides = []): array
 {
     return [
         'task_id' => $task->id,
@@ -1331,7 +1352,7 @@ test('X5. recorded work keeps the standard it was measured against after a new v
     $this->actingAs($approver)->post(route('work-structure.standards.store', $task), [
         'planned_quantity' => 20, 'quantity_unit' => 'applications', 'quality_source' => 'employee', 'effective_from' => '2026-09-15',
     ])->assertSessionHasNoErrors();
-    $v2 = App\Models\PositionServiceTaskStandard::query()->where('task_id', $task->id)->where('version_no', 2)->firstOrFail();
+    $v2 = PositionServiceTaskStandard::query()->where('task_id', $task->id)->where('version_no', 2)->firstOrFail();
     $this->actingAs($approver)->post(route('work-structure.standards.approve', $v2))->assertSessionHasErrors('effective_from');
 
     $v2->update(['effective_from' => '2026-09-24']);
@@ -1439,8 +1460,8 @@ test('X10. used structure cannot be deleted, only made inactive; the entry page 
 test('X11. task and sub-service performance reports aggregate measured work within scope', function (): void {
     [$sub, $task] = wxStructure($this);
     $task->update(['code' => 'T-1']);
-    $second = App\Models\PositionServiceTask::query()->create(['sub_service_id' => $sub->id, 'position_service_id' => $this->task->id, 'organization_id' => $this->org->id, 'code' => 'T-2', 'name_en' => 'Prepare transfer letter', 'is_active' => true]);
-    App\Models\PositionServiceTaskStandard::query()->create(['task_id' => $second->id, 'organization_id' => $this->org->id, 'version_no' => 1, 'status' => 'approved', 'planned_quantity' => 4, 'quantity_unit' => 'letters', 'quality_source' => 'employee', 'effective_from' => '2026-01-01']);
+    $second = PositionServiceTask::query()->create(['sub_service_id' => $sub->id, 'position_service_id' => $this->task->id, 'organization_id' => $this->org->id, 'code' => 'T-2', 'name_en' => 'Prepare transfer letter', 'is_active' => true]);
+    PositionServiceTaskStandard::query()->create(['task_id' => $second->id, 'organization_id' => $this->org->id, 'version_no' => 1, 'status' => 'approved', 'planned_quantity' => 4, 'quantity_unit' => 'letters', 'quality_source' => 'employee', 'effective_from' => '2026-01-01']);
 
     // Task 1: 83.3333 (A) and 100 (B: 10/10, 60/60, 100/100); task 2: 4/4 = 100.
     daPost($this->userA, DA_TODAY, [wxItem($task), wxItem($second, ['started_at' => '11:00', 'ended_at' => '12:00', 'quantity' => '4', 'actual_quality' => null])], 'submit')->assertSessionHasNoErrors();

@@ -15,6 +15,7 @@ type Report = {
     columns: string[];
     rows: Record<string, string | number | boolean | null>[];
     truncated: boolean;
+    too_broad?: boolean;
     total: number;
     from: string;
     to: string;
@@ -104,7 +105,9 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                     </p>
                 )}
 
-                {report.rows.length === 0 ? (
+                {report.too_broad ? (
+                    <p role="status" className="rounded-panel border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('dailyActivities.reports.tooBroad')}</p>
+                ) : report.rows.length === 0 ? (
                     <p className={`${panelCls} p-4 text-sm text-gray-500 dark:text-slate-400`}>{t('dailyActivities.reports.empty')}</p>
                 ) : (
                     // A report is inherently tabular; only the table scrolls sideways, never the page.

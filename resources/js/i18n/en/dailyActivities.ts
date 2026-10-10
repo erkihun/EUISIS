@@ -320,6 +320,7 @@ export default {
         description: 'Reports cover only your organization scope. Activity counts describe volume, not productivity.',
         type: 'Report',
         truncated: 'Only the first {count} rows are shown; there are more. Narrow the filters (date range, unit, position) to see the rest.',
+        tooBroad: 'This report covers too many employees and days to build on screen. Choose an organization or unit, or a shorter date range.',
         empty: 'No rows for this report and period.',
         rows: '{count} rows',
         types: {

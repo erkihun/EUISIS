@@ -11,6 +11,7 @@ use App\Models\DailyActivityLog;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * The eight Daily Activity reports.
@@ -40,6 +41,12 @@ class DailyActivityReportService
     public const SCREEN_LIMIT = 500;
 
     public const EXPORT_LIMIT = 20000;
+
+    /** Reports that visit every employee-day of the coverage, not just until the row limit. */
+    private const FULL_WALK_TYPES = ['unit_activity', 'missing'];
+
+    /** Employee-days one request may walk (config daily_activity.report_work_budget). */
+    public const REPORT_WORK_BUDGET = 500000;
 
     public function __construct(
         private readonly DailyActivityQueryService $queries,
@@ -72,6 +79,17 @@ class DailyActivityReportService
 
         $filters = [...$filters, 'date_from' => $from->toDateString(), 'date_to' => $to->toDateString()];
 
+        // Unit activity and missing walk every employee-day of the coverage in
+        // the request (the calendar decides which days are required). Past the
+        // budget the report asks for narrower filters instead (SCL-9).
+        if (in_array($type, self::FULL_WALK_TYPES, true)) {
+            $work = $this->queries->employeeCount($coverage, $from, $to, $filters) * ((int) $from->diffInDays($to) + 1);
+            if ($work > (int) config('daily_activity.report_work_budget', self::REPORT_WORK_BUDGET)) {
+                return ['type' => $type, 'columns' => [], 'rows' => [], 'truncated' => false, 'too_broad' => true, 'total' => 0,
+                    'from' => $from->toDateString(), 'to' => $to->toDateString()];
+            }
+        }
+
         [$columns, $rows] = match ($type) {
             'daily_submission' => $this->dailySubmission($coverage, $from, $filters, $limit),
             'employee_activity' => $this->employeeActivity($coverage, $filters, $limit),
@@ -93,6 +111,7 @@ class DailyActivityReportService
             'columns' => $columns,
             'rows' => $rows,
             'truncated' => $truncated,
+            'too_broad' => false,
             // Row-limited reports stop collecting once past the limit, so a
             // truncated report reports what it shows, never a guessed total.
             'total' => count($rows),
@@ -369,7 +388,7 @@ class DailyActivityReportService
     }
 
     /** @param array<string, mixed> $filters */
-    private function taskRows(DailyActivityCoverage $coverage, array $filters): \Illuminate\Support\Collection
+    private function taskRows(DailyActivityCoverage $coverage, array $filters): Collection
     {
         return DailyActivityItem::query()
             ->whereNotNull('daily_activity_items.task_standard_id')
