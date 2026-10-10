@@ -24,6 +24,7 @@ use App\Enums\Grievance\GrievanceTaskStatus;
 use App\Enums\Grievance\GrievanceTaskType;
 use App\Enums\GrievanceOriginLevel;
 use App\Enums\GrievanceStatus;
+use App\Exceptions\Grievances\InitialResolutionRequiredException;
 use App\Models\Grievance;
 use App\Models\GrievanceAmendment;
 use App\Models\GrievanceCaseOfficer;
@@ -251,6 +252,68 @@ final class GrievanceCaseService
 
             return $issue->refresh();
         });
+    }
+
+    /**
+     * File a formal grievance from a completed, unresolved initial issue
+     * (Regulation 201/2018 Art. 33(1)). Submission-time context is snapshotted
+     * from the issue so a later transfer cannot rewrite the grievance origin,
+     * then the existing submit() carries the routing/intake flow.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function submitFormalGrievance(GrievanceInitialIssue $issue, User $actor, array $data): Grievance
+    {
+        $this->access->authorize($actor->can('grievances.create'));
+        if (! $this->settings->enabled()) {
+            throw ValidationException::withMessages(['grievance' => __('grievances.errors.module_disabled')]);
+        }
+
+        if ((bool) config('grievance.initial_resolution.require_before_formal', true)
+            && $issue->status !== GrievanceInitialResolutionStatus::Failed) {
+            throw $issue->status === GrievanceInitialResolutionStatus::Resolved
+                ? InitialResolutionRequiredException::notFailed()
+                : InitialResolutionRequiredException::missing();
+        }
+
+        $category = $this->activeCategory($data['category_id'] ?? null);
+
+        $grievance = DB::transaction(function () use ($actor, $data, $issue, $category): Grievance {
+            $grievance = Grievance::query()->create([
+                'reference_number' => 'DRAFT-'.strtoupper((string) Str::ulid()),
+                'submitted_by_user_id' => $actor->getKey(),
+                'employee_id' => $issue->employee_id,
+                'employee_assignment_id' => $issue->employee_assignment_id,
+                'organization_id' => $issue->organization_id,
+                'organization_unit_id' => $issue->organization_unit_id,
+                'position_id' => $issue->position_id,
+                'immediate_supervisor_employee_id' => $issue->responsible_officer_employee_id,
+                'initial_issue_id' => $issue->getKey(),
+                'origin_level' => $issue->organization_unit_id !== null
+                    ? GrievanceOriginLevel::OrganizationUnit
+                    : GrievanceOriginLevel::Organization,
+                'category_id' => $category->getKey(),
+                'subject' => $issue->issue_subject,
+                'description' => $data['cause_of_grievance'] ?? $issue->issue_description,
+                'incident_date' => $data['incident_date'] ?? null,
+                'respondent_description' => $data['respondent_description'] ?? $issue->responsible_officer_name_snapshot,
+                'priority' => GrievancePriority::tryFrom((string) $category->default_priority) ?? GrievancePriority::Normal,
+                'confidentiality_level' => GrievanceConfidentiality::tryFrom((string) $category->default_confidentiality) ?? GrievanceConfidentiality::NormalConfidential,
+                'status' => GrievanceStatus::Draft,
+                'record_state' => GrievanceRecordState::Active,
+                'metadata' => ['requested_remedy' => $data['requested_remedy'] ?? null],
+            ]);
+
+            $issue->update(['grievance_id' => $grievance->getKey()]);
+            $this->audit->record(AuditEventType::GrievanceDraftCreated, $actor, $grievance, [
+                'category_id' => $category->getKey(),
+                'initial_issue_id' => $issue->getKey(),
+            ]);
+
+            return $grievance;
+        });
+
+        return $this->submit($grievance, $actor);
     }
 
     // ── Submission and intake ────────────────────────────────────────────────

@@ -73,6 +73,8 @@ return [
         'not_editable' => 'This grievance can no longer be edited.',
         'not_deletable' => 'Only a draft that was never submitted can be deleted.',
         'already_submitted' => 'This grievance was already submitted.',
+        'initial_resolution_required' => 'Raise the matter in writing with your supervisor or responsible officer first; a formal grievance can only follow an unresolved initial attempt.',
+        'initial_resolution_not_failed' => 'This matter was resolved informally, so it cannot be filed as a formal grievance.',
         'no_initial_route' => 'No grievance handler is configured for this organization. Configure an initial route or an approved grievance committee.',
         'intake_rejection_disabled' => 'Rejection at intake is not allowed by current policy.',
         'invalid_reason_code' => 'Choose a configured reason.',
