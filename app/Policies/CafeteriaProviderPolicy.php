@@ -29,24 +29,30 @@ readonly class CafeteriaProviderPolicy
         return $user->can('cafeteria_providers.create');
     }
 
-    public function update(User $user, CafeteriaProvider $_provider): bool
+    public function update(User $user, CafeteriaProvider $provider): bool
     {
-        return $user->can('cafeteria_providers.update');
+        return $user->can('cafeteria_providers.update') && $this->canAccess($user, $provider);
     }
 
-    public function updateInstitution(User $user, CafeteriaProvider $_provider): bool
+    public function updateInstitution(User $user, CafeteriaProvider $provider): bool
     {
         // Which organizations' employees a provider serves: its own permission.
-        return $user->can('cafeteria_providers.assignInstitution');
+        return $user->can('cafeteria_providers.assignInstitution') && $this->canAccess($user, $provider);
     }
 
-    public function archive(User $user, CafeteriaProvider $_provider): bool
+    public function archive(User $user, CafeteriaProvider $provider): bool
     {
-        return $user->can('cafeteria_providers.archive');
+        return $user->can('cafeteria_providers.archive') && $this->canAccess($user, $provider);
     }
 
-    public function restore(User $user, CafeteriaProvider $_provider): bool
+    public function restore(User $user, CafeteriaProvider $provider): bool
     {
-        return $user->can('cafeteria_providers.restore');
+        return $user->can('cafeteria_providers.restore') && $this->canAccess($user, $provider);
+    }
+
+    /** Changing a provider needs the same provider access as viewing it (SEC-7). */
+    private function canAccess(User $user, CafeteriaProvider $provider): bool
+    {
+        return app(CafeteriaProviderAccessService::class)->canAccessProvider($user, $provider);
     }
 }
