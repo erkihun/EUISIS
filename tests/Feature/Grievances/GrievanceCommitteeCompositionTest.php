@@ -99,3 +99,28 @@ it('approves a statutorily complete grievance committee', function () {
 
     expect($approved->status)->toBe('active');
 });
+
+it('refuses approval when no elected member is a woman', function () {
+    $s = GrievanceScenario::build(withRoutes: false, withSla: false);
+    $committee = pendingGrievanceCommittee($s);
+    seat($committee, $s, 'chairperson', Source::AppointedByHead->value);
+    seat($committee, $s, 'writer', Source::HrRepresentative->value);
+    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+    seat($committee, $s, 'member', Source::ElectedByEmployees->value, 'male');
+
+    app(GrievanceCommitteeService::class)->approve($committee->refresh(), committeeApprover($s));
+})->throws(ValidationException::class);
+
+it('does not treat unknown gender as satisfying the woman requirement', function () {
+    $s = GrievanceScenario::build(withRoutes: false, withSla: false);
+    $committee = pendingGrievanceCommittee($s);
+    seat($committee, $s, 'chairperson', Source::AppointedByHead->value);
+    seat($committee, $s, 'writer', Source::HrRepresentative->value);
+    // All three elected members have no recorded gender.
+    seat($committee, $s, 'member', Source::ElectedByEmployees->value, null);
+    seat($committee, $s, 'member', Source::ElectedByEmployees->value, null);
+    seat($committee, $s, 'member', Source::ElectedByEmployees->value, null);
+
+    app(GrievanceCommitteeService::class)->approve($committee->refresh(), committeeApprover($s));
+})->throws(ValidationException::class);
