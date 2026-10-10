@@ -6,6 +6,7 @@ namespace App\Jobs\Transfers;
 
 use App\Models\Employee;
 use App\Models\TransferAnnouncement;
+use App\Models\TransferSetting;
 use App\Notifications\TransferAnnouncementNotification;
 use App\Services\DailyActivity\DailyActivityNotifier;
 use App\Services\SystemSettings\SystemSettingsRegistry;
@@ -18,7 +19,13 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Notification;
 
-/** Queued and chunked: publishing must not enumerate the workforce in HTTP. */
+/**
+ * Queued and resumable: publishing never enumerates the workforce in HTTP,
+ * and one run never walks the whole workforce either (risk register SCL-8).
+ * Each run evaluates at most $batchesPerRun × $batchSize employees by key,
+ * then queues the next run with its cursor — always well inside the queue
+ * timeout, so the job is never re-delivered mid-run and re-sent.
+ */
 class NotifyEligibleTransferAudience implements ShouldQueue
 {
     use Dispatchable;
@@ -26,10 +33,15 @@ class NotifyEligibleTransferAudience implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    /** Walks the eligible workforce: runs on the `long` queue, inside retry_after. */
-    public int $timeout = 600;
+    public int $timeout = 300;
 
-    public function __construct(public readonly string $announcementId)
+    public int $tries = 3;
+
+    public int $batchSize = 200;
+
+    public int $batchesPerRun = 25;
+
+    public function __construct(public readonly string $announcementId, public readonly ?string $afterEmployeeId = null)
     {
         $this->onQueue('long');
     }
@@ -55,22 +67,41 @@ class NotifyEligibleTransferAudience implements ShouldQueue
             return;
         }
 
-        Employee::query()->where('status', 'active')->with('currentAssignment.position')->chunkById(200,
-            function ($employees) use ($announcement, $eligibility, $accounts, $channels): void {
-                $users = $accounts->usersFor($employees);
-                foreach ($employees as $employee) {
-                    $user = $users[$employee->id] ?? null;
-                    if ($user === null || ($channels === ['mail'] && ! $user->email)) {
-                        continue;
-                    }
-                    $eligible = $announcement->positions->isEmpty()
-                        ? $eligibility->evaluate($employee, $announcement)['eligible']
-                        : $announcement->positions->contains(fn ($position): bool => $eligibility->evaluate($employee, $announcement, announcementPosition: $position)['eligible']);
-                    if ($eligible) {
-                        $userChannels = $user->email ? $channels : array_values(array_diff($channels, ['mail']));
-                        Notification::send($user, new TransferAnnouncementNotification($announcement->id, $userChannels));
-                    }
+        // Read once per run, not once per employee and position.
+        $transferSettings = TransferSetting::current();
+        $after = $this->afterEmployeeId;
+
+        for ($batch = 0; $batch < $this->batchesPerRun; $batch++) {
+            $employees = Employee::query()->where('status', 'active')
+                ->when($after !== null, fn ($query) => $query->where('id', '>', $after))
+                ->orderBy('id')->limit($this->batchSize)
+                ->with('currentAssignment.position')->get();
+            if ($employees->isEmpty()) {
+                return;
+            }
+
+            $users = $accounts->usersFor($employees);
+            foreach ($employees as $employee) {
+                $user = $users[$employee->id] ?? null;
+                if ($user === null || ($channels === ['mail'] && ! $user->email)) {
+                    continue;
                 }
-            }, 'id');
+                $eligible = $announcement->positions->isEmpty()
+                    ? $eligibility->evaluate($employee, $announcement, $transferSettings)['eligible']
+                    : $announcement->positions->contains(fn ($position): bool => $eligibility->evaluate($employee, $announcement, $transferSettings, $position)['eligible']);
+                if ($eligible) {
+                    $userChannels = $user->email ? $channels : array_values(array_diff($channels, ['mail']));
+                    Notification::send($user, new TransferAnnouncementNotification($announcement->id, $userChannels));
+                }
+            }
+
+            $after = (string) $employees->last()->id;
+            if ($employees->count() < $this->batchSize) {
+                return;
+            }
+        }
+
+        // More employees remain: continue in a fresh run.
+        self::dispatch($this->announcementId, $after);
     }
 }

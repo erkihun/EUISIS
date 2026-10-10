@@ -911,3 +911,26 @@ test('transfer application pages send employee display fields only, not contact 
             ->missing('application.employee.phone')
             ->missing('application.employee.date_of_birth'));
 });
+
+// ── Announcement audience fan-out (SCL-8) ────────────────────────────────────
+
+test('the announcement audience job stops after its batch budget and continues from a cursor', function (): void {
+    \Illuminate\Support\Facades\Queue::fake();
+    \Illuminate\Support\Facades\Notification::fake();
+    $org = makeTransferOrg('AUD-1');
+    $first = makeTransferEmployee($org, makeTransferPos($org->id));
+    makeTransferEmployee($org, makeTransferPos($org->id));
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $org->id, 'position_id' => makeTransferPos($org->id)->id, 'number_of_vacancies' => 1,
+        'opening_date' => now()->subDay()->toDateString(), 'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
+    ]);
+
+    $job = new \App\Jobs\Transfers\NotifyEligibleTransferAudience($announcement->id);
+    $job->batchSize = 1;
+    $job->batchesPerRun = 1;
+    app()->call([$job, 'handle']);
+
+    \Illuminate\Support\Facades\Queue::assertPushedOn('long', \App\Jobs\Transfers\NotifyEligibleTransferAudience::class,
+        fn ($next) => $next->announcementId === $announcement->id && $next->afterEmployeeId !== null);
+});
