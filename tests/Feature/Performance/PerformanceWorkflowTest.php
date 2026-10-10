@@ -625,8 +625,10 @@ test('97 a mid-cycle transfer closes the old agreement, keeps its actuals in the
     $old = epAgreement($this->e1);
     app(KpiActualService::class)->recordForItem($old->items()->first(), ['period_start' => '2026-01-01', 'period_end' => '2026-05-31', 'actual_value' => 120], $this->manager);
 
-    $newAssignment = EmployeeAssignment::query()->create(['employee_id' => $this->e1->id, 'organization_id' => $this->orgA->id, 'organization_unit_id' => $this->team2->id, 'position_id' => $this->position2->id, 'assignment_status' => 'active', 'effective_from' => '2026-07-01', 'is_current' => true]);
+    // Close the old placement first, as every transfer flow does: one current
+    // assignment per employee is enforced by a unique index.
     $this->e1->currentAssignment->update(['is_current' => false, 'effective_to' => '2026-06-30']);
+    $newAssignment = EmployeeAssignment::query()->create(['employee_id' => $this->e1->id, 'organization_id' => $this->orgA->id, 'organization_unit_id' => $this->team2->id, 'position_id' => $this->position2->id, 'assignment_status' => 'active', 'effective_from' => '2026-07-01', 'is_current' => true]);
     $this->e1->update(['current_assignment_id' => $newAssignment->id]);
     $next = app(EmployeeAgreementService::class)->transfer($old->fresh(), $newAssignment, $this->admin);
 

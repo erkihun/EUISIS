@@ -33,6 +33,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\SystemSettings\SystemSettingsService;
+use App\Support\Storage\StoredFileChecksum;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
@@ -553,7 +554,8 @@ final class GrievanceCorrespondenceService
 
         $disk = Storage::disk($letter->pdf_disk ?? self::DISK);
         abort_unless($disk->exists($letter->pdf_path), 404);
-        if ($letter->pdf_sha256 !== null && hash_file('sha256', $disk->path($letter->pdf_path)) !== $letter->pdf_sha256) {
+        // Streamed through the disk so it also works on shared object storage.
+        if ($letter->pdf_sha256 !== null && ! StoredFileChecksum::matches($letter->pdf_disk ?? self::DISK, $letter->pdf_path, $letter->pdf_sha256)) {
             report(new \RuntimeException('Grievance letter integrity check failed: '.$letter->getKey()));
             abort(409, __('grievances.errors.integrity_failed'));
         }

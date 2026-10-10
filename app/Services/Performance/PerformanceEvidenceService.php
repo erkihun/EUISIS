@@ -12,7 +12,6 @@ use App\Models\EmployeePerformanceAgreement;
 use App\Models\PerformanceEvidence;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -88,10 +87,5 @@ final class PerformanceEvidenceService
     public function canDownload(User $user, PerformanceEvidence $evidence): bool
     {
         return $evidence->file_path !== null && $this->access->canViewAgreement($user, $evidence->agreement);
-    }
-
-    public function path(PerformanceEvidence $evidence): string
-    {
-        return Storage::disk('local')->path($evidence->file_path);
     }
 }
