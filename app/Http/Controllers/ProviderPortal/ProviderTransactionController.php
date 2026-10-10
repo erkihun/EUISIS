@@ -18,6 +18,9 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ProviderTransactionController extends Controller
 {
+    /** Longest period one list, summary or export may cover. */
+    private const MAX_PERIOD_DAYS = 366;
+
     use FormatsProviderPortalData;
 
     public function index(Request $request, ProviderPortalContext $context, ProviderTransactionExportService $exportService): Response
@@ -129,12 +132,26 @@ class ProviderTransactionController extends Controller
     /** @return array<string, mixed> */
     private function filters(Request $request): array
     {
+        // A bounded, well-formed period: lists, totals and exports never span
+        // an unlimited transaction history (risk register SCL-5).
+        $request->validate([
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
         $startDate = $request->string('start_date')->toString()
             ?: $request->string('date')->toString()
             ?: now()->startOfMonth()->toDateString();
         $endDate = $request->string('end_date')->toString()
             ?: $request->string('date')->toString()
             ?: now()->toDateString();
+
+        if (\Illuminate\Support\Carbon::parse($startDate)->diffInDays(\Illuminate\Support\Carbon::parse($endDate)) > self::MAX_PERIOD_DAYS) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'end_date' => __('provider-portal.period_too_long', ['days' => self::MAX_PERIOD_DAYS]),
+            ]);
+        }
 
         return [
             'start_date' => $startDate,

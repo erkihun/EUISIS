@@ -7,6 +7,7 @@ return [
     'portal_disabled' => 'ለዚህ መለያ የፖርታል መዳረሻ ተዘግቷል።',
     'provider_inactive' => 'ከዚህ መለያ ጋር የተያያዘው የካፌቴሪያ አቅራቢ ንቁ አይደለም።',
     'not_assigned' => 'ለዚህ መለያ ምንም የካፌቴሪያ አቅራቢ አልተያያዘም።',
+    'period_too_long' => 'ቢበዛ :days ቀናት የሚሸፍን ጊዜ ይምረጡ።',
     'login_failed' => 'እነዚህ መረጃዎች ከንቁ የአቅራቢ መለያ ጋር አይዛመዱም።',
     'identifier_label' => 'ኢሜይል ወይም የተጠቃሚ ስም',
     'invalid_credentials' => 'የተሳሳቱ መረጃዎች። እባክዎ እንደገና ይሞክሩ።',

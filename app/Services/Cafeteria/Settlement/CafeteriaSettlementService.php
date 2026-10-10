@@ -16,7 +16,6 @@ use App\Services\Cafeteria\Policy\CafeteriaPricing;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -44,7 +43,7 @@ class CafeteriaSettlementService
      */
     public function preview(Provider $provider, Carbon $from, Carbon $to): array
     {
-        return $this->summarize($this->unsettled($provider, $from, $to)->get());
+        return $this->summarize($this->unsettled($provider, $from, $to));
     }
 
     public function createDraft(Provider $provider, Carbon $from, Carbon $to, User $actor, ?string $notes = null, ?Request $request = null): CafeteriaSettlement
@@ -54,26 +53,29 @@ class CafeteriaSettlementService
         }
 
         return DB::transaction(function () use ($provider, $from, $to, $actor, $notes, $request): CafeteriaSettlement {
-            // Lock the rows being settled so a parallel draft cannot take them too.
-            $transactions = $this->unsettled($provider, $from, $to)->lockForUpdate()->get();
-            if ($transactions->isEmpty()) {
-                throw ValidationException::withMessages(['period_start' => __('cafeteria-policy.validation.settlement_empty')]);
-            }
-
-            $summary = $this->summarize($transactions);
             $settlement = CafeteriaSettlement::query()->create([
                 'settlement_number' => 'SET-'.now()->format('Ymd').'-'.Str::upper(Str::random(6)),
                 'provider_id' => $provider->id,
                 'period_start' => $from->toDateString(),
                 'period_end' => $to->toDateString(),
                 'status' => CafeteriaSettlementStatus::Draft->value,
-                'currency_code' => $summary['totals']['currency_code'],
+                'currency_code' => 'ETB',
                 'notes' => $notes,
                 'generated_by' => $actor->id,
                 'generated_at' => now(),
             ]);
 
-            CafeteriaTransaction::query()->whereKey($transactions->modelKeys())->update(['cafeteria_settlement_id' => $settlement->id]);
+            // Claim the period's unsettled rows in ONE statement (risk SCL-5):
+            // never load or bind every transaction id in PHP. The UPDATE locks
+            // each row it changes, and PostgreSQL re-checks the IS NULL
+            // condition after waiting, so a parallel draft cannot take them too.
+            $claimed = $this->unsettled($provider, $from, $to)->update(['cafeteria_settlement_id' => $settlement->id]);
+            if ($claimed === 0) {
+                throw ValidationException::withMessages(['period_start' => __('cafeteria-policy.validation.settlement_empty')]);
+            }
+
+            $summary = $this->summarize(CafeteriaTransaction::query()->where('cafeteria_settlement_id', $settlement->id));
+            $settlement->forceFill(['currency_code' => $summary['totals']['currency_code']])->save();
             $this->storeSummary($settlement, $summary);
 
             $this->audit->execute(AuditEventType::CafeteriaSettlementCreated, $actor, $settlement, null,
@@ -99,7 +101,7 @@ class CafeteriaSettlementService
                 ->update(['cafeteria_settlement_id' => null]);
 
             $this->storeSummary($settlement, $this->summarize(
-                CafeteriaTransaction::query()->where('cafeteria_settlement_id', $settlement->id)->get(),
+                CafeteriaTransaction::query()->where('cafeteria_settlement_id', $settlement->id),
             ));
 
             $settlement->forceFill([
@@ -145,34 +147,42 @@ class CafeteriaSettlementService
             ->where('provider_id', $provider->id)
             ->where('status', CafeteriaTransactionStatus::Accepted->value)
             ->whereNull('cafeteria_settlement_id')
-            ->whereDate('transaction_date', '>=', $from->toDateString())
-            ->whereDate('transaction_date', '<=', $to->toDateString());
+            // transaction_date is a DATE column: plain range bounds keep the index usable.
+            ->where('transaction_date', '>=', $from->toDateString())
+            ->where('transaction_date', '<=', $to->toDateString());
     }
 
     /**
-     * @param  Collection<int, CafeteriaTransaction>  $transactions
+     * Lines and totals aggregated by the database (risk SCL-5). Each row is
+     * converted to integer cents before summing, so totals are exact on every
+     * driver and identical to summing the stored snapshots one by one.
+     *
+     * @param  Builder<CafeteriaTransaction>  $transactions
      * @return array{lines: list<array<string, mixed>>, totals: array<string, mixed>}
      */
-    private function summarize(Collection $transactions): array
+    private function summarize(Builder $transactions): array
     {
-        $lines = $transactions
-            ->groupBy(fn (CafeteriaTransaction $t): string => ($t->employee_organization_id ?? '').'|'.$t->cafeteria_provider_id)
-            ->map(function (Collection $group): array {
-                /** @var CafeteriaTransaction $first */
-                $first = $group->first();
-                $subsidy = $group->sum(fn (CafeteriaTransaction $t): int => CafeteriaPricing::toCents((string) $t->subsidy_amount_applied));
-                $employee = $group->sum(fn (CafeteriaTransaction $t): int => CafeteriaPricing::toCents((string) $t->employee_payable_amount));
+        $cents = fn (string $column): string => "SUM(CAST(ROUND(COALESCE({$column}, 0) * 100) AS INTEGER))";
 
-                return [
-                    'employee_organization_id' => $first->employee_organization_id,
-                    'cafeteria_id' => $first->cafeteria_provider_id,
-                    'transaction_count' => $group->count(),
-                    'subsidy_cents' => $subsidy,
-                    'employee_cents' => $employee,
-                ];
-            })
+        $lines = (clone $transactions)->toBase()
+            ->reorder()
+            ->groupBy('employee_organization_id', 'cafeteria_provider_id')
+            ->select('employee_organization_id', 'cafeteria_provider_id')
+            ->selectRaw('COUNT(*) AS transaction_count')
+            ->selectRaw($cents('subsidy_amount_applied').' AS subsidy_cents')
+            ->selectRaw($cents('employee_payable_amount').' AS employee_cents')
+            ->get()
+            ->map(fn ($row): array => [
+                'employee_organization_id' => $row->employee_organization_id,
+                'cafeteria_id' => $row->cafeteria_provider_id,
+                'transaction_count' => (int) $row->transaction_count,
+                'subsidy_cents' => (int) $row->subsidy_cents,
+                'employee_cents' => (int) $row->employee_cents,
+            ])
             ->sortBy(fn (array $line): string => ($line['employee_organization_id'] ?? '~').'|'.$line['cafeteria_id'])
             ->values();
+
+        $currency = (clone $transactions)->toBase()->reorder()->whereNotNull('currency_code')->value('currency_code');
 
         return [
             'lines' => $lines->map(fn (array $line): array => [
@@ -184,11 +194,11 @@ class CafeteriaSettlementService
                 'provider_amount' => CafeteriaPricing::format($line['subsidy_cents'] + $line['employee_cents']),
             ])->all(),
             'totals' => [
-                'transaction_count' => $transactions->count(),
+                'transaction_count' => (int) $lines->sum('transaction_count'),
                 'total_subsidy_amount' => CafeteriaPricing::format($lines->sum('subsidy_cents')),
                 'total_employee_amount' => CafeteriaPricing::format($lines->sum('employee_cents')),
                 'total_provider_amount' => CafeteriaPricing::format($lines->sum('subsidy_cents') + $lines->sum('employee_cents')),
-                'currency_code' => $transactions->pluck('currency_code')->filter()->first() ?? 'ETB',
+                'currency_code' => $currency ?? 'ETB',
             ],
         ];
     }

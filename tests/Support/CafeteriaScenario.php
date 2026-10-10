@@ -197,6 +197,12 @@ final class CafeteriaScenario
 
     public function assignEmployee(Employee $employee, Organization $organization, string $from, ?string $to = null, bool $current = true): EmployeeAssignment
     {
+        // As every real transfer does: the previous placement stops being the
+        // current one first (one current assignment per employee is a unique index).
+        if ($current) {
+            EmployeeAssignment::query()->where('employee_id', $employee->id)->where('is_current', true)->update(['is_current' => false]);
+        }
+
         $assignment = EmployeeAssignment::query()->create([
             'employee_id' => $employee->id,
             'organization_id' => $organization->id,

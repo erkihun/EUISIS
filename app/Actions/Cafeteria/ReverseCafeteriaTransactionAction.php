@@ -29,7 +29,20 @@ readonly class ReverseCafeteriaTransactionAction
             // Checked on the locked row, not the caller's copy: two reversals of
             // one meal (a double click, two supervisors) each passed a check made
             // before the lock and each refunded the subsidy.
+            //
+            // Lock order is settlement -> transaction, the same as
+            // CafeteriaSettlementService::finalize(): finalize can no longer
+            // freeze a settlement while one of its meals is being reversed
+            // (the provider would be paid for a reversed meal), and the two
+            // paths cannot deadlock (risk register CON-8).
+            $settlementId = CafeteriaTransaction::query()->whereKey($transaction->getKey())->value('cafeteria_settlement_id');
+            if ($settlementId !== null) {
+                \App\Models\CafeteriaSettlement::query()->whereKey($settlementId)->lockForUpdate()->first();
+            }
             $transaction = CafeteriaTransaction::query()->whereKey($transaction->getKey())->lockForUpdate()->firstOrFail();
+            if ($transaction->cafeteria_settlement_id !== $settlementId) {
+                throw ValidationException::withMessages(['transaction' => [__('cafeteria-policy.validation.settlement_not_draft')]]);
+            }
 
             if ($transaction->isReversed()) {
                 throw ValidationException::withMessages(['transaction' => [__('cafeteria.alreadyReversed')]]);
