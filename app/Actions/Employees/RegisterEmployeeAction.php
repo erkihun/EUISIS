@@ -17,6 +17,7 @@ use App\Models\Position;
 use App\Models\User;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\Vacancy\PositionCapacityService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -63,9 +64,19 @@ readonly class RegisterEmployeeAction
                 expectedGeneratedCode: is_string($expectedGeneratedCode) ? $expectedGeneratedCode : null,
             );
 
-            $employee = Employee::query()->create($employeeAttributes + [
-                'status' => $employeeAttributes['status'] ?? EmployeeStatus::Active,
-            ]);
+            try {
+                $employee = Employee::query()->create($employeeAttributes + [
+                    'status' => $employeeAttributes['status'] ?? EmployeeStatus::Active,
+                ]);
+            } catch (UniqueConstraintViolationException $e) {
+                // A simultaneous registration with the same national ID passed
+                // validation first; the unique index decides (CON-10).
+                if (str_contains($e->getMessage(), 'national_id_hash')) {
+                    throw ValidationException::withMessages(['national_id' => __('validation.unique', ['attribute' => 'national id'])]);
+                }
+
+                throw $e;
+            }
 
             $assignment = EmployeeAssignment::query()->create($assignmentAttributes + [
                 'employee_id' => $employee->id,

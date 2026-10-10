@@ -50,10 +50,10 @@ class AuditDuplicateData extends ReadOnlyAuditCommand
             [
                 'key' => 'positions.occupants', 'severity' => 'HIGH',
                 'label' => 'Positions with more current occupants than approved slots',
-                'why' => 'Registration allows one occupant per position; an approved establishment may allow more. Rows: position (occupants / slots).',
+                'why' => 'A position holds its approved establishment slots, or one person without an establishment (CON-5); placements above that predate the rule. Resolve by hand. Rows: position (occupants / slots).',
                 'rows' => fn () => DB::table('employee_assignments')->where('is_current', true)->where('assignment_status', 'active')
                     ->whereNotNull('position_id')->select('position_id', DB::raw('count(*) as occupants'))->groupBy('position_id')->havingRaw('count(*) > 1')->get()
-                    ->map(fn ($row) => [$row, max(1, app(PositionCapacityService::class)->approvedSlotsForPosition($row->position_id))])
+                    ->map(fn ($row) => [$row, app(PositionCapacityService::class)->capacity($row->position_id)])
                     ->filter(fn (array $pair) => $pair[0]->occupants > $pair[1])
                     ->map(fn (array $pair) => "{$pair[0]->position_id} ({$pair[0]->occupants} / {$pair[1]})")->values(),
             ],
