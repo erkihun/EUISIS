@@ -403,3 +403,49 @@ it('lists only applications touching the scoped officer organizations, without e
             ->missing('applications.data.0.employee.phone')
             ->missing('applications.data.0.employee.date_of_birth'));
 });
+
+it('a double-submitted vacancy transfer is implemented once (stale copy re-checked under lock)', function (): void {
+    $user = superAdminForApplications();
+    $announcement = makePublishedAnnouncementForApp(slots: 2);
+    [$employee] = makeEmployeeWithAssignment(makeTestOrgForApp()->id);
+    $application = makeApplicationForTest($announcement, $employee->id, VacancyApplicationStatus::Selected->value);
+
+    // Two requests loaded the same application before either committed.
+    $first = VacancyApplication::query()->findOrFail($application->id);
+    $stale = VacancyApplication::query()->findOrFail($application->id);
+    $action = app(\App\Actions\Vacancy\CompleteVacancyTransferAction::class);
+
+    $action->execute($first, ['effective_date' => '2026-06-01'], $user);
+    expect(fn () => $action->execute($stale, ['effective_date' => '2026-06-01'], $user))
+        ->toThrow(\Illuminate\Validation\ValidationException::class);
+
+    expect(EmployeeTransfer::query()->where('vacancy_application_id', $application->id)->count())->toBe(1)
+        ->and(EmployeeAssignment::query()->where('employee_id', $employee->id)->where('is_current', true)->count())->toBe(1);
+});
+
+it('two applications cannot both take the last vacancy slot', function (): void {
+    $user = superAdminForApplications();
+    $announcement = makePublishedAnnouncementForApp(slots: 1);
+    [$a] = makeEmployeeWithAssignment(makeTestOrgForApp()->id);
+    [$b] = makeEmployeeWithAssignment(makeTestOrgForApp()->id);
+    $appA = makeApplicationForTest($announcement, $a->id, VacancyApplicationStatus::Selected->value);
+    $appB = makeApplicationForTest($announcement, $b->id, VacancyApplicationStatus::Selected->value);
+    $action = app(\App\Actions\Vacancy\CompleteVacancyTransferAction::class);
+
+    $action->execute($appA, ['effective_date' => '2026-06-01'], $user);
+    expect(fn () => $action->execute($appB, ['effective_date' => '2026-06-01'], $user))
+        ->toThrow(\Illuminate\Validation\ValidationException::class);
+
+    expect(VacancyApplication::query()->where('status', VacancyApplicationStatus::Transferred->value)->count())->toBe(1);
+});
+
+it('the closed assignment ends the day before the new one starts', function (): void {
+    $user = superAdminForApplications();
+    $announcement = makePublishedAnnouncementForApp();
+    [$employee, $old] = makeEmployeeWithAssignment(makeTestOrgForApp()->id);
+    $application = makeApplicationForTest($announcement, $employee->id, VacancyApplicationStatus::Selected->value);
+
+    app(\App\Actions\Vacancy\CompleteVacancyTransferAction::class)->execute($application, ['effective_date' => '2026-06-01'], $user);
+
+    expect($old->fresh()->effective_to->toDateString())->toBe('2026-05-31');
+});

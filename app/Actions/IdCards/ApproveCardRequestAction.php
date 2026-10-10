@@ -89,6 +89,18 @@ readonly class ApproveCardRequestAction
                 if ($hasActiveCard) {
                     throw new DomainException('Employee already has an active card. Use replacement flow for a new card.');
                 }
+            } else {
+                // A replacement retires the old card first, so a live current
+                // card here means another replacement was already approved.
+                $hasLiveCurrentCard = IdCard::query()
+                    ->where('employee_id', $employee->id)
+                    ->where('is_current', true)
+                    ->whereIn('status', [CardStatus::Active->value, CardStatus::Issued->value, CardStatus::Printed->value, CardStatus::PendingPrint->value])
+                    ->exists();
+
+                if ($hasLiveCurrentCard) {
+                    throw new DomainException('Employee already has a live card from an earlier replacement.');
+                }
             }
 
             $cardRequest->update([

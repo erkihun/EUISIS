@@ -172,3 +172,37 @@ it('card activation requires issued status, not printed', function (): void {
     $active = app(ActivateCardAction::class)->execute($issued->fresh(), $actor);
     expect($active->status)->toBe(CardStatus::Active);
 });
+
+it('a double-submitted replacement creates only one card request (re-checked under lock)', function (): void {
+    [$employee, $card] = lifecycleCard(CardStatus::Lost);
+    $actor = User::factory()->create()->assignRole('HR Officer');
+    $stale = IdCard::query()->findOrFail($card->id); // second request loaded the card before the first committed
+
+    app(ReplaceCardAction::class)->execute($card, $actor, 'Lost');
+    expect(fn () => app(ReplaceCardAction::class)->execute($stale, $actor, 'Lost'))
+        ->toThrow(DomainException::class);
+
+    expect(\App\Models\CardRequest::query()->where('employee_id', $employee->id)->count())->toBe(1);
+});
+
+it('the database refuses a second live current card for one employee', function (): void {
+    [$employee] = lifecycleCard(CardStatus::Active);
+
+    expect(fn () => IdCard::query()->create([
+        'employee_id' => $employee->id, 'card_number' => 'CARD-LC-'.uniqid(),
+        'status' => CardStatus::PendingPrint, 'expires_at' => now()->addYear(),
+        'token_version' => 0, 'is_current' => true,
+    ]))->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class);
+});
+
+it('a retired current card does not block a new live card', function (): void {
+    [$employee] = lifecycleCard(CardStatus::Expired); // historic row still flagged current
+
+    $card = IdCard::query()->create([
+        'employee_id' => $employee->id, 'card_number' => 'CARD-LC-'.uniqid(),
+        'status' => CardStatus::PendingPrint, 'expires_at' => now()->addYear(),
+        'token_version' => 0, 'is_current' => true,
+    ]);
+
+    expect($card->exists)->toBeTrue();
+});

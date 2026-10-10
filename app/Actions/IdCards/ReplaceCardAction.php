@@ -11,6 +11,7 @@ use App\Enums\CardRequestType;
 use App\Enums\CardStatus;
 use App\Models\CardReplacement;
 use App\Models\CardRequest;
+use App\Models\Employee;
 use App\Models\IdCard;
 use App\Models\User;
 use DomainException;
@@ -28,16 +29,27 @@ readonly class ReplaceCardAction
             throw new DomainException('Only lost, damaged, revoked, expired, or suspended cards can be replaced. Current status: '.$oldCard->status->value);
         }
 
-        $hasPendingRequest = CardRequest::query()
-            ->where('employee_id', $oldCard->employee_id)
-            ->whereIn('status', [CardRequestStatus::Draft->value, CardRequestStatus::Submitted->value, CardRequestStatus::Verified->value])
-            ->exists();
+        return DB::transaction(function () use ($oldCard, $actor, $reason, $replaceableStatuses): CardRequest {
+            // Serialize with every other card action for this employee
+            // (approval and print preparation lock the employee row first too),
+            // then re-read the card: a concurrent replacement may have just
+            // retired it and opened a request.
+            Employee::query()->whereKey($oldCard->employee_id)->lockForUpdate()->first();
+            $oldCard = IdCard::query()->whereKey($oldCard->getKey())->lockForUpdate()->firstOrFail();
 
-        if ($hasPendingRequest) {
-            throw new DomainException('Employee already has a pending card request.');
-        }
+            if (! in_array($oldCard->status, $replaceableStatuses, true)) {
+                throw new DomainException('Only lost, damaged, revoked, expired, or suspended cards can be replaced. Current status: '.$oldCard->status->value);
+            }
 
-        return DB::transaction(function () use ($oldCard, $actor, $reason): CardRequest {
+            $hasPendingRequest = CardRequest::query()
+                ->where('employee_id', $oldCard->employee_id)
+                ->whereIn('status', [CardRequestStatus::Draft->value, CardRequestStatus::Submitted->value, CardRequestStatus::Verified->value])
+                ->exists();
+
+            if ($hasPendingRequest) {
+                throw new DomainException('Employee already has a pending card request.');
+            }
+
             $oldStatus = $oldCard->status;
             $oldCard->update([
                 'status' => CardStatus::Replaced,
