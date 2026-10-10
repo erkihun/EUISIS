@@ -351,3 +351,8 @@ test('the self-service page holds no hardcoded English chrome', function () {
         }
     }
 });
+
+test('reprint notifications are queued, never sent inside the request', function () {
+    expect(new EmployeePortalNotification('officer_notice', ['database']))
+        ->toBeInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class);
+});
