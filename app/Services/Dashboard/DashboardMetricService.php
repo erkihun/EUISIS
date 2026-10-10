@@ -983,12 +983,16 @@ class DashboardMetricService
 
     public function transactionQuery(array $scope): Builder
     {
+        // Scoped by a subquery instead of joining employees and assignments on
+        // every chart: global and provider dashboards no longer pay for two
+        // joins per transaction (load test 2026-10-11).
         return ServiceTransaction::query()
-            ->leftJoin('employees as service_transaction_employee', 'service_transaction_employee.id', '=', 'service_transactions.employee_id')
-            ->leftJoin('employee_assignments as service_transaction_scope_assignment', 'service_transaction_scope_assignment.id', '=', 'service_transaction_employee.current_assignment_id')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
-                fn (Builder $query) => $query->whereIn('service_transaction_scope_assignment.organization_id', $scope['organization_ids'])
+                fn (Builder $query) => $query->whereIn('service_transactions.employee_id', DB::table('employees')
+                    ->join('employee_assignments', 'employee_assignments.id', '=', 'employees.current_assignment_id')
+                    ->whereIn('employee_assignments.organization_id', $scope['organization_ids'])
+                    ->select('employees.id'))
             )
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] === [],

@@ -144,6 +144,39 @@ test('dashboard respects date range filters and keeps bounded lists', function (
     expect(count($props['charts']['providersTopUsage']))->toBeLessThanOrEqual(10);
 });
 
+test('transaction counts follow the officer organization scope', function (): void {
+    $officer = User::where('email', 'hr.officer@demo.local')->firstOrFail();
+    $admin = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $metrics = app(DashboardMetricService::class);
+    $scope = app(DashboardScopeService::class)->resolve($officer, []);
+
+    $expected = ServiceTransaction::query()
+        ->whereIn('employee_id', Employee::query()->whereIn('current_assignment_id', EmployeeAssignment::query()
+            ->whereIn('organization_id', $scope['organization_ids'])->select('id'))->select('id'))
+        ->count();
+
+    expect($metrics->transactionQuery($scope)->count())->toBe($expected)
+        ->and($metrics->transactionQuery(app(DashboardScopeService::class)->resolve($admin, []))->count())
+        ->toBe(ServiceTransaction::query()->count());
+});
+
+test('provider top usage counts only transactions in the selected period', function (): void {
+    // Load test 2026-10-11: the ranking joined every transaction ever recorded
+    // (2.5 s at 220k employees); it now follows the dashboard's date range.
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $template = ServiceTransaction::query()->whereNotNull('service_provider_id')->firstOrFail();
+    $provider = ServiceProvider::query()->findOrFail($template->service_provider_id);
+    $value = fn () => collect($this->actingAs($user)->get(route('dashboard', ['date_range' => '30d']))
+        ->viewData('page')['props']['charts']['providersTopUsage'])->firstWhere('key', $provider->name)['value'] ?? 0;
+
+    $before = $value();
+    $old = $template->replicate();
+    $old->forceFill(['occurred_at' => now()->subDays(400), 'reference' => 'OLD-'.uniqid()])->save();
+    cache()->flush();
+
+    expect($value())->toBe($before);
+});
+
 test('dashboard handles empty data safely', function (): void {
     AuditLog::query()->delete();
     ServiceTransaction::query()->delete();
