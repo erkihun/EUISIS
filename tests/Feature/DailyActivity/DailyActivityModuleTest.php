@@ -738,12 +738,29 @@ test('31. reminders go out once for missing days and never for leave or holidays
 
     $again = $reminders->sendDue(Carbon::parse(DA_TODAY.' 17:45:00', 'Africa/Addis_Ababa'));
     expect($again['end_of_day'])->toBe(0)
-        ->and(DailyActivityReminder::query()->where('reminder_type', 'end_of_day')->count())->toBe(1);
+        ->and(DailyActivityReminder::query()->where('reminder_type', 'end_of_day')->where('skipped', false)->count())->toBe(1);
 
     // On a public holiday nothing is sent at all.
     PublicHoliday::query()->create(['name_en' => 'Holiday', 'holiday_date' => '2026-09-24', 'is_active' => true]);
     $holiday = app(DailyActivityReminderService::class)->sendDue(Carbon::parse('2026-09-24 17:30:00', 'Africa/Addis_Ababa'));
     expect($holiday['end_of_day'])->toBe(0);
+});
+
+test('31b. each employee is evaluated once per date and type, never on every run', function (): void {
+    daFakeLeave([$this->employeeB->id => [DA_TODAY => true]]);
+    daPost($this->userA, DA_TODAY, daItems(), 'submit');
+
+    app(DailyActivityReminderService::class)->sendDue(Carbon::parse(DA_TODAY.' 17:30:00', 'Africa/Addis_Ababa'));
+
+    $row = fn (string $employeeId) => DailyActivityReminder::query()
+        ->where('employee_id', $employeeId)->where('reminder_type', 'end_of_day')->first();
+
+    // F was reminded; B (on leave) is recorded as evaluated-and-skipped so
+    // later runs do not walk them again; A had submitted and is excluded by
+    // the query itself, with no row at all.
+    expect($row($this->employeeF->id)?->skipped)->toBeFalse()
+        ->and($row($this->employeeB->id)?->skipped)->toBeTrue()
+        ->and($row($this->employeeA->id))->toBeNull();
 });
 
 // ── Pages ───────────────────────────────────────────────────────────────────
