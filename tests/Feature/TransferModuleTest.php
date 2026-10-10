@@ -856,3 +856,38 @@ test('the transfer dashboard shows a scoped user only their organizations and no
             ->missing('recent_transfers.0.employee.phone')
             ->missing('recent_transfers.0.employee.date_of_birth'));
 });
+
+// ── Approval/rejection races (CON-6) ─────────────────────────────────────────
+
+test('a stale rejection cannot relabel an application that a parallel approval already approved', function (): void {
+    [$from, $application] = makeScopedTransferPair('RJ');
+    $application->update(['status' => TransferApplicationStatus::FinalApprovalPending]);
+    $final = TransferApproval::query()->create([
+        'transfer_application_id' => $application->id,
+        'approval_type' => TransferApprovalType::Final,
+        'status' => TransferApprovalStatus::Pending,
+    ]);
+    $stale = TransferApproval::query()->findOrFail($final->id); // loaded before the approval committed
+
+    $settings = TransferSetting::current();
+    $settings->update(['releasing_consent_required' => false, 'receiving_consent_required' => false]);
+    app(ApproveTransferApprovalAction::class)->execute($final, makeTransferActor('transfers.final.approve'));
+
+    expect(fn () => app(\App\Actions\Transfers\RejectTransferApprovalAction::class)->execute($stale, makeTransferActor('transfers.final.approve'), 'late'))
+        ->toThrow(DomainException::class);
+    expect($application->fresh()->status)->toBe(TransferApplicationStatus::Approved);
+});
+
+test('an approval of a stage the application has already left is refused', function (): void {
+    [$from, $application] = makeScopedTransferPair('ST');
+    $application->update(['status' => TransferApplicationStatus::Approved]);
+    $leftover = TransferApproval::query()->create([
+        'transfer_application_id' => $application->id,
+        'approval_type' => TransferApprovalType::Release,
+        'status' => TransferApprovalStatus::Pending,
+    ]);
+
+    expect(fn () => app(ApproveTransferApprovalAction::class)->execute($leftover, makeTransferActor('transfers.release.approve')))
+        ->toThrow(DomainException::class);
+    expect($application->fresh()->status)->toBe(TransferApplicationStatus::Approved);
+});

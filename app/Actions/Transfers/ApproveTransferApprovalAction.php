@@ -35,6 +35,11 @@ readonly class ApproveTransferApprovalAction
             if (! $approval->isPending()) {
                 throw new DomainException('This approval has already been decided.');
             }
+            // The application must still be waiting at this approval's stage.
+            RejectTransferApprovalAction::assertAtStage(
+                $approval,
+                $approval->transferApplication()->lockForUpdate()->firstOrFail(),
+            );
 
             $approval->update([
                 'status' => TransferApprovalStatus::Approved->value,
