@@ -191,6 +191,79 @@ test('a scoped delegated admin cannot grant a citywide scope', function (): void
     expect($target->organizationScopes()->count())->toBe(0);
 });
 
+// ── E5: removing a user's last scope (no scope = unrestricted) ──────────────
+
+function escScopedDelegatedAdminWithDelete(Organization $org): User
+{
+    Permission::findOrCreate('user-organization-scopes.delete', 'web');
+    Role::findByName('Delegated Admin', 'web')->givePermissionTo('user-organization-scopes.delete');
+    $actor = escDelegatedAdmin();
+    UserOrganizationScope::query()->create([
+        'user_id' => $actor->id, 'organization_id' => $org->id,
+        'scope_type' => OrganizationScopeType::Self, 'is_active' => true,
+        'effective_from' => now()->subDay()->toDateString(),
+    ]);
+
+    return $actor->fresh();
+}
+
+test('a scoped admin cannot remove a user\'s last scope and make them citywide', function (): void {
+    $org = escMakeOrg();
+    $actor = escScopedDelegatedAdminWithDelete($org);
+    $target = User::factory()->create(['default_organization_id' => $org->id]);
+    $scope = UserOrganizationScope::query()->create([
+        'user_id' => $target->id, 'organization_id' => $org->id,
+        'scope_type' => OrganizationScopeType::Self, 'is_active' => true,
+        'effective_from' => now()->subDay()->toDateString(),
+    ]);
+
+    actingAs($actor)
+        ->delete(route('users.organization-scopes.destroy', [$target, $scope]))
+        ->assertSessionHasErrors('scope');
+
+    expect(UserOrganizationScope::query()->whereKey($scope->id)->exists())->toBeTrue()
+        ->and(app(\App\Services\OrganizationScope\OrganizationScopeService::class)->isUnrestricted($target->fresh()))->toBeFalse();
+});
+
+test('a scoped admin may remove a scope when another scope remains', function (): void {
+    $org = escMakeOrg();
+    $actor = escScopedDelegatedAdminWithDelete($org);
+    $target = User::factory()->create(['default_organization_id' => $org->id]);
+    $keep = UserOrganizationScope::query()->create([
+        'user_id' => $target->id, 'organization_id' => $org->id,
+        'scope_type' => OrganizationScopeType::Self, 'is_active' => true,
+        'effective_from' => now()->subDay()->toDateString(),
+    ]);
+    $remove = UserOrganizationScope::query()->create([
+        'user_id' => $target->id, 'organization_id' => $org->id,
+        'scope_type' => OrganizationScopeType::Subtree, 'is_active' => true,
+        'effective_from' => now()->subDay()->toDateString(),
+    ]);
+
+    actingAs($actor)
+        ->delete(route('users.organization-scopes.destroy', [$target, $remove]))
+        ->assertSessionHasNoErrors();
+
+    expect(UserOrganizationScope::query()->whereKey($remove->id)->exists())->toBeFalse()
+        ->and(UserOrganizationScope::query()->whereKey($keep->id)->exists())->toBeTrue();
+});
+
+test('a Super Admin cannot be blocked from removing a last scope', function (): void {
+    $org = escMakeOrg();
+    $target = User::factory()->create();
+    $scope = UserOrganizationScope::query()->create([
+        'user_id' => $target->id, 'organization_id' => $org->id,
+        'scope_type' => OrganizationScopeType::Self, 'is_active' => true,
+        'effective_from' => now()->subDay()->toDateString(),
+    ]);
+
+    actingAs(escSuperAdmin())
+        ->delete(route('users.organization-scopes.destroy', [$target, $scope]))
+        ->assertSessionHasNoErrors();
+
+    expect(UserOrganizationScope::query()->whereKey($scope->id)->exists())->toBeFalse();
+});
+
 test('a Super Admin can grant a citywide scope', function (): void {
     $target = User::factory()->create();
 

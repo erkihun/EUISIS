@@ -60,6 +60,7 @@ return [
     'organization_scope_assigned' => 'የተጠቃሚው የተቋም ወሰን በተሳካ ሁኔታ ተመድቧል።',
     'organization_scope_updated' => 'የተጠቃሚው የተቋም ወሰኖች በተሳካ ሁኔታ ተዘምነዋል።',
     'organization_scope_removed' => 'የተጠቃሚው የተቋም ወሰን በተሳካ ሁኔታ ተወግዷል።',
+    'organization_scope_last_removal_forbidden' => 'ይህ የተጠቃሚው የመጨረሻ የተቋም ወሰን ነው። መሰረዙ መለያው ሁሉንም ተቋማት እንዲያይ ያደርገዋል። በምትኩ ያሰናክሉት ወይም የከተማ አቀፍ አስተዳዳሪ ይጠይቁ።',
     'organization_scope_inactive_organization' => 'ንቁ ያልሆነ ተቋም እንደ ወሰን ሊመደብ አይችልም።',
     'organization_scope_outside_actor_scope' => 'ከራስዎ ወሰን ውጭ ያለ ተቋም መመደብ አይችሉም።',
     'organization_scope_citywide_forbidden' => 'የከተማ አቀፍ የተቋም ወሰን መመደብ አይችሉም።',
