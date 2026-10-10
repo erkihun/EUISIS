@@ -46,6 +46,8 @@ const common = {
     back: 'ተመለስ',
     next: 'ቀጣይ',
     previous: 'ቀዳሚ',
+    change: 'ቀይር',
+    searchEmployee: 'በሠራተኛ ቁጥር ወይም በስም ይፈልጉ (ቢያንስ 2 ፊደላት)',
     close: 'ዝጋ',
     open: 'ክፈት',
     more: 'ተጨማሪ',

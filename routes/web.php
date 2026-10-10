@@ -1311,4 +1311,7 @@ require __DIR__.'/field-work.php';
 // Court Cases — planned standalone module, separate from Grievance Management.
 require __DIR__.'/court-cases.php';
 
+// Cross-cutting platform endpoints (scoped lookups).
+require __DIR__.'/platform.php';
+
 require __DIR__.'/auth.php';

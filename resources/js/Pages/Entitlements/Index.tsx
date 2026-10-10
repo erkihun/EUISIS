@@ -3,8 +3,10 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import { AlertTriangle } from '@/Components/Icons';
+import PaginatorLinks, { type PaginatorLink } from '@/Components/PaginatorLinks';
+import SearchPicker from '@/Components/fieldWork/SearchPicker';
 import { Head, useForm } from '@inertiajs/react';
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
 type EntitlementRow = {
@@ -51,21 +53,20 @@ function QuotaBar({ used, limit, usedLabel }: { used: number; limit: number | nu
 
 export default function EntitlementsIndex({
     entitlements,
-    employees,
     serviceTypes,
     providers,
     cafeteriaProviders,
 }: {
-    entitlements: EntitlementRow[];
-    employees: EmployeeOption[];
+    entitlements: { data: EntitlementRow[]; links: PaginatorLink[] };
     serviceTypes: ServiceTypeOption[];
     providers: ProviderOption[];
     cafeteriaProviders: CafeteriaProviderRow[];
 }) {
     const { t } = useLocale();
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeOption | null>(null);
 
     const form = useForm({
-        employee_id: employees[0]?.id ?? '',
+        employee_id: '',
         service_type_id: serviceTypes[0]?.id ?? '',
         service_provider_id: '',
         quota_limit: '30',
@@ -137,13 +138,13 @@ export default function EntitlementsIndex({
                         {t('entitlements.activeEntitlements')}
                     </h3>
                     <div className="mt-4 space-y-3">
-                        {entitlements.length === 0 ? (
+                        {entitlements.data.length === 0 ? (
                             <EmptyState
                                 title={t('entitlements.noEntitlements')}
                                 description={t('entitlements.grantFirst')}
                             />
                         ) : (
-                            entitlements.map((ent) => {
+                            entitlements.data.map((ent) => {
                                 const isWarn = WARN_STATUSES.has(ent.status);
                                 return (
                                     <div
@@ -181,6 +182,9 @@ export default function EntitlementsIndex({
                             })
                         )}
                     </div>
+                    <div className="mt-4">
+                        <PaginatorLinks links={entitlements.links} label={t('entitlements.activeEntitlements')} />
+                    </div>
                 </section>
 
                 <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
@@ -195,20 +199,34 @@ export default function EntitlementsIndex({
                         }}
                     >
                         <div>
-                            <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
-                                {t('entitlements.employee')}
-                            </label>
-                            <select
-                                className={inputCls}
-                                value={form.data.employee_id}
-                                onChange={(e) => form.setData('employee_id', e.target.value)}
-                            >
-                                {employees.map((emp) => (
-                                    <option key={emp.id} value={emp.id}>
-                                        {emp.employee_number} · {emp.full_name}
-                                    </option>
-                                ))}
-                            </select>
+                            {selectedEmployee ? (
+                                <div>
+                                    <span className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">
+                                        {t('entitlements.employee')}
+                                    </span>
+                                    <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-slate-700">
+                                        <span>{selectedEmployee.employee_number} · {selectedEmployee.full_name}</span>
+                                        <button
+                                            type="button"
+                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:underline"
+                                            onClick={() => { setSelectedEmployee(null); form.setData('employee_id', ''); }}
+                                        >
+                                            {t('common.change')}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <SearchPicker<EmployeeOption>
+                                    url={route('lookup.employees')}
+                                    label={t('entitlements.employee')}
+                                    placeholder={t('common.searchEmployee')}
+                                    render={(emp) => `${emp.employee_number} · ${emp.full_name}`}
+                                    onPick={(emp) => { setSelectedEmployee(emp); form.setData('employee_id', emp.id); }}
+                                />
+                            )}
+                            {form.errors.employee_id && (
+                                <p className="mt-1 text-xs text-red-600 dark:text-red-400">{form.errors.employee_id}</p>
+                            )}
                         </div>
                         <div>
                             <label className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">

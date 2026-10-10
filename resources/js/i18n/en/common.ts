@@ -46,6 +46,8 @@ const common = {
     back: 'Back',
     next: 'Next',
     previous: 'Previous',
+    change: 'Change',
+    searchEmployee: 'Search by employee number or name (min. 2 characters)',
     close: 'Close',
     open: 'Open',
     more: 'More',
