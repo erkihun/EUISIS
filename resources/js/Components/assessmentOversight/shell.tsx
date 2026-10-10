@@ -11,6 +11,7 @@ import { Alert, StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
 import { AlertTriangle } from '@/Components/Icons';
 import type { FormEvent, ReactNode } from 'react';
 
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 /*
  * Assessment Oversight & Compliance page kit (docs/assessment-oversight.md).
  * Every page is cycle-aware: the selected cycle travels in ?cycle= and the
@@ -86,13 +87,13 @@ export function OversightLayout({ title, description, active, shell, actions, ch
             <Head title={title} />
             <div className={pageCls}>
                 <div className={`${panelCls} flex flex-wrap items-center gap-3 px-4 py-3`}>
-                    <label htmlFor="ao-cycle" className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('assessmentOversight.cycle')}</label>
+                    <label htmlFor="ao-cycle" className="text-sm font-medium text-[color:var(--app-foreground)]">{t('assessmentOversight.cycle')}</label>
                     <select id="ao-cycle" className={`${filterInputCls} min-w-64`} value={cycle?.id ?? ''} onChange={(e) => pickCycle(e.target.value)}>
                         <option value="" disabled>{t('assessmentOversight.selectCycle')}</option>
                         {cycles.map((c) => <option key={c.id} value={c.id}>{named(c, locale)} ({formatDateDisplay(c.period_start, calendar, locale)} – {formatDateDisplay(c.period_end, calendar, locale)}) · {t(`assessmentOversight.cycleStatuses.${c.status}`)}</option>)}
                     </select>
                     {cycle && <UiStatusBadge tone={cycle.eligibility_status === 'finalized' ? 'success' : 'warning'}>{t(`assessmentOversight.eligibilityStatuses.${cycle.eligibility_status}`)}</UiStatusBadge>}
-                    {cycle && <span className="text-xs text-gray-500 dark:text-slate-400">
+                    {cycle && <span className="text-xs text-[color:var(--app-muted-foreground)]">
                         {t('assessmentOversight.referenceDate')}: <LocalizedDateDisplay value={cycle.reference_date} />
                         {cycle.submission_deadline && <> · {t('assessmentOversight.submissionDeadline')}: <LocalizedDateDisplay value={cycle.submission_deadline} /></>}
                     </span>}
@@ -141,7 +142,7 @@ const KPI_COLUMNS = {
 export function KpiGroup({ title, children, columns = 4 }: { title: string; children: ReactNode; columns?: keyof typeof KPI_COLUMNS }) {
     return (
         <section aria-label={title}>
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400">{title}</h2>
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{title}</h2>
             <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 ${KPI_COLUMNS[columns]}`}>{children}</div>
         </section>
     );
@@ -150,11 +151,11 @@ export function KpiGroup({ title, children, columns = 4 }: { title: string; chil
 /** Small tile with a count badge, for the dashboard's compliance panel. */
 export function IssueTile({ label, value, tone, href }: { label: string; value: number; tone: Tone; href?: string }) {
     const body = <>
-        <span className="text-sm text-gray-700 dark:text-slate-200">{label}</span>
+        <span className="text-sm text-[color:var(--app-foreground)]">{label}</span>
         <UiStatusBadge tone={value > 0 ? tone : 'neutral'} className="tabular-nums">{value.toLocaleString()}</UiStatusBadge>
     </>;
-    const cls = 'flex min-h-11 items-center justify-between gap-2 rounded-card border border-gray-200 px-4 py-3 dark:border-slate-700';
-    return href ? <Link href={href} className={`${cls} hover:bg-gray-50 dark:hover:bg-slate-800/50`}>{body}</Link> : <div className={cls}>{body}</div>;
+    const cls = 'flex min-h-11 items-center justify-between gap-2 rounded-card border border-[color:var(--app-border)] px-4 py-3';
+    return href ? <Link href={href} className={`${cls} hover:bg-[color:var(--app-surface-muted)]`}>{body}</Link> : <div className={cls}>{body}</div>;
 }
 
 /** Horizontal coverage bars (lowest first), as on the design canvas. */
@@ -165,8 +166,8 @@ export function CoverageBars({ rows }: { rows: Array<{ id: string; label: string
                 const width = row.value === null ? 0 : Math.max(0, Math.min(100, Number(row.value)));
                 return (
                     <li key={row.id} className="grid grid-cols-[minmax(0,9rem)_minmax(0,1fr)_3.5rem] items-center gap-3 text-sm">
-                        {row.href ? <Link href={row.href} className="truncate text-gray-700 hover:underline dark:text-slate-200">{row.label}</Link> : <span className="truncate text-gray-700 dark:text-slate-200">{row.label}</span>}
-                        <div className="h-2.5 rounded bg-gray-100 dark:bg-slate-800" role="presentation"><div className="h-2.5 rounded bg-[color:var(--color-primary)]" style={{ width: `${width}%` }} /></div>
+                        {row.href ? <Link href={row.href} className="truncate text-[color:var(--app-foreground)] hover:underline">{row.label}</Link> : <span className="truncate text-[color:var(--app-foreground)]">{row.label}</span>}
+                        <div className="h-2.5 rounded bg-[color:var(--app-surface-muted)]" role="presentation"><div className="h-2.5 rounded bg-[color:var(--color-primary)]" style={{ width: `${width}%` }} /></div>
                         <span className="text-right tabular-nums">{pct(row.value)}</span>
                     </li>
                 );
@@ -179,7 +180,7 @@ export function CoverageBar({ value }: { value: string | null }) {
     const width = value === null ? 0 : Math.max(0, Math.min(100, Number(value)));
     return (
         <div className="flex items-center gap-2">
-            <div className="h-1.5 w-20 rounded-full bg-gray-100 dark:bg-slate-800" role="presentation"><div className="h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${width}%` }} /></div>
+            <div className="h-1.5 w-20 rounded-full bg-[color:var(--app-surface-muted)]" role="presentation"><div className="h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${width}%` }} /></div>
             <span className="tabular-nums">{pct(value)}</span>
         </div>
     );
@@ -192,27 +193,27 @@ export function GenderTable({ gender }: { gender: Metrics['gender'] }) {
     const rows = GENDERS.filter((g) => g !== 'other' || (gender.other.eligible ?? 0) > 0 || gender.other.suppressed);
     return (
         <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-                <thead className="text-xs text-gray-500 dark:text-slate-400"><tr>
-                    <th className="py-2 pe-4 font-semibold">{t('assessmentOversight.gender')}</th>
-                    <th className="py-2 pe-4 font-semibold">{t('assessmentOversight.eligible')}</th>
-                    <th className="py-2 pe-4 font-semibold">{t('assessmentOversight.assessed')}</th>
-                    <th className="py-2 pe-4 font-semibold">{t('assessmentOversight.unassessed')}</th>
-                    <th className="py-2 font-semibold">{t('assessmentOversight.coverage')}</th>
+            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                <thead className={tableHeadClassName}><tr>
+                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.gender')}</th>
+                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.eligible')}</th>
+                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.assessed')}</th>
+                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.unassessed')}</th>
+                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('assessmentOversight.coverage')}</th>
                 </tr></thead>
-                <tbody className="[&>tr]:border-t [&>tr]:border-gray-100 dark:[&>tr]:border-slate-800">
+                <tbody className={tableBodyClassName}>
                     {rows.map((g) => {
                         const cell = gender[g];
                         return (
                             <tr key={g}>
-                                <td className="py-2 pe-4">{t(`assessmentOversight.genders.${g}`)}</td>
+                                <td className={tableCellClassName}>{t(`assessmentOversight.genders.${g}`)}</td>
                                 {cell.suppressed
-                                    ? <td colSpan={4} className="py-2 text-xs text-gray-500">{t('assessmentOversight.suppressed')}</td>
+                                    ? <td colSpan={4} className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>{t('assessmentOversight.suppressed')}</td>
                                     : <>
-                                        <td className="py-2 pe-4 tabular-nums">{cell.eligible}</td>
-                                        <td className="py-2 pe-4 tabular-nums">{cell.assessed}</td>
-                                        <td className="py-2 pe-4 tabular-nums">{cell.unassessed}</td>
-                                        <td className="py-2 tabular-nums">{pct(cell.coverage_percent)}</td>
+                                        <td className={cx(tableCellClassName, 'tabular-nums')}>{cell.eligible}</td>
+                                        <td className={cx(tableCellClassName, 'tabular-nums')}>{cell.assessed}</td>
+                                        <td className={cx(tableCellClassName, 'tabular-nums')}>{cell.unassessed}</td>
+                                        <td className={cx(tableCellClassName, 'tabular-nums')}>{pct(cell.coverage_percent)}</td>
                                     </>}
                             </tr>
                         );
@@ -256,7 +257,7 @@ export function Filters({ routeName, cycle, children, keep = {} }: { routeName: 
     return (
         <form className="flex flex-wrap items-center gap-3" onSubmit={submit}>
             {children}
-            <button type="submit" className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.filter')}</button>
+            <button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button>
             <Link href={oversightHref(routeName, cycle, keep)} className={secondaryBtn}>{t('assessmentOversight.clearFilters')}</Link>
         </form>
     );

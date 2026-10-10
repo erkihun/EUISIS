@@ -2,6 +2,7 @@ import { usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName } from '@/Components/ui';
 /**
  * Shows a generated one-time password to the administrator who created or
  * reset the account — once. The server flashes it for a single response and
@@ -35,8 +36,8 @@ export default function TemporaryPasswordNotice() {
             <p className="font-semibold">{t('auth.passwordPolicy.temporaryTitle')}</p>
             <p className="mt-1">{t('auth.passwordPolicy.temporaryBody')}</p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
-                <code className="select-all rounded bg-white px-3 py-1.5 font-mono text-base tracking-wide text-gray-900 dark:bg-slate-900 dark:text-slate-100">{value}</code>
-                <button type="button" onClick={() => void copy()} className="rounded-md border border-amber-400 px-3 py-1.5 text-xs font-semibold hover:bg-amber-100 dark:border-amber-600 dark:hover:bg-amber-900/40">
+                <code className="select-all rounded bg-[color:var(--app-surface)] px-3 py-1.5 font-mono text-base tracking-wide text-[color:var(--app-foreground)]">{value}</code>
+                <button type="button" onClick={() => void copy()} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
                     {copied ? t('auth.passwordPolicy.copied') : t('auth.passwordPolicy.copy')}
                 </button>
                 <button type="button" onClick={() => setValue(null)} className="rounded-md px-3 py-1.5 text-xs font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40">

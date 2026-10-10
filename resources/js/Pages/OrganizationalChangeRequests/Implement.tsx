@@ -18,6 +18,7 @@ import type {
     ImpactPayload,
 } from '@/Components/organizationalChange/types';
 
+import { buttonClassName, cx, textareaClassName } from '@/Components/ui';
 type Props = {
     request: ChangeRequestDetail;
     impact: ImpactPayload | null;
@@ -30,12 +31,9 @@ type Props = {
     };
 };
 
-const primaryBtn =
-    'rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50';
-const secondaryBtn =
-    'rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const primaryBtn = buttonClassName({ variant: 'primary' });
+const secondaryBtn = buttonClassName({ variant: 'outline' });
+const inputCls = cx(textareaClassName, 'w-full');
 
 /**
  * The implementation workspace.
@@ -91,18 +89,18 @@ export default function OrganizationalChangeRequestsImplement({ request, impact,
             <Head title={`${request.request_no} — ${t('organizationalChangeRequests.implementation.heading')}`} />
 
             <div className="space-y-4">
-                <section className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+                <section className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3">
                     <div className="flex flex-wrap items-center gap-4">
                         <StatusBadge status={request.status} label={t(`organizationalChangeRequests.statuses.${request.status}`)} />
-                        <span className="text-xs text-gray-500 dark:text-slate-400">
+                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
                             {organizationName}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-slate-400">
+                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
                             {t('organizationalChangeRequests.implementation.approvedBy')}: {request.approver?.name ?? '—'}
                             {request.approved_at ? ' · ' : ''}
                             {request.approved_at ? <LocalizedDateDisplay value={request.approved_at} withTime /> : null}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-slate-400">
+                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
                             {t('organizationalChangeRequests.fields.effectiveDate')}:{' '}
                             {request.requested_effective_date
                                 ? <LocalizedDateDisplay value={request.requested_effective_date} />
@@ -148,9 +146,9 @@ export default function OrganizationalChangeRequestsImplement({ request, impact,
 
                 {/* Actions */}
                 {(can.implement || can.complete || can.returnForAmendment) && (
-                    <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
                         {can.implement && !alreadyApplied && (
-                            <label className="block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300">
+                            <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 <span>{t('organizationalChangeRequests.fields.note')}</span>
                                 <textarea
                                     rows={2}
@@ -185,8 +183,8 @@ export default function OrganizationalChangeRequestsImplement({ request, impact,
                         </div>
 
                         {showAmendment && (
-                            <div className="mt-4 border-t border-gray-100 pt-4 dark:border-slate-800">
-                                <label className="block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300">
+                            <div className="mt-4 border-t border-[color:var(--app-border)] pt-4">
+                                <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                     <span>{t('organizationalChangeRequests.fields.comment')}</span>
                                     <textarea
                                         rows={3}

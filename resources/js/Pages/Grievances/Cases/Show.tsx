@@ -6,6 +6,7 @@ import { Details, Empty, GPill, HandlerName, Section, SlaBadge, Table, employeeN
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { CaseShowProps, ReasonCode } from '@/types/grievances';
 
+import { cx, inputClassName, selectClassName } from '@/Components/ui';
 type Tab = { id: string; label: string; content: ReactNode };
 
 /**
@@ -157,7 +158,7 @@ export default function Show(props: CaseShowProps) {
         {tabs.information_requests.map(q => <Section key={q.id} title={`${label('information_target', q.requested_from_type)}${q.requested_from_name ? ` — ${q.requested_from_name}` : ''}`} actions={<GPill group="information_status" value={q.status} />}>
             <p className="whitespace-pre-wrap">{q.request_text}</p>
             <p className="mt-2 text-xs text-gray-500">{q.requested_by} · <DateDisplay value={q.requested_at} withTime /> · {t('grievances.common.due')}: <DateDisplay value={q.due_at} />{q.pauses_sla ? ` · ${c('pauses_sla')}` : ''}</p>
-            {q.responses.map(x => <div key={x.id} className="mt-3 rounded bg-gray-50 p-3 text-sm dark:bg-slate-800/60"><p className="whitespace-pre-wrap">{x.response_text}</p><p className="mt-1 text-xs text-gray-500">{x.responded_by} · <DateDisplay value={x.responded_at} withTime /></p></div>)}
+            {q.responses.map(x => <div key={x.id} className="mt-3 rounded bg-[color:var(--app-surface-muted)] p-3 text-sm"><p className="whitespace-pre-wrap">{x.response_text}</p><p className="mt-1 text-xs text-gray-500">{x.responded_by} · <DateDisplay value={x.responded_at} withTime /></p></div>)}
             {can.review && q.status === 'open' && <div className="mt-4 grid gap-4 md:grid-cols-2"><ActionForm url={r('information.respond', [q.id])} title={c('record_response')} fields={[{ name: 'response_text', label: c('response'), type: 'textarea', required: true }, { name: 'files', label: t('grievances.common.files'), type: 'file', multiple: true }]} /><div className="space-y-2"><ActionForm url={r('information.close', [q.id])} submitLabel={c('close_request')} /><ActionForm url={r('information.close', [q.id])} initial={{ cancel: true }} submitLabel={c('cancel_request')} /></div></div>}
         </Section>)}
         {!tabs.information_requests.length && <Empty>{c('empty')}</Empty>}
@@ -219,7 +220,7 @@ export default function Show(props: CaseShowProps) {
     if (tabs.notes || tabs.tasks) list.push({ id: 'notes', label: c('tab_notes'), content: <div className="grid gap-4 lg:grid-cols-2">
         <Section title={c('notes')} description={c('notes_help')}>
             {can.notes && <ActionForm url={r('notes.store')} submitLabel={c('add_note')} fields={[{ name: 'body', label: c('note'), type: 'textarea', required: true }]} />}
-            <ul className="mt-4 space-y-3">{(tabs.notes ?? []).map(n => <li key={n.id} className="rounded bg-gray-50 p-3 text-sm dark:bg-slate-800/60"><p className="whitespace-pre-wrap">{n.body}</p><p className="mt-1 text-xs text-gray-500">{n.author} · <DateDisplay value={n.created_at} withTime /></p></li>)}</ul>
+            <ul className="mt-4 space-y-3">{(tabs.notes ?? []).map(n => <li key={n.id} className="rounded bg-[color:var(--app-surface-muted)] p-3 text-sm"><p className="whitespace-pre-wrap">{n.body}</p><p className="mt-1 text-xs text-gray-500">{n.author} · <DateDisplay value={n.created_at} withTime /></p></li>)}</ul>
         </Section>
         <Section title={c('tasks')}>
             {can.review && <ActionForm url={r('tasks.store')} submitLabel={c('add_task')} fields={[{ name: 'task_type', label: t('grievances.common.type'), type: 'select', required: true, options: opts(options.task_types, 'task_type') }, { name: 'title', label: c('task_title'), required: true }, { name: 'due_at', label: t('grievances.common.due'), type: 'date' }]} />}
@@ -247,17 +248,17 @@ export default function Show(props: CaseShowProps) {
 
     return <Workspace title={`${g.reference_number}`} backHref={route('grievances.cases.index')}>
         <CaseBanner grievance={g} />
-        {viewer.panel_role && <p className="text-sm text-gray-600 dark:text-slate-400">{c('your_role')}: <strong>{label('committee_role', viewer.panel_role)}</strong></p>}
+        {viewer.panel_role && <p className="text-sm text-[color:var(--app-muted-foreground)]">{c('your_role')}: <strong>{label('committee_role', viewer.panel_role)}</strong></p>}
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="min-w-0 space-y-4">
-                <div role="tablist" aria-label={c('tabs')} className="flex flex-wrap gap-1 border-b border-gray-200 dark:border-slate-800">
-                    {list.map(x => <button key={x.id} role="tab" type="button" aria-selected={x.id === active.id} onClick={() => select(x.id)} className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${x.id === active.id ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]' : 'border-transparent text-gray-600 hover:text-gray-900 dark:text-slate-400'}`}>{x.label}</button>)}
+                <div role="tablist" aria-label={c('tabs')} className="flex flex-wrap gap-1 border-b border-[color:var(--app-border)]">
+                    {list.map(x => <button key={x.id} role="tab" type="button" aria-selected={x.id === active.id} onClick={() => select(x.id)} className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${x.id === active.id ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]' : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-gray-900'}`}>{x.label}</button>)}
                 </div>
                 <div role="tabpanel">{active.content}</div>
             </div>
             <aside className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{c('workflow')}</h3>
-                {actions.length ? actions.map(a => <details key={a.key} className="rounded-lg border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900"><summary className="cursor-pointer text-sm font-medium">{a.title}</summary><div className="mt-3">{a.node}</div></details>) : <p className="text-sm text-gray-500">{c('no_actions')}</p>}
+                <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{c('workflow')}</h3>
+                {actions.length ? actions.map(a => <details key={a.key} className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3"><summary className="cursor-pointer text-sm font-medium">{a.title}</summary><div className="mt-3">{a.node}</div></details>) : <p className="text-sm text-gray-500">{c('no_actions')}</p>}
             </aside>
         </div>
     </Workspace>;
@@ -272,7 +273,7 @@ function MoveForm({ url, options, reasons }: { url: string; options: { value: st
     const [choice, setChoice] = useState(options[0]?.value ?? '');
     const [movement, routeId] = choice.split('|');
     return <div className="space-y-3">
-        <label className="block text-sm"><span className="mb-1 block font-medium">{t('grievanceCases.target')}</span><select className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950" value={choice} onChange={e => setChoice(e.target.value)}>{options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></label>
+        <label className="block text-sm"><span className="mb-1 block font-medium">{t('grievanceCases.target')}</span><select className={cx(selectClassName, 'w-full')} value={choice} onChange={e => setChoice(e.target.value)}>{options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></label>
         <ActionForm key={choice} url={url} initial={{ movement, route_id: routeId }} submitLabel={t('grievanceCases.move_submit')} fields={movement === 'reassigned'
             ? [{ name: 'reason_code', label: t('grievances.common.reason_code'), type: 'select', required: true, options: reasons }, { name: 'reason', label: t('grievances.common.notes'), type: 'textarea' }]
             : [{ name: 'reason', label: t('grievances.common.reason'), type: 'textarea', required: true }]} />
@@ -290,7 +291,7 @@ function RecusalDecision({ url, organizationId }: { url: string; organizationId?
         if (res.ok) setEmployees(((await res.json()) as { id: string; name: string; employee_number: string }[]).map(e => ({ value: e.id, label: `${e.name} (${e.employee_number})` })));
     };
     return <div className="space-y-2">
-        <div className="flex gap-2"><input aria-label={t('grievanceCases.find_replacement')} placeholder={t('grievanceCases.find_replacement')} className="w-full rounded-lg border border-gray-300 px-2 py-1 text-sm dark:border-slate-700 dark:bg-slate-950" value={q} onChange={e => setQ(e.target.value)} /><button type="button" className={secondaryBtn} onClick={search}>{t('grievances.common.search')}</button></div>
+        <div className="flex gap-2"><input aria-label={t('grievanceCases.find_replacement')} placeholder={t('grievanceCases.find_replacement')} className={cx(inputClassName, 'w-full')} value={q} onChange={e => setQ(e.target.value)} /><button type="button" className={secondaryBtn} onClick={search}>{t('grievances.common.search')}</button></div>
         <ActionForm url={url} initial={{ approve: true }} submitLabel={t('grievanceCases.decide')} fields={[
             { name: 'approve', label: t('grievanceCases.approve_recusal'), type: 'checkbox' },
             { name: 'replacement_employee_id', label: t('grievanceCases.replacement'), type: 'select', options: employees },

@@ -7,6 +7,7 @@ import {
     type LayoutSide,
 } from '@/Components/IdCards/IdCardTemplateContext';
 
+import { buttonClassName } from '@/Components/ui';
 type Props = {
     /** Which face this overlay is drawn on. */
     side: LayoutSide;
@@ -203,17 +204,17 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
              * card's hung out of the bottom of the preview panel.
              */}
             <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                {text.hint && <span className="text-gray-500 dark:text-slate-400">{text.hint}</span>}
+                {text.hint && <span className="text-[color:var(--app-muted-foreground)]">{text.hint}</span>}
                 {active && selected && (
                     <>
-                        <span className="font-mono text-gray-700 dark:text-slate-300">
+                        <span className="font-mono text-[color:var(--app-foreground)]">
                             {labels[selected]} · x {active.x}% y {active.y}% · w {active.w}% h {active.h}%
                         </span>
                         <button
                             type="button"
                             disabled={disabled}
                             onClick={() => update(selected, defaults[selected])}
-                            className="rounded border border-gray-300 px-2 py-0.5 hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         >
                             {text.reset}
                         </button>
@@ -226,7 +227,7 @@ export default function TemplateLayoutDesigner({ side, value, onChange, disabled
                         ...value,
                         ...Object.fromEntries(elements.map((element) => [element, defaults[element]])),
                     })}
-                    className="rounded border border-gray-300 px-2 py-0.5 hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                 >
                     {text.resetAll}
                 </button>

@@ -7,6 +7,7 @@ import { ChevronRight } from '@/Components/Icons';
 import type { JSX } from 'react';
 import type { ChangeRequestSummary, ChangeRequestListMeta } from './types';
 
+import { buttonClassName, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Props = {
     requests: ChangeRequestSummary[];
     meta: ChangeRequestListMeta;
@@ -42,17 +43,17 @@ export default function ChangeRequestTable({
 
     if (requests.length === 0) {
         return (
-            <section className="rounded-panel border border-gray-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-8">
                 <EmptyState title={emptyMessage} />
             </section>
         );
     }
 
     return (
-        <section className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
             <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                    <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400">
+                <table className={tableClassName}>
+                    <thead className={cx(tableHeadClassName, 'text-left uppercase')}>
                         <tr>
                             <th className={cellCls}>{t('organizationalChangeRequests.fields.requestNo')}</th>
                             <th className={cellCls}>{t('organizationalChangeRequests.fields.requestType')}</th>
@@ -63,9 +64,9 @@ export default function ChangeRequestTable({
                             <th className={`${cellCls} text-right`}>{t('common.view')}</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                    <tbody className={tableBodyClassName}>
                         {requests.map(request => (
-                            <tr key={request.id} className="transition hover:bg-gray-50/60 dark:hover:bg-slate-800/20">
+                            <tr key={request.id} className={tableRowClassName}>
                                 <td className={cellCls}>
                                     <Link
                                         href={route('organizational-change-requests.show', request.id)}
@@ -74,10 +75,10 @@ export default function ChangeRequestTable({
                                         {request.request_no}
                                     </Link>
                                 </td>
-                                <td className={`${cellCls} text-gray-700 dark:text-slate-300`}>
+                                <td className={`${cellCls} text-[color:var(--app-foreground)]`}>
                                     {t(`organizationalChangeRequests.types.${request.request_type}`)}
                                 </td>
-                                <td className={`${cellCls} text-gray-700 dark:text-slate-300`}>
+                                <td className={`${cellCls} text-[color:var(--app-foreground)]`}>
                                     {request.organization
                                         ? (am ? request.organization.name_am || request.organization.name_en : request.organization.name_en)
                                         : '—'}
@@ -88,13 +89,13 @@ export default function ChangeRequestTable({
                                         label={t(`organizationalChangeRequests.statuses.${request.status}`)}
                                     />
                                 </td>
-                                <td className={`${cellCls} text-gray-600 dark:text-slate-400`}>
+                                <td className={`${cellCls} text-[color:var(--app-muted-foreground)]`}>
                                     {request.requested_effective_date
                                         ? <LocalizedDateDisplay value={request.requested_effective_date} />
                                         : '—'}
                                 </td>
                                 {showAssignee && (
-                                    <td className={`${cellCls} text-gray-600 dark:text-slate-400`}>
+                                    <td className={`${cellCls} text-[color:var(--app-muted-foreground)]`}>
                                         {request.implementation_assignee?.name ?? '—'}
                                     </td>
                                 )}
@@ -114,14 +115,14 @@ export default function ChangeRequestTable({
                 </table>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-950/40">
-                <p className="text-gray-500 dark:text-slate-400">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-3 text-sm">
+                <p className="text-[color:var(--app-muted-foreground)]">
                     {meta.current_page} / {meta.last_page} · {meta.total}
                 </p>
                 <nav className="flex gap-2">
                     <button
                         type="button"
-                        className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         disabled={meta.current_page <= 1}
                         onClick={() => goToPage(meta.current_page - 1)}
                     >
@@ -129,7 +130,7 @@ export default function ChangeRequestTable({
                     </button>
                     <button
                         type="button"
-                        className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         disabled={meta.current_page >= meta.last_page}
                         onClick={() => goToPage(meta.current_page + 1)}
                     >

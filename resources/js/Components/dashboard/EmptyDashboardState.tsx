@@ -18,7 +18,7 @@ export default function EmptyDashboardState({ title, compact = false }: Props) {
                 compact ? 'py-6' : 'py-10'
             }`}
         >
-            <p className="text-sm text-gray-400 dark:text-slate-500">{title}</p>
+            <p className="text-sm text-[color:var(--app-muted-foreground)]">{title}</p>
         </div>
     );
 }

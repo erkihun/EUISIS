@@ -11,6 +11,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type EstablishmentSummary = {
     id: string;
     status: 'draft' | 'approved' | 'archived';
@@ -78,7 +79,7 @@ export default function PositionsIndex({
         is_active:   filters.is_active ?? '',
     });
 
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = inputClassName;
     const displayOrg = localSelected ?? selectedOrganization;
     const hasUnits = (displayOrg?.organization_units_count ?? 0) > 0;
 
@@ -166,7 +167,7 @@ export default function PositionsIndex({
                     {displayOrg ? (
                         <div className="space-y-4">
                             {/* Contextual header: reflects the unit when one is selected, otherwise the organization */}
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3">
                                 <div className="flex min-w-0 items-center gap-3">
                                     {displayOrg && (
                                         displayOrg.has_logo && displayOrg.logo_url ? (
@@ -179,27 +180,27 @@ export default function PositionsIndex({
                                     )}
                                     <div className="min-w-0">
                                         {displayOrg && (
-                                            <p className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+                                            <p className="flex flex-wrap items-center gap-1.5 text-xs text-[color:var(--app-muted-foreground)]">
                                                 <span className="truncate">{localizedName(displayOrg.name_en, displayOrg.name_am, locale)}</span>
                                                 <span className="font-mono">{displayOrg.code}</span>
                                                 <StatusBadge status={displayOrg.status} label={statusLabel(displayOrg.status)} />
                                             </p>
                                         )}
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                             {selectedUnit ? t('positions.selectedOrganizationUnit') : t('positions.selectedOrganization')}
                                         </p>
-                                        <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
+                                        <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">
                                             {selectedUnit
                                                 ? localizedName(selectedUnit.name_en, selectedUnit.name_am, locale)
                                                 : localizedName(displayOrg.name_en, displayOrg.name_am, locale)}
                                         </p>
-                                        <p className="truncate text-xs text-gray-400 dark:text-slate-500">
+                                        <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">
                                             {selectedUnit ? t('positions.positionsInOrganizationUnit') : t('positions.positionsInOrganization')}
                                         </p>
                                     </div>
                                 </div>
                                 {can.create && (
-                                    <Link href={createHref} className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                                    <Link href={createHref} className={buttonClassName({ variant: 'primary', size: 'sm' })}>
                                         <Plus className="h-3.5 w-3.5" />
                                         {t('positions.createPosition')}
                                     </Link>
@@ -207,7 +208,7 @@ export default function PositionsIndex({
                             </div>
 
                             {/* Filters */}
-                            <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
                                 <form className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" onSubmit={submit}>
                                     <input className={inputCls} value={form.data.search} placeholder={t('positions.searchPositions')} onChange={(e) => form.setData('search', e.target.value)} />
                                     <input className={inputCls} value={form.data.job_family} placeholder={t('positions.jobFamily')} onChange={(e) => form.setData('job_family', e.target.value)} />
@@ -218,7 +219,7 @@ export default function PositionsIndex({
                                             <option value="1">{t('common.active')}</option>
                                             <option value="0">{t('common.inactive')}</option>
                                         </select>
-                                        <button className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]" type="submit">
+                                        <button className={buttonClassName({ variant: 'primary' })} type="submit">
                                             {t('common.filter')}
                                         </button>
                                     </div>
@@ -226,13 +227,13 @@ export default function PositionsIndex({
                             </section>
 
                             {/* Table */}
-                            <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                                 {positions.length === 0 ? (
                                     <div className="p-6"><EmptyState title={t('positions.noPositionsFound')} /></div>
                                 ) : (
                                     <div className="overflow-x-auto">
-                                        <table className="min-w-full text-left text-sm">
-                                            <thead className="bg-gray-50 dark:bg-slate-950">
+                                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                            <thead className={tableHeadClassName}>
                                                 <tr>
                                                     {[
                                                         t('positions.jobPositionCode'),
@@ -244,27 +245,27 @@ export default function PositionsIndex({
                                                         t('positionEstablishments.establishment'),
                                                         '',
                                                     ].map((heading, i) => (
-                                                        <th key={i} className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                                        <th key={i} className={cx(tableHeaderCellClassName, 'text-left')}>
                                                             {heading}
                                                         </th>
                                                     ))}
                                                 </tr>
                                             </thead>
-                                            <tbody>
+                                            <tbody className={tableBodyClassName}>
                                                 {positions.map((position) => (
-                                                    <tr key={position.id} className="border-t border-gray-100 text-gray-700 dark:border-slate-800 dark:text-slate-200">
-                                                        <td className="px-4 py-3 font-mono text-xs">
+                                                    <tr key={position.id} className={tableRowClassName}>
+                                                        <td className={cx(tableCellClassName, 'font-mono text-xs')}>
                                                             <Link href={route('positions.show', position.id)} className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                                                                 {position.job_position_code}
                                                             </Link>
                                                         </td>
-                                                        <td className="px-4 py-3 font-mono text-xs">{position.old_code ?? '—'}</td>
-                                                        <td className="px-4 py-3">
+                                                        <td className={cx(tableCellClassName, 'font-mono text-xs')}>{position.old_code ?? '—'}</td>
+                                                        <td className={tableCellClassName}>
                                                             {localizedName(position.title_en, position.title_am, locale)}
                                                         </td>
-                                                        <td className="px-4 py-3">{position.bpr_name ?? '—'}</td>
-                                                        <td className="px-4 py-3">{position.grade_level ?? '—'}</td>
-                                                        <td className="px-4 py-3">
+                                                        <td className={tableCellClassName}>{position.bpr_name ?? '—'}</td>
+                                                        <td className={tableCellClassName}>{position.grade_level ?? '—'}</td>
+                                                        <td className={tableCellClassName}>
                                                             <StatusBadge
                                                                 status={position.is_active ? 'active' : 'inactive'}
                                                                 label={statusLabel(position.is_active ? 'active' : 'inactive')}
@@ -272,7 +273,7 @@ export default function PositionsIndex({
                                                         </td>
 
                                                         {/* Establishment status + Approve button */}
-                                                        <td className="px-4 py-3">
+                                                        <td className={tableCellClassName}>
                                                             {position.establishment?.status === 'approved' ? (
                                                                 <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
                                                                     <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
@@ -282,17 +283,17 @@ export default function PositionsIndex({
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleApproveEstablishment(position)}
-                                                                    className="inline-flex items-center gap-1 rounded-lg border border-amber-300 px-2.5 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950/30"
+                                                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                                                 >
                                                                     {t('positionEstablishments.approve')}
                                                                 </button>
                                                             ) : (
-                                                                <span className="text-xs text-gray-400 dark:text-slate-500">—</span>
+                                                                <span className="text-xs text-[color:var(--app-muted-foreground)]">—</span>
                                                             )}
                                                         </td>
 
                                                         {/* Row actions */}
-                                                        <td className="px-4 py-3">
+                                                        <td className={tableCellClassName}>
                                                             <div className="flex justify-end gap-3">
                                                                 {position.can.move && (
                                                                     <Link href={route('positions.move', position.id)} className="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
@@ -351,8 +352,8 @@ export default function PositionsIndex({
                             </section>
                         </div>
                     ) : (
-                        <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-panel border border-dashed border-gray-200 bg-white px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900">
-                            <p className="text-sm text-gray-500 dark:text-slate-400">
+                        <div className="flex h-full min-h-[200px] flex-col items-center justify-center rounded-panel border border-dashed border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-12 text-center">
+                            <p className="text-sm text-[color:var(--app-muted-foreground)]">
                                 {t('positions.selectOrganizationToViewPositions')}
                             </p>
                         </div>

@@ -44,7 +44,7 @@ export default function OrganizationTreePreviewNode({
                 className={`flex cursor-pointer items-center gap-2 rounded-lg px-2 py-2 transition-colors ${
                     isSelected
                         ? 'bg-blue-100 ring-2 ring-blue-400 dark:bg-blue-900/30 dark:ring-[color:var(--color-primary)]'
-                        : 'hover:bg-gray-50 dark:hover:bg-slate-800/40'
+                        : 'hover:bg-[color:var(--app-surface-muted)]'
                 }`}
                 style={{ paddingLeft: `${indentPx + 8}px` }}
                 onClick={() => onSelect(node)}
@@ -52,7 +52,7 @@ export default function OrganizationTreePreviewNode({
                 {/* Expand/collapse toggle */}
                 <button
                     type="button"
-                    className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-gray-600 dark:hover:text-slate-300"
                     onClick={(e) => {
                         e.stopPropagation();
                         if (hasChildren) onToggle(node.id);
@@ -104,7 +104,7 @@ export default function OrganizationTreePreviewNode({
                             className={`truncate text-sm font-medium ${
                                 isSelected
                                     ? 'text-blue-800 dark:text-blue-200'
-                                    : 'text-gray-900 dark:text-slate-100'
+                                    : 'text-[color:var(--app-foreground)]'
                             }`}
                         >
                             {localizedName(node.name_en, node.name_am, locale)}
@@ -116,7 +116,7 @@ export default function OrganizationTreePreviewNode({
                         )}
                         <StatusBadge status={node.status} />
                     </div>
-                    <div className="flex items-center gap-2 text-[11px] text-gray-400 dark:text-slate-500">
+                    <div className="flex items-center gap-2 text-[11px] text-[color:var(--app-muted-foreground)]">
                         {node.organization_units_count !== undefined && (
                             <span>
                                 {node.organization_units_count} {t('organizationUnits.unitCount').toLowerCase()}

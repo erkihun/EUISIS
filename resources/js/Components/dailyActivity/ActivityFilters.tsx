@@ -55,7 +55,7 @@ export default function ActivityFilters({ routeName, filters, options, fields, k
     const has = (field: FilterField) => fields.includes(field);
 
     return (
-        <form onSubmit={apply} className="flex flex-wrap items-end gap-2 rounded-panel border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+        <form onSubmit={apply} className="flex flex-wrap items-end gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
             {has('search') && (
                 <input
                     type="search"
@@ -68,24 +68,24 @@ export default function ActivityFilters({ routeName, filters, options, fields, k
             )}
             {has('dateRange') && (
                 <>
-                    <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-gray-500 sm:w-40 dark:text-slate-400">
+                    <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
                         {t('dailyActivities.filters.from')}
                         <LocalizedDatePicker value={values.date_from ?? ''} onChange={(v) => set('date_from', v)} />
                     </label>
-                    <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-gray-500 sm:w-40 dark:text-slate-400">
+                    <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
                         {t('dailyActivities.filters.to')}
                         <LocalizedDatePicker value={values.date_to ?? ''} onChange={(v) => set('date_to', v)} />
                     </label>
                 </>
             )}
             {has('date') && (
-                <label className="flex w-full flex-col text-xs text-gray-500 sm:w-40 dark:text-slate-400">
+                <label className="flex w-full flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
                     {t('dailyActivities.filters.date')}
                     <LocalizedDatePicker value={values.date ?? ''} onChange={(v) => set('date', v)} />
                 </label>
             )}
             {has('month') && (
-                <label className="flex w-full flex-col text-xs text-gray-500 sm:w-40 dark:text-slate-400">
+                <label className="flex w-full flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
                     {t('dailyActivities.filters.month')}
                     <input type="month" className={compactInputCls} value={values.month ?? ''} onChange={(e) => set('month', e.target.value)} />
                 </label>

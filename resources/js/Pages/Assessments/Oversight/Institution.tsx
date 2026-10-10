@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
+import { inputClassName } from '@/Components/ui';
 type Unit = Metrics & { unit: { id: string; name_en: string; name_am: string | null } | null };
 type FormUse = { version_id: string; code: string | null; form_en: string | null; form_am: string | null; version_no: number | null; version_status: string | null; targets: string[]; expected: number; assigned: number; assessed: number; unassessed: number; completion_percent: string | null };
 type Peer = { version_id: string; name_en: string; name_am: string | null; version_no: number; records: number; required: number; assigned: number; completed: number; aggregate_ready: number; aggregate_not_ready: number };
@@ -51,7 +52,7 @@ export default function OversightInstitution(props: Props) {
             actions={cycle && can.export ? <ExportButtons report="consolidated" cycle={cycle} filters={filters} /> : undefined}>
             {cycle && (
                 <>
-                    {props.participation.status === 'excluded' && <p role="note" className="rounded-panel border border-gray-200 bg-gray-50 px-4 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">{t('assessmentOversight.participationStatuses.excluded')}: {props.participation.exclusion_reason}</p>}
+                    {props.participation.status === 'excluded' && <p role="note" className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-2 text-sm">{t('assessmentOversight.participationStatuses.excluded')}: {props.participation.exclusion_reason}</p>}
                     {props.changedAfterFinalization && <p role="alert" className="rounded-panel border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('assessmentOversight.changedAfterFinalization')}</p>}
 
                     <KpiGroup title={t('assessmentOversight.sections.overview')}>
@@ -65,7 +66,7 @@ export default function OversightInstitution(props: Props) {
 
                     <div className="grid gap-4 xl:grid-cols-2">
                         <Section title={t('assessmentOversight.sections.statuses')}>
-                            <ul className="divide-y divide-gray-100 text-sm dark:divide-slate-800">
+                            <ul className="divide-y divide-[color:var(--app-border)] text-sm">
                                 {OUTCOMES.map((o) => (
                                     <li key={o} className="flex items-center justify-between py-2">
                                         <StatusBadge group="outcomes" value={o} />
@@ -152,7 +153,7 @@ export default function OversightInstitution(props: Props) {
                     <div className="grid gap-4 xl:grid-cols-2">
                         {props.distribution && (
                             <Section title={t('assessmentOversight.sections.distribution')} description={props.distribution.policy ? `${named(props.distribution.policy, locale)} v${props.distribution.policy.version_no}` : t('assessmentOversight.noBandPolicy')}>
-                                <ul className="divide-y divide-gray-100 text-sm dark:divide-slate-800">
+                                <ul className="divide-y divide-[color:var(--app-border)] text-sm">
                                     {props.distribution.bands.map((b) => (
                                         <li key={b.code} className="flex justify-between py-2"><span>{(locale === 'am' && b.label_am) || b.label_en}</span><span className="tabular-nums">{b.count} · {pct(b.percent)}</span></li>
                                     ))}
@@ -177,7 +178,7 @@ export default function OversightInstitution(props: Props) {
                         <Section title={t('assessmentOversight.sections.dataQuality')} actions={<Link className={smallBtn} href={oversightHref('assessment-oversight.data-quality', cycle, filters)}>{t('assessmentOversight.openList')}</Link>}>
                             <div className="flex flex-wrap gap-2">
                                 {[...props.issues.cycle.map((i) => ({ code: i.code, severity: i.severity, count: 1 })), ...Object.entries(props.issues.rules).filter(([, r]) => r.count > 0).map(([code, r]) => ({ code, ...r }))].map((i) => (
-                                    <span key={i.code} className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-2 py-1 text-xs dark:border-slate-700"><SeverityBadge severity={i.severity} />{t(`assessmentOversight.rules.${i.code}`)} <b className="tabular-nums">{i.count}</b></span>
+                                    <span key={i.code} className="inline-flex items-center gap-2 rounded-lg border border-[color:var(--app-border)] px-2 py-1 text-xs"><SeverityBadge severity={i.severity} />{t(`assessmentOversight.rules.${i.code}`)} <b className="tabular-nums">{i.count}</b></span>
                                 ))}
                                 {props.issues.blocking + props.issues.warning + props.issues.info === 0 && props.issues.cycle.length === 0 && <p className="text-sm text-emerald-700">{t('assessmentOversight.noIssues')}</p>}
                             </div>
@@ -219,13 +220,13 @@ export default function OversightInstitution(props: Props) {
                         {props.history.length === 0 ? <p className="mt-1 text-sm text-gray-500">{t('assessmentOversight.noSubmissions')}</p> : (
                             <ol className="mt-2 space-y-3">
                                 {props.history.map((h) => (
-                                    <li key={h.id} className="rounded-lg border border-gray-200 p-3 text-sm dark:border-slate-700">
+                                    <li key={h.id} className="rounded-lg border border-[color:var(--app-border)] p-3 text-sm">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <b>{t('assessmentOversight.revision')} {h.revision_no}</b><StatusBadge group="submissionStatuses" value={h.status} />
                                             <span className="text-xs text-gray-500">{h.eligible_count} / {h.assessed_count} / {h.unassessed_count} · {pct(h.coverage_percent)}</span>
                                         </div>
                                         {h.return_reason && <p className="mt-1 text-amber-800 dark:text-amber-300">{h.return_reason}</p>}
-                                        <ul className="mt-2 space-y-0.5 text-xs text-gray-600 dark:text-slate-400">
+                                        <ul className="mt-2 space-y-0.5 text-xs text-[color:var(--app-muted-foreground)]">
                                             {h.events.map((e, i) => <li key={i}>{e.at ? <LocalizedDateDisplay value={e.at} withTime /> : null} · {t(`assessmentOversight.events.${e.action}`)} · {e.actor ?? t('assessmentOversight.system')}{e.comment ? ` — ${e.comment}` : ''}</li>)}
                                         </ul>
                                     </li>
@@ -263,7 +264,7 @@ function Exclusions({ rows }: { rows: Exclusion[] }) {
                         <td className={tdCls}>
                             {x.can.decide && (
                                 <div className="flex flex-wrap items-center gap-2">
-                                    <input aria-label={t('assessmentOversight.decisionNote')} placeholder={t('assessmentOversight.decisionNote')} className="rounded-lg border border-gray-300 px-2 py-1 text-xs dark:border-slate-700 dark:bg-slate-950" value={notes[x.id] ?? ''} onChange={(e) => setNotes({ ...notes, [x.id]: e.target.value })} />
+                                    <input aria-label={t('assessmentOversight.decisionNote')} placeholder={t('assessmentOversight.decisionNote')} className={inputClassName} value={notes[x.id] ?? ''} onChange={(e) => setNotes({ ...notes, [x.id]: e.target.value })} />
                                     <button type="button" className={smallBtn} onClick={() => decide(x.id, true)}>{t('assessmentOversight.actions.approve')}</button>
                                     <button type="button" className={smallBtn} disabled={!(notes[x.id] ?? '').trim()} onClick={() => decide(x.id, false)}>{t('assessmentOversight.actions.reject')}</button>
                                 </div>

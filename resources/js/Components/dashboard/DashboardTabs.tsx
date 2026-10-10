@@ -64,7 +64,7 @@ export default function DashboardTabs({ tabs, activeId, onChange, label }: Props
             role="tablist"
             aria-label={label}
             aria-orientation="horizontal"
-            className="sticky top-14 z-10 flex max-w-full gap-1 overflow-x-auto border-b border-gray-200 bg-gray-50 pt-1 dark:border-slate-800 dark:bg-slate-950"
+            className="sticky top-14 z-10 flex max-w-full gap-1 overflow-x-auto border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] pt-1"
         >
             {tabs.map((tab, index) => {
                 const active = tab.id === activeId;
@@ -88,7 +88,7 @@ export default function DashboardTabs({ tabs, activeId, onChange, label }: Props
                             'focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)]',
                             active
                                 ? 'font-semibold text-[color:var(--color-primary)] dark:text-indigo-300'
-                                : 'font-medium text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-100',
+                                : 'font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
                         ].join(' ')}
                     >
                         {tab.label}

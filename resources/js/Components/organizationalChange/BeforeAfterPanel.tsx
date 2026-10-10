@@ -2,6 +2,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 import type { ChangeRequestItem } from './types';
 
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type Props = {
     item: ChangeRequestItem | undefined;
     /** Lookup maps so ids render as names rather than UUIDs. */
@@ -44,29 +45,29 @@ export default function BeforeAfterPanel({ item, unitNames = {} }: Props): JSX.E
     }
 
     return (
-        <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-            <header className="border-b border-gray-200 px-4 py-3 dark:border-slate-800">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <header className="border-b border-[color:var(--app-border)] px-4 py-3">
+                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                     {t('organizationalChangeRequests.compare.heading')}
                 </h2>
             </header>
 
             {isNew && (
-                <p className="border-b border-gray-100 px-4 py-2.5 text-xs text-gray-500 dark:border-slate-800 dark:text-slate-400">
+                <p className="border-b border-[color:var(--app-border)] px-4 py-2.5 text-xs text-[color:var(--app-muted-foreground)]">
                     {t('organizationalChangeRequests.compare.newRecord')}
                 </p>
             )}
 
             <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                    <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-400">
+                <table className={tableClassName}>
+                    <thead className={cx(tableHeadClassName, 'text-left uppercase')}>
                         <tr>
-                            <th className="px-4 py-2.5 w-1/3">{t('organizationalChangeRequests.fields.requestType')}</th>
-                            <th className="px-4 py-2.5">{t('organizationalChangeRequests.compare.current')}</th>
-                            <th className="px-4 py-2.5">{t('organizationalChangeRequests.compare.proposed')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left w-1/3')}>{t('organizationalChangeRequests.fields.requestType')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('organizationalChangeRequests.compare.current')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('organizationalChangeRequests.compare.proposed')}</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                    <tbody className={tableBodyClassName}>
                         {fields.map(field => {
                             const currentValue = before[field];
                             const proposedValue = proposed[field];
@@ -74,21 +75,21 @@ export default function BeforeAfterPanel({ item, unitNames = {} }: Props): JSX.E
 
                             return (
                                 <tr key={field}>
-                                    <td className="px-4 py-2.5 font-medium text-gray-700 dark:text-slate-300">
+                                    <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}>
                                         {t(`organizationalChangeRequests.form.${field}`) === `organizationalChangeRequests.form.${field}`
                                             ? field
                                             : t(`organizationalChangeRequests.form.${field}`)}
                                     </td>
-                                    <td className="px-4 py-2.5 text-gray-500 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                         {isNew ? '—' : render(currentValue)}
                                     </td>
-                                    <td className="px-4 py-2.5">
+                                    <td className={tableCellClassName}>
                                         {unchanged ? (
-                                            <span className="text-gray-500 dark:text-slate-400">
+                                            <span className="text-[color:var(--app-muted-foreground)]">
                                                 {t('organizationalChangeRequests.compare.unchanged')}
                                             </span>
                                         ) : (
-                                            <span className="font-medium text-gray-900 dark:text-slate-100">
+                                            <span className="font-medium text-[color:var(--app-foreground)]">
                                                 {render(proposedValue)}
                                             </span>
                                         )}

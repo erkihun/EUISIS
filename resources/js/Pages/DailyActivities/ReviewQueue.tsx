@@ -28,7 +28,7 @@ export default function DailyActivitiesReviewQueue({ logs, filters, hasAssignmen
             <Head title={t('dailyActivities.reviewQueue.title')} />
             <div className="space-y-3">
                 <ManagementNav can={can} current="daily-activities.review-queue" />
-                {!reviewRequired && <p className={`${panelCls} p-3 text-sm text-gray-600 dark:text-slate-300`}>{t('dailyActivities.reviewQueue.reviewOff')}</p>}
+                {!reviewRequired && <p className={`${panelCls} p-3 text-sm text-[color:var(--app-muted-foreground)]`}>{t('dailyActivities.reviewQueue.reviewOff')}</p>}
                 {reviewRequired && !hasAssignment && <p className="rounded-panel border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('dailyActivities.reviewQueue.noAssignment')}</p>}
                 {logs && (
                     <>

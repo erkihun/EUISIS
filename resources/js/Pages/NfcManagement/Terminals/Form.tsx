@@ -3,7 +3,7 @@ import { Head, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import InputError from '@/Components/InputError';
-import { filterInputCls } from '@/Components/ui';
+import { buttonClassName, filterInputCls } from '@/Components/ui';
 import { useTerminalTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
@@ -40,7 +40,7 @@ const fieldCls = `${filterInputCls} w-full`;
 function Row({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
     return (
         <label className="block">
-            <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-200">{label}</span>
+            <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
             {children}
             <InputError message={error} className="mt-1" />
         </label>
@@ -105,7 +105,7 @@ export default function NfcTerminalForm({
 
             <form
                 onSubmit={submit}
-                className="max-w-3xl rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+                className="max-w-3xl rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5"
             >
                 <div className="grid gap-4 sm:grid-cols-2">
                     <Row label={t('nfc.terminalCode')} error={form.errors.terminal_code}>
@@ -239,7 +239,7 @@ export default function NfcTerminalForm({
                             className={fieldCls}
                             placeholder={terminal?.certificate_fingerprint ?? ''}
                         />
-                        <span className="mt-1 block text-xs text-gray-500 dark:text-slate-400">
+                        <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">
                             {t('nfc.certificateHint')}
                         </span>
                     </Row>
@@ -249,7 +249,7 @@ export default function NfcTerminalForm({
                     <button
                         type="submit"
                         disabled={form.processing}
-                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
+                        className={buttonClassName({ variant: 'primary' })}
                     >
                         {t('common.save')}
                     </button>

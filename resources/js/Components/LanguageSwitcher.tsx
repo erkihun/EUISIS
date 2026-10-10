@@ -25,7 +25,7 @@ export default function LanguageSwitcher({ variant = 'default' }: { variant?: 'd
 
     return (
         <div
-            className={variant === 'toolbar' ? 'flex shrink-0 items-center gap-0.5 rounded-lg bg-[color:var(--app-surface-muted)] p-0.5' : 'flex items-center gap-0.5 rounded-lg border border-gray-200 p-0.5 dark:border-slate-700'}
+            className={variant === 'toolbar' ? 'flex shrink-0 items-center gap-0.5 rounded-lg bg-[color:var(--app-surface-muted)] p-0.5' : 'flex items-center gap-0.5 rounded-lg border border-[color:var(--app-border)] p-0.5'}
             role="group"
             aria-label={t('common.language')}
         >
@@ -39,7 +39,7 @@ export default function LanguageSwitcher({ variant = 'default' }: { variant?: 'd
                         variant === 'toolbar' ? 'flex h-9 min-w-9 items-center justify-center px-1.5' : 'px-2.5 py-1',
                         locale === opt.value
                             ? variant === 'toolbar' ? 'bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-sm' : 'bg-[color:var(--color-primary)] text-white'
-                            : 'text-gray-500 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-100',
+                            : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
                     ].join(' ')}
                     aria-pressed={locale === opt.value}
                     aria-label={opt.value === 'am' ? 'Amharic' : 'English'}

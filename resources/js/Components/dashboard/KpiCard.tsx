@@ -115,13 +115,13 @@ export default function KpiCard({
             ? 'text-emerald-700 dark:text-emerald-400'
             : trendDirection === 'down'
               ? 'text-red-700 dark:text-red-400'
-              : 'text-gray-500 dark:text-slate-400';
+              : 'text-[color:var(--app-muted-foreground)]';
 
     const body = (
         <div className="relative z-[1] flex h-full flex-col">
             <div className="flex items-start justify-between gap-4">
                 <p
-                    className="min-w-0 whitespace-normal break-words text-xs font-medium leading-relaxed text-gray-600 dark:text-slate-300 sm:text-sm"
+                    className="min-w-0 whitespace-normal break-words text-xs font-medium leading-relaxed text-[color:var(--app-muted-foreground)] sm:text-sm"
                 >
                     {title}
                 </p>
@@ -152,7 +152,7 @@ export default function KpiCard({
                     </span>
                     {comparisonLabel && (
                         <span
-                            className="text-gray-500 dark:text-slate-500"
+                            className="text-[color:var(--app-muted-foreground)]"
                         >
                             {comparisonLabel}
                         </span>
@@ -167,8 +167,8 @@ export default function KpiCard({
         'relative h-full min-w-0 overflow-hidden rounded-xl border transition-colors',
         style.card,
         featured
-            ? 'min-h-[112px] border-gray-200 border-s-[3px] border-s-[color:var(--color-primary)] p-4 dark:border-slate-700 dark:border-s-indigo-400 dark:bg-slate-900'
-            : 'min-h-[112px] border-gray-200 p-4 dark:border-slate-800 dark:bg-slate-900',
+            ? 'min-h-[112px] border-[color:var(--app-border)] border-s-[3px] border-s-[color:var(--color-primary)] p-4 dark:border-s-indigo-400 dark:bg-slate-900'
+            : 'min-h-[112px] border-[color:var(--app-border)] p-4 dark:bg-slate-900',
     ].join(' ');
 
     if (!href) {

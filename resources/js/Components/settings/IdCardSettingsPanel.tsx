@@ -26,12 +26,12 @@ type Props = { payload: SettingsGroupPayload; readOnly: boolean; management: Tem
 type SettingValue = string | number | boolean;
 
 const templateFormId = 'id-card-template-editor';
-const inputClass = 'mt-1 min-h-11 w-full min-w-0 rounded-lg border-gray-300 bg-white text-sm dark:border-slate-700 dark:bg-slate-950';
+const inputClass = 'mt-1 min-h-11 w-full min-w-0 rounded-lg border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-sm';
 
 function Card({ title, helper, children }: { title: string; helper?: string; children: ReactNode }) {
-    return <section className="min-w-0 rounded-panel border border-gray-200 bg-white p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-900">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h3>
-        {helper && <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-slate-400">{helper}</p>}
+    return <section className="min-w-0 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-5">
+        <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>
+        {helper && <p className="mt-1 text-xs leading-relaxed text-[color:var(--app-muted-foreground)]">{helper}</p>}
         <div className="mt-4 min-w-0 space-y-4">{children}</div>
     </section>;
 }
@@ -197,7 +197,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
                     const remove = `remove_${side}_background` as const;
                     const url = side === 'front' ? frontUrl : backUrl;
                     return <Card key={side} title={templateLabel(field)} helper={templateLabel('upload_help').replace(':max', String(management.uploadLimitMb))}>
-                        {url && <div className="rounded-lg bg-gray-100 p-2 dark:bg-slate-800"><img src={url} alt={label('background_preview')} className="h-28 w-full object-contain" /></div>}
+                        {url && <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-2"><img src={url} alt={label('background_preview')} className="h-28 w-full object-contain" /></div>}
                         <div className="flex flex-wrap gap-2">
                             <label className={`relative flex min-h-11 max-w-full cursor-pointer items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 focus-within:ring-2 focus-within:ring-[color:var(--color-primary)] dark:border-blue-900 dark:bg-blue-950 dark:text-blue-200 ${!canEdit ? 'opacity-50' : ''}`}>
                                 {templateLabel(url ? 'replace_background' : 'browse_png')}

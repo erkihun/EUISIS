@@ -47,13 +47,13 @@ const share = (part: string | number, whole: string | number): number | null => 
 function AllocationResult({ value, weight }: { value: AllocationContribution; weight: string }) {
     const { t } = useLocale();
     if (value.contribution === null) {
-        return <p className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.orgContribution')}: {t('performance.strategicGoals.contributionPending')}</p>;
+        return <p className="text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.orgContribution')}: {t('performance.strategicGoals.contributionPending')}</p>;
     }
 
     return <div className="tabular-nums">
         <p>{t('performance.strategicGoals.achievement')}: <span className="font-medium">{formatScore(value.achievement)}%</span>
             {' · '}{t('performance.strategicGoals.orgContribution')}: <span className="font-medium">{fill(t('performance.strategicGoals.contributionPoints'), { value: formatScore(value.contribution) })}</span> / {formatScore(weight)}%</p>
-        <p className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.contributionAsOf')} <LocalizedDateDisplay value={value.as_of} /></p>
+        <p className="text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.contributionAsOf')} <LocalizedDateDisplay value={value.as_of} /></p>
         {!value.complete && <p className="text-amber-700 dark:text-amber-300">{t('performance.strategicGoals.contributionPartial')}</p>}
     </div>;
 }
@@ -86,11 +86,11 @@ function AllocationForm({ goal, allocation, units, types, onClose }: { goal: Goa
     }
 
     return (
-        <form onSubmit={submit} className="mt-4 grid gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-950/50 sm:grid-cols-2 lg:grid-cols-4">
-            <p className="text-xs font-semibold text-gray-700 dark:text-slate-200 sm:col-span-2 lg:col-span-4">{allocation ? t('performance.strategicGoals.editAllocation') : t('performance.strategicGoals.addAllocation')}</p>
+        <form onSubmit={submit} className="mt-4 grid gap-3 rounded-xl border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] p-4 sm:grid-cols-2 lg:grid-cols-4">
+            <p className="text-xs font-semibold text-[color:var(--app-foreground)] sm:col-span-2 lg:col-span-4">{allocation ? t('performance.strategicGoals.editAllocation') : t('performance.strategicGoals.addAllocation')}</p>
             <Field label={t('performance.fields.unit')} htmlFor={id('unit')} error={errors.organization_unit_id}>
                 {allocation ? (
-                    <p id={id('unit')} className="py-2 text-sm font-medium text-gray-900 dark:text-slate-100">{nameOf(allocation.unit, locale)}</p>
+                    <p id={id('unit')} className="py-2 text-sm font-medium text-[color:var(--app-foreground)]">{nameOf(allocation.unit, locale)}</p>
                 ) : (
                     <select id={id('unit')} className={inputCls} value={form.data.organization_unit_id} onChange={(e) => form.setData('organization_unit_id', e.target.value)} required>
                         <option value="">{t('performance.strategicGoals.selectUnit')}</option>
@@ -110,7 +110,7 @@ function AllocationForm({ goal, allocation, units, types, onClose }: { goal: Goa
                 </select>
             </Field>
             <div>
-                <label className="flex min-h-10 items-center gap-2 pt-6 text-sm text-gray-700 dark:text-slate-200">
+                <label className="flex min-h-10 items-center gap-2 pt-6 text-sm text-[color:var(--app-foreground)]">
                     <input type="checkbox" checked={form.data.is_lead} onChange={(e) => form.setData('is_lead', e.target.checked)} />{t('performance.fields.leadUnit')}
                 </label>
                 {errors.is_lead && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{errors.is_lead}</p>}
@@ -215,7 +215,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
             actions={can.create && contextSelected ? <button type="button" className={primaryBtn} onClick={() => (editing === 'new' ? setEditing(null) : start('new'))}><Plus className="h-4 w-4" aria-hidden="true" />{t('performance.strategicGoals.create')}</button> : undefined} />}>
             <Head title={t('performance.strategicGoals.title')} />
             <div className="min-w-0 space-y-6">
-                <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-label={t('performance.strategicGoals.selectContext')}>
+                <section className="overflow-hidden rounded-2xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-sm" aria-label={t('performance.strategicGoals.selectContext')}>
                     <div className="grid gap-4 p-5 sm:grid-cols-2 lg:p-6">
                         <Field label={t('performance.fields.organization')} htmlFor="sg-organization">
                             <select id="sg-organization" className={inputCls} value={filters.organization_id} onChange={(e) => filter('organization_id', e.target.value)}>
@@ -232,7 +232,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                             </select>
                         </Field>
                         {cycle && (
-                            <p className="flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-slate-400 sm:col-span-2">
+                            <p className="flex flex-wrap items-center gap-2 text-xs text-[color:var(--app-muted-foreground)] sm:col-span-2">
                                 <CalendarIcon className="h-4 w-4" aria-hidden="true" />
                                 {t('performance.fields.period')}: <LocalizedDateDisplay value={cycle.start_date} /> – <LocalizedDateDisplay value={cycle.end_date} />
                             </p>
@@ -240,19 +240,19 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                     </div>
 
                     {summary && (
-                        <div className="border-t border-gray-100 dark:border-slate-800">
-                            <dl className="grid divide-y divide-gray-100 dark:divide-slate-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                        <div className="border-t border-[color:var(--app-border)]">
+                            <dl className="grid divide-y divide-[color:var(--app-border)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                                 <div className="bg-gray-50/60 p-5 dark:bg-slate-950/30 lg:p-6">
-                                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.total')}</dt>
-                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 tabular-nums dark:text-white">{formatScore(summary.total)}<span className="ml-1 text-lg font-normal text-gray-400">%</span></dd>
+                                    <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.total')}</dt>
+                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-[color:var(--app-foreground)] tabular-nums">{formatScore(summary.total)}<span className="ml-1 text-lg font-normal text-gray-400">%</span></dd>
                                     <div className="mt-3"><Bar value={summary.total} /></div>
                                 </div>
                                 <div className="p-5 lg:p-6">
-                                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.remaining')}</dt>
-                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 tabular-nums dark:text-white">{formatScore(summary.remaining)}<span className="ml-1 text-lg font-normal text-gray-400">%</span></dd>
+                                    <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.remaining')}</dt>
+                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-[color:var(--app-foreground)] tabular-nums">{formatScore(summary.remaining)}<span className="ml-1 text-lg font-normal text-gray-400">%</span></dd>
                                 </div>
                                 <div className="p-5 lg:p-6">
-                                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.readiness')}</dt>
+                                    <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.readiness')}</dt>
                                     <dd className={`mt-3 flex items-center gap-2 text-base font-semibold ${summary.ready ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                                         {summary.ready ? <CheckCircle className="h-5 w-5 shrink-0" aria-hidden="true" /> : <span className="h-2 w-2 shrink-0 rounded-full bg-amber-500" aria-hidden="true" />}
                                         {summary.ready ? t('performance.strategicGoals.ready') : t('performance.strategicGoals.needsWork')}
@@ -260,7 +260,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                 </div>
                             </dl>
                             {statusCounts.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-3 border-t border-gray-100 px-5 py-3 text-xs text-gray-500 dark:border-slate-800 dark:text-slate-400 lg:px-6">
+                                <div className="flex flex-wrap items-center gap-3 border-t border-[color:var(--app-border)] px-5 py-3 text-xs text-[color:var(--app-muted-foreground)] lg:px-6">
                                     <span>{t('performance.strategicGoals.byStatus')}:</span>
                                     {statusCounts.map((status) => (
                                         <span key={status} className="inline-flex items-center gap-2"><Pill group="goal" value={status} /><span className="font-semibold tabular-nums">{summary.status_counts[status]}</span></span>
@@ -288,7 +288,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                     onChange={(e) => form.setData('sort_order', e.target.value === '' ? 0 : Math.max(0, Math.trunc(Number(e.target.value))))} />
                             </Field>
                             <div className="flex items-end">
-                                <label className="flex min-h-10 items-center gap-2 text-sm text-gray-700 dark:text-slate-200">
+                                <label className="flex min-h-10 items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                                     <input type="checkbox" checked={form.data.is_shared} onChange={(e) => form.setData('is_shared', e.target.checked)} />{t('performance.fields.shared')}
                                 </label>
                             </div>
@@ -311,7 +311,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                 <LocalizedDatePicker value={form.data.effective_to} onChange={(v) => form.setData('effective_to', v)} />
                             </Field>
                             {cycle && (
-                                <p className="self-end pb-2 text-xs text-gray-500 dark:text-slate-400 sm:col-span-2">
+                                <p className="self-end pb-2 text-xs text-[color:var(--app-muted-foreground)] sm:col-span-2">
                                     {t('performance.strategicGoals.periodHelp')} <LocalizedDateDisplay value={cycle.start_date} /> – <LocalizedDateDisplay value={cycle.end_date} />
                                 </p>
                             )}
@@ -323,12 +323,12 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                     </Section>
                 )}
 
-                {!contextSelected && <div className="rounded-panel border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">{t('performance.strategicGoals.selectContext')}</div>}
-                {contextSelected && goals.data.length === 0 && <div className="rounded-panel border border-dashed border-gray-300 p-10 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">{t('performance.strategicGoals.empty')}</div>}
+                {!contextSelected && <div className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] p-10 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.selectContext')}</div>}
+                {contextSelected && goals.data.length === 0 && <div className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] p-10 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.empty')}</div>}
 
                 {contextSelected && goals.data.length > 0 && <div className="flex items-center gap-3">
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('performance.strategicGoals.title')}</h2>
-                    <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium tabular-nums text-gray-600 dark:bg-slate-800 dark:text-slate-300">{goals.total}</span>
+                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('performance.strategicGoals.title')}</h2>
+                    <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2.5 py-0.5 text-xs font-medium tabular-nums text-[color:var(--app-muted-foreground)]">{goals.total}</span>
                     <div className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
                 </div>}
                 <div className="space-y-5">
@@ -339,16 +339,16 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                         const problems = [...new Set(goal.readiness.problems)];
                         const draft = goal.status === 'DRAFT';
                         return (
-                            <article key={goal.id} className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900" aria-labelledby={`sg-${goal.id}-name`}>
+                            <article key={goal.id} className="overflow-hidden rounded-2xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-sm" aria-labelledby={`sg-${goal.id}-name`}>
                                 <div className="flex flex-col items-start justify-between gap-5 p-5 lg:flex-row lg:p-6">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
-                                            <span className="rounded-md bg-gray-100 px-2 py-1 font-mono text-xs font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">{goal.code}</span>
+                                            <span className="rounded-md bg-[color:var(--app-surface-muted)] px-2 py-1 font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]">{goal.code}</span>
                                             <Pill group="goal" value={goal.status} />
                                             {goal.is_shared && <span className="rounded-full bg-violet-50 px-2 py-1 text-xs font-medium text-violet-700 dark:bg-violet-950 dark:text-violet-300">{t('performance.strategicGoals.shared')}</span>}
                                         </div>
-                                        <h3 id={`sg-${goal.id}-name`} className="mt-3 break-words text-lg font-semibold leading-relaxed tracking-tight text-gray-900 dark:text-white">{title}</h3>
-                                        <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-slate-400">
+                                        <h3 id={`sg-${goal.id}-name`} className="mt-3 break-words text-lg font-semibold leading-relaxed tracking-tight text-[color:var(--app-foreground)]">{title}</h3>
+                                        <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[color:var(--app-muted-foreground)]">
                                             <span className="tabular-nums">{t('performance.fields.weight')}: {formatScore(goal.weight_percent)}%</span>
                                             <span>{t('performance.fields.version')} {goal.version_no}</span>
                                             {goal.status === 'SUPERSEDED' && <span>{t('performance.strategicGoals.historicalVersion')}</span>}
@@ -367,10 +367,10 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                 </div>
                                 {draft && goal.return_reason && <div className="px-5 pb-4"><Problems title={t('performance.strategicGoals.returned')} problems={[goal.return_reason]} /></div>}
 
-                                <details className="group/goal border-t border-gray-100 dark:border-slate-800">
+                                <details className="group/goal border-t border-[color:var(--app-border)]">
                                     <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-blue-500 dark:text-slate-300 lg:px-6 [&::-webkit-details-marker]:hidden">
-                                        <span className="font-medium text-gray-700 dark:text-slate-200">{t('common.details')}</span>
-                                        <span className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.allocations')} <span className="font-medium tabular-nums">{goal.allocations.length}</span></span>
+                                        <span className="font-medium text-[color:var(--app-foreground)]">{t('common.details')}</span>
+                                        <span className="text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.allocations')} <span className="font-medium tabular-nums">{goal.allocations.length}</span></span>
                                         <span className={`ml-auto flex items-center gap-2 font-medium ${goal.readiness.ready ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
                                             {goal.readiness.ready ? <CheckCircle className="h-4 w-4" aria-hidden="true" /> : <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />}
                                             {goal.readiness.ready ? t('performance.strategicGoals.ready') : t('performance.strategicGoals.needsWork')}
@@ -378,29 +378,29 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         </span>
                                         <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open/goal:rotate-180" aria-hidden="true" />
                                     </summary>
-                                    <div className="space-y-4 border-t border-gray-100 bg-gray-50/50 p-5 dark:border-slate-800 dark:bg-slate-950/30 lg:p-6">
+                                    <div className="space-y-4 border-t border-[color:var(--app-border)] bg-gray-50/50 p-5 dark:bg-slate-950/30 lg:p-6">
                                         {problems.length > 0 && (
                                             <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-amber-700 dark:text-amber-300">
                                                 {problems.map((problem, index) => <li key={index}>{problem}</li>)}
                                             </ul>
                                         )}
 
-                                        {description && hasDescription && <p className="max-w-3xl whitespace-pre-line break-words text-sm leading-relaxed text-gray-600 dark:text-slate-300">{description}</p>}
-                                        {goal.change_reason && <p className="text-sm text-gray-600 dark:text-slate-300">{t('performance.fields.reason')}: {goal.change_reason}</p>}
-                                        {goal.supersedes_goal_id && <p className="text-xs text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.amendedVersion')}</p>}
-                                        <dl className="grid gap-5 rounded-xl border border-gray-100 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:grid-cols-2 sm:gap-8">
+                                        {description && hasDescription && <p className="max-w-3xl whitespace-pre-line break-words text-sm leading-relaxed text-[color:var(--app-muted-foreground)]">{description}</p>}
+                                        {goal.change_reason && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('performance.fields.reason')}: {goal.change_reason}</p>}
+                                        {goal.supersedes_goal_id && <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.amendedVersion')}</p>}
+                                        <dl className="grid gap-5 rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:grid-cols-2 sm:gap-8">
                                             <div className="text-sm">
-                                                <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.allocations')}</dt>
+                                                <dt className="text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.allocations')}</dt>
                                                 <dd className="mt-1 font-semibold tabular-nums">{formatScore(goal.readiness.allocation_total)} / {formatScore(goal.weight_percent)}%</dd>
                                                 <div className="mt-1.5"><Bar value={share(goal.readiness.allocation_total, goal.weight_percent)} /></div>
                                             </div>
                                             <div className="text-sm">
-                                                <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.objectives')}</dt>
+                                                <dt className="text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.objectives')}</dt>
                                                 <dd className="mt-1 font-semibold tabular-nums">{formatScore(goal.readiness.objective_total)} / {formatScore(goal.weight_percent)}%</dd>
                                                 <div className="mt-1.5"><Bar value={share(goal.readiness.objective_total, goal.weight_percent)} /></div>
                                             </div>
                                             {goal.contribution && goal.allocations.length > 0 && <div className="text-sm sm:col-span-2">
-                                                <dt className="text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.orgContribution')}</dt>
+                                                <dt className="text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.orgContribution')}</dt>
                                                 <dd className="mt-1 font-semibold tabular-nums">{fill(t('performance.strategicGoals.contributionPoints'), { value: formatScore(goal.contribution.contribution) })} / {formatScore(goal.weight_percent)}%</dd>
                                                 {!goal.contribution.complete && <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{t('performance.strategicGoals.contributionPartial')}</p>}
                                             </div>}
@@ -409,11 +409,11 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         {goal.allocations.length > 0 && (
                                             <ul className="mt-5 grid gap-3 md:grid-cols-2" aria-label={t('performance.strategicGoals.allocations')}>
                                                 {goal.allocations.map((row) => (
-                                                    <li key={row.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-gray-200 bg-white p-3 text-xs leading-relaxed dark:border-slate-700 dark:bg-slate-900">
+                                                    <li key={row.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3 text-xs leading-relaxed">
                                                         <span className="flex flex-wrap items-center gap-2">
                                                             <strong className="break-words">{nameOf(row.unit, locale)}</strong>
                                                             <span className="tabular-nums">{formatScore(row.organization_contribution_percent)}%</span>
-                                                            <span className="text-gray-500 dark:text-slate-400">{label('allocation', row.allocation_type)}</span>
+                                                            <span className="text-[color:var(--app-muted-foreground)]">{label('allocation', row.allocation_type)}</span>
                                                             {row.is_lead && <span className="font-medium text-[color:var(--color-primary)]">{t('performance.strategicGoals.lead')}</span>}
                                                             {draft && can.allocate && (
                                                                 <>
@@ -424,9 +424,9 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                                                 </>
                                                             )}
                                                         </span>
-                                                        {row.notes && <span className="whitespace-pre-line text-gray-500 dark:text-slate-400">{row.notes}</span>}
+                                                        {row.notes && <span className="whitespace-pre-line text-[color:var(--app-muted-foreground)]">{row.notes}</span>}
                                                         {row.contribution && <AllocationResult value={row.contribution} weight={row.organization_contribution_percent} />}
-                                                        {goal.can_view_plans && <div className="space-y-1 border-t border-gray-100 pt-2 dark:border-slate-800">
+                                                        {goal.can_view_plans && <div className="space-y-1 border-t border-[color:var(--app-border)] pt-2">
                                                             <span className="font-medium">{t('performance.strategicGoals.unitPlanStatus')}</span>
                                                             {row.unit_plans.length === 0 ? <p className="text-gray-500">{t('performance.dashboard.noData')}</p> : row.unit_plans.map((plan) => <p key={plan.id}>
                                                                 <Link className="text-blue-700 hover:underline dark:text-blue-300" href={route('performance.plans.show', plan.id)}>{plan.title}</Link>
@@ -445,37 +445,37 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                             <AllocationForm key={allocating.allocation ?? 'new'} goal={goal} allocation={goal.allocations.find((row) => row.id === allocating.allocation)} units={units} types={allocationTypes} onClose={() => setAllocating(null)} />
                                         )}
 
-                                        {goal.can_view_plans && <details className="group/objectives mt-5 rounded-xl border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-                                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
+                                        {goal.can_view_plans && <details className="group/objectives mt-5 rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
                                                 {t('performance.strategicGoals.objectives')} ({goal.objectives.length})
                                                 <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open/objectives:rotate-180" aria-hidden="true" />
                                             </summary>
                                             {goal.objectives.length === 0 ? (
-                                                <p className="px-3 pb-3 text-sm text-gray-500 dark:text-slate-400">{t('performance.strategicGoals.noObjectives')}</p>
+                                                <p className="px-3 pb-3 text-sm text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.noObjectives')}</p>
                                             ) : (
-                                                <ul className="divide-y divide-gray-100 border-t border-gray-100 text-sm dark:divide-slate-800 dark:border-slate-800">
+                                                <ul className="divide-y divide-[color:var(--app-border)] border-t border-[color:var(--app-border)] text-sm">
                                                     {goal.objectives.map((objective) => (
                                                         <li key={objective.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
                                                             <div className="min-w-0">
-                                                                <p className="font-medium text-gray-900 dark:text-slate-100"><span className="font-mono text-xs text-gray-500">{objective.code}</span> {(locale === 'am' && objective.title_am) || objective.title_en}</p>
+                                                                <p className="font-medium text-[color:var(--app-foreground)]"><span className="font-mono text-xs text-gray-500">{objective.code}</span> {(locale === 'am' && objective.title_am) || objective.title_en}</p>
                                                                 {objective.plan && (
-                                                                    <p className="text-xs text-gray-500 dark:text-slate-400">
+                                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                                         {t('performance.fields.plan')}: <Link href={route('performance.plans.show', objective.plan.id)} className="text-[color:var(--color-primary)] hover:underline">{objective.plan.title}</Link> · {t('performance.fields.version')} {objective.plan.version} · {label('plan', objective.plan.status)}
                                                                     </p>
                                                                 )}
                                                             </div>
-                                                            <span className="text-xs tabular-nums text-gray-600 dark:text-slate-300">{t('performance.fields.absoluteWeight')}: {formatScore(objective.absolute_weight_percent ?? objective.weight)}%</span>
+                                                            <span className="text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{t('performance.fields.absoluteWeight')}: {formatScore(objective.absolute_weight_percent ?? objective.weight)}%</span>
                                                         </li>
                                                     ))}
                                                 </ul>
                                             )}
                                         </details>}
-                                        {goal.can_view_plans && <details className="rounded-xl border border-blue-200 bg-white dark:border-blue-900 dark:bg-slate-900">
+                                        {goal.can_view_plans && <details className="rounded-xl border border-blue-200 bg-[color:var(--app-surface)] dark:border-blue-900">
                                             <summary className="cursor-pointer px-4 py-3 text-sm font-medium">{t('performance.plans.cascadeTrace')} ({goal.cascade.length})</summary>
                                             <ul className="space-y-3 border-t border-blue-100 p-4 dark:border-blue-950">
                                                 {goal.cascade.map((item) => <li key={item.id} className="border-l-2 border-orange-300 pl-3 text-sm dark:border-orange-800">
                                                     <Link className="font-medium text-blue-700 hover:underline dark:text-blue-300" href={route('performance.plans.show', item.plan_id)}>{item.title}</Link>
-                                                    <p className="text-xs text-gray-500 dark:text-slate-400">{label('planType', item.level)} · {[item.unit, item.position].filter(Boolean).join(' › ')} · {label('plan', item.status)} · {t('performance.fields.version')} {item.version}</p>
+                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('planType', item.level)} · {[item.unit, item.position].filter(Boolean).join(' › ')} · {label('plan', item.status)} · {t('performance.fields.version')} {item.version}</p>
                                                     {item.service && <p className="mt-1 text-xs">{t('performance.fields.positionService')}: {item.service}</p>}
                                                     {item.targets.map((target, index) => <p key={index} className="mt-1 text-xs">{t('performance.fields.kpi')}: {target.kpi} · {t('performance.fields.target')}: {target.target ?? '—'} · {t('performance.fields.weight')}: {formatScore(target.weight)}%</p>)}
                                                     {item.employees.length > 0 && <p className="mt-1 text-xs">{t('performance.fields.employee')}: {item.employees.join(', ')}</p>}
@@ -489,15 +489,15 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                     })}
                 </div>
                 {goals.last_page > 1 && <Pager page={goals} />}
-                <details className="group rounded-xl border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <summary className="flex cursor-pointer list-none items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-slate-200 [&::-webkit-details-marker]:hidden">
+                <details className="group rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
                         <Layers className="h-4 w-4 text-gray-400" aria-hidden="true" />
                         {t('performance.strategicGoals.workflow')}
                         <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true" />
                     </summary>
-                    <ol className="grid gap-4 border-t border-gray-100 p-5 text-sm leading-relaxed text-gray-600 dark:border-slate-800 dark:text-slate-300 md:grid-cols-3">
+                    <ol className="grid gap-4 border-t border-[color:var(--app-border)] p-5 text-sm leading-relaxed text-[color:var(--app-muted-foreground)] md:grid-cols-3">
                         {['registerStep', 'allocateStep', 'reviewStep'].map((step, index) => (
-                            <li key={step} className="flex items-start gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-xs font-semibold text-gray-600 dark:bg-slate-800 dark:text-slate-300">{index + 1}</span><span>{t(`performance.strategicGoals.${step}`)}</span></li>
+                            <li key={step} className="flex items-start gap-3"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[color:var(--app-surface-muted)] text-xs font-semibold text-[color:var(--app-muted-foreground)]">{index + 1}</span><span>{t(`performance.strategicGoals.${step}`)}</span></li>
                         ))}
                     </ol>
                 </details>

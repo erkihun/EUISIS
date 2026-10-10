@@ -9,6 +9,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { useLocale } from '@/hooks/useLocale';
 
+import { cx, selectClassName } from '@/Components/ui';
 interface OrganizationOption {
     id: string;
     name_en: string;
@@ -69,8 +70,7 @@ export default function InstitutionOfficeCreate({
         status: 'active',
     });
 
-    const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+    const inputCls = cx(selectClassName, 'w-full');
 
     const selectedOrganization = institutions.find((organization) => organization.id === data.organization_id) ?? selectedInstitution;
     const selectedParentUnit = parentOfficeOptions.find((unit) => unit.id === data.parent_unit_id) ?? null;
@@ -107,12 +107,12 @@ export default function InstitutionOfficeCreate({
                         </div>
                     )}
 
-                    <section className="rounded-lg border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                         <div className="mb-4">
-                            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
                                 {t('institutionOffices.structuralPlacement')}
                             </h2>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
                                 {t('institutionOffices.createdAsOrganizationUnitHelp')}
                             </p>
                         </div>
@@ -133,7 +133,7 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('institutionOffices.structuralOrganizationHelp')}
                                 </p>
                                 <InputError message={errors.organization_id} />
@@ -177,8 +177,8 @@ export default function InstitutionOfficeCreate({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
-                        <h2 className="mb-4 text-base font-semibold text-gray-900 dark:text-slate-100">
+                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+                        <h2 className="mb-4 text-base font-semibold text-[color:var(--app-foreground)]">
                             {t('institutionOffices.officeUnitIdentity')}
                         </h2>
 
@@ -233,12 +233,12 @@ export default function InstitutionOfficeCreate({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                    <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                         <div className="mb-4">
-                            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                            <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">
                                 {t('institutionOffices.reportingRelationship')}
                             </h2>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
                                 {t('institutionOffices.functionalReportingNoManagementAccess')}
                             </p>
                         </div>
@@ -258,7 +258,7 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('institutionOffices.functionalReportingHelp')}
                                 </p>
                                 <InputError message={errors.functional_reporting_organization_id} />
@@ -298,7 +298,7 @@ export default function InstitutionOfficeCreate({
                         <PrimaryButton type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('institutionOffices.create')}
                         </PrimaryButton>
-                        <Link href={route('institution-offices.index')} className="text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400">
+                        <Link href={route('institution-offices.index')} className="text-sm text-[color:var(--app-muted-foreground)] hover:text-gray-700">
                             {t('common.cancel')}
                         </Link>
                     </div>
@@ -310,9 +310,9 @@ export default function InstitutionOfficeCreate({
 
 function PreviewRow({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-md border border-blue-100 bg-white px-3 py-2 dark:border-blue-900/50 dark:bg-slate-900">
+        <div className="rounded-md border border-blue-100 bg-[color:var(--app-surface)] px-3 py-2 dark:border-blue-900/50">
             <div className="text-xs font-medium uppercase text-blue-700 dark:text-blue-300">{label}</div>
-            <div className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{value}</div>
+            <div className="mt-1 text-sm font-semibold text-[color:var(--app-foreground)]">{value}</div>
         </div>
     );
 }

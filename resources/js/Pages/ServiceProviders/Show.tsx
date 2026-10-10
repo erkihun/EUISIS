@@ -17,6 +17,7 @@ import { Button, buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useMemo, useState, type JSX, type ReactNode } from 'react';
 
+import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type Provider = {
     id: string;
     name: string;
@@ -172,31 +173,31 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
                             </p>
                         ) : (
                             <div className="max-h-[40rem] overflow-auto">
-                                <table className="w-full min-w-[34rem] text-sm">
-                                    <thead className="sticky top-0 z-[1] bg-[color:var(--app-surface-muted)]">
-                                        <tr className="text-left text-xs font-semibold text-[color:var(--app-muted-foreground)]">
-                                            <th scope="col" className="w-40 px-5 py-2.5">{t('providers.columnWhen')}</th>
-                                            <th scope="col" className="px-3 py-2.5">{t('providers.reference')}</th>
-                                            <th scope="col" className="w-32 px-3 py-2.5 text-right">{t('providers.amount')}</th>
-                                            <th scope="col" className="w-36 py-2.5 pl-3 pr-5">{t('providers.status')}</th>
+                                <table className={cx(tableClassName, 'min-w-[34rem]')}>
+                                    <thead className={cx(tableHeadClassName, 'sticky top-0 z-[1]')}>
+                                        <tr className="text-left">
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-40')}>{t('providers.columnWhen')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('providers.reference')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'w-32 text-right')}>{t('providers.amount')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-36')}>{t('providers.status')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-[color:var(--app-border)]">
+                                    <tbody className={tableBodyClassName}>
                                         {rows.map((tx) => {
                                             const voided = tx.status === 'denied' || tx.status === 'reversed';
                                             return (
                                                 <tr key={tx.id}>
-                                                    <td className="whitespace-nowrap px-5 py-3 text-[13px] text-[color:var(--app-foreground)]">
+                                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-foreground)]')}>
                                                         <LocalizedDateDisplay value={tx.occurred_at} withTime />
                                                     </td>
-                                                    <td className="px-3 py-3">
+                                                    <td className={tableCellClassName}>
                                                         <div className="font-mono text-[13px] text-[color:var(--app-foreground)]">{tx.reference || '—'}</div>
                                                         <div className="text-xs text-[color:var(--app-muted-foreground)]">{localName(tx.service_type, t('providers.unknownService'))}</div>
                                                     </td>
                                                     <td className={cx('px-3 py-3 text-right font-semibold tabular-nums', voided ? 'text-[color:var(--app-muted-foreground)] line-through decoration-1' : 'text-[color:var(--app-foreground)]')}>
                                                         {formatEtb(tx.amount)}
                                                     </td>
-                                                    <td className="py-3 pl-3 pr-5"><TransactionStatusBadge status={tx.status} /></td>
+                                                    <td className={tableCellClassName}><TransactionStatusBadge status={tx.status} /></td>
                                                 </tr>
                                             );
                                         })}

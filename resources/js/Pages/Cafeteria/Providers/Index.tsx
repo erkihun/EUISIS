@@ -7,6 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Provider = {
     id: string;
     code: string;
@@ -33,7 +34,7 @@ export default function ProvidersIndex({
 }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = inputClassName;
 
     async function handleArchive(id: string) {
         const { confirmed } = await confirm({ title: t('confirmations.confirmDeleteTitle'), description: t('confirmations.thisRecordWillMoveToRecycleBin'), confirmLabel: t('confirmations.delete'), cancelLabel: t('confirmations.cancel'), variant: 'danger' });
@@ -57,7 +58,7 @@ export default function ProvidersIndex({
                 <PageHeader
                     title={t('cafeteria.providers')}
                     actions={can.create ? (
-                        <Link href={route('cafeteria.providers.create')} className="inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                        <Link href={route('cafeteria.providers.create')} className={buttonClassName({ variant: 'primary' })}>
                             + {t('cafeteria.addProvider')}
                         </Link>
                     ) : undefined}
@@ -71,36 +72,36 @@ export default function ProvidersIndex({
                         <option value="">{t('common.active')}</option>
                         <option value="0">{t('common.archived')}</option>
                     </select>
-                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.filter')}</button>
+                    <button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button>
                 </form>
 
-                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     {providers.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.providerCode')}</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.nameEn')}</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.phoneNumber')}</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.isActive')}</th>
-                                        <th className="px-4 py-3" />
+                            <table className={tableClassName}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.providerCode')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.nameEn')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.phoneNumber')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.isActive')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')} />
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {providers.map((p) => (
-                                        <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                            <td className="px-4 py-3 font-mono text-xs text-gray-700 dark:text-slate-300">{p.code}</td>
-                                            <td className="px-4 py-3 font-medium">
-                                                <Link href={route('cafeteria.providers.show', p.id)} className="text-gray-900 hover:text-[color:var(--color-primary)] hover:underline dark:text-slate-100 dark:hover:text-blue-400">
+                                        <tr key={p.id} className={tableRowClassName}>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{p.code}</td>
+                                            <td className={cx(tableCellClassName, 'font-medium')}>
+                                                <Link href={route('cafeteria.providers.show', p.id)} className="text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] hover:underline dark:hover:text-blue-400">
                                                     {p.name_en}
                                                 </Link>
                                             </td>
-                                            <td className="px-4 py-3 text-gray-500">{p.phone_number ?? '—'}</td>
-                                            <td className="px-4 py-3">
+                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{p.phone_number ?? '—'}</td>
+                                            <td className={tableCellClassName}>
                                                 <StatusBadge status={p.is_active ? 'active' : 'inactive'} label={p.is_active ? t('common.active') : t('common.inactive')} />
                                             </td>
-                                            <td className="px-4 py-3 text-right">
+                                            <td className={cx(tableCellClassName, 'text-right')}>
                                                 <div className="flex justify-end gap-2">
                                                     <Link href={route('cafeteria.providers.show', p.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.view')}</Link>
                                                     {p.can.update && <Link href={route('cafeteria.providers.edit', p.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}

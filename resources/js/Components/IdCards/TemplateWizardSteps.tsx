@@ -42,9 +42,9 @@ export default function TemplateWizardSteps({ steps, current, onSelect, furthest
                                 active
                                     ? 'bg-[color:var(--color-primary)] text-white'
                                     : done
-                                      ? 'text-[color:var(--color-primary)] hover:bg-gray-100 dark:hover:bg-slate-800'
-                                      : 'text-gray-500 dark:text-slate-400',
-                                reachable && !active ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800' : '',
+                                      ? 'text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface-muted)]'
+                                      : 'text-[color:var(--app-muted-foreground)]',
+                                reachable && !active ? 'cursor-pointer hover:bg-[color:var(--app-surface-muted)]' : '',
                                 !reachable ? 'cursor-default' : '',
                             ].join(' ')}
                         >

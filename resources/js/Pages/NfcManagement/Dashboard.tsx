@@ -87,10 +87,10 @@ export default function NfcDashboard({ summary, statusDistribution, trend, termi
                     <Link
                         key={status}
                         href={can.viewCredentials ? route('nfc-management.credentials.index', { status }) : '#'}
-                        className="rounded-card border border-gray-200 bg-white px-3 py-3 transition hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-700"
+                        className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-3 transition hover:border-blue-300 dark:hover:border-blue-700"
                     >
-                        <p className="truncate text-xs text-gray-500 dark:text-slate-400">{statusLabel(status)}</p>
-                        <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-slate-100">
+                        <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{statusLabel(status)}</p>
+                        <p className="mt-1 text-lg font-semibold text-[color:var(--app-foreground)]">
                             {summary.statuses[status] ?? 0}
                         </p>
                     </Link>
@@ -99,8 +99,8 @@ export default function NfcDashboard({ summary, statusDistribution, trend, termi
 
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
                 {/* Verification trend */}
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                         {t('nfc.verificationTrend')}
                     </h2>
                     {hasTrend ? (
@@ -132,15 +132,15 @@ export default function NfcDashboard({ summary, statusDistribution, trend, termi
                             </ResponsiveContainer>
                         </div>
                     ) : (
-                        <p className="py-10 text-center text-sm text-gray-500 dark:text-slate-400">
+                        <p className="py-10 text-center text-sm text-[color:var(--app-muted-foreground)]">
                             {t('nfc.noVerificationActivity')}
                         </p>
                     )}
                 </section>
 
                 {/* Status distribution */}
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                         {t('nfc.statusDistribution')}
                     </h2>
                     <StatusDistribution data={statusDistribution} labelFor={statusLabel} />
@@ -149,20 +149,20 @@ export default function NfcDashboard({ summary, statusDistribution, trend, termi
 
             {/* Terminals by type */}
             {terminalTypes.length > 0 && (
-                <section className="mt-4 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                <section className="mt-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                         {t('nfc.usageByTerminalType')}
                     </h2>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                         {terminalTypes.map((row) => (
                             <div
                                 key={row.key}
-                                className="rounded-card border border-gray-100 px-3 py-2 dark:border-slate-800"
+                                className="rounded-card border border-[color:var(--app-border)] px-3 py-2"
                             >
-                                <p className="truncate text-xs text-gray-500 dark:text-slate-400">
+                                <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">
                                     {terminalTypeLabel(row.key)}
                                 </p>
-                                <p className="text-base font-semibold text-gray-900 dark:text-slate-100">{row.value}</p>
+                                <p className="text-base font-semibold text-[color:var(--app-foreground)]">{row.value}</p>
                             </div>
                         ))}
                     </div>

@@ -50,7 +50,7 @@ export default function ThemeToggle({ variant = 'default' }: { variant?: 'defaul
             onClick={cycleTheme}
             className={variant === 'toolbar'
                 ? 'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]'
-                : 'rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'}
+                : 'rounded-lg p-2 text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]'}
             aria-label={`${t('settings.themeMode')}: ${t(`common.${preference}`)}`}
             title={`${t('settings.themeMode')}: ${t(`common.${preference}`)}`}
         >

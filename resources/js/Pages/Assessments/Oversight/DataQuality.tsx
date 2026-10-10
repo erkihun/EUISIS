@@ -46,7 +46,7 @@ export default function OversightDataQuality(props: Props) {
                             <th className={thCls}>{t('assessmentOversight.howToResolve')}</th>
                         </>}>
                             {rules.map(([code, rule]) => (
-                                <tr key={code} className={filters.code === code ? 'bg-gray-50 dark:bg-slate-800/50' : undefined}>
+                                <tr key={code} className={filters.code === code ? 'bg-[color:var(--app-surface-muted)]' : undefined}>
                                     <td className={tdCls}>
                                         {rule.count > 0
                                             ? <Link className="font-medium text-[color:var(--color-primary)] hover:underline" href={oversightHref('assessment-oversight.data-quality', cycle, { code, organization_id: filters.organization_id })}>{t(`assessmentOversight.rules.${code}`)}</Link>
@@ -55,7 +55,7 @@ export default function OversightDataQuality(props: Props) {
                                     </td>
                                     <td className={tdCls}><SeverityBadge severity={rule.severity} /></td>
                                     <td className={`${tdCls} tabular-nums`}>{rule.count}</td>
-                                    <td className={`${tdCls} text-xs text-gray-600 dark:text-slate-400`}>{t(`assessmentOversight.hints.${code}`)}</td>
+                                    <td className={`${tdCls} text-xs text-[color:var(--app-muted-foreground)]`}>{t(`assessmentOversight.hints.${code}`)}</td>
                                 </tr>
                             ))}
                         </Table>

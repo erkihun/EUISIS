@@ -32,7 +32,7 @@ export default function TemplateEditorSection({
      * sections separates them just as well.
      */
     return (
-        <section className="border-b border-gray-100 last:border-b-0 dark:border-slate-800">
+        <section className="border-b border-[color:var(--app-border)] last:border-b-0">
             <button
                 type="button"
                 onClick={() => setOpen((value) => !value)}
@@ -47,14 +47,14 @@ export default function TemplateEditorSection({
                     <path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</span>
+                    <span className="block text-sm font-semibold text-[color:var(--app-foreground)]">{title}</span>
                     {description && (
-                        <span className="mt-0.5 block text-xs text-gray-500 dark:text-slate-400">{description}</span>
+                        <span className="mt-0.5 block text-xs text-[color:var(--app-muted-foreground)]">{description}</span>
                     )}
                 </span>
                 {badge}
             </button>
-            {open && <div className="space-y-4 border-t border-gray-100 px-4 py-4 dark:border-slate-800">{children}</div>}
+            {open && <div className="space-y-4 border-t border-[color:var(--app-border)] px-4 py-4">{children}</div>}
         </section>
     );
 }

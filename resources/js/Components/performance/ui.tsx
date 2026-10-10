@@ -5,6 +5,7 @@ import { Pagination, StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui'
 import { router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
+import { tableBodyClassName, tableHeadClassName } from '@/Components/ui';
 export { fill } from '@/Components/dailyActivity/helpers';
 export { AppFilterBar, filterInputCls } from '@/Components/ui';
 
@@ -18,20 +19,20 @@ export { AppFilterBar, filterInputCls } from '@/Components/ui';
 // ── Controls ──────────────────────────────────────────────────────────────────
 
 export const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:bg-gray-50 disabled:text-gray-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-900';
+    'w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:bg-gray-50 disabled:text-gray-500 dark:disabled:bg-slate-900';
 export const compactInputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-export const labelCls = 'mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300';
+    'rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]';
+export const labelCls = 'mb-1 block text-sm font-medium text-[color:var(--app-foreground)]';
 
 export const primaryBtn =
     'inline-flex items-center justify-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50';
 export const secondaryBtn =
-    'inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800';
+    'inline-flex items-center justify-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50';
 export const dangerBtn =
-    'inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:bg-slate-900 dark:text-red-400 dark:hover:bg-red-950/30';
+    'inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30';
 /** Section-level secondary action (e.g. "Add KPI"). */
 export const smallBtn =
-    'inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800';
+    'inline-flex items-center justify-center gap-1.5 rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50';
 /** Save button of an inline (in-table or in-card) form. */
 export const smallPrimaryBtn =
     'inline-flex items-center justify-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50';
@@ -39,7 +40,7 @@ export const smallPrimaryBtn =
 export const linkBtn = 'text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] disabled:opacity-50';
 export const dangerLinkBtn = 'text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300';
 
-export const panelCls = 'rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900';
+export const panelCls = 'rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
 /** The one content wrapper for EPMS pages (full width, like every admin page). */
 export const pageCls = 'min-w-0 space-y-4';
 
@@ -127,8 +128,8 @@ export function Section({ title, description, actions, children, className = '',
         <section className={`${panelCls} ${flush ? 'overflow-hidden' : ''} ${className}`}>
             <div className={`flex flex-wrap items-start justify-between gap-3 px-5 pt-5 ${flush ? 'pb-4' : ''}`}>
                 <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h3>
-                    {description && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{description}</p>}
+                    <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>
+                    {description && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>}
                 </div>
                 {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
             </div>
@@ -144,8 +145,8 @@ export function Details({ items, columns = 4 }: { items: [label: string, value: 
         <dl className={`grid gap-4 ${grid}`}>
             {items.map(([label, value]) => (
                 <div key={label} className="min-w-0">
-                    <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
-                    <dd className="mt-0.5 break-words text-sm text-gray-900 dark:text-slate-100">{value === null || value === undefined || value === '' ? '—' : value}</dd>
+                    <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
+                    <dd className="mt-0.5 break-words text-sm text-[color:var(--app-foreground)]">{value === null || value === undefined || value === '' ? '—' : value}</dd>
                 </div>
             ))}
         </dl>
@@ -161,7 +162,7 @@ export function Field({ label, htmlFor, error, help, children, className = '' }:
         <div className={className}>
             <label htmlFor={htmlFor} className={labelCls}>{label}</label>
             {children}
-            {help && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{help}</p>}
+            {help && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{help}</p>}
             <FieldError message={error} />
         </div>
     );
@@ -187,7 +188,7 @@ export function Problems({ title, problems }: { title: string; problems: string[
 
 export const tableCls = 'min-w-full text-left text-sm';
 export const thCls = 'px-4 py-3 font-semibold';
-export const tdCls = 'px-4 py-3 align-top text-gray-700 dark:text-slate-200';
+export const tdCls = 'px-4 py-3 align-top text-[color:var(--app-foreground)]';
 
 /**
  * Admin table: gray header row, bordered rows, px-4 py-3 cells. Place it in a
@@ -196,10 +197,10 @@ export const tdCls = 'px-4 py-3 align-top text-gray-700 dark:text-slate-200';
  */
 export function Table({ head, children, framed = false }: { head: ReactNode; children: ReactNode; framed?: boolean }) {
     return (
-        <div className={`overflow-x-auto ${framed ? 'rounded-lg border border-gray-200 dark:border-slate-800' : ''}`}>
+        <div className={`overflow-x-auto ${framed ? 'rounded-lg border border-[color:var(--app-border)]' : ''}`}>
             <table className={tableCls}>
-                <thead className="bg-gray-50 text-xs text-gray-500 dark:bg-slate-950 dark:text-slate-400"><tr>{head}</tr></thead>
-                <tbody className="[&>tr]:border-t [&>tr]:border-gray-100 dark:[&>tr]:border-slate-800">{children}</tbody>
+                <thead className={tableHeadClassName}><tr>{head}</tr></thead>
+                <tbody className={tableBodyClassName}>{children}</tbody>
             </table>
         </div>
     );
@@ -211,7 +212,7 @@ export function TablePanel<T>({ page, empty, children }: { page?: Paginator<T>; 
     return (
         <section className={`${panelCls} overflow-hidden`}>
             {rows === 0 ? <Empty>{empty}</Empty> : children}
-            {page && page.last_page > 1 && <div className="border-t border-gray-100 px-4 py-3 dark:border-slate-800"><Pager page={page} /></div>}
+            {page && page.last_page > 1 && <div className="border-t border-[color:var(--app-border)] px-4 py-3"><Pager page={page} /></div>}
         </section>
     );
 }
@@ -233,12 +234,12 @@ export function Stat({ label, value, suffix = '', hint }: { label: string; value
     const { t } = useLocale();
     const missing = value === null || value === undefined || value === '';
     return (
-        <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-            <p className="truncate text-sm font-medium text-gray-500 dark:text-slate-400">{label}</p>
-            <p className={`mt-2 ${missing ? 'text-sm text-gray-500 dark:text-slate-400' : 'text-2xl font-semibold tabular-nums text-gray-900 dark:text-slate-100'}`}>
+        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+            <p className="truncate text-sm font-medium text-[color:var(--app-muted-foreground)]">{label}</p>
+            <p className={`mt-2 ${missing ? 'text-sm text-[color:var(--app-muted-foreground)]' : 'text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]'}`}>
                 {missing ? t('performance.notCalculated') : `${formatScore(value)}${suffix}`}
             </p>
-            {hint && <div className="mt-1 text-xs text-gray-400 dark:text-slate-500">{hint}</div>}
+            {hint && <div className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{hint}</div>}
         </div>
     );
 }
@@ -249,7 +250,7 @@ export function Bar({ value }: { value: string | number | null | undefined }) {
     const width = n === null ? 0 : Math.max(0, Math.min(100, n));
     const tone = n === null ? 'bg-gray-300 dark:bg-slate-700' : n >= 80 ? 'bg-emerald-500' : n >= 60 ? 'bg-amber-500' : 'bg-red-500';
     return (
-        <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-slate-800" role="presentation">
+        <div className="h-1.5 w-full rounded-full bg-[color:var(--app-surface-muted)]" role="presentation">
             <div className={`h-1.5 rounded-full ${tone}`} style={{ width: `${width}%` }} />
         </div>
     );
@@ -318,8 +319,8 @@ export function ScoreTraceView({ trace }: { trace: ScoreTrace | null | undefined
                     <tr key={row.item_id}>
                         <td className={tdCls}>
                             <p className="font-medium">{row.kpi_code} — {(locale === 'am' && row.kpi_name_am) || row.kpi_name_en}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">{label('direction', row.direction)} · {label('source', row.data_source)}{row.aggregation?.method ? ` · ${label('aggregation', row.aggregation.method)}` : ''}</p>
-                            {row.achievement_formula && <p className="mt-0.5 font-mono text-[11px] text-gray-500 dark:text-slate-400">{row.achievement_formula}</p>}
+                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('direction', row.direction)} · {label('source', row.data_source)}{row.aggregation?.method ? ` · ${label('aggregation', row.aggregation.method)}` : ''}</p>
+                            {row.achievement_formula && <p className="mt-0.5 font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{row.achievement_formula}</p>}
                         </td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(row.target)}</td>
                         <td className={`${tdCls} tabular-nums`}>{row.actual === null ? <span className="text-xs text-gray-500">{t('performance.notReported')}</span> : formatScore(row.actual)}</td>
@@ -352,22 +353,22 @@ export function ScoreTraceView({ trace }: { trace: ScoreTrace | null | undefined
             )}
 
             <dl className="grid gap-2 text-sm sm:grid-cols-3">
-                <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-800/60">
-                    <dt className="text-xs text-gray-500 dark:text-slate-400">{t('performance.result.results')} × {formatScore(trace.results_weight)}%</dt>
+                <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-3">
+                    <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.result.results')} × {formatScore(trace.results_weight)}%</dt>
                     <dd className="tabular-nums">{formatScore(trace.results_score)} → {formatScore(trace.results_contribution)}</dd>
                 </div>
-                <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-800/60">
-                    <dt className="text-xs text-gray-500 dark:text-slate-400">{t('performance.result.competency')} × {formatScore(trace.competency_weight)}%</dt>
+                <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-3">
+                    <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.result.competency')} × {formatScore(trace.competency_weight)}%</dt>
                     <dd className="tabular-nums">{formatScore(trace.competency_score)} → {formatScore(trace.competency_contribution)}</dd>
                 </div>
-                <div className="rounded-lg bg-gray-50 p-3 dark:bg-slate-800/60">
-                    <dt className="text-xs text-gray-500 dark:text-slate-400">{t('performance.result.final')}</dt>
+                <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-3">
+                    <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.result.final')}</dt>
                     <dd className="font-semibold tabular-nums">{formatScore(trace.final_score)} {trace.rating && <span className="font-normal">· {(locale === 'am' && trace.rating.label_am) || trace.rating.label_en}</span>}</dd>
                 </div>
             </dl>
 
             {trace.formula && (
-                <details className="text-xs text-gray-600 dark:text-slate-400">
+                <details className="text-xs text-[color:var(--app-muted-foreground)]">
                     <summary className="cursor-pointer font-medium">{t('performance.result.formula')}</summary>
                     <ul className="mt-1 space-y-0.5 font-mono">{Object.entries(trace.formula).map(([k, v]) => <li key={k}>{k}: {v}</li>)}</ul>
                 </details>

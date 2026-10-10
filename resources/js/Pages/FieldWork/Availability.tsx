@@ -10,6 +10,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, Link } from '@inertiajs/react';
 import type { JSX } from 'react';
 
+import { cx, tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
 type Row = {
     id: string;
     status: 'official_field_work' | 'approved_not_checked_in' | 'unknown';
@@ -26,8 +27,8 @@ type Row = {
  */
 export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginated<Row>; at: string; can: ManagementAbilities }): JSX.Element {
     const { t, locale } = useLocale();
-    const th = 'px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400';
-    const td = 'px-3 py-2 align-top text-sm text-gray-800 dark:text-slate-200';
+    const th = 'px-3 py-2 text-left text-xs font-medium text-[color:var(--app-muted-foreground)]';
+    const td = 'px-3 py-2 align-top text-sm text-[color:var(--app-foreground)]';
     const destination = (row: Row) => (locale === 'am' && row.destination.name_am ? row.destination.name_am : row.destination.name_en) ?? '—';
     const badge = (row: Row) => <StatusBadge status={row.status === 'official_field_work' ? 'in_field' : row.status === 'approved_not_checked_in' ? 'check_in_missing' : 'unknown'} label={t(`fieldWork.availability.status.${row.status}`)} />;
 
@@ -36,13 +37,13 @@ export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginat
             <Head title={t('fieldWork.availability.title')} />
             <div className="space-y-3">
                 <ManagementNav can={can} current="field-work.availability.index" />
-                <p className="text-xs text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={at} withTime /> · {t('fieldWork.availability.unknownNote')}</p>
+                <p className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={at} withTime /> · {t('fieldWork.availability.unknownNote')}</p>
                 {rows.data.length === 0 ? (
-                    <p className={`${panelCls} p-4 text-sm text-gray-500 dark:text-slate-400`}>{t('fieldWork.availability.empty')}</p>
+                    <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{t('fieldWork.availability.empty')}</p>
                 ) : (
                     <div className={panelCls}>
-                        <table className="hidden w-full md:table">
-                            <thead className="border-b border-gray-200 dark:border-slate-800">
+                        <table className={cx(tableClassName, 'hidden')}>
+                            <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={th}>{t('fieldWork.columns.employee')}</th>
                                     <th className={th}>{t('fieldWork.columns.status')}</th>
@@ -51,12 +52,12 @@ export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginat
                                     <th className={th}>{t('fieldWork.columns.reference')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className={tableBodyClassName}>
                                 {rows.data.map((row) => (
                                     <tr key={row.id}>
                                         <td className={td}>
                                             <span className="font-medium">{employeeName(row.employee, locale)}</span>
-                                            <span className="block text-xs text-gray-500 dark:text-slate-400">{[row.employee?.employee_number, named(row.organization_unit ?? undefined, locale)].filter(Boolean).join(' · ')}</span>
+                                            <span className="block text-xs text-[color:var(--app-muted-foreground)]">{[row.employee?.employee_number, named(row.organization_unit ?? undefined, locale)].filter(Boolean).join(' · ')}</span>
                                         </td>
                                         <td className={td}>{badge(row)}</td>
                                         <td className={td}>{destination(row)}</td>
@@ -66,15 +67,15 @@ export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginat
                                 ))}
                             </tbody>
                         </table>
-                        <ul className="divide-y divide-gray-100 md:hidden dark:divide-slate-800">
+                        <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
                             {rows.data.map((row) => (
                                 <li key={row.id}>
                                     <Link href={route('field-work.requests.show', row.request.id)} className="block px-3 py-2.5">
                                         <div className="flex items-start justify-between gap-2">
-                                            <p className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">{employeeName(row.employee, locale)}</p>
+                                            <p className="truncate text-sm font-medium text-[color:var(--app-foreground)]">{employeeName(row.employee, locale)}</p>
                                             {badge(row)}
                                         </div>
-                                        <p className="mt-1 text-xs text-gray-600 dark:text-slate-400">{destination(row)} · <LocalizedDateDisplay value={row.expected_return_at} withTime /></p>
+                                        <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{destination(row)} · <LocalizedDateDisplay value={row.expected_return_at} withTime /></p>
                                     </Link>
                                 </li>
                             ))}

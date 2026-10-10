@@ -77,13 +77,13 @@ export function ItemsTable({ items, actions, extra }: { items: AgreementItem[]; 
                     <tr key={item.id}>
                         <td className={tdCls}>
                             <p className="font-medium">{item.kpi.code} — {nameOf(item.kpi, locale)}</p>
-                            <p className="text-xs text-gray-600 dark:text-slate-300">{item.expected_output}</p>
-                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                            <p className="text-xs text-[color:var(--app-muted-foreground)]">{item.expected_output}</p>
+                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                 {item.objective && `${item.objective.code} · `}{label('source', item.data_source)} · {item.source === 'POSITION_PLAN' ? t('performance.agreements.positionPlan') : t('performance.agreements.additional')}
                                 {item.is_mandatory && ` · ${t('performance.fields.mandatory')}`}
                             </p>
                             {extra?.(item)}
-                            {!!item.cascade_trace?.length && <details className="mt-2 text-xs text-gray-600 dark:text-slate-300">
+                            {!!item.cascade_trace?.length && <details className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">
                                 <summary className="cursor-pointer">{t('performance.plans.cascadeTrace')}</summary>
                                 <ol className="mt-1 space-y-1 border-l-2 border-blue-200 pl-2 dark:border-blue-800">
                                     {item.cascade_trace.map((step) => <li key={`${step.type}-${step.id}`}>{step.type} · {step.label}{step.unit && ` · ${step.unit}`}{step.position && ` · ${step.position}`}{step.weight != null && ` (${formatScore(step.weight)}%)`}</li>)}
@@ -115,7 +115,7 @@ export function ActualsList({ actuals, canVerify }: { actuals: Actual[]; canVeri
     const label = useEnumLabel();
     if (!actuals.length) return null;
     return (
-        <ul className="mt-2 space-y-1 border-l-2 border-gray-100 pl-2 text-xs dark:border-slate-800">
+        <ul className="mt-2 space-y-1 border-l-2 border-[color:var(--app-border)] pl-2 text-xs">
             {actuals.map((a) => (
                 <li key={a.id} className="flex flex-wrap items-center gap-2">
                     <span className="whitespace-nowrap"><LocalizedDateDisplay value={a.period_start} /> – <LocalizedDateDisplay value={a.period_end} /></span>
@@ -135,12 +135,12 @@ export function EvidenceList({ evidence, canVerify }: { evidence: AgreementView[
     const label = useEnumLabel();
     if (!evidence.length) return <Empty>—</Empty>;
     return (
-        <ul className="divide-y divide-gray-100 text-sm dark:divide-slate-800">
+        <ul className="divide-y divide-[color:var(--app-border)] text-sm">
             {evidence.map((e) => (
                 <li key={e.id} className="flex flex-wrap items-start justify-between gap-2 py-2">
                     <div className="min-w-0">
                         <p className="font-medium">{e.title} <span className="text-xs font-normal text-gray-500">· {label('evidence', e.type)}</span></p>
-                        {e.description && <p className="text-xs text-gray-600 dark:text-slate-300">{e.description}</p>}
+                        {e.description && <p className="text-xs text-[color:var(--app-muted-foreground)]">{e.description}</p>}
                         <p className="text-xs text-gray-500"><LocalizedDateDisplay value={e.submitted_at} withTime /></p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export function CheckinList({ checkins, children }: { checkins: AgreementView['c
     return (
         <ul className="space-y-3 text-sm">
             {checkins.map((c) => (
-                <li key={c.id} className="rounded-lg border border-gray-200 p-3 dark:border-slate-800">
+                <li key={c.id} className="rounded-lg border border-[color:var(--app-border)] p-3">
                     <div className="mb-1 flex items-center gap-2"><LocalizedDateDisplay value={c.date} /><Pill group="health" value={c.progress_status} /></div>
                     <div className="space-y-0.5 text-xs">
                         {row(t('performance.fields.managerComment'), c.manager_comment)}
@@ -208,12 +208,12 @@ export function ResultPanel({ result, hidden, children }: { result: Result | nul
     return (
         <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
-                <span className="text-3xl font-semibold tabular-nums text-gray-900 dark:text-slate-100">{formatScore(result.final_score)}</span>
+                <span className="text-3xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{formatScore(result.final_score)}</span>
                 <span className="text-sm">{(locale === 'am' && result.rating_am) || result.rating_en}</span>
                 <Pill group="result" value={result.status} />
                 {result.revision > 1 && <span className="text-xs text-gray-500">{fill(t('performance.result.revision'), { n: result.revision })}</span>}
             </div>
-            <dl className="flex flex-wrap gap-4 text-xs text-gray-600 dark:text-slate-400">
+            <dl className="flex flex-wrap gap-4 text-xs text-[color:var(--app-muted-foreground)]">
                 <div>{t('performance.result.calculated')}: <span className="tabular-nums">{formatScore(result.calculated_score)}</span></div>
                 {result.adjusted_score !== null && <div>{t('performance.result.adjusted')}: <span className="tabular-nums">{formatScore(result.adjusted_score)}</span></div>}
                 {result.calibrated_score !== null && <div>{t('performance.result.calibrated')}: <span className="tabular-nums">{formatScore(result.calibrated_score)}</span></div>}
@@ -226,7 +226,7 @@ export function ResultPanel({ result, hidden, children }: { result: Result | nul
             </details>
             {result.adjustments.length > 0 && (
                 <div>
-                    <h3 className="text-xs font-semibold text-gray-700 dark:text-slate-300">{t('performance.result.adjustments')}</h3>
+                    <h3 className="text-xs font-semibold text-[color:var(--app-foreground)]">{t('performance.result.adjustments')}</h3>
                     <ul className="mt-1 space-y-1 text-xs">
                         {result.adjustments.map((a) => (
                             <li key={a.id}>{label('adjustmentType', a.adjustment_type)}: {formatScore(a.original_score)} → {formatScore(a.adjusted_score)} · {a.reason} · <Pill group="approval" value={a.status} /></li>
@@ -244,7 +244,7 @@ export function DevelopmentPlans({ plans }: { plans: AgreementView['development_
     return (
         <ul className="space-y-2 text-sm">
             {plans.map((p) => (
-                <li key={p.id} className="rounded-lg bg-gray-50 p-2 dark:bg-slate-800/60">
+                <li key={p.id} className="rounded-lg bg-[color:var(--app-surface-muted)] p-2">
                     <p>{p.development_objective}</p>
                     <p className="text-xs text-gray-500">{[p.training, p.coaching, p.expected_outcome].filter(Boolean).join(' · ')} {p.due_date && <>· <LocalizedDateDisplay value={p.due_date} /></>} · {label('development', p.status)}</p>
                 </li>

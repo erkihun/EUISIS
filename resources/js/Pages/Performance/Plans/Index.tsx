@@ -127,7 +127,7 @@ export default function PlansIndex({ plans, filters, cycles, types, statuses, pu
                             <option value="">{t('performance.fields.status')}: —</option>
                             {statuses.map((v) => <option key={v} value={v}>{label('plan', v)}</option>)}
                         </select>
-                        <label className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-slate-400">
+                        <label className="flex items-center gap-1.5 text-xs text-[color:var(--app-muted-foreground)]">
                             <input type="checkbox" checked={filters.history === '1'} onChange={(e) => filter('history', e.target.checked ? '1' : '')} />{t('performance.fields.history')}
                         </label>
                     </div>
@@ -144,7 +144,7 @@ export default function PlansIndex({ plans, filters, cycles, types, statuses, pu
                                 <tr key={plan.id}>
                                     <td className={tdCls}>
                                         <Link href={route('performance.plans.show', plan.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{plan.title}</Link>
-                                        <p className="text-xs text-gray-500 dark:text-slate-400">{[nameOf(plan.organization, locale), nameOf(plan.unit, locale), titleOf(plan.position, locale)].filter(Boolean).join(' › ')}</p>
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{[nameOf(plan.organization, locale), nameOf(plan.unit, locale), titleOf(plan.position, locale)].filter(Boolean).join(' › ')}</p>
                                     </td>
                                     <td className={tdCls}>{label('planType', plan.type)}</td>
                                     <td className={tdCls}>{nameOf(plan.cycle, locale)}</td>

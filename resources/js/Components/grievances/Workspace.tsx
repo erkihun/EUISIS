@@ -54,7 +54,7 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
     const label = useEnumLabel(); const { locale } = useLocale();
     return <ol className="space-y-4">{events.map(e => {
         const handler = e.data?.handler as { name_en?: string; name_am?: string | null } | undefined;
-        return <li key={e.id} className="border-l-2 border-gray-200 pl-4 dark:border-slate-700"><p className="font-medium">{label('event', e.event)}</p>{handler && <p className="text-sm">{nameOf({ name_en: handler.name_en ?? null, name_am: handler.name_am ?? null }, locale)}</p>}<p className="text-xs text-gray-500"><DateDisplay value={e.occurred_at} withTime />{e.actor ? ` · ${e.actor}` : ''}</p></li>;
+        return <li key={e.id} className="border-l-2 border-[color:var(--app-border)] pl-4"><p className="font-medium">{label('event', e.event)}</p>{handler && <p className="text-sm">{nameOf({ name_en: handler.name_en ?? null, name_am: handler.name_am ?? null }, locale)}</p>}<p className="text-xs text-gray-500"><DateDisplay value={e.occurred_at} withTime />{e.actor ? ` · ${e.actor}` : ''}</p></li>;
     })}</ol>;
 }
 

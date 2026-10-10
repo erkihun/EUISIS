@@ -17,6 +17,7 @@ import {
     type OrganogramLayout,
 } from './organogram/shared';
 
+import { buttonClassName } from '@/Components/ui';
 /**
  * Organogram host: owns the layout choice, expand/collapse state and zoom, then
  * delegates rendering to one of five layout components.
@@ -107,8 +108,7 @@ export default function OrganogramChart({
     // The focused layouts are flat lists — expand/collapse does not apply.
     const supportsExpansion = layout === 'vertical' || layout === 'horizontal' || layout === 'compact';
 
-    const buttonCls =
-        'rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
+    const buttonCls = buttonClassName({ variant: 'outline', size: 'sm' });
 
     function renderLayout() {
         switch (layout) {
@@ -152,7 +152,7 @@ export default function OrganogramChart({
                 >
                     {t('organizations.zoomOut')}
                 </button>
-                <span className="text-xs tabular-nums text-gray-500 dark:text-slate-400">{Math.round(zoom * 100)}%</span>
+                <span className="text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{Math.round(zoom * 100)}%</span>
                 <button
                     type="button"
                     onClick={() => setZoom((value) => Math.min(1.5, Number((value + 0.1).toFixed(2))))}
@@ -165,7 +165,7 @@ export default function OrganogramChart({
             </div>
 
             {!hasStructure ? (
-                <p className="py-16 text-center text-sm text-gray-500 dark:text-slate-400">
+                <p className="py-16 text-center text-sm text-[color:var(--app-muted-foreground)]">
                     {t('organizations.noStructureFound')}
                 </p>
             ) : (
@@ -176,7 +176,7 @@ export default function OrganogramChart({
                         ref={captureRef}
                         data-organogram-layout={layout}
                         data-organogram-depth={depth}
-                        className="inline-block min-w-full origin-top-left bg-white p-4 dark:bg-slate-900"
+                        className="inline-block min-w-full origin-top-left bg-[color:var(--app-surface)] p-4"
                         style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
                     >
                         {renderLayout()}

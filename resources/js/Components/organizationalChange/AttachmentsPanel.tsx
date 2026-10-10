@@ -4,14 +4,14 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { FormEvent, JSX } from 'react';
 import type { ChangeRequestDetail } from './types';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Props = {
     request: ChangeRequestDetail;
     canUpload: boolean;
     attachmentTypes: string[];
 };
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = cx(inputClassName, 'w-full');
 
 /**
  * Supporting documents.
@@ -46,26 +46,26 @@ export default function AttachmentsPanel({ request, canUpload, attachmentTypes }
     const attachments = request.attachments ?? [];
 
     return (
-        <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-            <header className="border-b border-gray-200 px-4 py-3 dark:border-slate-800">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+        <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <header className="border-b border-[color:var(--app-border)] px-4 py-3">
+                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                     {t('organizationalChangeRequests.attachments.heading')}
                 </h2>
             </header>
 
             {attachments.length === 0 ? (
-                <p className="px-4 py-3 text-sm text-gray-500 dark:text-slate-400">
+                <p className="px-4 py-3 text-sm text-[color:var(--app-muted-foreground)]">
                     {t('organizationalChangeRequests.attachments.empty')}
                 </p>
             ) : (
-                <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                <ul className="divide-y divide-[color:var(--app-border)]">
                     {attachments.map(attachment => (
                         <li key={attachment.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5">
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-medium text-gray-900 dark:text-slate-100">
+                                <p className="truncate text-sm font-medium text-[color:var(--app-foreground)]">
                                     {attachment.original_name}
                                 </p>
-                                <p className="text-xs text-gray-500 dark:text-slate-400">
+                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                     {t(`organizationalChangeRequests.attachments.types.${attachment.document_type}`)}
                                     {attachment.reference_no ? ` · ${attachment.reference_no}` : ''}
                                     {attachment.document_date ? ' · ' : ''}
@@ -85,9 +85,9 @@ export default function AttachmentsPanel({ request, canUpload, attachmentTypes }
             )}
 
             {canUpload && (
-                <form className="border-t border-gray-100 p-4 dark:border-slate-800" onSubmit={submit}>
+                <form className="border-t border-[color:var(--app-border)] p-4" onSubmit={submit}>
                     <div className="grid gap-3 md:grid-cols-4">
-                        <label className="block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300">
+                        <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             <span>{t('organizationalChangeRequests.fields.documentType')}</span>
                             <select
                                 className={inputCls}
@@ -101,7 +101,7 @@ export default function AttachmentsPanel({ request, canUpload, attachmentTypes }
                                 ))}
                             </select>
                         </label>
-                        <label className="block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300">
+                        <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             <span>{t('organizationalChangeRequests.fields.referenceNo')}</span>
                             <input
                                 type="text"
@@ -110,7 +110,7 @@ export default function AttachmentsPanel({ request, canUpload, attachmentTypes }
                                 onChange={event => form.setData('reference_no', event.target.value)}
                             />
                         </label>
-                        <label className="block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300">
+                        <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             <span>{t('organizationalChangeRequests.fields.documentDate')}</span>
                             <input
                                 type="date"
@@ -119,7 +119,7 @@ export default function AttachmentsPanel({ request, canUpload, attachmentTypes }
                                 onChange={event => form.setData('document_date', event.target.value)}
                             />
                         </label>
-                        <label className="block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300">
+                        <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             <span>{t('organizationalChangeRequests.fields.file')}</span>
                             <input
                                 type="file"
@@ -133,7 +133,7 @@ export default function AttachmentsPanel({ request, canUpload, attachmentTypes }
                         <button
                             type="submit"
                             disabled={form.processing || !form.data.file}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {t('organizationalChangeRequests.actions.uploadDocument')}
                         </button>

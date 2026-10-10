@@ -126,7 +126,7 @@ function ExclusionForm({ row, cycleId, reasons, onDone }: { row: Row; cycleId: s
     const { t, locale } = useLocale();
     const form = useForm({ eligibility_id: row.eligibility_id, reason_id: reasons[0]?.id ?? '', note: '' });
     return (
-        <form className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+        <form className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
             onSubmit={(e) => { e.preventDefault(); form.post(route('assessment-oversight.exclusions.store', cycleId), { preserveScroll: true, onSuccess: onDone }); }}>
             <h3 className="text-sm font-semibold">{t('assessmentOversight.actions.requestExclusion')}: {row.employee_number} · {(locale === 'am' ? row.name : row.name_en) || row.name}</h3>
             <p className="mt-1 text-xs text-gray-500">{t('assessmentOversight.exclusionRequestHelp')}</p>

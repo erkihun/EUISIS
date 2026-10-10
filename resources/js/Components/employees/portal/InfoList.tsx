@@ -13,11 +13,11 @@ export default function InfoList({ rows, printedLabel }: { rows: InfoRow[]; prin
         <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
             {rows.map((row) => (
                 <div key={row.key} className="min-w-0">
-                    <dt className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+                    <dt className="flex flex-wrap items-center gap-1.5 text-xs text-[color:var(--app-muted-foreground)]">
                         {row.label}
                         {row.printed && <PrintedChip label={printedLabel} />}
                     </dt>
-                    <dd className="mt-0.5 break-words text-sm font-medium text-gray-900 dark:text-slate-100">{row.value || '—'}</dd>
+                    <dd className="mt-0.5 break-words text-sm font-medium text-[color:var(--app-foreground)]">{row.value || '—'}</dd>
                 </div>
             ))}
         </dl>

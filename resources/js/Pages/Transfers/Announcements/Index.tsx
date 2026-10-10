@@ -11,6 +11,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useCallback, useState } from 'react';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type AnnouncementCan = {
     update: boolean;
     publish: boolean;
@@ -44,7 +45,7 @@ const STATUSES = ['draft', 'published', 'closed', 'cancelled'] as const;
 
 
 const btnBase = 'inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] disabled:opacity-50 disabled:pointer-events-none';
-const btnGray  = `${btnBase} border border-gray-200 text-gray-700 hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] dark:border-slate-700 dark:text-slate-300 dark:hover:border-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]`;
+const btnGray  = `${btnBase} border border-[color:var(--app-border)] text-[color:var(--app-foreground)] hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] dark:hover:border-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]`;
 const btnBlue  = `${btnBase} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]`;
 const btnAmber = `${btnBase} border border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950/30`;
 const btnRed   = `${btnBase} border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30`;
@@ -55,7 +56,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
     const useAmharic = locale === 'am';
     const [processing, setProcessing] = useState<string | null>(null);
 
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = inputClassName;
 
     const applyFilters = useCallback((patch: Record<string, string>) => {
         const next = { ...(filters as Record<string, string>), ...patch };
@@ -137,7 +138,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                         can.create ? (
                             <Link
                                 href={route('transfer-announcements.create')}
-                                className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 {t('transfers.createAnnouncement')}
                             </Link>
@@ -174,9 +175,9 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                 </div>
 
                 {/* Table */}
-                <div className="overflow-x-auto rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+                <div className="overflow-x-auto rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
                                 {[
                                     t('transfers.organization'),
@@ -191,18 +192,18 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                 ].map((h, i) => (
                                     <th
                                         key={h}
-                                        className={`whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400 ${i === 8 ? 'text-right' : ''}`}
+                                        className={`whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)] ${i === 8 ? 'text-right' : ''}`}
                                     >
                                         {h}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className={tableBodyClassName}>
                             {announcements.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className="px-4 py-12 text-center">
-                                        <div className="flex flex-col items-center gap-2 text-gray-400 dark:text-slate-500">
+                                    <td colSpan={9} className={cx(tableCellClassName, 'text-center')}>
+                                        <div className="flex flex-col items-center gap-2 text-[color:var(--app-muted-foreground)]">
                                             <svg className="h-10 w-10 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                                             </svg>
@@ -217,18 +218,18 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                 </tr>
                             ) : (
                                 announcements.data.map((a) => (
-                                    <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                                        <td className="px-4 py-3 text-gray-700 dark:text-slate-200">
+                                    <tr key={a.id} className={tableRowClassName}>
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                             {(useAmharic ? a.organization?.name_am : null) ?? a.organization?.name_en ?? '—'}
                                         </td>
-                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
+                                        <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}>
                                             {(useAmharic ? a.position?.title_am : null) ?? a.position?.title_en ?? '—'}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.grade_level ?? '—'}</td>
-                                        <td className="px-4 py-3 text-center font-semibold text-gray-700 dark:text-slate-200">{a.number_of_vacancies}</td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.opening_date} /></td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.closing_date} /></td>
-                                        <td className="px-4 py-3 text-center">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{a.grade_level ?? '—'}</td>
+                                        <td className={cx(tableCellClassName, 'text-center font-semibold text-[color:var(--app-foreground)]')}>{a.number_of_vacancies}</td>
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.opening_date} /></td>
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.closing_date} /></td>
+                                        <td className={cx(tableCellClassName, 'text-center')}>
                                             {a.applications_count > 0 ? (
                                                 <Link href={route('transfer-applications.index') + `?announcement_id=${a.id}`} className="font-semibold text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                                     {a.applications_count}
@@ -237,10 +238,10 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                                 <span className="text-gray-400">{a.applications_count}</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <StatusBadge status={a.status} />
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <div className="flex flex-wrap items-center justify-end gap-1.5">
                                                 <Link href={route('transfer-announcements.show', a.id)} className={btnGray}>
                                                     {t('common.view')}
@@ -311,7 +312,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                     'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
                                     link.active
                                         ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white'
-                                        : 'border-gray-200 text-gray-600 hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] disabled:opacity-40 disabled:pointer-events-none dark:border-slate-700 dark:text-slate-300',
+                                        : 'border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)] hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] disabled:opacity-40 disabled:pointer-events-none',
                                 ].join(' ')}
                             >{paginationLabel(link.label)}</button>
                         ))}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 export interface CodeRuleFieldProps {
     entityType: string;
     scopeType?: string;
@@ -33,11 +34,9 @@ interface PreviewResponse {
     error: string | null;
 }
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+const inputCls = cx(inputClassName, 'w-full');
 
-const inputClsReadOnly =
-    'w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400';
+const inputClsReadOnly = cx(inputClassName, 'w-full');
 
 export default function CodeRuleField({
     entityType,
@@ -174,7 +173,7 @@ export default function CodeRuleField({
     if (isEditReadOnly) {
         return (
             <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">
+                <label className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                     {label}
                 </label>
                 <div className="mt-1 flex items-center gap-2">
@@ -185,7 +184,7 @@ export default function CodeRuleField({
                         disabled
                         aria-label={label}
                     />
-                    <span className="shrink-0 rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-500 dark:bg-slate-800 dark:text-slate-400">
+                    <span className="shrink-0 rounded-md bg-[color:var(--app-surface-muted)] px-2 py-1 text-xs text-[color:var(--app-muted-foreground)]">
                         {t('codeRules.existingCodePreserved')}
                     </span>
                 </div>
@@ -205,7 +204,7 @@ export default function CodeRuleField({
     return (
         <div>
             <div className="flex items-center justify-between">
-                <label className="block text-xs font-medium text-gray-600 dark:text-slate-400">
+                <label className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                     {label}
                     {required && <span className="ml-1 text-red-500">*</span>}
                 </label>
@@ -225,7 +224,7 @@ export default function CodeRuleField({
                     <button
                         type="button"
                         onClick={handleSwitchToAuto}
-                        className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-gray-700 dark:hover:text-gray-200"
                     >
                         {t('codeRules.autoGenerate')}
                     </button>
@@ -251,7 +250,7 @@ export default function CodeRuleField({
                             className={[
                                 'flex-1 rounded-lg border px-3 py-2 font-mono text-sm',
                                 loading
-                                    ? 'border-gray-200 bg-gray-50 text-gray-400 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-500'
+                                    ? 'border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'
                                     : noRule
                                     ? 'border-orange-200 bg-orange-50 text-orange-600 dark:border-orange-900/40 dark:bg-orange-950/20 dark:text-orange-400'
                                     : 'border-blue-200 bg-blue-50 text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-blue-300',
@@ -269,7 +268,7 @@ export default function CodeRuleField({
                             onClick={() => void fetchPreview()}
                             disabled={disabled || loading}
                             title={t('codeRules.refreshPreview')}
-                            className="shrink-0 rounded-lg border border-gray-300 px-2 py-2 text-gray-500 hover:bg-gray-100 disabled:opacity-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
+                            className={buttonClassName({ variant: 'outline', size: 'sm', className: 'shrink-0' })}
                             aria-label={t('codeRules.refreshPreview')}
                         >
                             <svg
@@ -288,7 +287,7 @@ export default function CodeRuleField({
 
             {/* Hint below the field */}
             {!isManualMode && !noRule && !loading && (
-                <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                     {t('codeRules.autoGeneratedIfBlank')}
                 </p>
             )}

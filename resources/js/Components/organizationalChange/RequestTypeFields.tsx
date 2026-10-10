@@ -3,6 +3,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import type { JSX } from 'react';
 import type { FormOptions } from './types';
 
+import { cx, inputClassName } from '@/Components/ui';
 type Payload = Record<string, unknown>;
 
 type Props = {
@@ -14,9 +15,8 @@ type Props = {
     errors: Record<string, string>;
 };
 
-const inputCls =
-    'w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-const labelCls = 'block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300';
+const inputCls = cx(inputClassName, 'w-full min-w-0');
+const labelCls = 'block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
 /**
  * The type-specific half of the request form.

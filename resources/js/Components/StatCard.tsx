@@ -14,7 +14,7 @@ const toneChip: Record<Tone, string> = {
     primary: 'bg-blue-50 text-[color:var(--color-primary)] dark:bg-blue-900/30 dark:text-blue-300',
     success: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300',
     warning: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300',
-    neutral: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+    neutral: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
 };
 
 /**
@@ -23,20 +23,20 @@ const toneChip: Record<Tone, string> = {
  */
 export default function StatCard({ label, value, icon, tone = 'neutral', hint }: Props) {
     return (
-        <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
             <div className="flex items-start justify-between gap-3">
-                <p className="truncate text-sm font-medium text-gray-500 dark:text-slate-400">{label}</p>
+                <p className="truncate text-sm font-medium text-[color:var(--app-muted-foreground)]">{label}</p>
                 {icon && (
                     <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${toneChip[tone]}`}>
                         {icon}
                     </div>
                 )}
             </div>
-            <p className="mt-2 text-2xl font-semibold tabular-nums text-gray-900 dark:text-slate-100">
+            <p className="mt-2 text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]">
                 {value}
             </p>
             {hint && (
-                <div className="mt-1 text-xs text-gray-400 dark:text-slate-500">{hint}</div>
+                <div className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{hint}</div>
             )}
         </div>
     );

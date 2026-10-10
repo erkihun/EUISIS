@@ -27,7 +27,7 @@ export default function OrganizationUnitActionsMenu({ unit }: Props) {
         <div className="flex items-center justify-end gap-3">
             <Link
                 href={route('organization-units.show', unit.id)}
-                className="text-xs font-medium text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200"
+                className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
             >
                 {t('common.view')}
             </Link>

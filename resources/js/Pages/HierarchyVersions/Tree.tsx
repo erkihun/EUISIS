@@ -12,6 +12,7 @@ import type { HierarchyEdge, HierarchyTreeNodeData, HierarchyVersionPage, Organi
 import { useLocale } from '@/hooks/useLocale';
 import { useTreeExpandState } from '@/hooks/useTreeExpandState';
 
+import { buttonClassName } from '@/Components/ui';
 type Props = {
     version: HierarchyVersionPage;
     tree: HierarchyTreeNodeData[];
@@ -96,14 +97,14 @@ export default function HierarchyVersionTree({ version, tree, edges, summary, ca
                         <div className="flex flex-wrap items-center gap-2">
                             <Link
                                 href={route('hierarchy-versions.show', { hierarchyVersion: version.id })}
-                                className="rounded-card border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                className="rounded-card border border-[color:var(--app-border-strong)] px-3 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                             >
                                 {t('common.details')}
                             </Link>
                             {can.manageTree && (
                                 <Link
                                     href={route('hierarchy-versions.tree.edit', { hierarchyVersion: version.id })}
-                                    className="rounded-card bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                    className={buttonClassName({ variant: 'primary' })}
                                 >
                                     {t('hierarchyVersions.editTree')}
                                 </Link>
@@ -127,19 +128,19 @@ export default function HierarchyVersionTree({ version, tree, edges, summary, ca
                     canAddRelation={can.createEdge}
                 />
 
-                <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 sm:p-5">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-5">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+                            <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">
                                 {t('hierarchyVersions.treePreview')}
                             </h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
                                 {can.manageTree
                                     ? t('hierarchyVersions.editableDraftVersion')
                                     : t('hierarchyVersions.readOnlyVersion')}
                             </p>
                         </div>
-                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
+                        <span className="rounded-full bg-[color:var(--app-surface-muted)] px-3 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             {summary.total_organizations} {t('hierarchyVersions.totalOrganizations').toLowerCase()}
                         </span>
                     </div>

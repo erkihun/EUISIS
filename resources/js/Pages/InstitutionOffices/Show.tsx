@@ -8,6 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import RelationshipPanel, { type RelationshipRow } from '@/Components/relationships/RelationshipPanel';
 import ReportingLinesPanel from '@/Components/relationships/ReportingLinesPanel';
 
+import { buttonClassName } from '@/Components/ui';
 interface ChildOffice {
     id: string;
     office_code: string;
@@ -101,7 +102,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                             {can.create && office.institution_id && (
                                 <Link
                                     href={`${route('institution-offices.create')}?institution_id=${office.institution_id}&parent_office_id=${office.id}`}
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     + {t('institutionOffices.addOffice')}
                                 </Link>
@@ -109,7 +110,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                             {can.update && (
                                 <Link
                                     href={route('institution-offices.edit', office.id)}
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     <PencilIcon className="h-3.5 w-3.5" />
                                     {t('common.edit')}
@@ -120,7 +121,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                                     type="button"
                                     disabled={deleteForm.processing}
                                     onClick={handleDelete}
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-60 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     {t('institutionOffices.deleteOffice')}
                                 </button>
@@ -134,17 +135,17 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
 
             <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
                 {/* Main details */}
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <p className="text-xs font-medium text-gray-400 dark:text-slate-500">
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 {office.office_code}
                             </p>
-                            <h3 className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+                            <h3 className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">
                                 {office.name_en ?? office.office_code}
                             </h3>
                             {office.name_am && (
-                                <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">
+                                <p className="mt-0.5 text-sm text-[color:var(--app-muted-foreground)]">
                                     {office.name_am}
                                 </p>
                             )}
@@ -160,31 +161,31 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                     <dl className="mt-6 grid gap-4 sm:grid-cols-2">
                         {fields.map(({ label, value }) => (
                             <div key={label}>
-                                <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                                <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                     {label}
                                 </dt>
-                                <dd className="mt-1 text-sm text-gray-800 dark:text-slate-200">{value}</dd>
+                                <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">{value}</dd>
                             </div>
                         ))}
                     </dl>
 
                     {office.notes && (
-                        <div className="mt-4 rounded-lg bg-gray-50 p-3 dark:bg-slate-800">
-                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                        <div className="mt-4 rounded-lg bg-[color:var(--app-surface-muted)] p-3">
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('institutionOffices.notes')}
                             </p>
-                            <p className="mt-1 text-sm text-gray-700 dark:text-slate-300">{office.notes}</p>
+                            <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{office.notes}</p>
                         </div>
                     )}
                 </section>
 
                 {/* Child offices */}
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h3 className="font-semibold text-gray-900 dark:text-slate-100">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h3 className="font-semibold text-[color:var(--app-foreground)]">
                         {t('institutionOffices.childOffices')} ({office.child_offices_count})
                     </h3>
                     {office.children.length === 0 ? (
-                        <p className="mt-4 text-sm text-gray-400 dark:text-slate-500">
+                        <p className="mt-4 text-sm text-[color:var(--app-muted-foreground)]">
                             {t('institutionOffices.noOffices')}
                         </p>
                     ) : (
@@ -192,7 +193,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                             {office.children.map((child) => (
                                 <li
                                     key={child.id}
-                                    className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2 dark:border-slate-800"
+                                    className="flex items-center justify-between rounded-lg border border-[color:var(--app-border)] px-3 py-2"
                                 >
                                     <div>
                                         <Link

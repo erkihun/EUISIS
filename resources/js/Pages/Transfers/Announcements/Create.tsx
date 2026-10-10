@@ -5,6 +5,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { FormEventHandler, useMemo, useState } from 'react';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Org = { id: string; name_en: string; name_am: string | null };
 type Pos = {
     id: string;
@@ -97,8 +98,8 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
         post(route('transfer-announcements.store'));
     };
 
-    const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300';
-    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50';
+    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const inputCls = cx(inputClassName, 'mt-1 block w-full');
     const errorCls = 'mt-1 text-xs text-red-500';
 
     return (
@@ -109,10 +110,10 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                     title={t('transfers.createAnnouncement')}
                     description={t('transfers.createAnnouncementHint')}
                     actions={<>
-                        <a href={route('transfer-announcements.index')} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">
+                        <a href={route('transfer-announcements.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-gray-50">
                             {t('common.cancel')}
                         </a>
-                        <button type="submit" form="transfer-announcement-draft" disabled={processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
+                        <button type="submit" form="transfer-announcement-draft" disabled={processing} className={buttonClassName({ variant: 'primary' })}>
                             {processing ? t('common.saving') : t('transfers.saveDraft')}
                         </button>
                     </>}
@@ -122,24 +123,24 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
             <Head title={t('transfers.createAnnouncement')} />
 
             <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
-                <form id="transfer-announcement-draft" onSubmit={submit} className="space-y-6 rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <form id="transfer-announcement-draft" onSubmit={submit} className="space-y-6 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
 
-                    <section className="border-b border-gray-100 pb-5 dark:border-slate-800">
-                        <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('transfers.announcementInformation')}</h2>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t('transfers.draftAnnouncementHint')}</p>
+                    <section className="border-b border-[color:var(--app-border)] pb-5">
+                        <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.announcementInformation')}</h2>
+                        <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('transfers.draftAnnouncementHint')}</p>
                     </section>
 
                     {/* ── Positions ── */}
                     <section className="space-y-4" aria-labelledby="vacant-positions-heading">
                         {positionsTruncated && <p role="status" className="text-xs text-amber-700 dark:text-amber-300">{t('transfers.positionsTruncated').replace(':count', String(positions.length))}</p>}
                         <div className="flex items-center justify-between">
-                            <h3 id="vacant-positions-heading" className="text-base font-semibold text-gray-900 dark:text-slate-100">
+                            <h3 id="vacant-positions-heading" className="text-base font-semibold text-[color:var(--app-foreground)]">
                                 {t('transfers.includedPositions')}
                             </h3>
                             <button
                                 type="button"
                                 onClick={addRow}
-                                className="inline-flex items-center justify-center rounded-lg border border-blue-300 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950"
+                                className={buttonClassName({ variant: 'outline' })}
                             >
                                 + {t('transfers.addPosition')}
                             </button>
@@ -157,9 +158,9 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
 
 
                             return (
-                                <div key={index} className="rounded-lg border border-gray-200 p-4 dark:border-slate-700">
+                                <div key={index} className="rounded-lg border border-[color:var(--app-border)] p-4">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-gray-800 dark:text-slate-200">
+                                        <span className="text-sm font-semibold text-[color:var(--app-foreground)]">
                                             {t('transfers.positionLine')} {index + 1}
                                         </span>
                                         {data.positions.length > 1 && (
@@ -219,7 +220,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                                             <label className={labelCls}>{t('transfers.gradeLevel')}</label>
                                             <input
                                                 type="text"
-                                                className={`${inputCls} bg-gray-50 dark:bg-slate-900`}
+                                                className={`${inputCls} bg-[color:var(--app-surface-muted)]`}
                                                 value={row.grade_level}
                                                 readOnly
                                                 placeholder="—"
@@ -273,9 +274,9 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                         })}
 
                         {/* Computed total */}
-                        <div className="flex items-center justify-end gap-2 rounded-lg bg-gray-50 px-4 py-2 dark:bg-slate-800">
-                            <span className="text-sm text-gray-500 dark:text-slate-400">{t('transfers.totalVacancies')}:</span>
-                            <span className="text-sm font-semibold text-gray-900 dark:text-slate-100">{totalVacancies}</span>
+                        <div className="flex items-center justify-end gap-2 rounded-lg bg-[color:var(--app-surface-muted)] px-4 py-2">
+                            <span className="text-sm text-[color:var(--app-muted-foreground)]">{t('transfers.totalVacancies')}:</span>
+                            <span className="text-sm font-semibold text-[color:var(--app-foreground)]">{totalVacancies}</span>
                         </div>
                     </section>
 
@@ -325,7 +326,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                                 <button
                                     type="button"
                                     onClick={() => setData('eligibility_rules', data.eligibility_rules.filter((_, j) => j !== i))}
-                                    className="rounded-lg border border-red-200 px-3 text-sm text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                                    className={buttonClassName({ variant: 'outline' })}
                                 >
                                     {t('common.remove')}
                                 </button>
@@ -360,7 +361,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                                 <button
                                     type="button"
                                     onClick={() => setData('required_documents', data.required_documents.filter((_, j) => j !== i))}
-                                    className="rounded-lg border border-red-200 px-3 text-sm text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400"
+                                    className={buttonClassName({ variant: 'outline' })}
                                 >
                                     {t('common.remove')}
                                 </button>
@@ -369,36 +370,36 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                     </section>
 
                     {/* ── Submit ── */}
-                    <div className="flex items-center justify-end gap-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+                    <div className="flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-4">
                         <a
                             href={route('transfer-announcements.index')}
-                            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                         >
                             {t('common.cancel')}
                         </a>
                         <button
                             type="submit"
                             disabled={processing || data.positions.some((r) => !r.organization_id || !r.position_id)}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {processing ? t('common.saving') : t('transfers.saveDraft')}
                         </button>
                     </div>
                 </form>
-                <aside className="self-start rounded-card border border-gray-200 bg-white p-5 xl:sticky xl:top-6 dark:border-slate-800 dark:bg-slate-900">
-                    <div className="flex items-center justify-between border-b border-gray-100 pb-4 dark:border-slate-800">
-                        <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('transfers.draftSummary')}</h2>
+                <aside className="self-start rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 xl:sticky xl:top-6">
+                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] pb-4">
+                        <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.draftSummary')}</h2>
                         <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{t('transfers.statusDraft')}</span>
                     </div>
                     <dl className="mt-4 space-y-3 text-sm">
-                        <div className="flex justify-between gap-4"><dt className="text-gray-500 dark:text-slate-400">{t('transfers.includedPositions')}</dt><dd className="font-semibold text-gray-900 dark:text-slate-100">{data.positions.filter((row) => row.position_id).length}</dd></div>
-                        <div className="flex justify-between gap-4"><dt className="text-gray-500 dark:text-slate-400">{t('transfers.totalVacancies')}</dt><dd className="font-semibold text-gray-900 dark:text-slate-100">{totalVacancies}</dd></div>
-                        <div className="flex justify-between gap-4"><dt className="text-gray-500 dark:text-slate-400">{t('transfers.openingDate')}</dt><dd className="font-medium text-gray-900 dark:text-slate-100">{data.opening_date || '—'}</dd></div>
-                        <div className="flex justify-between gap-4"><dt className="text-gray-500 dark:text-slate-400">{t('transfers.closingDate')}</dt><dd className="font-medium text-gray-900 dark:text-slate-100">{data.closing_date || '—'}</dd></div>
+                        <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.includedPositions')}</dt><dd className="font-semibold text-[color:var(--app-foreground)]">{data.positions.filter((row) => row.position_id).length}</dd></div>
+                        <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.totalVacancies')}</dt><dd className="font-semibold text-[color:var(--app-foreground)]">{totalVacancies}</dd></div>
+                        <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.openingDate')}</dt><dd className="font-medium text-[color:var(--app-foreground)]">{data.opening_date || '—'}</dd></div>
+                        <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.closingDate')}</dt><dd className="font-medium text-[color:var(--app-foreground)]">{data.closing_date || '—'}</dd></div>
                     </dl>
-                    <div className="mt-5 border-t border-gray-100 pt-4 text-sm dark:border-slate-800">
-                        <p className="font-medium text-gray-900 dark:text-slate-100">{t('transfers.validationSummary')}</p>
-                        <ul className="mt-2 space-y-1.5 text-gray-600 dark:text-slate-300">
+                    <div className="mt-5 border-t border-[color:var(--app-border)] pt-4 text-sm">
+                        <p className="font-medium text-[color:var(--app-foreground)]">{t('transfers.validationSummary')}</p>
+                        <ul className="mt-2 space-y-1.5 text-[color:var(--app-muted-foreground)]">
                             <li>{data.positions.every((row) => row.organization_id && row.position_id) ? '✓' : '•'} {t('transfers.includedPositions')}</li>
                             <li>{data.opening_date && data.closing_date ? '✓' : '•'} {t('transfers.applicationPeriod')}</li>
                             <li>{data.eligibility_rules.length ? '✓' : '•'} {t('transfers.eligibilityRules')}</li>

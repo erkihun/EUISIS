@@ -20,6 +20,7 @@ import { Input, Select, buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 
+import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type ProviderRow = {
     id: string;
     name: string;
@@ -231,17 +232,17 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             </div>
                         ) : (
                             <>
-                                <table className="hidden w-full text-sm md:table">
-                                    <thead className="bg-[color:var(--app-surface-muted)]">
-                                        <tr className="text-left text-xs font-semibold text-[color:var(--app-muted-foreground)]">
-                                            <th scope="col" className="px-4 py-2.5">{t('providers.columnProvider')}</th>
-                                            <th scope="col" className="w-40 px-3 py-2.5">{t('providers.columnService')}</th>
-                                            <th scope="col" className="w-28 px-3 py-2.5 text-right">{t('providers.columnRecent').replace(':days', days)}</th>
-                                            <th scope="col" className="w-28 px-3 py-2.5">{t('providers.status')}</th>
-                                            <th scope="col" className="w-10 py-2.5 pr-4"><span className="sr-only">{t('providers.openProvider')}</span></th>
+                                <table className={cx(tableClassName, 'hidden')}>
+                                    <thead className={tableHeadClassName}>
+                                        <tr className="text-left">
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('providers.columnProvider')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-40')}>{t('providers.columnService')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'w-28 text-right')}>{t('providers.columnRecent').replace(':days', days)}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-28')}>{t('providers.status')}</th>
+                                            <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-10')}><span className="sr-only">{t('providers.openProvider')}</span></th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-[color:var(--app-border)]">
+                                    <tbody className={tableBodyClassName}>
                                         {providers.data.map((provider) => {
                                             const href = route('service-providers.show', provider.id);
                                             return (
@@ -251,9 +252,9 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                                     onClick={(event) => {
                                                         if (!(event.target as HTMLElement).closest('a')) router.visit(href);
                                                     }}
-                                                    className="cursor-pointer transition-colors hover:bg-[color:var(--app-surface-muted)]"
+                                                    className={cx(tableRowClassName, 'cursor-pointer')}
                                                 >
-                                                    <td className="px-4 py-3">
+                                                    <td className={tableCellClassName}>
                                                         <Link href={href} className="group flex items-center gap-3 focus-visible:outline-none">
                                                             <ProviderAvatar name={provider.name} typeCode={provider.service_type?.code} />
                                                             <span className="min-w-0">
@@ -267,15 +268,15 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                                                             </span>
                                                         </Link>
                                                     </td>
-                                                    <td className="px-3 py-3 text-[13px] text-[color:var(--app-foreground)]">{localName(provider.service_type, t('providers.unknownService'))}</td>
-                                                    <td className="px-3 py-3 text-right">
+                                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{localName(provider.service_type, t('providers.unknownService'))}</td>
+                                                    <td className={cx(tableCellClassName, 'text-right')}>
                                                         <div className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{provider.transactions_recent.toLocaleString()}</div>
                                                         <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                                             {provider.last_transaction_at ? <LocalizedDateDisplay value={provider.last_transaction_at} /> : t('providers.noActivity')}
                                                         </div>
                                                     </td>
-                                                    <td className="px-3 py-3"><ProviderStatusBadge status={provider.status} /></td>
-                                                    <td className="py-3 pr-4 text-right">
+                                                    <td className={tableCellClassName}><ProviderStatusBadge status={provider.status} /></td>
+                                                    <td className={cx(tableCellClassName, 'text-right')}>
                                                         <ChevronRight aria-hidden="true" className="ml-auto h-4 w-4 text-[color:var(--app-muted-foreground)]" />
                                                     </td>
                                                 </tr>

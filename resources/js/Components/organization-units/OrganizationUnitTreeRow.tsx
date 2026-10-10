@@ -6,6 +6,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationUnitTreeNode } from '@/types/organizationUnit';
 
+import { cx, tableCellClassName } from '@/Components/ui';
 interface Props {
     node: OrganizationUnitTreeNode;
     hierarchyNumber: string;
@@ -58,18 +59,18 @@ export default function OrganizationUnitTreeRow({
     }
 
     const rowCls = node.is_deleted
-        ? 'text-gray-400 bg-gray-50 dark:text-slate-500 dark:bg-slate-800/30'
-        : 'text-gray-700 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/40';
+        ? 'text-[color:var(--app-muted-foreground)] bg-gray-50 dark:bg-slate-800/30'
+        : 'text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]';
 
     return (
-        <tr className={`border-b border-gray-100 dark:border-slate-800 ${rowCls}`}>
-            <td className="px-4 py-2.5" style={{ paddingLeft: `${indent + 16}px` }}>
+        <tr className={`border-b border-[color:var(--app-border)] ${rowCls}`}>
+            <td className={tableCellClassName} style={{ paddingLeft: `${indent + 16}px` }}>
                 <div className="flex items-center gap-1.5">
                     {node.has_children || (node.children && node.children.length > 0) ? (
                         <button
                             type="button"
                             onClick={() => onToggle(node.id)}
-                            className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-gray-400 hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300"
+                            className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-gray-600 dark:hover:text-slate-300"
                         >
                             {expanded ? (
                                 <ChevronDown className="h-3.5 w-3.5" />
@@ -89,26 +90,26 @@ export default function OrganizationUnitTreeRow({
                     </span>
                     <Link
                         href={route('organization-units.show', node.id)}
-                        className={`font-medium hover:underline ${node.is_deleted ? 'line-through text-gray-400 dark:text-slate-500' : 'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'}`}
+                        className={`font-medium hover:underline ${node.is_deleted ? 'line-through text-[color:var(--app-muted-foreground)]' : 'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]'}`}
                     >
                         {localizedName(node.name_en, node.name_am, locale)}
                     </Link>
                 </div>
             </td>
-            <td className="px-4 py-2.5">
+            <td className={tableCellClassName}>
                 {node.unit_type_label && (
                     <span className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
                         {localizedName(node.unit_type_label, node.unit_type_name_am, locale)}
                     </span>
                 )}
             </td>
-            <td className="px-4 py-2.5">
+            <td className={tableCellClassName}>
                 <OrganizationUnitStatusBadge status={node.status} />
             </td>
-            <td className="px-4 py-2.5 text-center text-sm text-gray-500 dark:text-slate-400">
+            <td className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
                 {node.children_count ?? node.children?.length ?? 0}
             </td>
-            <td className="py-2.5 pl-2 pr-4">
+            <td className={tableCellClassName}>
                 <div className="flex items-center justify-end gap-2">
                     {canCreate && !node.is_deleted && (
                         <Link
@@ -124,7 +125,7 @@ export default function OrganizationUnitTreeRow({
                     )}
                     <Link
                         href={route('organization-units.show', node.id)}
-                        className="text-xs font-medium text-gray-500 hover:text-gray-800 dark:text-slate-400 dark:hover:text-slate-200"
+                        className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                     >
                         {t('common.view')}
                     </Link>

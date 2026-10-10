@@ -8,6 +8,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
+import { buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type CardRequestRow = {
     id: string;
     request_type?: string | null;
@@ -66,8 +67,8 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
         router.get(route('card-requests.index'), {}, { preserveState: false, replace: true });
     }
 
-    const selectCls = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200';
-    const inputCls  = 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500';
+    const selectCls = selectClassName;
+    const inputCls  = 'rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:placeholder:text-slate-500';
 
     return (
         <AuthenticatedLayout
@@ -79,7 +80,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                         can?.create && (
                             <Link
                                 href={route('card-requests.create')}
-                                className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] transition-colors"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 {t('idCards.newRequest')}
                             </Link>
@@ -91,10 +92,10 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
             <Head title={t('idCards.cardRequests')} />
 
             {/* Filter bar */}
-            <div className="mb-4 rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
                 <div className="flex flex-wrap gap-3 items-end">
                     <div className="flex-1 min-w-[180px]">
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
+                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             {t('common.search')}
                         </label>
                         <input
@@ -106,7 +107,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                         />
                     </div>
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
+                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             {t('common.status')}
                         </label>
                         <select className={selectCls} value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -119,7 +120,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                         </select>
                     </div>
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
+                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             {t('idCards.requestType')}
                         </label>
                         <select className={selectCls} value={reqType} onChange={(e) => setReqType(e.target.value)}>
@@ -135,14 +136,14 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                         <button
                             type="button"
                             onClick={applyFilters}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] transition-colors"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {t('common.filter')}
                         </button>
                         <button
                             type="button"
                             onClick={resetFilters}
-                            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                            className={buttonClassName({ variant: 'outline' })}
                         >
                             {t('common.reset')}
                         </button>
@@ -150,7 +151,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                 </div>
             </div>
 
-            <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 {cardRequests.data.length === 0 ? (
                     <div className="p-8">
                         <EmptyState
@@ -160,7 +161,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                 can?.create ? (
                                     <Link
                                         href={route('card-requests.create')}
-                                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                        className={buttonClassName({ variant: 'primary' })}
                                     >
                                         {t('idCards.newRequest')}
                                     </Link>
@@ -170,60 +171,60 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-800/50">
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                        <table className={tableClassName}>
+                            <thead className={tableHeadClassName}>
+                                <tr>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('employees.employeeNumber')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('organizations.organization')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('idCards.requestType')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('common.status')}
                                     </th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                         {t('common.createdAt')}
                                     </th>
-                                    <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                    <th className={cx(tableHeaderCellClassName, 'text-right')}>
                                         {t('common.actions')}
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className={tableBodyClassName}>
                                 {cardRequests.data.map((req) => (
                                     <tr
                                         key={req.id}
-                                        className="text-gray-700 transition-colors hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50"
+                                        className={tableRowClassName}
                                     >
-                                        <td className="px-4 py-3">
-                                            <p className="font-mono text-sm font-medium text-gray-900 dark:text-slate-100">
+                                        <td className={tableCellClassName}>
+                                            <p className="font-mono text-sm font-medium text-[color:var(--app-foreground)]">
                                                 {req.employee?.employee_number}
                                             </p>
-                                            <p className="text-xs text-gray-400 dark:text-slate-500">
+                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                 {req.employee?.full_name}
                                             </p>
                                         </td>
-                                        <td className="px-4 py-3 text-gray-600 dark:text-slate-400 max-w-[200px] truncate">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)] max-w-[200px] truncate')}>
                                             {req.employee?.current_assignment?.organization?.name_en ?? '—'}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             {req.request_type ? (
                                                 <CardRequestTypeBadge type={req.request_type} />
                                             ) : (
                                                 <span className="text-gray-400">—</span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <CardRequestStatusBadge status={req.status} />
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
+                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                             <LocalizedDateDisplay value={req.submitted_at} withTime />
                                         </td>
-                                        <td className="px-4 py-3 text-right">
+                                        <td className={cx(tableCellClassName, 'text-right')}>
                                             {req.can?.view !== false && (
                                                 <Link
                                                     href={route('card-requests.show', req.id)}
@@ -241,7 +242,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                 )}
 
                 {cardRequests.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3 text-xs text-gray-400 dark:border-slate-800 dark:text-slate-500">
+                    <div className="flex items-center justify-between border-t border-[color:var(--app-border)] px-4 py-3 text-xs text-[color:var(--app-muted-foreground)]">
                         <span>
                             {t('common.page')} {cardRequests.current_page} {t('common.of')} {cardRequests.last_page}
                         </span>

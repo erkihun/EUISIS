@@ -9,6 +9,7 @@ import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
+import { cx, inputClassName } from '@/Components/ui';
 interface UnitTypeOption {
     id: string;
     code: string;
@@ -62,8 +63,7 @@ export default function OrganizationUnitsCreate({
         sort_order: 0,
     });
 
-    const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+    const inputCls = cx(inputClassName, 'w-full');
 
     const noUnitTypes = unitTypes.length === 0;
     const noParentUnits = parentUnits.length === 0 && !!data.organization_id;
@@ -102,7 +102,7 @@ export default function OrganizationUnitsCreate({
                         e.preventDefault();
                         post(route('organization-units.store'));
                     }}
-                    className="w-full space-y-6 rounded-panel border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Organization */}
@@ -110,7 +110,7 @@ export default function OrganizationUnitsCreate({
                             <InputLabel value={`${t('organizationUnits.organization')} *`} />
                             {selectedOrg ? (
                                 <>
-                                    <div className={`${inputCls} bg-gray-50 text-gray-600 dark:bg-slate-800 dark:text-slate-400`}>
+                                    <div className={`${inputCls} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
                                         {localizedName(selectedOrg)}{' '}
                                         <span className="font-mono text-xs text-gray-400">({selectedOrg.code})</span>
                                     </div>
@@ -186,7 +186,7 @@ export default function OrganizationUnitsCreate({
                                     )}
                                 </>
                             ) : (
-                                <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('organizationUnits.selectOrganization')}
                                 </p>
                             )}
@@ -317,13 +317,13 @@ export default function OrganizationUnitsCreate({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
+                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
                         <PrimaryButton type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('organizationUnits.createOrganizationUnit')}
                         </PrimaryButton>
                         <Link
                             href={backUrl}
-                            className="text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                            className="text-sm text-[color:var(--app-muted-foreground)] hover:text-gray-700"
                         >
                             {t('common.cancel')}
                         </Link>

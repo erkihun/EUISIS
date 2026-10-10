@@ -8,6 +8,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Party = {
     id: string;
     name_en: string | null;
@@ -100,10 +101,10 @@ export default function ReportingLinesIndex({
         return { name: localizedName(party.name_en, party.name_am, locale) || fallback, code: party.code };
     }
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-    const labelCls = 'mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400';
-    const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-slate-400';
-    const tdCls = 'px-4 py-3 text-sm text-gray-700 dark:text-slate-300';
+    const inputCls = cx(inputClassName, 'w-full');
+    const labelCls = 'mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]';
+    const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]';
+    const tdCls = 'px-4 py-3 text-sm text-[color:var(--app-foreground)]';
 
     return (
         <AuthenticatedLayout
@@ -119,22 +120,22 @@ export default function ReportingLinesIndex({
             <div className="space-y-6">
                 {/* Counts per relationship type — the shape of the network at a glance. */}
                 <div className="flex flex-wrap gap-2">
-                    <span className="inline-flex items-center gap-2 rounded-control border border-gray-200 bg-white px-3 py-1.5 text-sm dark:border-slate-800 dark:bg-slate-900">
-                        <span className="text-gray-500 dark:text-slate-400">{t('relationships.totalReportingLines')}</span>
-                        <span className="font-semibold tabular-nums text-gray-900 dark:text-slate-100">{lines.meta.total}</span>
+                    <span className="inline-flex items-center gap-2 rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm">
+                        <span className="text-[color:var(--app-muted-foreground)]">{t('relationships.totalReportingLines')}</span>
+                        <span className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{lines.meta.total}</span>
                     </span>
                     {summary.map((entry) => (
                         <span
                             key={entry.relationship_type}
-                            className="inline-flex items-center gap-2 rounded-control border border-gray-200 bg-white px-3 py-1.5 text-sm dark:border-slate-800 dark:bg-slate-900"
+                            className="inline-flex items-center gap-2 rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-1.5 text-sm"
                         >
-                            <span className="text-gray-500 dark:text-slate-400">{t(`relationships.types.${entry.relationship_type}`)}</span>
-                            <span className="font-semibold tabular-nums text-gray-900 dark:text-slate-100">{entry.count}</span>
+                            <span className="text-[color:var(--app-muted-foreground)]">{t(`relationships.types.${entry.relationship_type}`)}</span>
+                            <span className="font-semibold tabular-nums text-[color:var(--app-foreground)]">{entry.count}</span>
                         </span>
                     ))}
                 </div>
 
-                <form onSubmit={submit} className="rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                <form onSubmit={submit} className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
                             <label htmlFor="reporting-lines-q" className={labelCls}>{t('common.search')}</label>
@@ -192,7 +193,7 @@ export default function ReportingLinesIndex({
                     <div className="mt-4 flex items-center gap-2">
                         <button
                             type="submit"
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {t('common.filter')}
                         </button>
@@ -200,7 +201,7 @@ export default function ReportingLinesIndex({
                             <button
                                 type="button"
                                 onClick={reset}
-                                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                className={buttonClassName({ variant: 'outline' })}
                             >
                                 {t('common.reset')}
                             </button>
@@ -208,7 +209,7 @@ export default function ReportingLinesIndex({
                     </div>
                 </form>
 
-                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     {lines.data.length === 0 ? (
                         <EmptyState
                             title={t('relationships.noReportingLines')}
@@ -216,8 +217,8 @@ export default function ReportingLinesIndex({
                         />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left">
-                                <thead className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
                                     <tr>
                                         <th className={thCls}>{t('relationships.source')}</th>
                                         <th className={thCls}>{t('relationships.type')}</th>
@@ -227,47 +228,47 @@ export default function ReportingLinesIndex({
                                         <th className={thCls}>{t('relationships.status')}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {lines.data.map((line) => {
                                         const source = partyLabel(line.source, '—');
                                         const target = partyLabel(line.target, line.target_id);
                                         const href = sourceHref(line);
 
                                         return (
-                                            <tr key={line.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                                <td className="px-4 py-3">
-                                                    <div className="font-medium text-gray-900 dark:text-slate-100">
+                                            <tr key={line.id} className={tableRowClassName}>
+                                                <td className={tableCellClassName}>
+                                                    <div className="font-medium text-[color:var(--app-foreground)]">
                                                         {href ? (
                                                             <Link href={href} className="hover:text-[color:var(--color-primary)] hover:underline">
                                                                 {source.name}
                                                             </Link>
                                                         ) : source.name}
                                                     </div>
-                                                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                                         {source.code && <span className="font-mono">{source.code} · </span>}
                                                         {t(`relationships.sourceTypes.${line.source_type}`)}
                                                     </div>
                                                 </td>
                                                 <td className={tdCls}>
-                                                    <span className="font-medium text-gray-800 dark:text-slate-200">
+                                                    <span className="font-medium text-[color:var(--app-foreground)]">
                                                         {t(`relationships.types.${line.relationship_type}`)}
                                                     </span>
                                                     {line.is_primary && (
-                                                        <span className="ms-2 rounded-control bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-slate-800 dark:text-slate-300">
+                                                        <span className="ms-2 rounded-control bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs text-[color:var(--app-muted-foreground)]">
                                                             {t('relationships.primary')}
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="font-medium text-gray-900 dark:text-slate-100">{target.name}</div>
-                                                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                                                <td className={tableCellClassName}>
+                                                    <div className="font-medium text-[color:var(--app-foreground)]">{target.name}</div>
+                                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                                         {target.code && <span className="font-mono">{target.code} · </span>}
                                                         {t(`relationships.targetTypes.${line.target_type}`)}
                                                     </div>
                                                 </td>
                                                 <td className={tdCls}><LocalizedDateDisplay value={line.effective_from} /></td>
                                                 <td className={tdCls}><LocalizedDateDisplay value={line.effective_to} /></td>
-                                                <td className="px-4 py-3">
+                                                <td className={tableCellClassName}>
                                                     <StatusBadge status={line.status} label={t(`relationships.statuses.${line.status}`)} />
                                                 </td>
                                             </tr>
@@ -281,7 +282,7 @@ export default function ReportingLinesIndex({
 
                 {lines.meta.last_page > 1 && (
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className="text-sm text-gray-500 dark:text-slate-400">
+                        <span className="text-sm text-[color:var(--app-muted-foreground)]">
                             {lines.meta.from}–{lines.meta.to} / {lines.meta.total}
                         </span>
                         <div className="flex flex-wrap gap-1">
@@ -294,7 +295,7 @@ export default function ReportingLinesIndex({
                                         className={`rounded-control px-3 py-1.5 text-sm ${
                                             link.active
                                                 ? 'bg-[color:var(--color-primary)] text-white'
-                                                : 'border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+                                                : 'border border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'
                                         }`}
                                     >
                                         {paginationLabel(link.label)}

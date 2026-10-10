@@ -40,14 +40,14 @@ function stepStatus(cardStatus: string, stepKey: string): StepStatus {
 const stepDotCls: Record<StepStatus, string> = {
     completed: 'bg-emerald-500 border-emerald-500 shadow-emerald-200 dark:shadow-emerald-900',
     current:   'bg-blue-500 border-[color:var(--color-primary)] shadow-blue-200 dark:shadow-blue-900 ring-2 ring-blue-100 dark:ring-blue-900/40',
-    upcoming:  'bg-white border-gray-300 dark:bg-slate-800 dark:border-slate-600',
+    upcoming:  'bg-[color:var(--app-surface)] border-[color:var(--app-border-strong)]',
     terminal:  'bg-red-500 border-red-500 shadow-red-200 dark:shadow-red-900',
 };
 
 const stepLabelCls: Record<StepStatus, string> = {
-    completed: 'text-gray-800 dark:text-slate-200 font-medium',
+    completed: 'text-[color:var(--app-foreground)] font-medium',
     current:   'text-blue-700 dark:text-[color:var(--color-primary)] font-semibold',
-    upcoming:  'text-gray-400 dark:text-slate-500',
+    upcoming:  'text-[color:var(--app-muted-foreground)]',
     terminal:  'text-red-600 dark:text-red-400 font-semibold',
 };
 
@@ -81,7 +81,7 @@ export default function CardLifecycleTimeline({
 
     return (
         <div>
-            <h4 className="mb-4 text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-slate-500">
+            <h4 className="mb-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">
                 {t('idCards.cardLifecycle')}
             </h4>
 
@@ -122,17 +122,17 @@ export default function CardLifecycleTimeline({
                                     {step.label}
                                 </p>
                                 {step.timestamp && (
-                                    <p className="mt-0.5 text-[11px] text-gray-400 dark:text-slate-500">
+                                    <p className="mt-0.5 text-[11px] text-[color:var(--app-muted-foreground)]">
                                         <LocalizedDateDisplay value={step.timestamp} withTime />
                                     </p>
                                 )}
                                 {step.actor && (
-                                    <p className="text-[11px] text-gray-400 dark:text-slate-500">
+                                    <p className="text-[11px] text-[color:var(--app-muted-foreground)]">
                                         {t('idCards.byActor')} {step.actor}
                                     </p>
                                 )}
                                 {step.note && (
-                                    <p className="mt-0.5 text-[11px] italic text-gray-400 dark:text-slate-500 truncate">
+                                    <p className="mt-0.5 text-[11px] italic text-[color:var(--app-muted-foreground)] truncate">
                                         {step.note}
                                     </p>
                                 )}

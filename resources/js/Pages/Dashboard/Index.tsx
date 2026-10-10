@@ -653,7 +653,7 @@ export default function Dashboard({
                 )}
 
                 {meta.scope.providerOnly && (
-                    <p className="rounded-panel border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                    <p className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm text-[color:var(--app-muted-foreground)]">
                         {t('dashboard.providerScopeNotice')}
                     </p>
                 )}

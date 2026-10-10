@@ -2,6 +2,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import type { ReactNode } from 'react';
 
+import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Bilingual = { en: string | null | undefined; am: string | null | undefined };
 export type SheetOption = { id: string; label_en: string | null; label_am: string | null; description_en: string | null; description_am: string | null; score: string | number };
 export type SheetCriterion = { id: string; code: string | null; title_en: string; title_am: string | null; max_score?: string | number | null; options: SheetOption[] };
@@ -57,23 +58,23 @@ export default function OfficialAssessmentSheet({ code, title, sections, columns
                 <p>{s('periodFrom')} {blank(date(header?.periodStart))} {s('periodTo')} {blank(date(header?.periodEnd))}</p>
             </div>
 
-            <table className="mt-3 w-full border-collapse">
-                <thead>
-                    <tr className="bg-[#d9e7f5] font-semibold">
+            <table className={cx(tableClassName, 'mt-3 border-collapse')}>
+                <thead className={tableHeadClassName}>
+                    <tr>
                         <th rowSpan={2} className={`${cell} w-10 text-left`}>{s('number')}</th>
                         <th rowSpan={2} className={`${cell} text-center`}>{criteriaHeader}</th>
                         <th rowSpan={2} className={`${cell} w-20 text-left`}>{s('weight')} {fmt(max)}</th>
                         <th colSpan={width} className={`${cell} text-center`}>{s('scoreGiven')}</th>
                     </tr>
-                    <tr className="bg-[#d9e7f5]">
+                    <tr>
                         {Array.from({ length: width }, (_, index) => <th key={index} className={`${cell} w-12 text-center font-normal`}>{index + 1}</th>)}
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className={tableBodyClassName}>
                     {criteria.map((criterion, ci) => (
                         <CriterionRows key={criterion.id} criterion={criterion} number={criterion.code || String(ci + 1)} columns={columns} width={width} pick={pick} />
                     ))}
-                    <tr className="font-bold">
+                    <tr className={tableRowClassName}>
                         <td className={cell} />
                         <td className={cell}>{s('total')} {fmt(max)}</td>
                         <td className={cell}>{fmt(max)}</td>
@@ -98,7 +99,7 @@ function CriterionRows({ criterion, number, columns, width, pick }: {
 }) {
     return (
         <>
-            <tr className="bg-[#eef3f8] font-semibold" style={{ breakInside: 'avoid' }}>
+            <tr className={cx(tableRowClassName, 'bg-[#eef3f8]')} style={{ breakInside: 'avoid' }}>
                 <td className={cell}>{number}</td>
                 <td className={cell}>{pick(criterion.title_en, criterion.title_am)}</td>
                 <td className={`${cell} tabular-nums`}>{fmt(criterionMax(criterion))}</td>

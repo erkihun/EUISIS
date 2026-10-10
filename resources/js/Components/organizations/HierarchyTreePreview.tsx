@@ -66,10 +66,10 @@ function PreviewNode({
                         ? <span className="block h-1.5 w-1.5 rounded-sm bg-blue-400 dark:bg-blue-500" />
                         : <span className="block h-1.5 w-1.5 rounded-full bg-gray-300 dark:bg-slate-600" />}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm text-gray-800 dark:text-slate-200">
+                <span className="min-w-0 flex-1 truncate text-sm text-[color:var(--app-foreground)]">
                     {name}
                 </span>
-                <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                <span className="shrink-0 rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-muted-foreground)]">
                     {node.code}
                 </span>
             </div>
@@ -101,7 +101,7 @@ export default function HierarchyTreePreview({
     const { locale } = useLocale();
 
     if (!Array.isArray(nodes) || nodes.length === 0) {
-        return <p className="text-sm text-gray-500 dark:text-slate-400">{emptyMessage}</p>;
+        return <p className="text-sm text-[color:var(--app-muted-foreground)]">{emptyMessage}</p>;
     }
 
     return (

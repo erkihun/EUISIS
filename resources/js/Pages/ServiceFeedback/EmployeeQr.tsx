@@ -9,6 +9,7 @@ import { useState } from 'react';
 import type { JSX } from 'react';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName } from '@/Components/ui';
 type Token = {
     id: string;
     status: string;
@@ -100,7 +101,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
 
                 <div className="grid gap-5 lg:grid-cols-3">
                     {/* QR card */}
-                    <div className="rounded-card border border-gray-200 bg-white p-5 text-center dark:border-slate-800 dark:bg-slate-900">
+                    <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 text-center">
                         {token === null ? (
                             <>
                                 {/*
@@ -111,7 +112,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                   * employee is not active, so the copy explains
                                   * which rather than implying a failure.
                                   */}
-                                <p className="py-6 text-sm text-gray-500 dark:text-slate-400">
+                                <p className="py-6 text-sm text-[color:var(--app-muted-foreground)]">
                                     {unavailableReason === 'disabled'
                                         ? t('serviceFeedback.qrDisabledByAdmin')
                                         : t('serviceFeedback.qrInactiveEmployee')}
@@ -119,7 +120,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                 <button
                                     type="button"
                                     onClick={generate}
-                                    className="w-full rounded-lg bg-[color:var(--color-primary)] px-3 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                    className={buttonClassName({ variant: 'primary', className: 'w-full' })}
                                 >
                                     {t('serviceFeedback.generateQr')}
                                 </button>
@@ -138,9 +139,9 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                     />
                                 )}
 
-                                <p className="mt-3 break-all text-xs text-gray-500 dark:text-slate-400">{token.url}</p>
+                                <p className="mt-3 break-all text-xs text-[color:var(--app-muted-foreground)]">{token.url}</p>
 
-                                <p className="mt-3 text-xs text-gray-500 dark:text-slate-400">
+                                <p className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('serviceFeedback.feedbackQrDescription')}
                                 </p>
 
@@ -149,14 +150,14 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                         <button
                                             type="button"
                                             onClick={copyLink}
-                                            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                         >
                                             {copied ? t('serviceFeedback.linkCopied') : t('serviceFeedback.copyLink')}
                                         </button>
                                         <button
                                             type="button"
                                             onClick={printQr}
-                                            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                         >
                                             {t('serviceFeedback.printQr')}
                                         </button>
@@ -164,13 +165,13 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                     <div className="grid grid-cols-2 gap-2">
                                         <a
                                             href={route('employees.feedback-qr.png', employee.id)}
-                                            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                            className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                                         >
                                             {t('serviceFeedback.exportQrPng')}
                                         </a>
                                         <a
                                             href={route('employees.feedback-qr.pdf', employee.id)}
-                                            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                            className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                                         >
                                             {t('serviceFeedback.exportQrPdf')}
                                         </a>
@@ -178,23 +179,23 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                     <button
                                         type="button"
                                         onClick={regenerate}
-                                        className="rounded-lg border border-amber-300 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-50 dark:border-amber-900 dark:text-amber-400 dark:hover:bg-amber-950/40"
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                     >
                                         {t('serviceFeedback.regenerateQr')}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={revoke}
-                                        className="rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                     >
                                         {t('serviceFeedback.revokeQr')}
                                     </button>
                                 </div>
 
-                                <dl className="mt-4 space-y-1.5 border-t border-gray-100 pt-3 text-left text-xs dark:border-slate-800">
+                                <dl className="mt-4 space-y-1.5 border-t border-[color:var(--app-border)] pt-3 text-left text-xs">
                                     <div className="flex justify-between">
-                                        <dt className="text-gray-500 dark:text-slate-400">{t('serviceFeedback.lastScanned')}</dt>
-                                        <dd className="text-gray-800 dark:text-slate-200">
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.lastScanned')}</dt>
+                                        <dd className="text-[color:var(--app-foreground)]">
                                             <LocalizedDateDisplay value={token.last_scanned_at} withTime />
                                         </dd>
                                     </div>
@@ -206,21 +207,21 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                     {/* Feedback summary */}
                     <div className="space-y-5 lg:col-span-2">
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                                <div className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                                <div className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                                     {t('serviceFeedback.feedbackCount')}
                                 </div>
-                                <div className="mt-1 text-2xl font-semibold text-gray-900 dark:text-slate-100">
+                                <div className="mt-1 text-2xl font-semibold text-[color:var(--app-foreground)]">
                                     {stats.total}
                                 </div>
                             </div>
 
-                            <div className="rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                                <div className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                                <div className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                                     {t('serviceFeedback.averageRating')}
                                 </div>
                                 <div className="mt-1 flex items-center gap-2">
-                                    <span className="text-2xl font-semibold text-gray-900 dark:text-slate-100">
+                                    <span className="text-2xl font-semibold text-[color:var(--app-foreground)]">
                                         {stats.average.toFixed(2)}
                                     </span>
                                     <RatingStars rating={Math.round(stats.average)} />
@@ -228,29 +229,29 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                             </div>
                         </div>
 
-                        <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                            <h2 className="border-b border-gray-100 px-5 py-3 text-sm font-semibold text-gray-900 dark:border-slate-800 dark:text-slate-100">
+                        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                            <h2 className="border-b border-[color:var(--app-border)] px-5 py-3 text-sm font-semibold text-[color:var(--app-foreground)]">
                                 {t('serviceFeedback.recentComments')}
                             </h2>
 
                             {stats.recent.length === 0 ? (
-                                <p className="px-5 py-6 text-sm text-gray-500 dark:text-slate-400">
+                                <p className="px-5 py-6 text-sm text-[color:var(--app-muted-foreground)]">
                                     {t('serviceFeedback.noFeedbackYet')}
                                 </p>
                             ) : (
-                                <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <ul className="divide-y divide-[color:var(--app-border)]">
                                     {stats.recent.map((item) => (
                                         <li key={item.id} className="px-5 py-3">
                                             <div className="flex items-center gap-2">
                                                 <RatingStars rating={item.rating} />
-                                                <span className="text-xs text-gray-500 dark:text-slate-400">
+                                                <span className="text-xs text-[color:var(--app-muted-foreground)]">
                                                     {item.service_type ?? '—'}
                                                 </span>
                                             </div>
                                             {item.comment && (
-                                                <p className="mt-1 text-sm text-gray-700 dark:text-slate-300">{item.comment}</p>
+                                                <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{item.comment}</p>
                                             )}
-                                            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                            <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                                 <LocalizedDateDisplay value={item.created_at} withTime />
                                             </p>
                                         </li>

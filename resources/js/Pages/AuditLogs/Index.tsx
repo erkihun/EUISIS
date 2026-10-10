@@ -8,6 +8,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type AuditLog = {
     id: string;
     event_type: string;
@@ -53,20 +54,20 @@ function ValuesDetail({
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                     {old_values && (
                         <div>
-                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('auditLogs.before')}
                             </p>
-                            <pre className="mt-1 overflow-x-auto rounded-lg bg-gray-100 p-2 text-xs text-gray-700 dark:bg-slate-800 dark:text-slate-300">
+                            <pre className="mt-1 overflow-x-auto rounded-lg bg-[color:var(--app-surface-muted)] p-2 text-xs text-[color:var(--app-foreground)]">
                                 {JSON.stringify(old_values, null, 2)}
                             </pre>
                         </div>
                     )}
                     {new_values && (
                         <div>
-                            <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                            <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('auditLogs.after')}
                             </p>
-                            <pre className="mt-1 overflow-x-auto rounded-lg bg-gray-100 p-2 text-xs text-gray-700 dark:bg-slate-800 dark:text-slate-300">
+                            <pre className="mt-1 overflow-x-auto rounded-lg bg-[color:var(--app-surface-muted)] p-2 text-xs text-[color:var(--app-foreground)]">
                                 {JSON.stringify(new_values, null, 2)}
                             </pre>
                         </div>
@@ -94,8 +95,7 @@ export default function AuditLogsIndex({
         to: filters?.to ?? '',
     });
 
-    const inputCls =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    const inputCls = inputClassName;
 
     function submitFilters(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -136,11 +136,11 @@ export default function AuditLogsIndex({
             <div className="space-y-4">
                 {/* Filters */}
                 <form
-                    className="flex flex-wrap items-end gap-3 rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+                    className="flex flex-wrap items-end gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
                     onSubmit={submitFilters}
                 >
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
+                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             {t('auditLogs.actor')}
                         </label>
                         <input
@@ -151,7 +151,7 @@ export default function AuditLogsIndex({
                         />
                     </div>
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
+                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             {t('auditLogs.event')}
                         </label>
                         <input
@@ -162,7 +162,7 @@ export default function AuditLogsIndex({
                         />
                     </div>
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
+                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             {t('common.effectiveFrom')}
                         </label>
                         <LocalizedDatePicker
@@ -172,7 +172,7 @@ export default function AuditLogsIndex({
                         />
                     </div>
                     <div>
-                        <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-slate-400">
+                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             {t('common.effectiveTo')}
                         </label>
                         <LocalizedDatePicker
@@ -184,7 +184,7 @@ export default function AuditLogsIndex({
                     <div className="flex items-center gap-2">
                         <button
                             type="submit"
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {t('common.filter')}
                         </button>
@@ -192,7 +192,7 @@ export default function AuditLogsIndex({
                             <button
                                 type="button"
                                 onClick={() => router.get(route('audit-logs.index'), {}, { preserveState: true })}
-                                className="text-sm text-gray-500 underline hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                className="text-sm text-[color:var(--app-muted-foreground)] underline hover:text-[color:var(--app-foreground)]"
                             >
                                 {t('common.reset')}
                             </button>
@@ -201,15 +201,15 @@ export default function AuditLogsIndex({
                 </form>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     {auditLogs.length === 0 ? (
                         <div className="p-6">
                             <EmptyState title={t('auditLogs.noLogs')} />
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-sm">
-                                <thead className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
                                             t('auditLogs.event'),
@@ -220,29 +220,29 @@ export default function AuditLogsIndex({
                                         ].map((h) => (
                                             <th
                                                 key={h}
-                                                className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400"
+                                                className={cx(tableHeaderCellClassName, 'text-left')}
                                             >
                                                 {h}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {auditLogs.map((log) => (
                                         <tr
                                             key={log.id}
-                                            className="text-gray-700 align-top hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/40"
+                                            className={tableRowClassName}
                                         >
-                                            <td className="px-4 py-3">
+                                            <td className={tableCellClassName}>
                                                 <StatusBadge
                                                     status={log.event_type}
                                                     label={eventLabel(log.event_type)}
                                                 />
                                             </td>
-                                            <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-slate-400">
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
                                                 {log.actor_name ?? log.actor_user_id ?? t('auditLogs.system')}
                                             </td>
-                                            <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
+                                            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                                 {log.auditable_type && (
                                                     <span>
                                                         {log.auditable_type}
@@ -252,10 +252,10 @@ export default function AuditLogsIndex({
                                                     </span>
                                                 )}
                                             </td>
-                                            <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
+                                            <td className={cx(tableCellClassName, 'whitespace-nowrap text-xs text-[color:var(--app-muted-foreground)]')}>
                                                 <LocalizedDateDisplay value={log.created_at} withTime />
                                             </td>
-                                            <td className="px-4 py-3">
+                                            <td className={tableCellClassName}>
                                                 <ValuesDetail
                                                     old_values={log.old_values}
                                                     new_values={log.new_values}
@@ -272,7 +272,7 @@ export default function AuditLogsIndex({
 
                 {/* Pagination */}
                 {meta && meta.last_page > 1 && (
-                    <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-sm text-gray-600 dark:text-slate-400">
+                    <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-sm text-[color:var(--app-muted-foreground)]">
                         <p className="text-xs">
                             {(meta.current_page - 1) * meta.per_page + 1}–{Math.min(meta.current_page * meta.per_page, meta.total)} / {meta.total}
                         </p>
@@ -280,7 +280,7 @@ export default function AuditLogsIndex({
                             <button
                                 onClick={() => goToPage(meta.current_page - 1)}
                                 disabled={meta.current_page <= 1}
-                                className="rounded px-2 py-1 hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-40 dark:hover:bg-slate-800"
+                                className="rounded px-2 py-1 hover:bg-[color:var(--app-surface-muted)] disabled:pointer-events-none disabled:opacity-40"
                             >
                                 {t('common.previous')}
                             </button>
@@ -291,7 +291,7 @@ export default function AuditLogsIndex({
                                     className={`min-w-[2rem] rounded px-2 py-1 font-medium ${
                                         page === meta.current_page
                                             ? 'bg-[color:var(--color-primary)] text-white'
-                                            : 'hover:bg-gray-100 dark:hover:bg-slate-800'
+                                            : 'hover:bg-[color:var(--app-surface-muted)]'
                                     }`}
                                     aria-current={page === meta.current_page ? 'page' : undefined}
                                 >
@@ -301,7 +301,7 @@ export default function AuditLogsIndex({
                             <button
                                 onClick={() => goToPage(meta.current_page + 1)}
                                 disabled={meta.current_page >= meta.last_page}
-                                className="rounded px-2 py-1 hover:bg-gray-100 disabled:pointer-events-none disabled:opacity-40 dark:hover:bg-slate-800"
+                                className="rounded px-2 py-1 hover:bg-[color:var(--app-surface-muted)] disabled:pointer-events-none disabled:opacity-40"
                             >
                                 {t('common.next')}
                             </button>

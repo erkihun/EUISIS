@@ -8,6 +8,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type OccupationRow = {
     id: string;
     isco_code: string;
@@ -43,8 +44,7 @@ export default function OccupationsIndex({
         is_active: filters.is_active ?? '',
     });
 
-    const inputCls =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = inputClassName;
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -82,7 +82,7 @@ export default function OccupationsIndex({
                         can.create ? (
                             <Link
                                 href={route('occupations.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 <Plus className="h-3.5 w-3.5" />
                                 {t('occupations.createOccupation')}
@@ -95,7 +95,7 @@ export default function OccupationsIndex({
             <Head title={t('occupations.occupations')} />
 
             <div className="space-y-6">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                     <form className="grid gap-3 sm:grid-cols-2 md:grid-cols-3" onSubmit={submit}>
                         <input
                             className={inputCls}
@@ -113,7 +113,7 @@ export default function OccupationsIndex({
                             <option value="0">{t('common.inactive')}</option>
                         </select>
                         <button
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                            className={buttonClassName({ variant: 'primary' })}
                             type="submit"
                         >
                             {t('common.filter')}
@@ -121,15 +121,15 @@ export default function OccupationsIndex({
                     </form>
                 </section>
 
-                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     {occupations.length === 0 ? (
                         <div className="p-6">
                             <EmptyState title={t('occupations.noOccupationsFound')} />
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-sm">
-                                <thead className="bg-gray-50 dark:bg-slate-950">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
                                             t('occupations.iscoCode'),
@@ -139,20 +139,20 @@ export default function OccupationsIndex({
                                         ].map((heading, i) => (
                                             <th
                                                 key={i}
-                                                className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400"
+                                                className={cx(tableHeaderCellClassName, 'text-left')}
                                             >
                                                 {heading}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className={tableBodyClassName}>
                                     {occupations.map((occ) => (
                                         <tr
                                             key={occ.id}
-                                            className="border-t border-gray-100 text-gray-700 dark:border-slate-800 dark:text-slate-200"
+                                            className={tableRowClassName}
                                         >
-                                            <td className="px-4 py-3 font-mono text-xs">
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs')}>
                                                 <Link
                                                     href={route('occupations.show', occ.id)}
                                                     className="text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
@@ -160,17 +160,17 @@ export default function OccupationsIndex({
                                                     {occ.isco_code}
                                                 </Link>
                                             </td>
-                                            <td className="px-4 py-3 font-medium">
+                                            <td className={cx(tableCellClassName, 'font-medium')}>
                                                 {occ.name_en ?? occ.name_am ?? '—'}
                                             </td>
-                                            <td className="px-4 py-3">
+                                            <td className={tableCellClassName}>
                                                 <StatusBadge status={occ.is_active ? 'active' : 'inactive'} />
                                             </td>
-                                            <td className="px-4 py-3">
+                                            <td className={tableCellClassName}>
                                                 <div className="flex justify-end gap-3">
                                                     <Link
                                                         href={route('occupations.show', occ.id)}
-                                                        className="text-xs font-medium text-gray-500 hover:text-gray-800 dark:text-slate-400"
+                                                        className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-gray-800"
                                                     >
                                                         {t('common.view')}
                                                     </Link>
@@ -211,7 +211,7 @@ export default function OccupationsIndex({
                 </section>
 
                 {meta.last_page > 1 && (
-                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-slate-400">
+                    <div className="flex items-center justify-between text-sm text-[color:var(--app-muted-foreground)]">
                         <span>
                             {t('common.page')} {meta.current_page} {t('common.of')} {meta.last_page} ({meta.total}{' '}
                             {t('common.total').toLowerCase()})
@@ -226,7 +226,7 @@ export default function OccupationsIndex({
                                             page: meta.current_page - 1,
                                         })
                                     }
-                                    className="rounded-lg border border-gray-300 px-3 py-1 hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     ‹
                                 </button>
@@ -240,7 +240,7 @@ export default function OccupationsIndex({
                                             page: meta.current_page + 1,
                                         })
                                     }
-                                    className="rounded-lg border border-gray-300 px-3 py-1 hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     ›
                                 </button>

@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
+import { buttonClassName } from '@/Components/ui';
 export type OrgOption = { id: string; code: string; name_en: string; name_am: string | null };
 export type PayeeOption = { id: string; provider_code: string; name_en: string; name_am: string | null; status: string };
 export type NetworkOption = { id: string; provider_id: string; code: string; name_en: string; name_am: string | null; status: string };
@@ -242,7 +243,7 @@ export default function CafeteriaForm({ form, mode, organizations, payees, netwo
 
             <div className="flex justify-end gap-3">
                 <Link href={cancelHref} className="rounded-[var(--radius-control)] border border-[color:var(--app-border)] px-4 py-2 text-sm font-medium hover:bg-[color:var(--app-surface-muted)]">{tt('cancel')}</Link>
-                <button type="submit" disabled={form.processing} className="rounded-[var(--radius-control)] bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">{tt('save')}</button>
+                <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>{tt('save')}</button>
             </div>
         </form>
     );

@@ -36,7 +36,7 @@ export default function RatingStars({
             </span>
             <span className="sr-only">{rating} out of 5</span>
             {showValue && (
-                <span className="text-sm font-medium text-gray-700 dark:text-slate-300">{rating.toFixed(1)}</span>
+                <span className="text-sm font-medium text-[color:var(--app-foreground)]">{rating.toFixed(1)}</span>
             )}
         </span>
     );

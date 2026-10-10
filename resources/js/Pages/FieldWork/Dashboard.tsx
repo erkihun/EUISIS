@@ -54,16 +54,16 @@ export default function FieldWorkDashboard({ figures, awaitingApproval, attentio
 
                 {can.approvals && (
                     <section className="space-y-2">
-                        <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('fieldWork.management.awaiting')}</h2>
+                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('fieldWork.management.awaiting')}</h2>
                         <RequestTable rows={awaitingApproval} emptyText={t('fieldWork.management.emptyApprovals')} href={show} />
                     </section>
                 )}
                 <section className="space-y-2">
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('fieldWork.management.attention')}</h2>
+                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('fieldWork.management.attention')}</h2>
                     <RequestTable rows={attention} emptyText={t('fieldWork.management.emptyOverdue')} href={show} />
                 </section>
                 <section className="space-y-2">
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('fieldWork.management.inField')}</h2>
+                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('fieldWork.management.inField')}</h2>
                     <RequestTable rows={inField} emptyText={t('fieldWork.management.emptyTeam')} href={show} />
                 </section>
             </div>

@@ -8,6 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import SearchPicker from '@/Components/fieldWork/SearchPicker';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type EmployeeOption = { id: string; full_name: string; employee_number: string };
 
 type LedgerEntry = {
@@ -51,8 +52,7 @@ export default function LedgerIndex({
     // Searched on the server through lookup.employees (SCL-10).
     const [picked, setPicked] = useState<EmployeeOption | null>(employee);
 
-    const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = cx(inputClassName, 'w-full');
 
     function submit(e: FormEvent) {
         e.preventDefault();
@@ -80,7 +80,7 @@ export default function LedgerIndex({
         if (type === 'allocation') return 'text-emerald-600';
         if (type === 'carry_forward_deduction') return 'text-orange-600';
         if (type === 'reversal') return 'text-[color:var(--color-primary)]';
-        return 'text-gray-600 dark:text-slate-400';
+        return 'text-[color:var(--app-muted-foreground)]';
     }
 
     return (
@@ -88,17 +88,17 @@ export default function LedgerIndex({
             <Head title={t('cafeteria.ledger')} />
 
             <div className="w-full space-y-6" aria-busy={loading}>
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h2 className="font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.ledgerFilters')}</h2>
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h2 className="font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.ledgerFilters')}</h2>
                     <form className="mt-4 space-y-4" onSubmit={submit}>
                         <fieldset disabled={loading} className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
-                            <div className="space-y-2 text-sm text-gray-600 dark:text-slate-300">
+                            <div className="space-y-2 text-sm text-[color:var(--app-muted-foreground)]">
                                 <input type="hidden" name="employee_id" value={picked?.id ?? ''} />
                                 {picked ? (
                                     <>
                                         <span className="block">{t('cafeteria.employeeInfo')}</span>
-                                        <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-300 px-3 py-2.5 dark:border-slate-700">
-                                            <span className="min-w-0 truncate text-gray-900 dark:text-slate-100">{picked.employee_number} · {picked.full_name}</span>
+                                        <div className="flex items-center justify-between gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2.5">
+                                            <span className="min-w-0 truncate text-[color:var(--app-foreground)]">{picked.employee_number} · {picked.full_name}</span>
                                             <button type="button" className="text-xs font-medium text-[color:var(--color-primary)] hover:underline" onClick={() => setPicked(null)}>{t('common.change')}</button>
                                         </div>
                                     </>
@@ -112,21 +112,21 @@ export default function LedgerIndex({
                                     />
                                 )}
                             </div>
-                            <label className="space-y-2 text-sm text-gray-600 dark:text-slate-300"><span>{t('cafeteria.entryType')}</span><select name="entry_type" defaultValue={filters.entry_type ?? ''} className={inputCls}><option value="">{t('common.all')}</option>{entryTypes.map(type => <option key={type} value={type}>{entryTypeLabel(type)}</option>)}</select></label>
-                            <div className="space-y-2 text-sm text-gray-600 dark:text-slate-300"><label htmlFor="ledger-from">{t('cafeteria.ledgerDateFrom')}</label><LocalizedDatePicker id="ledger-from" className={inputCls} value={dateFrom} onChange={setDateFrom} /></div>
-                            <div className="space-y-2 text-sm text-gray-600 dark:text-slate-300"><label htmlFor="ledger-to">{t('cafeteria.ledgerDateTo')}</label><LocalizedDatePicker id="ledger-to" className={inputCls} value={dateTo} min={dateFrom || undefined} onChange={setDateTo} /></div>
+                            <label className="space-y-2 text-sm text-[color:var(--app-muted-foreground)]"><span>{t('cafeteria.entryType')}</span><select name="entry_type" defaultValue={filters.entry_type ?? ''} className={inputCls}><option value="">{t('common.all')}</option>{entryTypes.map(type => <option key={type} value={type}>{entryTypeLabel(type)}</option>)}</select></label>
+                            <div className="space-y-2 text-sm text-[color:var(--app-muted-foreground)]"><label htmlFor="ledger-from">{t('cafeteria.ledgerDateFrom')}</label><LocalizedDatePicker id="ledger-from" className={inputCls} value={dateFrom} onChange={setDateFrom} /></div>
+                            <div className="space-y-2 text-sm text-[color:var(--app-muted-foreground)]"><label htmlFor="ledger-to">{t('cafeteria.ledgerDateTo')}</label><LocalizedDatePicker id="ledger-to" className={inputCls} value={dateTo} min={dateFrom || undefined} onChange={setDateTo} /></div>
                         </fieldset>
                         {Object.entries(errors).map(([key, error]) => <p key={key} role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>)}
-                        <div className="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-slate-800"><button type="button" disabled={loading} onClick={() => { setPicked(null); navigate({}, true); }} className="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-slate-700 dark:text-slate-200">{t('common.clear')}</button><button type="submit" disabled={loading} className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-semibold text-white disabled:opacity-50">{t('common.filter')}</button></div>
+                        <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] pt-4"><button type="button" disabled={loading} onClick={() => { setPicked(null); navigate({}, true); }} className={buttonClassName({ variant: 'outline' })}>{t('common.clear')}</button><button type="submit" disabled={loading} className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button></div>
                     </form>
                 </section>
                 <section aria-label={t('cafeteria.ledgerSummary')}>
-                    <div className="grid gap-4 sm:grid-cols-3">{(['credits', 'debits', 'net'] as const).map(key => <div key={key} className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"><p className="text-sm text-gray-500 dark:text-slate-400">{t('cafeteria.ledger_' + key)}</p><p className="mt-2 text-2xl font-semibold tabular-nums text-gray-900 dark:text-slate-100">{money.format(summary[key])} <span className="text-xs font-normal">ETB</span></p></div>)}</div>
-                    <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">{t('cafeteria.ledgerSummaryHelp')}</p>
+                    <div className="grid gap-4 sm:grid-cols-3">{(['credits', 'debits', 'net'] as const).map(key => <div key={key} className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5"><p className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.ledger_' + key)}</p><p className="mt-2 text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{money.format(summary[key])} <span className="text-xs font-normal">ETB</span></p></div>)}</div>
+                    <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.ledgerSummaryHelp')}</p>
                 </section>
                 {employee && balance !== null && (
                     <div className={`rounded-card border p-5 ${balance < 0 ? 'border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/30' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30'}`}>
-                        <p className="text-sm font-medium text-gray-600 dark:text-slate-400">{employee.full_name} — {t('cafeteria.ledgerBalance')}</p>
+                        <p className="text-sm font-medium text-[color:var(--app-muted-foreground)]">{employee.full_name} — {t('cafeteria.ledgerBalance')}</p>
                         <p className={`mt-1 text-3xl font-bold ${balance < 0 ? 'text-orange-600' : 'text-emerald-600'}`}>
                             {money.format(balance)} ETB
                         </p>
@@ -136,43 +136,43 @@ export default function LedgerIndex({
                     </div>
                 )}
 
-                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <div className="flex flex-wrap justify-between gap-2 border-b border-gray-100 px-5 py-4 dark:border-slate-800"><h2 className="font-semibold text-gray-900 dark:text-slate-100">{t('cafeteria.ledger')}</h2><p className="text-sm text-gray-500 dark:text-slate-400">{t('cafeteria.transactionResults').replace(':from', String(entries.length ? (meta.current_page - 1) * meta.per_page + 1 : 0)).replace(':to', String(entries.length ? (meta.current_page - 1) * meta.per_page + entries.length : 0)).replace(':total', String(meta.total))}</p></div>
+                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <div className="flex flex-wrap justify-between gap-2 border-b border-[color:var(--app-border)] px-5 py-4"><h2 className="font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.ledger')}</h2><p className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.transactionResults').replace(':from', String(entries.length ? (meta.current_page - 1) * meta.per_page + 1 : 0)).replace(':to', String(entries.length ? (meta.current_page - 1) * meta.per_page + entries.length : 0)).replace(':total', String(meta.total))}</p></div>
                     {entries.length === 0 ? (
                         <EmptyState title={t('common.noResults')} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.employeeInfo')}</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('common.date')}</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.entryType')}</th>
-                                        <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-slate-400">{t('common.amount')}</th>
-                                        <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-slate-400">{t('cafeteria.balanceAfter')}</th>
-                                        <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-slate-400">{t('common.description')}</th>
+                            <table className={tableClassName}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.employeeInfo')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.date')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('cafeteria.entryType')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('common.amount')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-right')}>{t('cafeteria.balanceAfter')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.description')}</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                                <tbody className={tableBodyClassName}>
                                     {entries.map((entry) => (
-                                        <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                            <td className="min-w-48 px-4 py-3"><p className="font-medium text-gray-900 dark:text-slate-100">{entry.employee?.full_name ?? '—'}</p><p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{entry.employee?.employee_number}</p></td>
-                                            <td className="px-4 py-3 text-gray-600 dark:text-slate-400"><LocalizedDateDisplay value={entry.ledger_date} /></td>
+                                        <tr key={entry.id} className={tableRowClassName}>
+                                            <td className={cx(tableCellClassName, 'min-w-48')}><p className="font-medium text-[color:var(--app-foreground)]">{entry.employee?.full_name ?? '—'}</p><p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{entry.employee?.employee_number}</p></td>
+                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={entry.ledger_date} /></td>
                                             <td className={`px-4 py-3 font-medium ${entryTypeColor(entry.entry_type)}`}>{entryTypeLabel(entry.entry_type)}</td>
                                             <td className={`px-4 py-3 text-right font-medium ${entry.amount >= 0 ? 'text-emerald-600' : 'text-orange-600'}`}>
                                                 {entry.amount >= 0 ? '+' : ''}{money.format(entry.amount)}
                                             </td>
-                                            <td className={`px-4 py-3 text-right font-bold ${entry.balance_after < 0 ? 'text-orange-600' : 'text-gray-900 dark:text-slate-100'}`}>
+                                            <td className={`px-4 py-3 text-right font-bold ${entry.balance_after < 0 ? 'text-orange-600' : 'text-[color:var(--app-foreground)]'}`}>
                                                 {money.format(entry.balance_after)}
                                             </td>
-                                            <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{entry.description ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{entry.description ?? '—'}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
                     )}
-                    <nav aria-label={t('cafeteria.ledgerPages')} className="flex items-center justify-between gap-3 border-t border-gray-100 px-5 py-4 dark:border-slate-800"><button type="button" disabled={loading || meta.current_page <= 1} onClick={() => navigate({ ...filters, page: meta.current_page - 1 })} className="rounded-lg border px-4 py-2 text-sm disabled:opacity-40 dark:border-slate-700 dark:text-slate-200">{t('common.previous')}</button><span className="text-sm tabular-nums text-gray-500 dark:text-slate-400">{meta.current_page} / {meta.last_page}</span><button type="button" disabled={loading || meta.current_page >= meta.last_page} onClick={() => navigate({ ...filters, page: meta.current_page + 1 })} className="rounded-lg border px-4 py-2 text-sm disabled:opacity-40 dark:border-slate-700 dark:text-slate-200">{t('common.next')}</button></nav>
+                    <nav aria-label={t('cafeteria.ledgerPages')} className="flex items-center justify-between gap-3 border-t border-[color:var(--app-border)] px-5 py-4"><button type="button" disabled={loading || meta.current_page <= 1} onClick={() => navigate({ ...filters, page: meta.current_page - 1 })} className={buttonClassName({ variant: 'outline' })}>{t('common.previous')}</button><span className="text-sm tabular-nums text-[color:var(--app-muted-foreground)]">{meta.current_page} / {meta.last_page}</span><button type="button" disabled={loading || meta.current_page >= meta.last_page} onClick={() => navigate({ ...filters, page: meta.current_page + 1 })} className={buttonClassName({ variant: 'outline' })}>{t('common.next')}</button></nav>
                 </div>
             </div>
         </AuthenticatedLayout>

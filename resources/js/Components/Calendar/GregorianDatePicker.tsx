@@ -78,9 +78,9 @@ export default function GregorianDatePicker({
                 type="button"
                 disabled={disabled}
                 onClick={handleButtonClick}
-                className={`flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
+                className={`flex w-full items-center justify-between rounded-md border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
             >
-                <span className={value ? 'text-gray-900 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}>
+                <span className={value ? 'text-[color:var(--app-foreground)]' : 'text-gray-400 dark:text-gray-500'}>
                     {value ? formatDisplay(value) : (placeholder ?? defaultPlaceholder)}
                 </span>
                 <svg className="h-4 w-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">

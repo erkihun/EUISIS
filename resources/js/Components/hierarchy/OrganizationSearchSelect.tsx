@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationOption } from '@/Components/hierarchy/types';
 
+import { cx, inputClassName, selectClassName } from '@/Components/ui';
 function optionLabel(option: OrganizationOption, locale: 'en' | 'am'): string {
     const name = locale === 'am' && option.name_am ? option.name_am : option.name_en;
     const typeName = option.type
@@ -71,22 +72,22 @@ export default function OrganizationSearchSelect({
 
     return (
         <div>
-            <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-slate-300">
+            <label className="mb-1.5 block text-sm font-medium text-[color:var(--app-foreground)]">
                 {label}
             </label>
-            <div className="space-y-2 rounded-panel border border-gray-300 bg-gray-50 p-3 dark:border-slate-700 dark:bg-slate-950/50">
+            <div className="space-y-2 rounded-panel border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] p-3">
                 <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     disabled={disabled}
                     placeholder={t('hierarchyVersions.searchOrganization')}
-                    className="w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className={cx(inputClassName, 'w-full')}
                 />
                 <select
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
                     disabled={disabled}
-                    className="w-full rounded-card border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-70 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className={cx(selectClassName, 'w-full')}
                 >
                     <option value="">{placeholder}</option>
                     {options.map((option) => (
@@ -95,7 +96,7 @@ export default function OrganizationSearchSelect({
                         </option>
                     ))}
                 </select>
-                <div className="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-slate-400">
+                <div className="flex items-center justify-between gap-2 text-xs text-[color:var(--app-muted-foreground)]">
                     <span>{loading ? t('common.loading') : `${options.length} ${t('common.results')}`}</span>
                     <span>{selectedOption ? optionLabel(selectedOption, locale) : t('hierarchyVersions.noEligibleParentOrganizationsFound')}</span>
                 </div>

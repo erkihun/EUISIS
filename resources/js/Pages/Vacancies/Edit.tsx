@@ -6,6 +6,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { FormEventHandler, useMemo } from 'react';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Org = { id: string; name_en: string };
 type Unit = { id: string; name_en: string; organization_id: string };
 type Pos = { id: string; title_en: string };
@@ -115,8 +116,8 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
         patch(route('vacancy-announcements.update', announcement.id));
     };
 
-    const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300';
-    const inputCls = 'mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50';
+    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const inputCls = cx(inputClassName, 'mt-1 block w-full');
     const errorCls = 'mt-1 text-xs text-red-500';
 
     return (
@@ -132,7 +133,7 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
             <Head title={t('vacancies.editAnnouncement')} />
 
             <div className="mx-auto max-w-5xl">
-                <form onSubmit={submit} className="space-y-6 rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <form onSubmit={submit} className="space-y-6 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>
                             <label className={labelCls}>{t('vacancies.titleEn')}</label>
@@ -192,17 +193,17 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
 
                     <section className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('vacancies.eligibilityRules')}</h3>
+                            <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('vacancies.eligibilityRules')}</h3>
                             <button
                                 type="button"
                                 onClick={() => setData('eligibility_rules', [...data.eligibility_rules, ''])}
-                                className="inline-flex items-center justify-center rounded-lg border border-blue-300 px-3 py-1.5 text-sm font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950"
+                                className={buttonClassName({ variant: 'outline', size: 'sm' })}
                             >
                                 {t('vacancies.addRule')}
                             </button>
                         </div>
                         {data.eligibility_rules.length === 0 && (
-                            <p className="text-sm text-gray-400 dark:text-slate-500">—</p>
+                            <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>
                         )}
                         {data.eligibility_rules.map((rule, index) => (
                             <div key={index} className="flex gap-2">
@@ -219,7 +220,7 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
                                 <button
                                     type="button"
                                     onClick={() => setData('eligibility_rules', data.eligibility_rules.filter((_, i) => i !== index))}
-                                    className="rounded-lg border border-red-200 px-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950"
+                                    className={buttonClassName({ variant: 'outline' })}
                                 >
                                     {t('common.remove')}
                                 </button>
@@ -230,10 +231,10 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
                     <section className="space-y-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{t('vacancies.includedPositions')}</h3>
-                                <p className="text-sm text-gray-500 dark:text-slate-400">{t('vacancies.totalVacancySlots')}: {totalSlots}</p>
+                                <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('vacancies.includedPositions')}</h3>
+                                <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('vacancies.totalVacancySlots')}: {totalSlots}</p>
                             </div>
-                            <button type="button" onClick={addPosition} className="inline-flex items-center justify-center rounded-lg border border-blue-300 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950">
+                            <button type="button" onClick={addPosition} className={buttonClassName({ variant: 'outline' })}>
                                 {t('vacancies.addPosition')}
                             </button>
                         </div>
@@ -250,9 +251,9 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
                             ));
 
                             return (
-                                <div key={index} className="rounded-lg border border-gray-200 p-4 dark:border-slate-700">
+                                <div key={index} className="rounded-lg border border-[color:var(--app-border)] p-4">
                                     <div className="mb-3 flex items-center justify-between">
-                                        <span className="text-sm font-semibold text-gray-800 dark:text-slate-200">{t('vacancies.positionLine')} {index + 1}</span>
+                                        <span className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('vacancies.positionLine')} {index + 1}</span>
                                         {data.positions.length > 1 && (
                                             <button type="button" onClick={() => removePosition(index)} className="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400">
                                                 {t('common.remove')}
@@ -312,7 +313,7 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
                     </section>
 
                     <div className="flex justify-end">
-                        <button type="submit" disabled={processing || data.positions.some((position) => ! position.position_establishment_id)} className="rounded-lg bg-[color:var(--color-primary)] px-5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
+                        <button type="submit" disabled={processing || data.positions.some((position) => ! position.position_establishment_id)} className={buttonClassName({ variant: 'primary' })}>
                             {t('common.saveChanges')}
                         </button>
                     </div>

@@ -5,6 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName } from '@/Components/ui';
 type Exclusion = {
     id: string; employee_name: string | null; employee_number: string | null;
     exclusion_type: string; exclusion_type_label: string;
@@ -17,7 +18,7 @@ type Exclusion = {
 
 const STATUS_COLORS: Record<string, string> = {
     active:    'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-    ended:     'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-400',
+    ended:     'bg-gray-100 text-[color:var(--app-muted-foreground)] dark:bg-slate-700',
     cancelled: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400',
 };
 
@@ -35,9 +36,9 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
         if (confirmed) router.delete(route('cafeteria.employee-exclusions.archive', exclusion.id));
     }
 
-    const rowCls = 'flex items-start gap-4 py-3 border-b border-gray-100 dark:border-slate-800 last:border-0';
-    const keyC = 'w-48 flex-shrink-0 text-sm text-gray-500 dark:text-slate-400';
-    const valC = 'text-sm font-medium text-gray-800 dark:text-slate-200';
+    const rowCls = 'flex items-start gap-4 py-3 border-b border-[color:var(--app-border)] last:border-0';
+    const keyC = 'w-48 flex-shrink-0 text-sm text-[color:var(--app-muted-foreground)]';
+    const valC = 'text-sm font-medium text-[color:var(--app-foreground)]';
 
     return (
         <AuthenticatedLayout
@@ -48,7 +49,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                     actions={
                         <div className="flex gap-2">
                             {exclusion.can.update && (
-                                <Link href={route('cafeteria.employee-exclusions.edit', exclusion.id)} className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">
+                                <Link href={route('cafeteria.employee-exclusions.edit', exclusion.id)} className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-gray-50">
                                     {t('common.edit')}
                                 </Link>
                             )}
@@ -58,7 +59,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                                 </button>
                             )}
                             {exclusion.can.archive && (
-                                <button onClick={handleArchive} className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700">
+                                <button onClick={handleArchive} className={buttonClassName({ variant: 'destructive', size: 'sm' })}>
                                     {t('common.delete')}
                                 </button>
                             )}
@@ -69,7 +70,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
         >
             <Head title={t('cafeteria.employeeExclusion')} />
             <div className="mx-auto max-w-2xl">
-                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <div className={rowCls}>
                         <span className={keyC}>{t('common.employee')}</span>
                         <div>

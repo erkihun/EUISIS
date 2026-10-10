@@ -3,7 +3,7 @@ import type { OrganizationUnitStatus } from '@/types/organizationUnit';
 
 const colorMap: Record<OrganizationUnitStatus, string> = {
     active:   'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300',
-    draft:    'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400',
+    draft:    'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
     inactive: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
     archived: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
 };

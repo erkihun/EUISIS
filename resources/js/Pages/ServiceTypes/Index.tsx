@@ -8,6 +8,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type ServiceTypeRow = {
     id: string;
     code: string;
@@ -35,8 +36,7 @@ export default function ServiceTypesIndex({
         search: filters.search ?? '',
         is_active: filters.is_active ?? '',
     });
-    const inputClassName =
-        'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputClassName = uiInputClassName;
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -51,7 +51,7 @@ export default function ServiceTypesIndex({
                     actions={can.create ? (
                         <Link
                             href={route('service-types.create')}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                            className={buttonClassName({ variant: 'primary', size: 'sm' })}
                         >
                             <Plus className="h-3.5 w-3.5" />
                             {t('serviceTypes.createTitle')}
@@ -63,7 +63,7 @@ export default function ServiceTypesIndex({
             <Head title={t('serviceTypes.title')} />
 
             <div className="space-y-6">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                     <form className="grid gap-3 md:grid-cols-[1fr_220px_auto]" onSubmit={submit}>
                         <input
                             className={inputClassName}
@@ -80,21 +80,21 @@ export default function ServiceTypesIndex({
                             <option value="1">{t('serviceTypes.activeOnly')}</option>
                             <option value="0">{t('serviceTypes.inactiveOnly')}</option>
                         </select>
-                        <button className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]" type="submit">
+                        <button className={buttonClassName({ variant: 'primary' })} type="submit">
                             {t('common.filter')}
                         </button>
                     </form>
                 </section>
 
-                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     {serviceTypes.length === 0 ? (
                         <div className="p-6">
                             <EmptyState title={t('serviceTypes.noServiceTypes')} />
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-sm">
-                                <thead className="bg-gray-50 dark:bg-slate-950">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
                                     <tr>
                                         {[
                                             t('serviceTypes.code'),
@@ -105,17 +105,17 @@ export default function ServiceTypesIndex({
                                             t('common.status'),
                                             '',
                                         ].map((heading) => (
-                                            <th key={heading} className="px-4 py-3 text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                            <th key={heading} className={cx(tableHeaderCellClassName, 'text-left')}>
                                                 {heading}
                                             </th>
                                         ))}
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody className={tableBodyClassName}>
                                     {serviceTypes.map((serviceType) => (
-                                        <tr key={serviceType.id} className="border-t border-gray-100 text-gray-700 dark:border-slate-800 dark:text-slate-200">
-                                            <td className="px-4 py-3 font-mono text-xs">{serviceType.code}</td>
-                                            <td className="px-4 py-3">
+                                        <tr key={serviceType.id} className={tableRowClassName}>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs')}>{serviceType.code}</td>
+                                            <td className={tableCellClassName}>
                                                 {serviceType.can.view ? (
                                                     <Link href={route('service-types.show', serviceType.id)} className="font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
                                                         {serviceType.name_en}
@@ -124,13 +124,13 @@ export default function ServiceTypesIndex({
                                                     serviceType.name_en
                                                 )}
                                             </td>
-                                            <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{serviceType.name_am ?? '—'}</td>
-                                            <td className="px-4 py-3 tabular-nums">{serviceType.providers_count ?? 0}</td>
-                                            <td className="px-4 py-3 tabular-nums">{serviceType.rules_count ?? 0}</td>
-                                            <td className="px-4 py-3">
+                                            <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{serviceType.name_am ?? '—'}</td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums')}>{serviceType.providers_count ?? 0}</td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums')}>{serviceType.rules_count ?? 0}</td>
+                                            <td className={tableCellClassName}>
                                                 <StatusBadge status={serviceType.is_active ? 'active' : 'inactive'} />
                                             </td>
-                                            <td className="px-4 py-3">
+                                            <td className={tableCellClassName}>
                                                 <div className="flex justify-end gap-3">
                                                     {serviceType.can.update && (
                                                         <Link href={route('service-types.edit', serviceType.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]">

@@ -85,32 +85,32 @@ export default function AttentionPanel({ alerts, queues, t, title }: Props) {
     return (
         <section
             aria-label={title}
-            className={`overflow-hidden rounded-panel border border-t-2 border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900 ${leadingBorder}`}
+            className={`overflow-hidden rounded-panel border border-t-2 border-[color:var(--app-border)] bg-[color:var(--app-surface)] ${leadingBorder}`}
         >
-            <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-slate-800">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
+            <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--app-border)] px-4 py-3">
+                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
             </div>
 
-            <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+            <ul className="divide-y divide-[color:var(--app-border)]">
                 {rows.map((row) => (
                     <li key={row.key}>
                         <Link
                             href={row.href}
-                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)] dark:hover:bg-slate-800/60"
+                            className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[color:var(--app-surface-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-primary)]"
                         >
                             <span
                                 aria-hidden="true"
                                 className={`h-1.5 w-1.5 shrink-0 rounded-full ${rankDot[row.rank]}`}
                             />
-                            <span className="min-w-0 flex-1 text-sm leading-snug text-gray-700 dark:text-slate-300">
+                            <span className="min-w-0 flex-1 text-sm leading-snug text-[color:var(--app-foreground)]">
                                 {row.label}
                             </span>
-                            <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900 dark:text-slate-100">
+                            <span className="shrink-0 text-sm font-semibold tabular-nums text-[color:var(--app-foreground)]">
                                 {number(row.count)}
                             </span>
                             <ChevronRight
                                 aria-hidden="true"
-                                className="h-4 w-4 shrink-0 text-gray-400 dark:text-slate-600"
+                                className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]"
                             />
                         </Link>
                     </li>

@@ -96,7 +96,7 @@ export function CycleForm({ cycle, types, policies, employeeStatuses, onCancel }
                 <input type="number" min={0} className={inputCls} value={form.data.reminder_days_before} onChange={(e) => form.setData('reminder_days_before', e.target.value)} />
             </Field>
             <fieldset className="md:col-span-3" disabled={locked}>
-                <legend className="mb-1 text-sm font-medium text-gray-700 dark:text-slate-300">{t('assessmentOversight.cycleForm.eligibleStatuses')}</legend>
+                <legend className="mb-1 text-sm font-medium text-[color:var(--app-foreground)]">{t('assessmentOversight.cycleForm.eligibleStatuses')}</legend>
                 <div className="flex flex-wrap gap-3">
                     {employeeStatuses.map((s) => (
                         <label key={s} className="flex items-center gap-1.5 text-sm">

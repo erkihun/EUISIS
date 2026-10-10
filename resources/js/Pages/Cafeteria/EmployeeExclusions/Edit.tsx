@@ -4,6 +4,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Exclusion = {
     id: string; employee_name: string | null;
     exclusion_type: string; starts_on: string; ends_on: string | null;
@@ -24,8 +25,8 @@ export default function EmployeeExclusionEdit({ exclusion, exclusion_types }: { 
         reason_am: exclusion.reason_am ?? '',
     });
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-    const labelCls = 'block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1';
+    const inputCls = cx(inputClassName, 'w-full');
+    const labelCls = 'block text-sm font-medium text-[color:var(--app-foreground)] mb-1';
 
     function submit(e: React.FormEvent) {
         e.preventDefault();
@@ -36,9 +37,9 @@ export default function EmployeeExclusionEdit({ exclusion, exclusion_types }: { 
         <AuthenticatedLayout header={<PageHeader title={t('cafeteria.editExclusion')} />}>
             <Head title={t('cafeteria.editExclusion')} />
             <div className="mx-auto max-w-2xl">
-                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     {exclusion.employee_name && (
-                        <div className="mb-5 rounded-lg bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700 dark:bg-slate-800 dark:text-slate-300">
+                        <div className="mb-5 rounded-lg bg-[color:var(--app-surface-muted)] px-4 py-3 text-sm font-medium text-[color:var(--app-foreground)]">
                             {exclusion.employee_name}
                         </div>
                     )}
@@ -62,7 +63,7 @@ export default function EmployeeExclusionEdit({ exclusion, exclusion_types }: { 
                             </div>
                         </div>
 
-                        <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                        <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                             <input type="checkbox" className="h-4 w-4 rounded" checked={data.is_open_ended} onChange={e => { setData('is_open_ended', e.target.checked); if (e.target.checked) setData('ends_on', ''); }} />
                             {t('cafeteria.isOpenEnded')}
                         </label>
@@ -82,8 +83,8 @@ export default function EmployeeExclusionEdit({ exclusion, exclusion_types }: { 
                         </div>
 
                         <div className="flex justify-end gap-3 pt-2">
-                            <a href={route('cafeteria.employee-exclusions.index')} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">{t('common.cancel')}</a>
-                            <button type="submit" disabled={processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
+                            <a href={route('cafeteria.employee-exclusions.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-gray-50">{t('common.cancel')}</a>
+                            <button type="submit" disabled={processing} className={buttonClassName({ variant: 'primary' })}>
                                 {processing ? t('common.saving') : t('common.save')}
                             </button>
                         </div>

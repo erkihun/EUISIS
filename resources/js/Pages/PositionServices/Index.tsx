@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 /**
  * Feedback services per position.
  *
@@ -42,8 +43,7 @@ type Props = {
     can: { create: boolean; viewPlanUsage: boolean };
 };
 
-const inputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = inputClassName;
 
 export default function PositionServicesIndex({ records, filters, organizations, can }: Props): JSX.Element {
     const { locale, t } = useLocale();
@@ -77,7 +77,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                         can.create ? (
                             <Link
                                 href={route('position-services.create')}
-                                className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 {t('serviceFeedback.addPositionService')}
                             </Link>
@@ -85,7 +85,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                     }
                 />
 
-                <div className="flex flex-wrap gap-2 rounded-card border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex flex-wrap gap-2 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
                     <select
                         className={inputCls}
                         value={filters.organization_id ?? ''}
@@ -113,9 +113,9 @@ export default function PositionServicesIndex({ records, filters, organizations,
                     />
                 </div>
 
-                <div className="overflow-x-auto rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-800">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+                <div className="overflow-x-auto rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <table className={cx(tableClassName, 'min-w-full')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
                                 <Th>{t('serviceFeedback.serviceIdNo')}</Th>
                                 <Th>{t('serviceFeedback.serviceName')}</Th>
@@ -128,62 +128,62 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                 <Th />
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className={tableBodyClassName}>
                             {records.data.length === 0 && (
                                 <tr>
-                                    <td colSpan={can.viewPlanUsage ? 9 : 8} className="px-4 py-8 text-center text-gray-500 dark:text-slate-400">
+                                    <td colSpan={can.viewPlanUsage ? 9 : 8} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
                                         {t('serviceFeedback.noPositionServices')}
                                     </td>
                                 </tr>
                             )}
 
                             {records.data.map((row) => (
-                                <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50">
-                                    <td className="whitespace-nowrap px-4 py-2.5 font-mono text-gray-900 dark:text-slate-100">
+                                <tr key={row.id} className={tableRowClassName}>
+                                    <td className={cx(tableCellClassName, 'whitespace-nowrap font-mono text-[color:var(--app-foreground)]')}>
                                         {row.service_no ?? '—'}
                                     </td>
-                                    <td className="px-4 py-2.5 text-gray-700 dark:text-slate-300">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                         {am ? (row.name_am ?? row.name_en) : row.name_en}
                                     </td>
-                                    <td className="max-w-xs px-4 py-2.5 text-gray-600 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'max-w-xs text-[color:var(--app-muted-foreground)]')}>
                                         <span className="line-clamp-2" title={row.description ?? undefined}>{row.description || '—'}</span>
                                     </td>
-                                    <td className="px-4 py-2.5 text-gray-700 dark:text-slate-300">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                         {row.position
                                             ? am
                                                 ? (row.position.title_am ?? row.position.title_en)
                                                 : row.position.title_en
                                             : '—'}
                                     </td>
-                                    <td className="px-4 py-2.5 text-gray-600 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                         {row.organization
                                             ? am
                                                 ? (row.organization.name_am ?? row.organization.name_en)
                                                 : row.organization.name_en
                                             : '—'}
                                     </td>
-                                    <td className="whitespace-nowrap px-4 py-2.5">
+                                    <td className={cx(tableCellClassName, 'whitespace-nowrap')}>
                                         <span
                                             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                                                 row.is_active
                                                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                                    : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-400'
+                                                    : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'
                                             }`}
                                         >
                                             {row.is_active ? t('common.active') : t('common.inactive')}
                                         </span>
                                     </td>
-                                    <td className="whitespace-nowrap px-4 py-2.5 text-gray-600 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}>
                                         {row.is_performance_evaluation_enabled ? t('common.yes') : t('common.no')}
                                     </td>
                                     {can.viewPlanUsage && (
-                                        <td className="whitespace-nowrap px-4 py-2.5 text-gray-600 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}>
                                             {row.current_plan_items_count
                                                 ? t('serviceFeedback.currentPlanItems').replace('{count}', String(row.current_plan_items_count))
                                                 : t('serviceFeedback.notInCurrentPlan')}
                                         </td>
                                     )}
-                                    <td className="whitespace-nowrap px-4 py-2.5 text-right">
+                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-right')}>
                                         {/* Sub-services, main tasks and task standards (BPR plans). */}
                                         <Link
                                             href={route('work-structure.show', row.id)}
@@ -223,8 +223,8 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                     link.active
                                         ? 'bg-[color:var(--color-primary)] text-white'
                                         : link.url
-                                          ? 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
-                                          : 'cursor-not-allowed border border-gray-200 text-gray-400 dark:border-slate-800 dark:text-slate-600'
+                                          ? 'border border-[color:var(--app-border-strong)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'
+                                          : 'cursor-not-allowed border border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)]'
                                 }`}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />
@@ -238,7 +238,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
 
 function Th({ children }: { children?: React.ReactNode }): JSX.Element {
     return (
-        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+        <th className={cx(tableHeaderCellClassName, 'text-left')}>
             {children}
         </th>
     );

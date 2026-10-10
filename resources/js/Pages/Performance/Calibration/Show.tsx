@@ -63,7 +63,7 @@ export default function CalibrationShow({ session, items, candidates, can }: Pro
                         </>
                     )}>
                         {candidates.length === 0 ? <Empty>—</Empty> : (
-                            <ul className="divide-y divide-gray-100 text-sm dark:divide-slate-800">
+                            <ul className="divide-y divide-[color:var(--app-border)] text-sm">
                                 {candidates.map((c) => (
                                     <li key={c.id} className="flex items-center gap-3 py-2">
                                         <input type="checkbox" aria-label={c.employee ?? ''} checked={selected.includes(c.id)} onChange={(e) => setSelected(e.target.checked ? [...selected, c.id] : selected.filter((id) => id !== c.id))} />

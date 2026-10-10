@@ -9,6 +9,7 @@ import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Role = { id: number; name: string; scope: 'organization' | 'global' };
 
 type OrganizationScope = {
@@ -29,9 +30,8 @@ type OrgOption = {
     type?: { name_en: string; name_am?: string | null } | null;
 };
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
-const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
+const inputCls = cx(inputClassName, 'w-full');
+const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
 function Field({
     label,
@@ -191,7 +191,7 @@ export default function EditUser({
                 <form
                     id="user-edit-form"
                     onSubmit={submit}
-                    className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                    className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
                 >
                     <div className="space-y-6">
                         {/* ── Profile ───────────────────────────────────── */}
@@ -203,7 +203,7 @@ export default function EditUser({
                             <div className="flex items-center gap-4">
                                 <UserAvatar src={currentPhoto} name={form.data.name || user.name} size={56} />
                                 <div className="flex flex-col gap-1.5">
-                                    <label className="cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800">
+                                    <label className="cursor-pointer rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
                                         {user.profile_photo_url ? t('users.changePhoto') : t('users.uploadPhoto')}
                                         <input
                                             type="file"
@@ -262,8 +262,8 @@ export default function EditUser({
                             </Field>
 
                             {/* Password is optional on edit — leaving it blank keeps the current one. */}
-                            <div className="rounded-lg border border-gray-100 p-3 md:col-span-2 dark:border-slate-800">
-                                <p className="mb-2 text-[10px] font-semibold text-gray-400 dark:text-slate-500">
+                            <div className="rounded-lg border border-[color:var(--app-border)] p-3 md:col-span-2">
+                                <p className="mb-2 text-[10px] font-semibold text-[color:var(--app-muted-foreground)]">
                                     {t('users.changePasswordNote')}
                                 </p>
                                 <div className="grid gap-4 md:grid-cols-2">
@@ -293,7 +293,7 @@ export default function EditUser({
                                         />
                                     </Field>
                                 </div>
-                                <label className="mt-3 flex items-center gap-2 text-xs text-gray-700 dark:text-slate-300">
+                                <label className="mt-3 flex items-center gap-2 text-xs text-[color:var(--app-foreground)]">
                                     <input
                                         type="checkbox"
                                         checked={form.data.generate_temporary_password}
@@ -333,11 +333,11 @@ export default function EditUser({
 
                             <Field label={t('users.phoneNumber')} error={form.errors.phone_number}>
                                 <div className="flex">
-                                    <span className="inline-flex items-center rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400">
+                                    <span className="inline-flex items-center rounded-l-lg border border-r-0 border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] px-3 text-sm text-[color:var(--app-muted-foreground)]">
                                         +251
                                     </span>
                                     <input
-                                        className="w-full rounded-r-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
+                                        className={cx(inputClassName, 'w-full')}
                                         placeholder={t('users.phonePlaceholder')}
                                         maxLength={9}
                                         value={form.data.phone_number.replace(/^\+251/, '')}
@@ -371,7 +371,7 @@ export default function EditUser({
                             grid={false}
                         >
                             {roles.length === 0 ? (
-                                <p className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
+                                <p className="rounded-lg border border-dashed border-[color:var(--app-border)] px-3 py-4 text-center text-sm text-[color:var(--app-muted-foreground)]">
                                     {t('users.noRoles')}
                                 </p>
                             ) : (
@@ -379,15 +379,15 @@ export default function EditUser({
                                     {roles.map((role) => (
                                         <label
                                             key={role.id}
-                                            className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800"
+                                            className="flex cursor-pointer items-center gap-2 rounded-lg border border-[color:var(--app-border)] px-3 py-2 transition-colors hover:bg-[color:var(--app-surface-muted)]"
                                         >
                                             <input
                                                 type="checkbox"
-                                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
+                                                className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                                                 checked={form.data.roles.includes(role.name)}
                                                 onChange={() => toggleRole(role.name)}
                                             />
-                                              <span className="min-w-0 flex-1 text-sm text-gray-700 dark:text-slate-300">
+                                              <span className="min-w-0 flex-1 text-sm text-[color:var(--app-foreground)]">
                                                  {role.name}
                                               </span>
                                               <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
@@ -404,7 +404,7 @@ export default function EditUser({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-white/95 px-6 py-4 backdrop-blur dark:bg-slate-900/95">
                         {/* Self-edit guard: hide deactivate for own account */}
                         {isSelf && (
                             <p className="mr-auto text-xs text-amber-600 dark:text-amber-400">
@@ -413,14 +413,14 @@ export default function EditUser({
                         )}
                         <Link
                             href={route('users.index')}
-                            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                         >
                             {t('common.cancel')}
                         </Link>
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {form.processing ? t('common.saving') : t('users.saveChanges')}
                         </button>

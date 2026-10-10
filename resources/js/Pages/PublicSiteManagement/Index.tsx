@@ -7,6 +7,7 @@ import type { SettingsField } from '@/lib/settings';
 import { Head, Link, router, useForm, useRemember } from '@inertiajs/react';
 import { useEffect, useId, useState } from 'react';
 
+import { cx, inputClassName } from '@/Components/ui';
 type Scalar = string | number | boolean | null;
 type Values = Record<string, Scalar | Record<string, Scalar>>;
 type Field = { key: string; type: string; required?: boolean; max?: number };
@@ -17,8 +18,8 @@ type Props = {
     records: { data: RecordRow[]; total: number; current_page: number; last_page: number } | null;
     can: Record<string, boolean>; settingsFields: SettingsField[]; publicRoutes: Record<string, string>;
 };
-const surface = 'min-w-0 rounded-card border border-gray-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 sm:p-5';
-const input = 'w-full min-w-0 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] disabled:opacity-60 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100';
+const surface = 'min-w-0 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-5';
+const input = cx(inputClassName, 'w-full min-w-0');
 
 function useUnsavedChanges(dirty: boolean) {
     const { t } = useLocale();
@@ -57,9 +58,9 @@ function EditorField({ field, value, error, onChange, routes }: { field: Field; 
 
 function SaveState({ processing, saved, errors }: { processing: boolean; saved: boolean; errors: Record<string, string> }) {
     const { t } = useLocale();
-    return <div className="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-4 dark:border-slate-700">
+    return <div className="flex flex-wrap items-center gap-3 border-t border-[color:var(--app-border)] pt-4">
         <Button type="submit" disabled={processing}>{t(processing ? 'common.loading' : 'common.save')}</Button>
-        <span role="status" className="text-sm text-gray-600 dark:text-slate-300">{saved ? t('publicSite.admin.saved') : ''}</span>
+        <span role="status" className="text-sm text-[color:var(--app-muted-foreground)]">{saved ? t('publicSite.admin.saved') : ''}</span>
         {Object.keys(errors).length > 0 && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{t('publicSite.admin.fixErrors')}</p>}
     </div>;
 }
@@ -98,7 +99,7 @@ function RecordEditor({ row, fields, kind, routes, close, session }: { row: Reco
     useUnsavedChanges(form.isDirty);
     return <section className={surface} aria-labelledby="content-editor-title">
         <h2 id="content-editor-title" className="text-base font-semibold">{t(row ? 'publicSite.admin.editContent' : 'publicSite.admin.newContent')}</h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{t('publicSite.admin.contentHint')}</p>
+        <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('publicSite.admin.contentHint')}</p>
         <form className="mt-4 space-y-4" onSubmit={e => {
             e.preventDefault();
             const options = { preserveScroll: true, onSuccess: () => { form.setDefaults(form.data); close(); } };
@@ -130,7 +131,7 @@ function Collection({ props }: { props: Props }) {
     if (editing !== null) return <RecordEditor row={editing.row} session={editing.session} fields={props.fields} kind={props.tab} routes={props.publicRoutes} close={() => setEditing(null)} />;
     return <section className={surface}>
         <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-base font-semibold">{t(`publicSite.admin.tabs.${props.tab}`)} <span className="text-sm font-normal text-gray-500 dark:text-slate-400">({new Intl.NumberFormat(locale).format(rows.total)})</span></h2>
+            <h2 className="text-base font-semibold">{t(`publicSite.admin.tabs.${props.tab}`)} <span className="text-sm font-normal text-[color:var(--app-muted-foreground)]">({new Intl.NumberFormat(locale).format(rows.total)})</span></h2>
             {props.can.create && <Button type="button" onClick={() => setEditing({ row: null, session: Date.now() })}>{t('publicSite.admin.add')}</Button>}
         </div>
         <form className="my-4 flex flex-wrap items-end gap-2" onSubmit={e => { e.preventDefault(); search.get(route('public-site-management.index'), { preserveScroll: true }); }}>
@@ -138,7 +139,7 @@ function Collection({ props }: { props: Props }) {
             <Button type="submit" variant="secondary" disabled={search.processing}>{t('publicSite.search')}</Button>
         </form>
         {error && <p role="alert" className="mb-3 text-sm text-red-700 dark:text-red-300">{error}</p>}
-        <ul className="divide-y divide-gray-200 dark:divide-slate-700" aria-busy={busy}>
+        <ul className="divide-y divide-[color:var(--app-border)]" aria-busy={busy}>
             {rows.data.map(row => {
                 const base = props.tab === 'services' ? 'name' : props.tab === 'faqs' ? 'question' : 'title';
                 const title = String(row[`${base}_${locale}`] || row[`${base}_en`] || '');
@@ -147,7 +148,7 @@ function Collection({ props }: { props: Props }) {
                 return <li key={row.id} className="flex flex-col gap-2 py-3 lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
                         <p className="break-words text-sm font-medium">{title}</p>
-                        <span className="text-xs text-gray-500 dark:text-slate-400">{t(`publicSite.admin.status.${status}`)}{row.is_featured ? ` · ${t('publicSite.featured')}` : ''}</span>
+                        <span className="text-xs text-[color:var(--app-muted-foreground)]">{t(`publicSite.admin.status.${status}`)}{row.is_featured ? ` · ${t('publicSite.featured')}` : ''}</span>
                     </div>
                     <div className="flex shrink-0 flex-wrap gap-2">
                         {props.can.update && (!live || props.can.publish) && <Button type="button" variant="secondary" disabled={busy} onClick={() => setEditing({ row, session: Date.now() })} aria-label={`${t('common.edit')}: ${title}`}>{t('common.edit')}</Button>}
@@ -159,8 +160,8 @@ function Collection({ props }: { props: Props }) {
                 </li>;
             })}
         </ul>
-        {rows.data.length === 0 && <p className="py-6 text-sm text-gray-500 dark:text-slate-400">{t('publicSite.admin.empty')}</p>}
-        {rows.last_page > 1 && <nav aria-label={t('publicSite.admin.pagination')} className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-4 text-sm dark:border-slate-700">
+        {rows.data.length === 0 && <p className="py-6 text-sm text-[color:var(--app-muted-foreground)]">{t('publicSite.admin.empty')}</p>}
+        {rows.last_page > 1 && <nav aria-label={t('publicSite.admin.pagination')} className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--app-border)] pt-4 text-sm">
             <Button type="button" variant="secondary" disabled={busy || rows.current_page <= 1} onClick={() => router.get(route('public-site-management.index'), { tab: props.tab, search: props.search, page: rows.current_page - 1 })}>{t('common.previous')}</Button>
             <span>{rows.current_page} / {rows.last_page}</span>
             <Button type="button" variant="secondary" disabled={busy || rows.current_page >= rows.last_page} onClick={() => router.get(route('public-site-management.index'), { tab: props.tab, search: props.search, page: rows.current_page + 1 })}>{t('common.next')}</Button>
@@ -181,7 +182,7 @@ function SiteSettings({ fields, editable }: { fields: SettingsField[]; editable:
         form.put(route('public-site-management.settings'), { preserveScroll: true, onSuccess: () => form.setDefaults(form.data) });
     }}>
         <h2 className="text-base font-semibold">{t('publicSite.admin.tabs.settings')}</h2>
-        <p className="text-sm text-gray-500 dark:text-slate-400">{t('publicSite.admin.settingsHint')}</p>
+        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('publicSite.admin.settingsHint')}</p>
         <div className="grid min-w-0 gap-4 md:grid-cols-2">
             {fields.map(field => <SettingField key={field.key} field={field} locale={locale} value={form.data[field.key]} error={form.errors[field.key]} disabled={!editable || form.processing} onChange={value => form.setData(field.key, value)} />)}
         </div>
@@ -193,16 +194,16 @@ export default function Index(props: Props) {
     const { t } = useLocale();
     return <AuthenticatedLayout>
         <Head title={t('publicSite.admin.title')} />
-        <div className="min-w-0 space-y-5 text-gray-900 dark:text-slate-100">
-            <PageHeader title={t('publicSite.admin.title')} description={t('publicSite.admin.description')} actions={<a href={route('home')} target="_blank" rel="noopener noreferrer" className="rounded-md border border-gray-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 dark:border-slate-600">{t('publicSite.admin.openSite')}</a>} />
-            <nav aria-label={t('publicSite.admin.title')} className="flex flex-wrap gap-2 border-b border-gray-200 pb-3 dark:border-slate-700">
-                {props.tabs.map(tab => <Link key={tab} href={route('public-site-management.index', { tab })} aria-current={tab === props.tab ? 'page' : undefined} className={`rounded-md px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 ${tab === props.tab ? 'bg-gray-100 text-gray-950 dark:bg-slate-700 dark:text-white' : 'text-gray-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-800'}`}>{t(`publicSite.admin.tabs.${tab}`)}</Link>)}
+        <div className="min-w-0 space-y-5 text-[color:var(--app-foreground)]">
+            <PageHeader title={t('publicSite.admin.title')} description={t('publicSite.admin.description')} actions={<a href={route('home')} target="_blank" rel="noopener noreferrer" className="rounded-md border border-[color:var(--app-border-strong)] px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2">{t('publicSite.admin.openSite')}</a>} />
+            <nav aria-label={t('publicSite.admin.title')} className="flex flex-wrap gap-2 border-b border-[color:var(--app-border)] pb-3">
+                {props.tabs.map(tab => <Link key={tab} href={route('public-site-management.index', { tab })} aria-current={tab === props.tab ? 'page' : undefined} className={`rounded-md px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 ${tab === props.tab ? 'bg-gray-100 text-gray-950 dark:bg-slate-700 dark:text-white' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>{t(`publicSite.admin.tabs.${tab}`)}</Link>)}
             </nav>
             {props.tabs.length === 0 && <p className={surface}>{t('publicSite.admin.noAccess')}</p>}
             {props.records && <Collection key={`${props.tab}-${props.records.current_page}-${props.search}`} props={props} />}
             {props.sections.length > 0 && <section aria-labelledby="page-sections-title" className="space-y-3">
                 <h2 id="page-sections-title" className="text-base font-semibold">{t('publicSite.admin.pageSections')}</h2>
-                <p className="text-sm text-gray-500 dark:text-slate-400">{t('publicSite.admin.pageHint')}</p>
+                <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('publicSite.admin.pageHint')}</p>
                 {props.sections.map(section => <SectionEditor key={`${props.tab}-${section.key}`} section={section} page={props.tab} editable={props.can.updatePage} routes={props.publicRoutes} />)}
             </section>}
             {props.tab === 'settings' && <SiteSettings fields={props.settingsFields} editable={props.can.update} />}

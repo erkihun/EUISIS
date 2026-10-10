@@ -12,6 +12,7 @@ import {
 } from '@/Components/Icons';
 import type { PageProps } from '@/types';
 
+import { cx, selectClassName } from '@/Components/ui';
 // ─────────────────────────────────────────────────────────────────────────────
 const PRIMARY = '#f97316';   // orange-500
 const ACCENT  = '#ea580c';   // orange-600
@@ -75,11 +76,11 @@ function Sidebar({
     }
 
     return (
-        <div className="flex h-full w-full flex-col bg-white dark:bg-slate-950 border-r border-gray-200 dark:border-slate-800">
+        <div className="flex h-full w-full flex-col bg-[color:var(--app-surface)] border-r border-[color:var(--app-border)]">
 
             {/* ── Brand header ── */}
             <div className={[
-                'flex h-[60px] shrink-0 items-center border-b border-gray-200 dark:border-slate-800',
+                'flex h-[60px] shrink-0 items-center border-b border-[color:var(--app-border)]',
                 collapsed ? 'justify-center px-0' : 'px-4 gap-3',
             ].join(' ')}>
                 {collapsed ? (
@@ -103,19 +104,19 @@ function Sidebar({
                             </svg>
                         </div>
                         <div className="min-w-0 flex-1">
-                            <p className="text-[14px] font-bold leading-tight text-gray-900 dark:text-white">Cafeteria</p>
-                            <p className="text-[11px] leading-tight text-gray-500 dark:text-slate-500">Provider Portal</p>
+                            <p className="text-[14px] font-bold leading-tight text-[color:var(--app-foreground)]">Cafeteria</p>
+                            <p className="text-[11px] leading-tight text-[color:var(--app-muted-foreground)]">Provider Portal</p>
                         </div>
 
                         {/* Collapse / close buttons */}
                         {onClose ? (
                             <button onClick={onClose} aria-label="Close"
-                                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 focus:outline-none">
+                                className="rounded-lg p-1.5 text-gray-400 hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus:outline-none">
                                 <X className="h-4 w-4" />
                             </button>
                         ) : (
                             <button onClick={onToggle} title="Collapse" aria-label="Collapse sidebar"
-                                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-slate-800 dark:hover:text-slate-300 focus:outline-none">
+                                className="rounded-lg p-1.5 text-gray-400 hover:bg-[color:var(--app-surface-muted)] hover:text-gray-700 dark:hover:text-slate-300 focus:outline-none">
                                 <ChevronLeftSmall className="h-4 w-4" />
                             </button>
                         )}
@@ -126,7 +127,7 @@ function Sidebar({
             {/* ── Provider selector ── */}
             {providers.length > 0 && (
                 <div className={[
-                    'shrink-0 border-b border-gray-200 dark:border-slate-800',
+                    'shrink-0 border-b border-[color:var(--app-border)]',
                     collapsed ? 'flex justify-center py-3' : 'px-4 py-3',
                 ].join(' ')}>
                     {collapsed ? (
@@ -142,21 +143,21 @@ function Sidebar({
                         )
                     ) : (
                         <>
-                            <p className="mb-1.5 text-[10px] font-semibold text-gray-400 dark:text-slate-600">
+                            <p className="mb-1.5 text-[10px] font-semibold text-[color:var(--app-muted-foreground)]">
                                 {t('providerPortal.provider')}
                             </p>
                             {providers.length > 1 ? (
                                 <select
                                     value={selectedProviderId ?? ''}
                                     onChange={e => switchProvider(e.target.value)}
-                                    className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-900 focus:border-orange-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-400/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                                    className={cx(selectClassName, 'w-full')}
                                 >
                                     {providers.map(p => (
                                         <option key={p.id} value={p.id}>{providerName(p)}</option>
                                     ))}
                                 </select>
                             ) : selected && (
-                                <div className="flex items-center gap-2.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2 dark:border-slate-700 dark:bg-slate-900/60">
+                                <div className="flex items-center gap-2.5 rounded-lg border border-[color:var(--app-border)] bg-gray-50 px-2.5 py-2 dark:bg-slate-900/60">
                                     <div
                                         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white shadow-sm"
                                         style={{ background: `linear-gradient(135deg,${PRIMARY},${ACCENT})` }}
@@ -164,8 +165,8 @@ function Sidebar({
                                         {selected.code.slice(0, 2).toUpperCase()}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="truncate text-[12px] font-semibold text-gray-900 dark:text-slate-100">{providerName(selected)}</p>
-                                        <p className="font-mono text-[10px] text-gray-400 dark:text-slate-500">{selected.code}</p>
+                                        <p className="truncate text-[12px] font-semibold text-[color:var(--app-foreground)]">{providerName(selected)}</p>
+                                        <p className="font-mono text-[10px] text-[color:var(--app-muted-foreground)]">{selected.code}</p>
                                     </div>
                                 </div>
                             )}
@@ -177,7 +178,7 @@ function Sidebar({
             {/* ── Navigation ── */}
             <nav className="flex-1 overflow-y-auto py-3" aria-label="Portal navigation">
                 {!collapsed && (
-                    <p className="mb-1 px-4 text-[10px] font-semibold text-gray-400 dark:text-slate-600">
+                    <p className="mb-1 px-4 text-[10px] font-semibold text-[color:var(--app-muted-foreground)]">
                         Menu
                     </p>
                 )}
@@ -219,7 +220,7 @@ function Sidebar({
                                         'group flex items-center gap-3 rounded-card px-3 py-2.5 text-[13.5px] font-medium transition-all duration-150 focus:outline-none',
                                         isActive
                                             ? 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400'
-                                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100',
+                                            : 'text-[color:var(--app-muted-foreground)] hover:bg-gray-100 hover:text-[color:var(--app-foreground)] dark:hover:bg-slate-800/70',
                                     ].join(' ')}
                                 >
                                     {/* icon wrapper */}
@@ -227,7 +228,7 @@ function Sidebar({
                                         'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors',
                                         isActive
                                             ? 'bg-orange-500/15'
-                                            : 'bg-gray-100 group-hover:bg-gray-200 dark:bg-slate-800 dark:group-hover:bg-slate-700',
+                                            : 'bg-[color:var(--app-surface-muted)] group-hover:bg-gray-200 dark:group-hover:bg-slate-700',
                                     ].join(' ')}>
                                         <Icon className={['h-[15px] w-[15px]', isActive ? 'text-orange-500' : color].join(' ')} />
                                     </span>
@@ -244,8 +245,8 @@ function Sidebar({
 
             {/* ── Footer ── */}
             {!collapsed && (
-                <div className="shrink-0 border-t border-gray-200 px-4 py-3 dark:border-slate-800">
-                    <p className="text-[11px] text-gray-400 dark:text-slate-600">© {new Date().getFullYear()} Provider Portal</p>
+                <div className="shrink-0 border-t border-[color:var(--app-border)] px-4 py-3">
+                    <p className="text-[11px] text-[color:var(--app-muted-foreground)]">© {new Date().getFullYear()} Provider Portal</p>
                 </div>
             )}
         </div>
@@ -269,7 +270,7 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
 
     return (
         <header
-            className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white/95 backdrop-blur-sm px-4 sm:px-6 dark:border-slate-800 dark:bg-slate-900/95"
+            className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-[color:var(--app-border)] bg-white/95 backdrop-blur-sm px-4 sm:px-6 dark:bg-slate-900/95"
             style={{ borderTop: `3px solid ${ACCENT}` }}
         >
             {/* Mobile hamburger */}
@@ -277,13 +278,13 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
                 type="button"
                 onClick={onMenuClick}
                 aria-label="Open sidebar"
-                className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-800 lg:hidden"
+                className="rounded-lg p-1.5 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-gray-700 focus:outline-none lg:hidden"
             >
                 <MenuIcon className="h-5 w-5" />
             </button>
 
             {/* Page title — mobile only */}
-            <span className="truncate text-sm font-semibold text-gray-800 dark:text-slate-200 lg:hidden">{title}</span>
+            <span className="truncate text-sm font-semibold text-[color:var(--app-foreground)] lg:hidden">{title}</span>
 
             <div className="flex-1" />
 
@@ -298,7 +299,7 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
                     <Dropdown.Trigger>
                         <button
                             type="button"
-                            className="flex items-center gap-2.5 rounded-card px-2 py-1.5 transition-colors hover:bg-gray-100 focus:outline-none dark:hover:bg-slate-800"
+                            className="flex items-center gap-2.5 rounded-card px-2 py-1.5 transition-colors hover:bg-[color:var(--app-surface-muted)] focus:outline-none"
                         >
                             {/* Avatar */}
                             <span
@@ -311,7 +312,7 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
 
                             {/* Name + role badge */}
                             <div className="hidden text-left sm:block">
-                                <p className="max-w-[130px] truncate text-[13px] font-semibold leading-tight text-gray-900 dark:text-slate-100">
+                                <p className="max-w-[130px] truncate text-[13px] font-semibold leading-tight text-[color:var(--app-foreground)]">
                                     {user?.name ?? t('common.user')}
                                 </p>
                                 <p className="text-[10px] font-medium leading-tight" style={{ color: PRIMARY }}>
@@ -319,11 +320,11 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
                                 </p>
                             </div>
 
-                            <ChevronDown className="h-3.5 w-3.5 text-gray-400 dark:text-slate-500" />
+                            <ChevronDown className="h-3.5 w-3.5 text-[color:var(--app-muted-foreground)]" />
                         </button>
                     </Dropdown.Trigger>
 
-                    <Dropdown.Content contentClasses="py-1.5 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-700/80 min-w-[230px] shadow-xl rounded-card">
+                    <Dropdown.Content contentClasses="py-1.5 bg-[color:var(--app-surface)] border border-gray-100 dark:border-slate-700/80 min-w-[230px] shadow-xl rounded-card">
                         {/* User card */}
                         <div className="mx-1.5 mb-1.5 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 p-3 dark:from-orange-950/30 dark:to-amber-950/20">
                             <div className="flex items-center gap-3">
@@ -334,10 +335,10 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
                                     {initials}
                                 </span>
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-bold text-gray-900 dark:text-slate-100">
+                                    <p className="truncate text-sm font-bold text-[color:var(--app-foreground)]">
                                         {user?.name ?? '—'}
                                     </p>
-                                    <p className="truncate text-xs text-gray-500 dark:text-slate-400">{user?.email ?? '—'}</p>
+                                    <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{user?.email ?? '—'}</p>
                                     <span
                                         className="mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold"
                                         style={{ background: `color-mix(in srgb,${PRIMARY} 15%,transparent)`, color: ACCENT }}
@@ -400,7 +401,7 @@ export default function CafeteriaProviderPortalLayout({
     return (
         <LocalizedUiProvider>
         <div
-            className="min-h-screen bg-gray-50 dark:bg-slate-950"
+            className="min-h-screen bg-[color:var(--app-surface-muted)]"
             style={{ '--color-primary': PRIMARY, '--color-accent': ACCENT } as CSSProperties}
         >
             <AppToaster />
@@ -448,7 +449,7 @@ export default function CafeteriaProviderPortalLayout({
                 <TopBar onMenuClick={() => setMobileOpen(true)} title={title} />
 
                 {header && (
-                    <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-4 sm:px-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4 sm:px-6">
                         {header}
                     </div>
                 )}

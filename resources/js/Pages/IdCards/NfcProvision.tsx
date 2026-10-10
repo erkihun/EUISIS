@@ -6,7 +6,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import InputError from '@/Components/InputError';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useNfcTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { filterInputCls } from '@/Components/ui';
+import { buttonClassName, filterInputCls } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
 
@@ -28,8 +28,8 @@ type Props = {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div>
-            <dt className="text-xs text-gray-500 dark:text-slate-400">{label}</dt>
-            <dd className="mt-0.5 text-sm text-gray-900 dark:text-slate-100">{children}</dd>
+            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{label}</dt>
+            <dd className="mt-0.5 text-sm text-[color:var(--app-foreground)]">{children}</dd>
         </div>
     );
 }
@@ -75,8 +75,8 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
 
             <div className="grid max-w-4xl gap-4 lg:grid-cols-2">
                 {/* Read-only context */}
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                    <h2 className="mb-4 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                         {t('nfc.linkedIdCard')}
                     </h2>
                     <dl className="grid gap-4 sm:grid-cols-2">
@@ -98,7 +98,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                 </section>
 
                 {/* Provisioning form */}
-                <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                     {/*
                       * Reader status is reported from the bound adapter, so an
                       * operator is never shown a success state that did not
@@ -123,7 +123,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
 
                     <form onSubmit={submit} className="space-y-4">
                         <label className="block">
-                            <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-200">
+                            <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">
                                 {t('nfc.selectCredentialType')}
                             </span>
                             <select
@@ -144,7 +144,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                         {needsKeyMaterial && (
                             <>
                                 <label className="block">
-                                    <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-200">
+                                    <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">
                                         {t('nfc.keyVersion')}
                                     </span>
                                     <input
@@ -156,7 +156,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                                 </label>
 
                                 <label className="block">
-                                    <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-200">
+                                    <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">
                                         {t('nfc.keyReference')}
                                     </span>
                                     <input
@@ -164,7 +164,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                                         onChange={(e) => form.setData('key_reference', e.target.value)}
                                         className={`${filterInputCls} w-full`}
                                     />
-                                    <span className="mt-1 block text-xs text-gray-500 dark:text-slate-400">
+                                    <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">
                                         {t('nfc.keyReferenceHint')}
                                     </span>
                                     <InputError message={form.errors.key_reference} className="mt-1" />
@@ -179,12 +179,12 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                         <button
                             type="submit"
                             disabled={form.processing}
-                            className="w-full rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50"
+                            className={buttonClassName({ variant: 'primary', className: 'w-full' })}
                         >
                             {t('nfc.provisionSubmit')}
                         </button>
 
-                        <p className="text-center text-xs text-gray-500 dark:text-slate-400">
+                        <p className="text-center text-xs text-[color:var(--app-muted-foreground)]">
                             {t('nfc.waitingForHardware')}
                         </p>
                     </form>

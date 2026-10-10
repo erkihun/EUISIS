@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link } from '@inertiajs/react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
+import { buttonClassName, selectClassName } from '@/Components/ui';
 type InstitutionRow = {
     organization: { id: string; code: string; name_en: string; name_am: string | null };
     eligible: number; assessed: number; unassessed: number; coverage_percent: string | null; status: string; submission_status: string;
@@ -48,7 +49,7 @@ export default function OversightDashboard(props: Props) {
         <OversightLayout title={t('assessmentOversight.dashboardTitle')} description={t('assessmentOversight.dashboardDescription')} active="dashboard" shell={props} needsCycle={false}>
             {!cycle && <>
                 <Section title={t('assessmentOversight.dashboardNoCycle')} description={t('assessmentOversight.dashboardSetupHelp')}>
-                    {can.setup && <Link className="inline-flex rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white" href={route('assessment-oversight.setup')}>{t('assessmentOversight.nav.setup')}</Link>}
+                    {can.setup && <Link className={buttonClassName({ variant: 'primary' })} href={route('assessment-oversight.setup')}>{t('assessmentOversight.nav.setup')}</Link>}
                 </Section>
                 <KpiGroup title={t('assessmentOversight.kpi.employees')}>
                     {['eligible', 'assessed', 'unassessed', 'coverage'].map((key) => <Kpi key={key} label={t(`assessmentOversight.${key}`)} value={null} />)}
@@ -61,7 +62,7 @@ export default function OversightDashboard(props: Props) {
                 </div>
             </>}
             {cycle && props.organizations.length > 0 && <Filters routeName="assessment-oversight.dashboard" cycle={cycle}>
-                <select aria-label={t('assessmentOversight.institution')} name="organization_id" defaultValue={props.filters.organization_id ?? ''} className="rounded-lg border-gray-300 text-sm dark:bg-slate-900">
+                <select aria-label={t('assessmentOversight.institution')} name="organization_id" defaultValue={props.filters.organization_id ?? ''} className={selectClassName}>
                     <option value="">{t('assessmentOversight.allInstitutions')}</option>
                     {props.organizations.map((org) => <option key={org.id} value={org.id}>{named(org, locale)}</option>)}
                 </select>
@@ -99,7 +100,7 @@ export default function OversightDashboard(props: Props) {
                         <Kpi label={t('assessmentOversight.unassessed')} value={data.totals.unassessed} href={can.employees ? href('assessment-oversight.employees', { outcome: 'unassessed' }) : undefined} tone="warning" />
                         <Kpi label={t('assessmentOversight.coverage')} value={data.totals.coverage_percent} suffix="%"
                             hint={<span className="block"><span className="block">{`${data.totals.assessed.toLocaleString()} / ${data.totals.eligible.toLocaleString()}`}{data.totals.approved_exclusions > 0 ? ` · ${t('assessmentOversight.grossCoverage')} ${pct(data.totals.gross_coverage_percent)}` : ''}</span>
-                                <span className="mt-2 block h-1.5 rounded-full bg-gray-100 dark:bg-slate-800"><span className="block h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${Math.max(0, Math.min(100, Number(data.totals.coverage_percent ?? 0)))}%` }} /></span></span>} />
+                                <span className="mt-2 block h-1.5 rounded-full bg-[color:var(--app-surface-muted)]"><span className="block h-1.5 rounded-full bg-[color:var(--color-primary)]" style={{ width: `${Math.max(0, Math.min(100, Number(data.totals.coverage_percent ?? 0)))}%` }} /></span></span>} />
                     </KpiGroup>
 
                     <div className="grid gap-4 xl:grid-cols-2">
@@ -121,7 +122,7 @@ export default function OversightDashboard(props: Props) {
                                 </div>
                             ) : <p className="text-sm text-gray-500">{t('assessmentOversight.notAvailable')}</p>}
                             {data.actions.length > 0 && (
-                                <div className="mt-4 border-t border-gray-100 pt-3 dark:border-slate-800">
+                                <div className="mt-4 border-t border-[color:var(--app-border)] pt-3">
                                     <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{t('assessmentOversight.dashboardActions')}</h4>
                                     <ul className="space-y-1.5 text-sm">{data.actions.map((action) => <li key={action.code}>
                                         <Link href={href(action.route, action.filters)} className="inline-flex items-center gap-2 hover:underline"><SeverityBadge severity={action.priority} />{t(`assessmentOversight.rules.${action.code}`)}: <span className="tabular-nums">{action.count}</span></Link>

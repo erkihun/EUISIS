@@ -8,6 +8,7 @@ import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, SelectOptions, useNames, type NamePair } from '@/Components/Cafeteria/PolicyUi';
 
+import { buttonClassName } from '@/Components/ui';
 type AssignmentOption = {
     id: string; organization: NamePair; provider: NamePair; provider_id: string; network: NamePair;
     cafeteria_service_network_id: string | null; cafeteria: NamePair; cafeteria_id: string | null; status: string; effective_from: string | null;
@@ -175,7 +176,7 @@ export default function PolicyForm({ policy, assignments, cafeterias, defaults }
 
                 <div className="flex justify-end gap-3">
                     <Link href={policy ? route('cafeteria.policies.show', policy.id) : route('cafeteria.policies.index')} className="rounded-[var(--radius-control)] border border-[color:var(--app-border)] px-4 py-2 text-sm font-medium">{tt('cancel')}</Link>
-                    <button type="submit" disabled={form.processing} className="rounded-[var(--radius-control)] bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{tt('save')}</button>
+                    <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>{tt('save')}</button>
                 </div>
             </form>
         </AuthenticatedLayout>

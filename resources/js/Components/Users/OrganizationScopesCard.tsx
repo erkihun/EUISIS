@@ -5,6 +5,7 @@ import { localizedName } from '@/utils/localizedName';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type OrganizationScope = {
     id: string;
     organization: { id: string; name_en: string; name_am?: string } | null;
@@ -47,9 +48,8 @@ const emptyForm = (): FormState => ({
     is_active: true,
 });
 
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
-const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
+const inputCls = cx(inputClassName, 'w-full');
+const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
 export default function OrganizationScopesCard({ userId, scopes, organizations, canManage }: Props) {
     const { t, locale } = useLocale();
@@ -156,16 +156,16 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
     }
 
     return (
-        <div className="rounded-panel border border-gray-200 bg-white p-6 xl:sticky xl:top-4 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6 xl:sticky xl:top-4">
             <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                     {t('users.userOrganizationScopes.title')}
                 </h3>
                 {canManage && !showForm && (
                     <button
                         type="button"
                         onClick={openAdd}
-                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                        className={buttonClassName({ variant: 'primary', size: 'sm' })}
                     >
                         {t('users.userOrganizationScopes.addScope')}
                     </button>
@@ -177,16 +177,16 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
             <div className="space-y-4">
                 <div className="min-w-0">
             {scopes.length === 0 && (
-                <p className="text-sm text-gray-500 dark:text-slate-400">
+                <p className="text-sm text-[color:var(--app-muted-foreground)]">
                     {t('users.userOrganizationScopes.noScopes')}
                 </p>
             )}
 
             {scopes.length > 0 && (
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead>
-                            <tr className="border-b border-gray-100 dark:border-slate-800">
+                    <table className={cx(tableClassName, 'text-left')}>
+                        <thead className={tableHeadClassName}>
+                            <tr>
                                 <th className={`${labelCls} pb-2 pr-4`}>{t('users.userOrganizationScopes.organization')}</th>
                                 <th className={`${labelCls} pb-2 pr-4`}>{t('users.userOrganizationScopes.scopeType')}</th>
                                 <th className={`${labelCls} pb-2 pr-4`}>{t('users.userOrganizationScopes.effectiveFrom')}</th>
@@ -195,39 +195,39 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                 {canManage && <th className={`${labelCls} pb-2`}></th>}
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className={tableBodyClassName}>
                             {scopes.map((scope) => (
                                 <tr
                                     key={scope.id}
-                                    className="border-b border-gray-50 last:border-0 dark:border-slate-800"
+                                    className={tableRowClassName}
                                 >
-                                    <td className="py-2 pr-4 text-gray-800 dark:text-slate-200">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                         {scope.scope_type === 'citywide'
                                             ? '—'
                                             : orgName(scope.organization)}
                                     </td>
-                                    <td className="py-2 pr-4 text-gray-700 dark:text-slate-300">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                         {scopeTypeLabel(scope.scope_type)}
                                     </td>
-                                    <td className="py-2 pr-4 text-gray-600 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                         {scope.effective_from ?? '—'}
                                     </td>
-                                    <td className="py-2 pr-4 text-gray-600 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                         {scope.effective_to ?? '—'}
                                     </td>
-                                    <td className="py-2 pr-4">
+                                    <td className={tableCellClassName}>
                                         <span
                                             className={
                                                 scope.is_active
                                                     ? 'rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-slate-800 dark:text-slate-400'
+                                                    : 'rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs text-[color:var(--app-muted-foreground)]'
                                             }
                                         >
                                             {scope.is_active ? t('common.active') : t('common.inactive')}
                                         </span>
                                     </td>
                                     {canManage && (
-                                        <td className="py-2 text-right">
+                                        <td className={cx(tableCellClassName, 'text-right')}>
                                             <button
                                                 type="button"
                                                 onClick={() => openEdit(scope)}
@@ -253,8 +253,8 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                 </div>
 
             {showForm && (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
-                    <p className="mb-3 text-sm font-semibold text-gray-900 dark:text-slate-100">
+                <div className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4">
+                    <p className="mb-3 text-sm font-semibold text-[color:var(--app-foreground)]">
                         {editingId
                             ? t('users.userOrganizationScopes.editScope')
                             : t('users.userOrganizationScopes.addScope')}
@@ -286,12 +286,12 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                         {form.scope_type !== 'citywide' && (
                             <div>
                                 <label className={labelCls}>{t('users.userOrganizationScopes.organization')}</label>
-                                <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">
+                                <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('users.userOrganizationScopes.selectOrganizations')}
                                 </p>
 
                                 {organizations.length === 0 ? (
-                                    <p className="mt-2 rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
+                                    <p className="mt-2 rounded-lg border border-dashed border-[color:var(--app-border)] px-3 py-4 text-center text-sm text-[color:var(--app-muted-foreground)]">
                                         {t('users.userOrganizationScopes.noOrganizations')}
                                     </p>
                                 ) : (
@@ -305,9 +305,9 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
 
                                         {/* The list is always visible — the user must be able to
                                             browse organizations without guessing a search term. */}
-                                        <ul className="max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+                                        <ul className="max-h-56 overflow-y-auto rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                                             {filteredOrgs().length === 0 ? (
-                                                <li className="px-3 py-4 text-center text-sm text-gray-500 dark:text-slate-400">
+                                                <li className="px-3 py-4 text-center text-sm text-[color:var(--app-muted-foreground)]">
                                                     {t('users.userOrganizationScopes.noOrganizationsMatch')}
                                                 </li>
                                             ) : (
@@ -327,7 +327,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                                                     selected
                                                                         ? 'bg-blue-50 dark:bg-blue-900/20'
                                                                         : assignable
-                                                                            ? 'hover:bg-gray-50 dark:hover:bg-slate-800'
+                                                                            ? 'hover:bg-[color:var(--app-surface-muted)]'
                                                                             : 'cursor-not-allowed opacity-50'
                                                                 }`}
                                                                 onClick={() => {
@@ -338,17 +338,17 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                                                 <span className="min-w-0">
                                                                     <span className="flex flex-wrap items-center gap-1.5">
                                                                         {o.code && (
-                                                                            <span className="font-mono text-xs text-gray-400 dark:text-slate-500">
+                                                                            <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
                                                                                 {o.code}
                                                                             </span>
                                                                         )}
-                                                                        <span className="truncate font-medium text-gray-900 dark:text-slate-100">
+                                                                        <span className="truncate font-medium text-[color:var(--app-foreground)]">
                                                                             {orgName(o)}
                                                                         </span>
                                                                     </span>
                                                                     <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
                                                                         {o.type && (
-                                                                            <span className="text-xs text-gray-500 dark:text-slate-400">
+                                                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">
                                                                                 {localizedName(o.type.name_en, o.type.name_am, locale)}
                                                                             </span>
                                                                         )}
@@ -374,7 +374,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                 )}
 
                                 {form.scope_type === 'self' && (
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                    <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                         {t('users.userOrganizationScopes.selfHelperText')}
                                     </p>
                                 )}
@@ -408,11 +408,11 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                             <input
                                 type="checkbox"
                                 id="scope-is-active"
-                                className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-600"
+                                className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                                 checked={form.is_active}
                                 onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
                             />
-                            <label htmlFor="scope-is-active" className="text-sm text-gray-700 dark:text-slate-300">
+                            <label htmlFor="scope-is-active" className="text-sm text-[color:var(--app-foreground)]">
                                 {t('users.userOrganizationScopes.isActive')}
                             </label>
                         </div>
@@ -422,7 +422,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                         <button
                             type="button"
                             onClick={cancelForm}
-                            className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                            className="rounded-lg px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                         >
                             {t('users.userOrganizationScopes.cancel')}
                         </button>
@@ -430,7 +430,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                             type="button"
                             onClick={submitForm}
                             disabled={form.scope_type !== 'citywide' && form.organization_id === ''}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                            className={buttonClassName({ variant: 'primary', size: 'sm' })}
                         >
                             {t('users.userOrganizationScopes.save')}
                         </button>

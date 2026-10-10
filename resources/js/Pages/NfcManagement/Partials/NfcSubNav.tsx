@@ -56,7 +56,7 @@ export default function NfcSubNav({ can, current }: { can: NfcCapabilities; curr
     if (visible.length < 2) return null;
 
     return (
-        <nav className="my-4 flex flex-wrap gap-1 border-b border-gray-200 dark:border-slate-800">
+        <nav className="my-4 flex flex-wrap gap-1 border-b border-[color:var(--app-border)]">
             {visible.map((tab) => (
                 <Link
                     key={tab.key}
@@ -65,7 +65,7 @@ export default function NfcSubNav({ can, current }: { can: NfcCapabilities; curr
                     className={`-mb-px rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium transition ${
                         tab.key === current
                             ? 'border-blue-600 text-blue-700 dark:border-blue-400 dark:text-[color:var(--color-primary)]'
-                            : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-800 dark:text-slate-400 dark:hover:text-slate-200'
+                            : 'border-transparent text-[color:var(--app-muted-foreground)] hover:border-gray-300 hover:text-[color:var(--app-foreground)]'
                     }`}
                 >
                     {tab.label}

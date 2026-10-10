@@ -9,6 +9,7 @@ import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { localizedName } from '@/utils/localizedName';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OccupationOption = { id: string; isco_code: string; name_en: string | null; name_am: string | null };
 type UnitOption = { id: string; name_en: string; name_am: string | null; code: string; organization_unit_type_id: string | null };
 
@@ -40,7 +41,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
         effective_to: toDateInput(position.effective_to),
     });
 
-    const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = cx(inputClassName, 'w-full');
     const errorCls = 'mt-1 text-xs text-red-600 dark:text-red-400';
     const selectedUnit = organizationUnits.find((unit) => unit.id === form.data.organization_unit_id);
 
@@ -53,7 +54,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
         <AuthenticatedLayout header={<PageHeader title={t('positions.editPosition')} />}>
             <Head title={t('positions.editPosition')} />
             <form
-                className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
                 onSubmit={submit}
             >
                 <div className="grid gap-4 md:grid-cols-2">
@@ -234,7 +235,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
                 </div>
 
                 {/* Active */}
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                     <input
                         type="checkbox"
                         checked={form.data.is_active}
@@ -245,7 +246,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                 <div className="flex gap-3">
                     <button
-                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                        className={buttonClassName({ variant: 'primary' })}
                         type="submit"
                         disabled={form.processing}
                     >
@@ -253,7 +254,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
                     </button>
                     <Link
                         href={route('positions.show', position.id)}
-                        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200"
+                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
                     >
                         {t('common.cancel')}
                     </Link>

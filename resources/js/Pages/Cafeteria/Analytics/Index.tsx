@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, Money, SelectOptions, StatusPill } from '@/Components/Cafeteria/PolicyUi';
 
+import { tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
 type Option = { id: string; code?: string; provider_code?: string; name_en: string; name_am: string | null };
 type Filters = { type: string; date_from: string; date_to: string; organization_id: string | null; provider_id: string | null; network_id: string | null; cafeteria_id: string | null };
 
@@ -67,11 +68,11 @@ export default function AnalyticsIndex({ filters, types, report, organizations, 
 
                 <div className="overflow-x-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     {report.rows.length === 0 ? <EmptyState title={tt('noResults')} /> : (
-                        <table className="w-full text-sm">
-                            <thead className="border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] text-xs">
+                        <table className={tableClassName}>
+                            <thead className={tableHeadClassName}>
                                 <tr>{report.columns.map((column) => <th key={column} className={`px-4 py-3 ${MONEY.has(column) ? 'text-end' : 'text-start'}`}>{t(`cafeteriaPolicy.columns.${column}`)}</th>)}</tr>
                             </thead>
-                            <tbody className="divide-y divide-[color:var(--app-border)]">
+                            <tbody className={tableBodyClassName}>
                                 {report.rows.map((row, index) => (
                                     <tr key={index}>
                                         {report.columns.map((column) => <td key={column} className={`px-4 py-2 ${MONEY.has(column) ? 'text-end' : ''}`}>{cell(column, row[column] ?? null)}</td>)}

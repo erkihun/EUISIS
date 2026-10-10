@@ -55,11 +55,11 @@ export default function ContactChange({ field, value, printed, l }: {
         <div className="py-3 first:pt-0 last:pb-0">
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
-                    <p className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+                    <p className="flex flex-wrap items-center gap-1.5 text-xs text-[color:var(--app-muted-foreground)]">
                         {l(`fields.${field}`)}
                         {printed && <PrintedChip label={l('printed_on_card')} />}
                     </p>
-                    <p className="break-all text-sm font-medium text-gray-900 dark:text-slate-100">{value || l('not_set')}</p>
+                    <p className="break-all text-sm font-medium text-[color:var(--app-foreground)]">{value || l('not_set')}</p>
                 </div>
                 {step === 'view' && (
                     <button type="button" onClick={() => setStep('enter')} className={`${secondaryBtn} min-h-9 px-3 py-1.5`}>{l('change')}</button>
@@ -67,7 +67,7 @@ export default function ContactChange({ field, value, printed, l }: {
             </div>
 
             {step === 'enter' && (
-                <form onSubmit={sendCode} className="mt-3 space-y-2 rounded-lg bg-gray-50 p-3 dark:bg-slate-800/50">
+                <form onSubmit={sendCode} className="mt-3 space-y-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3">
                     {printed && <p role="note" className="text-sm text-amber-800 dark:text-amber-300">{l('card_warning')}</p>}
                     <label htmlFor={id} className={labelCls}>{l('new_value')}</label>
                     <input
@@ -90,8 +90,8 @@ export default function ContactChange({ field, value, printed, l }: {
             )}
 
             {step === 'code' && (
-                <form onSubmit={confirmCode} className="mt-3 space-y-2 rounded-lg bg-gray-50 p-3 dark:bg-slate-800/50">
-                    <p className="text-sm text-gray-700 dark:text-slate-300">{l('code_sent_to', { value: request.data.value })}</p>
+                <form onSubmit={confirmCode} className="mt-3 space-y-2 rounded-lg bg-[color:var(--app-surface-muted)] p-3">
+                    <p className="text-sm text-[color:var(--app-foreground)]">{l('code_sent_to', { value: request.data.value })}</p>
                     <label htmlFor={`${id}-code`} className={labelCls}>{l('code')}</label>
                     <input
                         id={`${id}-code`}

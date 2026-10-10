@@ -5,6 +5,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrganizationUnit = {
     id: string;
     code: string;
@@ -39,9 +40,9 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
         form.post(route('positions.move.store', position.id));
     }
 
-    const labelClass = 'block text-sm font-medium text-gray-700 dark:text-slate-300';
-    const inputClass = 'mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
-    const readOnlyClass = `${inputClass} bg-gray-50 text-gray-600 dark:bg-slate-800 dark:text-slate-300`;
+    const labelClass = 'block text-sm font-medium text-[color:var(--app-foreground)]';
+    const inputClass = cx(inputClassName, 'mt-1 block w-full');
+    const readOnlyClass = `${inputClass} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`;
 
     return (
         <AuthenticatedLayout
@@ -49,7 +50,7 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
         >
             <Head title={t('positions.movePosition')} />
 
-            <form onSubmit={submit} className="mx-auto max-w-3xl space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+            <form onSubmit={submit} className="mx-auto max-w-3xl space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                 {isOccupied && (
                     <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
                         {t('positions.occupiedCannotMove')}
@@ -110,13 +111,13 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
                 </div>
 
                 <div className="flex justify-end gap-3">
-                    <Link href={route('positions.show', position.id)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800">
+                    <Link href={route('positions.show', position.id)} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
                         {t('common.cancel')}
                     </Link>
                     <button
                         type="submit"
                         disabled={isOccupied || form.processing || form.data.target_organization_unit_id === ''}
-                        className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className={buttonClassName({ variant: 'primary' })}
                     >
                         {t('positions.confirmMove')}
                     </button>

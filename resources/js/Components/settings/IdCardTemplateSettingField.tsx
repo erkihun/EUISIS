@@ -29,9 +29,9 @@ export default function IdCardTemplateSettingField({
     return (
         <div className="space-y-3 px-5 py-4">
             <div>
-                <span className="text-sm font-medium text-gray-900 dark:text-slate-100">{label}</span>
+                <span className="text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
                 {description && (
-                    <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{description}</p>
+                    <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>
                 )}
             </div>
 
@@ -50,15 +50,15 @@ export default function IdCardTemplateSettingField({
                                 'rounded-card border p-3 text-left transition',
                                 isSelected
                                     ? 'border-[color:var(--color-primary)] bg-blue-50 ring-2 ring-[color:var(--color-primary)]/20 dark:bg-blue-950/30'
-                                    : 'border-gray-200 bg-white hover:border-blue-300 dark:border-slate-700 dark:bg-slate-950',
+                                    : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)] hover:border-blue-300',
                                 disabled ? 'cursor-not-allowed opacity-60' : '',
                             ].join(' ')}
                         >
                             <TemplateThumbnail template={template} />
-                            <span className="mt-2 block text-sm font-semibold text-gray-900 dark:text-slate-100">
+                            <span className="mt-2 block text-sm font-semibold text-[color:var(--app-foreground)]">
                                 {t(`settings.idCardTemplates.${template}.name`)}
                             </span>
-                            <span className="mt-0.5 block text-xs leading-5 text-gray-500 dark:text-slate-400">
+                            <span className="mt-0.5 block text-xs leading-5 text-[color:var(--app-muted-foreground)]">
                                 {t(`settings.idCardTemplates.${template}.description`)}
                             </span>
                         </button>

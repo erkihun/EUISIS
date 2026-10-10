@@ -8,6 +8,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronDown, ChevronRight, Layers, Plus, ShieldCheck, TagsIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Permission = {
     id: number;
     name: string;
@@ -46,7 +47,7 @@ const CRITICAL = new Set([
 ]);
 
 const inputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500';
+    'rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:placeholder-slate-500';
 
 export default function PermissionsIndex({
     permissions,
@@ -126,7 +127,7 @@ export default function PermissionsIndex({
                         can.create ? (
                             <Link
                                 href={route('permissions.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {t('permissions.createPermission')}
@@ -194,18 +195,18 @@ export default function PermissionsIndex({
                         ))}
                     </select>
                 )}
-                <div className="ml-auto flex items-center rounded-lg border border-gray-200 dark:border-slate-700">
+                <div className="ml-auto flex items-center rounded-lg border border-[color:var(--app-border)]">
                     <button
                         type="button"
                         onClick={() => setView('grouped')}
-                        className={`rounded-l-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'grouped' ? 'bg-[color:var(--color-primary)] text-white' : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}
+                        className={`rounded-l-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'grouped' ? 'bg-[color:var(--color-primary)] text-white' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}
                     >
                         {t('permissions.groupedView')}
                     </button>
                     <button
                         type="button"
                         onClick={() => setView('table')}
-                        className={`rounded-r-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'table' ? 'bg-[color:var(--color-primary)] text-white' : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}
+                        className={`rounded-r-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'table' ? 'bg-[color:var(--color-primary)] text-white' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}
                     >
                         {t('permissions.tableView')}
                     </button>
@@ -213,7 +214,7 @@ export default function PermissionsIndex({
             </div>
 
             {permissionRows.length === 0 ? (
-                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <EmptyState title={t('permissions.noPermissionsFound')} description="" />
                 </div>
             ) : view === 'table' ? (
@@ -237,7 +238,7 @@ export default function PermissionsIndex({
 
             {/* Pagination */}
             {meta.last_page > 1 && (
-                <div className="mt-4 flex items-center justify-between text-sm text-gray-500 dark:text-slate-400">
+                <div className="mt-4 flex items-center justify-between text-sm text-[color:var(--app-muted-foreground)]">
                     <span>
                         {t('permissions.pageOf')
                             .replace(':current', String(meta.current_page))
@@ -249,7 +250,7 @@ export default function PermissionsIndex({
                             type="button"
                             disabled={meta.current_page <= 1}
                             onClick={() => goToPage(meta.current_page - 1)}
-                            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 enabled:hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:enabled:hover:bg-slate-800"
+                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         >
                             {t('common.previous')}
                         </button>
@@ -257,7 +258,7 @@ export default function PermissionsIndex({
                             type="button"
                             disabled={meta.current_page >= meta.last_page}
                             onClick={() => goToPage(meta.current_page + 1)}
-                            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 enabled:hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:enabled:hover:bg-slate-800"
+                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         >
                             {t('common.next')}
                         </button>
@@ -292,7 +293,7 @@ function CriticalBadge({ t }: { t: (key: string) => string }) {
 
 function GroupBadge({ group }: { group: string }) {
     return (
-        <span className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
+        <span className="inline-flex rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
             {group}
         </span>
     );
@@ -312,7 +313,7 @@ function RowActions({
             {permission.can.view && (
                 <Link
                     href={route('permissions.show', permission.id)}
-                    className="text-xs font-medium text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200"
+                    className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                 >
                     {t('common.view')}
                 </Link>
@@ -359,10 +360,10 @@ function TableView({
     t: (key: string) => string;
 }) {
     return (
-        <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
             <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
-                    <thead className="bg-gray-50 dark:bg-slate-950">
+                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <thead className={tableHeadClassName}>
                         <tr>
                             {[
                                 t('permissions.permissionLabel'),
@@ -376,39 +377,39 @@ function TableView({
                             ].map((h) => (
                                 <th
                                     key={h}
-                                    className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 last:text-right dark:text-slate-400"
+                                    className={cx(tableHeaderCellClassName, 'text-left')}
                                 >
                                     {h}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className={tableBodyClassName}>
                         {permissions.map((p) => (
                             <tr
                                 key={p.id}
-                                className="border-t border-gray-100 hover:bg-gray-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
+                                className={tableRowClassName}
                             >
-                                <td className="py-3 pl-5 pr-4">
+                                <td className={tableCellClassName}>
                                     <div className="flex flex-wrap items-center gap-1.5">
-                                        <span className="font-medium text-gray-900 dark:text-slate-100">{label(p)}</span>
+                                        <span className="font-medium text-[color:var(--app-foreground)]">{label(p)}</span>
                                         {p.is_system && <SystemBadge t={t} />}
                                         {CRITICAL.has(p.name) && <CriticalBadge t={t} />}
                                     </div>
                                 </td>
-                                <td className="px-4 py-3 font-mono text-xs text-gray-600 dark:text-slate-300">{p.name}</td>
-                                <td className="max-w-xs px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>{p.name}</td>
+                                <td className={cx(tableCellClassName, 'max-w-xs text-xs text-[color:var(--app-muted-foreground)]')}>
                                     <span className="line-clamp-2">{description(p) ?? '—'}</span>
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className={tableCellClassName}>
                                     {p.group && <GroupBadge group={p.group} />}
                                 </td>
-                                <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-slate-400">{p.guard_name}</td>
-                                <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">{p.roles_count ?? 0}</td>
-                                <td className="whitespace-nowrap px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>{p.guard_name}</td>
+                                <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>{p.roles_count ?? 0}</td>
+                                <td className={cx(tableCellClassName, 'whitespace-nowrap text-xs text-[color:var(--app-muted-foreground)]')}>
                                     <LocalizedDateDisplay value={p.created_at} />
                                 </td>
-                                <td className="py-3 pl-4 pr-5">
+                                <td className={tableCellClassName}>
                                     <RowActions permission={p} onDelete={onDelete} t={t} />
                                 </td>
                             </tr>
@@ -450,19 +451,19 @@ function GroupedView({
                 return (
                     <div
                         key={group}
-                        className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900"
+                        className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]"
                     >
                         <button
                             type="button"
                             onClick={() => toggle(group)}
                             aria-expanded={!isCollapsed}
-                            className="flex w-full items-center justify-between gap-3 border-b border-gray-100 bg-gray-50 px-4 py-3 text-left hover:bg-gray-100 dark:border-slate-800 dark:bg-slate-950/60 dark:hover:bg-slate-900"
+                            className="flex w-full items-center justify-between gap-3 border-b border-[color:var(--app-border)] bg-gray-50 px-4 py-3 text-left hover:bg-[color:var(--app-surface-muted)] dark:bg-slate-950/60"
                         >
                             <span className="flex min-w-0 items-center gap-2">
                                 {isCollapsed
                                     ? <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
                                     : <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />}
-                                <span className="min-w-0 break-words text-xs font-semibold text-gray-600 dark:text-slate-300">
+                                <span className="min-w-0 break-words text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                                     {group}
                                 </span>
                             </span>
@@ -471,21 +472,21 @@ function GroupedView({
                             </span>
                         </button>
                         {!isCollapsed && (
-                            <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <ul className="divide-y divide-[color:var(--app-border)]">
                                 {perms.map((p) => (
-                                    <li key={p.id} className="px-4 py-3.5 transition-colors hover:bg-gray-50 dark:hover:bg-slate-800/40">
+                                    <li key={p.id} className="px-4 py-3.5 transition-colors hover:bg-[color:var(--app-surface-muted)]">
                                         <div className="flex flex-wrap items-start justify-between gap-3">
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex flex-wrap items-center gap-1.5">
-                                                    <p className="text-sm font-semibold leading-5 text-gray-900 dark:text-slate-100">
+                                                    <p className="text-sm font-semibold leading-5 text-[color:var(--app-foreground)]">
                                                         {label(p)}
                                                     </p>
                                                     {p.is_system && <SystemBadge t={t} />}
                                                     {CRITICAL.has(p.name) && <CriticalBadge t={t} />}
                                                 </div>
-                                                <p className="mt-1 break-all font-mono text-xs text-gray-500 dark:text-slate-400">{p.name}</p>
+                                                <p className="mt-1 break-all font-mono text-xs text-[color:var(--app-muted-foreground)]">{p.name}</p>
                                                 {description(p) && (
-                                                    <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-gray-500 dark:text-slate-400">
+                                                    <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-[color:var(--app-muted-foreground)]">
                                                         {description(p)}
                                                     </p>
                                                 )}

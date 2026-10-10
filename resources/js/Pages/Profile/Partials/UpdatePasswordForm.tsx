@@ -43,7 +43,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
         <section className={className}>
             <form onSubmit={updatePassword} className="space-y-4">
                 <div>
-                    <label htmlFor="current_password" className="block text-xs font-medium text-gray-600 dark:text-slate-400">{t('profile.currentPassword')}</label>
+                    <label htmlFor="current_password" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.currentPassword')}</label>
                     <TextInput
                         id="current_password"
                         ref={currentPasswordInput}
@@ -58,7 +58,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
 
                 <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                        <label htmlFor="password" className="block text-xs font-medium text-gray-600 dark:text-slate-400">{t('profile.newPassword')}</label>
+                        <label htmlFor="password" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.newPassword')}</label>
                         <TextInput
                             id="password"
                             ref={passwordInput}
@@ -72,7 +72,7 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
                     </div>
 
                     <div>
-                        <label htmlFor="password_confirmation" className="block text-xs font-medium text-gray-600 dark:text-slate-400">{t('profile.confirmPassword')}</label>
+                        <label htmlFor="password_confirmation" className="block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('profile.confirmPassword')}</label>
                         <TextInput
                             id="password_confirmation"
                             value={data.password_confirmation}
@@ -87,9 +87,9 @@ export default function UpdatePasswordForm({ className = '' }: { className?: str
 
                 <PasswordPolicyChecklist password={data.password} confirmation={data.password_confirmation} personal={[account?.name, account?.email]} />
 
-                <div className="flex items-center justify-end gap-4 border-t border-gray-100 pt-5 dark:border-slate-800">
+                <div className="flex items-center justify-end gap-4 border-t border-[color:var(--app-border)] pt-5">
                     <Transition show={recentlySuccessful} enter="transition ease-in-out" enterFrom="opacity-0" leave="transition ease-in-out" leaveTo="opacity-0">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{t('profile.passwordUpdated')}</p>
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('profile.passwordUpdated')}</p>
                     </Transition>
                     <PrimaryButton disabled={processing}>{t('profile.updatePassword')}</PrimaryButton>
                 </div>

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslator } from '@/hooks/useLocale';
 
+import { buttonClassName } from '@/Components/ui';
 export type SessionPolicy = {
     idle_timeout_seconds: number;
     warning_seconds: number;
@@ -176,7 +177,7 @@ export default function SessionTimeoutManager({ initialPolicy }: { initialPolicy
                         <button
                             type="button"
                             onClick={() => router.post(policy.logout_url)}
-                            className="rounded-lg border border-[color:var(--app-border)] px-4 py-2 text-sm font-medium hover:bg-[color:var(--app-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]"
+                            className={buttonClassName({ variant: 'outline' })}
                         >
                             {label('signOut')}
                         </button>
@@ -184,7 +185,7 @@ export default function SessionTimeoutManager({ initialPolicy }: { initialPolicy
                             type="button"
                             data-autofocus
                             onClick={() => void heartbeat(policy)}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-primary)]"
+                            className={buttonClassName({ variant: 'primary' })}
                         >
                             {label('staySignedIn')}
                         </button>

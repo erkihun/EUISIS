@@ -50,7 +50,7 @@ const LARGE_COVERAGE = 150;
 const STATUS_STYLE: Record<AssignmentStatus, string> = {
     active: 'bg-emerald-50 text-emerald-800 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900',
     scheduled: 'bg-blue-50 text-blue-800 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
-    ended: 'bg-gray-100 text-gray-600 ring-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700',
+    ended: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-gray-200 dark:ring-slate-700',
 };
 
 /**
@@ -125,8 +125,8 @@ export default function DailyActivitiesReviewerAssignments({ reviewers, options,
                 <ManagementNav can={can} current="daily-activities.reviewers.index" />
 
                 <section className={`${panelCls} p-4`} aria-labelledby="add-reviewer-heading">
-                    <h2 id="add-reviewer-heading" className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('dailyActivities.actions.addReviewer')}</h2>
-                    <p className="mb-3 text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.settings.reviewersHint')}</p>
+                    <h2 id="add-reviewer-heading" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('dailyActivities.actions.addReviewer')}</h2>
+                    <p className="mb-3 text-xs text-[color:var(--app-muted-foreground)]">{t('dailyActivities.settings.reviewersHint')}</p>
 
                     <form onSubmit={addReviewer} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <div>
@@ -177,7 +177,7 @@ export default function DailyActivitiesReviewerAssignments({ reviewers, options,
                                 <option value="">{t('dailyActivities.settings.anyEmployee')}</option>
                                 {options.employees.map((e) => <option key={e.id} value={e.id}>{e.full_name} ({e.employee_number})</option>)}
                             </select>
-                            {options.employeesTruncated && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.settings.employeesTruncated').replace('{count}', String(options.employees.length))}</p>}
+                            {options.employeesTruncated && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('dailyActivities.settings.employeesTruncated').replace('{count}', String(options.employees.length))}</p>}
                             {reviewerForm.data.organization_id && employeeSearch && options.employees.length === 0 && <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">{t('dailyActivities.settings.noEmployeeMatch')}</p>}
                             {reviewerForm.errors.employee_id && <p className="mt-1 text-xs text-red-700 dark:text-red-400">{reviewerForm.errors.employee_id}</p>}
                         </div>
@@ -203,21 +203,21 @@ export default function DailyActivitiesReviewerAssignments({ reviewers, options,
                 </section>
 
                 <section className={`${panelCls} p-4`} aria-labelledby="reviewer-list-heading">
-                    <h2 id="reviewer-list-heading" className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('dailyActivities.settings.reviewers')}</h2>
+                    <h2 id="reviewer-list-heading" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('dailyActivities.settings.reviewers')}</h2>
                     {reviewers.length === 0 ? (
-                        <p className="pt-3 text-sm text-gray-500 dark:text-slate-400">{t('dailyActivities.settings.noReviewers')}</p>
+                        <p className="pt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('dailyActivities.settings.noReviewers')}</p>
                     ) : (
-                        <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <ul className="divide-y divide-[color:var(--app-border)]">
                             {reviewers.map((assignment) => (
                                 <li key={assignment.id} className={`flex flex-wrap items-start justify-between gap-2 py-2.5 text-sm ${assignment.status === 'ended' ? 'opacity-75' : ''}`}>
                                     <div className="min-w-0">
-                                        <p className="flex flex-wrap items-center gap-2 font-medium text-gray-900 dark:text-slate-100">
+                                        <p className="flex flex-wrap items-center gap-2 font-medium text-[color:var(--app-foreground)]">
                                             {assignment.reviewer?.name ?? '—'}
                                             <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUS_STYLE[assignment.status]}`}>
                                                 {t(`dailyActivities.settings.status.${assignment.status}`)}
                                             </span>
                                         </p>
-                                        <p className="text-xs text-gray-600 dark:text-slate-400">
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                             {t('dailyActivities.settings.coverage')}:{' '}
                                             {assignment.employee
                                                 ? `${assignment.employee.full_name} (${assignment.employee.employee_number})`
@@ -229,7 +229,7 @@ export default function DailyActivitiesReviewerAssignments({ reviewers, options,
                                             <p className="mt-1 max-w-2xl text-xs text-amber-700 dark:text-amber-300">{t('dailyActivities.settings.largeCoverage')}</p>
                                         )}
                                         {(assignment.effective_from || assignment.effective_to) && (
-                                            <p className="text-xs text-gray-500 dark:text-slate-400">
+                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                 <LocalizedDateDisplay value={assignment.effective_from} /> – <LocalizedDateDisplay value={assignment.effective_to} />
                                             </p>
                                         )}
@@ -246,8 +246,8 @@ export default function DailyActivitiesReviewerAssignments({ reviewers, options,
                 </section>
 
                 <section className={`${panelCls} p-4`} aria-labelledby="review-policy-heading">
-                    <h2 id="review-policy-heading" className="text-sm font-semibold text-gray-900 dark:text-slate-100">{t('dailyActivities.settings.policyTitle')}</h2>
-                    <p className="mb-3 text-xs text-gray-500 dark:text-slate-400">
+                    <h2 id="review-policy-heading" className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('dailyActivities.settings.policyTitle')}</h2>
+                    <p className="mb-3 text-xs text-[color:var(--app-muted-foreground)]">
                         {t('dailyActivities.settings.policyHint').replace('{mode}', t(`dailyActivities.settings.modes.${cityDefaultMode}`))}
                     </p>
                     <form onSubmit={savePolicy} className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
@@ -268,13 +268,13 @@ export default function DailyActivitiesReviewerAssignments({ reviewers, options,
                         <button type="submit" disabled={!policyForm.data.organization_id || policyForm.processing} className={primaryBtn}>{t('dailyActivities.settings.savePolicy')}</button>
                     </form>
                     {policies.length === 0 ? (
-                        <p className="pt-3 text-sm text-gray-500 dark:text-slate-400">{t('dailyActivities.settings.noPolicies')}</p>
+                        <p className="pt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('dailyActivities.settings.noPolicies')}</p>
                     ) : (
-                        <ul className="mt-3 divide-y divide-gray-100 border-t border-gray-100 dark:divide-slate-800 dark:border-slate-800">
+                        <ul className="mt-3 divide-y divide-[color:var(--app-border)] border-t border-[color:var(--app-border)]">
                             {policies.map((policy) => (
                                 <li key={policy.organization_id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
-                                    <span className="font-medium text-gray-900 dark:text-slate-100">{named(policy.organization, locale)}</span>
-                                    <span className="text-gray-600 dark:text-slate-300">{t(`dailyActivities.settings.modes.${policy.review_mode}`)}</span>
+                                    <span className="font-medium text-[color:var(--app-foreground)]">{named(policy.organization, locale)}</span>
+                                    <span className="text-[color:var(--app-muted-foreground)]">{t(`dailyActivities.settings.modes.${policy.review_mode}`)}</span>
                                 </li>
                             ))}
                         </ul>

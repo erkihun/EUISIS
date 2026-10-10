@@ -139,12 +139,12 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
     const user = auth.user;
 
     return (
-        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-4 sm:px-6 dark:border-slate-800 dark:bg-slate-900">
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 sm:px-6">
             {/* Mobile hamburger */}
             <button
                 type="button"
                 onClick={onMenuClick}
-                className="rounded-md p-2 text-gray-500 hover:bg-gray-100 dark:text-slate-400 dark:hover:bg-slate-800 lg:hidden"
+                className="rounded-md p-2 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] lg:hidden"
             >
                 <MenuIcon className="h-5 w-5" />
             </button>
@@ -158,16 +158,16 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
 
                 <Dropdown>
                     <Dropdown.Trigger>
-                        <button type="button" className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800">
+                        <button type="button" className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
                             <UserAvatar src={user?.profile_photo_url} name={user?.name ?? ''} size={28} />
                             <span className="hidden max-w-[120px] truncate sm:inline">{user?.name}</span>
                             <ChevronDown className="h-4 w-4 text-gray-400" />
                         </button>
                     </Dropdown.Trigger>
-                    <Dropdown.Content contentClasses="py-1 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 min-w-[180px]">
-                        <div className="border-b border-gray-100 px-4 py-3 dark:border-slate-700">
-                            <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{user?.name}</p>
-                            <p className="truncate text-xs text-gray-500 dark:text-slate-400">{user?.email}</p>
+                    <Dropdown.Content contentClasses="py-1 bg-[color:var(--app-surface)] border border-[color:var(--app-border)] min-w-[180px]">
+                        <div className="border-b border-[color:var(--app-border)] px-4 py-3">
+                            <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{user?.name}</p>
+                            <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{user?.email}</p>
                         </div>
                         <Dropdown.Link href={route('profile.edit')}>
                             <span className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export default function CafeteriaProviderAdminLayout({ title, header, children }
 
     return (
         <LocalizedUiProvider>
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
+        <div className="min-h-screen bg-[color:var(--app-surface-muted)]">
             <AppToaster />
 
             {/* Desktop sidebar — fixed left */}
@@ -223,7 +223,7 @@ export default function CafeteriaProviderAdminLayout({ title, header, children }
                 <TopBar onMenuClick={() => setMobileSidebarOpen(true)} />
 
                 {header && (
-                    <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-4 sm:px-6 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="shrink-0 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4 sm:px-6">
                         {header}
                     </div>
                 )}

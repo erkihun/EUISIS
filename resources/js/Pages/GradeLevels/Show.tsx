@@ -5,6 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName } from '@/Components/ui';
 export default function GradeLevelsShow({ gradeLevel }: { gradeLevel: any }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
@@ -42,7 +43,7 @@ export default function GradeLevelsShow({ gradeLevel }: { gradeLevel: any }) {
                             {gradeLevel.can?.update && (
                                 <Link
                                     href={route('grade-levels.edit', gradeLevel.id)}
-                                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                    className={buttonClassName({ variant: 'primary' })}
                                 >
                                     {t('common.edit')}
                                 </Link>
@@ -51,7 +52,7 @@ export default function GradeLevelsShow({ gradeLevel }: { gradeLevel: any }) {
                                 <button
                                     type="button"
                                     onClick={handleArchive}
-                                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                    className={buttonClassName({ variant: 'destructive' })}
                                 >
                                     {t('gradeLevels.archive')}
                                 </button>
@@ -60,14 +61,14 @@ export default function GradeLevelsShow({ gradeLevel }: { gradeLevel: any }) {
                                 <button
                                     type="button"
                                     onClick={handleRestore}
-                                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                                    className={buttonClassName({ variant: 'primary' })}
                                 >
                                     {t('gradeLevels.restore')}
                                 </button>
                             )}
                             <Link
                                 href={route('grade-levels.index')}
-                                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200"
+                                className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
                             >
                                 {t('common.back')}
                             </Link>
@@ -78,16 +79,16 @@ export default function GradeLevelsShow({ gradeLevel }: { gradeLevel: any }) {
         >
             <Head title={gradeLevel.name} />
 
-            <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                 <dl className="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <dt className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                        <dt className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                             {t('gradeLevels.name')}
                         </dt>
-                        <dd className="mt-1 text-sm font-medium text-gray-900 dark:text-slate-100">{gradeLevel.name}</dd>
+                        <dd className="mt-1 text-sm font-medium text-[color:var(--app-foreground)]">{gradeLevel.name}</dd>
                     </div>
                     <div>
-                        <dt className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+                        <dt className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                             {t('common.status')}
                         </dt>
                         <dd className="mt-1">

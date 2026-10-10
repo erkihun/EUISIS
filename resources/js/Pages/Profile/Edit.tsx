@@ -8,6 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { formatRelative, toDate } from '@/lib/relativeTime';
 import type { PageProps } from '@/types';
 
+import { buttonClassName } from '@/Components/ui';
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const COUNTRY_CODES = [
@@ -54,16 +55,16 @@ type Profile = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputCls = 'w-full rounded-card border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-800';
+const inputCls = 'w-full rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-2.5 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:placeholder-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-800';
 
 function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: React.ReactNode }) {
     return (
         <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-gray-500 dark:text-slate-400">
+            <label className="block text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                 {label}
             </label>
             {children}
-            {hint && !error && <p className="text-xs text-gray-400 dark:text-slate-500">{hint}</p>}
+            {hint && !error && <p className="text-xs text-[color:var(--app-muted-foreground)]">{hint}</p>}
             {error && <p className="text-xs font-medium text-red-500 dark:text-red-400">{error}</p>}
         </div>
     );
@@ -76,8 +77,8 @@ function SectionHeader({ icon, title, subtitle }: { icon: React.ReactNode; title
                 {icon}
             </div>
             <div>
-                <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
-                {subtitle && <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">{subtitle}</p>}
+                <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+                {subtitle && <p className="mt-0.5 text-sm text-[color:var(--app-muted-foreground)]">{subtitle}</p>}
             </div>
         </div>
     );
@@ -156,7 +157,7 @@ export default function Edit({
             <Head title={t('profile.title')} />
 
             {/* ── Identity header ───────────────────────────────────────── */}
-            <div className="mb-6 overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-6 overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <div className="flex flex-col items-center gap-5 px-6 py-6 sm:flex-row sm:items-center">
                     {/* Avatar with camera button */}
                     <div className="group relative shrink-0">
@@ -183,7 +184,7 @@ export default function Edit({
                             <button
                                 type="button"
                                 onClick={() => { form.setData('profile_photo', null); setPhotoPreview(null); }}
-                                className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:bg-red-600"
+                                className={buttonClassName({ variant: 'destructive', className: 'absolute w-6' })}
                                 title={t('common.remove')}
                                 aria-label={t('common.remove')}
                             >
@@ -196,13 +197,13 @@ export default function Edit({
 
                     {/* Name / email / roles */}
                     <div className="flex-1 text-center sm:text-left">
-                        <h1 className="text-xl font-semibold text-gray-900 dark:text-slate-100">{profile.name}</h1>
-                        <p className="mt-0.5 text-sm text-gray-500 dark:text-slate-400">{profile.email}</p>
+                        <h1 className="text-xl font-semibold text-[color:var(--app-foreground)]">{profile.name}</h1>
+                        <p className="mt-0.5 text-sm text-[color:var(--app-muted-foreground)]">{profile.email}</p>
                         <div className="mt-2.5 flex flex-wrap justify-center gap-1.5 sm:justify-start">
                             {profile.roles.map((role) => (
                                 <span
                                     key={role}
-                                    className="rounded-control bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                                    className="rounded-control bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-foreground)]"
                                 >
                                     {role}
                                 </span>
@@ -227,13 +228,13 @@ export default function Edit({
                 {/* ── Sidebar ─────────────────────────────────────────── */}
                 <div className="space-y-4">
                     {/* Account info */}
-                    <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <h3 className="mb-4 text-xs font-semibold text-gray-500 dark:text-slate-400">
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <h3 className="mb-4 text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                             {t('profile.accountSummary')}
                         </h3>
                         <ul className="space-y-3">
                             <li className="flex items-center justify-between gap-3 text-sm">
-                                <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
+                                <span className="flex items-center gap-2 text-[color:var(--app-muted-foreground)]">
                                     <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -242,13 +243,13 @@ export default function Edit({
                                 <StatusBadge status={isActive ? 'active' : 'inactive'} label={statusLabel} />
                             </li>
                             <li className="flex items-start justify-between gap-3 text-sm">
-                                <span className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
+                                <span className="flex items-center gap-2 text-[color:var(--app-muted-foreground)]">
                                     <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     {t('profile.lastLogin')}
                                 </span>
-                                <span className="text-right text-xs font-medium text-gray-700 dark:text-slate-300" title={lastLogin?.toLocaleString()}>
+                                <span className="text-right text-xs font-medium text-[color:var(--app-foreground)]" title={lastLogin?.toLocaleString()}>
                                     {lastLogin ? formatRelative(profile.last_login_at, locale) : t('profile.notAvailable')}
                                 </span>
                             </li>
@@ -273,8 +274,8 @@ export default function Edit({
                 <div className="space-y-6">
 
                     {/* Personal information form */}
-                    <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                        <div className="border-b border-gray-100 px-6 py-5 dark:border-slate-800">
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                        <div className="border-b border-[color:var(--app-border)] px-6 py-5">
                             <SectionHeader
                                 icon={
                                     <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
@@ -311,10 +312,10 @@ export default function Edit({
                                 </Field>
 
                                 <Field label={t('profile.phoneNumber')} error={form.errors.phone_number}>
-                                    <div className="flex overflow-hidden rounded-card border border-gray-200 bg-gray-50 focus-within:border-[color:var(--color-primary)] focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-800/60">
+                                    <div className="flex overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] focus-within:border-[color:var(--color-primary)] focus-within:ring-2 focus-within:ring-[color:var(--color-primary)]/20">
                                         <select
                                             aria-label={t('profile.countryCode')}
-                                            className="w-28 shrink-0 border-0 bg-transparent py-2.5 pl-3 pr-8 text-sm tabular-nums text-gray-700 focus:outline-none focus:ring-0 dark:text-slate-300"
+                                            className="w-28 shrink-0 border-0 bg-transparent py-2.5 pl-3 pr-8 text-sm tabular-nums text-[color:var(--app-foreground)] focus:outline-none focus:ring-0"
                                             value={phoneCountry}
                                             onChange={(e) => handlePhoneCountry(e.target.value)}
                                         >
@@ -324,7 +325,7 @@ export default function Edit({
                                         </select>
                                         <div className="my-2 w-px bg-gray-200 dark:bg-slate-600" />
                                         <input
-                                            className="flex-1 border-0 bg-transparent px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none dark:text-slate-100 dark:placeholder-slate-500"
+                                            className="flex-1 border-0 bg-transparent px-3 py-2.5 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 focus:outline-none dark:placeholder-slate-500"
                                             placeholder="9xxxxxxxx"
                                             value={phoneLocal}
                                             onChange={(e) => handlePhoneLocal(e.target.value)}
@@ -380,17 +381,17 @@ export default function Edit({
                                 </div>
                             )}
 
-                            <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
+                            <div className="mt-6 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
                                 <Link
                                     href={route('dashboard')}
-                                    className="rounded-card border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                                    className="rounded-card border border-[color:var(--app-border)] px-4 py-2.5 text-sm font-medium text-[color:var(--app-muted-foreground)] transition hover:bg-[color:var(--app-surface-muted)]"
                                 >
                                     {t('common.cancel')}
                                 </Link>
                                 <button
                                     type="submit"
                                     disabled={form.processing}
-                                    className="inline-flex items-center gap-2 rounded-card bg-[color:var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                                    className={buttonClassName({ variant: 'primary' })}
                                 >
                                     {form.processing && (
                                         <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -405,8 +406,8 @@ export default function Edit({
                     </div>
 
                     {/* Change password */}
-                    <div className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                        <div className="border-b border-gray-100 px-6 py-5 dark:border-slate-800">
+                    <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                        <div className="border-b border-[color:var(--app-border)] px-6 py-5">
                             <SectionHeader
                                 icon={
                                     <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">

@@ -7,6 +7,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type OrgType = {
     id: string;
     code: string;
@@ -73,7 +74,7 @@ export default function OrganizationTypesIndex({
                         can.create ? (
                             <Link
                                 href={route('organization-types.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {tr('organizationTypes.createTitle')}
@@ -85,7 +86,7 @@ export default function OrganizationTypesIndex({
         >
             <Head title={tr('organizationTypes.title')} />
 
-            <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 {types.length === 0 ? (
                     <div className="p-6">
                         <EmptyState
@@ -95,8 +96,8 @@ export default function OrganizationTypesIndex({
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full text-left text-sm">
-                            <thead className="bg-gray-50 dark:bg-slate-950">
+                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <thead className={tableHeadClassName}>
                                 <tr>
                                     {[
                                         tr('common.code'),
@@ -111,69 +112,69 @@ export default function OrganizationTypesIndex({
                                     ].map((h) => (
                                         <th
                                             key={h}
-                                            className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
+                                            className={cx(tableHeaderCellClassName, 'text-left')}
                                         >
                                             {h}
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className={tableBodyClassName}>
                                 {types.map((type) => (
                                     <tr
                                         key={type.id}
-                                        className="border-t border-gray-100 text-gray-700 hover:bg-gray-50 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800/50"
+                                        className={tableRowClassName}
                                     >
-                                        <td className="py-3 pl-5 pr-4 font-mono text-xs font-medium text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
                                             {type.code}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             {type.prefix ? (
                                                 <span className="rounded-md bg-orange-50 px-2 py-1 font-mono text-xs font-semibold text-orange-700 ring-1 ring-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:ring-orange-900/50">
                                                     {type.prefix}
                                                 </span>
                                             ) : (
-                                                <span className="text-xs text-gray-400 dark:text-slate-500">
+                                                <span className="text-xs text-[color:var(--app-muted-foreground)]">
                                                     {tr('organizationTypes.noPrefix')}
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <p className="font-medium">{type.name_en}</p>
                                             {type.name_am && (
-                                                <p className="text-xs text-gray-400 dark:text-slate-500">
+                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                     {type.name_am}
                                                 </p>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                             {categoryLabel(type.category)}
                                         </td>
-                                        <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
                                             {type.level_order}
                                         </td>
-                                        <td className="px-4 py-3 max-w-[180px]">
+                                        <td className={cx(tableCellClassName, 'max-w-[180px]')}>
                                             {type.parent_allowed_types.length === 0 ? (
                                                 <span className="text-xs text-amber-600 dark:text-amber-400">
                                                     {tr('organizationTypes.rootOnly')}
                                                 </span>
                                             ) : (
-                                                <span className="font-mono text-xs text-gray-500 dark:text-slate-400">
+                                                <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
                                                     {parentTypesLabel(type.parent_allowed_types)}
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3 tabular-nums text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
                                             {type.organizations_count}
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <StatusBadge status={type.is_active ? 'active' : 'inactive'} />
                                         </td>
-                                        <td className="py-3 pl-4 pr-5">
+                                        <td className={tableCellClassName}>
                                             <div className="flex items-center justify-end gap-3">
                                                 <Link
                                                     href={route('organization-types.show', type.id)}
-                                                    className="text-xs font-medium text-gray-600 hover:text-gray-900 dark:text-slate-400 dark:hover:text-slate-200"
+                                                    className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                                                 >
                                                     {tr('common.view')}
                                                 </Link>

@@ -8,6 +8,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import { useLocale } from '@/hooks/useLocale';
 
+import { cx, selectClassName } from '@/Components/ui';
 interface OrgOption {
     id: string;
     code: string;
@@ -120,8 +121,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
         });
     }
 
-    const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 disabled:opacity-50';
+    const inputCls = cx(selectClassName, 'w-full');
 
     // Units that will be previewed (root source units or selected source unit)
     const previewUnits = data.source_unit_id
@@ -131,7 +131,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
     return (
         <Modal show={show} onClose={handleClose} maxWidth="2xl">
             <form onSubmit={handleSubmit} className="p-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-5">
+                <h2 className="text-lg font-semibold text-[color:var(--app-foreground)] mb-5">
                     {t('organizationUnits.copyStructureTitle')}
                 </h2>
 
@@ -280,22 +280,22 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            className="rounded border-gray-300 text-[color:var(--color-primary)] dark:border-slate-600"
+                            className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]"
                             checked={data.copy_positions}
                             onChange={(e) => setData('copy_positions', e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700 dark:text-slate-300">
+                        <span className="text-sm text-[color:var(--app-foreground)]">
                             {t('organizationUnits.copyPositions')}
                         </span>
                     </label>
                     <label className="flex items-center gap-3 cursor-pointer">
                         <input
                             type="checkbox"
-                            className="rounded border-gray-300 text-[color:var(--color-primary)] dark:border-slate-600"
+                            className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]"
                             checked={data.copy_functional_relationships}
                             onChange={(e) => setData('copy_functional_relationships', e.target.checked)}
                         />
-                        <span className="text-sm text-gray-700 dark:text-slate-300">
+                        <span className="text-sm text-[color:var(--app-foreground)]">
                             {t('organizationUnits.copyFunctionalRelationships')}
                         </span>
                     </label>
@@ -311,7 +311,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                             {previewUnits.map((unit) => (
                                 <li
                                     key={unit.id}
-                                    className="text-sm text-gray-700 dark:text-slate-300"
+                                    className="text-sm text-[color:var(--app-foreground)]"
                                     style={{ paddingLeft: `${unit.depth * 1}rem` }}
                                 >
                                     {data.name_prefix}{unit.name_en}{data.name_suffix}
@@ -322,7 +322,7 @@ export default function CopyStructureModal({ show, onClose, organizations }: Pro
                 )}
 
                 {data.source_organization_id && !data.source_unit_id && previewUnits.length === 0 && !loadingSourceUnits && (
-                    <p className="mt-4 text-sm text-gray-500 dark:text-slate-400">
+                    <p className="mt-4 text-sm text-[color:var(--app-muted-foreground)]">
                         {t('organizationUnits.allUnitsWillBeCopied')}
                     </p>
                 )}

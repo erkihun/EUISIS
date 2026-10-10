@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { ActionButton, Money, StatusPill, useNames } from '@/Components/Cafeteria/PolicyUi';
 import { usageRule, type PolicySummary } from './Index';
 
+import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Terms = Record<string, string | number | boolean | null>;
 type Side = { id: string; version_no: number; effective_from: string | null; effective_to: string | null; terms: Terms } | null;
 
@@ -76,21 +77,21 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
                     <Card className="p-5">
                         <h2 className="mb-2 text-base font-semibold">{tt('preview')}</h2>
                         {!preview.current ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{tt('noCurrentPolicy')}</p> : (
-                            <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="text-start text-xs text-[color:var(--app-muted-foreground)]">
-                                        <th className="py-1 text-start">{tt('changes')}</th>
-                                        <th className="py-1 text-start">{tt('currentPolicy')} v{preview.current.version_no}</th>
-                                        <th className="py-1 text-start">{tt('newPolicy')} v{preview.proposed?.version_no}</th>
+                            <table className={tableClassName}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('changes')}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('currentPolicy')} v{preview.current.version_no}</th>
+                                        <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('newPolicy')} v{preview.proposed?.version_no}</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {Object.entries(preview.changes).length === 0 && <tr><td colSpan={3} className="py-2 text-[color:var(--app-muted-foreground)]">—</td></tr>}
+                                <tbody className={tableBodyClassName}>
+                                    {Object.entries(preview.changes).length === 0 && <tr><td colSpan={3} className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>—</td></tr>}
                                     {Object.entries(preview.changes).map(([key, change]) => (
-                                        <tr key={key} className="border-t border-[color:var(--app-border)]">
-                                            <td className="py-1.5">{key.replace(/_/g, ' ')}</td>
-                                            <td className="py-1.5">{show(change.from)}</td>
-                                            <td className="py-1.5 font-medium">{show(change.to)}</td>
+                                        <tr key={key} className={tableRowClassName}>
+                                            <td className={tableCellClassName}>{key.replace(/_/g, ' ')}</td>
+                                            <td className={tableCellClassName}>{show(change.from)}</td>
+                                            <td className={cx(tableCellClassName, 'font-medium')}>{show(change.to)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -101,19 +102,19 @@ export default function PolicyShow({ policy, versions, preview, approvalBlocked,
 
                 <Card className="p-5">
                     <h2 className="mb-2 text-base font-semibold">{tt('versionHistory')}</h2>
-                    <table className="w-full text-sm">
-                        <thead><tr className="text-xs text-[color:var(--app-muted-foreground)]">
-                            <th className="py-1 text-start">{tt('version')}</th><th className="py-1 text-start">{tt('dailySubsidy')}</th>
-                            <th className="py-1 text-start">{tt('effectiveFrom')}</th><th className="py-1 text-start">{tt('effectiveTo')}</th><th className="py-1 text-start">{tt('status')}</th>
+                    <table className={tableClassName}>
+                        <thead className={tableHeadClassName}><tr>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('version')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('dailySubsidy')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('effectiveFrom')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('effectiveTo')}</th><th className={cx(tableHeaderCellClassName, 'text-left')}>{tt('status')}</th>
                         </tr></thead>
-                        <tbody>
+                        <tbody className={tableBodyClassName}>
                             {versions.map((v) => (
-                                <tr key={v.id} className="border-t border-[color:var(--app-border)]">
-                                    <td className="py-1.5"><Link className="text-[color:var(--color-primary)] hover:underline" href={route('cafeteria.policies.show', v.id)}>v{v.version_no}</Link></td>
-                                    <td className="py-1.5"><Money value={v.daily_subsidy_amount} currency={policy.currency_code} /></td>
-                                    <td className="py-1.5"><LocalizedDateDisplay value={v.effective_from} /></td>
-                                    <td className="py-1.5">{v.effective_to ? <LocalizedDateDisplay value={v.effective_to} /> : tt('openEnded')}</td>
-                                    <td className="py-1.5"><StatusPill status={v.status} /></td>
+                                <tr key={v.id} className={tableRowClassName}>
+                                    <td className={tableCellClassName}><Link className="text-[color:var(--color-primary)] hover:underline" href={route('cafeteria.policies.show', v.id)}>v{v.version_no}</Link></td>
+                                    <td className={tableCellClassName}><Money value={v.daily_subsidy_amount} currency={policy.currency_code} /></td>
+                                    <td className={tableCellClassName}><LocalizedDateDisplay value={v.effective_from} /></td>
+                                    <td className={tableCellClassName}>{v.effective_to ? <LocalizedDateDisplay value={v.effective_to} /> : tt('openEnded')}</td>
+                                    <td className={tableCellClassName}><StatusPill status={v.status} /></td>
                                 </tr>
                             ))}
                         </tbody>

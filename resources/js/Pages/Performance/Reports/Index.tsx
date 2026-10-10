@@ -52,7 +52,7 @@ export default function ReportsIndex({ reports, report, filters, cycles, rows, c
                     <nav className="flex min-w-0 flex-1 flex-wrap gap-1" aria-label={t('performance.reports.title')}>
                         {reports.map((name) => (
                             <button key={name} type="button" onClick={() => go({ report: name })} aria-current={name === report ? 'page' : undefined}
-                                className={`rounded-lg px-3 py-1.5 text-sm ${name === report ? 'bg-[color:var(--color-primary)] text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'}`}>
+                                className={`rounded-lg px-3 py-1.5 text-sm ${name === report ? 'bg-[color:var(--color-primary)] text-white' : 'border border-[color:var(--app-border-strong)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>
                                 {t(`performance.reports.names.${name}`)}
                             </button>
                         ))}
@@ -73,7 +73,7 @@ export default function ReportsIndex({ reports, report, filters, cycles, rows, c
                             ))}
                         </Table>
                     )}
-                    {rows.last_page > 1 && <div className="border-t border-gray-100 px-4 py-3 dark:border-slate-800"><Pager page={rows} /></div>}
+                    {rows.last_page > 1 && <div className="border-t border-[color:var(--app-border)] px-4 py-3"><Pager page={rows} /></div>}
                 </Section>
             </div>
         </AuthenticatedLayout>

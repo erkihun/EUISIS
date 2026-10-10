@@ -5,6 +5,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName } from '@/Components/ui';
 type OrgType = {
     id: string;
     code: string;
@@ -23,9 +24,9 @@ type OrgType = {
 
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
     return (
-        <div className="rounded-card border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-950/50">
-            <dt className="text-xs font-medium text-gray-500 dark:text-slate-400">{label}</dt>
-            <dd className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{value}</dd>
+        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4">
+            <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</dt>
+            <dd className="mt-1 text-sm font-semibold text-[color:var(--app-foreground)]">{value}</dd>
         </div>
     );
 }
@@ -44,14 +45,14 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
                         <div className="flex items-center gap-2">
                             <Link
                                 href={route('organization-types.index')}
-                                className="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                                className="rounded-lg px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                             >
                                 {t('common.back')}
                             </Link>
                             {type.can.update && (
                                 <Link
                                     href={route('organization-types.edit', type.id)}
-                                    className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                    className={buttonClassName({ variant: 'primary', size: 'sm' })}
                                 >
                                     {t('common.edit')}
                                 </Link>
@@ -63,7 +64,7 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
         >
             <Head title={type.name_en} />
 
-            <div className="rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                 <dl className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     <Detail label={t('organizationTypes.code')} value={<span className="font-mono">{type.code}</span>} />
                     <Detail
@@ -72,7 +73,7 @@ export default function ShowOrganizationType({ type }: { type: OrgType }) {
                             type.prefix ? (
                                 <span className="font-mono">{type.prefix}</span>
                             ) : (
-                                <span className="text-gray-500 dark:text-slate-400">{t('organizationTypes.noPrefix')}</span>
+                                <span className="text-[color:var(--app-muted-foreground)]">{t('organizationTypes.noPrefix')}</span>
                             )
                         }
                     />

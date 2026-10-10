@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 interface Endpoint {
     id: string;
     method: string;
@@ -40,7 +41,7 @@ const METHOD_COLORS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
     active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
     deprecated: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-    disabled: 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    disabled: 'bg-slate-200 text-[color:var(--app-muted-foreground)] dark:bg-slate-800',
 };
 
 /**
@@ -91,7 +92,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                         type="button"
                         onClick={sync}
                         disabled={syncing}
-                        className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                        className={buttonClassName({ variant: 'primary', size: 'sm' })}
                     >
                         {syncing ? t('common.loading') : t('apiManagement.syncEndpoints')}
                     </button>
@@ -109,12 +110,12 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder={t('apiManagement.searchEndpoints')}
-                    className="w-64 rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className={cx(inputClassName, 'w-64')}
                 />
                 <select
                     value={statusFilter}
                     onChange={(event) => setStatusFilter(event.target.value)}
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className={selectClassName}
                 >
                     <option value="">{t('apiManagement.allStatuses')}</option>
                     {statuses.map((status) => (
@@ -125,41 +126,41 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                 </select>
             </div>
 
-            <section className="overflow-x-auto rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                <table className="min-w-full text-left text-sm">
-                    <thead className="bg-gray-50 dark:bg-slate-800/60">
+            <section className="overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <table className={cx(tableClassName, 'min-w-full text-left')}>
+                    <thead className={tableHeadClassName}>
                         <tr>
-                            <th className="px-3 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.method')}</th>
-                            <th className="px-3 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.endpoint')}</th>
-                            <th className="px-3 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.routeName')}</th>
-                            <th className="px-3 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.authRequired')}</th>
-                            <th className="px-3 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.requiredScope')}</th>
-                            <th className="px-3 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.rateLimit')}</th>
-                            <th className="px-3 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.version')}</th>
-                            <th className="px-3 py-2 font-medium text-gray-600 dark:text-slate-400">{t('common.status')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.method')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.endpoint')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.routeName')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.authRequired')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.requiredScope')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.rateLimit')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.version')}</th>
+                            <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.status')}</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                    <tbody className={tableBodyClassName}>
                         {visible.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className="px-3 py-10 text-center text-sm text-gray-500 dark:text-slate-400">
+                                <td colSpan={8} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>
                                     {t('apiManagement.noEndpoints')}
                                 </td>
                             </tr>
                         ) : (
                             visible.map((endpoint) => (
-                                <tr key={endpoint.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
-                                    <td className="px-3 py-2">
+                                <tr key={endpoint.id} className={tableRowClassName}>
+                                    <td className={tableCellClassName}>
                                         <span
                                             className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${
                                                 METHOD_COLORS[endpoint.method] ??
-                                                'bg-gray-100 text-gray-700 dark:bg-slate-800 dark:text-slate-300'
+                                                'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]'
                                             }`}
                                         >
                                             {endpoint.method}
                                         </span>
                                     </td>
-                                    <td className="px-3 py-2">
+                                    <td className={tableCellClassName}>
                                         <Link
                                             href={route('api-management.endpoints.show', endpoint.id)}
                                             className="font-mono text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
@@ -167,19 +168,19 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                             {endpoint.uri}
                                         </Link>
                                     </td>
-                                    <td className="px-3 py-2 font-mono text-[11px] text-gray-500 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>
                                         {endpoint.route_name ?? '—'}
                                     </td>
-                                    <td className="px-3 py-2 text-xs">
+                                    <td className={cx(tableCellClassName, 'text-xs')}>
                                         {endpoint.auth_required ? (
                                             <span className="text-emerald-700 dark:text-emerald-400">{t('common.yes')}</span>
                                         ) : (
                                             <span className="text-red-600 dark:text-red-400">{t('common.no')}</span>
                                         )}
                                     </td>
-                                    <td className="px-3 py-2">
+                                    <td className={tableCellClassName}>
                                         {endpoint.required_scope ? (
-                                            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] text-gray-800 dark:bg-slate-800 dark:text-slate-200">
+                                            <code className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-foreground)]">
                                                 {endpoint.required_scope}
                                             </code>
                                         ) : (
@@ -188,11 +189,11 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-3 py-2 font-mono text-[11px] text-gray-500 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>
                                         {endpoint.rate_limit ?? '—'}
                                     </td>
-                                    <td className="px-3 py-2 text-xs text-gray-500 dark:text-slate-400">{endpoint.version ?? '—'}</td>
-                                    <td className="px-3 py-2">
+                                    <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>{endpoint.version ?? '—'}</td>
+                                    <td className={tableCellClassName}>
                                         <span
                                             className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                                                 STATUS_COLORS[endpoint.status] ?? STATUS_COLORS.disabled

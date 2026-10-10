@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 
+import { inputClassName } from '@/Components/ui';
 type Row = {
     id: string; revision_no: number; status: string; eligible_count: number; assessed_count: number; unassessed_count: number; coverage_percent: string | null; return_reason: string | null;
     organization: { id: string; code: string; name_en: string; name_am: string | null } | null; submitter: string | null;
@@ -59,7 +60,7 @@ export default function OversightSubmissions(props: Props) {
                                     <td className={tdCls}>
                                         {any && (
                                             <div className="flex min-w-56 flex-col gap-1.5">
-                                                <input aria-label={t('assessmentOversight.reviewComment')} placeholder={t('assessmentOversight.reviewComment')} className="rounded-lg border border-gray-300 px-2 py-1 text-xs dark:border-slate-700 dark:bg-slate-950" value={comments[row.id] ?? ''} onChange={(e) => setComments({ ...comments, [row.id]: e.target.value })} />
+                                                <input aria-label={t('assessmentOversight.reviewComment')} placeholder={t('assessmentOversight.reviewComment')} className={inputClassName} value={comments[row.id] ?? ''} onChange={(e) => setComments({ ...comments, [row.id]: e.target.value })} />
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {row.actions.startReview && <button type="button" className={smallPrimaryBtn} onClick={() => move(row, 'start-review')}>{t('assessmentOversight.actions.startReview')}</button>}
                                                     {row.actions.verify && <button type="button" className={smallPrimaryBtn} onClick={() => move(row, 'verify')}>{t('assessmentOversight.actions.verify')}</button>}

@@ -9,6 +9,7 @@ import { Button, Card, EmptyState, Input, Pagination, Select, StatusBadge as UiS
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 
+import { tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Summary = {
     total_positions: number;
     filled_positions: number;
@@ -159,8 +160,8 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
                         <EmptyState icon={<Briefcase className="h-8 w-8" />} title={t('positions.noPositionStatusFound')} />
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="min-w-full text-left text-sm">
-                                <thead className="bg-[color:var(--app-surface-muted)] text-xs text-[color:var(--app-muted-foreground)]">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
                                     <tr>
                                         <th scope="col" className={cx(cell, 'font-medium')}>{isOrganizationScoped ? t('positions.organizationUnit') : `${t('positions.organizationUnit')} / ${t('positions.organization')}`}</th>
                                         <th scope="col" className={cx(cell, 'font-medium')}>{t('positions.positionTitle')}</th>
@@ -170,14 +171,14 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
                                         <th scope="col" className={cell}><span className="sr-only">{t('vacancies.announceVacancy')}</span></th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-[color:var(--app-border)]">
+                                <tbody className={tableBodyClassName}>
                                     {positions.data.map((position) => {
                                         const organizationName = (useAmharic ? position.organization_name_am : position.organization_name_en) ?? position.organization_name_en ?? '—';
                                         const departmentName = (useAmharic ? position.department_name_am : position.department_name_en) ?? position.department_name_en ?? t('positions.unassignedDepartment');
                                         const title = (useAmharic ? position.title_am : position.title_en) ?? position.title_en ?? '—';
 
                                         return (
-                                            <tr key={position.id} className="text-[color:var(--app-foreground)]">
+                                            <tr key={position.id} className={tableRowClassName}>
                                                 <td className={cx(cell, 'min-w-[14rem]')}>
                                                     <p>{departmentName}</p>
                                                     {!isOrganizationScoped && organizationName !== departmentName && <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{organizationName}</p>}

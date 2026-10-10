@@ -2,6 +2,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName } from '@/Components/ui';
 /**
  * Shared building blocks for the Employee Create and Edit forms.
  *
@@ -12,11 +13,11 @@ import { useLocale } from '@/hooks/useLocale';
 
 /** Shared control styling. Exported so the pages style their own inputs identically. */
 export const inputCls =
-    'w-full rounded-control border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900 dark:disabled:text-slate-500';
+    'w-full rounded-control border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 dark:placeholder-slate-500 dark:disabled:bg-slate-900 dark:disabled:text-slate-500';
 
-export const labelCls = 'mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400';
+export const labelCls = 'mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
-export const helpCls = 'mt-1 text-xs text-gray-400 dark:text-slate-500';
+export const helpCls = 'mt-1 text-xs text-[color:var(--app-muted-foreground)]';
 
 /**
  * A titled card holding one group of fields.
@@ -50,8 +51,8 @@ export function FormCard({
     wide?: boolean;
 }>) {
     return (
-        <section className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-gray-50/70 px-5 py-4 dark:border-slate-800 dark:bg-slate-950/40">
+        <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--app-border)] bg-gray-50/70 px-5 py-4 dark:bg-slate-950/40">
                 <div className="flex min-w-0 items-start gap-3">
                     <span
                         className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-[color:var(--color-primary)] dark:bg-blue-500/10 dark:text-[color:var(--color-primary)]"
@@ -60,9 +61,9 @@ export function FormCard({
                         {icon}
                     </span>
                     <div className="min-w-0">
-                        <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
+                        <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
                         {description && (
-                            <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{description}</p>
+                            <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>
                         )}
                     </div>
                 </div>
@@ -136,8 +137,8 @@ export function ReadOnlyValue({
     return (
         <div className="min-w-0">
             <dt className={labelCls}>{label}</dt>
-            <dd className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">{value}</dd>
-            {code && <dd className="mt-0.5 truncate font-mono text-[11px] text-gray-400 dark:text-slate-500">{code}</dd>}
+            <dd className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{value}</dd>
+            {code && <dd className="mt-0.5 truncate font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{code}</dd>}
         </div>
     );
 }
@@ -180,11 +181,11 @@ export function FormActions({
     const { t } = useLocale();
 
     return (
-        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 dark:border-slate-800 dark:bg-slate-900/95">
+        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-[color:var(--app-border)] bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 dark:bg-slate-900/95">
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                 <Link
                     href={cancelHref}
-                    className="rounded-lg px-4 py-2 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                    className="rounded-lg px-4 py-2 text-center text-sm font-medium text-[color:var(--app-foreground)] transition hover:bg-[color:var(--app-surface-muted)]"
                 >
                     {t('common.cancel')}
                 </Link>
@@ -194,7 +195,7 @@ export function FormActions({
                         type="button"
                         onClick={onSaveAndView}
                         disabled={processing}
-                        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus:ring-offset-slate-900"
+                        className={buttonClassName({ variant: 'outline' })}
                     >
                         {t('employees.saveAndView')}
                     </button>
@@ -203,7 +204,7 @@ export function FormActions({
                 <button
                     type="submit"
                     disabled={processing}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-slate-900"
+                    className={buttonClassName({ variant: 'primary' })}
                 >
                     {processing && (
                         <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">

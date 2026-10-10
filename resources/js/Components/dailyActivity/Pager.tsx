@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageLink, PaginationMetaData } from './types';
 
+import { buttonClassName } from '@/Components/ui';
 /** Previous / next with a position readout. Compact on phones. */
 export default function Pager({ meta, links }: { meta: PaginationMetaData; links: PageLink[] }) {
     const { t } = useLocale();
@@ -12,11 +13,11 @@ export default function Pager({ meta, links }: { meta: PaginationMetaData; links
 
     const previous = links[0]?.url ?? null;
     const next = links[links.length - 1]?.url ?? null;
-    const linkCls = 'rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
-    const disabledCls = 'rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-400 dark:border-slate-800 dark:text-slate-600';
+    const linkCls = buttonClassName({ variant: 'outline', size: 'sm' });
+    const disabledCls = 'rounded-lg border border-[color:var(--app-border)] px-3 py-1.5 text-sm text-[color:var(--app-muted-foreground)]';
 
     return (
-        <nav className="flex items-center justify-between gap-3 pt-3 text-sm text-gray-600 dark:text-slate-400" aria-label="Pagination">
+        <nav className="flex items-center justify-between gap-3 pt-3 text-sm text-[color:var(--app-muted-foreground)]" aria-label="Pagination">
             <span>
                 {meta.from ?? 0}–{meta.to ?? 0} / {meta.total}
             </span>

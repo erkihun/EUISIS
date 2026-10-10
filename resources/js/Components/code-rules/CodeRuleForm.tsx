@@ -11,6 +11,7 @@ import type { CodeFormatInputHandle } from './CodeFormatInput';
 import CodeFormatInput from './CodeFormatInput';
 import { RANDOM_TOKENS, usesRandomToken } from './randomTokens';
 
+import { buttonClassName, cx, inputClassName as uiInputClassName } from '@/Components/ui';
 export type CodeRuleFormData = {
     entity_type: string;
     scope_type: string;
@@ -71,8 +72,7 @@ export default function CodeRuleForm({
     const [previewError, setPreviewError] = useState<string | null>(null);
     const formatInputRef = useRef<CodeFormatInputHandle>(null);
 
-    const inputClassName =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputClassName = cx(uiInputClassName, 'w-full');
 
     const scopeOptions = useMemo(
         () => options.scope_options[form.data.scope_type] ?? [],
@@ -196,10 +196,10 @@ export default function CodeRuleForm({
 
     return (
         <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_360px]">
-            <form className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900" onSubmit={onSubmit}>
+            <form className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6" onSubmit={onSubmit}>
                 <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.entityType')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.entityType')}</label>
                         <select className={inputClassName} value={form.data.entity_type} onChange={(event) => form.setData('entity_type', event.target.value)}>
                             {options.entity_types.map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -210,7 +210,7 @@ export default function CodeRuleForm({
                         {renderError('entity_type')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.scopeType')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.scopeType')}</label>
                         <select className={inputClassName} value={form.data.scope_type} onChange={(event) => {
                             form.setData('scope_type', event.target.value);
                             form.setData('scope_id', '');
@@ -226,7 +226,7 @@ export default function CodeRuleForm({
                     </div>
                     {form.data.scope_type !== '' && (
                         <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.scope')}</label>
+                            <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.scope')}</label>
                             <select className={inputClassName} value={form.data.scope_id} onChange={(event) => form.setData('scope_id', event.target.value)}>
                                 <option value="">{t('common.select')}</option>
                                 {scopeOptions.map((option) => (
@@ -237,27 +237,27 @@ export default function CodeRuleForm({
                         </div>
                     )}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.nameEn')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.nameEn')}</label>
                         <input className={inputClassName} value={form.data.name_en} onChange={(event) => form.setData('name_en', event.target.value)} />
                         {renderError('name_en')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.nameAm')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.nameAm')}</label>
                         <input className={inputClassName} value={form.data.name_am} onChange={(event) => form.setData('name_am', event.target.value)} />
                         {renderError('name_am')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.prefix')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.prefix')}</label>
                         <input className={inputClassName} value={form.data.prefix} onChange={(event) => form.setData('prefix', event.target.value.toUpperCase())} />
                         {renderError('prefix')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.suffix')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.suffix')}</label>
                         <input className={inputClassName} value={form.data.suffix} onChange={(event) => form.setData('suffix', event.target.value.toUpperCase())} />
                         {renderError('suffix')}
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.format')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.format')}</label>
                         <CodeFormatInput
                             ref={formatInputRef}
                             className={inputClassName}
@@ -268,22 +268,22 @@ export default function CodeRuleForm({
                         {renderError('format')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.separator')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.separator')}</label>
                         <input className={inputClassName} value={form.data.separator} onChange={(event) => form.setData('separator', event.target.value)} />
                         {renderError('separator')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.sequenceLength')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.sequenceLength')}</label>
                         <input type="number" min="1" max="10" className={inputClassName} value={form.data.sequence_length} onChange={(event) => form.setData('sequence_length', parseInt(event.target.value, 10) || 1)} />
                         {renderError('sequence_length')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.nextNumber')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.nextNumber')}</label>
                         <input type="number" min="1" className={inputClassName} value={form.data.next_number} onChange={(event) => form.setData('next_number', parseInt(event.target.value, 10) || 1)} />
                         {renderError('next_number')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.resetFrequency')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.resetFrequency')}</label>
                         <select className={inputClassName} value={form.data.reset_frequency} onChange={(event) => form.setData('reset_frequency', event.target.value)}>
                             {options.reset_frequencies.map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -294,7 +294,7 @@ export default function CodeRuleForm({
                         {renderError('reset_frequency')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.yearFormat')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.yearFormat')}</label>
                         <select className={inputClassName} value={form.data.year_format} onChange={(event) => form.setData('year_format', event.target.value)}>
                             {options.year_formats.map((option) => (
                                 <option key={option.value} value={option.value}>{option.label}</option>
@@ -305,15 +305,15 @@ export default function CodeRuleForm({
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-3">
-                    <label className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 dark:border-slate-700 dark:text-slate-300">
+                    <label className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm text-[color:var(--app-foreground)]">
                         <input type="checkbox" checked={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.checked)} />
                         <span>{t('codeRules.activeRule')}</span>
                     </label>
-                    <label className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 dark:border-slate-700 dark:text-slate-300">
+                    <label className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm text-[color:var(--app-foreground)]">
                         <input type="checkbox" checked={form.data.allow_manual_override} onChange={(event) => form.setData('allow_manual_override', event.target.checked)} />
                         <span>{t('codeRules.manualOverride')}</span>
                     </label>
-                    <label className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 dark:border-slate-700 dark:text-slate-300">
+                    <label className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm text-[color:var(--app-foreground)]">
                         <input type="checkbox" checked={form.data.require_approval_for_override} onChange={(event) => form.setData('require_approval_for_override', event.target.checked)} />
                         <span>{t('codeRules.requireApprovalForOverride')}</span>
                     </label>
@@ -324,7 +324,7 @@ export default function CodeRuleForm({
                     <p className="mb-3 text-sm font-semibold text-blue-900 dark:text-blue-300">{t('codeRules.sequenceScopeBehavior')}</p>
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.sequenceScopeStrategy')}</label>
+                            <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.sequenceScopeStrategy')}</label>
                             <select
                                 className={inputClassName}
                                 value={form.data.sequence_scope_strategy}
@@ -345,7 +345,7 @@ export default function CodeRuleForm({
                         </div>
                         {form.data.sequence_scope_strategy === 'custom_tokens' && (
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.sequenceScopeTokens')}</label>
+                                <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.sequenceScopeTokens')}</label>
                                 {availableScopeTokens.length === 0 ? (
                                     <p className="text-xs text-amber-600 dark:text-amber-400">{t('codeRules.formatMustContainSequence')}</p>
                                 ) : (
@@ -353,7 +353,7 @@ export default function CodeRuleForm({
                                         {availableScopeTokens.map((token) => {
                                             const checked = form.data.sequence_scope_tokens.includes(token);
                                             return (
-                                                <label key={token} className="flex cursor-pointer items-center gap-1.5 rounded-md border border-gray-300 px-2 py-1 text-xs dark:border-slate-600">
+                                                <label key={token} className="flex cursor-pointer items-center gap-1.5 rounded-md border border-[color:var(--app-border-strong)] px-2 py-1 text-xs">
                                                     <input
                                                         type="checkbox"
                                                         checked={checked}
@@ -374,29 +374,29 @@ export default function CodeRuleForm({
                             </div>
                         )}
                         <div className="md:col-span-2">
-                            <p className="rounded-md bg-white px-3 py-2 text-xs text-gray-600 dark:bg-slate-900 dark:text-slate-400">{scopeExplanation}</p>
+                            <p className="rounded-md bg-[color:var(--app-surface)] px-3 py-2 text-xs text-[color:var(--app-muted-foreground)]">{scopeExplanation}</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.descriptionEn')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.descriptionEn')}</label>
                         <textarea className={`${inputClassName} min-h-24`} value={form.data.description_en} onChange={(event) => form.setData('description_en', event.target.value)} />
                         {renderError('description_en')}
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-slate-300">{t('codeRules.descriptionAm')}</label>
+                        <label className="text-sm font-medium text-[color:var(--app-foreground)]">{t('codeRules.descriptionAm')}</label>
                         <textarea className={`${inputClassName} min-h-24`} value={form.data.description_am} onChange={(event) => form.setData('description_am', event.target.value)} />
                         {renderError('description_am')}
                     </div>
                 </div>
 
                 <div className="flex gap-3">
-                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60" disabled={form.processing}>
+                    <button type="submit" className={buttonClassName({ variant: 'primary' })} disabled={form.processing}>
                         {submitLabel}
                     </button>
-                    <Link href={cancelHref} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200">
+                    <Link href={cancelHref} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('common.cancel')}
                     </Link>
                 </div>

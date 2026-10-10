@@ -5,6 +5,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Application = {
     id: string;
     application_number: string;
@@ -47,7 +48,7 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
         router.get(route('vacancy-applications.index'), { ...filters, page }, { preserveState: true, preserveScroll: true });
     }
 
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = selectClassName;
 
     return (
         <AuthenticatedLayout
@@ -74,14 +75,14 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                             {t('common.clear')}
                         </button>
                     )}
-                    <span className="ml-auto text-sm text-gray-500 dark:text-slate-400">
+                    <span className="ml-auto text-sm text-[color:var(--app-muted-foreground)]">
                         {applications.from ?? 0}–{applications.to ?? 0} / {applications.total}
                     </span>
                 </div>
 
-                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
                                 {[
                                     t('vacancies.applicationNumber'),
@@ -92,30 +93,30 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                                     t('vacancies.appliedAt'),
                                     t('common.status'),
                                 ].map(h => (
-                                    <th key={h} className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">{h}</th>
+                                    <th key={h} className={cx(tableHeaderCellClassName, 'text-left whitespace-nowrap')}>{h}</th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className={tableBodyClassName}>
                             {applications.data.map(a => (
-                                <tr key={a.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
-                                    <td className="px-4 py-3">
+                                <tr key={a.id} className={tableRowClassName}>
+                                    <td className={tableCellClassName}>
                                         <Link href={route('vacancy-applications.show', a.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                             {a.application_number}
                                         </Link>
                                     </td>
-                                    <td className="px-4 py-3 text-gray-700 dark:text-slate-200">{a.employee?.name_en ?? '—'}</td>
-                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.announcement?.title_en ?? '—'}</td>
-                                    <td className="px-4 py-3 text-gray-700 dark:text-slate-200">{a.position_entry?.position?.title_en ?? '—'}</td>
-                                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400">{a.position_entry?.organization?.name_en ?? '—'}</td>
-                                    <td className="whitespace-nowrap px-4 py-3 text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={a.applied_at} /></td>
-                                    <td className="px-4 py-3"><StatusBadge status={a.status} /></td>
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{a.employee?.name_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{a.announcement?.title_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{a.position_entry?.position?.title_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{a.position_entry?.organization?.name_en ?? '—'}</td>
+                                    <td className={cx(tableCellClassName, 'whitespace-nowrap text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={a.applied_at} /></td>
+                                    <td className={tableCellClassName}><StatusBadge status={a.status} /></td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                     {applications.data.length === 0 && (
-                        <p className="px-4 py-8 text-center text-sm text-gray-400 dark:text-slate-500">{t('common.noResults')}</p>
+                        <p className="px-4 py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('common.noResults')}</p>
                     )}
                 </div>
 
@@ -125,18 +126,18 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                             type="button"
                             disabled={applications.current_page <= 1}
                             onClick={() => goToPage(applications.current_page - 1)}
-                            className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700"
+                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         >
                             {t('common.previous')}
                         </button>
-                        <span className="text-gray-500 dark:text-slate-400">
+                        <span className="text-[color:var(--app-muted-foreground)]">
                             {t('common.page')} {applications.current_page} {t('common.of')} {applications.last_page}
                         </span>
                         <button
                             type="button"
                             disabled={applications.current_page >= applications.last_page}
                             onClick={() => goToPage(applications.current_page + 1)}
-                            className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700"
+                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         >
                             {t('common.next')}
                         </button>

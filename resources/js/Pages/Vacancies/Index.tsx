@@ -6,6 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
+import { buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Announcement = {
     id: string;
     announcement_number: string;
@@ -47,7 +48,7 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
         router.get(route('vacancy-announcements.index'), status ? { status } : {}, { preserveState: true });
     }
 
-    const inputCls = 'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = selectClassName;
 
     return (
         <AuthenticatedLayout
@@ -56,7 +57,7 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                     title={t('vacancies.announcements')}
                     actions={
                         can.create ? (
-                            <Link href={route('vacancy-announcements.create')} className="inline-flex items-center rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                            <Link href={route('vacancy-announcements.create')} className={buttonClassName({ variant: 'primary' })}>
                                 {t('vacancies.createAnnouncement')}
                             </Link>
                         ) : undefined
@@ -83,9 +84,9 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                     )}
                 </div>
 
-                <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
                                 {[
                                     t('vacancies.announcementNumber'),
@@ -95,11 +96,11 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                                     t('vacancies.applicationClosesAt'),
                                     t('common.status'),
                                 ].map((heading) => (
-                                    <th key={heading} className="whitespace-nowrap px-4 py-3 text-xs font-semibold uppercase text-gray-500 dark:text-slate-400">{heading}</th>
+                                    <th key={heading} className={cx(tableHeaderCellClassName, 'text-left whitespace-nowrap')}>{heading}</th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className={tableBodyClassName}>
                             {announcements.data.map((announcement) => {
                                 const totalSlots = announcement.positions.reduce((sum, p) => sum + Number(p.vacancy_slots || 0), 0);
                                 const positionSummary = announcement.positions
@@ -108,32 +109,32 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                                     .join(', ');
 
                                 return (
-                                    <tr key={announcement.id} className="hover:bg-gray-50 dark:hover:bg-slate-800">
-                                        <td className="px-4 py-3">
+                                    <tr key={announcement.id} className={tableRowClassName}>
+                                        <td className={tableCellClassName}>
                                             <Link href={route('vacancy-announcements.show', announcement.id)} className="font-mono text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
                                                 {announcement.announcement_number}
                                             </Link>
                                         </td>
-                                        <td className="px-4 py-3 text-gray-700 dark:text-slate-200">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                             {(useAmharic ? announcement.title_am : null) ?? announcement.title_en}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {positionSummary || '-'}
                                             {announcement.positions.length > 2 && (
                                                 <span className="ml-1 text-xs text-gray-400"> +{announcement.positions.length - 2}</span>
                                             )}
-                                            <span className="ml-2 rounded-full bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500 dark:bg-slate-800 dark:text-slate-300">
+                                            <span className="ml-2 rounded-full bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 text-xs text-[color:var(--app-muted-foreground)]">
                                                 {totalSlots} {t('vacancies.vacancySlots')}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <span className={`font-semibold ${announcement.applications_count > 0 ? 'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]' : 'text-gray-400 dark:text-slate-500'}`}>
+                                        <td className={tableCellClassName}>
+                                            <span className={`font-semibold ${announcement.applications_count > 0 ? 'text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]' : 'text-[color:var(--app-muted-foreground)]'}`}>
                                                 {announcement.applications_count}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-gray-500 dark:text-slate-400">
+                                                <span className="text-[color:var(--app-muted-foreground)]">
                                                     {announcement.application_closes_at
                                                         ? <LocalizedDateDisplay value={announcement.application_closes_at} />
                                                         : '-'}
@@ -143,14 +144,14 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3"><StatusBadge status={announcement.status} /></td>
+                                        <td className={tableCellClassName}><StatusBadge status={announcement.status} /></td>
                                     </tr>
                                 );
                             })}
                         </tbody>
                     </table>
                     {announcements.data.length === 0 && (
-                        <p className="px-4 py-8 text-center text-sm text-gray-400 dark:text-slate-500">{t('common.noResults')}</p>
+                        <p className="px-4 py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('common.noResults')}</p>
                     )}
                 </div>
             </div>

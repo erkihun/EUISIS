@@ -5,6 +5,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName, cx, inputClassName } from '@/Components/ui';
 type ParentOption = { id: string; isic_code: string; name_en: string | null; level: string };
 
 export default function IsicActivitiesEdit({
@@ -33,8 +34,7 @@ export default function IsicActivitiesEdit({
         is_active: isicActivity.is_active ?? true,
     });
 
-    const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputCls = cx(inputClassName, 'w-full');
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -45,7 +45,7 @@ export default function IsicActivitiesEdit({
         <AuthenticatedLayout header={<PageHeader title={t('isicActivities.editIsicActivity')} />}>
             <Head title={t('isicActivities.editIsicActivity')} />
             <form
-                className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+                className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
                 onSubmit={submit}
             >
                 <div className="grid gap-4 md:grid-cols-2">
@@ -178,7 +178,7 @@ export default function IsicActivitiesEdit({
                         onChange={(e) => form.setData('description_am', e.target.value)}
                     />
                 </div>
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                     <input
                         type="checkbox"
                         checked={form.data.is_active}
@@ -188,7 +188,7 @@ export default function IsicActivitiesEdit({
                 </label>
                 <div className="flex gap-3">
                     <button
-                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                        className={buttonClassName({ variant: 'primary' })}
                         type="submit"
                         disabled={form.processing}
                     >
@@ -196,7 +196,7 @@ export default function IsicActivitiesEdit({
                     </button>
                     <Link
                         href={route('isic-activities.show', isicActivity.id)}
-                        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200"
+                        className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
                     >
                         {t('common.cancel')}
                     </Link>

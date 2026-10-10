@@ -6,6 +6,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
 
+import { buttonClassName } from '@/Components/ui';
 export type NfcStatus = {
     can: Record<string, boolean>;
     credentials: {
@@ -80,14 +81,14 @@ export default function NfcStatusPanel({ cardId, nfc }: { cardId: string; nfc: N
     }
 
     return (
-        <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                    <NfcIcon className="h-5 w-5 text-gray-400 dark:text-slate-500" />
-                    <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    <NfcIcon className="h-5 w-5 text-[color:var(--app-muted-foreground)]" />
+                    <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                         {t('nfc.credential')}
                     </h2>
-                    <span className="text-xs text-gray-500 dark:text-slate-400">
+                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
                         {t('nfc.nfcEnabled')}: {isEnabled ? t('nfc.yes') : t('nfc.no')}
                     </span>
                 </div>
@@ -95,7 +96,7 @@ export default function NfcStatusPanel({ cardId, nfc }: { cardId: string; nfc: N
                 {canProvision && (
                     <Link
                         href={route('nfc.provision.create', cardId)}
-                        className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                        className={buttonClassName({ variant: 'primary' })}
                     >
                         {t('nfc.provision')}
                     </Link>
@@ -103,7 +104,7 @@ export default function NfcStatusPanel({ cardId, nfc }: { cardId: string; nfc: N
             </div>
 
             {credentials.length === 0 ? (
-                <p className="rounded-card border border-dashed border-gray-300 py-8 text-center text-sm text-gray-500 dark:border-slate-700 dark:text-slate-400">
+                <p className="rounded-card border border-dashed border-[color:var(--app-border-strong)] py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">
                     {t('nfc.notProvisioned')}
                 </p>
             ) : (
@@ -116,14 +117,14 @@ export default function NfcStatusPanel({ cardId, nfc }: { cardId: string; nfc: N
                         return (
                             <div
                                 key={credential.credential_id}
-                                className="rounded-card border border-gray-200 p-4 dark:border-slate-800"
+                                className="rounded-card border border-[color:var(--app-border)] p-4"
                             >
                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="break-all font-mono text-xs text-gray-600 dark:text-slate-300">
+                                        <p className="break-all font-mono text-xs text-[color:var(--app-muted-foreground)]">
                                             {credential.credential_id}
                                         </p>
-                                        <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                        <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                             {typeLabel(credential.credential_type)}
                                         </p>
                                     </div>
@@ -132,14 +133,14 @@ export default function NfcStatusPanel({ cardId, nfc }: { cardId: string; nfc: N
 
                                 <dl className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
                                     <div>
-                                        <dt className="text-gray-400 dark:text-slate-500">{t('nfc.issuedDate')}</dt>
-                                        <dd className="text-gray-700 dark:text-slate-200">
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('nfc.issuedDate')}</dt>
+                                        <dd className="text-[color:var(--app-foreground)]">
                                             <LocalizedDateDisplay value={credential.issued_at} />
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-400 dark:text-slate-500">{t('nfc.lastUsed')}</dt>
-                                        <dd className="text-gray-700 dark:text-slate-200">
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('nfc.lastUsed')}</dt>
+                                        <dd className="text-[color:var(--app-foreground)]">
                                             <LocalizedDateDisplay
                                                 value={credential.last_used_at}
                                                 withTime
@@ -148,14 +149,14 @@ export default function NfcStatusPanel({ cardId, nfc }: { cardId: string; nfc: N
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-400 dark:text-slate-500">{t('nfc.expiresAt')}</dt>
-                                        <dd className="text-gray-700 dark:text-slate-200">
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('nfc.expiresAt')}</dt>
+                                        <dd className="text-[color:var(--app-foreground)]">
                                             <LocalizedDateDisplay value={credential.expires_at} />
                                         </dd>
                                     </div>
                                     <div>
-                                        <dt className="text-gray-400 dark:text-slate-500">{t('nfc.keyVersion')}</dt>
-                                        <dd className="text-gray-700 dark:text-slate-200">
+                                        <dt className="text-[color:var(--app-muted-foreground)]">{t('nfc.keyVersion')}</dt>
+                                        <dd className="text-[color:var(--app-foreground)]">
                                             {credential.key_version ?? '—'}
                                         </dd>
                                     </div>
@@ -177,7 +178,7 @@ export default function NfcStatusPanel({ cardId, nfc }: { cardId: string; nfc: N
                                                 className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
                                                     DESTRUCTIVE.has(action)
                                                         ? 'border-red-300 text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20'
-                                                        : 'border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                                                        : 'border-[color:var(--app-border-strong)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'
                                                 }`}
                                             >
                                                 {t(`nfc.${action === 'lost' ? 'markLost' : action}`)}

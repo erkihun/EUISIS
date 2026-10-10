@@ -38,7 +38,7 @@ export default function AppealShow({ appeal, decisions, can }: Props) {
                 {decided ? (
                     <Section title={t('performance.fields.decision')}>
                         <p className="text-sm">{label('decision', appeal.decision)}{appeal.decided_score !== null && ` · ${formatScore(appeal.decided_score)}`}</p>
-                        {appeal.decision_reason && <p className="mt-1 whitespace-pre-line text-sm text-gray-700 dark:text-slate-300">{appeal.decision_reason}</p>}
+                        {appeal.decision_reason && <p className="mt-1 whitespace-pre-line text-sm text-[color:var(--app-foreground)]">{appeal.decision_reason}</p>}
                     </Section>
                 ) : can.decide && (
                     <Section title={t('performance.actions.decide')}>

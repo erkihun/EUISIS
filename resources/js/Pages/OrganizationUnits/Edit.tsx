@@ -9,6 +9,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationUnit, OrganizationUnitStatus } from '@/types/organizationUnit';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
+import { cx, inputClassName } from '@/Components/ui';
 interface UnitTypeOption {
     id: string;
     code: string;
@@ -53,8 +54,7 @@ export default function OrganizationUnitsEdit({
         sort_order: unit.sort_order,
     });
 
-    const inputCls =
-        'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)] dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100';
+    const inputCls = cx(inputClassName, 'w-full');
 
     const noUnitTypes = unitTypes.length === 0;
 
@@ -74,13 +74,13 @@ export default function OrganizationUnitsEdit({
                         e.preventDefault();
                         patch(route('organization-units.update', unit.id));
                     }}
-                    className="w-full space-y-6 rounded-panel border border-gray-200 bg-white p-4 sm:p-6 lg:p-8 dark:border-slate-800 dark:bg-slate-900"
+                    className="w-full space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6 lg:p-8"
                 >
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Organization — locked */}
                         <div>
                             <InputLabel value={`${t('organizationUnits.organization')} *`} />
-                            <div className={`${inputCls} bg-gray-50 text-gray-600 dark:bg-slate-800 dark:text-slate-400`}>
+                            <div className={`${inputCls} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
                                 {unit.organization?.name_en ?? unit.organization_id}
                                 {unit.organization?.code && (
                                     <span className="ml-1 font-mono text-xs text-gray-400">
@@ -255,13 +255,13 @@ export default function OrganizationUnitsEdit({
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-gray-100 pt-5 dark:border-slate-800">
+                    <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
                         <PrimaryButton type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('common.saveChanges')}
                         </PrimaryButton>
                         <Link
                             href={route('organization-units.show', unit.id)}
-                            className="text-sm text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                            className="text-sm text-[color:var(--app-muted-foreground)] hover:text-gray-700"
                         >
                             {t('common.cancel')}
                         </Link>

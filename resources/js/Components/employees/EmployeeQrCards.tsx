@@ -4,6 +4,7 @@ import type { JSX, ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
+import { buttonClassName } from '@/Components/ui';
 /**
  * The two public QR codes for an employee, shown on the detail page.
  *
@@ -50,11 +51,11 @@ export default function EmployeeQrCards({
     }
 
     return (
-        <div className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
-            <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 sm:p-6">
+            <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                 {t('employees.qrSectionTitle')}
             </h2>
-            <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                 {t('employees.qrSectionHint')}
             </p>
 
@@ -145,13 +146,13 @@ function QrCard({
     }
 
     return (
-        <div className="rounded-card border border-gray-100 bg-gray-50 p-4 text-center dark:border-slate-800 dark:bg-slate-950">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-slate-400">
+        <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4 text-center">
+            <h3 className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                 {title}
             </h3>
 
             {url === null ? (
-                <p className="py-10 text-sm text-gray-500 dark:text-slate-400">{emptyLabel}</p>
+                <p className="py-10 text-sm text-[color:var(--app-muted-foreground)]">{emptyLabel}</p>
             ) : (
                 <>
                     {svg !== '' && (
@@ -163,10 +164,10 @@ function QrCard({
                     )}
 
                     {subtitle && (
-                        <p className="mt-2 font-mono text-xs text-gray-500 dark:text-slate-400">{subtitle}</p>
+                        <p className="mt-2 font-mono text-xs text-[color:var(--app-muted-foreground)]">{subtitle}</p>
                     )}
 
-                    <p className="mt-2 break-all text-[11px] leading-snug text-gray-400 dark:text-slate-500">
+                    <p className="mt-2 break-all text-[11px] leading-snug text-[color:var(--app-muted-foreground)]">
                         {url}
                     </p>
 
@@ -190,12 +191,12 @@ function QrCard({
                         )}
 
                         {(onRegenerate || onRevoke) && (
-                            <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-2 dark:border-slate-800">
+                            <div className="grid grid-cols-2 gap-2 border-t border-[color:var(--app-border)] pt-2">
                                 {onRegenerate && (
                                     <button
                                         type="button"
                                         onClick={onRegenerate}
-                                        className="rounded-lg border border-amber-300 px-2 py-1.5 text-xs font-medium text-amber-700 transition hover:bg-amber-50 dark:border-amber-900 dark:text-amber-400 dark:hover:bg-amber-950/40"
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                     >
                                         {t('serviceFeedback.regenerateQr')}
                                     </button>
@@ -204,7 +205,7 @@ function QrCard({
                                     <button
                                         type="button"
                                         onClick={onRevoke}
-                                        className="rounded-lg border border-red-300 px-2 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/40"
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                     >
                                         {t('serviceFeedback.revokeQr')}
                                     </button>
@@ -218,8 +219,7 @@ function QrCard({
     );
 }
 
-const actionCls =
-    'block rounded-lg border border-gray-300 px-2 py-1.5 text-center text-xs font-medium text-gray-700 transition hover:bg-white dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
+const actionCls = buttonClassName({ variant: 'outline', size: 'sm', className: 'block text-center' });
 
 function ActionButton({ onClick, children }: { onClick: () => void; children: ReactNode }): JSX.Element {
     return (

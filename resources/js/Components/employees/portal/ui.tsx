@@ -1,17 +1,17 @@
 import type { ReactNode } from 'react';
 
-export const panelCls = 'portal-panel rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900';
+export const panelCls = 'portal-panel rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
 
 export const inputCls =
-    'mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    'mt-1 w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)]';
 
-export const labelCls = 'block text-xs font-medium text-gray-600 dark:text-slate-400';
+export const labelCls = 'block text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
 export const primaryBtn =
     'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50';
 
 export const secondaryBtn =
-    'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800';
+    'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50';
 
 export const linkBtn = 'text-sm font-medium text-[color:var(--color-primary)] hover:underline';
 
@@ -26,20 +26,20 @@ export function Block({ title, badge, badgeTone = 'neutral', description, childr
 }) {
     return (
         <section className={panelCls}>
-            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 px-5 py-5 sm:px-6 dark:border-slate-800">
+            <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--app-border)] px-5 py-5 sm:px-6">
                 <div className="min-w-0">
-                    <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold text-gray-900 dark:text-slate-100">
+                    <h2 className="flex flex-wrap items-center gap-2 text-base font-semibold text-[color:var(--app-foreground)]">
                         {title}
                         {badge && (
                             <span className={[
                                 'rounded-control px-1.5 py-0.5 text-[11px] font-medium ring-1 ring-inset',
                                 badgeTone === 'editable'
                                     ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900'
-                                    : 'bg-gray-50 text-gray-600 ring-gray-200 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-700',
+                                    : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-gray-200 dark:ring-slate-700',
                             ].join(' ')}>{badge}</span>
                         )}
                     </h2>
-                    {description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-500 dark:text-slate-400">{description}</p>}
+                    {description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[color:var(--app-muted-foreground)]">{description}</p>}
                 </div>
                 {actions}
             </header>

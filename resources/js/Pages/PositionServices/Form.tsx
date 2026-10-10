@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 
+import { buttonClassName } from '@/Components/ui';
 /**
  * Create / edit a service provided by a position.
  *
@@ -121,7 +122,7 @@ export default function PositionServiceForm({
 
                 <form
                     onSubmit={submit}
-                    className="space-y-5 rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+                    className="space-y-5 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5"
                 >
                     <Field label={t('serviceFeedback.filterOrganization')} error={undefined}>
                         <select
@@ -219,7 +220,7 @@ export default function PositionServiceForm({
                         />
                     </Field>
 
-                    <div className="space-y-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+                    <div className="space-y-3 border-t border-[color:var(--app-border)] pt-4">
                         <Checkbox
                             checked={data.is_active}
                             onChange={(value) => setData('is_active', value)}
@@ -237,7 +238,7 @@ export default function PositionServiceForm({
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full rounded-lg bg-[color:var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60"
+                        className={buttonClassName({ variant: 'primary', className: 'w-full' })}
                     >
                         {processing ? t('common.saving') : t('common.save')}
                     </button>
@@ -248,7 +249,7 @@ export default function PositionServiceForm({
 }
 
 const selectCls =
-    'mt-1 block w-full rounded-lg border-gray-300 py-2 text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    'mt-1 block w-full rounded-lg border-[color:var(--app-border-strong)] py-2 text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:opacity-60 dark:bg-slate-950 dark:text-slate-100';
 
 function Field({
     label,
@@ -263,7 +264,7 @@ function Field({
 }): JSX.Element {
     return (
         <div>
-            <label className="block text-sm font-medium text-gray-900 dark:text-slate-100">{label}</label>
+            <label className="block text-sm font-medium text-[color:var(--app-foreground)]">{label}</label>
             {children}
             {hint && <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">{hint}</p>}
             {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
@@ -288,11 +289,11 @@ function Checkbox({
                 type="checkbox"
                 checked={checked}
                 onChange={(e) => onChange(e.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-700"
+                className="mt-0.5 h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
             />
             <span>
-                <span className="block text-sm font-medium text-gray-900 dark:text-slate-100">{label}</span>
-                {hint && <span className="block text-xs text-gray-500 dark:text-slate-400">{hint}</span>}
+                <span className="block text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
+                {hint && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{hint}</span>}
             </span>
         </label>
     );

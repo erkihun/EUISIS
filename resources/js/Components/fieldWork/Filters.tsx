@@ -39,7 +39,7 @@ export default function Filters({ routeName, filters, options, showStatus = true
     const field = `${compactInputCls} w-full sm:w-auto`;
 
     return (
-        <form onSubmit={apply} className="flex flex-wrap items-end gap-2 rounded-panel border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+        <form onSubmit={apply} className="flex flex-wrap items-end gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
             <input aria-label={t('fieldWork.filters.search')} placeholder={t('fieldWork.filters.search')} className={`${field} sm:w-64`} value={values.search} onChange={(e) => set('search', e.target.value)} maxLength={100} />
             {showStatus && (
                 <select aria-label={t('fieldWork.columns.status')} className={field} value={values.status} onChange={(e) => set('status', e.target.value)}>
@@ -71,11 +71,11 @@ export default function Filters({ routeName, filters, options, showStatus = true
                     {options.units.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
                 </select>
             )}
-            <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-gray-500 sm:w-40 dark:text-slate-400">
+            <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
                 {t('fieldWork.filters.from')}
                 <LocalizedDatePicker value={values.date_from} onChange={(v) => set('date_from', v)} />
             </label>
-            <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-gray-500 sm:w-40 dark:text-slate-400">
+            <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
                 {t('fieldWork.filters.to')}
                 <LocalizedDatePicker value={values.date_to} onChange={(v) => set('date_to', v)} />
             </label>

@@ -101,7 +101,7 @@ it('uses a compact responsive operations layout with real actions and attention 
         ->toContain('dark:text-white')
         ->not->toContain('bg-slate-950')
         ->and($activity)
-        ->toContain('divide-y divide-gray-100')
+        ->toContain('divide-y divide-[color:var(--app-border)]')
         ->not->toContain('rounded-card border')
         ->and($scope)
         ->toContain("'activity_limit' => 8");

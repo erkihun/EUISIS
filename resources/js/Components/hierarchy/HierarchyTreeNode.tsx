@@ -5,6 +5,7 @@ import RelationshipTypeBadge from '@/Components/hierarchy/RelationshipTypeBadge'
 import { useLocale } from '@/hooks/useLocale';
 import type { HierarchyTreeNodeData, HierarchyTreeNodeType } from '@/Components/hierarchy/types';
 
+import { buttonClassName } from '@/Components/ui';
 const INDENT_PX = 28;
 const GUIDE_X_OFFSET = 10;   // px from indentLeft where the vertical guide sits
 const ROW_GUTTER_PX = 28;    // gap between guide line and card left edge
@@ -127,7 +128,7 @@ export default function HierarchyTreeNode({
                 className="group relative rounded-panel"
             >
                 <div
-                    className="relative z-20 flex min-h-[4.25rem] flex-col gap-3 rounded-panel border border-transparent bg-white px-3 py-3 transition hover:border-gray-200 hover:bg-gray-50/80 dark:bg-slate-900 dark:hover:border-slate-700 dark:hover:bg-slate-800/60 lg:flex-row lg:items-center"
+                    className="relative z-20 flex min-h-[4.25rem] flex-col gap-3 rounded-panel border border-transparent bg-[color:var(--app-surface)] px-3 py-3 transition hover:border-gray-200 hover:bg-gray-50/80 dark:hover:border-slate-700 dark:hover:bg-slate-800/60 lg:flex-row lg:items-center"
                     style={{ marginLeft: `${rowMarginLeft}px` }}
                 >
                     <div className="flex min-w-0 flex-1 items-start gap-3">
@@ -138,7 +139,7 @@ export default function HierarchyTreeNode({
                                     onClick={() => onToggle(nodeKey)}
                                     aria-label={isExpanded ? t('hierarchyVersions.collapseNode') : t('hierarchyVersions.expandNode')}
                                     title={isExpanded ? t('hierarchyVersions.hideChildren') : t('hierarchyVersions.showChildren')}
-                                    className="flex h-6 w-6 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 hover:border-blue-200 hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-blue-900/40 dark:hover:bg-blue-950/30 dark:hover:text-blue-200"
+                                    className="flex h-6 w-6 items-center justify-center rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-[color:var(--app-muted-foreground)] hover:border-blue-200 hover:bg-blue-50 hover:text-[color:var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:hover:border-blue-900/40 dark:hover:bg-blue-950/30 dark:hover:text-blue-200"
                                 >
                                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                 </button>
@@ -154,11 +155,11 @@ export default function HierarchyTreeNode({
                                 <span className={`rounded-md px-1.5 py-0.5 font-mono text-[11px] font-semibold ${isOrgUnit ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-200' : 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-200'}`}>
                                     {position}
                                 </span>
-                                <p className="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">
+                                <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">
                                     {displayName}
                                 </p>
                                 {node.code && (
-                                    <span className="rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                    <span className="rounded-md bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] text-[color:var(--app-muted-foreground)]">
                                         {node.code}
                                     </span>
                                 )}
@@ -175,7 +176,7 @@ export default function HierarchyTreeNode({
                                     </span>
                                 )}
                                 {typeName && (
-                                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
+                                    <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--app-muted-foreground)]">
                                         {typeName}
                                     </span>
                                 )}
@@ -184,7 +185,7 @@ export default function HierarchyTreeNode({
                                 <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
                                     {t('hierarchyVersions.hierarchyLevel')}: {depth}
                                 </span>
-                                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                                <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--app-muted-foreground)]">
                                     {t('hierarchyVersions.childCount')}: {node.child_count}
                                 </span>
                                 {node.meta?.position_count !== undefined && node.meta.position_count > 0 && (
@@ -198,7 +199,7 @@ export default function HierarchyTreeNode({
                                     </span>
                                 )}
                                 {(node.effective_from || node.effective_to) && (
-                                    <span className="text-[11px] text-gray-500 dark:text-slate-400">
+                                    <span className="text-[11px] text-[color:var(--app-muted-foreground)]">
                                         {node.effective_from ?? '-'}
                                         {node.effective_from && node.effective_to ? ' - ' : ''}
                                         {node.effective_to ?? ''}
@@ -225,7 +226,7 @@ export default function HierarchyTreeNode({
                                     href={route('organizations.show', { organization: node.organization_id })}
                                     aria-label={t('common.details')}
                                     title={t('common.details')}
-                                    className="inline-flex h-8 items-center gap-1.5 rounded-card border border-gray-300 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                    className="inline-flex h-8 items-center gap-1.5 rounded-card border border-[color:var(--app-border-strong)] px-2.5 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20"
                                 >
                                     <EyeIcon className="h-3.5 w-3.5" />
                                     <span>{t('common.details')}</span>
@@ -237,7 +238,7 @@ export default function HierarchyTreeNode({
                                         onClick={() => onAddChild(node.organization_id)}
                                         aria-label={t('hierarchyVersions.addRelation')}
                                         title={t('hierarchyVersions.addRelation')}
-                                        className="inline-flex h-8 items-center gap-1.5 rounded-card border border-blue-200 px-2.5 text-xs font-medium text-blue-700 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-950/30"
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                     >
                                         <Plus className="h-3.5 w-3.5" />
                                         <span>{t('hierarchyVersions.addRelation')}</span>
@@ -250,7 +251,7 @@ export default function HierarchyTreeNode({
                                         onClick={() => onEditRelation(node.edge_id!)}
                                         aria-label={t('hierarchyVersions.editRelation')}
                                         title={t('hierarchyVersions.editRelation')}
-                                        className="inline-flex h-8 items-center gap-1.5 rounded-card border border-gray-300 px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                     >
                                         <PencilIcon className="h-3.5 w-3.5" />
                                         <span>{t('hierarchyVersions.editRelation')}</span>
@@ -263,7 +264,7 @@ export default function HierarchyTreeNode({
                                         onClick={() => onRemoveRelation(node.edge_id!)}
                                         aria-label={t('hierarchyVersions.removeRelation')}
                                         title={t('hierarchyVersions.removeRelation')}
-                                        className="inline-flex h-8 items-center gap-1.5 rounded-card border border-red-200 px-2.5 text-xs font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/30"
+                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                     >
                                         <TrashIcon className="h-3.5 w-3.5" />
                                         <span>{t('hierarchyVersions.removeRelation')}</span>

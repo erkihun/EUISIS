@@ -12,6 +12,7 @@ import type {
     QueueAbilities,
 } from '@/Components/organizationalChange/types';
 
+import { buttonClassName, selectClassName } from '@/Components/ui';
 export type QueueProps = {
     requests: { data: ChangeRequestSummary[]; meta: ChangeRequestListMeta };
     filters: Record<string, string>;
@@ -28,8 +29,7 @@ type Props = QueueProps & {
     showCreate?: boolean;
 };
 
-const inputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const inputCls = selectClassName;
 
 /**
  * Shared shell for the four queues.
@@ -65,7 +65,7 @@ export default function QueueShell({
                         showCreate && can.create ? (
                             <Link
                                 href={route('organizational-change-requests.create')}
-                                className="inline-flex items-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 <Plus className="h-4 w-4" aria-hidden="true" />
                                 {t('organizationalChangeRequests.actions.create')}
@@ -78,7 +78,7 @@ export default function QueueShell({
             <Head title={t(`organizationalChangeRequests.queues.${titleKey}`)} />
 
             <div className="space-y-4">
-                <section className="flex flex-wrap items-center gap-2 rounded-panel border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                <section className="flex flex-wrap items-center gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
                     <input
                         type="search"
                         className={`${inputCls} min-w-56 flex-1`}

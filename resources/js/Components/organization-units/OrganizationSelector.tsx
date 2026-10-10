@@ -4,6 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Building2, SearchIcon } from '@/Components/Icons';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 interface Props {
     organizations: OrganizationSummary[];
     onSelect: (org: OrganizationSummary) => void;
@@ -25,10 +26,10 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
     return (
         <div className="space-y-4">
             <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
+                <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
                 <input
                     type="text"
-                    className="w-full rounded-lg border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500"
+                    className={cx(inputClassName, 'w-full pl-9 pr-3')}
                     placeholder={t('organizationUnits.searchOrganizations')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -36,46 +37,46 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
             </div>
 
             {filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-panel border border-dashed border-gray-200 bg-white px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900">
+                <div className="flex flex-col items-center justify-center rounded-panel border border-dashed border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-12 text-center">
                     <Building2 className="h-10 w-10 text-gray-300 dark:text-slate-600" />
-                    <p className="mt-3 text-sm text-gray-500 dark:text-slate-400">
+                    <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">
                         {t('organizationUnits.noOrganizationUnitsFound')}
                     </p>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <table className="w-full text-sm">
-                        <thead className="border-b border-gray-100 bg-gray-50 dark:border-slate-800 dark:bg-slate-800/50">
+                <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <table className={tableClassName}>
+                        <thead className={tableHeadClassName}>
                             <tr>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                     {t('common.code')}
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                     {t('common.name')}
                                 </th>
-                                <th className="hidden px-4 py-3 text-left text-xs font-semibold text-gray-500 md:table-cell dark:text-slate-400">
+                                <th className={cx(tableHeaderCellClassName, 'text-left hidden')}>
                                     {t('organizations.organizationType') || 'Type'}
                                 </th>
-                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                     {t('common.status')}
                                 </th>
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-slate-400">
+                                <th className={cx(tableHeaderCellClassName, 'text-right')}>
                                     {t('organizationUnits.unitCount')}
                                 </th>
-                                <th className="px-4 py-3" />
+                                <th className={cx(tableHeaderCellClassName, 'text-left')} />
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className={tableBodyClassName}>
                             {filtered.map((org) => (
                                 <tr
                                     key={org.id}
-                                    className="cursor-pointer text-gray-700 transition-colors hover:bg-blue-50 dark:text-slate-200 dark:hover:bg-blue-900/10"
+                                    className={cx(tableRowClassName, 'cursor-pointer')}
                                     onClick={() => onSelect(org)}
                                 >
-                                    <td className="px-4 py-3 font-mono text-xs text-gray-500 dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>
                                         {org.code}
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className={tableCellClassName}>
                                         <div className="flex items-center gap-2">
                                             {org.has_logo && org.logo_url ? (
                                                 <img
@@ -91,28 +92,28 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
                                             <div>
                                                 <p className="font-medium">{org.name_en}</p>
                                                 {org.name_am && (
-                                                    <p className="text-xs text-gray-400 dark:text-slate-500">{org.name_am}</p>
+                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{org.name_am}</p>
                                                 )}
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="hidden px-4 py-3 text-sm text-gray-500 md:table-cell dark:text-slate-400">
+                                    <td className={cx(tableCellClassName, 'hidden text-[color:var(--app-muted-foreground)]')}>
                                         {org.type?.name_en ?? '—'}
                                     </td>
-                                    <td className="px-4 py-3">
+                                    <td className={tableCellClassName}>
                                         <StatusBadge status={org.status} />
                                     </td>
-                                    <td className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-slate-300">
+                                    <td className={cx(tableCellClassName, 'text-right font-medium text-[color:var(--app-muted-foreground)]')}>
                                         {org.organization_units_count ?? 0}
                                     </td>
-                                    <td className="py-3 pl-2 pr-4">
+                                    <td className={tableCellClassName}>
                                         <button
                                             type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onSelect(org);
                                             }}
-                                            className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[color:var(--color-primary-hover)]"
+                                            className={buttonClassName({ variant: 'primary', size: 'sm' })}
                                         >
                                             {t('organizationUnits.viewUnits')}
                                         </button>

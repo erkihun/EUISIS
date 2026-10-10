@@ -72,8 +72,8 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                                 </select>
                             </Field>
                             <fieldset className="md:col-span-2">
-                                <legend className="mb-2 text-sm font-medium text-gray-700 dark:text-slate-300">{t('assessments.records.peers')}</legend>
-                                <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-gray-200 p-3 sm:grid-cols-2 dark:border-slate-700">
+                                <legend className="mb-2 text-sm font-medium text-[color:var(--app-foreground)]">{t('assessments.records.peers')}</legend>
+                                <div className="grid max-h-56 gap-2 overflow-auto rounded-lg border border-[color:var(--app-border)] p-3 sm:grid-cols-2">
                                     {users.map((u) => (
                                         <label key={u.id} className="flex items-center gap-2 text-sm">
                                             <input type="checkbox" checked={form.data.evaluator_ids.includes(Number(u.id))}

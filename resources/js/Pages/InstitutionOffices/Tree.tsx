@@ -5,6 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName } from '@/Components/ui';
 interface TreeNode {
     id: string;
     office_code: string;
@@ -37,7 +38,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
     return (
         <li>
             <div
-                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-gray-50 dark:hover:bg-slate-800"
+                className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-[color:var(--app-surface-muted)]"
                 style={{ paddingLeft: `${(depth * 20) + 12}px` }}
             >
                 {hasChildren ? (
@@ -53,7 +54,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                 )}
 
                 <div className="flex flex-1 flex-wrap items-center gap-2">
-                    <span className="font-mono text-xs text-gray-400 dark:text-slate-500">
+                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
                         {node.office_code}
                     </span>
                     <Link
@@ -76,13 +77,13 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                 <div className="flex items-center gap-1.5">
                     <Link
                         href={route('institution-offices.show', node.id)}
-                        className="text-xs text-gray-500 hover:text-[color:var(--color-primary)] dark:text-slate-400 dark:hover:text-blue-400"
+                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-[color:var(--color-primary)] dark:hover:text-blue-400"
                     >
                         {t('common.view')}
                     </Link>
                     <Link
                         href={route('institution-offices.edit', node.id)}
-                        className="text-xs text-gray-500 hover:text-gray-700 dark:text-slate-400"
+                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-gray-700"
                     >
                         {t('common.edit')}
                     </Link>
@@ -113,7 +114,7 @@ export default function InstitutionOfficesTree({ institution, tree, can }: Props
                         can.create ? (
                             <Link
                                 href={`${route('institution-offices.create')}?institution_id=${institution.id}`}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                className={buttonClassName({ variant: 'primary' })}
                             >
                                 + {t('institutionOffices.addOffice')}
                             </Link>
@@ -124,9 +125,9 @@ export default function InstitutionOfficesTree({ institution, tree, can }: Props
         >
             <Head title={`${t('institutionOffices.treeView')} — ${institution.name_en}`} />
 
-            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                 {tree.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-gray-400 dark:text-slate-500">
+                    <p className="py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">
                         {t('institutionOffices.noOffices')}
                     </p>
                 ) : (

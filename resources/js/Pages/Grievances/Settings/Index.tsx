@@ -9,6 +9,7 @@ import { AlertTriangle, CheckCircle, Plus, ShieldCheck, TagsIcon, X, XCircle } f
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { SettingField, SettingsIndexProps } from '@/types/grievances';
 
+import { tableRowClassName } from '@/Components/ui';
 /*
  * Grievance Management → Settings (design: Claude Design canvas
  * "Grievance Settings redesign"). Readiness checklist, grouped section nav
@@ -67,34 +68,34 @@ export default function Index(props: SettingsIndexProps) {
 
     return (
         <AuthenticatedLayout header={<PageHeader title={a('settings')} description={a('settings_description')}
-            actions={<span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"><ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />{props.can.update ? a('can_edit') : a('readOnly')}</span>} />}>
+            actions={<span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-3 py-1.5 text-xs text-[color:var(--app-muted-foreground)]"><ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />{props.can.update ? a('can_edit') : a('readOnly')}</span>} />}>
             <Head title={a('settings')} />
             <div className="min-w-0 space-y-5 pb-24">
                 <Readiness props={props} severity={severity} counts={counts} go={go} />
 
                 {/* Phone: the section nav becomes one select. */}
                 <label className="block lg:hidden">
-                    <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{a('section')}</span>
+                    <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">{a('section')}</span>
                     <select className={inputCls} value={section} onChange={e => go(e.target.value as SectionId)}>
                         {ALL.map(id => <option key={id} value={id}>{a(`tab_${id}`)}{counts[id] !== null ? ` (${counts[id]})` : ''}</option>)}
                     </select>
                 </label>
 
                 <div className="grid items-start gap-5 lg:grid-cols-[248px_minmax(0,1fr)]">
-                    <nav aria-label={a('sections')} className="sticky top-4 hidden space-y-4 rounded-panel border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 lg:block">
+                    <nav aria-label={a('sections')} className="sticky top-4 hidden space-y-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3 lg:block">
                         {GROUPS.map(group => (
                             <div key={group.id} className="space-y-0.5">
-                                <p className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">{a(`group_${group.id}`)}</p>
+                                <p className="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-[color:var(--app-muted-foreground)]">{a(`group_${group.id}`)}</p>
                                 {group.sections.map(id => {
                                     const active = id === section;
                                     const sev = severity[id];
                                     return (
                                         <button key={id} type="button" onClick={() => go(id)} aria-current={active ? 'page' : undefined}
-                                            className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm ${active ? 'bg-[color:var(--color-primary-50,#eef1fa)] font-semibold text-[color:var(--color-primary)] dark:bg-slate-800' : 'text-gray-800 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/60'}`}>
+                                            className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm ${active ? 'bg-[color:var(--color-primary-50,#eef1fa)] font-semibold text-[color:var(--color-primary)] dark:bg-slate-800' : 'text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>
                                             <span>{a(`tab_${id}`)}</span>
                                             {counts[id] !== null && (sev === 'error'
                                                 ? <span className="rounded-full bg-red-700 px-1.5 text-[11px] font-bold text-white" title={a('needs_setup')}>{counts[id]}</span>
-                                                : <span className={`text-xs ${sev === 'warning' ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-gray-500 dark:text-slate-400'}`}>{counts[id]}</span>)}
+                                                : <span className={`text-xs ${sev === 'warning' ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-[color:var(--app-muted-foreground)]'}`}>{counts[id]}</span>)}
                                         </button>
                                     );
                                 })}
@@ -129,12 +130,12 @@ export default function Index(props: SettingsIndexProps) {
         const total = items.length + 2;
         if (ready === total) return null;
         return (
-            <section aria-labelledby="readiness" className="space-y-3 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section aria-labelledby="readiness" className="space-y-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                 <div className="flex items-baseline justify-between gap-3">
-                    <h2 id="readiness" className="text-[15px] font-semibold text-gray-900 dark:text-slate-100">{a('readiness')}</h2>
-                    <span className="text-sm text-gray-600 dark:text-slate-400">{fmt(a('readiness_count'), { ready, total })}</span>
+                    <h2 id="readiness" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{a('readiness')}</h2>
+                    <span className="text-sm text-[color:var(--app-muted-foreground)]">{fmt(a('readiness_count'), { ready, total })}</span>
                 </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-slate-800" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={ready} aria-label={a('readiness')}>
+                <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--app-surface-muted)]" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={ready} aria-label={a('readiness')}>
                     <div className="h-full bg-[color:var(--color-primary)]" style={{ width: `${(100 * ready) / total}%` }} />
                 </div>
                 <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
@@ -146,7 +147,7 @@ export default function Index(props: SettingsIndexProps) {
                         return (
                             <button key={item.id} type="button" onClick={() => open(item.id)} className={`flex items-start gap-2.5 rounded-card border p-3 text-left ${tone}`}>
                                 <Icon className={`mt-0.5 h-[18px] w-[18px] shrink-0 ${iconTone}`} aria-hidden="true" />
-                                <span className="min-w-0"><span className="block text-[13px] font-semibold text-gray-900 dark:text-slate-100">{item.title}</span><span className="block text-xs text-gray-700 dark:text-slate-300">{item.body}</span></span>
+                                <span className="min-w-0"><span className="block text-[13px] font-semibold text-[color:var(--app-foreground)]">{item.title}</span><span className="block text-xs text-[color:var(--app-foreground)]">{item.body}</span></span>
                             </button>
                         );
                     })}
@@ -174,8 +175,8 @@ function ConfirmBadge() {
 
 function Card({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
     return (
-        <section className="space-y-4 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between gap-3"><h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h3>{actions}</div>
+        <section className="space-y-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+            <div className="flex items-center justify-between gap-3"><h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>{actions}</div>
             {children}
         </section>
     );
@@ -197,10 +198,10 @@ function Drawer({ title, open, onClose, children }: { title: string; open: boole
     return (
         <div className="fixed inset-0 z-50">
             <div className="absolute inset-0 bg-slate-900/30" onClick={onClose} aria-hidden="true" />
-            <div ref={panel} role="dialog" aria-modal="true" aria-label={title} className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-gray-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-slate-800">
-                    <h2 className="text-[17px] font-semibold text-gray-900 dark:text-slate-100">{title}</h2>
-                    <button type="button" onClick={onClose} aria-label={t('grievances.common.close')} className="flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
+            <div ref={panel} role="dialog" aria-modal="true" aria-label={title} className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-2xl">
+                <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
+                    <h2 className="text-[17px] font-semibold text-[color:var(--app-foreground)]">{title}</h2>
+                    <button type="button" onClick={onClose} aria-label={t('grievances.common.close')} className="flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:bg-[color:var(--app-surface-muted)]"><X className="h-4 w-4" /></button>
                 </div>
                 <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
             </div>
@@ -221,17 +222,17 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
         <div className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div className="min-w-0 space-y-1">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{a(`tab_${id}`)}</h2>
-                    <p className="max-w-2xl text-sm text-gray-600 dark:text-slate-400">{a(`intro_${id}`)}</p>
+                    <h2 className="text-lg font-semibold text-[color:var(--app-foreground)]">{a(`tab_${id}`)}</h2>
+                    <p className="max-w-2xl text-sm text-[color:var(--app-muted-foreground)]">{a(`intro_${id}`)}</p>
                 </div>
                 {canEdit && <button type="button" className={primaryBtn} onClick={() => setEditing('new')}><Plus className="h-4 w-4" aria-hidden="true" />{a(`new_${id}`)}</button>}
             </div>
             {intro}
-            <section className="overflow-hidden rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 {rows.length ? (
                     <Table head={<>{[...head, ''].map((h, i) => <th key={i} className={thCls}>{h ? a(`fields.${h}`) : <span className="sr-only">{t('grievances.common.actions')}</span>}</th>)}</>}>
                         {rows.map(row => (
-                            <tr key={row.id} className="hover:bg-gray-50/60 dark:hover:bg-slate-800/40">
+                            <tr key={row.id} className={tableRowClassName}>
                                 {cells(row).map((cell, i) => <td key={i} className={tdCls}>{cell}</td>)}
                                 <td className={`${tdCls} text-right`}>{canEdit && <button type="button" className="text-sm font-semibold text-[color:var(--color-primary)] hover:underline" onClick={() => setEditing(row)}>{t('grievances.common.edit')}</button>}</td>
                             </tr>
@@ -239,9 +240,9 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
                     </Table>
                 ) : (
                     <div className="flex flex-col items-center gap-2.5 px-6 py-14 text-center">
-                        <div className={`flex h-12 w-12 items-center justify-center rounded-full ${emptyTone === 'danger' ? 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400' : 'bg-gray-100 text-gray-500 dark:bg-slate-800 dark:text-slate-400'}`}>{emptyIcon ?? <TagsIcon className="h-5 w-5" />}</div>
-                        <h3 className="text-base font-semibold text-gray-900 dark:text-slate-100">{emptyTitle ?? a('empty')}</h3>
-                        {emptyBody && <p className="max-w-md text-sm text-gray-600 dark:text-slate-400">{emptyBody}</p>}
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-full ${emptyTone === 'danger' ? 'bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>{emptyIcon ?? <TagsIcon className="h-5 w-5" />}</div>
+                        <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{emptyTitle ?? a('empty')}</h3>
+                        {emptyBody && <p className="max-w-md text-sm text-[color:var(--app-muted-foreground)]">{emptyBody}</p>}
                     </div>
                 )}
             </section>
@@ -277,7 +278,7 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
         if (f.type === 'boolean') {
             return (
                 <div key={f.key} className="flex items-start justify-between gap-4">
-                    <label htmlFor={id} className="min-w-0"><span className="block text-sm font-medium text-gray-900 dark:text-slate-100">{labelOf(f)}</span>{helpOf(f) && <span className="block text-xs text-gray-600 dark:text-slate-400">{helpOf(f)}</span>}</label>
+                    <label htmlFor={id} className="min-w-0"><span className="block text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(f)}</span>{helpOf(f) && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{helpOf(f)}</span>}</label>
                     <Toggle id={id} label={labelOf(f)} checked={Boolean(form.data[f.key])} disabled={!editable} onChange={v => set(f.key, v)} />
                 </div>
             );
@@ -286,15 +287,15 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
             const days = (form.data[f.key] as string[]) ?? [];
             return (
                 <fieldset key={f.key} className="space-y-2">
-                    <legend className="mb-2 text-sm font-medium text-gray-900 dark:text-slate-100">{labelOf(f)}</legend>
+                    <legend className="mb-2 text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(f)}</legend>
                     <div className="flex flex-wrap gap-1.5">
                         {WEEKDAYS.map(d => {
                             const on = days.includes(d);
                             return <button key={d} type="button" aria-pressed={on} disabled={!editable} onClick={() => set(f.key, on ? days.filter(x => x !== d) : [...days, d].sort())}
-                                className={`h-9 min-w-11 rounded-md px-2 text-[13px] font-semibold ${on ? 'bg-[color:var(--color-primary)] text-white' : 'border border-gray-300 text-gray-600 dark:border-slate-600 dark:text-slate-300'}`}>{a(`weekday_${d}`)}</button>;
+                                className={`h-9 min-w-11 rounded-md px-2 text-[13px] font-semibold ${on ? 'bg-[color:var(--color-primary)] text-white' : 'border border-[color:var(--app-border-strong)] text-[color:var(--app-muted-foreground)]'}`}>{a(`weekday_${d}`)}</button>;
                         })}
                     </div>
-                    <p className="text-xs text-gray-600 dark:text-slate-400">{a('weekday_help')}</p>
+                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{a('weekday_help')}</p>
                     {err(f.key) && <p className="text-xs text-red-600">{err(f.key)}</p>}
                 </fieldset>
             );
@@ -303,15 +304,15 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
             const values = (form.data[f.key] as string[]) ?? [];
             return (
                 <fieldset key={f.key} className="space-y-2">
-                    <legend className="mb-2 text-sm font-medium text-gray-900 dark:text-slate-100">{labelOf(f)}</legend>
+                    <legend className="mb-2 text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(f)}</legend>
                     <div className="flex flex-wrap gap-1.5">
                         {(f.options ?? []).map(o => {
                             const on = values.includes(o);
                             return <button key={o} type="button" aria-pressed={on} disabled={!editable} onClick={() => set(f.key, on ? values.filter(x => x !== o) : [...values, o])}
-                                className={`h-8 rounded-full px-3 text-xs font-semibold ${on ? 'bg-[color:var(--color-primary-50,#eef1fa)] text-[color:var(--color-primary)] ring-1 ring-[color:var(--color-primary-200,#bcc7eb)] dark:bg-slate-800' : 'border border-dashed border-gray-300 text-gray-500 dark:border-slate-600'}`}>{o}</button>;
+                                className={`h-8 rounded-full px-3 text-xs font-semibold ${on ? 'bg-[color:var(--color-primary-50,#eef1fa)] text-[color:var(--color-primary)] ring-1 ring-[color:var(--color-primary-200,#bcc7eb)] dark:bg-slate-800' : 'border border-dashed border-[color:var(--app-border-strong)] text-gray-500'}`}>{o}</button>;
                         })}
                     </div>
-                    {helpOf(f) && <p className="text-xs text-gray-600 dark:text-slate-400">{helpOf(f)}</p>}
+                    {helpOf(f) && <p className="text-xs text-[color:var(--app-muted-foreground)]">{helpOf(f)}</p>}
                     {err(f.key) && <p className="text-xs text-red-600">{err(f.key)}</p>}
                 </fieldset>
             );
@@ -321,9 +322,9 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
             : <input id={id} type={f.type === 'integer' ? 'number' : 'text'} className={`${inputCls} ${f.type === 'integer' ? 'max-w-32' : ''}`} disabled={!editable} value={String(form.data[f.key] ?? '')} onChange={e => set(f.key, f.type === 'integer' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value)} />;
         return (
             <div key={f.key} className="space-y-1.5">
-                <label htmlFor={id} className="block text-sm font-medium text-gray-900 dark:text-slate-100">{labelOf(f)}</label>
+                <label htmlFor={id} className="block text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(f)}</label>
                 {input}
-                {helpOf(f) && <p className="text-xs text-gray-600 dark:text-slate-400">{helpOf(f)}</p>}
+                {helpOf(f) && <p className="text-xs text-[color:var(--app-muted-foreground)]">{helpOf(f)}</p>}
                 {err(f.key) && <p className="text-xs text-red-600">{err(f.key)}</p>}
             </div>
         );
@@ -336,10 +337,10 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
         <form onSubmit={e => { e.preventDefault(); save(); }} className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="space-y-1">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100">{a('tab_policy')}</h2>
-                    <p className="text-sm text-gray-600 dark:text-slate-400">{a('policy_help')}</p>
+                    <h2 className="text-lg font-semibold text-[color:var(--app-foreground)]">{a('tab_policy')}</h2>
+                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{a('policy_help')}</p>
                 </div>
-                {enabled && <label className="flex items-center gap-3 text-sm font-medium text-gray-900 dark:text-slate-100">{labelOf(enabled)}<Toggle label={labelOf(enabled)} checked={Boolean(form.data.enabled)} disabled={!editable} onChange={v => set('enabled', v)} /></label>}
+                {enabled && <label className="flex items-center gap-3 text-sm font-medium text-[color:var(--app-foreground)]">{labelOf(enabled)}<Toggle label={labelOf(enabled)} checked={Boolean(form.data.enabled)} disabled={!editable} onChange={v => set('enabled', v)} /></label>}
             </div>
             <div className="grid gap-4 xl:grid-cols-2">
                 {POLICY_GROUPS.map(group => {
@@ -354,8 +355,8 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
                 })}
             </div>
             {editable && (
-                <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-3 border-t border-gray-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 sm:mx-0 sm:rounded-panel sm:border">
-                    <span role="status" className="flex items-center gap-2 text-sm text-gray-700 dark:text-slate-300">
+                <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-3 border-t border-[color:var(--app-border)] bg-white/95 px-4 py-3 backdrop-blur dark:bg-slate-900/95 sm:mx-0 sm:rounded-panel sm:border">
+                    <span role="status" className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                         {dirty > 0
                             ? <><span className="h-2 w-2 rounded-full bg-amber-600" aria-hidden="true" />{fmt(a('unsaved'), { n: dirty })}</>
                             : form.recentlySuccessful ? <><CheckCircle className="h-4 w-4 text-emerald-600" aria-hidden="true" />{a('saved')}</> : a('no_changes')}
@@ -483,14 +484,14 @@ function SealsSection({ props }: { props: SettingsIndexProps }) {
     return <ListSection<Row> id="seals" rows={props.seals} canEdit={props.can.seals}
         emptyTitle={a('empty_seals')} emptyBody={a('seal_help')} emptyIcon={<ShieldCheck className="h-5 w-5" />}
         head={['seal', 'organization', 'name', 'status', 'approved_at']}
-        cells={s => [<img alt={s.name} className="h-12 w-12 rounded border border-gray-200 bg-white object-contain dark:border-slate-700" src={route('grievances.settings.seals.image', s.id)} />, nameOf(s.organization, locale),
+        cells={s => [<img alt={s.name} className="h-12 w-12 rounded border border-[color:var(--app-border)] bg-white object-contain" src={route('grievances.settings.seals.image', s.id)} />, nameOf(s.organization, locale),
             <>{s.name}<span className="block font-mono text-[11px] text-gray-500" title={s.sha256}>SHA-256 {s.sha256.slice(0, 12)}…</span></>,
             <span className="flex flex-wrap items-center gap-2"><GPill group="seal_status" value={s.status} />{props.can.seals && s.status === 'pending' && <SealAction id={s.id} action="approve" label={a('approve')} />}{props.can.seals && s.status !== 'retired' && <SealAction id={s.id} action="retire" label={a('retire')} />}</span>,
             <DateDisplay value={s.approved_at} />]}
         form={(_, close) => <AdminForm onSaved={close} onCancel={close} url={route('grievances.settings.seals.store')} submitLabel={a('upload_seal')}
             initial={{ organization_id: '', name: '', file: null, effective_from: today() }}
             fields={[{ key: 'organization_id', type: 'select', required: true, options: orgs }, { key: 'name', required: true }, { key: 'file', type: 'file', required: true, accept: 'image/png', help: a('seal_file_help') }, { key: 'effective_from', type: 'date' }]}>
-            <p className="rounded-md bg-gray-50 p-3 text-xs text-gray-600 dark:bg-slate-800 dark:text-slate-300">{a('seal_help')}</p>
+            <p className="rounded-md bg-[color:var(--app-surface-muted)] p-3 text-xs text-[color:var(--app-muted-foreground)]">{a('seal_help')}</p>
         </AdminForm>} />;
 }
 
@@ -511,7 +512,7 @@ function TemplatesSection({ props }: { props: SettingsIndexProps }) {
     type Row = SettingsIndexProps['templates'][number];
     return <ListSection<Row> id="templates" rows={props.templates} canEdit={props.can.update}
         head={['template_type', 'language', 'name', 'organization', 'status']}
-        cells={x => [label('letter_type', x.template_type), <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-semibold dark:bg-slate-800">{x.language.toUpperCase()}</span>, x.name, x.organization ? nameOf(x.organization, locale) : t('grievanceAdmin.all_organizations'), <StatusPill active={x.is_active} />]}
+        cells={x => [label('letter_type', x.template_type), <span className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 text-[11px] font-semibold">{x.language.toUpperCase()}</span>, x.name, x.organization ? nameOf(x.organization, locale) : t('grievanceAdmin.all_organizations'), <StatusPill active={x.is_active} />]}
         form={(x, close) => <TemplateEditor key={x?.id ?? 'new'} row={x} props={props} close={close} />} />;
 }
 
@@ -541,15 +542,15 @@ function TemplateEditor({ row, props, close }: { row: SettingsIndexProps['templa
     });
     const unknown = [...new Set([...(form.data.subject_template + form.data.body_template).matchAll(/\{\{\s*([a-z_]+)\s*\}\}/g)].map(m => m[1]).filter(x => !props.options.tokens.includes(x)))];
     const url = row ? route('grievances.settings.templates.update', row.id) : route('grievances.settings.templates.store');
-    const field = 'block text-sm font-medium text-gray-900 dark:text-slate-100';
+    const field = 'block text-sm font-medium text-[color:var(--app-foreground)]';
 
     return (
         <form className="space-y-4" onSubmit={e => { e.preventDefault(); form.transform(d => ({ ...d, organization_id: d.organization_id || null, effective_to: d.effective_to || null })); form.submit(row ? 'patch' : 'post', url, { preserveScroll: true, onSuccess: close }); }}>
             <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-1.5"><span className={field}>{a('fields.template_type')}</span><select className={inputCls} required value={form.data.template_type} onChange={e => form.setData('template_type', e.target.value)}><option value="">{t('grievances.common.select')}</option>{props.options.letter_types.map(v => <option key={v} value={v}>{label('letter_type', v)}</option>)}</select></label>
                 <div className="space-y-1.5"><span className={field}>{a('fields.language')}</span>
-                    <div role="radiogroup" aria-label={a('fields.language')} className="flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-slate-800">
-                        {props.options.letter_languages.map(v => <button key={v} type="button" role="radio" aria-checked={form.data.language === v} onClick={() => form.setData('language', v)} className={`h-8 flex-1 rounded-md text-sm ${form.data.language === v ? 'bg-white font-semibold shadow-sm dark:bg-slate-900' : 'text-gray-600 dark:text-slate-400'}`}>{label('letter_language', v)}</button>)}
+                    <div role="radiogroup" aria-label={a('fields.language')} className="flex gap-1 rounded-lg bg-[color:var(--app-surface-muted)] p-1">
+                        {props.options.letter_languages.map(v => <button key={v} type="button" role="radio" aria-checked={form.data.language === v} onClick={() => form.setData('language', v)} className={`h-8 flex-1 rounded-md text-sm ${form.data.language === v ? 'bg-[color:var(--app-surface)] font-semibold shadow-sm' : 'text-[color:var(--app-muted-foreground)]'}`}>{label('letter_language', v)}</button>)}
                     </div>
                 </div>
                 <label className="space-y-1.5 sm:col-span-2"><span className={field}>{a('fields.name')}</span><input className={inputCls} required value={form.data.name} onChange={e => form.setData('name', e.target.value)} /></label>
@@ -559,13 +560,13 @@ function TemplateEditor({ row, props, close }: { row: SettingsIndexProps['templa
                 <textarea ref={body} rows={10} required className={`${inputCls} font-mono text-[13px] leading-relaxed`} value={form.data.body_template} onChange={e => form.setData('body_template', e.target.value)} />
             </label>
             <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-900 dark:text-slate-100">{a('insert_token')}</p>
+                <p className="text-sm font-medium text-[color:var(--app-foreground)]">{a('insert_token')}</p>
                 <div className="flex flex-wrap gap-1.5">{props.options.tokens.map(tok => <button key={tok} type="button" onClick={() => insert(tok)} className="h-7 rounded-full border border-[color:var(--color-primary-200,#bcc7eb)] bg-[color:var(--color-primary-50,#eef1fa)] px-2.5 font-mono text-[11px] text-[color:var(--color-primary)] hover:bg-white dark:border-slate-700 dark:bg-slate-800">{tok}</button>)}</div>
-                <p className="text-xs text-gray-600 dark:text-slate-400">{a('template_help')}</p>
+                <p className="text-xs text-[color:var(--app-muted-foreground)]">{a('template_help')}</p>
                 {unknown.length > 0 && <p role="alert" className="text-xs font-medium text-red-700">{fmt(a('unknown_tokens'), { tokens: unknown.join(', ') })}</p>}
             </div>
             <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400">{a('preview_sample')}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--app-muted-foreground)]">{a('preview_sample')}</p>
                 <div className="space-y-2 rounded border border-gray-200 bg-white p-5 text-[13px] leading-relaxed text-gray-900 shadow-sm">
                     <p className="font-semibold underline">{preview(form.data.subject_template)}</p>
                     <p className="whitespace-pre-wrap">{preview(form.data.body_template)}</p>
@@ -573,10 +574,10 @@ function TemplateEditor({ row, props, close }: { row: SettingsIndexProps['templa
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
                 <label className="space-y-1.5"><span className={field}>{a('fields.organization')}</span><select className={inputCls} value={form.data.organization_id} onChange={e => form.setData('organization_id', e.target.value)}><option value="">{a('all_organizations')}</option>{props.options.organizations.map(o => <option key={o.id} value={o.id}>{nameOf(o, locale)}</option>)}</select></label>
-                <label className="flex items-center justify-between gap-3 pt-6 text-sm font-medium text-gray-900 dark:text-slate-100">{a('fields.is_active')}<Toggle label={a('fields.is_active')} checked={form.data.is_active} onChange={v => form.setData('is_active', v)} /></label>
+                <label className="flex items-center justify-between gap-3 pt-6 text-sm font-medium text-[color:var(--app-foreground)]">{a('fields.is_active')}<Toggle label={a('fields.is_active')} checked={form.data.is_active} onChange={v => form.setData('is_active', v)} /></label>
             </div>
             {Object.keys(errors).length > 0 && <div role="alert" className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">{Object.values(errors).map((e, i) => <p key={i}>{e}</p>)}</div>}
-            <div className="flex justify-end gap-2 border-t border-gray-100 pt-4 dark:border-slate-800">
+            <div className="flex justify-end gap-2 border-t border-[color:var(--app-border)] pt-4">
                 <button type="button" className={secondaryBtn} onClick={close}>{t('grievances.common.cancel')}</button>
                 <button type="submit" className={primaryBtn} disabled={form.processing}>{a('save_template')}</button>
             </div>

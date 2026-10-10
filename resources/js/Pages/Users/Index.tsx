@@ -11,6 +11,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useConfirm } from '@/Components/ConfirmProvider';
 
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type UserRow = {
     id: number;
     name: string;
@@ -111,8 +112,7 @@ export default function UsersIndex({
         .replace(':to', countFormat.format(end))
         .replace(':total', countFormat.format(total));
 
-    const inputCls =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:bg-gray-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900';
+    const inputCls = cx(inputClassName, 'w-full');
 
     const genderLabels: Record<string, string> = {
         male: t('users.genderMale'),
@@ -160,7 +160,7 @@ export default function UsersIndex({
                         can.create ? (
                             <Link
                                 href={route('users.create')}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
                                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                                 {t('users.createUser')}
@@ -178,11 +178,11 @@ export default function UsersIndex({
                 </div>
             )}
 
-            <section className="mb-4 rounded-card border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mb-4 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
                 <form onSubmit={submitFilters} aria-label={t('users.filters')}>
                     <fieldset disabled={loading} className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         <label className="min-w-0 space-y-1.5 sm:col-span-2">
-                            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{t('common.search')}</span>
+                            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.search')}</span>
                             <input
                                 type="search"
                                 className={inputCls}
@@ -193,7 +193,7 @@ export default function UsersIndex({
                         </label>
 
                         <label className="min-w-0 space-y-1.5">
-                            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{t('common.status')}</span>
+                            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.status')}</span>
                             <select
                                 className={inputCls}
                                 value={filterForm.data.status}
@@ -206,7 +206,7 @@ export default function UsersIndex({
                         </label>
 
                         <label className="min-w-0 space-y-1.5">
-                            <span className="text-xs font-medium text-gray-600 dark:text-slate-400">{t('users.roles')}</span>
+                            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('users.roles')}</span>
                             <select
                                 className={inputCls}
                                 value={filterForm.data.role}
@@ -224,12 +224,12 @@ export default function UsersIndex({
                                 <button
                                     type="button"
                                     onClick={resetFilters}
-                                    className="shrink-0 rounded-control px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                                    className="shrink-0 rounded-control px-3 py-2 text-sm font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
                                 >
                                     {t('common.reset')}
                                 </button>
                             )}
-                            <p role="status" aria-live="polite" className="text-xs tabular-nums text-gray-500 dark:text-slate-400">
+                            <p role="status" aria-live="polite" className="text-xs tabular-nums text-[color:var(--app-muted-foreground)]">
                                 {loading ? t('common.loading') : resultSummary}
                             </p>
                         </div>
@@ -237,15 +237,15 @@ export default function UsersIndex({
                 </form>
             </section>
 
-            <div className="rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 {users.length === 0 ? (
                     <div className="p-6">
                         <EmptyState title={t('users.noUsers')} description="" />
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full text-left text-sm">
-                            <thead className="bg-gray-50 dark:bg-slate-950">
+                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <thead className={tableHeadClassName}>
                                 <tr>
                                     {[
                                         { label: t('users.name') },
@@ -257,39 +257,39 @@ export default function UsersIndex({
                                         <th
                                             key={`${column.label}-${index}`}
                                             scope="col"
-                                            className="px-4 py-3 text-xs font-semibold text-gray-500 first:pl-5 last:pr-5 dark:text-slate-400"
+                                            className={cx(tableHeaderCellClassName, 'text-left')}
                                         >
                                             <span className={column.hidden ? 'sr-only' : undefined}>{column.label}</span>
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className={tableBodyClassName}>
                                 {users.map((u) => (
                                     <tr
                                         key={u.id}
-                                        className="border-t border-gray-100 hover:bg-gray-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
+                                        className={tableRowClassName}
                                     >
-                                        <td className="py-3 pl-5 pr-4">
-                                            <p className="font-medium text-gray-900 dark:text-slate-100">
+                                        <td className={tableCellClassName}>
+                                            <p className="font-medium text-[color:var(--app-foreground)]">
                                                 <span className="inline-flex items-center gap-2">
                                                     <UserAvatar src={u.profile_photo_url} name={u.name} size={32} />
                                                     <span>{u.name}</span>
                                                 </span>
                                             </p>
-                                            <p className="text-xs text-gray-400 dark:text-slate-500">
+                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                 {u.email}
                                             </p>
-                                            <p className="text-xs text-gray-400 dark:text-slate-500">
+                                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                 {[u.phone_number, u.gender ? genderLabels[u.gender] : null]
                                                     .filter(Boolean)
                                                     .join(' · ')}
                                             </p>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <div className="flex flex-wrap gap-1">
                                                 {u.roles.length === 0 ? (
-                                                    <span className="text-xs text-gray-400 dark:text-slate-500">
+                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
                                                         {t('users.noRoles')}
                                                     </span>
                                                 ) : (
@@ -299,15 +299,15 @@ export default function UsersIndex({
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className={tableCellClassName}>
                                             <StatusBadge status={u.status} />
                                         </td>
-                                        <td className="px-4 py-3 text-xs text-gray-400 dark:text-slate-500">
+                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                             {u.last_login_at
                                                 ? <LocalizedDateDisplay value={u.last_login_at} withTime />
                                                 : t('users.notAvailable')}
                                         </td>
-                                        <td className="py-3 pl-4 pr-5">
+                                        <td className={tableCellClassName}>
                                             <div className="flex items-center justify-end gap-3">
                                                 {u.can.update && (
                                                     <Link
@@ -345,8 +345,8 @@ export default function UsersIndex({
                 )}
 
                 {users_pagination && users_pagination.last_page > 1 && (
-                    <nav aria-label={t('users.pagination')} className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 dark:border-slate-800">
-                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                    <nav aria-label={t('users.pagination')} className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--app-border)] px-4 py-3">
+                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
                             {t('common.page')} {users_pagination.current_page} / {users_pagination.last_page}
                             {' - '}
                             {countFormat.format(users_pagination.total)} {t('common.results')}
@@ -356,7 +356,7 @@ export default function UsersIndex({
                                 type="button"
                                 disabled={loading || users_pagination.current_page <= 1}
                                 onClick={() => goToPage(users_pagination.current_page - 1)}
-                                className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
+                                className={buttonClassName({ variant: 'outline', size: 'sm' })}
                             >
                                 {t('common.previous')}
                             </button>
@@ -364,7 +364,7 @@ export default function UsersIndex({
                                 type="button"
                                 disabled={loading || users_pagination.current_page >= users_pagination.last_page}
                                 onClick={() => goToPage(users_pagination.current_page + 1)}
-                                className="rounded-lg border border-gray-200 px-3 py-1 text-xs font-medium text-gray-700 hover:border-gray-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
+                                className={buttonClassName({ variant: 'outline', size: 'sm' })}
                             >
                                 {t('common.next')}
                             </button>

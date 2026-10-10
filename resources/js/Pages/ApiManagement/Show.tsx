@@ -10,6 +10,7 @@ import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type TokenRow = {
     id: number | string;
     name: string;
@@ -140,14 +141,14 @@ export default function ApiManagementShow({
                 </Link>
             </div>
 
-            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                 <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
                     {can.update && (
                         <button
                             type="button"
                             disabled={form.processing}
                             onClick={() => { form.reset(); form.clearErrors(); setEditing((value) => !value); }}
-                            className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         >
                             {editing ? t('common.cancel') : t('common.edit')}
                         </button>
@@ -156,7 +157,7 @@ export default function ApiManagementShow({
                         <button
                             type="button"
                             onClick={handleDelete}
-                            className="rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/40"
+                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
                         >
                             {t('common.delete')}
                         </button>
@@ -168,10 +169,10 @@ export default function ApiManagementShow({
                         <ApplicationFields values={form.data} onChange={values => form.setData({ ...form.data, ...values })} errors={form.errors} disabled={form.processing} />
 
                         <fieldset>
-                            <legend className="mb-2 text-xs font-semibold text-gray-600 dark:text-slate-400">{t('apiManagement.apiScopes')}</legend>
+                            <legend className="mb-2 text-xs font-semibold text-[color:var(--app-muted-foreground)]">{t('apiManagement.apiScopes')}</legend>
                             <div className="flex flex-wrap gap-3">
                                 {scopes.map((scope) => (
-                                    <label key={scope.value} className="flex items-center gap-1.5 text-xs text-gray-700 dark:text-slate-300">
+                                    <label key={scope.value} className="flex items-center gap-1.5 text-xs text-[color:var(--app-foreground)]">
                                         <input type="checkbox" checked={form.data.allowed_scopes.includes(scope.value)} onChange={() => toggleScope(scope.value)} />
                                         {scope.label}
                                     </label>
@@ -180,10 +181,10 @@ export default function ApiManagementShow({
                         </fieldset>
 
                         <fieldset>
-                            <legend className="mb-1 text-xs font-semibold text-gray-600 dark:text-slate-400">
+                            <legend className="mb-1 text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                                 {t('apiManagement.endpointAssignment')}
                             </legend>
-                            <p className="mb-2 text-[11px] text-gray-500 dark:text-slate-400">
+                            <p className="mb-2 text-[11px] text-[color:var(--app-muted-foreground)]">
                                 {t('apiManagement.endpointAssignmentHint')}
                             </p>
 
@@ -198,9 +199,9 @@ export default function ApiManagementShow({
                             <p className="text-xs text-red-600">{Object.values(form.errors).join(' ')}</p>
                         )}
 
-                        <p className="text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.scopeChangeHint')}</p>
+                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.scopeChangeHint')}</p>
 
-                        <button type="submit" disabled={form.processing} className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-60">
+                        <button type="submit" disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>
                             {t('common.save')}
                         </button>
                     </form>
@@ -208,27 +209,27 @@ export default function ApiManagementShow({
                 <>
                 <dl className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <div>
-                        <dt className="text-xs text-gray-500 dark:text-slate-400">{t('common.status')}</dt>
+                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.status')}</dt>
                         <dd className="mt-1"><StatusBadge status={application.status} label={t(`common.${application.status}`)} /></dd>
                     </div>
                     <div>
-                        <dt className="text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.rateLimit')}</dt>
-                        <dd className="mt-1 text-sm tabular-nums text-gray-900 dark:text-slate-100">{application.rate_limit_per_minute}/min</dd>
+                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.rateLimit')}</dt>
+                        <dd className="mt-1 text-sm tabular-nums text-[color:var(--app-foreground)]">{application.rate_limit_per_minute}/min</dd>
                     </div>
                     <div>
-                        <dt className="text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.ipAllowlist')}</dt>
-                        <dd className="mt-1 text-sm text-gray-900 dark:text-slate-100">
+                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.ipAllowlist')}</dt>
+                        <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">
                             {application.allowed_ips.length > 0 ? application.allowed_ips.join(', ') : t('apiManagement.anyIp')}
                         </dd>
                     </div>
                     <div>
-                        <dt className="text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.ownerInstitution')}</dt>
-                        <dd className="mt-1 text-sm text-gray-900 dark:text-slate-100">{application.owner_institution ?? '—'}</dd>
+                        <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.ownerInstitution')}</dt>
+                        <dd className="mt-1 text-sm text-[color:var(--app-foreground)]">{application.owner_institution ?? '—'}</dd>
                     </div>
                 </dl>
 
                 <div className="mt-4">
-                    <p className="text-xs text-gray-500 dark:text-slate-400">{t('apiManagement.apiScopes')}</p>
+                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.apiScopes')}</p>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                         {application.allowed_scopes.length === 0 ? (
                             <span className="text-sm text-gray-400">—</span>
@@ -243,8 +244,8 @@ export default function ApiManagementShow({
                 )}
             </section>
 
-            <section className="mb-6 rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="mb-1 font-semibold text-gray-900 dark:text-slate-100">
+            <section className="mb-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <h3 className="mb-1 font-semibold text-[color:var(--app-foreground)]">
                     {t('apiManagement.assignedEndpoints')}
                 </h3>
 
@@ -254,34 +255,34 @@ export default function ApiManagementShow({
                     </p>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full text-left text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200 dark:border-slate-800">
-                                    <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.method')}</th>
-                                    <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.endpoint')}</th>
-                                    <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.requiredScope')}</th>
-                                    <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">{t('common.status')}</th>
-                                    <th className="px-2 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.lastUsed')}</th>
+                        <table className={cx(tableClassName, 'min-w-full text-left')}>
+                            <thead className={tableHeadClassName}>
+                                <tr>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.method')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.endpoint')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.requiredScope')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('common.status')}</th>
+                                    <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.lastUsed')}</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className={tableBodyClassName}>
                                 {assignedEndpoints.map((endpoint) => (
                                     <tr key={endpoint.id}>
-                                        <td className="px-2 py-2">
-                                            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-gray-800 dark:bg-slate-800 dark:text-slate-200">
+                                        <td className={tableCellClassName}>
+                                            <code className="rounded bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 font-mono text-[11px] font-semibold text-[color:var(--app-foreground)]">
                                                 {endpoint.method}
                                             </code>
                                         </td>
-                                        <td className="px-2 py-2 font-mono text-xs text-gray-800 dark:text-slate-200">
+                                        <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>
                                             {endpoint.uri}
                                         </td>
-                                        <td className="px-2 py-2 font-mono text-[11px] text-gray-600 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>
                                             {endpoint.required_scope ?? '—'}
                                         </td>
-                                        <td className="px-2 py-2 text-xs text-gray-600 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                             {endpoint.is_enabled ? t(`apiManagement.status_${endpoint.status}`) : t('apiManagement.assignmentDisabled')}
                                         </td>
-                                        <td className="px-2 py-2 text-xs text-gray-500 dark:text-slate-400">
+                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
                                             <LocalizedDateDisplay value={endpoint.last_used_at} withTime />
                                         </td>
                                     </tr>
@@ -292,40 +293,40 @@ export default function ApiManagementShow({
                 )}
             </section>
 
-            <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('apiManagement.apiTokens')}</h3>
+                    <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('apiManagement.apiTokens')}</h3>
                     {can.createTokens && (
                         <button
                             type="button"
                             disabled={tokenForm.processing}
                             onClick={() => { tokenForm.post(route('api-management.tokens.store', application.id), { preserveScroll: true }); }}
-                            className="rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                            className={buttonClassName({ variant: 'primary', size: 'sm' })}
                         >
                             {t('apiManagement.generateToken')}
                         </button>
                     )}
                 </div>
 
-                <div className="overflow-x-auto rounded-card border border-gray-100 dark:border-slate-800">
-                    <table className="min-w-full text-left text-sm">
-                        <thead className="bg-gray-50 dark:bg-slate-950">
+                <div className="overflow-x-auto rounded-card border border-[color:var(--app-border)]">
+                    <table className={cx(tableClassName, 'min-w-full text-left')}>
+                        <thead className={tableHeadClassName}>
                             <tr>
-                                <th className="px-4 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.name')}</th>
-                                <th className="px-4 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.apiScopes')}</th>
-                                <th className="px-4 py-2 font-medium text-gray-600 dark:text-slate-400">{t('apiManagement.lastUsed')}</th>
-                                <th className="px-4 py-2" />
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.name')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.apiScopes')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-left')}>{t('apiManagement.lastUsed')}</th>
+                                <th className={cx(tableHeaderCellClassName, 'text-left')} />
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                        <tbody className={tableBodyClassName}>
                             {tokens.length === 0 ? (
-                                <tr><td colSpan={4} className="px-4 py-6 text-center text-gray-500 dark:text-slate-400">{t('apiManagement.noTokens')}</td></tr>
+                                <tr><td colSpan={4} className={cx(tableCellClassName, 'text-center text-[color:var(--app-muted-foreground)]')}>{t('apiManagement.noTokens')}</td></tr>
                             ) : tokens.map((token) => (
                                 <tr key={token.id}>
-                                    <td className="px-4 py-2 text-gray-800 dark:text-slate-200">{token.name}</td>
-                                    <td className="px-4 py-2 font-mono text-[10px] text-gray-500 dark:text-slate-400">{(token.abilities ?? []).join(', ')}</td>
-                                    <td className="px-4 py-2 text-xs text-gray-500 dark:text-slate-400"><LocalizedDateDisplay value={token.last_used_at} withTime /></td>
-                                    <td className="px-4 py-2 text-right">
+                                    <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{token.name}</td>
+                                    <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>{(token.abilities ?? []).join(', ')}</td>
+                                    <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={token.last_used_at} withTime /></td>
+                                    <td className={cx(tableCellClassName, 'text-right')}>
                                         {can.revokeTokens && (
                                             <button
                                                 type="button"

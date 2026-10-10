@@ -4,6 +4,7 @@ import { toast as showToast } from '@/lib/toast';
 import { useLocale } from '@/hooks/useLocale';
 import type { HierarchyEdge } from '@/Components/hierarchy/types';
 
+import { buttonClassName } from '@/Components/ui';
 export default function RemoveRelationDialog({
     show,
     hierarchyVersionId,
@@ -39,14 +40,14 @@ export default function RemoveRelationDialog({
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="lg">
-            <div className="border-b border-gray-200 px-6 py-4 dark:border-slate-800">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">
+            <div className="border-b border-[color:var(--app-border)] px-6 py-4">
+                <h3 className="text-lg font-semibold text-[color:var(--app-foreground)]">
                     {t('hierarchyVersions.confirmRemoveRelation')}
                 </h3>
             </div>
 
             <div className="space-y-3 px-6 py-5">
-                <p className="text-sm text-gray-600 dark:text-slate-300">
+                <p className="text-sm text-[color:var(--app-muted-foreground)]">
                     {t('hierarchyVersions.removeRelationWarning')}
                 </p>
                 {relation && (
@@ -57,11 +58,11 @@ export default function RemoveRelationDialog({
                 )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-slate-800">
+            <div className="flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] px-6 py-4">
                 <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-card border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className={buttonClassName({ variant: 'outline' })}
                 >
                     {t('common.cancel')}
                 </button>
@@ -69,7 +70,7 @@ export default function RemoveRelationDialog({
                     type="button"
                     onClick={confirmRemove}
                     disabled={form.processing}
-                    className="rounded-card bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+                    className={buttonClassName({ variant: 'destructive' })}
                 >
                     {form.processing ? t('common.saving') : t('hierarchyVersions.removeRelation')}
                 </button>

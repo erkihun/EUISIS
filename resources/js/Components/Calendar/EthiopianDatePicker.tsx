@@ -170,7 +170,7 @@ export default function EthiopianDatePicker({
                 disabled={disabled}
                 onClick={toggleOpen}
                 aria-expanded={open}
-                className={`flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
+                className={`flex w-full items-center justify-between rounded-md border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-gray-300 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
             >
                 <span className={displayValue ? '' : 'text-gray-400'}>
                     {displayValue || placeholder || (locale === 'am' ? 'ቀን ይምረጡ' : 'Select date')}
@@ -184,11 +184,11 @@ export default function EthiopianDatePicker({
                 <div
                     ref={popupRef}
                     lang={locale}
-                    className="fixed z-[1000] overflow-y-auto rounded-md border border-gray-200 bg-white text-gray-900 shadow-lg dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    className="fixed z-[1000] overflow-y-auto rounded-md border border-[color:var(--app-border)] bg-white text-gray-900 shadow-lg dark:bg-gray-800 dark:text-gray-200"
                     style={{ ...popupPosition, width: '280px', maxWidth: 'calc(100vw - 16px)', maxHeight: 'calc(100vh - 16px)' }}
                 >
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
+                    <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-3 py-2">
                         <button type="button" onClick={prevMonth} className="rounded p-1 hover:bg-gray-100 dark:hover:bg-gray-700">
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                         </button>
@@ -239,7 +239,7 @@ export default function EthiopianDatePicker({
                     </div>
 
                     {/* Today / Clear */}
-                    <div className="flex justify-between border-t border-gray-200 px-3 py-2 dark:border-gray-700">
+                    <div className="flex justify-between border-t border-[color:var(--app-border)] px-3 py-2">
                         <button
                             type="button"
                             onClick={() => {
@@ -261,7 +261,7 @@ export default function EthiopianDatePicker({
                             <button
                                 type="button"
                                 onClick={() => { onChange(''); setOpen(false); }}
-                                className="text-xs text-gray-500 hover:underline dark:text-gray-400"
+                                className="text-xs text-[color:var(--app-muted-foreground)] hover:underline"
                             >
                                 {locale === 'am' ? 'አጥፋ' : 'Clear'}
                             </button>

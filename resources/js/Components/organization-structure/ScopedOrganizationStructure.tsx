@@ -4,6 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 
+import { cx, inputClassName } from '@/Components/ui';
 export type ScopedPosition = {
     id: string;
     code: string | null;
@@ -118,7 +119,7 @@ function UnitNode({
                 className={`flex items-center gap-2 rounded-lg py-1.5 pr-2 text-sm ${
                     selectedUnitId === unit.id
                         ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
-                        : 'text-gray-800 hover:bg-gray-50 dark:text-slate-200 dark:hover:bg-slate-800/50'
+                        : 'text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'
                 }`}
                 style={{ paddingLeft: `${12 + depth * 16}px` }}
             >
@@ -158,7 +159,7 @@ function UnitNode({
                             key={position.id}
                             type="button"
                             onClick={() => onSelectPosition(organizationId, position.id)}
-                            className={`flex w-full items-center gap-2 rounded-lg py-1.5 pr-2 text-left text-xs ${selectedPositionId === position.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' : 'text-gray-600 hover:bg-gray-50 dark:text-slate-400 dark:hover:bg-slate-800'}`}
+                            className={`flex w-full items-center gap-2 rounded-lg py-1.5 pr-2 text-left text-xs ${selectedPositionId === position.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}
                             style={{ paddingLeft: `${48 + depth * 16}px` }}
                         >
                             <Users className="h-3.5 w-3.5 flex-none" />
@@ -229,9 +230,9 @@ export default function ScopedOrganizationStructure({
     }
 
     return (
-        <div className="flex h-full flex-col rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-slate-800">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+        <div className="flex h-full flex-col rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <div className="flex items-center justify-between gap-3 border-b border-[color:var(--app-border)] px-4 py-3">
+                <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                     {isScoped ? t('organizationUnits.yourOrganizationStructure') : t('organizations.organizationStructure')}
                 </h2>
                 {selectedPositionId && (
@@ -248,7 +249,7 @@ export default function ScopedOrganizationStructure({
                         value={search}
                         onChange={(event) => setSearch(event.target.value)}
                         placeholder={t('organizations.searchStructure')}
-                        className="w-full rounded-lg border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                        className={cx(inputClassName, 'w-full pl-8 pr-3')}
                     />
                 </div>
             </div>
@@ -256,7 +257,7 @@ export default function ScopedOrganizationStructure({
                 {filteredOrganizations.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                         <Building2 className="h-8 w-8 text-gray-300 dark:text-slate-600" />
-                        <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">{t('organizationUnits.noOrganizationStructureFound')}</p>
+                        <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('organizationUnits.noOrganizationStructureFound')}</p>
                     </div>
                 ) : filteredOrganizations.map((organization) => {
                     const expansionId = `organization:${organization.id}`;
@@ -264,7 +265,7 @@ export default function ScopedOrganizationStructure({
 
                     return (
                         <section key={organization.id} role="treeitem" aria-expanded={isExpanded}>
-                            <div className={`flex items-center gap-2 rounded-lg px-2 py-2 ${selectedOrganizationId === organization.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}>
+                            <div className={`flex items-center gap-2 rounded-lg px-2 py-2 ${selectedOrganizationId === organization.id ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' : 'hover:bg-[color:var(--app-surface-muted)]'}`}>
                                 <button type="button" onClick={() => toggle(expansionId)} className="text-gray-400">
                                     {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                 </button>

@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { ActionButton, Money, StatusPill, useNames, type NamePair } from '@/Components/Cafeteria/PolicyUi';
 import type { SettlementSummary } from './Index';
 
+import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Line = { id: string; employee_organization: NamePair; cafeteria: NamePair & { location_type?: string | null }; transaction_count: number; subsidy_amount: string; employee_amount: string; provider_amount: string };
 type OrgTotal = { employee_organization: NamePair; transaction_count: number; subsidy_amount: string; employee_amount: string; provider_amount: string };
 
@@ -45,13 +46,13 @@ export default function SettlementShow({ settlement, lines, byOrganization, can 
 
                 <Card className="overflow-x-auto p-0">
                     <h2 className="px-5 pt-4 text-base font-semibold">{tt('liabilityByOrganization')}</h2>
-                    <table className="mt-2 w-full text-sm">
-                        <thead className="bg-[color:var(--app-surface-muted)] text-xs"><tr>
+                    <table className={cx(tableClassName, 'mt-2')}>
+                        <thead className={tableHeadClassName}><tr>
                             <Th>{tt('employeeOrganization')}</Th><Th end>{tt('transactions')}</Th><Th end>{tt('subsidyAmount')}</Th><Th end>{tt('employeeAmount')}</Th><Th end>{tt('providerAmount')}</Th>
                         </tr></thead>
-                        <tbody>
+                        <tbody className={tableBodyClassName}>
                             {byOrganization.map((row, index) => (
-                                <tr key={index} className="border-t border-[color:var(--app-border)]">
+                                <tr key={index} className={tableRowClassName}>
                                     <Td strong>{label(row.employee_organization, tt('unattributed'))}</Td>
                                     <Td end>{row.transaction_count}</Td>
                                     <Td end><Money value={row.subsidy_amount} currency={c} /></Td>
@@ -65,13 +66,13 @@ export default function SettlementShow({ settlement, lines, byOrganization, can 
 
                 <Card className="overflow-x-auto p-0">
                     <h2 className="px-5 pt-4 text-base font-semibold">{tt('serviceLocation')}</h2>
-                    <table className="mt-2 w-full text-sm">
-                        <thead className="bg-[color:var(--app-surface-muted)] text-xs"><tr>
+                    <table className={cx(tableClassName, 'mt-2')}>
+                        <thead className={tableHeadClassName}><tr>
                             <Th>{tt('employeeOrganization')}</Th><Th>{tt('cafeteria')}</Th><Th end>{tt('transactions')}</Th><Th end>{tt('subsidyAmount')}</Th><Th end>{tt('employeeAmount')}</Th><Th end>{tt('providerAmount')}</Th>
                         </tr></thead>
-                        <tbody>
+                        <tbody className={tableBodyClassName}>
                             {lines.map((line) => (
-                                <tr key={line.id} className="border-t border-[color:var(--app-border)]">
+                                <tr key={line.id} className={tableRowClassName}>
                                     <Td>{label(line.employee_organization, tt('unattributed'))}</Td>
                                     <Td>{label(line.cafeteria)}{line.cafeteria?.location_type && <span className="ms-1 text-xs text-[color:var(--app-muted-foreground)]">{t(`cafeteriaPolicy.locationTypes.${line.cafeteria.location_type}`)}</span>}</Td>
                                     <Td end>{line.transaction_count}</Td>

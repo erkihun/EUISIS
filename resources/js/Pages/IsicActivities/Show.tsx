@@ -7,6 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
+import { buttonClassName } from '@/Components/ui';
 export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
@@ -44,7 +45,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                             {isicActivity.can?.update && (
                                 <Link
                                     href={route('isic-activities.edit', isicActivity.id)}
-                                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]"
+                                    className={buttonClassName({ variant: 'primary' })}
                                 >
                                     {t('common.edit')}
                                 </Link>
@@ -53,7 +54,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                                 <button
                                     type="button"
                                     onClick={handleArchive}
-                                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                    className={buttonClassName({ variant: 'destructive' })}
                                 >
                                     {t('isicActivities.archiveIsicActivity')}
                                 </button>
@@ -62,7 +63,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                                 <button
                                     type="button"
                                     onClick={handleRestore}
-                                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                                    className={buttonClassName({ variant: 'primary' })}
                                 >
                                     {t('isicActivities.restoreIsicActivity')}
                                 </button>
@@ -74,7 +75,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
         >
             <Head title={isicActivity.name_en ?? isicActivity.isic_code} />
             <div className="grid gap-6 lg:grid-cols-3">
-                <section className="rounded-panel border border-gray-200 bg-white p-5 lg:col-span-2 dark:border-slate-800 dark:bg-slate-900">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 lg:col-span-2">
                     <div className="grid gap-4 md:grid-cols-2 text-sm">
                         <Field label={t('isicActivities.isicCode')} value={isicActivity.isic_code} mono />
                         <Field
@@ -94,23 +95,23 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                         <Field label={t('isicActivities.sortOrder')} value={isicActivity.sort_order} />
                     </div>
                     {(isicActivity.description_en || isicActivity.description_am) && (
-                        <div className="mt-4 space-y-3 border-t border-gray-100 pt-4 dark:border-slate-800">
+                        <div className="mt-4 space-y-3 border-t border-[color:var(--app-border)] pt-4">
                             {isicActivity.description_en && (
                                 <div>
-                                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                         {t('isicActivities.descriptionEn')}
                                     </div>
-                                    <div className="mt-1 text-sm text-gray-700 dark:text-slate-300 whitespace-pre-wrap">
+                                    <div className="mt-1 text-sm text-[color:var(--app-foreground)] whitespace-pre-wrap">
                                         {isicActivity.description_en}
                                     </div>
                                 </div>
                             )}
                             {isicActivity.description_am && (
                                 <div>
-                                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                                    <div className="text-xs text-[color:var(--app-muted-foreground)]">
                                         {t('isicActivities.descriptionAm')}
                                     </div>
-                                    <div className="mt-1 text-sm text-gray-700 dark:text-slate-300 whitespace-pre-wrap">
+                                    <div className="mt-1 text-sm text-[color:var(--app-foreground)] whitespace-pre-wrap">
                                         {isicActivity.description_am}
                                     </div>
                                 </div>
@@ -119,13 +120,13 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
                     )}
                 </section>
                 <aside className="space-y-4">
-                    <section className="rounded-panel border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-                        <div className="text-xs text-gray-500 dark:text-slate-400">{t('common.createdAt')}</div>
-                        <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.createdAt')}</div>
+                        <div className="mt-1 text-sm text-[color:var(--app-foreground)]">
                             <LocalizedDateDisplay value={isicActivity.created_at} withTime />
                         </div>
-                        <div className="mt-3 text-xs text-gray-500 dark:text-slate-400">{t('common.updatedAt')}</div>
-                        <div className="mt-1 text-sm text-gray-700 dark:text-slate-300">
+                        <div className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">{t('common.updatedAt')}</div>
+                        <div className="mt-1 text-sm text-[color:var(--app-foreground)]">
                             <LocalizedDateDisplay value={isicActivity.updated_at} withTime />
                         </div>
                     </section>
@@ -146,7 +147,7 @@ export default function IsicActivitiesShow({ isicActivity }: { isicActivity: any
 function Field({ label, value, mono }: { label: string; value: any; mono?: boolean }) {
     return (
         <div>
-            <div className="text-xs text-gray-500 dark:text-slate-400">{label}</div>
+            <div className="text-xs text-[color:var(--app-muted-foreground)]">{label}</div>
             <div className={`mt-1 ${mono ? 'font-mono' : ''}`}>{value ?? '—'}</div>
         </div>
     );

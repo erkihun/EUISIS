@@ -45,7 +45,7 @@ type ParentOrganizationResponse = {
 };
 
 const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:bg-gray-100 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900';
+    'w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:bg-gray-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900';
 
 export default function ParentOrganizationSelect({
     value,
@@ -148,7 +148,7 @@ export default function ParentOrganizationSelect({
     return (
         <div className="space-y-3">
             <div className="relative">
-                <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
+                <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" />
                 <input
                     type="text"
                     value={search}
@@ -161,7 +161,7 @@ export default function ParentOrganizationSelect({
                     <button
                         type="button"
                         onClick={() => setSearch('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-gray-600 dark:text-slate-500 dark:hover:text-slate-300"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--app-muted-foreground)] transition hover:text-gray-600 dark:hover:text-slate-300"
                         aria-label={labels.placeholder}
                     >
                         <X className="h-4 w-4" />
@@ -169,8 +169,8 @@ export default function ParentOrganizationSelect({
                 )}
             </div>
 
-            <div className="overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-700 dark:bg-slate-950">
-                <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2 text-xs font-medium text-gray-500 dark:border-slate-800 dark:text-slate-400">
+            <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-3 py-2 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                     <span>{labels.eligibleParents}</span>
                     <span>{loading ? '...' : displayOptions.length}</span>
                 </div>
@@ -186,7 +186,7 @@ export default function ParentOrganizationSelect({
                         className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm transition ${
                             value === ''
                                 ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                                : 'text-gray-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:bg-slate-900'
+                                : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'
                         }`}
                     >
                         <span>{labels.noParent}</span>
@@ -195,7 +195,7 @@ export default function ParentOrganizationSelect({
                 )}
 
                 {displayOptions.length === 0 ? (
-                    <div className="px-3 py-4 text-sm text-gray-500 dark:text-slate-400">{labels.noResults}</div>
+                    <div className="px-3 py-4 text-sm text-[color:var(--app-muted-foreground)]">{labels.noResults}</div>
                 ) : (
                     <div className="max-h-72 overflow-y-auto">
                         {displayOptions.map((option) => {
@@ -213,7 +213,7 @@ export default function ParentOrganizationSelect({
                                     className={`w-full border-t border-gray-100 px-3 py-3 text-left transition first:border-t-0 dark:border-slate-800 ${
                                         isSelected
                                             ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
-                                            : 'hover:bg-gray-50 dark:hover:bg-slate-900'
+                                            : 'hover:bg-[color:var(--app-surface-muted)]'
                                     }`}
                                 >
                                     <div className="flex items-start justify-between gap-3">
@@ -221,7 +221,7 @@ export default function ParentOrganizationSelect({
                                             <div className="font-medium">
                                                 {option.code} - {locale === 'am' ? (option.name_am || option.name_en) : option.name_en}
                                             </div>
-                                            <div className="mt-1 text-xs text-gray-500 dark:text-slate-400">
+                                            <div className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                                 {option.organization_type
                                                     ? (locale === 'am'
                                                         ? (option.organization_type.name_am || option.organization_type.name_en)
@@ -229,12 +229,12 @@ export default function ParentOrganizationSelect({
                                                     : option.status}
                                             </div>
                                             {option.parent_path && (
-                                                <div className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+                                                <div className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                                     {option.parent_path}
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-right text-xs text-gray-400 dark:text-slate-500">
+                                        <div className="text-right text-xs text-[color:var(--app-muted-foreground)]">
                                             {option.depth !== null ? `${labels.level} ${option.depth}` : null}
                                         </div>
                                     </div>

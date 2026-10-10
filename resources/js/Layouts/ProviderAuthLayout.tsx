@@ -88,7 +88,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
                         ) : (
                             <ApplicationLogo className="h-8 w-auto max-w-[80px] fill-slate-800 dark:fill-white" />
                         )}
-                        <span className="text-sm font-bold text-slate-900 dark:text-white">{systemName}</span>
+                        <span className="text-sm font-bold text-[color:var(--app-foreground)]">{systemName}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <LanguageSwitcher />
@@ -98,11 +98,11 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                 <div className="flex flex-1 items-center justify-center px-6 pb-10">
                     <div className="w-full max-w-[400px]">
-                        <div className="rounded-panel border border-gray-200 bg-white px-8 py-8 dark:border-slate-800 dark:bg-slate-900">
+                        <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-8 py-8">
                             {children}
                         </div>
 
-                        <p className="mt-5 text-center text-[11px] text-gray-400 dark:text-slate-500">
+                        <p className="mt-5 text-center text-[11px] text-[color:var(--app-muted-foreground)]">
                             {t('providerPortal.portalName')} · {t('providerPortal.authorizedOnly')}
                         </p>
                     </div>

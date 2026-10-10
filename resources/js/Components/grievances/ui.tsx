@@ -82,9 +82,9 @@ const SLA_STYLE: Record<SlaSummary["state"], { tone: string; Icon: typeof CheckC
     due_soon: { tone: 'text-amber-800 bg-amber-50 ring-amber-200 dark:text-amber-300 dark:bg-amber-950/30 dark:ring-amber-900', Icon: ClockIcon },
     due_today: { tone: 'text-orange-800 bg-orange-50 ring-orange-200 dark:text-orange-300 dark:bg-orange-950/30 dark:ring-orange-900', Icon: AlertTriangle },
     overdue: { tone: 'text-red-700 bg-red-50 ring-red-200 dark:text-red-300 dark:bg-red-950/30 dark:ring-red-900', Icon: XCircle },
-    paused: { tone: 'text-slate-700 bg-slate-100 ring-slate-200 dark:text-slate-300 dark:bg-slate-800 dark:ring-slate-700', Icon: MinusIcon },
-    stopped: { tone: 'text-slate-600 bg-slate-50 ring-slate-200 dark:text-slate-400 dark:bg-slate-900 dark:ring-slate-700', Icon: MinusIcon },
-    no_deadline: { tone: 'text-slate-600 bg-slate-50 ring-slate-200 dark:text-slate-400 dark:bg-slate-900 dark:ring-slate-700', Icon: InfoIcon },
+    paused: { tone: 'text-[color:var(--app-foreground)] bg-[color:var(--app-surface-muted)] ring-slate-200 dark:ring-slate-700', Icon: MinusIcon },
+    stopped: { tone: 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)] ring-slate-200 dark:ring-slate-700', Icon: MinusIcon },
+    no_deadline: { tone: 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)] ring-slate-200 dark:ring-slate-700', Icon: InfoIcon },
 };
 
 /**
@@ -119,9 +119,9 @@ export function HandlerName({ handler, showType = false }: { handler: HandlerRef
     const org = (locale === 'am' && handler.organization_name_am) || handler.organization_name_en;
     return (
         <span className="min-w-0">
-            <span className="font-medium text-gray-900 dark:text-slate-100">{(locale === 'am' && handler.name_am) || handler.name_en || '—'}</span>
+            <span className="font-medium text-[color:var(--app-foreground)]">{(locale === 'am' && handler.name_am) || handler.name_en || '—'}</span>
             {(org || showType) && (
-                <span className="block text-xs text-gray-500 dark:text-slate-400">
+                <span className="block text-xs text-[color:var(--app-muted-foreground)]">
                     {showType ? label('handler_type', handler.type) : null}{showType && org ? ' · ' : ''}{org}
                 </span>
             )}
@@ -139,7 +139,7 @@ export function ConfidentialNotice({ level }: { level: string | null | undefined
     const { t } = useLocale();
     const label = useEnumLabel();
     return (
-        <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+        <div className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-2 text-xs text-[color:var(--app-muted-foreground)]">
             <InfoIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>{t('grievances.common.confidential_notice')} <strong className="font-medium">{label('confidentiality', level)}</strong></span>
         </div>
@@ -157,9 +157,9 @@ export function fileSize(bytes: number): string {
 export function FormRow({ label, error, children, help }: { label: string; error?: string; children: ReactNode; help?: string }) {
     return (
         <label className="block">
-            <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-slate-300">{label}</span>
+            <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
             {children}
-            {help && <span className="mt-1 block text-xs text-gray-500 dark:text-slate-400">{help}</span>}
+            {help && <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">{help}</span>}
             {error && <span className="mt-1 block text-xs text-red-600 dark:text-red-400">{error}</span>}
         </label>
     );

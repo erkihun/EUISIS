@@ -47,12 +47,12 @@ export default function PublicVerify({ result }: Props) {
         <>
             <Head title={t('idCards.verifyPageTitle')} />
 
-            <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-slate-950">
+            <div className="flex min-h-screen items-center justify-center bg-[color:var(--app-surface-muted)] px-4">
                 <div className="w-full max-w-md">
                     {/* Header */}
                     <div className="mb-6 text-center">
                         <ShieldCheck className="mx-auto mb-2 h-8 w-8 text-gray-400" />
-                        <p className="text-sm text-gray-500 dark:text-slate-400">
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">
                             {t('idCards.verifyOfficialCheck')}
                         </p>
                     </div>
@@ -61,30 +61,30 @@ export default function PublicVerify({ result }: Props) {
                     <div className={`rounded-panel border p-8 text-center shadow-lg ${bannerClass}`}>
                         <div className="mb-4 flex justify-center">{IconEl}</div>
 
-                        <h1 className="mb-1 text-2xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="mb-1 text-2xl font-bold text-[color:var(--app-foreground)]">
                             {statusLabel[result.status_code]}
                         </h1>
 
                         {result.organization && (
-                            <p className="mt-3 text-base text-gray-700 dark:text-slate-300">
+                            <p className="mt-3 text-base text-[color:var(--app-foreground)]">
                                 {result.organization}
                             </p>
                         )}
 
                         {result.card_number && (
-                            <p className="mt-2 font-mono text-sm text-gray-500 dark:text-slate-400">
+                            <p className="mt-2 font-mono text-sm text-[color:var(--app-muted-foreground)]">
                                 {t('idCards.verifyCardNumber')} {result.card_number}
                             </p>
                         )}
 
                         {result.expires_at && (
-                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
+                            <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">
                                 {t('idCards.verifyExpires')} <LocalizedDateDisplay value={result.expires_at} />
                             </p>
                         )}
                     </div>
 
-                    <p className="mt-6 text-center text-xs text-gray-400 dark:text-slate-600">
+                    <p className="mt-6 text-center text-xs text-[color:var(--app-muted-foreground)]">
                         {t('idCards.verifyFooter')}
                     </p>
                 </div>

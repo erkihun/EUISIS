@@ -19,6 +19,7 @@ import type {
     ImpactPayload,
 } from '@/Components/organizationalChange/types';
 
+import { buttonClassName, cx, textareaClassName } from '@/Components/ui';
 type Props = {
     request: ChangeRequestDetail;
     impact: ImpactPayload | null;
@@ -26,14 +27,10 @@ type Props = {
     can: ChangeRequestAbilities;
 };
 
-const primaryBtn =
-    'rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[color:var(--color-primary-hover)] disabled:opacity-50';
-const secondaryBtn =
-    'rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800';
-const dangerBtn =
-    'rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30';
-const inputCls =
-    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const primaryBtn = buttonClassName({ variant: 'primary' });
+const secondaryBtn = buttonClassName({ variant: 'outline' });
+const dangerBtn = buttonClassName({ variant: 'outline' });
+const inputCls = cx(textareaClassName, 'w-full');
 
 /**
  * Request detail.
@@ -102,13 +99,13 @@ export default function OrganizationalChangeRequestsShow({ request, impact, conf
 
             <div className="space-y-4">
                 {/* Status strip */}
-                <section className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
+                <section className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3">
                     <div className="flex flex-wrap items-center gap-3">
                         <StatusBadge
                             status={request.status}
                             label={t(`organizationalChangeRequests.statuses.${request.status}`)}
                         />
-                        <span className="text-xs text-gray-500 dark:text-slate-400">
+                        <span className="text-xs text-[color:var(--app-muted-foreground)]">
                             {t('organizationalChangeRequests.fields.submittedAt')}:{' '}
                             {request.submitted_at ? <LocalizedDateDisplay value={request.submitted_at} withTime /> : '—'}
                         </span>
@@ -172,8 +169,8 @@ export default function OrganizationalChangeRequestsShow({ request, impact, conf
 
                 {/* Comment prompt for actions that need one */}
                 {openAction && (
-                    <section className="rounded-panel border border-gray-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                        <label className="block space-y-1.5 text-xs font-medium text-gray-600 dark:text-slate-300">
+                    <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
+                        <label className="block space-y-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                             <span>{t('organizationalChangeRequests.fields.comment')}</span>
                             <textarea
                                 rows={3}
@@ -214,20 +211,20 @@ export default function OrganizationalChangeRequestsShow({ request, impact, conf
                 <ConflictPanel conflicts={conflicts} />
 
                 {/* Metadata */}
-                <section className="rounded-panel border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                    <dl className="grid grid-cols-1 gap-px bg-gray-100 sm:grid-cols-2 lg:grid-cols-3 dark:bg-slate-800">
+                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <dl className="grid grid-cols-1 gap-px bg-[color:var(--app-surface-muted)] sm:grid-cols-2 lg:grid-cols-3">
                         {metaRows.map(row => (
-                            <div key={row.label} className="bg-white p-3 dark:bg-slate-900">
-                                <dt className="text-xs text-gray-500 dark:text-slate-400">{row.label}</dt>
-                                <dd className="mt-1 text-sm font-medium text-gray-900 dark:text-slate-100">{row.value}</dd>
+                            <div key={row.label} className="bg-[color:var(--app-surface)] p-3">
+                                <dt className="text-xs text-[color:var(--app-muted-foreground)]">{row.label}</dt>
+                                <dd className="mt-1 text-sm font-medium text-[color:var(--app-foreground)]">{row.value}</dd>
                             </div>
                         ))}
                     </dl>
-                    <div className="border-t border-gray-100 px-4 py-3 dark:border-slate-800">
-                        <p className="text-xs text-gray-500 dark:text-slate-400">
+                    <div className="border-t border-[color:var(--app-border)] px-4 py-3">
+                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
                             {t('organizationalChangeRequests.fields.reason')}
                         </p>
-                        <p className="mt-1 whitespace-pre-line text-sm text-gray-800 dark:text-slate-200">{request.reason}</p>
+                        <p className="mt-1 whitespace-pre-line text-sm text-[color:var(--app-foreground)]">{request.reason}</p>
                     </div>
                 </section>
 

@@ -32,9 +32,9 @@ export default function ReportShow({ report }: { report: ReportRun }) {
         monthly: t('cafeteria.monthly'),
     } as Record<string, string>)[s] ?? s;
 
-    const cardCls = 'rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900';
-    const labelCls = 'text-xs font-medium text-gray-500 dark:text-slate-400';
-    const valueCls = 'mt-1 text-2xl font-bold text-gray-900 dark:text-white';
+    const cardCls = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5';
+    const labelCls = 'text-xs font-medium text-[color:var(--app-muted-foreground)]';
+    const valueCls = 'mt-1 text-2xl font-bold text-[color:var(--app-foreground)]';
 
     return (
         <AuthenticatedLayout
@@ -45,23 +45,23 @@ export default function ReportShow({ report }: { report: ReportRun }) {
             <Head title={report.report_number} />
 
             <div className="space-y-6">
-                <div className="rounded-card border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         <div>
                             <dt className="text-xs text-gray-500">{t('cafeteria.reportType')}</dt>
-                            <dd className="mt-1 font-medium text-gray-900 dark:text-white">{reportTypeLabel(report.report_type)}</dd>
+                            <dd className="mt-1 font-medium text-[color:var(--app-foreground)]">{reportTypeLabel(report.report_type)}</dd>
                         </div>
                         <div>
                             <dt className="text-xs text-gray-500">{t('cafeteria.periodStart')}</dt>
-                            <dd className="mt-1 font-medium text-gray-900 dark:text-white"><LocalizedDateDisplay value={report.period_start} /></dd>
+                            <dd className="mt-1 font-medium text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={report.period_start} /></dd>
                         </div>
                         <div>
                             <dt className="text-xs text-gray-500">{t('cafeteria.periodEnd')}</dt>
-                            <dd className="mt-1 font-medium text-gray-900 dark:text-white"><LocalizedDateDisplay value={report.period_end} /></dd>
+                            <dd className="mt-1 font-medium text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={report.period_end} /></dd>
                         </div>
                         <div>
                             <dt className="text-xs text-gray-500">{t('common.generatedAt')}</dt>
-                            <dd className="mt-1 font-medium text-gray-900 dark:text-white">
+                            <dd className="mt-1 font-medium text-[color:var(--app-foreground)]">
                                 <LocalizedDateDisplay value={report.generated_at} withTime />
                             </dd>
                         </div>

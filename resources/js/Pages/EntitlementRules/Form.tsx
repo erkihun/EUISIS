@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
+import { buttonClassName, cx, inputClassName as uiInputClassName } from '@/Components/ui';
 type EntitlementRuleFormData = {
     service_type_id: string;
     name: string;
@@ -28,8 +29,7 @@ export default function EntitlementRuleForm({
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
     const { t, locale } = useLocale();
-    const inputClassName =
-        'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+    const inputClassName = cx(uiInputClassName, 'w-full');
 
     function renderError(field: 'service_type_id' | 'name' | 'rule_definition.quota_limit' | 'rule_definition.period_days' | 'rule_definition.notes' | 'is_active') {
         const message = form.errors[field];
@@ -43,12 +43,12 @@ export default function EntitlementRuleForm({
 
     return (
         <form
-            className="space-y-6 rounded-panel border border-gray-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
+            className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"
             onSubmit={onSubmit}
         >
             <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('entitlementRules.serviceType')}
                     </label>
                     <select
@@ -66,10 +66,10 @@ export default function EntitlementRuleForm({
                     {renderError('service_type_id')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('common.status')}
                     </label>
-                    <label className="flex items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 dark:border-slate-700 dark:text-slate-300">
+                    <label className="flex items-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm text-[color:var(--app-foreground)]">
                         <input
                             type="checkbox"
                             checked={form.data.is_active}
@@ -80,7 +80,7 @@ export default function EntitlementRuleForm({
                     {renderError('is_active')}
                 </div>
                 <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('entitlementRules.ruleName')}
                     </label>
                     <input
@@ -91,7 +91,7 @@ export default function EntitlementRuleForm({
                     {renderError('name')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('entitlementRules.quotaLimit')}
                     </label>
                     <input
@@ -107,7 +107,7 @@ export default function EntitlementRuleForm({
                     {renderError('rule_definition.quota_limit')}
                 </div>
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                    <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                         {t('entitlementRules.periodDays')}
                     </label>
                     <input
@@ -125,7 +125,7 @@ export default function EntitlementRuleForm({
             </div>
 
             <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
+                <label className="text-sm font-medium text-[color:var(--app-foreground)]">
                     {t('entitlementRules.notes')}
                 </label>
                 <textarea
@@ -142,14 +142,14 @@ export default function EntitlementRuleForm({
             <div className="flex gap-3">
                 <button
                     type="submit"
-                    className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                    className={buttonClassName({ variant: 'primary' })}
                     disabled={form.processing}
                 >
                     {submitLabel}
                 </button>
                 <Link
                     href={cancelHref}
-                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 dark:border-slate-700 dark:text-slate-200"
+                    className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)]"
                 >
                     {t('common.cancel')}
                 </Link>

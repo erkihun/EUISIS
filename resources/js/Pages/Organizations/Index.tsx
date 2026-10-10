@@ -11,6 +11,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
+import { buttonClassName, selectClassName } from '@/Components/ui';
 type OrganizationRow = {
     id: string;
     code: string;
@@ -35,8 +36,7 @@ type Paginator = {
 type HierarchyVersion = { id: string; version_name: string; status: string; approval_date: string | null };
 type Filters = { search: string; type: string; status: string; category: string };
 
-const filterInputCls =
-    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
+const filterInputCls = selectClassName;
 
 export default function OrganizationsIndex({
     organizations,
@@ -103,13 +103,13 @@ export default function OrganizationsIndex({
                     actions={
                         <>
                             {hasPermission('organizations.import') && (
-                                <Link href={route('organizations.import-structure.create')} className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">
+                                <Link href={route('organizations.import-structure.create')} className={buttonClassName({ variant: 'outline' })}>
                                     <Upload className="h-4 w-4" aria-hidden="true" />
                                     {t('organizationStructureImport.title')}
                                 </Link>
                             )}
                             {can.create && (
-                                <Link href={route('organizations.create')} className="inline-flex items-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3.5 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">
+                                <Link href={route('organizations.create')} className={buttonClassName({ variant: 'primary' })}>
                                     <Plus className="h-4 w-4" aria-hidden="true" />
                                     {t('organizations.createOrganization')}
                                 </Link>
@@ -128,7 +128,7 @@ export default function OrganizationsIndex({
                 <StatCard label={t('organizations.kpiTypes')} value={stats.types} tone="neutral" icon={<Layers className="h-4 w-4" />} />
             </div>
 
-            <form onSubmit={submit} className="mt-4 rounded-card border border-gray-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+            <form onSubmit={submit} className="mt-4 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                     <div className="relative min-w-0 flex-1">
                         <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
@@ -148,37 +148,37 @@ export default function OrganizationsIndex({
                             {filterOptions.categories.map((category) => <option key={category} value={category}>{t(`organizations.categories.${category}`)}</option>)}
                         </select>
                     )}
-                    <button type="submit" className="rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)]">{t('common.search')}</button>
-                    {filtersActive && <button type="button" onClick={resetFilters} className="rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-600 dark:border-slate-700 dark:text-slate-300">{t('common.reset')}</button>}
+                    <button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.search')}</button>
+                    {filtersActive && <button type="button" onClick={resetFilters} className={buttonClassName({ variant: 'outline' })}>{t('common.reset')}</button>}
                 </div>
             </form>
 
-            <section className="mt-4 overflow-hidden rounded-card border border-gray-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+            <section className="mt-4 overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <div className="flex items-center justify-between gap-3 px-5 py-4">
-                    <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('organizations.registeredOrganizations')}</h3>
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-slate-800 dark:text-slate-400">{organizations.total}</span>
+                    <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('organizations.registeredOrganizations')}</h3>
+                    <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">{organizations.total}</span>
                 </div>
                 <OrganizationFlatTable rows={rows} emptyText={filtersActive ? t('organizations.noResultsMatchFilters') : t('organizations.noOrganizations')} />
                 {organizations.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-gray-200 px-5 py-4 text-sm dark:border-slate-800">
-                        <span className="text-gray-500 dark:text-slate-400">{t('common.page')} {organizations.current_page} {t('common.of')} {organizations.last_page}</span>
+                    <div className="flex items-center justify-between border-t border-[color:var(--app-border)] px-5 py-4 text-sm">
+                        <span className="text-[color:var(--app-muted-foreground)]">{t('common.page')} {organizations.current_page} {t('common.of')} {organizations.last_page}</span>
                         <div className="flex gap-2">
-                            <button type="button" disabled={organizations.current_page <= 1} onClick={() => navigate({ page: organizations.current_page - 1 })} className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700">{t('common.previous')}</button>
-                            <button type="button" disabled={organizations.current_page >= organizations.last_page} onClick={() => navigate({ page: organizations.current_page + 1 })} className="rounded-lg border border-gray-300 px-3 py-1.5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700">{t('common.next')}</button>
+                            <button type="button" disabled={organizations.current_page <= 1} onClick={() => navigate({ page: organizations.current_page - 1 })} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('common.previous')}</button>
+                            <button type="button" disabled={organizations.current_page >= organizations.last_page} onClick={() => navigate({ page: organizations.current_page + 1 })} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('common.next')}</button>
                         </div>
                     </div>
                 )}
             </section>
 
             {hierarchyVersions.length > 0 && (
-                <section className="mt-4 rounded-card border border-gray-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+                <section className="mt-4 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                     <div className="flex items-center justify-between gap-3">
-                        <h3 className="font-semibold text-gray-900 dark:text-slate-100">{t('organizations.hierarchyVersion')}</h3>
-                        <Link href={route('hierarchy-versions.index')} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-[color:var(--color-primary)] dark:border-slate-700 dark:text-[color:var(--color-primary)]">{t('organizations.viewAllHierarchyVersions')}</Link>
+                        <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('organizations.hierarchyVersion')}</h3>
+                        <Link href={route('hierarchy-versions.index')} className="rounded-lg border border-[color:var(--app-border)] px-3 py-1.5 text-sm font-medium text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]">{t('organizations.viewAllHierarchyVersions')}</Link>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-3">
                         {hierarchyVersions.map((version) => (
-                            <Link key={version.id} href={route('hierarchy-versions.show', { hierarchyVersion: version.id })} className="flex items-center gap-2 rounded-card border border-gray-200 px-4 py-2.5 text-sm text-gray-700 hover:border-blue-400 dark:border-slate-700 dark:text-slate-300">
+                            <Link key={version.id} href={route('hierarchy-versions.show', { hierarchyVersion: version.id })} className="flex items-center gap-2 rounded-card border border-[color:var(--app-border)] px-4 py-2.5 text-sm text-[color:var(--app-foreground)] hover:border-blue-400">
                                 <span className="font-medium">{version.version_name}</span>
                                 <StatusBadge status={version.status} />
                             </Link>

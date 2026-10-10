@@ -8,7 +8,7 @@ const colorMap: Record<string, string> = {
 };
 
 export default function IsicActivityLevelBadge({ level }: { level: Level }) {
-    const cls = colorMap[level] ?? 'bg-gray-100 text-gray-800 dark:bg-slate-800 dark:text-slate-300';
+    const cls = colorMap[level] ?? 'bg-[color:var(--app-surface-muted)] text-gray-800 dark:text-slate-300';
     return (
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>{level}</span>
     );

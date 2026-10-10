@@ -2,6 +2,7 @@ import { ExportButtons, Filters, IssueTile, Kpi, KpiGroup, OversightLayout, name
 import { Section, Table, filterInputCls, tdCls, thCls } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 
+import { cx, tableRowClassName } from '@/Components/ui';
 type Row = { organization: { id: string; code?: string; name_en?: string; name_am?: string | null }; metrics: Metrics; bands: Record<string, number> | null };
 type ReasonRow = { code: string | null; name_en: string | null; name_am: string | null; n: number };
 
@@ -81,7 +82,7 @@ export default function OversightReports(props: Props) {
 
                     {can.export && (
                         <Section title={t('assessmentOversight.exportsTitle')} description={t('assessmentOversight.exportsHelp')}>
-                            <ul className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <ul className="divide-y divide-[color:var(--app-border)]">
                                 {REPORTS.filter(allowed).map((report) => (
                                     <li key={report} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
                                         <span className="text-sm font-medium">{t(`assessmentOversight.reports.${report}`)}</span>
@@ -125,7 +126,7 @@ export default function OversightReports(props: Props) {
                                 );
                             })}
                             {totals && (
-                                <tr className="bg-gray-50 font-semibold dark:bg-slate-950">
+                                <tr className={cx(tableRowClassName, 'bg-[color:var(--app-surface-muted)]')}>
                                     <td className={tdCls}>{t('assessmentOversight.total')}</td>
                                     <td className={`${tdCls} tabular-nums`}>{totals.eligible}</td>
                                     <td className={`${tdCls} tabular-nums`}>{totals.assessed}</td>

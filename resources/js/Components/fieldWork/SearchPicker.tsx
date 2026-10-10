@@ -44,15 +44,15 @@ export default function SearchPicker<T extends { id: string }>({ url, label, pla
 
     return (
         <div>
-            <label htmlFor={id} className="mb-1 block text-xs font-medium text-gray-600 dark:text-slate-400">{label}</label>
+            <label htmlFor={id} className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">{label}</label>
             <input id={id} className={inputCls} value={term} placeholder={placeholder} autoComplete="off" onChange={(e) => setTerm(e.target.value)} />
-            {term.trim().length > 0 && term.trim().length < 2 && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('fieldWork.form.minChars')}</p>}
-            {term.trim().length >= 2 && !loading && visible.length === 0 && <p className="mt-1 text-xs text-gray-500 dark:text-slate-400">{t('fieldWork.form.noResults')}</p>}
+            {term.trim().length > 0 && term.trim().length < 2 && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('fieldWork.form.minChars')}</p>}
+            {term.trim().length >= 2 && !loading && visible.length === 0 && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('fieldWork.form.noResults')}</p>}
             {visible.length > 0 && (
-                <ul className="mt-1 max-h-56 overflow-y-auto rounded-lg border border-gray-200 bg-white text-sm dark:border-slate-700 dark:bg-slate-900" role="listbox" aria-label={label}>
+                <ul className="mt-1 max-h-56 overflow-y-auto rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-sm" role="listbox" aria-label={label}>
                     {visible.map((row) => (
                         <li key={row.id}>
-                            <button type="button" className="block w-full px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-slate-800" onClick={() => { onPick(row); setTerm(''); setRows([]); }}>
+                            <button type="button" className="block w-full px-3 py-2 text-left hover:bg-[color:var(--app-surface-muted)]" onClick={() => { onPick(row); setTerm(''); setRows([]); }}>
                                 {render(row)}
                             </button>
                         </li>

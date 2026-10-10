@@ -10,6 +10,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Head, router } from '@inertiajs/react';
 import type { JSX, ReactNode } from 'react';
 
+import { cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Report = {
     type: string;
     columns: string[];
@@ -72,7 +73,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
 
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <label className="flex w-full items-center gap-2 text-sm sm:w-auto">
-                        <span className="text-gray-600 dark:text-slate-400">{t('dailyActivities.reports.type')}</span>
+                        <span className="text-[color:var(--app-muted-foreground)]">{t('dailyActivities.reports.type')}</span>
                         <select
                             className={`${compactInputCls} flex-1 sm:flex-none`}
                             value={type}
@@ -94,7 +95,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
 
                 <ActivityFilters key={type} routeName="daily-activities.reports" filters={filters} options={options} fields={FIELDS[type] ?? []} keep={{ type }} />
 
-                <p className="text-xs text-gray-500 dark:text-slate-400">
+                <p className="text-xs text-[color:var(--app-muted-foreground)]">
                     <LocalizedDateDisplay value={report.from} /> – <LocalizedDateDisplay value={report.to} />
                     {' · '}{fill(t('dailyActivities.reports.rows'), { count: report.truncated ? `${report.total}+` : report.total })}
                 </p>
@@ -108,25 +109,25 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                 {report.too_broad ? (
                     <p role="status" className="rounded-panel border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">{t('dailyActivities.reports.tooBroad')}</p>
                 ) : report.rows.length === 0 ? (
-                    <p className={`${panelCls} p-4 text-sm text-gray-500 dark:text-slate-400`}>{t('dailyActivities.reports.empty')}</p>
+                    <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{t('dailyActivities.reports.empty')}</p>
                 ) : (
                     // A report is inherently tabular; only the table scrolls sideways, never the page.
                     <div className={`${panelCls} overflow-x-auto`}>
-                        <table className="w-full min-w-max">
-                            <thead className="border-b border-gray-200 dark:border-slate-800">
+                        <table className={cx(tableClassName, 'min-w-max')}>
+                            <thead className={tableHeadClassName}>
                                 <tr>
                                     {report.columns.map((column) => (
-                                        <th key={column} className={`px-3 py-2 text-xs font-medium text-gray-500 dark:text-slate-400 ${NUMERIC.has(column) ? 'text-right' : 'text-left'}`}>
+                                        <th key={column} className={`px-3 py-2 text-xs font-medium text-[color:var(--app-muted-foreground)] ${NUMERIC.has(column) ? 'text-right' : 'text-left'}`}>
                                             {t(`dailyActivities.reports.columns.${column}`)}
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 dark:divide-slate-800">
+                            <tbody className={tableBodyClassName}>
                                 {report.rows.map((row, index) => (
-                                    <tr key={index} className="hover:bg-gray-50 dark:hover:bg-slate-800/40">
+                                    <tr key={index} className={tableRowClassName}>
                                         {report.columns.map((column) => (
-                                            <td key={column} className={`max-w-xs px-3 py-1.5 align-top text-sm text-gray-800 dark:text-slate-200 ${NUMERIC.has(column) ? 'text-right tabular-nums' : 'break-words'}`}>
+                                            <td key={column} className={`max-w-xs px-3 py-1.5 align-top text-sm text-[color:var(--app-foreground)] ${NUMERIC.has(column) ? 'text-right tabular-nums' : 'break-words'}`}>
                                                 {cell(column, row[column] ?? null)}
                                             </td>
                                         ))}
@@ -137,7 +138,7 @@ export default function DailyActivitiesReports({ type, types, report, filters, o
                     </div>
                 )}
 
-                <p className="text-xs text-gray-500 dark:text-slate-400">{t('dailyActivities.notAttendance')}</p>
+                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('dailyActivities.notAttendance')}</p>
             </div>
         </AuthenticatedLayout>
     );
