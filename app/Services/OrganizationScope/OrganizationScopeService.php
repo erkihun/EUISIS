@@ -199,6 +199,28 @@ class OrganizationScopeService
     }
 
     /**
+     * Subquery of employee ids whose current assignment lies inside the
+     * user's scope, for `whereIn('employee_id', ...)` on employee-owned
+     * records. Null when the user is unrestricted (no filter needed). Kept as
+     * a subquery so a large scope never becomes a giant bound-parameter list.
+     *
+     * @return Builder<Employee>|null
+     */
+    public function employeeIdsInScope(User $user): ?Builder
+    {
+        if ($this->isUnrestricted($user)) {
+            return null;
+        }
+
+        return Employee::query()->select('employees.id')->whereIn(
+            'current_assignment_id',
+            \App\Models\EmployeeAssignment::query()->select('id')
+                ->where('is_current', true)
+                ->whereIn('organization_id', $this->allowedOrganizationIds($user)),
+        );
+    }
+
+    /**
      * Limit a user query to accounts linked to at least one organization the
      * actor may access. Expired/inactive scope records do not grant visibility.
      *

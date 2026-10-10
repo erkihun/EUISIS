@@ -810,3 +810,49 @@ test('cancel route is protected by authorization', function (): void {
         ->post(route('transfer-announcements.cancel', $announcement))
         ->assertForbidden();
 });
+
+// ── Dashboard scope (SEC-4) ──────────────────────────────────────────────────
+
+function makeScopedTransferPair(string $suffix): array
+{
+    $from = makeTransferOrg('DSH-F-'.$suffix);
+    $to = makeTransferOrg('DSH-T-'.$suffix);
+    $employee = makeTransferEmployee($from, makeTransferPos($from->id));
+    $announcement = TransferAnnouncement::query()->create([
+        'organization_id' => $to->id, 'position_id' => makeTransferPos($to->id)->id,
+        'number_of_vacancies' => 1, 'opening_date' => now()->subDay()->toDateString(),
+        'closing_date' => now()->addDays(30)->toDateString(),
+        'status' => TransferAnnouncementStatus::Published, 'created_by' => makeTransferActor()->id,
+    ]);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id, 'employee_id' => $employee->id,
+        'current_assignment_id' => $employee->current_assignment_id,
+        'releasing_organization_id' => $from->id, 'receiving_organization_id' => $to->id,
+        'status' => TransferApplicationStatus::Transferred, 'submitted_at' => now(),
+    ]);
+
+    return [$from, $application];
+}
+
+test('the transfer dashboard shows a scoped user only their organizations and no employee contact data', function (): void {
+    Permission::findOrCreate('transfers.viewAny', 'web');
+    [$mineOrg, $mine] = makeScopedTransferPair('A');
+    makeScopedTransferPair('B');
+
+    $actor = makeTransferActor('transfers.viewAny');
+    \App\Models\UserOrganizationScope::query()->create([
+        'user_id' => $actor->id, 'organization_id' => $mineOrg->id,
+        'scope_type' => \App\Enums\OrganizationScopeType::Self, 'is_active' => true,
+        'effective_from' => now()->subDay()->toDateString(),
+    ]);
+
+    $this->actingAs($actor->fresh())
+        ->get(route('transfers.dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('stats.active_announcements', 0) // both announcements belong to receiving orgs outside scope
+            ->has('recent_transfers', 1)
+            ->where('recent_transfers.0.id', $mine->id)
+            ->missing('recent_transfers.0.employee.phone')
+            ->missing('recent_transfers.0.employee.date_of_birth'));
+});

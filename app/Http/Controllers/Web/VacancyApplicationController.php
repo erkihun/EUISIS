@@ -17,6 +17,7 @@ use App\Http\Requests\SubmitVacancyApplicationRequest;
 use App\Models\Employee;
 use App\Models\VacancyAnnouncementPosition;
 use App\Models\VacancyApplication;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +30,24 @@ class VacancyApplicationController extends Controller
     {
         $this->authorize('viewAny', VacancyApplication::class);
 
+        $user = $request->user();
+        $scope = app(OrganizationScopeService::class);
+
         $query = VacancyApplication::query()
-            ->with(['announcement', 'positionEntry.position', 'positionEntry.organization', 'employee'])
+            // Display fields only: never the applicant's full personnel record.
+            ->with(['announcement', 'positionEntry.position', 'positionEntry.organization', 'employee:id,employee_number,full_name,name_en'])
             ->latest('applied_at');
+
+        // A scoped officer sees applications from their organizations'
+        // employees and applications to their organizations' vacancies.
+        if (! $scope->isUnrestricted($user)) {
+            $allowed = $scope->allowedOrganizationIds($user);
+            $query->where(fn ($scoped) => $scoped
+                ->whereIn('current_organization_id', $allowed)
+                ->orWhereIn('vacancy_announcement_position_id', VacancyAnnouncementPosition::query()
+                    ->select('id')
+                    ->whereIn('organization_id', $allowed)));
+        }
 
         if ($request->filled('vacancy_announcement_id')) {
             $query->where('vacancy_announcement_id', $request->string('vacancy_announcement_id'));

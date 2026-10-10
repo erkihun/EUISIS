@@ -375,3 +375,31 @@ it('sends the applications list as a plain paginator with snake_case relations',
             ->has('applications.data.0.position_entry.position.title_en')
             ->has('applications.data.0.position_entry.organization.name_en'));
 });
+
+it('lists only applications touching the scoped officer organizations, without employee contact data', function (): void {
+    $mineAnnouncement = makePublishedAnnouncementForApp();
+    $mineOrgId = $mineAnnouncement->positions->first()->organization_id;
+    [$mineEmployee] = makeEmployeeWithAssignment($mineOrgId);
+    $mine = makeApplicationForTest($mineAnnouncement, $mineEmployee->id, VacancyApplicationStatus::Submitted->value);
+
+    $otherAnnouncement = makePublishedAnnouncementForApp();
+    [$otherEmployee] = makeEmployeeWithAssignment($otherAnnouncement->positions->first()->organization_id);
+    makeApplicationForTest($otherAnnouncement, $otherEmployee->id, VacancyApplicationStatus::Submitted->value);
+
+    $officer = User::factory()->create();
+    $officer->givePermissionTo('vacancy-applications.viewAny');
+    \App\Models\UserOrganizationScope::query()->create([
+        'user_id' => $officer->id, 'organization_id' => $mineOrgId,
+        'scope_type' => \App\Enums\OrganizationScopeType::Self, 'is_active' => true,
+        'effective_from' => now()->subDay()->toDateString(),
+    ]);
+
+    $this->actingAs($officer->fresh())
+        ->get(route('vacancy-applications.index'))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('applications.data', 1)
+            ->where('applications.data.0.id', $mine->id)
+            ->missing('applications.data.0.employee.phone')
+            ->missing('applications.data.0.employee.date_of_birth'));
+});
