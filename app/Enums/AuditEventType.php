@@ -418,6 +418,8 @@ enum AuditEventType: string
 
     // Grievance Management (docs/grievance-management.md §10). Values carry
     // ids, statuses and codes only — never the grievance narrative.
+    case GrievanceInitialIssueRaised = 'grievance.initial_issue_raised';
+    case GrievanceInitialResolutionRecorded = 'grievance.initial_resolution_recorded';
     case GrievanceDraftCreated = 'grievance.draft_created';
     case GrievanceDraftUpdated = 'grievance.draft_updated';
     case GrievanceDraftDeleted = 'grievance.draft_deleted';
@@ -515,6 +517,9 @@ enum AuditEventType: string
      * record which administrator suppressed or resolved a comment.
      */
     case ServiceFeedbackSubmitted = 'service_feedback.submitted';
+    case ServiceSuggestionSubmitted = 'service_feedback.suggestion_submitted';
+    case ServiceComplaintSubmitted = 'service_feedback.complaint_submitted';
+    case ServiceComplaintAttachmentDownloaded = 'service_feedback.complaint_attachment_downloaded';
     case ServiceFeedbackBlocked = 'service_feedback.blocked';
     case ServiceFeedbackReviewed = 'service_feedback.reviewed';
     case ServiceFeedbackResolved = 'service_feedback.resolved';
@@ -658,4 +663,26 @@ enum AuditEventType: string
     case AssessmentReopened = 'assessments.reopened';
     case AssessmentAcknowledged = 'assessments.acknowledged';
     case AssessmentEvidenceUploaded = 'assessments.evidence_uploaded';
+
+    // Employee Discipline (docs/employee-discipline.md). Ids, statuses and
+    // dates only: charge particulars, statements and testimony never.
+    case DisciplinaryCaseCreated = 'discipline.case_created';
+    case DisciplinaryCaseViewed = 'discipline.case_viewed';
+    case DisciplinaryChargeRecorded = 'discipline.charge_recorded';
+    case DisciplinaryCaseCharged = 'discipline.case_charged';
+    case DisciplinarySummonsServed = 'discipline.summons_served';
+    case DisciplinaryResponseRecorded = 'discipline.response_recorded';
+    case DisciplinaryObjectionDecided = 'discipline.objection_decided';
+    case DisciplinaryEvidenceAdded = 'discipline.evidence_added';
+    case DisciplinaryEvidenceDownloaded = 'discipline.evidence_downloaded';
+    case DisciplinaryWitnessRecorded = 'discipline.witness_recorded';
+    case DisciplinaryMemberRecused = 'discipline.member_recused';
+    case DisciplinaryFinalStatementRecorded = 'discipline.final_statement_recorded';
+    case DisciplinaryRecommendationAdopted = 'discipline.recommendation_adopted';
+    case DisciplinaryReportSubmitted = 'discipline.report_submitted';
+    case DisciplinaryDecisionIssued = 'discipline.decision_issued';
+    case DisciplinaryDecisionDelivered = 'discipline.decision_delivered';
+    case DisciplinaryCaseDiscontinued = 'discipline.case_discontinued';
+    case DisciplinaryCaseTerminated = 'discipline.case_terminated';
+    case DisciplinaryCaseClosed = 'discipline.case_closed';
 }

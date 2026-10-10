@@ -11,6 +11,8 @@ use App\Enums\Grievance\GrievanceCaseOfficerRole;
 use App\Enums\Grievance\GrievanceConfidentiality;
 use App\Enums\Grievance\GrievanceCorrectiveActionStatus;
 use App\Enums\Grievance\GrievanceHandlerType;
+use App\Enums\Grievance\GrievanceInitialResolutionOutcome;
+use App\Enums\Grievance\GrievanceInitialResolutionStatus;
 use App\Enums\Grievance\GrievanceMovementType;
 use App\Enums\Grievance\GrievancePriority;
 use App\Enums\Grievance\GrievanceReasonCodeType;
@@ -29,6 +31,7 @@ use App\Models\GrievanceCaseStage;
 use App\Models\GrievanceCategory;
 use App\Models\GrievanceCorrectiveAction;
 use App\Models\GrievanceDisciplinaryReferral;
+use App\Models\GrievanceInitialIssue;
 use App\Models\GrievanceNote;
 use App\Models\GrievanceReasonCode;
 use App\Models\GrievanceTask;
@@ -167,6 +170,86 @@ final class GrievanceCaseService
             }
             $this->audit->record(AuditEventType::GrievanceDraftDeleted, $actor, $grievance, ['id' => $grievance->getKey()]);
             $grievance->delete();
+        });
+    }
+
+    // ── Initial resolution (pre-grievance, Regulation 201/2018 Art. 33(1)) ────
+
+    /**
+     * Record the written issue the employee raises with the immediate
+     * supervisor / responsible officer before any formal grievance. Identity
+     * and placement are resolved from the authenticated actor and snapshotted;
+     * any employee/organization ids in $data are ignored.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function raiseInitialIssue(User $actor, array $data): GrievanceInitialIssue
+    {
+        $this->access->authorize($actor->can('grievances.create'));
+        if (! $this->settings->enabled()) {
+            throw ValidationException::withMessages(['grievance' => __('grievances.errors.module_disabled')]);
+        }
+
+        $employee = $this->access->employeeOf($actor);
+        $placement = $this->handlers->placementOf($employee);
+        if ($employee === null || $placement['organization_id'] === null) {
+            throw ValidationException::withMessages(['grievance' => __('grievances.errors.no_employee_record')]);
+        }
+
+        return DB::transaction(function () use ($actor, $data, $employee, $placement): GrievanceInitialIssue {
+            $issue = GrievanceInitialIssue::query()->create([
+                'employee_id' => $employee->getKey(),
+                'employee_assignment_id' => $placement['assignment_id'],
+                'organization_id' => $placement['organization_id'],
+                'organization_unit_id' => $placement['unit_ids'][0] ?? null,
+                'position_id' => $placement['position_id'],
+                'issue_subject' => $data['issue_subject'],
+                'issue_description' => $data['issue_description'],
+                'requested_resolution' => $data['requested_resolution'] ?? null,
+                'written_issue_raised_at' => now(),
+                'status' => GrievanceInitialResolutionStatus::Pending,
+            ]);
+
+            $this->audit->record(AuditEventType::GrievanceInitialIssueRaised, $actor, $issue, [
+                'employee_id' => $employee->getKey(),
+            ]);
+
+            return $issue;
+        });
+    }
+
+    /**
+     * Record the outcome of the initial discussion. A resolved matter is
+     * terminal and never becomes a formal grievance; an unresolved or
+     * unanswered matter is marked Failed and may start the filing window.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function recordInitialResolution(
+        GrievanceInitialIssue $issue,
+        User $actor,
+        GrievanceInitialResolutionOutcome $outcome,
+        array $data,
+    ): GrievanceInitialIssue {
+        $this->access->authorize($actor->can('grievances.create'));
+
+        return DB::transaction(function () use ($issue, $actor, $outcome, $data): GrievanceInitialIssue {
+            $issue->update([
+                'outcome' => $outcome,
+                'status' => $outcome === GrievanceInitialResolutionOutcome::Resolved
+                    ? GrievanceInitialResolutionStatus::Resolved
+                    : GrievanceInitialResolutionStatus::Failed,
+                'discussion_notes' => $data['discussion_notes'] ?? $issue->discussion_notes,
+                'officer_response' => $data['officer_response'] ?? $issue->officer_response,
+                'discussion_date' => $data['discussion_date'] ?? $issue->discussion_date ?? now(),
+                'resolved_at' => now(),
+            ]);
+
+            $this->audit->record(AuditEventType::GrievanceInitialResolutionRecorded, $actor, $issue, [
+                'outcome' => $outcome->value,
+            ]);
+
+            return $issue->refresh();
         });
     }
 
