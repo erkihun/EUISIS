@@ -174,3 +174,45 @@ it('uses the shared eligibility service in cafeteria and provider portal scans',
 
     expect($dependencies)->toContain(EmployeeServiceEligibilityService::class);
 });
+
+function quotaFixture(int $limit): array
+{
+    $employee = serviceEmployee();
+    $card = serviceCard($employee);
+    $serviceType = ServiceType::query()->create(['code' => 'quota-'.uniqid(), 'name_en' => 'Quota Test']);
+    $provider = ServiceProvider::query()->create([
+        'service_type_id' => $serviceType->id, 'name' => 'Quota Provider',
+        'code' => 'Q-SP-'.uniqid(), 'status' => 'active',
+    ]);
+    $entitlement = Entitlement::query()->create([
+        'employee_id' => $employee->id, 'service_type_id' => $serviceType->id,
+        'service_provider_id' => $provider->id, 'status' => EntitlementStatus::Active,
+        'quota_limit' => $limit, 'quota_used' => 0,
+    ]);
+
+    return [$employee, $card, $serviceType, $provider, $entitlement];
+}
+
+it('never takes quota past its limit, even from a stale entitlement copy', function (): void {
+    [$employee, $card, $type, $provider, $entitlement] = quotaFixture(1);
+    $stale = Entitlement::query()->findOrFail($entitlement->id);
+    $action = app(RecordServiceTransactionAction::class);
+
+    $action->execute($employee, $card, $type, $provider, $entitlement, 'authorized', null, ['reference' => 'R-1']);
+    expect(fn () => $action->execute($employee, $card, $type, $provider, $stale, 'authorized', null, ['reference' => 'R-2']))
+        ->toThrow(DomainException::class);
+
+    expect($entitlement->fresh()->quota_used)->toBe(1)
+        ->and(ServiceTransaction::query()->count())->toBe(1);
+});
+
+it('the database refuses a second transaction with the same provider reference', function (): void {
+    [$employee, $card, $type, $provider] = quotaFixture(10);
+    $row = fn () => ServiceTransaction::query()->create([
+        'employee_id' => $employee->id, 'id_card_id' => $card->id, 'service_type_id' => $type->id,
+        'service_provider_id' => $provider->id, 'status' => 'authorized', 'occurred_at' => now(), 'reference' => 'DUP-1',
+    ]);
+
+    $row();
+    expect($row)->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class);
+});
