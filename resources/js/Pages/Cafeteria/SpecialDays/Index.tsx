@@ -87,7 +87,7 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                                                 </span>
                                             </td>
                                             <td className={tableCellClassName}>
-                                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${d.is_subsidy_day ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-gray-100 text-[color:var(--app-muted-foreground)] dark:bg-slate-700'}`}>
+                                                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${d.is_subsidy_day ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-[color:var(--color-primary)]' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
                                                     {d.is_subsidy_day ? t('cafeteria.isSubsidyDay') : t('common.no')}
                                                 </span>
                                             </td>

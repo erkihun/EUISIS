@@ -78,7 +78,7 @@ export default function VersionShow({
                     {version.status !== 'published' && (
                         <button
                             type="button"
-                            className="mt-6 rounded-card bg-amber-500 px-4 py-2 text-sm font-medium text-slate-900 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                            className="mt-6 rounded-card bg-amber-500 px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400"
                             onClick={() => form.post(route('hierarchy-versions.publish', { hierarchyVersion: version.id }))}
                         >
                             Publish Version

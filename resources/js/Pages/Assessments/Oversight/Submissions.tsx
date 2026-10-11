@@ -49,7 +49,7 @@ export default function OversightSubmissions(props: Props) {
                             const any = row.actions.startReview || row.actions.return || row.actions.reject || row.actions.verify || row.actions.finalize;
                             return (
                                 <tr key={row.id}>
-                                    <td className={tdCls}>{row.organization ? <Link className="hover:underline" href={oversightHref('assessment-oversight.institution', cycle, { organization: row.organization.id })}>{named(row.organization, locale)}</Link> : '—'}<div className="text-xs text-gray-500">{row.submitter}</div></td>
+                                    <td className={tdCls}>{row.organization ? <Link className="hover:underline" href={oversightHref('assessment-oversight.institution', cycle, { organization: row.organization.id })}>{named(row.organization, locale)}</Link> : '—'}<div className="text-xs text-[color:var(--app-muted-foreground)]">{row.submitter}</div></td>
                                     <td className={`${tdCls} tabular-nums`}>{row.revision_no}</td>
                                     <td className={tdCls}><StatusBadge group="submissionStatuses" value={row.status} />{row.return_reason && <div className="mt-1 text-xs text-amber-700">{row.return_reason}</div>}</td>
                                     <td className={`${tdCls} tabular-nums`}>{row.eligible_count}</td>

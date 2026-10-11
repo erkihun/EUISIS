@@ -162,9 +162,9 @@ export default function DashboardOverview({ can, cards, charts, kpis, alerts, wo
                                     const ActionIcon = actionIcons[action.key] ?? ArrowRight;
                                     return (
                                     <Link key={action.key} href={route(action.routeName, action.params)} className="group flex min-h-11 items-center gap-3 rounded-md py-2 text-sm text-[color:var(--app-foreground)] hover:text-[color:var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 dark:hover:text-indigo-300">
-                                        <ActionIcon className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
+                                        <ActionIcon className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
                                         <span className="min-w-0 flex-1 break-words">{t(`dashboard.actions.${action.key}`)}</span>
-                                        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden="true" />
+                                        <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
                                     </Link>
                                     );
                                 })}

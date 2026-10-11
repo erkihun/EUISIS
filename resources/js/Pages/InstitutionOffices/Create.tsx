@@ -298,7 +298,7 @@ export default function InstitutionOfficeCreate({
                         <PrimaryButton type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('institutionOffices.create')}
                         </PrimaryButton>
-                        <Link href={route('institution-offices.index')} className="text-sm text-[color:var(--app-muted-foreground)] hover:text-gray-700">
+                        <Link href={route('institution-offices.index')} className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]">
                             {t('common.cancel')}
                         </Link>
                     </div>

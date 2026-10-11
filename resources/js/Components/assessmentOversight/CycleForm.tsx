@@ -106,7 +106,7 @@ export function CycleForm({ cycle, types, policies, employeeStatuses, onCancel }
                         </label>
                     ))}
                 </div>
-                <p className="mt-1 text-xs text-gray-500">{t('assessmentOversight.cycleForm.eligibleStatusesHelp')}</p>
+                <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.cycleForm.eligibleStatusesHelp')}</p>
             </fieldset>
             {locked && <p className="text-xs text-amber-700 md:col-span-3">{t('assessmentOversight.cycleForm.locked')}</p>}
             {Object.keys(form.errors).filter((k) => k === 'cycle').map((k) => <p key={k} className="text-sm text-red-600 md:col-span-3">{form.errors[k as keyof typeof form.errors]}</p>)}

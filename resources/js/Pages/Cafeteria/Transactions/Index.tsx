@@ -9,7 +9,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronRight, ScrollText } from '@/Components/Icons';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Transaction = {
     id: string; transaction_number: string; scanned_at: string | null;
     meal_amount: number; subsidy_amount_applied: number; employee_payable_amount: number; deduction_amount: number;
@@ -65,7 +65,7 @@ export default function TransactionsIndex({ transactions, meta, filters, provide
                             </label>
                         </div>
                         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[color:var(--app-border)] pt-4">
-                            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]"><input type="checkbox" className="rounded border-gray-300" checked={form.data.extra_only} onChange={event => form.setData('extra_only', event.target.checked)} />{t('cafeteria.extraScansOnly')}</label>
+                            <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]"><input type="checkbox" className="rounded border-[color:var(--app-border-strong)]" checked={form.data.extra_only} onChange={event => form.setData('extra_only', event.target.checked)} />{t('cafeteria.extraScansOnly')}</label>
                             <div className="flex gap-2"><button type="button" onClick={clearFilters} className={buttonCls}>{t('common.clear')}</button><button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button></div>
                         </div>
                     </form>
@@ -92,14 +92,14 @@ export default function TransactionsIndex({ transactions, meta, filters, provide
                                 <article key={txn.id} className="p-5 transition hover:bg-gray-50/60 dark:hover:bg-slate-800/20">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <Link href={route('cafeteria.transactions.show', txn.id)} className="break-all font-mono text-sm font-semibold text-[color:var(--color-primary)] hover:underline">{txn.transaction_number}</Link>
-                                        <div className="flex flex-wrap items-center gap-2"><StatusBadge status={txn.status} label={statusLabels[txn.status] ?? txn.status} />{txn.is_extra_scan && <span className="rounded-full bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700 dark:bg-orange-900/20 dark:text-orange-300">{t('cafeteria.extraScanBadge')}</span>}</div>
+                                        <div className="flex flex-wrap items-center gap-2"><StatusBadge status={txn.status} label={statusLabels[txn.status] ?? txn.status} />{txn.is_extra_scan && <span className={badgeClassName('warning')}>{t('cafeteria.extraScanBadge')}</span>}</div>
                                     </div>
                                     <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
                                         <div className="grid gap-4 sm:grid-cols-2">
                                             <div className="min-w-0"><p className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.employeeInfo')}</p><p className="mt-1 break-words text-sm font-medium text-[color:var(--app-foreground)]">{txn.employee?.display_name || '—'}</p><p className="mt-1 font-mono text-xs text-[color:var(--app-muted-foreground)]">{txn.employee?.employee_number || '—'}</p></div>
                                             <div className="min-w-0"><p className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.provider')}</p><p className="mt-1 break-words text-sm font-medium text-[color:var(--app-foreground)]">{(locale === 'am' ? txn.provider?.name_am || txn.provider?.name_en : txn.provider?.name_en) || '—'}</p><p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={txn.scanned_at} withTime /></p></div>
                                         </div>
-                                        <dl className="grid grid-cols-2 gap-4 rounded-xl border border-[color:var(--app-border)] bg-gray-50 p-4 dark:bg-slate-950/60 sm:grid-cols-4">
+                                        <dl className="grid grid-cols-2 gap-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] p-4 sm:grid-cols-4">
                                             {[
                                                 { label: 'mealAmount', value: txn.meal_amount, color: 'text-[color:var(--app-foreground)]' },
                                                 { label: 'subsidyApplied', value: txn.subsidy_amount_applied, color: 'text-emerald-700 dark:text-emerald-400' },

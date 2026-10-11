@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Provider = {
     id: string; code: string; name_en: string; name_am: string | null;
     contact_person: string | null; phone_number: string | null; email: string | null;
@@ -93,13 +93,13 @@ export default function ProviderShow({
 
                 {/* Provider details */}
                 <div className={`${cardCls} px-6`}>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.providerCode')}</span><span className="font-mono font-medium text-[color:var(--app-foreground)]">{provider.code}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.nameEn')}</span><span className="font-medium text-[color:var(--app-foreground)]">{provider.name_en}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.nameAm')}</span><span className="text-[color:var(--app-foreground)]">{provider.name_am ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.contactPerson')}</span><span className="text-[color:var(--app-foreground)]">{provider.contact_person ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.phoneNumber')}</span><span className="text-[color:var(--app-foreground)]">{provider.phone_number ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.location')}</span><span className="text-[color:var(--app-foreground)]">{provider.location ?? '—'}</span></div>
-                    <div className={rowCls}><span className="text-gray-500">{t('cafeteria.isActive')}</span><StatusBadge status={provider.is_active ? 'active' : 'inactive'} label={provider.is_active ? t('common.active') : t('common.inactive')} /></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.providerCode')}</span><span className="font-mono font-medium text-[color:var(--app-foreground)]">{provider.code}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.nameEn')}</span><span className="font-medium text-[color:var(--app-foreground)]">{provider.name_en}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.nameAm')}</span><span className="text-[color:var(--app-foreground)]">{provider.name_am ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.contactPerson')}</span><span className="text-[color:var(--app-foreground)]">{provider.contact_person ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.phoneNumber')}</span><span className="text-[color:var(--app-foreground)]">{provider.phone_number ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.location')}</span><span className="text-[color:var(--app-foreground)]">{provider.location ?? '—'}</span></div>
+                    <div className={rowCls}><span className="text-[color:var(--app-muted-foreground)]">{t('cafeteria.isActive')}</span><StatusBadge status={provider.is_active ? 'active' : 'inactive'} label={provider.is_active ? t('common.active') : t('common.inactive')} /></div>
                 </div>
 
                 {/* Branches */}
@@ -108,7 +108,7 @@ export default function ProviderShow({
                         <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">
                             {t('cafeteria.branches')}
                             {branches.length > 0 && (
-                                <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
+                                <span className={badgeClassName('info', 'ml-2')}>
                                     {branches.length}
                                 </span>
                             )}
@@ -146,11 +146,11 @@ export default function ProviderShow({
                                             <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-foreground)]')}>{b.code}</td>
                                             <td className={tableCellClassName}>
                                                 <div className="font-medium text-[color:var(--app-foreground)]">{b.name_en}</div>
-                                                {b.name_am && <div className="text-xs text-gray-500">{b.name_am}</div>}
+                                                {b.name_am && <div className="text-xs text-[color:var(--app-muted-foreground)]">{b.name_am}</div>}
                                             </td>
                                             <td className={tdCls}>
                                                 {b.organization ? (
-                                                    <span>{b.organization.name_en} <span className="font-mono text-xs text-gray-400">({b.organization.code})</span></span>
+                                                    <span>{b.organization.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({b.organization.code})</span></span>
                                                 ) : '—'}
                                             </td>
                                             <td className={tdCls}>{b.location ?? '—'}</td>
@@ -221,17 +221,17 @@ export default function ProviderShow({
                                         <tr key={a.id} className={tableRowClassName}>
                                             <td className={tdCls}>
                                                 <div className="font-medium text-[color:var(--app-foreground)]">{a.user.name}</div>
-                                                <div className="text-xs text-gray-500">{a.user.email}</div>
+                                                <div className="text-xs text-[color:var(--app-muted-foreground)]">{a.user.email}</div>
                                             </td>
                                             <td className={tdCls}>
                                                 {a.branch ? (
-                                                    <span className="font-medium">{a.branch.name_en} <span className="font-mono text-xs text-gray-400">({a.branch.code})</span></span>
-                                                ) : <span className="text-gray-400">—</span>}
+                                                    <span className="font-medium">{a.branch.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({a.branch.code})</span></span>
+                                                ) : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
                                             </td>
                                             <td className={tdCls}>
                                                 {a.organization ? (
-                                                    <span>{a.organization.name_en} <span className="font-mono text-xs text-gray-400">({a.organization.code})</span></span>
-                                                ) : <span className="text-gray-400">—</span>}
+                                                    <span>{a.organization.name_en} <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({a.organization.code})</span></span>
+                                                ) : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
                                             </td>
                                             <td className={tdCls}>{a.provider_role ?? 'operator'}</td>
                                             <td className={cx(tableCellClassName, 'text-center')}>

@@ -10,7 +10,7 @@ import { toast } from '@/lib/toast';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type RecycleBinRecord = {
     type: string;
     type_label_key: string;
@@ -142,7 +142,7 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                                     {records.data.map((record) => (
                                         <tr key={`${record.type}-${record.id}`} className={tableRowClassName}>
                                             <td className={tableCellClassName}>
-                                                <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/30 dark:text-red-200">
+                                                <span className={badgeClassName('danger')}>
                                                     <TrashIcon className="h-3.5 w-3.5" />
                                                     {t(record.type_label_key)}
                                                 </span>

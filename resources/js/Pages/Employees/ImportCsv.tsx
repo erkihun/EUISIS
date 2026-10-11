@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 
-import { buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type BatchSummary = {
     id: string;
     file_name: string;
@@ -189,7 +189,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                                     {t('employees.import.numberGenerationHelp')}
                                 </p>
 
-                                <details className="mt-4 rounded-control bg-gray-50 px-3 py-2 text-xs dark:bg-slate-950/60">
+                                <details className="mt-4 rounded-control bg-[color:var(--app-surface-muted)] px-3 py-2 text-xs">
                                     <summary className="cursor-pointer font-medium text-[color:var(--app-foreground)]">{t('employees.import.requiredColumns')}</summary>
                                     <p className="mt-2 break-words font-mono leading-5 text-[color:var(--app-muted-foreground)]">{columns.join(', ')}</p>
                                 </details>
@@ -201,7 +201,7 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
                 {allowedOrganizations.length > 0 && (
                     <details className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-5 py-4">
                         <summary className="cursor-pointer text-sm font-medium text-[color:var(--app-foreground)]">
-                            {t('employees.import.allowedOrganizations')} <span className="ml-1 text-xs text-gray-400">({allowedOrganizations.length})</span>
+                            {t('employees.import.allowedOrganizations')} <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]">({allowedOrganizations.length})</span>
                         </summary>
                         <div className="mt-3 flex flex-wrap gap-2">
                             {allowedOrganizations.map((organization) => (
@@ -312,7 +312,7 @@ function SectionHeading({ icon, number, title, description }: { icon: ReactNode;
         <div className="flex gap-3 border-b border-[color:var(--app-border)] px-5 py-4">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-blue-50 text-[color:var(--color-primary)] dark:bg-blue-950/40">{icon}</span>
             <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{number}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[color:var(--app-muted-foreground)]">{number}</p>
                 <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h2>
                 <p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{description}</p>
             </div>
@@ -323,7 +323,7 @@ function SectionHeading({ icon, number, title, description }: { icon: ReactNode;
 function Metric({ label, value, tone = 'neutral' }: { label: string; value: number; tone?: 'neutral' | 'success' | 'danger' }): JSX.Element {
     const colors = { neutral: 'text-[color:var(--app-foreground)]', success: 'text-emerald-600 dark:text-emerald-400', danger: 'text-red-600 dark:text-red-400' };
     return (
-        <div className="rounded-control border border-[color:var(--app-border)] bg-gray-50 px-3 py-3 dark:bg-slate-800/70">
+        <div className="rounded-control border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-3">
             <p className={`text-xl font-bold tabular-nums ${colors[tone]}`}>{value}</p>
             <p className="mt-0.5 truncate text-xs text-[color:var(--app-muted-foreground)]">{label}</p>
         </div>
@@ -340,7 +340,7 @@ function PreviewTableRow({ row, validLabel, generatedLabel }: { row: PreviewRow;
             <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>{row.row_number}</td>
             <td className={cx(tableCellClassName, 'font-medium text-[color:var(--app-foreground)]')}>{row.name || '—'}</td>
             <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>{row.employee_number ?? generatedLabel}</td>
-            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}><div>{row.organization ?? '—'}</div>{row.organization_unit && <div className="mt-0.5 text-xs text-gray-400">{row.organization_unit}</div>}</td>
+            <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}><div>{row.organization ?? '—'}</div>{row.organization_unit && <div className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{row.organization_unit}</div>}</td>
             <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>{row.position ?? '—'}</td>
             <td className={tableCellClassName}><RowStatus row={row} validLabel={validLabel} /></td>
         </tr>
@@ -350,16 +350,16 @@ function PreviewTableRow({ row, validLabel, generatedLabel }: { row: PreviewRow;
 function PreviewCard({ row, validLabel, generatedLabel, organizationLabel, positionLabel }: { row: PreviewRow; validLabel: string; generatedLabel: string; organizationLabel: string; positionLabel: string }): JSX.Element {
     return (
         <li className={`p-4 ${row.status === 'invalid' ? 'bg-red-50/60 dark:bg-red-950/20' : ''}`}>
-            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-medium text-[color:var(--app-foreground)]">{row.name || '—'}</p><p className="mt-0.5 font-mono text-xs text-gray-500">#{row.row_number} · {row.employee_number ?? generatedLabel}</p></div><RowStatus row={row} validLabel={validLabel} compact /></div>
-            <dl className="mt-3 grid gap-2 text-xs"><div><dt className="text-gray-400">{organizationLabel}</dt><dd className="text-[color:var(--app-foreground)]">{row.organization ?? '—'}{row.organization_unit ? ` · ${row.organization_unit}` : ''}</dd></div><div><dt className="text-gray-400">{positionLabel}</dt><dd className="text-[color:var(--app-foreground)]">{row.position ?? '—'}</dd></div></dl>
+            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-medium text-[color:var(--app-foreground)]">{row.name || '—'}</p><p className="mt-0.5 font-mono text-xs text-[color:var(--app-muted-foreground)]">#{row.row_number} · {row.employee_number ?? generatedLabel}</p></div><RowStatus row={row} validLabel={validLabel} compact /></div>
+            <dl className="mt-3 grid gap-2 text-xs"><div><dt className="text-[color:var(--app-muted-foreground)]">{organizationLabel}</dt><dd className="text-[color:var(--app-foreground)]">{row.organization ?? '—'}{row.organization_unit ? ` · ${row.organization_unit}` : ''}</dd></div><div><dt className="text-[color:var(--app-muted-foreground)]">{positionLabel}</dt><dd className="text-[color:var(--app-foreground)]">{row.position ?? '—'}</dd></div></dl>
             {row.status === 'invalid' && <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-red-600 dark:text-red-400">{row.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>}
         </li>
     );
 }
 
 function RowStatus({ row, validLabel, compact = false }: { row: PreviewRow; validLabel: string; compact?: boolean }): JSX.Element {
-    if (row.status !== 'invalid') return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300"><CheckIcon small />{validLabel}</span>;
-    if (compact) return <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-950/50 dark:text-red-300">{row.errors.length}</span>;
+    if (row.status !== 'invalid') return <span className={badgeClassName('success')}><CheckIcon small />{validLabel}</span>;
+    if (compact) return <span className={badgeClassName('danger')}>{row.errors.length}</span>;
     return <ul className="space-y-1 text-xs text-red-600 dark:text-red-400">{row.errors.map((error, index) => <li key={index}>{error}</li>)}</ul>;
 }
 

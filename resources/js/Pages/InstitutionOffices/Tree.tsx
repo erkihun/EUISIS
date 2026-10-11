@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName } from '@/Components/ui';
 interface TreeNode {
     id: string;
     office_code: string;
@@ -45,7 +45,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                     <button
                         type="button"
                         onClick={() => setExpanded(!expanded)}
-                        className="flex h-5 w-5 items-center justify-center rounded text-gray-400 hover:text-gray-600 dark:hover:text-slate-300"
+                        className="flex h-5 w-5 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-gray-600 dark:hover:text-slate-300"
                     >
                         {expanded ? '▾' : '▸'}
                     </button>
@@ -63,11 +63,11 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                     >
                         {node.name_en ?? node.office_code}
                     </Link>
-                    <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                    <span className={badgeClassName('info')}>
                         {node.office_level}
                     </span>
                     {node.is_head_office && (
-                        <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                        <span className={badgeClassName('warning')}>
                             {t('institutionOffices.headOffice')}
                         </span>
                     )}
@@ -83,7 +83,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                     </Link>
                     <Link
                         href={route('institution-offices.edit', node.id)}
-                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-gray-700"
+                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                     >
                         {t('common.edit')}
                     </Link>

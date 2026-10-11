@@ -86,7 +86,7 @@ export default function NotificationBell() {
                 {unread > 0 && <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white">{unread > 99 ? '99+' : unread}</span>}
                 {error && !feed && <span aria-hidden="true" className="absolute right-0 top-0 text-xs text-amber-600">!</span>}
             </PopoverButton>
-            <PopoverPanel anchor="bottom end" className="z-50 w-96 max-w-[calc(100vw-1rem)] rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-xl outline-none [--anchor-gap:8px] [--anchor-padding:8px]">
+            <PopoverPanel anchor="bottom end" className="z-50 w-96 max-w-[calc(100vw-1rem)] rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-xl outline-none [--anchor-gap:8px] [--anchor-padding:8px]">
                 <div className="flex items-center justify-between gap-3 border-b border-[color:var(--app-border)] p-4">
                     <h2 className="text-sm font-semibold">{label('title')} {unread > 0 && <span className="text-xs text-[color:var(--app-muted-foreground)]">({unread})</span>}</h2>
                     <button type="button" className={actionCls} disabled={busy || !unread} onClick={() => void markRead()}>{label('readAll')}</button>

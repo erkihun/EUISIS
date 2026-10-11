@@ -80,10 +80,10 @@ export default function GregorianDatePicker({
                 onClick={handleButtonClick}
                 className={`flex w-full items-center justify-between rounded-md border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
             >
-                <span className={value ? 'text-[color:var(--app-foreground)]' : 'text-gray-400 dark:text-gray-500'}>
+                <span className={value ? 'text-[color:var(--app-foreground)]' : 'text-[color:var(--app-muted-foreground)]'}>
                     {value ? formatDisplay(value) : (placeholder ?? defaultPlaceholder)}
                 </span>
-                <svg className="h-4 w-4 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             </button>

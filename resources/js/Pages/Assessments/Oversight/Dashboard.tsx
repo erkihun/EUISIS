@@ -58,7 +58,7 @@ export default function OversightDashboard(props: Props) {
                     {['expected', 'started', 'completed', 'submitted', 'verified', 'returned'].map((key) => <Kpi key={key} label={t(`assessmentOversight.kpi.${key}`)} value={null} />)}
                 </KpiGroup>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {['dashboardProgress', 'dashboardEvaluators', 'dashboardForms', 'dashboardReasons', ...(can.demographics ? ['kpi.gender'] : []), ...(can.results ? ['charts.resultDistribution'] : [])].map((key) => <Section key={key} title={t(`assessmentOversight.${key}`)}><p className="text-sm text-gray-500">{t('assessmentOversight.dashboardWaiting')}</p></Section>)}
+                    {['dashboardProgress', 'dashboardEvaluators', 'dashboardForms', 'dashboardReasons', ...(can.demographics ? ['kpi.gender'] : []), ...(can.results ? ['charts.resultDistribution'] : [])].map((key) => <Section key={key} title={t(`assessmentOversight.${key}`)}><p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.dashboardWaiting')}</p></Section>)}
                 </div>
             </>}
             {cycle && props.organizations.length > 0 && <Filters routeName="assessment-oversight.dashboard" cycle={cycle}>
@@ -105,7 +105,7 @@ export default function OversightDashboard(props: Props) {
 
                     <div className="grid gap-4 xl:grid-cols-2">
                         <Section title={t('assessmentOversight.charts.coverageByInstitution')} description={t('assessmentOversight.charts.lowestFirst')}>
-                            {data.comparison.length === 0 ? <p className="text-sm text-gray-500">{t('assessmentOversight.noData')}</p> : (
+                            {data.comparison.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.noData')}</p> : (
                                 <CoverageBars rows={data.comparison.map((r) => ({ id: r.organization.id, label: named(r.organization, locale), value: r.coverage_percent,
                                     href: can.institutions ? oversightHref('assessment-oversight.institution', cycle, { organization: r.organization.id }) : undefined }))} />
                             )}
@@ -120,10 +120,10 @@ export default function OversightDashboard(props: Props) {
                                     <IssueTile label={t('assessmentOversight.kpi.warnings')} value={data.issues.warning} tone="warning" href={can.dataQuality ? href('assessment-oversight.data-quality') : undefined} />
                                     <IssueTile label={t('assessmentOversight.kpi.evaluatorPending')} value={data.issues.evaluator.EVALUATOR_NOT_COMPLETED} tone="info" />
                                 </div>
-                            ) : <p className="text-sm text-gray-500">{t('assessmentOversight.notAvailable')}</p>}
+                            ) : <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.notAvailable')}</p>}
                             {data.actions.length > 0 && (
                                 <div className="mt-4 border-t border-[color:var(--app-border)] pt-3">
-                                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{t('assessmentOversight.dashboardActions')}</h4>
+                                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.dashboardActions')}</h4>
                                     <ul className="space-y-1.5 text-sm">{data.actions.map((action) => <li key={action.code}>
                                         <Link href={href(action.route, action.filters)} className="inline-flex items-center gap-2 hover:underline"><SeverityBadge severity={action.priority} />{t(`assessmentOversight.rules.${action.code}`)}: <span className="tabular-nums">{action.count}</span></Link>
                                     </li>)}</ul>

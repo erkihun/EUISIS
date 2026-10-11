@@ -112,7 +112,7 @@ export default function OrganizationUnitsCreate({
                                 <>
                                     <div className={`${inputCls} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
                                         {localizedName(selectedOrg)}{' '}
-                                        <span className="font-mono text-xs text-gray-400">({selectedOrg.code})</span>
+                                        <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">({selectedOrg.code})</span>
                                     </div>
                                     <input type="hidden" name="organization_id" value={selectedOrg.id} />
                                 </>
@@ -323,7 +323,7 @@ export default function OrganizationUnitsCreate({
                         </PrimaryButton>
                         <Link
                             href={backUrl}
-                            className="text-sm text-[color:var(--app-muted-foreground)] hover:text-gray-700"
+                            className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                         >
                             {t('common.cancel')}
                         </Link>

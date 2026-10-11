@@ -135,7 +135,7 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
                                     <img
                                         src={token.qr_svg}
                                         alt={t('serviceFeedback.employeeFeedbackQr')}
-                                        className="mx-auto mt-4 h-52 w-52 rounded-lg bg-white p-2"
+                                        className="mx-auto mt-4 h-52 w-52 rounded-lg bg-[color:var(--app-surface)] p-2"
                                     />
                                 )}
 

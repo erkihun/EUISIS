@@ -94,7 +94,7 @@ const SLA_STYLE: Record<SlaSummary["state"], { tone: string; Icon: typeof CheckC
 export function SlaBadge({ sla, compact = false }: { sla: Pick<SlaSummary, 'state'> & Partial<SlaSummary> | null | undefined; compact?: boolean }) {
     const { t } = useLocale();
     const label = useEnumLabel();
-    if (!sla) return <span className="text-xs text-gray-400">—</span>;
+    if (!sla) return <span className="text-xs text-[color:var(--app-muted-foreground)]">—</span>;
     const { tone, Icon } = SLA_STYLE[sla.state] ?? SLA_STYLE.no_deadline;
     const days = sla.remaining_days;
     const unit = sla.day_type === 'calendar_days' ? t('grievances.common.calendar_days_short') : t('grievances.common.working_days_short');

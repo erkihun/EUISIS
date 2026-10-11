@@ -92,7 +92,7 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                                                             {labelOf(option) && <span className="block font-medium">{labelOf(option)}</span>}
                                                             {description && <span className="block text-[color:var(--app-muted-foreground)]">{description}</span>}
                                                         </span>
-                                                        <span className="shrink-0 tabular-nums text-gray-500">{formatScore(option.score)}</span>
+                                                        <span className="shrink-0 tabular-nums text-[color:var(--app-muted-foreground)]">{formatScore(option.score)}</span>
                                                     </label>
                                                 );
                                             })}

@@ -43,7 +43,7 @@ function EditorField({ field, value, error, onChange, routes }: { field: Field; 
     const shared = { id, 'aria-invalid': Boolean(error), 'aria-describedby': error ? `${id}-error` : undefined };
     return <div className="min-w-0 space-y-1.5">
         {field.type === 'boolean' ? <label className="flex min-h-11 items-center gap-2 text-sm" htmlFor={id}>
-            <input {...shared} type="checkbox" checked={Boolean(value)} onChange={e => onChange(e.target.checked)} className="rounded border-gray-300" />{label}
+            <input {...shared} type="checkbox" checked={Boolean(value)} onChange={e => onChange(e.target.checked)} className="rounded border-[color:var(--app-border-strong)]" />{label}
         </label> : <>
             <label htmlFor={id} className="block text-sm font-medium">{label}{field.required && <span aria-hidden="true"> *</span>}</label>
             {field.type === 'route' ? <select {...shared} className={input} value={String(value ?? '')} onChange={e => onChange(e.target.value)}>
@@ -197,7 +197,7 @@ export default function Index(props: Props) {
         <div className="min-w-0 space-y-5 text-[color:var(--app-foreground)]">
             <PageHeader title={t('publicSite.admin.title')} description={t('publicSite.admin.description')} actions={<a href={route('home')} target="_blank" rel="noopener noreferrer" className="rounded-md border border-[color:var(--app-border-strong)] px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2">{t('publicSite.admin.openSite')}</a>} />
             <nav aria-label={t('publicSite.admin.title')} className="flex flex-wrap gap-2 border-b border-[color:var(--app-border)] pb-3">
-                {props.tabs.map(tab => <Link key={tab} href={route('public-site-management.index', { tab })} aria-current={tab === props.tab ? 'page' : undefined} className={`rounded-md px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 ${tab === props.tab ? 'bg-gray-100 text-gray-950 dark:bg-slate-700 dark:text-white' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>{t(`publicSite.admin.tabs.${tab}`)}</Link>)}
+                {props.tabs.map(tab => <Link key={tab} href={route('public-site-management.index', { tab })} aria-current={tab === props.tab ? 'page' : undefined} className={`rounded-md px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 ${tab === props.tab ? 'bg-[color:var(--app-surface-muted)] text-gray-950 dark:text-white' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>{t(`publicSite.admin.tabs.${tab}`)}</Link>)}
             </nav>
             {props.tabs.length === 0 && <p className={surface}>{t('publicSite.admin.noAccess')}</p>}
             {props.records && <Collection key={`${props.tab}-${props.records.current_page}-${props.search}`} props={props} />}

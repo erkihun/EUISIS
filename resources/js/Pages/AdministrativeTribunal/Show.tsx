@@ -60,7 +60,7 @@ export default function TribunalShow({ case: tc, can }: Props): JSX.Element {
                 {tc.grievance && (
                     <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                         <h3 className="mb-4 text-sm font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t('grievances.grievance')}</h3>
-                        <p className="font-mono text-xs text-gray-400 mb-1">{tc.grievance.reference_number}</p>
+                        <p className="font-mono text-xs text-[color:var(--app-muted-foreground)] mb-1">{tc.grievance.reference_number}</p>
                         <p className="text-sm font-medium text-[color:var(--app-foreground)] mb-2">{tc.grievance.subject}</p>
                         <p className="whitespace-pre-wrap text-sm text-[color:var(--app-muted-foreground)]">{tc.grievance.description}</p>
                     </div>

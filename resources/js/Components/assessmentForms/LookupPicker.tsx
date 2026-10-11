@@ -36,7 +36,7 @@ export default function LookupPicker({ type, label, value, valueLabel, editable,
                         </ul>
                     )}
                 </div>
-            ) : <p className="text-sm text-gray-500">—</p>}
+            ) : <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>}
         </div>
     );
 }

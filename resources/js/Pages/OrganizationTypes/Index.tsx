@@ -7,7 +7,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type OrgType = {
     id: string;
     code: string;
@@ -130,7 +130,7 @@ export default function OrganizationTypesIndex({
                                         </td>
                                         <td className={tableCellClassName}>
                                             {type.prefix ? (
-                                                <span className="rounded-md bg-orange-50 px-2 py-1 font-mono text-xs font-semibold text-orange-700 ring-1 ring-orange-200 dark:bg-orange-950/30 dark:text-orange-300 dark:ring-orange-900/50">
+                                                <span className={badgeClassName('warning', 'font-mono')}>
                                                     {type.prefix}
                                                 </span>
                                             ) : (

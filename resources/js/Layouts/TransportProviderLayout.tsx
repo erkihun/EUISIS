@@ -9,6 +9,7 @@ import Dropdown from '@/Components/Dropdown';
 import { ActivityIcon, ChevronDown, LayoutDashboard, LogOut, MenuIcon, QrCodeIcon, ReceiptTextIcon, ScrollText, UserIcon, X } from '@/Components/Icons';
 import type { PageProps } from '@/types';
 
+import { badgeClassName } from '@/Components/ui';
 type ProviderPortal = {
     user?: { name?: string | null; email?: string | null; initials?: string | null } | null;
     provider?: { code?: string | null; name_en?: string | null; name_am?: string | null } | null;
@@ -79,7 +80,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                 })}
             </nav>
             <div className="border-t border-[color:var(--app-border)] px-4 py-3">
-                <span className="inline-flex rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                <span className={badgeClassName('success')}>
                     {t('transport.badge')}
                 </span>
             </div>

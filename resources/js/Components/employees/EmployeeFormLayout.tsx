@@ -2,7 +2,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 /**
  * Shared building blocks for the Employee Create and Edit forms.
  *
@@ -12,8 +12,7 @@ import { buttonClassName } from '@/Components/ui';
  */
 
 /** Shared control styling. Exported so the pages style their own inputs identically. */
-export const inputCls =
-    'w-full rounded-control border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 dark:placeholder-slate-500 dark:disabled:bg-slate-900 dark:disabled:text-slate-500';
+export const inputCls = cx(inputClassName, 'w-full');
 
 export const labelCls = 'mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]';
 
@@ -148,7 +147,7 @@ export function PositionSelectedBadge() {
     const { t } = useLocale();
 
     return (
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30">
+        <span className={badgeClassName('success')}>
             <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path
                     fillRule="evenodd"

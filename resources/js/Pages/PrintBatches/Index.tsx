@@ -146,13 +146,13 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                                                 <span className="font-semibold text-[color:var(--app-foreground)]">
                                                     {batch.printed_count}
                                                 </span>
-                                                <span className="text-gray-400">/</span>
+                                                <span className="text-[color:var(--app-muted-foreground)]">/</span>
                                                 <span className="text-[color:var(--app-muted-foreground)]">
                                                     {batch.total_cards}
                                                 </span>
                                             </div>
                                             {/* Progress bar */}
-                                            <div className="mt-1 h-1.5 w-20 rounded-full bg-gray-100 dark:bg-slate-700">
+                                            <div className="mt-1 h-1.5 w-20 rounded-full bg-[color:var(--app-surface-muted)]">
                                                 <div
                                                     className="h-1.5 rounded-full bg-blue-500 transition-all"
                                                     style={{ width: `${batch.total_cards > 0 ? (batch.printed_count / batch.total_cards) * 100 : 0}%` }}

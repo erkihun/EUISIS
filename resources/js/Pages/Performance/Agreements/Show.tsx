@@ -117,7 +117,7 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
                                     <div>
                                         <p className="text-xs font-medium">{agreement.items.find((i) => i.id === a.subject_id)?.kpi.code}</p>
                                         <AmendmentDiff original={a.original_values} proposed={a.proposed_values} />
-                                        <p className="text-xs text-gray-500">{a.reason} · <LocalizedDateDisplay value={a.effective_date} /></p>
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{a.reason} · <LocalizedDateDisplay value={a.effective_date} /></p>
                                     </div>
                                     {can.manage && (
                                         <div className="flex gap-2">
@@ -158,7 +158,7 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
                         <ul className="grid gap-2 text-sm sm:grid-cols-2">
                             {agreement.competencies.map((c) => (
                                 <li key={c.competency_id} className="flex justify-between gap-2 rounded-lg bg-[color:var(--app-surface-muted)] px-3 py-2">
-                                    <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en} <span className="text-xs text-gray-500">({formatScore(c.weight)})</span></span>
+                                    <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en} <span className="text-xs text-[color:var(--app-muted-foreground)]">({formatScore(c.weight)})</span></span>
                                     <span className="text-xs tabular-nums">{t('performance.fields.selfRating')}: {c.self_rating ?? '—'} · {t('performance.fields.managerRating')}: {c.manager_rating ?? '—'}</span>
                                 </li>
                             ))}
@@ -190,19 +190,19 @@ export default function AgreementShow({ agreement, planTargets, validation, pend
                     )}
                     <ResultPanel result={result} hidden={agreement.result_hidden} />
                     {combined.parts.length > 1 && (
-                        <p className="mt-3 text-sm">{t('performance.agreements.combined')}: <span className="font-semibold tabular-nums">{formatScore(combined.score)}</span> <span className="font-mono text-xs text-gray-500">{combined.formula}</span></p>
+                        <p className="mt-3 text-sm">{t('performance.agreements.combined')}: <span className="font-semibold tabular-nums">{formatScore(combined.score)}</span> <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{combined.formula}</span></p>
                     )}
                 </Section>
 
                 <div className="grid gap-6 lg:grid-cols-2">
                     <Section title={t('performance.agreements.pips')} actions={can.manage && <button type="button" className={smallBtn} onClick={() => toggle('pip')}>{t('performance.actions.add')}</button>}>
                         {open === 'pip' && <PipForm agreementId={agreement.id} onDone={() => setOpen(null)} />}
-                        {agreement.improvement_plans.length === 0 ? <p className="text-sm text-gray-500">—</p> : (
+                        {agreement.improvement_plans.length === 0 ? <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p> : (
                             <ul className="space-y-2 text-sm">
                                 {agreement.improvement_plans.map((p) => (
                                     <li key={p.id} className="rounded-lg bg-[color:var(--app-surface-muted)] p-2">
                                         <p>{p.identified_gap}</p>
-                                        <p className="text-xs text-gray-500">{p.required_improvement} · <LocalizedDateDisplay value={p.start_date} /> – <LocalizedDateDisplay value={p.end_date} /> · {label('development', p.status)}</p>
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{p.required_improvement} · <LocalizedDateDisplay value={p.start_date} /> – <LocalizedDateDisplay value={p.end_date} /> · {label('development', p.status)}</p>
                                     </li>
                                 ))}
                             </ul>
@@ -371,7 +371,7 @@ function ReviewForm({ agreement, type }: { agreement: AgreementView; type: 'MID_
                     <legend className="mb-1 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.fields.managerRating')} (1–{levels.length})</legend>
                     {agreement.competencies.map((c) => (
                         <label key={c.competency_id} className="flex items-center justify-between gap-2 text-xs">
-                            <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en}{c.self_rating !== null && <span className="text-gray-500"> ({t('performance.fields.selfRating')}: {c.self_rating})</span>}</span>
+                            <span>{c.code} — {(locale === 'am' && c.name_am) || c.name_en}{c.self_rating !== null && <span className="text-[color:var(--app-muted-foreground)]"> ({t('performance.fields.selfRating')}: {c.self_rating})</span>}</span>
                             <select className={selectClassName} value={form.data.ratings[c.competency_id] ?? ''} onChange={(e) => form.setData('ratings', { ...form.data.ratings, [c.competency_id]: Number(e.target.value) })}>
                                 <option value="">—</option>
                                 {levels.map((n) => <option key={n} value={n}>{n}</option>)}

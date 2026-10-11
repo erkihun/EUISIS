@@ -86,7 +86,7 @@ function AllocationForm({ goal, allocation, units, types, onClose }: { goal: Goa
     }
 
     return (
-        <form onSubmit={submit} className="mt-4 grid gap-3 rounded-xl border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <form onSubmit={submit} className="mt-4 grid gap-3 rounded-panel border border-dashed border-[color:var(--app-border-strong)] bg-[color:var(--app-surface-muted)] p-4 sm:grid-cols-2 lg:grid-cols-4">
             <p className="text-xs font-semibold text-[color:var(--app-foreground)] sm:col-span-2 lg:col-span-4">{allocation ? t('performance.strategicGoals.editAllocation') : t('performance.strategicGoals.addAllocation')}</p>
             <Field label={t('performance.fields.unit')} htmlFor={id('unit')} error={errors.organization_unit_id}>
                 {allocation ? (
@@ -215,7 +215,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
             actions={can.create && contextSelected ? <button type="button" className={primaryBtn} onClick={() => (editing === 'new' ? setEditing(null) : start('new'))}><Plus className="h-4 w-4" aria-hidden="true" />{t('performance.strategicGoals.create')}</button> : undefined} />}>
             <Head title={t('performance.strategicGoals.title')} />
             <div className="min-w-0 space-y-6">
-                <section className="overflow-hidden rounded-2xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-sm" aria-label={t('performance.strategicGoals.selectContext')}>
+                <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-sm" aria-label={t('performance.strategicGoals.selectContext')}>
                     <div className="grid gap-4 p-5 sm:grid-cols-2 lg:p-6">
                         <Field label={t('performance.fields.organization')} htmlFor="sg-organization">
                             <select id="sg-organization" className={inputCls} value={filters.organization_id} onChange={(e) => filter('organization_id', e.target.value)}>
@@ -244,12 +244,12 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                             <dl className="grid divide-y divide-[color:var(--app-border)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                                 <div className="bg-gray-50/60 p-5 dark:bg-slate-950/30 lg:p-6">
                                     <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.total')}</dt>
-                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-[color:var(--app-foreground)] tabular-nums">{formatScore(summary.total)}<span className="ml-1 text-lg font-normal text-gray-400">%</span></dd>
+                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-[color:var(--app-foreground)] tabular-nums">{formatScore(summary.total)}<span className="ml-1 text-lg font-normal text-[color:var(--app-muted-foreground)]">%</span></dd>
                                     <div className="mt-3"><Bar value={summary.total} /></div>
                                 </div>
                                 <div className="p-5 lg:p-6">
                                     <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.remaining')}</dt>
-                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-[color:var(--app-foreground)] tabular-nums">{formatScore(summary.remaining)}<span className="ml-1 text-lg font-normal text-gray-400">%</span></dd>
+                                    <dd className="mt-2 text-3xl font-semibold tracking-tight text-[color:var(--app-foreground)] tabular-nums">{formatScore(summary.remaining)}<span className="ml-1 text-lg font-normal text-[color:var(--app-muted-foreground)]">%</span></dd>
                                 </div>
                                 <div className="p-5 lg:p-6">
                                     <dt className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.readiness')}</dt>
@@ -339,7 +339,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                         const problems = [...new Set(goal.readiness.problems)];
                         const draft = goal.status === 'DRAFT';
                         return (
-                            <article key={goal.id} className="overflow-hidden rounded-2xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-sm" aria-labelledby={`sg-${goal.id}-name`}>
+                            <article key={goal.id} className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-sm" aria-labelledby={`sg-${goal.id}-name`}>
                                 <div className="flex flex-col items-start justify-between gap-5 p-5 lg:flex-row lg:p-6">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
@@ -376,7 +376,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                             {goal.readiness.ready ? t('performance.strategicGoals.ready') : t('performance.strategicGoals.needsWork')}
                                             {problems.length > 0 && <span className="tabular-nums">({problems.length})</span>}
                                         </span>
-                                        <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open/goal:rotate-180" aria-hidden="true" />
+                                        <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)] transition-transform group-open/goal:rotate-180" aria-hidden="true" />
                                     </summary>
                                     <div className="space-y-4 border-t border-[color:var(--app-border)] bg-gray-50/50 p-5 dark:bg-slate-950/30 lg:p-6">
                                         {problems.length > 0 && (
@@ -388,7 +388,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         {description && hasDescription && <p className="max-w-3xl whitespace-pre-line break-words text-sm leading-relaxed text-[color:var(--app-muted-foreground)]">{description}</p>}
                                         {goal.change_reason && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('performance.fields.reason')}: {goal.change_reason}</p>}
                                         {goal.supersedes_goal_id && <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.amendedVersion')}</p>}
-                                        <dl className="grid gap-5 rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:grid-cols-2 sm:gap-8">
+                                        <dl className="grid gap-5 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:grid-cols-2 sm:gap-8">
                                             <div className="text-sm">
                                                 <dt className="text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.allocations')}</dt>
                                                 <dd className="mt-1 font-semibold tabular-nums">{formatScore(goal.readiness.allocation_total)} / {formatScore(goal.weight_percent)}%</dd>
@@ -409,7 +409,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         {goal.allocations.length > 0 && (
                                             <ul className="mt-5 grid gap-3 md:grid-cols-2" aria-label={t('performance.strategicGoals.allocations')}>
                                                 {goal.allocations.map((row) => (
-                                                    <li key={row.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3 text-xs leading-relaxed">
+                                                    <li key={row.id} className="flex min-w-0 flex-col gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3 text-xs leading-relaxed">
                                                         <span className="flex flex-wrap items-center gap-2">
                                                             <strong className="break-words">{nameOf(row.unit, locale)}</strong>
                                                             <span className="tabular-nums">{formatScore(row.organization_contribution_percent)}%</span>
@@ -428,7 +428,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                                         {row.contribution && <AllocationResult value={row.contribution} weight={row.organization_contribution_percent} />}
                                                         {goal.can_view_plans && <div className="space-y-1 border-t border-[color:var(--app-border)] pt-2">
                                                             <span className="font-medium">{t('performance.strategicGoals.unitPlanStatus')}</span>
-                                                            {row.unit_plans.length === 0 ? <p className="text-gray-500">{t('performance.dashboard.noData')}</p> : row.unit_plans.map((plan) => <p key={plan.id}>
+                                                            {row.unit_plans.length === 0 ? <p className="text-[color:var(--app-muted-foreground)]">{t('performance.dashboard.noData')}</p> : row.unit_plans.map((plan) => <p key={plan.id}>
                                                                 <Link className="text-blue-700 hover:underline dark:text-blue-300" href={route('performance.plans.show', plan.id)}>{plan.title}</Link>
                                                                 {' · '}{label('plan', plan.status)}{' · '}{t('performance.fields.version')} {plan.version}
                                                             </p>)}
@@ -445,10 +445,10 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                             <AllocationForm key={allocating.allocation ?? 'new'} goal={goal} allocation={goal.allocations.find((row) => row.id === allocating.allocation)} units={units} types={allocationTypes} onClose={() => setAllocating(null)} />
                                         )}
 
-                                        {goal.can_view_plans && <details className="group/objectives mt-5 rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                                        {goal.can_view_plans && <details className="group/objectives mt-5 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                                             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
                                                 {t('performance.strategicGoals.objectives')} ({goal.objectives.length})
-                                                <ChevronDown className="h-4 w-4 shrink-0 text-gray-400 transition-transform group-open/objectives:rotate-180" aria-hidden="true" />
+                                                <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)] transition-transform group-open/objectives:rotate-180" aria-hidden="true" />
                                             </summary>
                                             {goal.objectives.length === 0 ? (
                                                 <p className="px-3 pb-3 text-sm text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.noObjectives')}</p>
@@ -457,7 +457,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                                     {goal.objectives.map((objective) => (
                                                         <li key={objective.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2">
                                                             <div className="min-w-0">
-                                                                <p className="font-medium text-[color:var(--app-foreground)]"><span className="font-mono text-xs text-gray-500">{objective.code}</span> {(locale === 'am' && objective.title_am) || objective.title_en}</p>
+                                                                <p className="font-medium text-[color:var(--app-foreground)]"><span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{objective.code}</span> {(locale === 'am' && objective.title_am) || objective.title_en}</p>
                                                                 {objective.plan && (
                                                                     <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                                                         {t('performance.fields.plan')}: <Link href={route('performance.plans.show', objective.plan.id)} className="text-[color:var(--color-primary)] hover:underline">{objective.plan.title}</Link> · {t('performance.fields.version')} {objective.plan.version} · {label('plan', objective.plan.status)}
@@ -470,7 +470,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                                 </ul>
                                             )}
                                         </details>}
-                                        {goal.can_view_plans && <details className="rounded-xl border border-blue-200 bg-[color:var(--app-surface)] dark:border-blue-900">
+                                        {goal.can_view_plans && <details className="rounded-panel border border-blue-200 bg-[color:var(--app-surface)] dark:border-blue-900">
                                             <summary className="cursor-pointer px-4 py-3 text-sm font-medium">{t('performance.plans.cascadeTrace')} ({goal.cascade.length})</summary>
                                             <ul className="space-y-3 border-t border-blue-100 p-4 dark:border-blue-950">
                                                 {goal.cascade.map((item) => <li key={item.id} className="border-l-2 border-orange-300 pl-3 text-sm dark:border-orange-800">
@@ -489,11 +489,11 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                     })}
                 </div>
                 {goals.last_page > 1 && <Pager page={goals} />}
-                <details className="group rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <details className="group rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     <summary className="flex cursor-pointer list-none items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
-                        <Layers className="h-4 w-4 text-gray-400" aria-hidden="true" />
+                        <Layers className="h-4 w-4 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
                         {t('performance.strategicGoals.workflow')}
-                        <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" aria-hidden="true" />
+                        <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)] transition-transform group-open:rotate-180" aria-hidden="true" />
                     </summary>
                     <ol className="grid gap-4 border-t border-[color:var(--app-border)] p-5 text-sm leading-relaxed text-[color:var(--app-muted-foreground)] md:grid-cols-3">
                         {['registerStep', 'allocateStep', 'reviewStep'].map((step, index) => (

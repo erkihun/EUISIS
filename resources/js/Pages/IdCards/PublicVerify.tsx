@@ -51,7 +51,7 @@ export default function PublicVerify({ result }: Props) {
                 <div className="w-full max-w-md">
                     {/* Header */}
                     <div className="mb-6 text-center">
-                        <ShieldCheck className="mx-auto mb-2 h-8 w-8 text-gray-400" />
+                        <ShieldCheck className="mx-auto mb-2 h-8 w-8 text-[color:var(--app-muted-foreground)]" />
                         <p className="text-sm text-[color:var(--app-muted-foreground)]">
                             {t('idCards.verifyOfficialCheck')}
                         </p>

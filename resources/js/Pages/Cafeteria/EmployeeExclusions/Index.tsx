@@ -20,7 +20,7 @@ type Meta = { current_page: number; last_page: number; total: number };
 
 const STATUS_COLORS: Record<string, string> = {
     active:    'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-    ended:     'bg-gray-100 text-[color:var(--app-muted-foreground)] dark:bg-slate-700',
+    ended:     'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
     cancelled: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400',
 };
 

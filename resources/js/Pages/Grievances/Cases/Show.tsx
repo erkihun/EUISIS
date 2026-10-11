@@ -142,7 +142,7 @@ export default function Show(props: CaseShowProps) {
 
     if (tabs.evidence) list.push({ id: 'evidence', label: c('tab_evidence'), content: <div className="space-y-4">
         <Section title={c('tab_evidence')} flush>{tabs.evidence.length ? <Table head={<>{['title', 'type', 'size', 'classification', 'status', 'submitted', 'actions'].map(k => <th key={k} className={thCls}>{c(`ev_${k}`)}</th>)}</>}>
-            {tabs.evidence.map(e => <tr key={e.id}><td className={tdCls}><a className="text-[color:var(--color-primary)] underline" href={r('evidence.download', [e.id])}>{e.title}</a><span className="block text-xs">{e.original_name} · v{e.version_no}</span><span className="block font-mono text-[11px] text-gray-500" title={e.sha256}>SHA-256 {e.sha256.slice(0, 12)}…</span></td><td className={tdCls}>{label('evidence_type', e.evidence_type)}</td><td className={tdCls}>{fileSize(e.size_bytes)}</td><td className={tdCls}><GPill group="confidentiality" value={e.classification} /></td><td className={tdCls}><GPill group="evidence_status" value={e.status} /></td><td className={tdCls}>{e.submitted_by_complainant ? c('by_complainant') : e.submitted_by}<span className="block text-xs"><DateDisplay value={e.submitted_at} withTime /></span></td>
+            {tabs.evidence.map(e => <tr key={e.id}><td className={tdCls}><a className="text-[color:var(--color-primary)] underline" href={r('evidence.download', [e.id])}>{e.title}</a><span className="block text-xs">{e.original_name} · v{e.version_no}</span><span className="block font-mono text-[11px] text-[color:var(--app-muted-foreground)]" title={e.sha256}>SHA-256 {e.sha256.slice(0, 12)}…</span></td><td className={tdCls}>{label('evidence_type', e.evidence_type)}</td><td className={tdCls}>{fileSize(e.size_bytes)}</td><td className={tdCls}><GPill group="confidentiality" value={e.classification} /></td><td className={tdCls}><GPill group="evidence_status" value={e.status} /></td><td className={tdCls}>{e.submitted_by_complainant ? c('by_complainant') : e.submitted_by}<span className="block text-xs"><DateDisplay value={e.submitted_at} withTime /></span></td>
                 <td className={tdCls}><div className="space-y-2"><CustodyButton url={r('evidence.custody', [e.id])} />{can.review && e.status === 'submitted' && <div className="flex gap-2"><ActionForm url={r('evidence.decide', [e.id])} initial={{ action: 'accept' }} submitLabel={c('accept')} /><ActionForm url={r('evidence.decide', [e.id])} initial={{ action: 'reject' }} submitLabel={c('reject')} fields={[{ name: 'reason', label: t('grievances.common.reason') }]} /></div>}
                     {can.review && e.status !== 'superseded' && <details><summary className="cursor-pointer text-xs">{c('more')}</summary><div className="mt-2 space-y-2"><ActionForm url={r('evidence.classify', [e.id])} initial={{ classification: e.classification }} submitLabel={c('classify')} fields={[{ name: 'classification', label: t('grievances.common.confidentiality'), type: 'select', required: true, options: opts(['normal_confidential', 'restricted', 'highly_restricted'], 'confidentiality') }]} /><ActionForm url={r('evidence.supersede', [e.id])} submitLabel={c('new_version')} fields={[{ name: 'file', label: t('grievances.common.file'), type: 'file', required: true, accept: (options.evidence_extensions ?? []).map(x => `.${x}`).join(',') }, { name: 'description', label: t('grievances.common.description'), type: 'textarea' }]} /></div></details>}</div></td></tr>)}
         </Table> : <Empty>{c('empty')}</Empty>}</Section>
@@ -151,14 +151,14 @@ export default function Show(props: CaseShowProps) {
             { name: 'classification', label: t('grievances.common.confidentiality'), type: 'select', options: opts(['normal_confidential', 'restricted', 'highly_restricted'], 'confidentiality') },
             { name: 'file', label: t('grievances.common.file'), type: 'file', required: true, accept: (options.evidence_extensions ?? []).map(x => `.${x}`).join(','), help: `${(options.evidence_extensions ?? []).join(', ')} · ≤ ${options.max_file_kb ?? ''} KB` },
             { name: 'description', label: t('grievances.common.description'), type: 'textarea' },
-        ]}><p className="text-xs text-gray-500">{c('evidence_help')}</p></ActionForm></Section>}
+        ]}><p className="text-xs text-[color:var(--app-muted-foreground)]">{c('evidence_help')}</p></ActionForm></Section>}
     </div> });
 
     if (tabs.information_requests) list.push({ id: 'information', label: c('tab_information'), content: <div className="space-y-4">
         {tabs.information_requests.map(q => <Section key={q.id} title={`${label('information_target', q.requested_from_type)}${q.requested_from_name ? ` — ${q.requested_from_name}` : ''}`} actions={<GPill group="information_status" value={q.status} />}>
             <p className="whitespace-pre-wrap">{q.request_text}</p>
-            <p className="mt-2 text-xs text-gray-500">{q.requested_by} · <DateDisplay value={q.requested_at} withTime /> · {t('grievances.common.due')}: <DateDisplay value={q.due_at} />{q.pauses_sla ? ` · ${c('pauses_sla')}` : ''}</p>
-            {q.responses.map(x => <div key={x.id} className="mt-3 rounded bg-[color:var(--app-surface-muted)] p-3 text-sm"><p className="whitespace-pre-wrap">{x.response_text}</p><p className="mt-1 text-xs text-gray-500">{x.responded_by} · <DateDisplay value={x.responded_at} withTime /></p></div>)}
+            <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{q.requested_by} · <DateDisplay value={q.requested_at} withTime /> · {t('grievances.common.due')}: <DateDisplay value={q.due_at} />{q.pauses_sla ? ` · ${c('pauses_sla')}` : ''}</p>
+            {q.responses.map(x => <div key={x.id} className="mt-3 rounded bg-[color:var(--app-surface-muted)] p-3 text-sm"><p className="whitespace-pre-wrap">{x.response_text}</p><p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{x.responded_by} · <DateDisplay value={x.responded_at} withTime /></p></div>)}
             {can.review && q.status === 'open' && <div className="mt-4 grid gap-4 md:grid-cols-2"><ActionForm url={r('information.respond', [q.id])} title={c('record_response')} fields={[{ name: 'response_text', label: c('response'), type: 'textarea', required: true }, { name: 'files', label: t('grievances.common.files'), type: 'file', multiple: true }]} /><div className="space-y-2"><ActionForm url={r('information.close', [q.id])} submitLabel={c('close_request')} /><ActionForm url={r('information.close', [q.id])} initial={{ cancel: true }} submitLabel={c('cancel_request')} /></div></div>}
         </Section>)}
         {!tabs.information_requests.length && <Empty>{c('empty')}</Empty>}
@@ -190,14 +190,14 @@ export default function Show(props: CaseShowProps) {
             { name: 'mode', label: c('mode'), type: 'select', required: true, options: opts(options.hearing_modes, 'hearing_mode') },
             { name: 'duration_minutes', label: c('duration'), type: 'number' }, { name: 'location', label: c('location') },
             { name: 'meeting_link', label: c('meeting_link') }, { name: 'agenda', label: c('agenda'), type: 'textarea' },
-        ]}><p className="text-xs text-gray-500">{c('hearing_help')}</p></ActionForm></Section>}
+        ]}><p className="text-xs text-[color:var(--app-muted-foreground)]">{c('hearing_help')}</p></ActionForm></Section>}
     </div> });
 
     if (tabs.minutes) list.push({ id: 'minutes', label: c('tab_minutes'), content: <div className="space-y-4">
         {tabs.minutes.map(m => <Section key={m.id} title={fmtVersion(t, m.version_no)} actions={<GPill group="minutes_status" value={m.status} />} description={<><DateDisplay value={m.meeting_date} />{m.amendment_reason ? ` · ${c('amendment_reason')}: ${m.amendment_reason}` : ''}</>}>
             {(['summary', 'discussion', 'resolutions'] as const).filter(k => m[k]).map(k => <div key={k} className="mb-3"><h5 className="text-sm font-semibold">{c(`min_${k}`)}</h5><p className="whitespace-pre-wrap text-sm">{m[k]}</p></div>)}
             {m.attendees?.length ? <p className="text-sm">{c('attendees')}: {m.attendees.join(', ')}</p> : null}
-            <p className="mt-2 text-xs text-gray-500">{m.prepared_by}{m.confirmed_by ? ` · ${c('confirmed_by')} ${m.confirmed_by}` : ''}</p>
+            <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{m.prepared_by}{m.confirmed_by ? ` · ${c('confirmed_by')} ${m.confirmed_by}` : ''}</p>
             {m.status === 'draft' && can.manage_hearings && <div className="mt-4"><MinutesForm url={r('minutes.update', [m.id])} method="patch" initial={{ meeting_date: m.meeting_date, summary: m.summary, discussion: m.discussion ?? '', resolutions: m.resolutions ?? '' }} /></div>}
             {m.status === 'draft' && can.confirm_minutes && <div className="mt-3"><ActionForm url={r('minutes.update', [m.id])} method="patch" initial={{ action: 'confirm' }} submitLabel={c('confirm_minutes')}><p className="text-xs">{c('confirm_minutes_help')}</p></ActionForm></div>}
             {m.status === 'confirmed' && can.manage_hearings && <div className="mt-3"><ActionForm url={r('minutes.update', [m.id])} method="patch" initial={{ action: 'amend' }} submitLabel={c('amend_minutes')} fields={[{ name: 'reason', label: t('grievances.common.reason'), type: 'textarea', required: true }]} /></div>}
@@ -220,7 +220,7 @@ export default function Show(props: CaseShowProps) {
     if (tabs.notes || tabs.tasks) list.push({ id: 'notes', label: c('tab_notes'), content: <div className="grid gap-4 lg:grid-cols-2">
         <Section title={c('notes')} description={c('notes_help')}>
             {can.notes && <ActionForm url={r('notes.store')} submitLabel={c('add_note')} fields={[{ name: 'body', label: c('note'), type: 'textarea', required: true }]} />}
-            <ul className="mt-4 space-y-3">{(tabs.notes ?? []).map(n => <li key={n.id} className="rounded bg-[color:var(--app-surface-muted)] p-3 text-sm"><p className="whitespace-pre-wrap">{n.body}</p><p className="mt-1 text-xs text-gray-500">{n.author} · <DateDisplay value={n.created_at} withTime /></p></li>)}</ul>
+            <ul className="mt-4 space-y-3">{(tabs.notes ?? []).map(n => <li key={n.id} className="rounded bg-[color:var(--app-surface-muted)] p-3 text-sm"><p className="whitespace-pre-wrap">{n.body}</p><p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{n.author} · <DateDisplay value={n.created_at} withTime /></p></li>)}</ul>
         </Section>
         <Section title={c('tasks')}>
             {can.review && <ActionForm url={r('tasks.store')} submitLabel={c('add_task')} fields={[{ name: 'task_type', label: t('grievances.common.type'), type: 'select', required: true, options: opts(options.task_types, 'task_type') }, { name: 'title', label: c('task_title'), required: true }, { name: 'due_at', label: t('grievances.common.due'), type: 'date' }]} />}
@@ -230,18 +230,18 @@ export default function Show(props: CaseShowProps) {
 
     if (tabs.corrective_actions || tabs.referrals) list.push({ id: 'outcomes', label: c('tab_outcomes'), content: <div className="grid gap-4 lg:grid-cols-2">
         <Section title={c('corrective_actions')}>
-            <ul className="space-y-3">{(tabs.corrective_actions ?? []).map(a => <li key={a.id} className="rounded border p-3 text-sm dark:border-slate-800"><p className="whitespace-pre-wrap">{a.description}</p><p className="mt-1 text-xs text-gray-500">{nameOf(a.responsible_unit ?? a.responsible_organization, locale)} · <DateDisplay value={a.due_date} /> <GPill group="corrective_status" value={a.status} /></p>{a.completion_notes && <p className="mt-1 text-xs">{a.completion_notes}</p>}
+            <ul className="space-y-3">{(tabs.corrective_actions ?? []).map(a => <li key={a.id} className="rounded border p-3 text-sm dark:border-slate-800"><p className="whitespace-pre-wrap">{a.description}</p><p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{nameOf(a.responsible_unit ?? a.responsible_organization, locale)} · <DateDisplay value={a.due_date} /> <GPill group="corrective_status" value={a.status} /></p>{a.completion_notes && <p className="mt-1 text-xs">{a.completion_notes}</p>}
                 {can.outcomes && !['completed', 'cancelled'].includes(a.status) && <div className="mt-2"><ActionForm url={r('corrective-actions.update', [a.id])} method="patch" submitLabel={t('grievances.common.save')} fields={[{ name: 'status', label: t('grievances.common.status'), type: 'select', required: true, options: opts(['open', 'in_progress', 'completed', 'cancelled'], 'corrective_status') }, { name: 'completion_notes', label: t('grievances.common.notes'), type: 'textarea' }]} /></div>}</li>)}</ul>
             {can.outcomes && <div className="mt-4"><ActionForm url={r('corrective-actions.store')} title={c('add_corrective')} fields={[{ name: 'description', label: t('grievances.common.description'), type: 'textarea', required: true }, { name: 'due_date', label: t('grievances.common.due'), type: 'date' }, { name: 'decision_id', label: c('tab_decision'), type: 'select', options: (tabs.decisions ?? []).map(d => ({ value: d.id, label: `v${d.version_no} ${label('decision_status', d.status)}` })) }]} /></div>}
         </Section>
         <Section title={c('referrals')} description={c('referral_help')}>
-            <ul className="space-y-3">{(tabs.referrals ?? []).map(x => <li key={x.id} className="rounded border p-3 text-sm dark:border-slate-800"><p className="whitespace-pre-wrap">{x.reason}</p><p className="mt-1 text-xs text-gray-500"><DateDisplay value={x.referred_at} /> · {nameOf(x.unit ?? x.organization, locale)} <GPill group="referral_status" value={x.status} />{x.disciplinary_case_reference ? ` · ${x.disciplinary_case_reference}` : ''}</p></li>)}</ul>
+            <ul className="space-y-3">{(tabs.referrals ?? []).map(x => <li key={x.id} className="rounded border p-3 text-sm dark:border-slate-800"><p className="whitespace-pre-wrap">{x.reason}</p><p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]"><DateDisplay value={x.referred_at} /> · {nameOf(x.unit ?? x.organization, locale)} <GPill group="referral_status" value={x.status} />{x.disciplinary_case_reference ? ` · ${x.disciplinary_case_reference}` : ''}</p></li>)}</ul>
             {can.outcomes && viewer.lead && <div className="mt-4"><ActionForm url={r('referrals.store')} title={c('add_referral')} fields={[{ name: 'reason', label: t('grievances.common.reason'), type: 'textarea', required: true }, { name: 'decision_id', label: c('tab_decision'), type: 'select', options: (tabs.decisions ?? []).map(d => ({ value: d.id, label: `v${d.version_no} ${label('decision_status', d.status)}` })) }]} /></div>}
         </Section>
     </div> });
 
     if (tabs.audit) list.push({ id: 'audit', label: c('tab_audit'), content: <Section title={c('tab_audit')} flush>{tabs.audit.length ? <Table head={<>{['event', 'actor', 'when', 'values'].map(k => <th key={k} className={thCls}>{c(`au_${k}`)}</th>)}</>}>
-        {tabs.audit.map(a => <tr key={a.id}><td className={tdCls}>{a.event_type.replace(/^grievance\./, '').replace(/_/g, ' ')}{a.reason && <span className="block text-xs">{a.reason}</span>}</td><td className={tdCls}>{a.actor ?? c('system')}<span className="block text-xs text-gray-500">{a.request_ip}</span></td><td className={tdCls}><DateDisplay value={a.created_at} withTime /></td><td className={tdCls}><details><summary className="cursor-pointer text-xs">{c('show_values')}</summary><pre className="mt-1 max-w-md overflow-x-auto whitespace-pre-wrap text-[11px]">{JSON.stringify({ new: a.new_values, old: a.old_values }, null, 1)}</pre></details></td></tr>)}
+        {tabs.audit.map(a => <tr key={a.id}><td className={tdCls}>{a.event_type.replace(/^grievance\./, '').replace(/_/g, ' ')}{a.reason && <span className="block text-xs">{a.reason}</span>}</td><td className={tdCls}>{a.actor ?? c('system')}<span className="block text-xs text-[color:var(--app-muted-foreground)]">{a.request_ip}</span></td><td className={tdCls}><DateDisplay value={a.created_at} withTime /></td><td className={tdCls}><details><summary className="cursor-pointer text-xs">{c('show_values')}</summary><pre className="mt-1 max-w-md overflow-x-auto whitespace-pre-wrap text-[11px]">{JSON.stringify({ new: a.new_values, old: a.old_values }, null, 1)}</pre></details></td></tr>)}
     </Table> : <Empty>{c('empty')}</Empty>}</Section> });
 
     const active = list.find(x => x.id === tab) ?? list[0];
@@ -252,13 +252,13 @@ export default function Show(props: CaseShowProps) {
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="min-w-0 space-y-4">
                 <div role="tablist" aria-label={c('tabs')} className="flex flex-wrap gap-1 border-b border-[color:var(--app-border)]">
-                    {list.map(x => <button key={x.id} role="tab" type="button" aria-selected={x.id === active.id} onClick={() => select(x.id)} className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${x.id === active.id ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]' : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-gray-900'}`}>{x.label}</button>)}
+                    {list.map(x => <button key={x.id} role="tab" type="button" aria-selected={x.id === active.id} onClick={() => select(x.id)} className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${x.id === active.id ? 'border-[color:var(--color-primary)] text-[color:var(--color-primary)]' : 'border-transparent text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'}`}>{x.label}</button>)}
                 </div>
                 <div role="tabpanel">{active.content}</div>
             </div>
             <aside className="space-y-3">
                 <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{c('workflow')}</h3>
-                {actions.length ? actions.map(a => <details key={a.key} className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3"><summary className="cursor-pointer text-sm font-medium">{a.title}</summary><div className="mt-3">{a.node}</div></details>) : <p className="text-sm text-gray-500">{c('no_actions')}</p>}
+                {actions.length ? actions.map(a => <details key={a.key} className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3"><summary className="cursor-pointer text-sm font-medium">{a.title}</summary><div className="mt-3">{a.node}</div></details>) : <p className="text-sm text-[color:var(--app-muted-foreground)]">{c('no_actions')}</p>}
             </aside>
         </div>
     </Workspace>;
@@ -277,7 +277,7 @@ function MoveForm({ url, options, reasons }: { url: string; options: { value: st
         <ActionForm key={choice} url={url} initial={{ movement, route_id: routeId }} submitLabel={t('grievanceCases.move_submit')} fields={movement === 'reassigned'
             ? [{ name: 'reason_code', label: t('grievances.common.reason_code'), type: 'select', required: true, options: reasons }, { name: 'reason', label: t('grievances.common.notes'), type: 'textarea' }]
             : [{ name: 'reason', label: t('grievances.common.reason'), type: 'textarea', required: true }]} />
-        <p className="text-xs text-gray-500">{t('grievanceCases.move_help')}</p>
+        <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('grievanceCases.move_help')}</p>
     </div>;
 }
 
@@ -370,7 +370,7 @@ function Letters({ props, r }: { props: CaseShowProps; r: (name: string, extra?:
                 <ul className="mt-1 space-y-1 text-sm">{l.dispatches.map(d => <li key={d.id} className="flex flex-wrap items-center gap-2">{label('dispatch_channel', d.channel)} · <GPill group="dispatch_status" value={d.status} />{d.destination ? ` · ${d.destination}` : ''}{d.failure_reason ? ` · ${d.failure_reason}` : ''}{can.issue_letters && !d.acknowledged_at && d.status !== 'failed' && <ActionForm url={r('letters.acknowledge', [l.id, d.id])} submitLabel={c('acknowledge')} />}</li>)}</ul>
                 {can.issue_letters && <div className="mt-2"><ActionForm url={r('letters.dispatch', [l.id])} submitLabel={c('dispatch')} fields={[{ name: 'channel', label: c('channel'), type: 'select', required: true, options: (options.dispatch_channels ?? []).map(v => ({ value: v, label: label('dispatch_channel', v) })) }, { name: 'notes', label: t('grievances.common.notes'), maxLength: 255 }]}><p className="text-xs">{c('dispatch_help')}</p></ActionForm></div>}
             </div>}
-            {l.pdf_sha256 && <p className="mt-2 font-mono text-[11px] text-gray-500" title={c('hash_help')}>SHA-256 {l.pdf_sha256}</p>}
+            {l.pdf_sha256 && <p className="mt-2 font-mono text-[11px] text-[color:var(--app-muted-foreground)]" title={c('hash_help')}>SHA-256 {l.pdf_sha256}</p>}
         </Section>)}
         {!letters.length && <Empty>{c('empty')}</Empty>}
     </div>;

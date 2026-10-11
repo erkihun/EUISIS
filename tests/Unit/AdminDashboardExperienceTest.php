@@ -94,7 +94,7 @@ it('uses a compact responsive operations layout with real actions and attention 
         ->toContain("'xl:col-span-4'")
         ->not->toContain('gap-px')
         ->and($kpi)
-        ->toContain('rounded-xl border')
+        ->toContain('rounded-panel border')
         ->not->toContain('hover:-translate-y-0.5')
         ->toContain('const icons:')
         ->toContain('min-h-[112px]')

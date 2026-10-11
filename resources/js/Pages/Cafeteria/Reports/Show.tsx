@@ -48,19 +48,19 @@ export default function ReportShow({ report }: { report: ReportRun }) {
                 <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                         <div>
-                            <dt className="text-xs text-gray-500">{t('cafeteria.reportType')}</dt>
+                            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.reportType')}</dt>
                             <dd className="mt-1 font-medium text-[color:var(--app-foreground)]">{reportTypeLabel(report.report_type)}</dd>
                         </div>
                         <div>
-                            <dt className="text-xs text-gray-500">{t('cafeteria.periodStart')}</dt>
+                            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.periodStart')}</dt>
                             <dd className="mt-1 font-medium text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={report.period_start} /></dd>
                         </div>
                         <div>
-                            <dt className="text-xs text-gray-500">{t('cafeteria.periodEnd')}</dt>
+                            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.periodEnd')}</dt>
                             <dd className="mt-1 font-medium text-[color:var(--app-foreground)]"><LocalizedDateDisplay value={report.period_end} /></dd>
                         </div>
                         <div>
-                            <dt className="text-xs text-gray-500">{t('common.generatedAt')}</dt>
+                            <dt className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.generatedAt')}</dt>
                             <dd className="mt-1 font-medium text-[color:var(--app-foreground)]">
                                 <LocalizedDateDisplay value={report.generated_at} withTime />
                             </dd>

@@ -149,7 +149,7 @@ export default function SectionsEditor({ sections, editable, scoringMethod, conf
                         <header className="flex flex-wrap items-center gap-2 px-4 py-3">
                             <button type="button" onClick={() => toggle(section.uid)} aria-expanded={expanded} aria-controls={`section-body-${section.uid}`}
                                 className="flex min-h-9 min-w-0 flex-1 items-center gap-2 text-left">
-                                {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-gray-500" aria-hidden /> : <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />}
+                                {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden /> : <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden />}
                                 <span className="shrink-0 text-sm font-semibold text-[color:var(--app-muted-foreground)]">{t('assessments.section')} {si + 1}</span>
                                 <span className="min-w-0 truncate text-sm font-semibold text-[color:var(--app-foreground)]">{title(section, t('assessments.builder.untitledSection'))}</span>
                             </button>
@@ -238,7 +238,7 @@ function CriterionEditor({ si, ci, criterion, count, editable, scoringMethod, op
         <div className={`rounded-card border ${problems.length ? 'border-red-300 dark:border-red-800' : 'border-[color:var(--app-border)]'} bg-gray-50/60 dark:bg-slate-800/40`}>
             <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                 <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex min-h-9 min-w-0 flex-1 items-center gap-2 text-left">
-                    {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-gray-500" aria-hidden /> : <ChevronDown className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />}
+                    {expanded ? <ChevronUp className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden /> : <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden />}
                     <span className="shrink-0 text-xs font-semibold tabular-nums text-[color:var(--app-muted-foreground)]">{si + 1}.{ci + 1}</span>
                     <span className="min-w-0 truncate text-sm font-medium text-[color:var(--app-foreground)]">{title}</span>
                     {criterion.is_required && <span className="text-red-600" aria-label={t('assessments.fields.required')}>*</span>}

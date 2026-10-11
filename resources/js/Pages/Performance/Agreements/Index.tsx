@@ -107,7 +107,7 @@ export default function AgreementsIndex({ agreements, filters, statuses, cycles,
                                 <tr key={a.id}>
                                     <td className={tdCls}>
                                         <Link href={route('performance.agreements.show', a.id)} className="font-medium text-[color:var(--color-primary)] hover:underline">{employeeName(a.employee, locale)}</Link>
-                                        <p className="text-xs text-gray-500">{a.employee.number}{a.is_temporary ? ` · ${t('performance.fields.temporary')}` : ''}{a.version > 1 ? ` · v${a.version}` : ''}</p>
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{a.employee.number}{a.is_temporary ? ` · ${t('performance.fields.temporary')}` : ''}{a.version > 1 ? ` · v${a.version}` : ''}</p>
                                     </td>
                                     <td className={tdCls}>{nameOf(a.unit, locale) || nameOf(a.organization, locale)}</td>
                                     <td className={tdCls}>{nameOf(a.cycle, locale)}</td>

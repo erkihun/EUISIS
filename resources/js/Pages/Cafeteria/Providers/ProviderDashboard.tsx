@@ -4,7 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Stats = {
     total_providers: number;
     active_providers: number;
@@ -152,7 +152,7 @@ export default function ProviderDashboard({
                                             </Link>
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-center tabular-nums')}>
-                                            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
+                                            <span className={badgeClassName('info')}>
                                                 {p.branches_count}
                                             </span>
                                         </td>

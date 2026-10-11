@@ -12,7 +12,7 @@ page adds hand-rolled versions.
 | --- | --- | --- |
 | Button | `<Button variant size>` | `buttonClassName({ variant, size, className })` |
 | Link that looks like a button | `<Button as={Link} href=…>` | `buttonClassName(…)` on the `<Link>` |
-| Text input | `<Input>` (full width) | `inputClassName` + your width |
+| Text input | `<Input>` (full width) | `inputClassName` + your width (also correct on a `<select>`: it keeps room for the chevron) |
 | Select | `<Select>` (full width) | `selectClassName` + your width |
 | Textarea | `<Textarea>` | `textareaClassName` + your width |
 | Label, help, error | `<FormField>`, `<FormLabel>`, `<FieldError>` | — |
@@ -21,7 +21,7 @@ page adds hand-rolled versions.
 | Table | `<TableCard>` + `<Table>`, `<THead>`, `<TBody>`, `<Tr>`, `<Th align>`, `<Td align numeric muted>` | `tableClassName`, `tableHeadClassName`, `tableBodyClassName`, `tableRowClassName`, `tableHeaderCellClassName`, `tableCellClassName` |
 | Column-defined table | `<AppDataTable columns data>` | — |
 | Pagination | `<PaginatorLinks links>` (Laravel paginator), `<Pagination meta>` (client) | — |
-| Status | `<StatusBadge status>` (`@/Components/StatusBadge`) | — |
+| Status | `<StatusBadge status>` (`@/Components/StatusBadge`) | `badgeClassName(tone, className)` — tone `neutral`, `info`, `success`, `warning`, `danger` |
 | Row actions | `<AppActionMenu items>` | — |
 | Card / panel | `<Card>`, `<CardHeader>`, `<CardTitle>` | — |
 | Empty list | `<EmptyState>` (`@/Components/EmptyState`) | — |
@@ -34,7 +34,8 @@ page adds hand-rolled versions.
 | `primary` | The one main action of a form or page (Save, Submit, Filter) |
 | `outline` | Secondary actions next to it (Cancel, Clear, Export, Previous/Next) |
 | `ghost` | Low-emphasis actions inside toolbars and rows |
-| `destructive` | Delete, revoke, reject — irreversible or harmful actions |
+| `destructive` | Delete, revoke, reject — the page's irreversible main action |
+| `destructiveOutline` | A harmful action beside the main one (Remove next to Save) |
 | `link` | An inline text action |
 
 Sizes: `sm` in tables and dense toolbars, default elsewhere, `lg` only for a
@@ -83,3 +84,14 @@ gray/slate pairs with the tokens. Files with uncommitted work at the time
 export modal, service-feedback submission pages) and the discipline module
 were not touched. Dynamic `className={…}` expressions were left as written,
 with their colours tokenised.
+
+A second pass the same day turned unpaired neutral colours (a light
+`text-gray-500` with no dark variant) into tokens — skipping colour tints
+without a dark variant and files with dark surfaces, where a token could lower
+contrast — moved bordered cards from `rounded-xl`/`rounded-2xl` to
+`rounded-panel`, turned static status pills into `badgeClassName` (squared,
+as `StatusBadge`), and rewrote the shared style modules
+(`dailyActivity/helpers.ts`, `performance/ui.tsx`, `EmployeeFormLayout.tsx`)
+onto the kit, so every page importing them follows. The ID card renderers
+(`Components/IdCards/IdCard*.tsx`) are never changed: the printed card does
+not follow the admin theme.

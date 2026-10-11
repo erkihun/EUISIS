@@ -85,7 +85,7 @@ export default function DailyActivitiesSettings({ fields, canUpdate, can }: Prop
         if (field.type === 'boolean') {
             return (
                 <label htmlFor={id} className="flex min-h-10 cursor-pointer items-start gap-3">
-                    <input id={id} type="checkbox" disabled={disabled} className="mt-0.5 h-5 w-5 rounded border-gray-300" checked={Boolean(value)} onChange={(e) => settingsForm.setData(field.key, e.target.checked)} />
+                    <input id={id} type="checkbox" disabled={disabled} className="mt-0.5 h-5 w-5 rounded border-[color:var(--app-border-strong)]" checked={Boolean(value)} onChange={(e) => settingsForm.setData(field.key, e.target.checked)} />
                     <span>
                         <span className="text-sm font-medium text-[color:var(--app-foreground)]">{label(field)}</span>
                         {description(field) && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{description(field)}</span>}

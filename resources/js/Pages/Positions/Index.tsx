@@ -11,7 +11,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type EstablishmentSummary = {
     id: string;
     status: 'draft' | 'approved' | 'archived';
@@ -275,7 +275,7 @@ export default function PositionsIndex({
                                                         {/* Establishment status + Approve button */}
                                                         <td className={tableCellClassName}>
                                                             {position.establishment?.status === 'approved' ? (
-                                                                <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                                                                <span className={badgeClassName('success')}>
                                                                     <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
                                                                     {t('positionEstablishments.statusApproved')}
                                                                 </span>

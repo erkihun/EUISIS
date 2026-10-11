@@ -41,7 +41,7 @@ export function ActionForm({ url, title, fields = [], initial = {}, method = 'po
 export function CaseTable({ rows, page, portal = false }: { rows?: GrievanceRow[]; page?: Paginated<GrievanceRow>; portal?: boolean }) {
     const { t, locale } = useLocale(); const data = page?.data ?? rows ?? [];
     return <TablePanel page={page} empty={t('grievanceCases.empty')}><Table head={<>{['case_number', 'subject', 'status', 'handler', 'due', 'sla'].map(k => <th key={k} className={thCls}>{t(`grievances.common.${k}`)}</th>)}</>}>
-        {data.map(g => <tr key={g.id}><td className={tdCls}><Link href={route(portal ? 'employee.grievances.show' : 'grievances.cases.show', g.id)}><CaseNumber value={g.reference_number} /></Link></td><td className={tdCls}>{g.subject ?? t('grievances.common.no_access_details')}<span className="block text-xs text-gray-500">{nameOf(g.category, locale)}</span></td><td className={tdCls}><GPill group="status" value={g.status} /></td><td className={tdCls}><HandlerName handler={g.handler} /></td><td className={tdCls}><DateDisplay value={g.sla?.due_at} /></td><td className={tdCls}><SlaBadge sla={g.sla} compact /></td></tr>)}
+        {data.map(g => <tr key={g.id}><td className={tdCls}><Link href={route(portal ? 'employee.grievances.show' : 'grievances.cases.show', g.id)}><CaseNumber value={g.reference_number} /></Link></td><td className={tdCls}>{g.subject ?? t('grievances.common.no_access_details')}<span className="block text-xs text-[color:var(--app-muted-foreground)]">{nameOf(g.category, locale)}</span></td><td className={tdCls}><GPill group="status" value={g.status} /></td><td className={tdCls}><HandlerName handler={g.handler} /></td><td className={tdCls}><DateDisplay value={g.sla?.due_at} /></td><td className={tdCls}><SlaBadge sla={g.sla} compact /></td></tr>)}
     </Table>{!data.length && !page && <Empty>{t('grievanceCases.empty')}</Empty>}</TablePanel>;
 }
 
@@ -54,7 +54,7 @@ export function Timeline({ events }: { events: TimelineEvent[] }) {
     const label = useEnumLabel(); const { locale } = useLocale();
     return <ol className="space-y-4">{events.map(e => {
         const handler = e.data?.handler as { name_en?: string; name_am?: string | null } | undefined;
-        return <li key={e.id} className="border-l-2 border-[color:var(--app-border)] pl-4"><p className="font-medium">{label('event', e.event)}</p>{handler && <p className="text-sm">{nameOf({ name_en: handler.name_en ?? null, name_am: handler.name_am ?? null }, locale)}</p>}<p className="text-xs text-gray-500"><DateDisplay value={e.occurred_at} withTime />{e.actor ? ` · ${e.actor}` : ''}</p></li>;
+        return <li key={e.id} className="border-l-2 border-[color:var(--app-border)] pl-4"><p className="font-medium">{label('event', e.event)}</p>{handler && <p className="text-sm">{nameOf({ name_en: handler.name_en ?? null, name_am: handler.name_am ?? null }, locale)}</p>}<p className="text-xs text-[color:var(--app-muted-foreground)]"><DateDisplay value={e.occurred_at} withTime />{e.actor ? ` · ${e.actor}` : ''}</p></li>;
     })}</ol>;
 }
 

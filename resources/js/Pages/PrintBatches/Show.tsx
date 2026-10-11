@@ -5,7 +5,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, inputClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, inputClassName } from '@/Components/ui';
 type BatchItem = {
     id: string;
     status: string;
@@ -51,7 +51,7 @@ const batchStatusStyle: Record<BatchStatus, StyleEntry> = {
 };
 
 const fallbackStyle: StyleEntry = {
-    badge: 'bg-gray-100 text-gray-600 ring-1 ring-gray-200',
+    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-gray-200',
     dot:   'bg-gray-400',
 };
 
@@ -122,7 +122,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     </span>
                                 </Field>
                                 <Field label={t('idCards.spoiledCount')}>
-                                    <span className={`text-lg font-bold ${batch.spoiled_count > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                    <span className={`text-lg font-bold ${batch.spoiled_count > 0 ? 'text-red-600' : 'text-[color:var(--app-muted-foreground)]'}`}>
                                         {batch.spoiled_count}
                                     </span>
                                 </Field>
@@ -133,7 +133,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
 
                             {/* Progress bar */}
                             <div className="mt-4">
-                                <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-slate-700">
+                                <div className="h-2 w-full rounded-full bg-[color:var(--app-surface-muted)]">
                                     <div
                                         className="h-2 rounded-full bg-blue-500 transition-all"
                                         style={{ width: `${printProgress}%` }}
@@ -248,7 +248,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                     <div className="flex items-center gap-3 shrink-0">
                                         {item.card && <CardStatusBadge status={item.card.status} />}
                                         {item.spoiled ? (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-red-200 dark:bg-red-900/20 dark:text-red-300 dark:ring-red-700/40">
+                                            <span className={badgeClassName('danger')}>
                                                 {t('idCards.spoiled')}
                                             </span>
                                         ) : (

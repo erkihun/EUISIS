@@ -137,7 +137,7 @@ export default function CyclesIndex({ cycles, organizations, canCreateGlobal, ca
                                 <td className={`${tdCls} whitespace-nowrap text-xs`}>{window(cycle.planning)}</td>
                                 <td className={`${tdCls} whitespace-nowrap text-xs`}>{window(cycle.midyear)}</td>
                                 <td className={`${tdCls} whitespace-nowrap text-xs`}>{window(cycle.yearend)}</td>
-                                <td className={tdCls}><Pill group="cycle" value={cycle.status} />{cycle.read_only && <span className="ms-2 text-xs text-gray-500">{t('performance.cycles.readOnly')}</span>}</td>
+                                <td className={tdCls}><Pill group="cycle" value={cycle.status} />{cycle.read_only && <span className="ms-2 text-xs text-[color:var(--app-muted-foreground)]">{t('performance.cycles.readOnly')}</span>}</td>
                                 {(canMove || can.update) && (
                                     <td className={`${tdCls} text-right`}>
                                         <div className="flex flex-wrap items-center justify-end gap-3">

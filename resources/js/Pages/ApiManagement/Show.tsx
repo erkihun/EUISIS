@@ -10,7 +10,7 @@ import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type TokenRow = {
     id: number | string;
     name: string;
@@ -232,9 +232,9 @@ export default function ApiManagementShow({
                     <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('apiManagement.apiScopes')}</p>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                         {application.allowed_scopes.length === 0 ? (
-                            <span className="text-sm text-gray-400">—</span>
+                            <span className="text-sm text-[color:var(--app-muted-foreground)]">—</span>
                         ) : application.allowed_scopes.map((scope) => (
-                            <span key={scope} className="rounded-full bg-blue-100 px-2 py-0.5 font-mono text-[10px] text-blue-800 dark:bg-blue-900/40 dark:text-blue-200">
+                            <span key={scope} className={badgeClassName('info', 'font-mono')}>
                                 {scope}
                             </span>
                         ))}

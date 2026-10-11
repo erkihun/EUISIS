@@ -95,12 +95,12 @@ export default function OversightEmployees(props: Props) {
                         {rows.data.map((row) => (
                             <tr key={row.employee_id}>
                                 <td className={`${tdCls} tabular-nums`}>{row.employee_number}</td>
-                                <td className={tdCls}>{(locale === 'am' ? row.name : row.name_en) || row.name || row.name_en}<div className="text-xs text-gray-500">{named(row.organization, locale)}</div></td>
+                                <td className={tdCls}>{(locale === 'am' ? row.name : row.name_en) || row.name || row.name_en}<div className="text-xs text-[color:var(--app-muted-foreground)]">{named(row.organization, locale)}</div></td>
                                 {can.demographics && <td className={tdCls}>{t(`assessmentOversight.genders.${row.gender}`)}</td>}
                                 <td className={tdCls}>{(locale === 'am' && row.position.title_am) || row.position.title_en || '—'}</td>
                                 <td className={tdCls}>{row.unit.name_en ? named(row.unit, locale) : '—'}</td>
                                 <td className={tdCls}>
-                                    {row.form ? `${named(row.form, locale)} v${row.form.version_no}` : row.expected_form ? <span className="text-gray-500">{named(row.expected_form, locale)}</span> : <span className="text-red-600">{t(`assessmentOversight.resolution.${row.form_resolution}`)}</span>}
+                                    {row.form ? `${named(row.form, locale)} v${row.form.version_no}` : row.expected_form ? <span className="text-[color:var(--app-muted-foreground)]">{named(row.expected_form, locale)}</span> : <span className="text-red-600">{t(`assessmentOversight.resolution.${row.form_resolution}`)}</span>}
                                 </td>
                                 <td className={tdCls}><StatusBadge group="outcomes" value={row.outcome} /></td>
                                 <td className={`${tdCls} tabular-nums`}>{row.evaluators ? `${row.evaluators.submitted}/${row.evaluators.total}` : '—'}</td>
@@ -129,7 +129,7 @@ function ExclusionForm({ row, cycleId, reasons, onDone }: { row: Row; cycleId: s
         <form className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
             onSubmit={(e) => { e.preventDefault(); form.post(route('assessment-oversight.exclusions.store', cycleId), { preserveScroll: true, onSuccess: onDone }); }}>
             <h3 className="text-sm font-semibold">{t('assessmentOversight.actions.requestExclusion')}: {row.employee_number} · {(locale === 'am' ? row.name : row.name_en) || row.name}</h3>
-            <p className="mt-1 text-xs text-gray-500">{t('assessmentOversight.exclusionRequestHelp')}</p>
+            <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.exclusionRequestHelp')}</p>
             {reasons.length === 0 ? <p className="mt-2 text-sm text-amber-700">{t('assessmentOversight.noExceptionReasons')}</p> : (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <select aria-label={t('assessmentOversight.reason')} className={inputCls} value={form.data.reason_id} onChange={(e) => form.setData('reason_id', e.target.value)}>

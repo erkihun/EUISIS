@@ -101,7 +101,7 @@ export default function SpecialDayEdit({ day, day_types }: { day: SpecialDay; da
                         </div>
 
                         <div className="flex justify-end gap-3 pt-2">
-                            <a href={route('cafeteria.special-days.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-gray-50">{t('common.cancel')}</a>
+                            <a href={route('cafeteria.special-days.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">{t('common.cancel')}</a>
                             <button type="submit" disabled={processing} className={buttonClassName({ variant: 'primary' })}>
                                 {processing ? t('common.saving') : t('common.save')}
                             </button>

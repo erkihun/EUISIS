@@ -122,7 +122,7 @@ export default function OrganizationActionsMenu({ organizationId, can, deletionB
                 ref={buttonRef}
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="rounded p-1 text-[color:var(--app-muted-foreground)] hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                className="rounded p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-gray-600 dark:hover:text-slate-300"
                 aria-label={t('common.actions')}
             >
                 <MoreVertical className="h-4 w-4" />
@@ -137,7 +137,7 @@ export default function OrganizationActionsMenu({ organizationId, can, deletionB
                     {can.createChild && (
                         <Link
                             href={route('organizations.create') + `?parent=${organizationId}`}
-                            className="flex items-center gap-2 whitespace-nowrap px-3 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-gray-50 dark:hover:bg-slate-700"
+                            className="flex items-center gap-2 whitespace-nowrap px-3 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                             onClick={() => setOpen(false)}
                         >
                             <Plus className="h-3.5 w-3.5 shrink-0" />
@@ -147,7 +147,7 @@ export default function OrganizationActionsMenu({ organizationId, can, deletionB
                     {can.update && (
                         <Link
                             href={route('organizations.edit', organizationId)}
-                            className="flex items-center gap-2 whitespace-nowrap px-3 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-gray-50 dark:hover:bg-slate-700"
+                            className="flex items-center gap-2 whitespace-nowrap px-3 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                             onClick={() => setOpen(false)}
                         >
                             <PencilIcon className="h-3.5 w-3.5 shrink-0" />
@@ -170,7 +170,7 @@ export default function OrganizationActionsMenu({ organizationId, can, deletionB
                             type="button"
                             disabled={archiveForm.processing}
                             onClick={handleArchive}
-                            className="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-gray-50 disabled:opacity-60 dark:hover:bg-slate-700"
+                            className="flex w-full items-center gap-2 whitespace-nowrap px-3 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] disabled:opacity-60"
                         >
                             <ArchiveIcon className="h-3.5 w-3.5 shrink-0" />
                             {t('organizations.archive')}

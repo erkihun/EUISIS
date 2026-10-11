@@ -235,7 +235,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                                     {a.applications_count}
                                                 </Link>
                                             ) : (
-                                                <span className="text-gray-400">{a.applications_count}</span>
+                                                <span className="text-[color:var(--app-muted-foreground)]">{a.applications_count}</span>
                                             )}
                                         </td>
                                         <td className={tableCellClassName}>

@@ -35,7 +35,7 @@ export default function OversightDataQuality(props: Props) {
                 <>
                     {summary.cycle.length > 0 && (
                         <Section title={t('assessmentOversight.cycleIssues')}>
-                            <ul className="space-y-1 text-sm">{summary.cycle.map((i) => <li key={i.code} className="flex items-center gap-2"><SeverityBadge severity={i.severity} />{t(`assessmentOversight.rules.${i.code}`)} — <span className="text-gray-500">{t(`assessmentOversight.hints.${i.code}`)}</span></li>)}</ul>
+                            <ul className="space-y-1 text-sm">{summary.cycle.map((i) => <li key={i.code} className="flex items-center gap-2"><SeverityBadge severity={i.severity} />{t(`assessmentOversight.rules.${i.code}`)} — <span className="text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.hints.${i.code}`)}</span></li>)}</ul>
                         </Section>
                     )}
                     <Section title={t('assessmentOversight.rulesTitle')} flush>
@@ -50,8 +50,8 @@ export default function OversightDataQuality(props: Props) {
                                     <td className={tdCls}>
                                         {rule.count > 0
                                             ? <Link className="font-medium text-[color:var(--color-primary)] hover:underline" href={oversightHref('assessment-oversight.data-quality', cycle, { code, organization_id: filters.organization_id })}>{t(`assessmentOversight.rules.${code}`)}</Link>
-                                            : <span className="text-gray-500">{t(`assessmentOversight.rules.${code}`)}</span>}
-                                        <div className="text-xs text-gray-400">{code}</div>
+                                            : <span className="text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.rules.${code}`)}</span>}
+                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{code}</div>
                                     </td>
                                     <td className={tdCls}><SeverityBadge severity={rule.severity} /></td>
                                     <td className={`${tdCls} tabular-nums`}>{rule.count}</td>

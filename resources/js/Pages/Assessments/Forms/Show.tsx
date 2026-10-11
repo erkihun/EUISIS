@@ -119,7 +119,7 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                     <span className="font-semibold">{t('assessments.version')} {version.version_no}</span>
                     <StatusBadge status={version.status} />
                     {version.published_at && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.publishedOn')} <LocalizedDateDisplay value={version.published_at} /></span>}
-                    {!editable && version.status === 'draft' && <span className="text-gray-500">{t('assessments.readOnly')}</span>}
+                    {!editable && version.status === 'draft' && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.readOnly')}</span>}
                     {version.status !== 'draft' && <span className="text-[color:var(--app-muted-foreground)]">{t('assessments.immutableNote')}</span>}
                     <Link href={route('assessment-forms.versions.preview', version.id)} className={`${linkBtn} ms-auto`}>{t('assessments.actions.preview')}</Link>
                 </div>
@@ -213,7 +213,7 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                             <li key={v.id} className="flex flex-wrap items-center gap-3 py-2">
                                 <span className="font-medium">v{v.version_no}</span>
                                 <StatusBadge status={v.status} />
-                                {v.published_at && <span className="text-xs text-gray-500"><LocalizedDateDisplay value={v.published_at} /></span>}
+                                {v.published_at && <span className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={v.published_at} /></span>}
                                 {v.id === record.current_version_id && <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">{t('assessments.current')}</span>}
                                 <span className="ms-auto flex gap-3">
                                     {v.id !== version.id && <Link href={route('assessment-forms.show', { form: record.id, version: v.id })} className={linkBtn}>{t('assessments.actions.view')}</Link>}

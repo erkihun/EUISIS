@@ -241,7 +241,7 @@ const STATUS_TONES: Record<string, Tone> = {
 
 export function StatusBadge({ group, value }: { group: 'institutionStatuses' | 'outcomes' | 'submissionStatuses' | 'deadline'; value: string | null | undefined }) {
     const { t } = useLocale();
-    if (!value) return <span className="text-gray-400">—</span>;
+    if (!value) return <span className="text-[color:var(--app-muted-foreground)]">—</span>;
     return <UiStatusBadge tone={STATUS_TONES[value] ?? 'neutral'}>{t(`assessmentOversight.${group}.${value}`)}</UiStatusBadge>;
 }
 

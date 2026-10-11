@@ -150,9 +150,9 @@ export default function OversightReports(props: Props) {
                             <div className="grid gap-4 md:grid-cols-3">
                                 {(['exceptions', 'reported', 'excluded'] as const).map((group) => (
                                     <div key={group}>
-                                        <h4 className="text-xs font-semibold uppercase text-gray-500">{t(`assessmentOversight.reasonGroups.${group}`)}</h4>
+                                        <h4 className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.reasonGroups.${group}`)}</h4>
                                         <ul className="mt-1 text-sm">
-                                            {reasons[group].length === 0 && <li className="text-gray-400">—</li>}
+                                            {reasons[group].length === 0 && <li className="text-[color:var(--app-muted-foreground)]">—</li>}
                                             {reasons[group].map((r, i) => <li key={`${r.code}-${i}`} className="flex justify-between py-1"><span>{(locale === 'am' && r.name_am) || r.name_en || r.code || t('assessmentOversight.noReason')}</span><span className="tabular-nums">{r.n}</span></li>)}
                                         </ul>
                                     </div>

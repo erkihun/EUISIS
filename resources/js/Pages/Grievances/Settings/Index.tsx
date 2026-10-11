@@ -9,7 +9,7 @@ import { AlertTriangle, CheckCircle, Plus, ShieldCheck, TagsIcon, X, XCircle } f
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { SettingField, SettingsIndexProps } from '@/types/grievances';
 
-import { tableRowClassName } from '@/Components/ui';
+import { badgeClassName, tableRowClassName } from '@/Components/ui';
 /*
  * Grievance Management → Settings (design: Claude Design canvas
  * "Grievance Settings redesign"). Readiness checklist, grouped section nav
@@ -170,7 +170,7 @@ function Toggle({ id, checked, onChange, disabled, label }: { id?: string; check
 
 function ConfirmBadge() {
     const { t } = useLocale();
-    return <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300">{t('grievanceAdmin.confirm_policy')}</span>;
+    return <span className={badgeClassName('warning')}>{t('grievanceAdmin.confirm_policy')}</span>;
 }
 
 function Card({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {

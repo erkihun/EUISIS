@@ -59,7 +59,7 @@ export default function OrganizationUnitTreeRow({
     }
 
     const rowCls = node.is_deleted
-        ? 'text-[color:var(--app-muted-foreground)] bg-gray-50 dark:bg-slate-800/30'
+        ? 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)]'
         : 'text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]';
 
     return (

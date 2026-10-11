@@ -109,14 +109,14 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                             {can?.createPrintBatch && (
                                 <Link
                                     href={route('print-batches.create')}
-                                    className="rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-gray-50 transition-colors"
+                                    className="rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] transition-colors"
                                 >
                                     {t('idCards.createPrintBatch')}
                                 </Link>
                             )}
                             <Link
                                 href={route('card-requests.index')}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-gray-50 transition-colors"
+                                className="rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] transition-colors"
                             >
                                 {t('idCards.smartButtons.requests')}
                             </Link>
@@ -132,7 +132,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                     ['totalCards', summary.total, 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300'],
                     ['activeCards', summary.active, 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'],
                     ['pendingApproval', summary.pending, 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'],
-                    ['expiredCards', summary.expired, 'bg-slate-100 text-[color:var(--app-foreground)] dark:bg-slate-700'],
+                    ['expiredCards', summary.expired, 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]'],
                     ['revokedCards', summary.revoked, 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300'],
                     ['lostCards', summary.lost, 'bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300'],
                 ].map(([key, value, color]) => (
@@ -268,7 +268,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                                         <td className={tableCellClassName}>
                                             <div className="flex items-center gap-3">
                                                 {card.employee?.photo_url ? <img src={card.employee.photo_url} alt="" className="h-9 w-9 rounded-lg object-cover" /> : <div className="h-9 w-9 rounded-lg bg-[color:var(--app-surface-muted)]" />}
-                                                <div><p className="font-medium text-[color:var(--app-foreground)]">{card.employee?.full_name ?? t('common.notAvailable')}</p><p className="font-mono text-xs text-gray-500">{card.employee?.employee_number}</p></div>
+                                                <div><p className="font-medium text-[color:var(--app-foreground)]">{card.employee?.full_name ?? t('common.notAvailable')}</p><p className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{card.employee?.employee_number}</p></div>
                                             </div>
                                         </td>
                                         <td className={tableCellClassName}>
@@ -294,7 +294,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>
                                             {card.can?.view !== false && (
-                                                <div className="flex justify-end gap-3"><Link href={route('id-cards.show', card.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">{t('common.view')}</Link><Link href={route('id-cards.preview', card.id)} className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-gray-900">{t('idCards.previewCard')}</Link></div>
+                                                <div className="flex justify-end gap-3"><Link href={route('id-cards.show', card.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">{t('common.view')}</Link><Link href={route('id-cards.preview', card.id)} className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]">{t('idCards.previewCard')}</Link></div>
                                             )}
                                         </td>
                                     </tr>

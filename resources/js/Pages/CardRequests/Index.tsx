@@ -215,7 +215,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                             {req.request_type ? (
                                                 <CardRequestTypeBadge type={req.request_type} />
                                             ) : (
-                                                <span className="text-gray-400">—</span>
+                                                <span className="text-[color:var(--app-muted-foreground)]">—</span>
                                             )}
                                         </td>
                                         <td className={tableCellClassName}>

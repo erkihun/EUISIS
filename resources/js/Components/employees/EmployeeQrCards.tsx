@@ -159,7 +159,7 @@ function QrCard({
                         <img
                             src={svg}
                             alt={title}
-                            className="mx-auto mt-3 h-40 w-40 rounded-lg bg-white p-2"
+                            className="mx-auto mt-3 h-40 w-40 rounded-lg bg-[color:var(--app-surface)] p-2"
                         />
                     )}
 

@@ -83,7 +83,7 @@ export default function OrganizationUnitsEdit({
                             <div className={`${inputCls} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
                                 {unit.organization?.name_en ?? unit.organization_id}
                                 {unit.organization?.code && (
-                                    <span className="ml-1 font-mono text-xs text-gray-400">
+                                    <span className="ml-1 font-mono text-xs text-[color:var(--app-muted-foreground)]">
                                         ({unit.organization.code})
                                     </span>
                                 )}
@@ -261,7 +261,7 @@ export default function OrganizationUnitsEdit({
                         </PrimaryButton>
                         <Link
                             href={route('organization-units.show', unit.id)}
-                            className="text-sm text-[color:var(--app-muted-foreground)] hover:text-gray-700"
+                            className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                         >
                             {t('common.cancel')}
                         </Link>

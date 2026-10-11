@@ -771,7 +771,7 @@ export default function CafeteriaSettingsIndex({
                                                 <tr key={rule.id} className={tableRowClassName}>
                                                     <td className={tableCellClassName}>
                                                         <div className="font-medium text-[color:var(--app-foreground)]">{rule.name_en}</div>
-                                                        <div className="font-mono text-xs text-gray-500">{rule.code}</div>
+                                                        <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{rule.code}</div>
                                                     </td>
                                                     <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{rule.subsidy_amount.toFixed(2)} {rule.currency}</td>
                                                     <td className={tdCls}><LocalizedDateDisplay value={rule.effective_from} /></td>
@@ -1060,17 +1060,17 @@ export default function CafeteriaSettingsIndex({
                                                 <tr key={assignment.id} className={tableRowClassName}>
                                                     <td className={tableCellClassName}>
                                                         <div className="font-medium text-[color:var(--app-foreground)]">{assignment.user.name}</div>
-                                                        <div className="text-xs text-gray-500">{assignment.user.email}</div>
+                                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{assignment.user.email}</div>
                                                     </td>
                                                     <td className={tableCellClassName}>
                                                         <div className="font-medium text-[color:var(--app-foreground)]">{assignment.provider.name_en}</div>
-                                                        <div className="font-mono text-xs text-gray-500">{assignment.provider.code}</div>
+                                                        <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.provider.code}</div>
                                                     </td>
                                                     <td className={tableCellClassName}>
                                                         {assignment.branch ? (
                                                             <>
                                                                 <div className="font-medium text-[color:var(--app-foreground)]">{assignment.branch.name_en}</div>
-                                                                <div className="font-mono text-xs text-gray-500">{assignment.branch.code}</div>
+                                                                <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.branch.code}</div>
                                                             </>
                                                         ) : (
                                                             <span className="text-xs text-[color:var(--app-muted-foreground)]">—</span>
@@ -1080,7 +1080,7 @@ export default function CafeteriaSettingsIndex({
                                                         {assignment.organization ? (
                                                             <>
                                                                 <div className="font-medium text-[color:var(--app-foreground)]">{assignment.organization.name_en}</div>
-                                                                <div className="font-mono text-xs text-gray-500">{assignment.organization.code}</div>
+                                                                <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{assignment.organization.code}</div>
                                                             </>
                                                         ) : (
                                                             <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('common.allOrganizations')}</span>
@@ -1099,7 +1099,7 @@ export default function CafeteriaSettingsIndex({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => setViewingAssignment(assignment)}
-                                                                className="rounded px-2 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:bg-gray-100 hover:text-[color:var(--app-foreground)] dark:hover:bg-slate-700"
+                                                                className="rounded px-2 py-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
                                                             >
                                                                 {t('common.view')}
                                                             </button>

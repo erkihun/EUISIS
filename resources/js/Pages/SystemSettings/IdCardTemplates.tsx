@@ -347,7 +347,7 @@ function TemplateForm({
                     className="h-24 w-full rounded object-contain"
                 />
             )}
-            <label className="inline-flex cursor-pointer items-center rounded-lg border border-gray-300 px-3 py-2 text-sm hover:bg-[color:var(--app-surface-muted)]">
+            <label className="inline-flex cursor-pointer items-center rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm hover:bg-[color:var(--app-surface-muted)]">
                 {label(url ? 'replace_background' : 'browse_png')}
                 <input
                     type="file"
@@ -445,7 +445,7 @@ function TemplateForm({
 
                 {/* Identity — the fields an admin always fills in. */}
                 {step === 0 && <TemplateEditorSection title={label(template ? 'edit' : 'create')}>
-                {form.data.orientation === 'landscape' && <fieldset className="rounded-lg border p-3"><legend className="px-2 text-sm font-semibold">{label('printedFields')}</legend><p className="mb-3 text-xs text-gray-500">{label('printedFieldsHelp')}</p><div className="grid grid-cols-2 gap-2">{Object.entries({ name: 'fullName', sex: 'gender', dob: 'dateOfBirth', nationality: 'nationality', employment: 'employmentType', phone: 'phone', idNumber: 'employeeNumber', email: 'email', address: 'address', emergency_contact_name: 'emergencyContactName', emergency_contact_phone: 'emergencyContactPhone' }).map(([key, textKey]) => <label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.employee_fields.includes(key)} onChange={e => form.setData('employee_fields', e.target.checked ? [...form.data.employee_fields, key] : form.data.employee_fields.filter(item => item !== key))} />{t(`employees.${textKey}`)}</label>)}</div></fieldset>}
+                {form.data.orientation === 'landscape' && <fieldset className="rounded-lg border p-3"><legend className="px-2 text-sm font-semibold">{label('printedFields')}</legend><p className="mb-3 text-xs text-[color:var(--app-muted-foreground)]">{label('printedFieldsHelp')}</p><div className="grid grid-cols-2 gap-2">{Object.entries({ name: 'fullName', sex: 'gender', dob: 'dateOfBirth', nationality: 'nationality', employment: 'employmentType', phone: 'phone', idNumber: 'employeeNumber', email: 'email', address: 'address', emergency_contact_name: 'emergencyContactName', emergency_contact_phone: 'emergencyContactPhone' }).map(([key, textKey]) => <label key={key} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.data.employee_fields.includes(key)} onChange={e => form.setData('employee_fields', e.target.checked ? [...form.data.employee_fields, key] : form.data.employee_fields.filter(item => item !== key))} />{t(`employees.${textKey}`)}</label>)}</div></fieldset>}
                 {(['name', 'code', 'description'] as const).map((field) => (
                     <label key={field} className="block text-sm font-medium">
                         {label(field)}
@@ -507,7 +507,7 @@ function TemplateForm({
                 </TemplateEditorSection>}
 
                 {step === 2 && <TemplateEditorSection title={label('backgroundsSection')} description={label('backgroundsSectionHelp')}>
-                <p className="text-xs text-gray-500">{label('upload_help').replace(':max', String(uploadLimitMb))}</p>
+                <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('upload_help').replace(':max', String(uploadLimitMb))}</p>
                 {([
                     { field: 'front_background', remove: 'remove_front_background', url: frontUrl },
                     { field: 'back_background', remove: 'remove_back_background', url: backUrl },
@@ -532,7 +532,7 @@ function TemplateForm({
                         <label className="flex items-center gap-2 text-sm">
                             <input
                                 type="checkbox"
-                                className="rounded border-gray-300"
+                                className="rounded border-[color:var(--app-border-strong)]"
                                 checked={form.data.header_config[show]}
                                 disabled={!editable || form.processing}
                                 onChange={(e) =>
@@ -598,7 +598,7 @@ function TemplateForm({
                             )}
                         </label>
                     ))}
-                    <p className="text-xs text-gray-500">{label('header_inherit_help')}</p>
+                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{label('header_inherit_help')}</p>
                 </TemplateEditorSection>}
                 </>}
 
@@ -611,7 +611,7 @@ function TemplateForm({
                     <label className="flex items-center gap-2 text-sm">
                         <input
                             type="checkbox"
-                            className="rounded border-gray-300"
+                            className="rounded border-[color:var(--app-border-strong)]"
                             checked={form.data.back_photo_config.show}
                             disabled={!editable || form.processing}
                             onChange={(e) =>

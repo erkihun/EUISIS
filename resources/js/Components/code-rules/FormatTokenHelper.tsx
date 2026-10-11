@@ -150,7 +150,7 @@ export default function FormatTokenHelper({
                             <button
                                 key={example}
                                 type="button"
-                                className="block w-full rounded-md bg-[color:var(--app-surface-muted)] px-2.5 py-1 text-left font-mono text-xs text-[color:var(--app-foreground)] hover:bg-gray-100 dark:hover:bg-slate-700"
+                                className="block w-full rounded-md bg-[color:var(--app-surface-muted)] px-2.5 py-1 text-left font-mono text-xs text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                                 onClick={() => onInsert(example)}
                                 title={t('codeRules.formatExamples')}
                             >

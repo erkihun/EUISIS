@@ -93,7 +93,7 @@ export function ItemsTable({ items, actions, extra }: { items: AgreementItem[]; 
                         <td className={`${tdCls} whitespace-nowrap tabular-nums`}>{targetText(item, item.kpi.unit)}</td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(item.weight)}</td>
                         <td className={`${tdCls} w-44`}>
-                            {item.progress?.achievement == null ? <span className="text-xs text-gray-500">{t('performance.notReported')}</span> : (
+                            {item.progress?.achievement == null ? <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.notReported')}</span> : (
                                 <>
                                     <span className="text-xs tabular-nums">{formatScore(item.progress.actual)} → {formatScore(item.progress.achievement)}%</span>
                                     <Bar value={item.progress.achievement} />
@@ -104,7 +104,7 @@ export function ItemsTable({ items, actions, extra }: { items: AgreementItem[]; 
                     </tr>
                 ))}
             </Table>
-            <p className={`mt-2 text-right text-xs ${Math.abs(total - 100) < 0.0001 ? 'text-gray-500' : 'text-amber-700 dark:text-amber-400'}`}>{t('performance.agreements.totalWeight')}: {formatScore(total)}%</p>
+            <p className={`mt-2 text-right text-xs ${Math.abs(total - 100) < 0.0001 ? 'text-[color:var(--app-muted-foreground)]' : 'text-amber-700 dark:text-amber-400'}`}>{t('performance.agreements.totalWeight')}: {formatScore(total)}%</p>
         </>
     );
 }
@@ -120,10 +120,10 @@ export function ActualsList({ actuals, canVerify }: { actuals: Actual[]; canVeri
                 <li key={a.id} className="flex flex-wrap items-center gap-2">
                     <span className="whitespace-nowrap"><LocalizedDateDisplay value={a.period_start} /> – <LocalizedDateDisplay value={a.period_end} /></span>
                     <span className="tabular-nums">{a.milestone_key ?? (a.numerator !== null ? `${formatScore(a.numerator)} / ${formatScore(a.denominator)}` : formatScore(a.value))}</span>
-                    <span className="text-gray-500">{label('source', a.source)}</span>
+                    <span className="text-[color:var(--app-muted-foreground)]">{label('source', a.source)}</span>
                     {a.verified ? <span className="text-emerald-700 dark:text-emerald-400">✓ {t('performance.actions.verify')}</span>
                         : canVerify && <button type="button" className={smallBtn} onClick={() => router.post(route('performance.actuals.verify', a.id), {}, { preserveScroll: true })}>{t('performance.actions.verify')}</button>}
-                    {a.comment && <span className="text-gray-500">— {a.comment}</span>}
+                    {a.comment && <span className="text-[color:var(--app-muted-foreground)]">— {a.comment}</span>}
                 </li>
             ))}
         </ul>
@@ -139,9 +139,9 @@ export function EvidenceList({ evidence, canVerify }: { evidence: AgreementView[
             {evidence.map((e) => (
                 <li key={e.id} className="flex flex-wrap items-start justify-between gap-2 py-2">
                     <div className="min-w-0">
-                        <p className="font-medium">{e.title} <span className="text-xs font-normal text-gray-500">· {label('evidence', e.type)}</span></p>
+                        <p className="font-medium">{e.title} <span className="text-xs font-normal text-[color:var(--app-muted-foreground)]">· {label('evidence', e.type)}</span></p>
                         {e.description && <p className="text-xs text-[color:var(--app-muted-foreground)]">{e.description}</p>}
-                        <p className="text-xs text-gray-500"><LocalizedDateDisplay value={e.submitted_at} withTime /></p>
+                        <p className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={e.submitted_at} withTime /></p>
                     </div>
                     <div className="flex items-center gap-2">
                         {e.has_file && <a className={smallBtn} href={route('performance.evidence.download', e.id)}>{e.original_name ?? t('performance.fields.file')}</a>}
@@ -157,7 +157,7 @@ export function EvidenceList({ evidence, canVerify }: { evidence: AgreementView[
 export function CheckinList({ checkins, children }: { checkins: AgreementView['checkins']; children?: (checkin: AgreementView['checkins'][number]) => ReactNode }) {
     const { t } = useLocale();
     if (!checkins.length) return <Empty>—</Empty>;
-    const row = (caption: string, text: string | null) => text ? <p><span className="text-gray-500">{caption}:</span> {text}</p> : null;
+    const row = (caption: string, text: string | null) => text ? <p><span className="text-[color:var(--app-muted-foreground)]">{caption}:</span> {text}</p> : null;
     return (
         <ul className="space-y-3 text-sm">
             {checkins.map((c) => (
@@ -181,8 +181,8 @@ export function CheckinList({ checkins, children }: { checkins: AgreementView['c
 
 export function ReviewSummary({ review }: { review: Review | undefined }) {
     const { t } = useLocale();
-    if (!review) return <p className="text-sm text-gray-500"><Pill group="review" value="DRAFT" /></p>;
-    const row = (caption: string, text: string | null) => text ? <div><dt className="text-xs text-gray-500">{caption}</dt><dd className="whitespace-pre-line text-sm">{text}</dd></div> : null;
+    if (!review) return <p className="text-sm text-[color:var(--app-muted-foreground)]"><Pill group="review" value="DRAFT" /></p>;
+    const row = (caption: string, text: string | null) => text ? <div><dt className="text-xs text-[color:var(--app-muted-foreground)]">{caption}</dt><dd className="whitespace-pre-line text-sm">{text}</dd></div> : null;
     return (
         <div className="space-y-2">
             <Pill group="review" value={review.status} />
@@ -211,7 +211,7 @@ export function ResultPanel({ result, hidden, children }: { result: Result | nul
                 <span className="text-3xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{formatScore(result.final_score)}</span>
                 <span className="text-sm">{(locale === 'am' && result.rating_am) || result.rating_en}</span>
                 <Pill group="result" value={result.status} />
-                {result.revision > 1 && <span className="text-xs text-gray-500">{fill(t('performance.result.revision'), { n: result.revision })}</span>}
+                {result.revision > 1 && <span className="text-xs text-[color:var(--app-muted-foreground)]">{fill(t('performance.result.revision'), { n: result.revision })}</span>}
             </div>
             <dl className="flex flex-wrap gap-4 text-xs text-[color:var(--app-muted-foreground)]">
                 <div>{t('performance.result.calculated')}: <span className="tabular-nums">{formatScore(result.calculated_score)}</span></div>
@@ -240,13 +240,13 @@ export function ResultPanel({ result, hidden, children }: { result: Result | nul
 
 export function DevelopmentPlans({ plans }: { plans: AgreementView['development_plans'] }) {
     const label = useEnumLabel();
-    if (!plans.length) return <p className="text-sm text-gray-500">—</p>;
+    if (!plans.length) return <p className="text-sm text-[color:var(--app-muted-foreground)]">—</p>;
     return (
         <ul className="space-y-2 text-sm">
             {plans.map((p) => (
                 <li key={p.id} className="rounded-lg bg-[color:var(--app-surface-muted)] p-2">
                     <p>{p.development_objective}</p>
-                    <p className="text-xs text-gray-500">{[p.training, p.coaching, p.expected_outcome].filter(Boolean).join(' · ')} {p.due_date && <>· <LocalizedDateDisplay value={p.due_date} /></>} · {label('development', p.status)}</p>
+                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{[p.training, p.coaching, p.expected_outcome].filter(Boolean).join(' · ')} {p.due_date && <>· <LocalizedDateDisplay value={p.due_date} /></>} · {label('development', p.status)}</p>
                 </li>
             ))}
         </ul>

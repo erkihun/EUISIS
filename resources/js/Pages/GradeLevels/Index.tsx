@@ -161,7 +161,7 @@ export default function GradeLevelsIndex({
                                                     {gl.can.view && (
                                                         <Link
                                                             href={route('grade-levels.show', gl.id)}
-                                                            className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-gray-800"
+                                                            className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                                                         >
                                                             {t('common.view')}
                                                         </Link>

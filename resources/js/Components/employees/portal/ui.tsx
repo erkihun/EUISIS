@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { badgeClassName } from '@/Components/ui';
 export const panelCls = 'portal-panel rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
 
 export const inputCls =
@@ -51,7 +52,7 @@ export function Block({ title, badge, badgeTone = 'neutral', description, childr
 /** Marks a field that is printed on the employee's current physical card. */
 export function PrintedChip({ label }: { label: string }) {
     return (
-        <span className="rounded-control bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 ring-1 ring-inset ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900">
+        <span className={badgeClassName('warning')}>
             {label}
         </span>
     );

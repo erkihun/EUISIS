@@ -114,7 +114,7 @@ export default function DayRulesIndex({ rules, can }: { rules: DayRule[]; can: {
                     <DayRuleRow key={r.id} rule={r} canUpdate={can.update} />
                 ))}
                 {rules.length === 0 && (
-                    <div className="rounded-card border border-dashed border-[color:var(--app-border-strong)] p-10 text-center text-sm text-gray-400">
+                    <div className="rounded-card border border-dashed border-[color:var(--app-border-strong)] p-10 text-center text-sm text-[color:var(--app-muted-foreground)]">
                         {t('common.noResults')}
                     </div>
                 )}

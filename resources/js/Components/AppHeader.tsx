@@ -82,7 +82,7 @@ export default function AppHeader({ onMenuClick }: Props) {
                             </MenuButton>
                             <MenuItems
                                 anchor="bottom end"
-                                className="z-50 w-72 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-lg outline-none [--anchor-gap:8px] [--anchor-padding:8px]"
+                                className="z-50 w-72 max-w-[calc(100vw-1rem)] overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] shadow-lg outline-none [--anchor-gap:8px] [--anchor-padding:8px]"
                             >
                                 <div className="border-b border-[color:var(--app-border)] px-4 py-4">
                                     <p className="mb-1 text-xs text-[color:var(--app-muted-foreground)]">{t('common.signedInAs')}</p>

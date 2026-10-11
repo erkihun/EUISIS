@@ -39,7 +39,7 @@ export default function SubsidyRulesEdit({ rule }: { rule: Rule }) {
             <Head title={t('cafeteria.editSubsidyRule')} />
             <form onSubmit={submit} className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <div className="border-b border-[color:var(--app-border)] px-6 py-4">
-                    <p className="font-mono text-sm text-gray-500">{rule.code}</p>
+                    <p className="font-mono text-sm text-[color:var(--app-muted-foreground)]">{rule.code}</p>
                 </div>
                 <div className="grid gap-5 p-6 md:grid-cols-2">
                     <Field label={t('cafeteria.nameEn')} error={form.errors.name_en}><input className={inputCls} value={form.data.name_en} onChange={(e) => form.setData('name_en', e.target.value)} required /></Field>

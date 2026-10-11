@@ -78,7 +78,7 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
                                     </td>
                                     <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
                                         {app.employee?.full_name}
-                                        <span className="ml-1 text-xs text-gray-400">{app.employee?.employee_number}</span>
+                                        <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]">{app.employee?.employee_number}</span>
                                     </td>
                                     <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                         {(useAmharic ? app.releasingOrganization?.name_am : null) ?? app.releasingOrganization?.name_en ?? '-'}

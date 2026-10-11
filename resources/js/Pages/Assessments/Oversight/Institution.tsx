@@ -114,7 +114,7 @@ export default function OversightInstitution(props: Props) {
                         </>}>
                             {props.forms.map((f) => (
                                 <tr key={f.version_id}>
-                                    <td className={tdCls}>{(locale === 'am' && f.form_am) || f.form_en} <span className="text-xs text-gray-500">v{f.version_no} · {f.version_status}</span></td>
+                                    <td className={tdCls}>{(locale === 'am' && f.form_am) || f.form_en} <span className="text-xs text-[color:var(--app-muted-foreground)]">v{f.version_no} · {f.version_status}</span></td>
                                     <td className={`${tdCls} text-xs`}>{f.targets.map((x) => t(`assessmentOversight.targets.${x.split(':')[1]}`) + (x.startsWith('exclude') ? ` (${t('assessmentOversight.targets.exclude')})` : '')).join(', ') || '—'}</td>
                                     <td className={`${tdCls} tabular-nums`}>{f.expected}</td>
                                     <td className={`${tdCls} tabular-nums`}>{f.assigned}</td>
@@ -164,13 +164,13 @@ export default function OversightInstitution(props: Props) {
                         <Section title={t('assessmentOversight.sections.reasons')}>
                             {(['exceptions', 'reported', 'excluded'] as const).map((group) => props.reasons[group].length > 0 && (
                                 <div key={group} className="mb-3">
-                                    <h4 className="text-xs font-semibold uppercase text-gray-500">{t(`assessmentOversight.reasonGroups.${group}`)}</h4>
+                                    <h4 className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t(`assessmentOversight.reasonGroups.${group}`)}</h4>
                                     <ul className="mt-1 text-sm">
                                         {props.reasons[group].map((r) => <li key={`${group}-${r.code}-${r.source ?? ''}`} className="flex justify-between py-1"><span>{(locale === 'am' && r.name_am) || r.name_en || r.code || t('assessmentOversight.noReason')}</span><span className="tabular-nums">{r.n}</span></li>)}
                                     </ul>
                                 </div>
                             ))}
-                            {props.reasons.exceptions.length + props.reasons.reported.length + props.reasons.excluded.length === 0 && <p className="text-sm text-gray-500">{t('assessmentOversight.noData')}</p>}
+                            {props.reasons.exceptions.length + props.reasons.reported.length + props.reasons.excluded.length === 0 && <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.noData')}</p>}
                         </Section>
                     </div>
 
@@ -188,7 +188,7 @@ export default function OversightInstitution(props: Props) {
                     <Section title={t('assessmentOversight.sections.submission')} description={t('assessmentOversight.submissionHelp')}>
                         {props.readiness && (
                             <div className="mb-4">
-                                <h4 className="text-xs font-semibold uppercase text-gray-500">{t('assessmentOversight.readiness.title')}</h4>
+                                <h4 className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.readiness.title')}</h4>
                                 <ul className="mt-2 grid gap-1 text-sm sm:grid-cols-2">
                                     {props.readiness.checks.map((c) => <li key={c.code} className={c.ok ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'}>{c.ok ? '✓' : '✗'} {t(`assessmentOversight.readiness.${c.code}`)}</li>)}
                                 </ul>
@@ -200,7 +200,7 @@ export default function OversightInstitution(props: Props) {
                                 <textarea id="ao-note" rows={2} className={inputCls} value={submitForm.data.note} onChange={(e) => submitForm.setData('note', e.target.value)} />
                                 {submitForm.errors && Object.values(submitForm.errors).map((e) => <p key={e} className="text-sm text-red-600">{e}</p>)}
                                 <div><button className={primaryBtn} disabled={submitForm.processing}>{t('assessmentOversight.submitSummary')}</button></div>
-                                <p className="text-xs text-gray-500">{t('assessmentOversight.submitHelp')}</p>
+                                <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.submitHelp')}</p>
                             </form>
                         )}
                         {(actions.startReview || actions.return || actions.reject || actions.verify || actions.finalize) && latest && (
@@ -216,14 +216,14 @@ export default function OversightInstitution(props: Props) {
                                 </div>
                             </div>
                         )}
-                        <h4 className="text-xs font-semibold uppercase text-gray-500">{t('assessmentOversight.sections.history')}</h4>
-                        {props.history.length === 0 ? <p className="mt-1 text-sm text-gray-500">{t('assessmentOversight.noSubmissions')}</p> : (
+                        <h4 className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.sections.history')}</h4>
+                        {props.history.length === 0 ? <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('assessmentOversight.noSubmissions')}</p> : (
                             <ol className="mt-2 space-y-3">
                                 {props.history.map((h) => (
                                     <li key={h.id} className="rounded-lg border border-[color:var(--app-border)] p-3 text-sm">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <b>{t('assessmentOversight.revision')} {h.revision_no}</b><StatusBadge group="submissionStatuses" value={h.status} />
-                                            <span className="text-xs text-gray-500">{h.eligible_count} / {h.assessed_count} / {h.unassessed_count} · {pct(h.coverage_percent)}</span>
+                                            <span className="text-xs text-[color:var(--app-muted-foreground)]">{h.eligible_count} / {h.assessed_count} / {h.unassessed_count} · {pct(h.coverage_percent)}</span>
                                         </div>
                                         {h.return_reason && <p className="mt-1 text-amber-800 dark:text-amber-300">{h.return_reason}</p>}
                                         <ul className="mt-2 space-y-0.5 text-xs text-[color:var(--app-muted-foreground)]">
@@ -258,9 +258,9 @@ function Exclusions({ rows }: { rows: Exclusion[] }) {
                 {rows.map((x) => (
                     <tr key={x.id}>
                         <td className={tdCls}>{x.employee?.employee_number} · {(locale === 'am' ? x.employee?.full_name : x.employee?.name_en) || x.employee?.full_name}</td>
-                        <td className={tdCls}>{x.reason ? ((locale === 'am' && x.reason.name_am) || x.reason.name_en) : '—'}<div className="text-xs text-gray-500">{x.note}</div></td>
-                        <td className={tdCls}>{t(`assessmentOversight.exclusionStatuses.${x.status}`)}{x.decision_note && <div className="text-xs text-gray-500">{x.decision_note}</div>}</td>
-                        <td className={tdCls}>{x.requester}{x.requested_at && <div className="text-xs text-gray-500"><LocalizedDateDisplay value={x.requested_at} /></div>}</td>
+                        <td className={tdCls}>{x.reason ? ((locale === 'am' && x.reason.name_am) || x.reason.name_en) : '—'}<div className="text-xs text-[color:var(--app-muted-foreground)]">{x.note}</div></td>
+                        <td className={tdCls}>{t(`assessmentOversight.exclusionStatuses.${x.status}`)}{x.decision_note && <div className="text-xs text-[color:var(--app-muted-foreground)]">{x.decision_note}</div>}</td>
+                        <td className={tdCls}>{x.requester}{x.requested_at && <div className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={x.requested_at} /></div>}</td>
                         <td className={tdCls}>
                             {x.can.decide && (
                                 <div className="flex flex-wrap items-center gap-2">

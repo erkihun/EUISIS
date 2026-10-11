@@ -164,7 +164,7 @@ export default function KpiCard({
     );
 
     const shell = [
-        'relative h-full min-w-0 overflow-hidden rounded-xl border transition-colors',
+        'relative h-full min-w-0 overflow-hidden rounded-panel border transition-colors',
         style.card,
         featured
             ? 'min-h-[112px] border-[color:var(--app-border)] border-s-[3px] border-s-[color:var(--color-primary)] p-4 dark:border-s-indigo-400 dark:bg-slate-900'

@@ -130,7 +130,7 @@ export default function TransferDashboard({ stats, recent_transfers, can }: Prop
                                     <div>
                                         <p className="text-sm font-medium text-[color:var(--app-foreground)]">
                                             {transfer.employee?.full_name ?? '-'}
-                                            <span className="ml-2 text-xs text-gray-400">{transfer.employee?.employee_number}</span>
+                                            <span className="ml-2 text-xs text-[color:var(--app-muted-foreground)]">{transfer.employee?.employee_number}</span>
                                         </p>
                                         <p className="text-xs text-[color:var(--app-muted-foreground)]">
                                             {(useAmharic ? transfer.releasingOrganization?.name_am : transfer.releasingOrganization?.name_en) ?? transfer.releasingOrganization?.name_en}

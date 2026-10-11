@@ -224,7 +224,7 @@ export default function CodeRuleField({
                     <button
                         type="button"
                         onClick={handleSwitchToAuto}
-                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-gray-700 dark:hover:text-gray-200"
+                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                     >
                         {t('codeRules.autoGenerate')}
                     </button>

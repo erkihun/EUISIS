@@ -139,7 +139,7 @@ export default function CodeRulesShow({
                                 <p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('codeRules.sequenceScopeStrategy')}</p>
                                 <p className="mt-1 flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                                     {strategyLabel}
-                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${isGlobal ? 'bg-gray-100 text-[color:var(--app-foreground)] dark:bg-slate-700' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}`}>
+                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${isGlobal ? 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]' : 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}`}>
                                         {isGlobal ? t('codeRules.globalSequenceBadge') : t('codeRules.scopedSequenceBadge')}
                                     </span>
                                 </p>

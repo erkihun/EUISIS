@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type PermissionEntry = {
     name: string;
     label_en: string | null;
@@ -71,7 +71,7 @@ function PermissionGroup({
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                     {group}
-                    <span className="ml-2 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
+                    <span className={badgeClassName('info', 'ml-2')}>
                         {permissions.filter((p) => selected.includes(p.name)).length}/{permissions.length}
                     </span>
                 </h3>
@@ -104,7 +104,7 @@ function PermissionGroup({
                                 {CRITICAL.has(perm.name) && (
                                     <span
                                         title={t('permissions.criticalPermissionWarning')}
-                                        className="rounded-full bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                        className={badgeClassName('danger')}
                                     >
                                         {t('permissions.criticalPermission')}
                                     </span>

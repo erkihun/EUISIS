@@ -113,13 +113,13 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                     <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                         <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('positionEstablishments.activeOccupancies')}</h3>
                         {establishment.occupancies.filter(o => o.status === 'active').length === 0 ? (
-                            <p className="mt-3 text-sm text-gray-400">{t('common.none')}</p>
+                            <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('common.none')}</p>
                         ) : (
                             <ul className="mt-3 space-y-1 text-sm">
                                 {establishment.occupancies.filter(o => o.status === 'active').map(o => (
                                     <li key={o.id} className="flex justify-between">
                                         <span>{o.employee?.name_en ?? '—'}</span>
-                                        <span className="text-gray-400">{o.occupied_from}</span>
+                                        <span className="text-[color:var(--app-muted-foreground)]">{o.occupied_from}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -139,7 +139,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             )}
                         </div>
                         {establishment.vacancy_announcements.length === 0 ? (
-                            <p className="mt-3 text-sm text-gray-400">{t('common.none')}</p>
+                            <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">{t('common.none')}</p>
                         ) : (
                             <ul className="mt-3 space-y-1.5 text-sm">
                                 {establishment.vacancy_announcements.map(a => (

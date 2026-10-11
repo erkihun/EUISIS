@@ -5,7 +5,7 @@ import { Pagination, StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui'
 import { router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
-import { tableBodyClassName, tableHeadClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 export { fill } from '@/Components/dailyActivity/helpers';
 export { AppFilterBar, filterInputCls } from '@/Components/ui';
 
@@ -18,24 +18,17 @@ export { AppFilterBar, filterInputCls } from '@/Components/ui';
 
 // ── Controls ──────────────────────────────────────────────────────────────────
 
-export const inputCls =
-    'w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] disabled:bg-gray-50 disabled:text-gray-500 dark:disabled:bg-slate-900';
-export const compactInputCls =
-    'rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]';
+export const inputCls = cx(inputClassName, 'w-full');
+export const compactInputCls = inputClassName;
 export const labelCls = 'mb-1 block text-sm font-medium text-[color:var(--app-foreground)]';
 
-export const primaryBtn =
-    'inline-flex items-center justify-center gap-2 rounded-lg bg-[color:var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50';
-export const secondaryBtn =
-    'inline-flex items-center justify-center gap-2 rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50';
-export const dangerBtn =
-    'inline-flex items-center justify-center gap-2 rounded-lg border border-red-300 bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30';
+export const primaryBtn = buttonClassName({ variant: 'primary' });
+export const secondaryBtn = buttonClassName({ variant: 'outline' });
+export const dangerBtn = buttonClassName({ variant: 'destructiveOutline' });
 /** Section-level secondary action (e.g. "Add KPI"). */
-export const smallBtn =
-    'inline-flex items-center justify-center gap-1.5 rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-1.5 text-xs font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] disabled:cursor-not-allowed disabled:opacity-50';
+export const smallBtn = buttonClassName({ variant: 'outline', size: 'sm' });
 /** Save button of an inline (in-table or in-card) form. */
-export const smallPrimaryBtn =
-    'inline-flex items-center justify-center gap-1.5 rounded-lg bg-[color:var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[color:var(--color-primary-hover)] disabled:cursor-not-allowed disabled:opacity-50';
+export const smallPrimaryBtn = buttonClassName({ variant: 'primary', size: 'sm' });
 /** Row actions, as on the admin tables: plain text links. */
 export const linkBtn = 'text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] disabled:opacity-50';
 export const dangerLinkBtn = 'text-xs font-medium text-red-600 hover:text-red-800 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300';
@@ -186,9 +179,9 @@ export function Problems({ title, problems }: { title: string; problems: string[
 
 // ── Tables ────────────────────────────────────────────────────────────────────
 
-export const tableCls = 'min-w-full text-left text-sm';
-export const thCls = 'px-4 py-3 font-semibold';
-export const tdCls = 'px-4 py-3 align-top text-[color:var(--app-foreground)]';
+export const tableCls = cx(tableClassName, 'min-w-full');
+export const thCls = cx(tableHeaderCellClassName, 'text-left');
+export const tdCls = cx(tableCellClassName, 'align-top');
 
 /**
  * Admin table: gray header row, bordered rows, px-4 py-3 cells. Place it in a
@@ -323,10 +316,10 @@ export function ScoreTraceView({ trace }: { trace: ScoreTrace | null | undefined
                             {row.achievement_formula && <p className="mt-0.5 font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{row.achievement_formula}</p>}
                         </td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(row.target)}</td>
-                        <td className={`${tdCls} tabular-nums`}>{row.actual === null ? <span className="text-xs text-gray-500">{t('performance.notReported')}</span> : formatScore(row.actual)}</td>
+                        <td className={`${tdCls} tabular-nums`}>{row.actual === null ? <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.notReported')}</span> : formatScore(row.actual)}</td>
                         <td className={`${tdCls} tabular-nums`}>
                             {row.achievement === null ? '—' : `${formatScore(row.achievement)}%`}
-                            {row.capped && <span className="block text-[11px] text-gray-500">({formatScore(row.raw_achievement)}% → {formatScore(row.cap)}%)</span>}
+                            {row.capped && <span className="block text-[11px] text-[color:var(--app-muted-foreground)]">({formatScore(row.raw_achievement)}% → {formatScore(row.cap)}%)</span>}
                         </td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(row.weight)}%</td>
                         <td className={`${tdCls} tabular-nums`}>{formatScore(row.weighted)}</td>

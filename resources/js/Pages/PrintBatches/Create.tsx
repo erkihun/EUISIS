@@ -71,7 +71,7 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
                                             type="checkbox"
                                             checked={selected.includes(card.id)}
                                             onChange={() => toggleCard(card.id)}
-                                            className="h-4 w-4 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
+                                            className="h-4 w-4 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]"
                                         />
                                         <div className="min-w-0 flex-1">
                                             <p className="font-mono text-sm font-medium text-[color:var(--app-foreground)]">{card.card_number}</p>
@@ -95,7 +95,7 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
                         <div className="mt-4 flex justify-end gap-3">
                             <Link
                                 href={route('print-batches.index')}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-gray-50"
+                                className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                             >
                                 {t('common.cancel')}
                             </Link>

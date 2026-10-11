@@ -48,7 +48,7 @@ export default function OfficialAssessmentSheet({ code, title, sections, columns
     const date = (value: string | null | undefined) => (value ? <LocalizedDateDisplay value={value} /> : null);
 
     return (
-        <article className="official-assessment-sheet bg-white p-4 text-[12px] leading-snug text-black">
+        <article className="official-assessment-sheet bg-[color:var(--app-surface)] p-4 text-[12px] leading-snug text-black">
             <p className="text-right font-semibold">{code}</p>
             <h2 className="mt-1 text-center text-[14px] font-bold">{pick(title.en, title.am)}</h2>
             <div className="mt-3 space-y-1.5">

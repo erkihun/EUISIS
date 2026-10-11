@@ -6,7 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { JSX } from 'react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Announcement = {
     id: string;
     announcement_number: string;
@@ -35,8 +35,8 @@ function DeadlineBadge({ closesAt, t }: { closesAt: string | null; t: (k: never)
     if (!closesAt) return null;
     const days = Math.ceil((new Date(closesAt).getTime() - Date.now()) / 86400000);
     if (days < 0) return null;
-    if (days === 0) return <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-950/40 dark:text-red-300">{t('vacancies.closingToday' as never)}</span>;
-    if (days <= 3) return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">{days} {t('vacancies.daysLeft' as never)}</span>;
+    if (days === 0) return <span className={badgeClassName('danger')}>{t('vacancies.closingToday' as never)}</span>;
+    if (days <= 3) return <span className={badgeClassName('warning')}>{days} {t('vacancies.daysLeft' as never)}</span>;
     return null;
 }
 
@@ -121,7 +121,7 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                                         <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>
                                             {positionSummary || '-'}
                                             {announcement.positions.length > 2 && (
-                                                <span className="ml-1 text-xs text-gray-400"> +{announcement.positions.length - 2}</span>
+                                                <span className="ml-1 text-xs text-[color:var(--app-muted-foreground)]"> +{announcement.positions.length - 2}</span>
                                             )}
                                             <span className="ml-2 rounded-full bg-[color:var(--app-surface-muted)] px-1.5 py-0.5 text-xs text-[color:var(--app-muted-foreground)]">
                                                 {totalSlots} {t('vacancies.vacancySlots')}

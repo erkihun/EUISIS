@@ -18,7 +18,7 @@ type Exclusion = {
 
 const STATUS_COLORS: Record<string, string> = {
     active:    'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
-    ended:     'bg-gray-100 text-[color:var(--app-muted-foreground)] dark:bg-slate-700',
+    ended:     'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]',
     cancelled: 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400',
 };
 
@@ -49,7 +49,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                     actions={
                         <div className="flex gap-2">
                             {exclusion.can.update && (
-                                <Link href={route('cafeteria.employee-exclusions.edit', exclusion.id)} className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-gray-50">
+                                <Link href={route('cafeteria.employee-exclusions.edit', exclusion.id)} className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
                                     {t('common.edit')}
                                 </Link>
                             )}
@@ -75,7 +75,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                         <span className={keyC}>{t('common.employee')}</span>
                         <div>
                             <div className={valC}>{exclusion.employee_name ?? '—'}</div>
-                            {exclusion.employee_number && <div className="text-xs text-gray-400">{exclusion.employee_number}</div>}
+                            {exclusion.employee_number && <div className="text-xs text-[color:var(--app-muted-foreground)]">{exclusion.employee_number}</div>}
                         </div>
                     </div>
                     <div className={rowCls}>
@@ -94,7 +94,7 @@ export default function EmployeeExclusionShow({ exclusion }: { exclusion: Exclus
                     </div>
                     <div className={rowCls}>
                         <span className={keyC}>{t('cafeteria.endsOn')}</span>
-                        <span className={valC}>{exclusion.is_open_ended ? <em className="text-gray-400">Open-ended</em> : <LocalizedDateDisplay value={exclusion.ends_on} />}</span>
+                        <span className={valC}>{exclusion.is_open_ended ? <em className="text-[color:var(--app-muted-foreground)]">Open-ended</em> : <LocalizedDateDisplay value={exclusion.ends_on} />}</span>
                     </div>
                     {exclusion.return_to_work_on && (
                         <div className={rowCls}>

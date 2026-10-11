@@ -56,7 +56,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                         <div className="space-y-3">
                             <h1 className="text-[2rem] font-bold leading-[1.2] text-white">{t('providerPortal.loginHeadline')}</h1>
-                            <p className="text-sm leading-relaxed text-slate-400">{t('providerPortal.loginDescription')}</p>
+                            <p className="text-sm leading-relaxed text-[color:var(--app-muted-foreground)]">{t('providerPortal.loginDescription')}</p>
                         </div>
 
                         <div className="grid w-full grid-cols-2 gap-2">
@@ -73,14 +73,14 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
 
                     <div className="flex w-full items-center gap-3">
                         <div className="h-px flex-1 bg-white/[0.06]" />
-                        <p className="text-[11px] text-slate-500">{t('auth.footerGov')} · {orgName}</p>
+                        <p className="text-[11px] text-[color:var(--app-muted-foreground)]">{t('auth.footerGov')} · {orgName}</p>
                         <div className="h-px flex-1 bg-white/[0.06]" />
                     </div>
                 </div>
             </div>
 
             {/* ── Right form panel ──────────────────────────────────────── */}
-            <div className="flex flex-1 flex-col bg-gray-50 dark:bg-[#0d0f14]">
+            <div className="flex flex-1 flex-col bg-[color:var(--app-surface-muted)] dark:bg-[#0d0f14]">
                 <div className="flex items-center justify-between gap-3 px-6 py-5">
                     <div className="flex items-center gap-2.5 lg:invisible">
                         {systemLogoUrl ? (

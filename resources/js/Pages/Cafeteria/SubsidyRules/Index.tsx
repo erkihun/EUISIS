@@ -72,7 +72,7 @@ export default function SubsidyRulesIndex({ rules, meta, filters, can }: { rules
                                         <tr key={rule.id} className={tableRowClassName}>
                                             <td className={tableCellClassName}>
                                                 <div className="font-medium text-[color:var(--app-foreground)]">{rule.name_en}</div>
-                                                <div className="font-mono text-xs text-gray-500">{rule.code}</div>
+                                                <div className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{rule.code}</div>
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-right font-medium text-emerald-600')}>{rule.subsidy_amount.toFixed(2)} {rule.currency}</td>
                                             <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={rule.effective_from} /></td>

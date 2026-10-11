@@ -46,6 +46,7 @@ function adminUiCounts(): array
         // Neutral colours come from the --app-* tokens, which also cover dark mode.
         'raw dark slate colour' => '/\bdark:(text|bg|border|divide)-slate-\d/',
         'raw gray border' => '/\bborder-gray-(100|200|300)\b/',
+        'raw gray text' => '/(?<![:\w-])text-gray-\d00\b/',
     ];
     $counts = array_fill_keys(array_keys($patterns), 0);
 
@@ -65,8 +66,9 @@ it('keeps hand-rolled admin UI from growing', function (): void {
         'hand-rolled primary button' => 0,
         'hand-rolled destructive button' => 0,
         'hand-rolled select or textarea' => 1,
-        'raw dark slate colour' => 200,
-        'raw gray border' => 47,
+        'raw dark slate colour' => 185,
+        'raw gray border' => 32,
+        'raw gray text' => 69,
     ];
 
     $counts = adminUiCounts();

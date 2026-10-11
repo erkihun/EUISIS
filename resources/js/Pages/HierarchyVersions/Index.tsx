@@ -253,7 +253,7 @@ export default function HierarchyVersionsIndex({
                                                             });
                                                             if (confirmed) router.post(route('hierarchy-versions.publish', { hierarchyVersion: version.id }));
                                                         }}
-                                                        className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-medium text-slate-900 hover:bg-amber-600"
+                                                        className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-amber-600"
                                                     >
                                                         {t('hierarchyVersions.publishVersion')}
                                                     </button>

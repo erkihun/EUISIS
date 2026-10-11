@@ -9,7 +9,7 @@ import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Role = { id: number; name: string; scope: 'organization' | 'global' };
 
 type OrganizationScope = {
@@ -390,7 +390,7 @@ export default function EditUser({
                                               <span className="min-w-0 flex-1 text-sm text-[color:var(--app-foreground)]">
                                                  {role.name}
                                               </span>
-                                              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
+                                              <span className={badgeClassName('info')}>
                                                   {role.scope === 'organization' ? t('users.scopedRole') : t('users.globalRole')}
                                               </span>
                                         </label>

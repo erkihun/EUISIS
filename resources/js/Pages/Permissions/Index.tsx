@@ -8,7 +8,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronDown, ChevronRight, Layers, Plus, ShieldCheck, TagsIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Permission = {
     id: number;
     name: string;
@@ -284,7 +284,7 @@ function CriticalBadge({ t }: { t: (key: string) => string }) {
     return (
         <span
             title={t('permissions.criticalPermissionWarning')}
-            className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400"
+            className={badgeClassName('danger')}
         >
             {t('permissions.criticalPermission')}
         </span>
@@ -457,17 +457,17 @@ function GroupedView({
                             type="button"
                             onClick={() => toggle(group)}
                             aria-expanded={!isCollapsed}
-                            className="flex w-full items-center justify-between gap-3 border-b border-[color:var(--app-border)] bg-gray-50 px-4 py-3 text-left hover:bg-[color:var(--app-surface-muted)] dark:bg-slate-950/60"
+                            className="flex w-full items-center justify-between gap-3 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-3 text-left hover:bg-[color:var(--app-surface-muted)]"
                         >
                             <span className="flex min-w-0 items-center gap-2">
                                 {isCollapsed
-                                    ? <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-                                    : <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />}
+                                    ? <ChevronRight className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
+                                    : <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />}
                                 <span className="min-w-0 break-words text-xs font-semibold text-[color:var(--app-muted-foreground)]">
                                     {group}
                                 </span>
                             </span>
-                            <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-blue-700 dark:bg-blue-900/30 dark:text-[color:var(--color-primary)]">
+                            <span className={badgeClassName('info', 'shrink-0 tabular-nums')}>
                                 {perms.length === totalInGroup ? perms.length : `${perms.length} / ${totalInGroup}`}
                             </span>
                         </button>

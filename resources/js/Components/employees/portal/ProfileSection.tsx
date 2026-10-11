@@ -140,7 +140,7 @@ export default function ProfileSection({ profile, policy, l, pick }: {
                         <div className="flex flex-wrap items-center gap-4">
                             {photoSrc
                                 ? <img src={photoSrc} alt={l('fields.photo')} className="h-24 w-20 rounded-lg object-cover ring-1 ring-gray-200 dark:ring-slate-700" />
-                                : <span className="flex h-24 w-20 items-center justify-center rounded-lg bg-[color:var(--app-surface-muted)] text-xs text-gray-500">{l('not_set')}</span>}
+                                : <span className="flex h-24 w-20 items-center justify-center rounded-lg bg-[color:var(--app-surface-muted)] text-xs text-[color:var(--app-muted-foreground)]">{l('not_set')}</span>}
                             <div className="min-w-0 flex-1 space-y-1.5">
                                 <p className="flex flex-wrap items-center gap-1.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
                                     {l('fields.photo')}
@@ -193,7 +193,7 @@ export default function ProfileSection({ profile, policy, l, pick }: {
                                     </select>
                                 </div>
                                 <label className="flex min-h-10 items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                                    <input type="checkbox" className="h-4 w-4 rounded border-gray-300" checked={form.data.notification_preferences.email} onChange={(e) => form.setData('notification_preferences', { email: e.target.checked })} />
+                                    <input type="checkbox" className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" checked={form.data.notification_preferences.email} onChange={(e) => form.setData('notification_preferences', { email: e.target.checked })} />
                                     {l('fields.notification_preferences')}
                                 </label>
                             </div>

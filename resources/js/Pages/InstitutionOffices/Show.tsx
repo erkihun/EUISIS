@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import RelationshipPanel, { type RelationshipRow } from '@/Components/relationships/RelationshipPanel';
 import ReportingLinesPanel from '@/Components/relationships/ReportingLinesPanel';
 
-import { buttonClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName } from '@/Components/ui';
 interface ChildOffice {
     id: string;
     office_code: string;
@@ -150,7 +150,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                                 </p>
                             )}
                             {office.is_head_office && (
-                                <span className="mt-2 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                <span className={badgeClassName('warning', 'mt-2')}>
                                     {t('institutionOffices.headOffice')}
                                 </span>
                             )}
@@ -202,7 +202,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                                         >
                                             {child.name_en ?? child.office_code}
                                         </Link>
-                                        <span className="ml-2 rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                        <span className={badgeClassName('info', 'ml-2')}>
                                             {child.office_level}
                                         </span>
                                     </div>

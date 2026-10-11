@@ -155,7 +155,7 @@ export default function CodeRulesIndex({
                                                     <code className="block break-all rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-3 py-2 text-xs leading-5 text-[color:var(--app-foreground)]">{ruleRow.format}</code>
                                                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[color:var(--app-muted-foreground)]"><span>{t('codeRules.prefix')}: {ruleRow.prefix || '—'}</span><span>{t('codeRules.resetFrequency')}: {t(`codeRules.resetFrequencies.${ruleRow.reset_frequency}`)}</span></div>
                                                 </div>
-                                                <div className="min-w-0 rounded-xl border border-blue-100 bg-blue-50/60 p-3 dark:border-blue-900/40 dark:bg-blue-950/20">
+                                                <div className="min-w-0 rounded-panel border border-blue-100 bg-blue-50/60 p-3 dark:border-blue-900/40 dark:bg-blue-950/20">
                                                     <p className="text-xs font-medium text-blue-700 dark:text-blue-300">{t('codeRules.previewCode')}</p>
                                                     <p className="mt-2 break-all font-mono text-sm font-semibold text-blue-900 dark:text-blue-200">{ruleRow.preview || t('codeRules.previewUnavailable')}</p>
                                                     <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('codeRules.nextNumber')}: <span className="tabular-nums">{ruleRow.next_number}</span></p>

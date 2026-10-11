@@ -113,11 +113,11 @@ export default function Structure({ service, sub_services, quality_sources, can 
                 )}
 
                 {sub_services.length === 0 && (
-                    <p className="rounded-xl border border-dashed border-[color:var(--app-border-strong)] p-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('workStandards.noSubServices')}</p>
+                    <p className="rounded-panel border border-dashed border-[color:var(--app-border-strong)] p-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('workStandards.noSubServices')}</p>
                 )}
 
                 {sub_services.map((sub) => (
-                    <section key={sub.id} className="rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    <section key={sub.id} className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                         <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[color:var(--app-border)] px-4 py-3">
                             <div className="min-w-0">
                                 <p className="text-xs uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{t('workStandards.subService')} · {sub.code}</p>
@@ -276,7 +276,7 @@ function NodeForm({ title, record, url, method, onDone }: { title: string; recor
     }
 
     return (
-        <form onSubmit={submit} className="space-y-3 rounded-xl border border-[color:var(--color-primary)]/30 bg-[color:var(--color-primary)]/5 p-4">
+        <form onSubmit={submit} className="space-y-3 rounded-panel border border-[color:var(--color-primary)]/30 bg-[color:var(--color-primary)]/5 p-4">
             <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{title}</h3>
             <div className="grid gap-3 sm:grid-cols-[8rem_1fr_1fr]">
                 <Field label={t('workStandards.code')} error={errors.code}>
@@ -294,7 +294,7 @@ function NodeForm({ title, record, url, method, onDone }: { title: string; recor
             </Field>
             <div className="flex flex-wrap items-center gap-4">
                 <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
-                    <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded border-gray-300" />
+                    <input type="checkbox" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} className="h-4 w-4 rounded border-[color:var(--app-border-strong)]" />
                     {t('workStandards.active')}
                 </label>
                 <label className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
@@ -335,7 +335,7 @@ function StandardForm({ record, qualitySources, url, method, onDone }: { record?
     }
 
     return (
-        <form onSubmit={submit} className="space-y-3 rounded-xl border border-[color:var(--color-primary)]/30 bg-[color:var(--color-primary)]/5 p-4">
+        <form onSubmit={submit} className="space-y-3 rounded-panel border border-[color:var(--color-primary)]/30 bg-[color:var(--color-primary)]/5 p-4">
             <div>
                 <h3 className="text-sm font-semibold text-[color:var(--app-foreground)]">{record ? t('workStandards.editDraft') : t('workStandards.newVersion')}</h3>
                 <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('workStandards.standardHelp')}</p>

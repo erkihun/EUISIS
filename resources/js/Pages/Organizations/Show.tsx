@@ -12,7 +12,7 @@ import OrganizationStructureTree, { type OrganizationStructureTreeData } from '@
 import StatusDistribution from '@/Components/dashboard/StatusDistribution';
 import { useState } from 'react';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 /** Keys returned by OrganizationDeletionGuard::reasons(), mapped to i18n labels below. */
 type DeletionBlockerKey =
     | 'usedInPublishedHierarchy'
@@ -541,7 +541,7 @@ export default function OrganizationShow({
                                             {office.name_en ?? '—'}
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <span className="rounded-full bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                            <span className={badgeClassName('info')}>
                                                 {office.office_level}
                                             </span>
                                         </td>

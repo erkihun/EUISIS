@@ -5,7 +5,7 @@ import RelationshipTypeBadge from '@/Components/hierarchy/RelationshipTypeBadge'
 import { useLocale } from '@/hooks/useLocale';
 import type { HierarchyTreeNodeData, HierarchyTreeNodeType } from '@/Components/hierarchy/types';
 
-import { buttonClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName } from '@/Components/ui';
 const INDENT_PX = 28;
 const GUIDE_X_OFFSET = 10;   // px from indentLeft where the vertical guide sits
 const ROW_GUTTER_PX = 28;    // gap between guide line and card left edge
@@ -167,11 +167,11 @@ export default function HierarchyTreeNode({
 
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                                 {isOrgUnit ? (
-                                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-200">
+                                    <span className={badgeClassName('success')}>
                                         {t('hierarchyVersions.organizationUnitNode')}
                                     </span>
                                 ) : (
-                                    <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-950/40 dark:text-blue-200">
+                                    <span className={badgeClassName('info')}>
                                         {t('hierarchyVersions.organizationNode')}
                                     </span>
                                 )}
@@ -182,7 +182,7 @@ export default function HierarchyTreeNode({
                                 )}
                                 <StatusBadge status={node.status} label={node.status_label ?? undefined} />
                                 {node.relationship_type && <RelationshipTypeBadge type={node.relationship_type} />}
-                                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-950/30 dark:text-amber-200">
+                                <span className={badgeClassName('warning')}>
                                     {t('hierarchyVersions.hierarchyLevel')}: {depth}
                                 </span>
                                 <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--app-muted-foreground)]">

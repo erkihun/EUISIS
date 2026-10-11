@@ -140,7 +140,7 @@ export default function PlanShow(props: Props) {
                                 <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
                                     <div>
                                         <AmendmentDiff original={a.original_values} proposed={a.proposed_values} />
-                                        <p className="text-xs text-gray-500">{a.reason} · <LocalizedDateDisplay value={a.effective_date} /></p>
+                                        <p className="text-xs text-[color:var(--app-muted-foreground)]">{a.reason} · <LocalizedDateDisplay value={a.effective_date} /></p>
                                     </div>
                                     {can.decideAmendment && (
                                         <div className="flex gap-2">
@@ -165,7 +165,7 @@ export default function PlanShow(props: Props) {
                             <ul className="divide-y divide-[color:var(--app-border)] text-sm">
                                 {childPlans.map((child) => (
                                     <li key={child.id} className="flex items-center justify-between gap-2 py-2">
-                                        <Link href={route('performance.plans.show', child.id)} className="text-[color:var(--color-primary)] hover:underline">{child.title} <span className="text-xs text-gray-500">· {nameOf(child.unit, locale) || titleOf(child.position, locale)}</span></Link>
+                                        <Link href={route('performance.plans.show', child.id)} className="text-[color:var(--color-primary)] hover:underline">{child.title} <span className="text-xs text-[color:var(--app-muted-foreground)]">· {nameOf(child.unit, locale) || titleOf(child.position, locale)}</span></Link>
                                         <Pill group="plan" value={child.status} />
                                     </li>
                                 ))}
@@ -186,7 +186,7 @@ export default function PlanShow(props: Props) {
                                 <li key={v.id} className="flex items-center justify-between gap-2 py-2">
                                     <div>
                                         {v.id === plan.id ? <span className="font-medium">v{v.version_no}</span> : <Link href={route('performance.plans.show', v.id)} className="text-[color:var(--color-primary)] hover:underline">v{v.version_no}</Link>}
-                                        {v.change_reason && <span className="ml-2 text-xs text-gray-500">{v.change_reason}</span>}
+                                        {v.change_reason && <span className="ml-2 text-xs text-[color:var(--app-muted-foreground)]">{v.change_reason}</span>}
                                     </div>
                                     <span className="flex items-center gap-2 text-xs"><LocalizedDateDisplay value={v.published_at} withTime fallback="" /><Pill group="plan" value={v.status} /></span>
                                 </li>
@@ -273,7 +273,7 @@ function ObjectiveCard({ objective, can, plan, kpis, parentTargets, options, str
                                 </td>
                                 <td className={`${tdCls} tabular-nums`}>
                                     {target.target_numerator !== null ? `${formatScore(target.target_numerator)} / ${formatScore(target.target_denominator)}` : formatScore(target.target_value)} {target.kpi.unit ?? ''}
-                                    {target.baseline_value !== null && <span className="block text-xs text-gray-500">{t('performance.fields.baseline')}: {formatScore(target.baseline_value)}</span>}
+                                    {target.baseline_value !== null && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{t('performance.fields.baseline')}: {formatScore(target.baseline_value)}</span>}
                                 </td>
                                 <td className={`${tdCls} whitespace-nowrap text-xs`}><LocalizedDateDisplay value={target.period[0]} /> – <LocalizedDateDisplay value={target.period[1]} /></td>
                                 <td className={`${tdCls} tabular-nums`}>{formatScore(target.weight)}</td>
@@ -318,7 +318,7 @@ function PeriodTargetsForm({ target, cycleStart, onDone }: { target: Target; cyc
     return <form onSubmit={submit} className="mt-3 rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
         <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-semibold">{t('performance.plans.periodTargets')}</p><select className={`${inputCls} w-auto`} value={periodType} onChange={(e) => switchType(e.target.value as 'QUARTER' | 'MONTH')}><option value="QUARTER">{t('performance.plans.quarterly')}</option><option value="MONTH">{t('performance.plans.monthly')}</option></select></div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{form.data.period_targets.map((row, index) => <Field key={row.period_number} label={periodType === 'QUARTER' ? quarterLabel(t, row.period_number) : months[row.period_number - 1]} error={(form.errors as Record<string, string>)[`period_targets.${index}.target_value`]}><input className={inputCls} inputMode="decimal" value={row.target_value} onChange={(e) => form.setData('period_targets', form.data.period_targets.map((item, i) => i === index ? { ...item, target_value: e.target.value } : item))} /></Field>)}</div>
-        <p className="mt-2 text-xs text-gray-500">{t('performance.plans.periodTargetsHelp')}</p>
+        <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('performance.plans.periodTargetsHelp')}</p>
         <div className="mt-3 flex justify-end gap-2"><button type="button" className={secondaryBtn} onClick={onDone}>{t('performance.actions.cancel')}</button><button className={primaryBtn} disabled={form.processing}>{t('performance.actions.save')}</button></div>
     </form>;
 }
@@ -460,7 +460,7 @@ function CascadeRow({ planId, parent, modes, canEdit }: { planId: string; parent
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0 text-sm">
                     <p className="font-medium">{parent.code} — {titleOf(parent, locale)}</p>
-                    <p className="text-xs text-gray-500">{t('performance.fields.weight')} {formatScore(parent.weight)}{parent.is_mandatory && ` · ${t('performance.fields.mandatory')}`}</p>
+                    <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.fields.weight')} {formatScore(parent.weight)}{parent.is_mandatory && ` · ${t('performance.fields.mandatory')}`}</p>
                 </div>
                 {parent.cascaded ? <span className="text-xs text-emerald-700 dark:text-emerald-400">{t('performance.plans.alreadyCascaded')}</span> : canEdit && (
                     <div className="flex gap-2">
@@ -509,7 +509,7 @@ function PlanTraceView({ trace }: { trace: PlanTrace }) {
     const label = useEnumLabel();
     return (
         <div className="space-y-4">
-            <p className="text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{trace.score === null ? <span className="text-sm font-normal text-gray-500">{t('performance.notCalculated')}</span> : `${formatScore(trace.score)}%`}</p>
+            <p className="text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{trace.score === null ? <span className="text-sm font-normal text-[color:var(--app-muted-foreground)]">{t('performance.notCalculated')}</span> : `${formatScore(trace.score)}%`}</p>
             {trace.objectives.map((objective) => (
                 <div key={objective.objective_id}>
                     <div className="flex items-center justify-between gap-2 text-sm">
@@ -525,11 +525,11 @@ function PlanTraceView({ trace }: { trace: PlanTrace }) {
                     </>}>
                         {objective.targets.map((row) => (
                             <tr key={row.target_id}>
-                                <td className={tdCls}>{row.kpi_code} — {(locale === 'am' && row.kpi_name_am) || row.kpi_name_en}{row.achievement_formula && <p className="font-mono text-[11px] text-gray-500">{row.achievement_formula}</p>}</td>
+                                <td className={tdCls}>{row.kpi_code} — {(locale === 'am' && row.kpi_name_am) || row.kpi_name_en}{row.achievement_formula && <p className="font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{row.achievement_formula}</p>}</td>
                                 <td className={`${tdCls} tabular-nums`}>{formatScore(row.target)}</td>
                                 <td className={`${tdCls} tabular-nums`}>{formatScore(row.actual)}</td>
                                 <td className={`${tdCls} w-40`}><span className="tabular-nums">{row.achievement === null ? '—' : `${formatScore(row.achievement)}%`}</span><Bar value={row.achievement} /></td>
-                                <td className={tdCls}><Pill group="health" value={row.health} />{row.lineage?.source === 'contributors' && <span className="block text-[11px] text-gray-500">{label('source', 'FORMULA')}</span>}</td>
+                                <td className={tdCls}><Pill group="health" value={row.health} />{row.lineage?.source === 'contributors' && <span className="block text-[11px] text-[color:var(--app-muted-foreground)]">{label('source', 'FORMULA')}</span>}</td>
                             </tr>
                         ))}
                     </Table>

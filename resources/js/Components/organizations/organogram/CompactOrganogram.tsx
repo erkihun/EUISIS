@@ -24,7 +24,7 @@ function CompactPositionRow({ position }: { position: OrganogramTree['direct_pos
     return (
         <li className="flex items-center gap-1.5 border-t border-[color:var(--app-border)] px-2 py-1 text-left">
             <span className="min-w-0 flex-1 truncate text-[10px] text-[color:var(--app-foreground)]">
-                {position.code && <span className="font-mono text-gray-400">{position.code} </span>}
+                {position.code && <span className="font-mono text-[color:var(--app-muted-foreground)]">{position.code} </span>}
                 {localizedName(position.name_en, position.name_am, locale)}
             </span>
             {employee ? (

@@ -131,7 +131,7 @@ export default function OrganizationsIndex({
             <form onSubmit={submit} className="mt-4 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
                 <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                     <div className="relative min-w-0 flex-1">
-                        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
                         <input type="search" value={values.search} onChange={(event) => setValues({ ...values, search: event.target.value })} placeholder={t('organizations.searchByCodeOrName')} className={`${filterInputCls} w-full pl-9`} />
                     </div>
                     <select className={filterInputCls} value={values.type} onChange={(event) => { const type = event.target.value; setValues({ ...values, type }); navigate({ type, page: 1 }); }} aria-label={t('organizations.filterByType')}>

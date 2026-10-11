@@ -22,7 +22,7 @@ interface Props {
 
 export default function OrganizationUnitStatusBadge({ status, className = '' }: Props) {
     const { t } = useLocale();
-    const colorClass = colorMap[status as OrganizationUnitStatus] ?? 'bg-gray-100 text-gray-600';
+    const colorClass = colorMap[status as OrganizationUnitStatus] ?? 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]';
     const labelKey = labelKeyMap[status as OrganizationUnitStatus];
     const label = labelKey ? t(labelKey) : status;
     return (

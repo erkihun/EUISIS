@@ -14,7 +14,7 @@ export default function ChartCard({ title, description, children, footer, action
     return (
         <section
             aria-labelledby={titleId}
-            className="min-w-0 overflow-hidden rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)]"
+            className="min-w-0 overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]"
         >
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-[color:var(--app-border)] px-4 py-3 sm:px-5">
                 <h2 id={titleId} className="text-sm font-semibold text-[color:var(--app-foreground)]">

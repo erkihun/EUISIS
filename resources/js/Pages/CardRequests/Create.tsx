@@ -78,9 +78,9 @@ export default function CardRequestCreate({ employees, employeesTruncated, filte
                                 {form.errors.request_type && <p role="alert" className="mt-1 text-xs text-red-600">{form.errors.request_type}</p>}
                             </div>
                             <div>
-                                <label htmlFor="request-reason" className="mb-2 flex flex-wrap justify-between gap-1 text-sm font-medium text-[color:var(--app-foreground)]">{label('requestReason')}<span className="text-xs font-normal text-gray-400">{t('common.optional')}</span></label>
+                                <label htmlFor="request-reason" className="mb-2 flex flex-wrap justify-between gap-1 text-sm font-medium text-[color:var(--app-foreground)]">{label('requestReason')}<span className="text-xs font-normal text-[color:var(--app-muted-foreground)]">{t('common.optional')}</span></label>
                                 <textarea id="request-reason" className={input + ' min-h-32 resize-y'} maxLength={1000} placeholder={label('requestReason')} value={form.data.reason} onChange={(event) => form.setData('reason', event.target.value)} aria-describedby="reason-length" />
-                                <p id="reason-length" className="mt-1 text-right text-xs tabular-nums text-gray-400">{form.data.reason.length} / 1000</p>
+                                <p id="reason-length" className="mt-1 text-right text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{form.data.reason.length} / 1000</p>
                                 {form.errors.reason && <p role="alert" className="mt-1 text-xs text-red-600">{form.errors.reason}</p>}
                             </div>
                             <div className="rounded-lg bg-[color:var(--app-surface-muted)] p-4">
@@ -99,12 +99,12 @@ export default function CardRequestCreate({ employees, employeesTruncated, filte
                             </div>
                             <label htmlFor="employee-search" className="sr-only">{label('searchEmployees')}</label>
                             <div className="relative mt-5">
-                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-gray-400"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg>
+                                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="pointer-events-none absolute left-3 top-3 h-5 w-5 text-[color:var(--app-muted-foreground)]"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg>
                                 <input id="employee-search" type="search" className={input + ' pl-10'} placeholder={label('searchEmployees')} value={search} onChange={(event) => setSearch(event.target.value)} />
                             </div>
                             <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                                 <label className="flex cursor-pointer items-center gap-2 text-xs text-[color:var(--app-muted-foreground)]">
-                                    <input type="checkbox" className="rounded border-gray-300 text-[color:var(--color-primary)]" checked={selectedOnly} onChange={(event) => setSelectedOnly(event.target.checked)} />
+                                    <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)]" checked={selectedOnly} onChange={(event) => setSelectedOnly(event.target.checked)} />
                                     {label('showSelectedOnly')}
                                 </label>
                                 <div className="flex flex-wrap gap-1">
@@ -124,7 +124,7 @@ export default function CardRequestCreate({ employees, employeesTruncated, filte
                                 const checked = selected.has(employee.id);
                                 return (
                                     <label key={employee.id} className={'flex cursor-pointer items-center gap-3 border-b border-[color:var(--app-border)] px-5 py-4 transition last:border-0 sm:px-6 ' + (checked ? 'bg-blue-50/70 dark:bg-blue-950/25' : 'hover:bg-[color:var(--app-surface-muted)]')}>
-                                        <input type="checkbox" className="h-4 w-4 shrink-0 rounded border-gray-300 text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:opacity-40" checked={checked} disabled={!checked && remaining === 0} onChange={(event) => form.setData('employee_ids', event.target.checked ? [...form.data.employee_ids, employee.id] : form.data.employee_ids.filter((id) => id !== employee.id))} />
+                                        <input type="checkbox" className="h-4 w-4 shrink-0 rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:opacity-40" checked={checked} disabled={!checked && remaining === 0} onChange={(event) => form.setData('employee_ids', event.target.checked ? [...form.data.employee_ids, employee.id] : form.data.employee_ids.filter((id) => id !== employee.id))} />
                                         <span aria-hidden="true" className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--app-surface-muted)] text-sm font-semibold text-[color:var(--app-muted-foreground)] sm:flex">{employee.full_name.trim().slice(0, 1)}</span>
                                         <span className="min-w-0 flex-1">
                                             <span className="block break-words text-sm font-semibold text-[color:var(--app-foreground)]">{employee.full_name}</span>

@@ -304,7 +304,7 @@ export default function RelationshipPanel({
                                 type="checkbox"
                                 checked={form.data.is_primary}
                                 onChange={(e) => form.setData('is_primary', e.target.checked)}
-                                className="rounded border-gray-300"
+                                className="rounded border-[color:var(--app-border-strong)]"
                             />
                             {t('relationships.primary')}
                         </label>

@@ -189,7 +189,7 @@ export default function IsicActivitiesIndex({
                                                 <div className="flex justify-end gap-3">
                                                     <Link
                                                         href={route('isic-activities.show', act.id)}
-                                                        className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-gray-800"
+                                                        className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                                                     >
                                                         {t('common.view')}
                                                     </Link>

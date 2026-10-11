@@ -60,7 +60,7 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
                                     </td>
                                     <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)] max-w-xs truncate')}>
                                         {c.grievance?.subject ?? '-'}
-                                        <div className="text-xs text-gray-400">{c.grievance?.reference_number}</div>
+                                        <div className="text-xs text-[color:var(--app-muted-foreground)]">{c.grievance?.reference_number}</div>
                                     </td>
                                     <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{(am ? c.grievance?.organization?.name_am : null) ?? c.grievance?.organization?.name_en ?? '-'}</td>
                                     <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>

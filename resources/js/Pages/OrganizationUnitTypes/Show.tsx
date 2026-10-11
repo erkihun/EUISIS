@@ -89,7 +89,7 @@ export default function OrganizationUnitTypesShow({ type }: { type: OrgUnitType 
                 <div className="flex">
                     <Link
                         href={route('organization-unit-types.index')}
-                        className="text-sm text-[color:var(--app-muted-foreground)] hover:text-gray-700"
+                        className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                     >
                         {t('organizationUnitTypes.backToList')}
                     </Link>

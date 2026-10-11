@@ -235,7 +235,7 @@ export default function InstitutionOfficesEdit({
                                     setData('is_head_office', e.target.checked);
                                     if (e.target.checked) setData('parent_office_id', '');
                                 }}
-                                className="h-4 w-4 rounded border-gray-300"
+                                className="h-4 w-4 rounded border-[color:var(--app-border-strong)]"
                             />
                             <label htmlFor="is_head_office" className="text-sm font-medium text-[color:var(--app-foreground)]">
                                 {t('institutionOffices.isHeadOffice')}

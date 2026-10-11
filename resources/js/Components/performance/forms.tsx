@@ -53,7 +53,7 @@ export function AmendmentDiff({ original, proposed }: { original: Record<string,
     return (
         <ul className="text-xs">
             {Object.entries(proposed ?? {}).map(([key, value]) => (
-                <li key={key}><span className="text-gray-500">{key}:</span> <span className="tabular-nums">{formatScore(original?.[key] as string | null)} → {formatScore(value as string | null)}</span></li>
+                <li key={key}><span className="text-[color:var(--app-muted-foreground)]">{key}:</span> <span className="tabular-nums">{formatScore(original?.[key] as string | null)} → {formatScore(value as string | null)}</span></li>
             ))}
         </ul>
     );

@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 interface Endpoint {
     id: string;
     method: string;
@@ -184,7 +184,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                                 {endpoint.required_scope}
                                             </code>
                                         ) : (
-                                            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                            <span className={badgeClassName('warning')}>
                                                 {t('apiManagement.unmapped')}
                                             </span>
                                         )}

@@ -106,7 +106,7 @@ function ProgressLine({ label, complete, total }: { label: string; complete: num
 
 function SetupStep({ number, title, description, href }: { number: number; title: string; description: string; href: string }) {
     return (
-        <Link href={href} className="group flex gap-4 rounded-xl border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 transition hover:border-[color:var(--color-primary)] hover:shadow-sm">
+        <Link href={href} className="group flex gap-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 transition hover:border-[color:var(--color-primary)] hover:shadow-sm">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color:var(--color-primary)] text-sm font-semibold text-white">{number}</span>
             <span className="min-w-0">
                 <span className="flex items-center gap-2 font-semibold text-[color:var(--app-foreground)]">
@@ -128,7 +128,7 @@ function ActionRow({ icon: Icon, title, detail, href }: { icon: IconComponent; t
                 <span className="block text-sm font-semibold text-[color:var(--app-foreground)]">{title}</span>
                 <span className="mt-1 block text-xs leading-5 text-[color:var(--app-muted-foreground)]">{detail}</span>
             </span>
-            <ChevronRight className="mt-2 h-4 w-4 shrink-0 text-gray-400 transition-transform group-hover:translate-x-1 group-hover:text-[color:var(--color-primary)]" aria-hidden="true" />
+            <ChevronRight className="mt-2 h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)] transition-transform group-hover:translate-x-1 group-hover:text-[color:var(--color-primary)]" aria-hidden="true" />
         </>
     );
 
@@ -261,9 +261,9 @@ export default function PerformanceDashboard({ cycles, cycleId, organizationPlan
                                                     <p className="mt-0.5 truncate text-xs text-[color:var(--app-muted-foreground)]">{plan.title}</p>
                                                 </td>
                                                 <td className={tdCls}>
-                                                    <span className="text-sm tabular-nums">{plan.score === null ? <span className="text-xs text-gray-500">{t('performance.notCalculated')}</span> : `${formatScore(plan.score)}%`}</span>
+                                                    <span className="text-sm tabular-nums">{plan.score === null ? <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('performance.notCalculated')}</span> : `${formatScore(plan.score)}%`}</span>
                                                     <div className="mt-1.5"><Bar value={plan.score} /></div>
-                                                    {plan.as_of && <div className="mt-1 text-[11px] text-gray-400"><LocalizedDateDisplay value={plan.as_of} /></div>}
+                                                    {plan.as_of && <div className="mt-1 text-[11px] text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={plan.as_of} /></div>}
                                                 </td>
                                                 {can.recalculate && <td className={`${tdCls} text-right`}><button type="button" className={linkBtn} onClick={() => recalculate(plan.id)}>{t('performance.actions.recalculate')}</button></td>}
                                             </tr>

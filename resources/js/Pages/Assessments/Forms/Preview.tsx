@@ -68,12 +68,12 @@ export default function AssessmentFormPreview({ form, version }: Props) {
                                                     {pick(option.label_en, option.label_am) && <span className="block font-medium">{pick(option.label_en, option.label_am)}</span>}
                                                     <span className="block text-[color:var(--app-foreground)]">{pick(option.description_en, option.description_am)}</span>
                                                 </span>
-                                                <span className="shrink-0 tabular-nums text-gray-500">{Number(option.score)}</span>
+                                                <span className="shrink-0 tabular-nums text-[color:var(--app-muted-foreground)]">{Number(option.score)}</span>
                                             </label>
                                         ))}
                                     </div>
                                     {criterion.comment_mode !== 'disabled' && <textarea rows={2} aria-label={t('assessments.fields.comment')} placeholder={`${t('assessments.fields.comment')}${criterion.comment_mode === 'required' ? ' *' : ''}`} className={cx(textareaClassName, 'mt-2 w-full')} />}
-                                    {criterion.evidence_mode !== 'disabled' && <p className="mt-1 text-xs text-gray-500">{t('assessments.evidencePreview')}{criterion.evidence_mode === 'required' ? ' *' : ''}</p>}
+                                    {criterion.evidence_mode !== 'disabled' && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{t('assessments.evidencePreview')}{criterion.evidence_mode === 'required' ? ' *' : ''}</p>}
                                 </fieldset>
                             ))}
                         </div>
@@ -82,7 +82,7 @@ export default function AssessmentFormPreview({ form, version }: Props) {
 
                 <div className="sticky bottom-3 rounded-panel border border-[color:var(--app-border)] bg-white/95 px-4 py-3 text-sm shadow-lg backdrop-blur dark:bg-slate-950/95">
                     {t('assessments.previewTotal')}: <span className="font-semibold tabular-nums">{Math.round(total * 10000) / 10000} / {max}</span>
-                    {max > 0 && <span className="ms-2 text-gray-500">({Math.round((total / max) * 10000) / 100}%)</span>}
+                    {max > 0 && <span className="ms-2 text-[color:var(--app-muted-foreground)]">({Math.round((total / max) * 10000) / 100}%)</span>}
                 </div>
             </div>
         </AuthenticatedLayout>

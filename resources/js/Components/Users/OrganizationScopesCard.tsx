@@ -5,7 +5,7 @@ import { localizedName } from '@/utils/localizedName';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type OrganizationScope = {
     id: string;
     organization: { id: string; name_en: string; name_am?: string } | null;
@@ -353,7 +353,7 @@ export default function OrganizationScopesCard({ userId, scopes, organizations, 
                                                                             </span>
                                                                         )}
                                                                         {!isActiveOrg(o) && (
-                                                                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                                                                            <span className={badgeClassName('warning')}>
                                                                                 {t('users.userOrganizationScopes.inactiveOrganization')}
                                                                             </span>
                                                                         )}

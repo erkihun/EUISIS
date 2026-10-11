@@ -5,7 +5,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { FormEventHandler, useMemo, useState } from 'react';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Org = { id: string; name_en: string; name_am: string | null };
 type Pos = {
     id: string;
@@ -110,7 +110,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                     title={t('transfers.createAnnouncement')}
                     description={t('transfers.createAnnouncementHint')}
                     actions={<>
-                        <a href={route('transfer-announcements.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-gray-50">
+                        <a href={route('transfer-announcements.index')} className="rounded-lg border border-[color:var(--app-border-strong)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
                             {t('common.cancel')}
                         </a>
                         <button type="submit" form="transfer-announcement-draft" disabled={processing} className={buttonClassName({ variant: 'primary' })}>
@@ -389,7 +389,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
                 <aside className="self-start rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 xl:sticky xl:top-6">
                     <div className="flex items-center justify-between border-b border-[color:var(--app-border)] pb-4">
                         <h2 className="text-base font-semibold text-[color:var(--app-foreground)]">{t('transfers.draftSummary')}</h2>
-                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">{t('transfers.statusDraft')}</span>
+                        <span className={badgeClassName('warning')}>{t('transfers.statusDraft')}</span>
                     </div>
                     <dl className="mt-4 space-y-3 text-sm">
                         <div className="flex justify-between gap-4"><dt className="text-[color:var(--app-muted-foreground)]">{t('transfers.includedPositions')}</dt><dd className="font-semibold text-[color:var(--app-foreground)]">{data.positions.filter((row) => row.position_id).length}</dd></div>

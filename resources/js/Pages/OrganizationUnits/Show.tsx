@@ -212,7 +212,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                         >
                                             {localizedName(child.name_en, child.name_am, locale)}
                                         </Link>
-                                        <span className="ml-2 font-mono text-xs text-gray-400">{child.code}</span>
+                                        <span className="ml-2 font-mono text-xs text-[color:var(--app-muted-foreground)]">{child.code}</span>
                                     </div>
                                     <div className="flex gap-2">
                                         <OrganizationUnitTypeBadge unitType={child.unit_type} />
@@ -240,7 +240,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                 <div className="flex gap-2">
                     <Link
                         href={route('organization-units.index')}
-                        className="text-sm text-[color:var(--app-muted-foreground)] hover:text-gray-700"
+                        className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
                     >
                         {t('organizationUnits.backToList')}
                     </Link>

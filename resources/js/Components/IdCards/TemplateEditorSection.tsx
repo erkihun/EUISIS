@@ -37,12 +37,12 @@ export default function TemplateEditorSection({
                 type="button"
                 onClick={() => setOpen((value) => !value)}
                 aria-expanded={open}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-slate-900/60"
+                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[color:var(--app-surface-muted)]"
             >
                 <svg
                     viewBox="0 0 20 20"
                     aria-hidden="true"
-                    className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${open ? 'rotate-90' : ''}`}
+                    className={`h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)] transition-transform ${open ? 'rotate-90' : ''}`}
                 >
                     <path d="M7 4l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
