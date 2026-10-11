@@ -41,6 +41,8 @@ class PositionProfileService
         $this->assertReportsTo($position, $data['reports_to_position_id'] ?? null);
 
         return DB::transaction(function () use ($actor, $position, $data): PositionProfile {
+            // Serialise "one draft per position" on the position row.
+            Position::query()->whereKey($position->getKey())->lockForUpdate()->first();
             $lineage = PositionProfile::query()->where('position_id', $position->getKey())->value('lineage_key');
             if ($lineage !== null && PositionProfile::query()->where('lineage_key', $lineage)->where('status', OrganizationDesignStatus::Draft)->exists()) {
                 throw ValidationException::withMessages(['status' => __('organization-design.profile_draft_exists')]);

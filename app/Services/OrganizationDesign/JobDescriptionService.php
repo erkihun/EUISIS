@@ -60,6 +60,8 @@ class JobDescriptionService
         }
 
         return DB::transaction(function () use ($actor, $position, $profile, $data): JobDescription {
+            // Serialise "one document in progress per position" on the position row.
+            Position::query()->whereKey($position->getKey())->lockForUpdate()->first();
             $lineage = JobDescription::query()->where('position_id', $position->getKey())->value('lineage_key');
             if ($lineage !== null && JobDescription::query()->where('lineage_key', $lineage)->whereIn('status', [OrganizationDesignStatus::Draft->value, OrganizationDesignStatus::UnderReview->value, OrganizationDesignStatus::Approved->value])->exists()) {
                 throw ValidationException::withMessages(['status' => __('organization-design.jd_draft_exists')]);
