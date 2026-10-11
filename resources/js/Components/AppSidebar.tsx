@@ -302,6 +302,32 @@ const navGroups: NavGroup[] = [
             { routeName: 'assessment-oversight.setup', labelKey: 'nav.assessmentOversightSetup', icon: SettingsIcon, anyPermission: ['assessment_oversight.manage_cycles', 'assessment_oversight.manage_policies'] },
         ],
     },
+    /*
+     * Organization Design & Workforce Planning: the design chain from the
+     * legal mandate down to job descriptions. Every page re-checks scope.
+     */
+    {
+        key: 'organizationDesign',
+        labelKey: 'nav.groupOrganizationDesign',
+        icon: NetworkIcon,
+        items: [
+            { routeName: 'organization-design.mandates.index', labelKey: 'nav.designMandates', icon: ScrollText, permission: 'institution-mandates.viewAny' },
+            { routeName: 'organization-design.functions.index', labelKey: 'nav.designFunctions', icon: GitForkIcon, permission: 'organization-functions.viewAny' },
+            { routeName: 'organization-design.services.index', labelKey: 'nav.designServices', icon: Layers, permission: 'service-catalog.viewAny' },
+            { routeName: 'organization-design.classifications.index', labelKey: 'nav.designClassifications', icon: TagsIcon, permission: 'classifications.viewAny' },
+            { routeName: 'organization-design.processes.index', labelKey: 'nav.designProcesses', icon: ActivityIcon, permission: 'processes.viewAny' },
+            { routeName: 'organization-design.professions.index', labelKey: 'nav.designProfessions', icon: HardHatIcon, anyPermission: ['occupations.viewAny', 'professions.manage'] },
+            { routeName: 'organization-design.competency-catalog.index', labelKey: 'nav.designCompetencyCatalog', icon: BadgeCheckIcon, anyPermission: ['competency-catalog.viewAny', 'competency-catalog.manage'] },
+            { routeName: 'organization-design.studies.index', labelKey: 'nav.designStudies', icon: ClipboardListIcon, permission: 'organization-design.viewAny' },
+            { routeName: 'organization-design.responsibilities.index', labelKey: 'nav.designResponsibilities', icon: HandshakeIcon, permission: 'organization-design.viewAny' },
+            { routeName: 'organization-design.structure.index', labelKey: 'nav.designStructure', icon: GitBranchIcon, permission: 'organization-design.viewAny' },
+            { routeName: 'organization-design.methodologies.index', labelKey: 'nav.designMethodologies', icon: HashIcon, permission: 'methodologies.viewAny' },
+            { routeName: 'organization-design.manpower-plans.index', labelKey: 'nav.designManpowerPlans', icon: Users, permission: 'workforce-planning.viewAny' },
+            { routeName: 'organization-design.position-design.index', labelKey: 'nav.designPositions', icon: Briefcase, anyPermission: ['position-profiles.viewAny', 'job-descriptions.viewAny'] },
+            { routeName: 'organization-design.reports.index', labelKey: 'nav.designReports', icon: FileChartIcon, permission: 'organization-design-reports.view' },
+            { routeName: 'organization-design.mapping.index', labelKey: 'nav.designMapping', icon: SearchIcon, permission: 'data-mapping.view' },
+        ],
+    },
     {
         key: 'employeeManagement',
         labelKey: 'nav.groupEmployeeManagement',

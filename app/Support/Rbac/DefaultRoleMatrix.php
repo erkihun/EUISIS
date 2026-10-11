@@ -184,6 +184,39 @@ final class DefaultRoleMatrix
             ], 'Keeps employee records, imports, card requests and transfer paperwork within scope. The only default role that sees employee personal identifiers (employees.viewPii).',
                 'በወሰኑ ውስጥ የሠራተኛ መዝገቦችን፣ ማስገባቶችን፣ የመታወቂያ ጥያቄዎችን እና የዝውውር ሰነዶችን ይይዛል። የሠራተኞችን የግል መለያ የሚያይ ብቸኛው ነባሪ ሚና።'),
 
+            // ── Organization Design & Workforce Planning (designer ≠ approver) ─
+            // Records enforce maker ≠ checker themselves; the roles keep the two
+            // seats apart by default. City-level catalogs have their own role.
+            'Organization Designer' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...self::STRUCTURE_READ,
+                'institution-mandates.viewAny', 'institution-mandates.view', 'institution-mandates.create', 'institution-mandates.update',
+                'organization-functions.viewAny', 'organization-functions.manage',
+                'service-catalog.viewAny', 'service-catalog.view', 'service-catalog.create', 'service-catalog.update', 'classifications.viewAny',
+                'processes.viewAny', 'processes.view', 'processes.create', 'processes.update', 'work_standards.manage', 'competency-catalog.viewAny',
+                'organization-design.viewAny', 'organization-design.view', 'organization-design.create', 'organization-design.update',
+                'workforce-planning.viewAny', 'workforce-planning.view', 'workforce-planning.create', 'workforce-planning.update', 'methodologies.viewAny',
+                'position-profiles.viewAny', 'position-profiles.manage', 'job-descriptions.viewAny', 'job-descriptions.manage',
+                'organization-design-reports.view', 'data-mapping.view',
+            ], 'Drafts the design of organizations in scope: mandates, functions, services, processes and standards, design studies, manpower plans, position profiles and job descriptions. Never approves or publishes.',
+                'በወሰኑ ውስጥ ያሉ ተቋማትን ንድፍ ያረቅቃል፡ ሥልጣኖች፣ ተግባራት፣ አገልግሎቶች፣ ሂደቶችና ስታንዳርዶች፣ የንድፍ ጥናቶች፣ የሰው ኃይል ዕቅዶች፣ የሥራ መደብ መገለጫዎችና የሥራ መግለጫዎች። በጭራሽ አያጸድቅም ወይም አያትምም።'),
+            'Organization Design Approver' => self::role(self::SCOPE_SCOPED, [
+                'dashboard.view', ...self::STRUCTURE_READ,
+                'institution-mandates.viewAny', 'institution-mandates.view', 'institution-mandates.approve',
+                'organization-functions.viewAny', 'service-catalog.viewAny', 'service-catalog.view', 'service-catalog.approve', 'classifications.viewAny',
+                'processes.viewAny', 'processes.view', 'processes.approve', 'work_standards.approve', 'competency-catalog.viewAny',
+                'organization-design.viewAny', 'organization-design.view', 'organization-design.review', 'organization-design.approve',
+                'workforce-planning.viewAny', 'workforce-planning.view', 'workforce-planning.review', 'workforce-planning.approve', 'workforce-planning.implement', 'methodologies.viewAny',
+                'position-profiles.viewAny', 'position-profiles.approve', 'job-descriptions.viewAny', 'job-descriptions.approve', 'job-descriptions.publish',
+                'organization-design-reports.view', 'organization-design-reports.export', 'data-mapping.view',
+            ], 'Reviews, approves and publishes the design drafted by others in scope, implements approved manpower plans, and exports the design reports. Cannot draft.',
+                'በወሰኑ ውስጥ በሌሎች የተረቀቀውን ንድፍ ይገመግማል፣ ያጸድቃል እና ያትማል፣ የጸደቁ የሰው ኃይል ዕቅዶችን ይተገብራል፣ የንድፍ ሪፖርቶችን ወደ ውጭ ይልካል። ማርቀቅ አይችልም።'),
+            'Design Catalog Manager' => self::role(self::SCOPE_GLOBAL, [
+                'dashboard.view', 'occupations.viewAny', 'occupations.view',
+                'classifications.viewAny', 'classifications.manage', 'professions.manage', 'competency-catalog.viewAny', 'competency-catalog.manage',
+                'responsibility-types.manage', 'methodologies.viewAny', 'methodologies.manage', 'methodologies.approve', 'data-mapping.view',
+            ], 'City-level master data of the design: service and ISIC/CPC/ISCO classifications, professions, the competency catalog, responsibility types and planning methodologies. Official datasets only; nothing organization-specific.',
+                'የንድፉ የከተማ ደረጃ ዋና መረጃ፡ የአገልግሎትና የISIC/CPC/ISCO ምደባዎች፣ ሙያዎች፣ የብቃት ካታሎግ፣ የኃላፊነት ዓይነቶችና የዕቅድ ዘዴዎች። ይፋዊ መረጃዎች ብቻ፤ የተቋም-ተኮር ነገር የለም።'),
+
             // ── Structure change workflow (requester ≠ reviewer ≠ implementer) ─
             'Structure Change Requester' => self::role(self::SCOPE_SCOPED, ['dashboard.view', ...self::STRUCTURE_READ, ...self::CHANGE_REQUESTER],
                 'Raises organization-unit and position change requests. Requesting never grants the right to edit the structure.',
