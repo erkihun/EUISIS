@@ -11,8 +11,13 @@ const tones: Record<Tone, string> = {
     danger: 'bg-red-50 text-red-800 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-900',
 };
 
+/** The badge style, for markup that must stay a plain element. */
+export function badgeClassName(tone: Tone = 'neutral', className?: string): string {
+    return cx('inline-flex items-center rounded-[var(--radius-control)] px-2 py-0.5 text-xs font-medium ring-1 ring-inset', tones[tone], className);
+}
+
 export function StatusBadge({ tone = 'neutral', children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
-    return <span className={cx('inline-flex items-center rounded-[var(--radius-control)] px-2 py-0.5 text-xs font-medium ring-1 ring-inset', tones[tone], className)}>{children}</span>;
+    return <span className={badgeClassName(tone, className)}>{children}</span>;
 }
 
 export function Alert({ tone = 'info', title, children, className, ...props }: Omit<HTMLAttributes<HTMLDivElement>, 'title'> & { tone?: Tone; title?: ReactNode }) {

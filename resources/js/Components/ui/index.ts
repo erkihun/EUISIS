@@ -29,6 +29,7 @@ export {
     Textarea,
     Tooltip,
     UiProvider,
+    badgeClassName,
     buttonClassName,
     controlClassName,
     inputClassName,

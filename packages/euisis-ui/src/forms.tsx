@@ -23,6 +23,9 @@ const controlBase = cx(
     'focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20',
     'disabled:cursor-not-allowed disabled:bg-[color:var(--app-surface-muted)] disabled:opacity-70',
     'aria-[invalid=true]:border-red-600 aria-[invalid=true]:ring-red-600/20',
+    // On a <select>, keep room for the native chevron: `:is(select)` outranks
+    // `px-3`, so one shared input style serves inputs and selects alike.
+    '[&:is(select)]:pr-9',
 );
 
 /** Single-line input; no width (add `w-full`, `w-40`, …). */

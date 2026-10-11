@@ -12,7 +12,7 @@ export function cx(...classes: Array<string | false | null | undefined>): string
     return classes.filter(Boolean).join(' ');
 }
 
-export type ButtonVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'link';
+export type ButtonVariant = 'default' | 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive' | 'destructiveOutline' | 'link';
 export type ButtonSize = 'xs' | 'sm' | 'default' | 'md' | 'lg' | 'icon';
 
 const buttonVariants: Record<ButtonVariant, string> = {
@@ -23,6 +23,8 @@ const buttonVariants: Record<ButtonVariant, string> = {
     outline: 'border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]',
     ghost: 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]',
     destructive: 'bg-red-700 text-white hover:bg-red-800 dark:bg-red-700 dark:hover:bg-red-600',
+    // A harmful action that is not the page's main one (Remove, Revoke next to Save).
+    destructiveOutline: 'border border-red-300 bg-[color:var(--app-surface)] text-red-700 hover:bg-red-50 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/30',
     link: 'h-auto p-0 text-[color:var(--color-primary)] underline-offset-4 hover:underline',
 };
 
