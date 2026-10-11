@@ -21,6 +21,8 @@ beforeEach(function (): void {
     $this->s->enroll($this->org2, '150.00', $this->s->branch, crossLocation: true);
     $this->settlements = app(CafeteriaSettlementService::class);
     $this->actor = User::factory()->create();
+    // Decision D-6: the person who drafted a settlement never finalizes it.
+    $this->finalizer = User::factory()->create();
     $this->scan = fn ($card, $cafeteria, string $at) => app(CafeteriaQrScanService::class)->process($card, $cafeteria, Carbon::parse($at));
     $this->period = [Carbon::parse('2026-09-01'), Carbon::parse('2026-09-30')];
 });
@@ -51,7 +53,7 @@ test('49 52 settlements use the applied snapshot; a later policy change moves no
     // The policy rate changes after the meal was recorded.
     CafeteriaServicePolicy::query()->where('organization_id', $this->org2->id)->update(['daily_subsidy_amount' => '999.00', 'provider_price' => '999.00']);
 
-    $settlement = $this->settlements->finalize($this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]), $this->actor);
+    $settlement = $this->settlements->finalize($this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]), $this->finalizer);
 
     expect($settlement->status)->toBe(CafeteriaSettlementStatus::Finalized)
         ->and((string) $settlement->total_subsidy_amount)->toBe('150.00');
@@ -61,6 +63,18 @@ test('49 52 settlements use the applied snapshot; a later policy change moves no
         ->toThrow(ValidationException::class)
         ->and(fn () => $this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]))
         ->toThrow(ValidationException::class);
+});
+
+test('D-6 the person who drafted a settlement cannot finalize it', function (): void {
+    [, $card] = $this->s->employee($this->org1);
+    ($this->scan)($card, $this->s->main, '2026-09-21 12:00');
+    $draft = $this->settlements->createDraft($this->s->provider, ...[...$this->period, $this->actor]);
+
+    expect(fn () => $this->settlements->finalize($draft, $this->actor))->toThrow(ValidationException::class);
+    expect($draft->fresh()->status)->toBe(CafeteriaSettlementStatus::Draft);
+
+    expect($this->settlements->finalize($draft, $this->finalizer)->status)->toBe(CafeteriaSettlementStatus::Finalized)
+        ->and($draft->fresh()->finalized_by)->toBe($this->finalizer->id);
 });
 
 test('a cancelled draft releases its transactions for a new settlement', function (): void {

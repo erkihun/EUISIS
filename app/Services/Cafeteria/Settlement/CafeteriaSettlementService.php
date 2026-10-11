@@ -94,6 +94,11 @@ class CafeteriaSettlementService
             if ($settlement->status !== CafeteriaSettlementStatus::Draft) {
                 throw ValidationException::withMessages(['status' => __('cafeteria-policy.validation.settlement_not_draft')]);
             }
+            // Decision D-6: money leaves only on a second person's word, as for
+            // policies, assessment submissions and restores. No override.
+            if ($settlement->generated_by !== null && (int) $settlement->generated_by === (int) $actor->id) {
+                throw ValidationException::withMessages(['finalized_by' => __('cafeteria-policy.validation.settlement_same_person')]);
+            }
 
             CafeteriaTransaction::query()
                 ->where('cafeteria_settlement_id', $settlement->id)

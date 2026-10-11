@@ -62,6 +62,7 @@ return [
         'end_before_start' => 'The end date cannot be before the start date.',
         'settlement_period' => 'The settlement period is invalid.',
         'settlement_not_draft' => 'Only a draft settlement can be finalized or cancelled.',
+        'settlement_same_person' => 'The person who drafted this settlement cannot finalize it. Another authorized person must finalize it.',
         'settlement_empty' => 'There are no unsettled transactions for this provider and period.',
         'settlement_overlap' => 'Some transactions in this period are already in another settlement.',
     ],

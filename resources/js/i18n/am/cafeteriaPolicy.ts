@@ -226,6 +226,7 @@ const cafeteriaPolicy = {
     providerAmount: 'ለአቅራቢ የሚከፈል',
     finalize: 'አጠናቅቅ',
     finalizeWarning: 'የተጠናቀቀ የሒሳብ ማወራረጃ አይቀየርም፣ ግብይቶቹም ከዚህ በኋላ አይመለሱም።',
+    finalizeByAnother: 'ይህን የሒሳብ ማወራረጃ ያዘጋጁት እርስዎ ስለሆኑ ሌላ ሥልጣን ያለው ሰው ማጠናቀቅ አለበት።',
     cancelSettlement: 'የሒሳብ ማወራረጃ ሰርዝ',
     unattributed: 'ያልተመደበ (ቀደምት)',
     liabilityByOrganization: 'የተቋም ዕዳ',

@@ -99,7 +99,11 @@ class CafeteriaSettlementController extends Controller
                 'provider_amount' => (string) $l->provider_amount,
             ])->values(),
             'byOrganization' => $this->liabilityByOrganization($settlement),
-            'can' => ['manage' => $request->user()->can('cafeteria_settlements.manage')],
+            'can' => [
+                'manage' => $request->user()->can('cafeteria_settlements.manage'),
+                // D-6: the drafter never finalizes; another manager must.
+                'finalize' => $request->user()->can('cafeteria_settlements.manage') && (int) $settlement->generated_by !== (int) $request->user()->id,
+            ],
         ]);
     }
 

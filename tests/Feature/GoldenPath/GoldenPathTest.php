@@ -243,8 +243,11 @@ test('80 golden path: from a new organization to a settled, exported cafeteria m
     $period = ['provider_id' => $provider->id, 'period_start' => '2026-09-01', 'period_end' => '2026-09-30'];
     $this->actingAs($this->maker)->post(route('cafeteria.settlements.store'), $period)->assertSessionHasNoErrors()->assertRedirect();
     $settlement = CafeteriaSettlement::query()->sole();
+    // D-6: the drafter is not offered finalize; the second person is.
+    $this->actingAs($this->maker)->get(route('cafeteria.settlements.show', $settlement))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('can.finalize', false));
     $this->actingAs($this->checker)->get(route('cafeteria.settlements.show', $settlement))->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('byOrganization.0.employee_organization.code', $organization->code)
+        ->assertInertia(fn (Assert $page) => $page->where('can.finalize', true)->where('byOrganization.0.employee_organization.code', $organization->code)
             ->where('byOrganization.0.transaction_count', 1)
             ->where('byOrganization.0.subsidy_amount', '150.00'));
     $this->actingAs($this->checker)->post(route('cafeteria.settlements.finalize', $settlement))->assertSessionHasNoErrors();
