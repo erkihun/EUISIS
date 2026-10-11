@@ -204,7 +204,7 @@ function InfoCard({ card, index, inView, muted = false }: { card: Card; index: n
                     ) : (
                         <h3 className="text-[15px] font-semibold text-gray-900 dark:text-slate-100">{t(`home.${card.key}Title`)}</h3>
                     )}
-                    <p className={`${muted ? 'mt-3 text-gray-600 dark:text-slate-300' : 'mt-2 text-gray-600 dark:text-slate-400'} text-justify text-[13px] leading-relaxed`}>{t(`home.${card.key}Desc`)}</p>
+                    <p className={`${muted ? 'mt-3 text-gray-600 dark:text-slate-300' : 'mt-2 text-gray-600 dark:text-slate-400'} text-[13px] leading-relaxed`}>{t(`home.${card.key}Desc`)}</p>
                 </div>
                 <div className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-panel ring-1 shadow-sm transition duration-200 group-hover:scale-105 ${TONE_ICON[card.tone]}`}>
                     <Icon className="h-5 w-5" aria-hidden="true" />
@@ -270,7 +270,7 @@ function ServicesSection() {
                                 </div>
                                 <div className="min-w-0">
                                     <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{t(`home.${card.key}Title`)}</h4>
-                                    <p className="mt-1 text-justify text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">{t(`home.${card.key}Desc`)}</p>
+                                    <p className="mt-1 text-[13px] leading-relaxed text-slate-500 dark:text-slate-400">{t(`home.${card.key}Desc`)}</p>
                                 </div>
                             </div>
                         );
@@ -506,7 +506,7 @@ export default function Welcome() {
                     >
                         <QrCodeIcon className="h-8 w-8" aria-hidden="true" />
                         <h2 id="verify-heading" className="home-heading-start text-2xl font-bold">{t('home.verifySectionTitle')}</h2>
-                        <p className="text-justify text-[15px] leading-relaxed text-blue-100">{t('home.verifySectionBody')}</p>
+                        <p className="text-[15px] leading-relaxed text-blue-100">{t('home.verifySectionBody')}</p>
                         <Link href={route('public.verify')} className={`${heroPrimaryCls} mt-2 self-start`}>
                             {t('home.heroCtaVerify')}
                             <ArrowRightIcon className="h-4 w-4" aria-hidden="true" />

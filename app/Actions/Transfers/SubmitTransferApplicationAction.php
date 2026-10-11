@@ -55,7 +55,7 @@ readonly class SubmitTransferApplicationAction
                     : 'local';
                 $disk = Storage::disk($diskName ?: 'local');
                 if (str_contains($source->file_path, '..') || ! $disk->exists($source->file_path)) {
-                    throw new DomainException('A selected employee document is no longer available.');
+                    throw new DomainException(__('transfers.documentUnavailable'));
                 }
                 $path = 'transfer-documents/'.$application->id.'/'.Str::uuid7();
                 Storage::disk('local')->put($path, $disk->get($source->file_path));
@@ -107,7 +107,7 @@ readonly class SubmitTransferApplicationAction
                     ->find($reuseIds[$index]);
             }
             if ($upload === null && $reuse === null) {
-                throw new DomainException("Required document missing: {$type}.");
+                throw new DomainException(__('transfers.requiredDocumentMissing', ['type' => $type]));
             }
             $documents[] = ['type' => $type, 'upload' => $upload, 'reuse' => $reuse];
         }

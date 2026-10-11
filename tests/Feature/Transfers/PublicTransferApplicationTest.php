@@ -338,3 +338,66 @@ test('show page marks already_applied true when employee has active application'
         ->assertOk()
         ->assertInertia(fn ($page) => $page->where('already_applied', true));
 });
+
+// ── Required documents and refusals in the visitor's language ─────────────────
+
+test('the apply page lists every required document, from the settings and the announcement', function (): void {
+    $announcementOrg = ptaOrg('ANN6');
+    $releasingOrg = ptaOrg('REL6');
+    $pos = ptaPosition($announcementOrg->id);
+    $ann = ptaPublishedAnnouncement($announcementOrg->id, $pos->id);
+    $ann->update(['required_documents' => ['Letter of release', ' Letter of release ']]);
+    TransferSetting::current()->update(['required_documents' => ['Latest performance evaluation']]);
+
+    ['user' => $user] = ptaEmployeeUser($releasingOrg->id);
+
+    $this->actingAs($user)
+        ->get(route('public.transfer-announcements.apply', $ann))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Public/TransferAnnouncements/Apply')
+            ->where('announcement.required_documents', ['Latest performance evaluation', 'Letter of release']));
+});
+
+test('a missing required document is refused in the visitor language', function (): void {
+    $announcementOrg = ptaOrg('ANN7');
+    $releasingOrg = ptaOrg('REL7');
+    $pos = ptaPosition($announcementOrg->id);
+    $ann = ptaPublishedAnnouncement($announcementOrg->id, $pos->id);
+    $ann->update(['required_documents' => ['Letter of release']]);
+
+    ['user' => $user] = ptaEmployeeUser($releasingOrg->id);
+
+    $expected = __('transfers.requiredDocumentMissing', ['type' => 'Letter of release'], 'am');
+
+    $this->actingAs($user)
+        ->withHeader('X-Locale', 'am')
+        ->post(route('public.transfer-announcements.apply.store', $ann), ['cover_letter' => 'Please consider me.'])
+        ->assertSessionHasErrors(['application' => $expected]);
+
+    expect(TransferApplication::query()->count())->toBe(0)
+        ->and($expected)->toContain('Letter of release')
+        ->and($expected)->not->toContain('transfers.')
+        ->and($expected)->not->toBe(__('transfers.requiredDocumentMissing', ['type' => 'Letter of release'], 'en'));
+});
+
+test('an ineligible employee is refused in the visitor language', function (): void {
+    $announcementOrg = ptaOrg('ANN8');
+    $releasingOrg = ptaOrg('REL8');
+    $pos = ptaPosition($announcementOrg->id);
+    $ann = ptaPublishedAnnouncement($announcementOrg->id, $pos->id);
+    $ann->update(['eligibility_rules' => [['type' => 'minimum_service_months', 'operator' => 'greater_than_or_equal', 'value' => '600']]]);
+
+    ['user' => $user] = ptaEmployeeUser($releasingOrg->id);
+
+    $expected = __('transfers.notEligible', [], 'am');
+
+    $this->actingAs($user)
+        ->withHeader('X-Locale', 'am')
+        ->post(route('public.transfer-announcements.apply.store', $ann), [])
+        ->assertSessionHasErrors(['application' => $expected]);
+
+    expect(TransferApplication::query()->count())->toBe(0)
+        ->and($expected)->not->toBe('transfers.notEligible')
+        ->and($expected)->not->toBe(__('transfers.notEligible', [], 'en'));
+});

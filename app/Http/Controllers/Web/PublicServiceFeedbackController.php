@@ -89,7 +89,7 @@ class PublicServiceFeedbackController extends Controller
 
         if (! $this->feedback->serviceIsAvailable($validated['position_service_id'], $positionId)) {
             return back()->withErrors([
-                'position_service_id' => __('This service is not provided by this officer.'),
+                'position_service_id' => __('service-feedback.service_not_provided'),
             ]);
         }
 

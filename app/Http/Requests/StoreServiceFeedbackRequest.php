@@ -44,9 +44,12 @@ class StoreServiceFeedbackRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'rating.between' => 'Please choose a rating between 1 and 5 stars.',
-            'rating.required' => 'Please choose a satisfaction rating.',
-            'position_service_id.required' => 'Please choose the service you received.',
+            'rating.between' => __('service-feedback.validation.rating_range'),
+            'rating.integer' => __('service-feedback.validation.rating_range'),
+            'rating.required' => __('service-feedback.validation.rating_required'),
+            'position_service_id.required' => __('service-feedback.validation.service_required'),
+            'position_service_id.uuid' => __('service-feedback.validation.service_required'),
+            'position_service_id.exists' => __('service-feedback.service_not_provided'),
         ];
     }
 }

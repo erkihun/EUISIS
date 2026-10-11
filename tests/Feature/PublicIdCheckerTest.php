@@ -592,3 +592,29 @@ it('does not auto-send when arriving from a legacy qr', function (): void {
 
     Notification::assertNothingSent();
 });
+
+it('names the organization, unit and position in the visitor language after a valid otp', function (): void {
+    $this->org->update(['name_am' => 'የአረጋጋጭ ተቋም']);
+    OrganizationUnit::query()->where('code', 'PIC-U1')->update(['name_am' => 'የአረጋጋጭ ክፍል']);
+    Position::query()->where('job_position_code', 'PIC-P1')->update(['title_am' => 'የአረጋጋጭ መደብ']);
+
+    $code = issueCode($this->uuid);
+
+    $this->withHeader('X-Locale', 'am')
+        ->postJson(route('id-checker.verify-otp', $this->uuid), ['otp' => $code])
+        ->assertOk()
+        ->assertJsonPath('employee.organization', 'የአረጋጋጭ ተቋም')
+        ->assertJsonPath('employee.organization_unit', 'የአረጋጋጭ ክፍል')
+        ->assertJsonPath('employee.position', 'የአረጋጋጭ መደብ');
+});
+
+it('falls back to the English names when no Amharic name is recorded', function (): void {
+    $code = issueCode($this->uuid);
+
+    $this->withHeader('X-Locale', 'am')
+        ->postJson(route('id-checker.verify-otp', $this->uuid), ['otp' => $code])
+        ->assertOk()
+        ->assertJsonPath('employee.organization', 'Checker Organization')
+        ->assertJsonPath('employee.organization_unit', 'Checker Unit')
+        ->assertJsonPath('employee.position', 'Checker Position');
+});

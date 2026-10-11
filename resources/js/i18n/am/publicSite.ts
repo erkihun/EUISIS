@@ -42,6 +42,7 @@ const publicSite = {
     noAnnouncements: 'ምንም ማስታወቂያ አልተገኘም።',
     noAnnouncementsHint: 'ከፍለጋዎ ጋር የሚዛመድ የታተመ ማስታወቂያ የለም።',
     noServices: 'ከፍለጋዎ ጋር የሚዛመድ አገልግሎት የለም።',
+    noServiceDetails: 'ለዚህ አገልግሎት እስካሁን ተጨማሪ ዝርዝር አልታተመም።',
     noAnnouncementsYet: 'በአሁኑ ጊዜ ምንም ማስታወቂያ የለም።',
 
     transferOpportunities: 'ክፍት የዝውውር እድሎች',

@@ -246,6 +246,8 @@ const transfers = {
     orReuseEmployeeDocument: 'ያለ የሰራተኛ ሰነድ ይጠቀሙ',
     uploadNewDocument: 'አዲስ ሰነድ ይጫኑ',
     documentUploadHint: 'አማራጭ — PDF፣ JPG፣ PNG፣ ከፍተኛ 5 MB',
+    documentsRequiredHint: 'እያንዳንዱ ሰነድ ያስፈልጋል — PDF፣ JPG ወይም PNG፣ ከፍተኛ 5 MB',
+    documentRequired: 'ለመቀጠል ይህን ሰነድ ያያይዙ።',
     clickToUpload: 'ሰነዶች ለመጫን ጠቅ ያድርጉ',
     removeFile: 'ፋይሉን አስወግድ',
     submitApplication: 'ማመልከቻ አስገባ',

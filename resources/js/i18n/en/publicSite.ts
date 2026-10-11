@@ -46,6 +46,7 @@ const publicSite = {
     noAnnouncements: 'No announcements found.',
     noAnnouncementsHint: 'There are no published announcements matching your search.',
     noServices: 'No services match your search.',
+    noServiceDetails: 'No further details have been published for this service yet.',
     noAnnouncementsYet: 'There are no announcements at the moment.',
 
     transferOpportunities: 'Open transfer opportunities',

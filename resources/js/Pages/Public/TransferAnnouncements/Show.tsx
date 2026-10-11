@@ -9,6 +9,8 @@ import {
     publicButtonPrimary,
     publicCardClass,
 } from '@/Components/public/PublicPage';
+import PublicFlash, { type SharedFlash } from '@/Components/public/PublicFlash';
+import { formatEligibilityRule, formatSalaryRange, type EligibilityRule } from '@/Components/public/transferPresentation';
 import { useLocale } from '@/hooks/useLocale';
 import { SVGProps } from 'react';
 import type { PageProps } from '@/types';
@@ -59,7 +61,8 @@ type Announcement = {
     number_of_vacancies: number;
     opening_date: string | null;
     closing_date: string | null;
-    eligibility_rules: string[] | null;
+    /** Structured rules from the admin form; older rows may hold plain sentences. */
+    eligibility_rules: Array<EligibilityRule | string> | null;
     required_documents: string[] | null;
     status: string;
     is_open: boolean;
@@ -77,12 +80,13 @@ interface Props extends PageProps {
 export default function TransferAnnouncementShow({ announcement: a, already_applied, is_authenticated, apply_url, login_url }: Props) {
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
-    const { props } = usePage<Props>();
+    const { props } = usePage<Props & { flash?: SharedFlash }>();
 
-    const flash = (props as any).flash as { message: string; type: string } | null;
+    const flash = props.flash ?? null;
 
     const orgName = (useAmharic ? a.organization_name_am : null) ?? a.organization_name_en ?? '—';
     const posTitle = (useAmharic ? a.position_title_am : null) ?? a.position_title_en ?? '—';
+    const salary = formatSalaryRange(a.salary_min, a.salary_max, locale);
 
     const pageTitle = posTitle + ' — ' + orgName;
 
@@ -100,12 +104,8 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
 
             <div className="bg-gray-50 py-12 sm:py-16 dark:bg-slate-900">
                 <PublicContainer narrow>
-                    {/* Flash message */}
-                    {flash && (
-                        <div className={`mb-6 rounded-card px-4 py-3 text-sm font-medium ${flash.type === 'success' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-red-50 text-red-800 dark:bg-red-950/40 dark:text-red-300'}`}>
-                            {flash.message}
-                        </div>
-                    )}
+                    {/* Outcome of an apply attempt (no employee profile, already applied, submitted…). */}
+                    <PublicFlash flash={flash} className="mb-6" />
 
                     {/* Header card */}
                     <div className={`${publicCardClass} sm:p-6`}>
@@ -131,14 +131,10 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                                     <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('transfers.vacancies')}</p>
                                     <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{a.number_of_vacancies}</p>
                                 </div>
-                                {(a.salary_min || a.salary_max) && (
+                                {salary && (
                                     <div className="rounded-card bg-gray-50 p-3 dark:bg-slate-800">
                                         <p className="text-[10px] font-semibold text-gray-400 dark:text-slate-500">{t('transfers.salary')}</p>
-                                        <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">
-                                            {a.salary_min && a.salary_max
-                                                ? `${a.salary_min} – ${a.salary_max}`
-                                                : a.salary_min ?? a.salary_max}
-                                        </p>
+                                        <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-slate-100">{salary}</p>
                                     </div>
                                 )}
                             </div>
@@ -166,7 +162,7 @@ export default function TransferAnnouncementShow({ announcement: a, already_appl
                                 {a.eligibility_rules.map((rule, i) => (
                                     <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-slate-300">
                                         <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--color-primary)]" />
-                                        {rule}
+                                        {formatEligibilityRule(rule, t)}
                                     </li>
                                 ))}
                             </ul>

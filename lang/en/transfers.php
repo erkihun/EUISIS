@@ -40,6 +40,12 @@ return [
     'alreadyApplied' => 'You have already applied for this transfer announcement.',
     'notAcceptingApplications' => 'This announcement is not currently accepting applications.',
 
+    // Application refusals shown to the applicant
+    'requiredDocumentMissing' => 'Required document missing: :type.',
+    'documentUnavailable' => 'A selected employee document is no longer available.',
+    'notEligible' => 'You do not meet the eligibility criteria configured for this transfer.',
+    'noCurrentAssignment' => 'Your employee record has no current assignment.',
+
     // Status transition errors
     'cancelNotAllowed' => 'Only draft or published announcements can be cancelled.',
 

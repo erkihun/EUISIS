@@ -73,9 +73,16 @@ export default function ServiceShow({ service, preview = false }: { service: Ser
 
             <div className="bg-white py-16 sm:py-20 dark:bg-slate-950">
                 <PublicContainer narrow className="space-y-10">
-                    <span className={publicIconTileClass}>
-                        <ServiceIcon name={service.icon} className="h-5 w-5" />
-                    </span>
+                    <div className="flex items-center gap-4">
+                        <span className={publicIconTileClass}>
+                            <ServiceIcon name={service.icon} className="h-5 w-5" />
+                        </span>
+                        {/* The icon alone said nothing; a service with no written
+                            sections now says so instead of showing an empty page. */}
+                        {blocks.length === 0 && !service.contact_info && (
+                            <p className="text-sm text-gray-600 dark:text-slate-400">{t('publicSite.noServiceDetails')}</p>
+                        )}
+                    </div>
 
                     {blocks.map((block) => (
                         <section key={block.key} aria-labelledby={`${block.key}-heading`}>

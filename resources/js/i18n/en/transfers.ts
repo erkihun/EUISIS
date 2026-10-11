@@ -246,6 +246,8 @@ const transfers = {
     orReuseEmployeeDocument: 'Or reuse an existing employee document',
     uploadNewDocument: 'Upload a new document',
     documentUploadHint: 'optional — PDF, JPG, PNG, max 5 MB each',
+    documentsRequiredHint: 'each document is required — PDF, JPG or PNG, max 5 MB',
+    documentRequired: 'Attach this document to continue.',
     clickToUpload: 'Click to upload documents',
     removeFile: 'Remove file',
     submitApplication: 'Submit Application',
