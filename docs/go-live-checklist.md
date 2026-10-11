@@ -38,7 +38,7 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 - [ ] **C2 — Production configuration.** `php artisan production:readiness --strict` on the production host ends with "No blocking items"; every WARN has a written decision (PRA-05, PRA-27).
 - [ ] **C3 — Data audits.** On a copy of production data, `data:audit-duplicates`, `structure:audit` and `cafeteria:audit-configuration` report no HIGH finding, or each finding has an owner and a repair plan approved separately (repairs are never automatic).
 - [ ] **C4 — Staging UAT.** The UAT script below passes on staging with real roles (not Super Admin), on the release tag being deployed.
-- [ ] **C5 — Decisions recorded.** D-1 … D-7 each have an answer from the business owner (they do not all need code before go-live, but the answer decides whether they do).
+- [x] **C5 — Decisions recorded.** D-1 … D-7 answered (D-5 on 2026-09-26, the rest on 2026-10-11; see the assessment's decision table). The business owner may still overturn any of them.
 - [ ] **C6 — Scale evidence.** A load test against staging-sized infrastructure and data meets the agreed SLOs (docs/load-testing.md, docs/capacity-plan.md). Local measurements are not production capacity.
 - [ ] **C7 — Credentials rotated.** Every credential found in git history (risk register SEC-11, commit `19ab6b8`, incl. the Gmail app password) is revoked and replaced.
 - [ ] **C8 — Integrity pre-checks.** `data:audit-duplicates` on a copy of production shows no duplicated live cards, current assignments, vacancy-application transfers, provider references or provider ledger postings; otherwise the integrity migrations stop with NEEDS_DATA_REVIEW.
@@ -75,6 +75,7 @@ Evidence and finding IDs (PRA-nn, D-n) refer to
 - [ ] Tagged release; CI green (tests, type check, build, `composer audit --locked`, `npm audit --omit=dev`)
 - [ ] `migrate --pretend` output reviewed; includes the pending `2026_09_26_000000_add_rbac_metadata_and_register_permission_catalog`
 - [ ] The `2026_10_10_3000xx` integrity and index migrations reviewed: they build indexes `CONCURRENTLY` outside a transaction and stop with NEEDS_DATA_REVIEW on duplicates instead of changing data (docs/database-scale.md)
+- [ ] The 2026_10_11_100200 migration re-hashed national IDs with the keyed hash (`production:readiness`: "National-ID lookup hashes are keyed" PASS); it needs the environment's real APP_KEY
 - [ ] `php artisan db:seed` is never run on production (`DatabaseSeeder` refuses in production; reference seeders are run individually)
 - [ ] Pre-deploy recovery evidence recorded: verified pgBackRest backup labels in both repositories and a current isolated restore test (runbook/deployment-and-rollback.md §1)
 - [ ] Rollback owner named; runbook read (runbook/deployment-and-rollback.md)

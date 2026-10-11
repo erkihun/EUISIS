@@ -7,6 +7,10 @@ process must be recorded in a restricted register, not this repository.
 - Escrow Laravel APP_KEY, any previous application keys, each repository cipher password,
   storage/SSH credentials, database recovery credentials and configuration in an approved
   encrypted secrets store/offline escrow. Keep escrow outside backup repositories and Git.
+- The national-ID lookup hash is keyed (decision D-1): by `NATIONAL_ID_HASH_KEY` if set
+  (escrow it with APP_KEY), otherwise by a key derived from APP_KEY. After restoring or
+  rotating either key, run `php artisan security:rehash-national-ids` with the real APP_KEY;
+  `production:readiness` reports whether stored hashes match.
 - Record key identifiers/versions, creation/rotation dates, access policy and which retained
   backup generations require each key. Do not put actual keys, secret URLs, connection strings
   or values in tickets, application metadata, frontend variables, logs or this document.
