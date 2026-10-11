@@ -81,6 +81,7 @@ class ProductionReadiness extends Command
         $notOnOneServer = collect($schedule->events())->reject(fn ($event) => $event->onOneServer)->map(fn ($event) => (string) ($event->command ?? $event->description))->values()->all();
         $this->check('Every scheduled task runs on one server', $notOnOneServer === [], $production, 'Duplicates on a multi-node scheduler: '.implode(', ', $notOnOneServer));
         $this->check('Transport Management is disabled (out of current scope)', ! (bool) config('features.transport'), false, 'FEATURE_TRANSPORT is on; Transport is a future phase and not part of this release.');
+        $this->check('Legacy card QR (card id only) is refused at the counter', ! (bool) config('id_cards.accept_legacy_qr'), false, 'ID_CARD_ACCEPT_LEGACY_QR is on: anyone who knows a card id can present it (decision D-3). Turn it off once the reprint is done.');
         if (config('database.default') === 'pgsql') {
             $sslmode = (string) config('database.connections.pgsql.sslmode', 'prefer');
             $this->check("PostgreSQL TLS (sslmode={$sslmode})", in_array($sslmode, ['require', 'verify-ca', 'verify-full'], true), false, 'Database traffic leaves the host; use DB_SSLMODE=require or verify-full unless the network is private and trusted.');
