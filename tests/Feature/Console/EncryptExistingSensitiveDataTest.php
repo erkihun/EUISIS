@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\EmployeeStatus;
 use App\Models\Employee;
 use App\Models\User;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -53,7 +54,7 @@ it('encrypts plaintext employee national IDs, sets their lookup hash and leaves 
     $raw = DB::table('employees')->where('id', $plainId)->first();
     expect($raw->national_id)->not->toBe('1234567890123456')                          // no plaintext at rest
         ->and(Employee::query()->find($plainId)->national_id)->toBe('1234567890123456') // still readable
-        ->and($raw->national_id_hash)->toBe(hash('sha256', '1234567890123456'))       // duplicate check works
+        ->and($raw->national_id_hash)->toBe(NationalIdHash::of('1234567890123456'))       // duplicate check works
         ->and(DB::table('employees')->where('id', $encrypted->id)->value('national_id'))->toBe($encryptedBefore);
 });
 
@@ -68,7 +69,7 @@ it('encrypts plaintext user national IDs and phones and refreshes their lookup h
         ->and($raw->phone_number)->not->toBe('+251911000999')
         ->and($user->national_id)->toBe('1111222233334444')
         ->and($user->phone_number)->toBe('+251911000999')
-        ->and($raw->national_id_hash)->toBe(hash('sha256', '1111222233334444'));
+        ->and($raw->national_id_hash)->toBe(NationalIdHash::of('1111222233334444'));
 });
 
 it('is safe to run twice: the second run rewrites nothing', function (): void {

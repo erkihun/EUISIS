@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,7 +28,7 @@ class ProfileUpdateRequest extends FormRequest
 
         $this->merge([
             'national_id' => $nid,
-            'national_id_hash' => $nid !== null ? hash('sha256', $nid) : null,
+            'national_id_hash' => $nid !== null ? NationalIdHash::of($nid) : null,
             'phone_number' => $phone,
             'gender' => filled($this->input('gender')) ? $this->input('gender') : null,
         ]);

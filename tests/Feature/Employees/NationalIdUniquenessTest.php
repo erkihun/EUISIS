@@ -8,6 +8,7 @@ use App\Models\Employee;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\User;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
@@ -37,5 +38,5 @@ it('turns a duplicate national id that slips past validation into a validation e
     expect(fn () => $register('NID-2'))->toThrow(function (ValidationException $e): void {
         expect($e->errors())->toHaveKey('national_id');
     });
-    expect(Employee::query()->where('national_id_hash', hash('sha256', '1234567890123456'))->count())->toBe(1);
+    expect(Employee::query()->where('national_id_hash', NationalIdHash::of('1234567890123456'))->count())->toBe(1);
 });

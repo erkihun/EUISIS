@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\EmployeeStatus;
 use App\Enums\EmploymentType;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -26,7 +27,7 @@ class EmployeeUpdateRequest extends FormRequest
             $nid = filled($this->input('national_id')) ? trim((string) $this->input('national_id')) : null;
             $this->merge([
                 'national_id' => $nid,
-                'national_id_hash' => $nid !== null ? hash('sha256', $nid) : null,
+                'national_id_hash' => $nid !== null ? NationalIdHash::of($nid) : null,
             ]);
         }
     }

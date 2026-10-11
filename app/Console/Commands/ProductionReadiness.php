@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Employee;
 use App\Services\Backup\BackupStatusService;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +84,7 @@ class ProductionReadiness extends Command
         $this->check('Every scheduled task runs on one server', $notOnOneServer === [], $production, 'Duplicates on a multi-node scheduler: '.implode(', ', $notOnOneServer));
         $this->check('Transport Management is disabled (out of current scope)', ! (bool) config('features.transport'), false, 'FEATURE_TRANSPORT is on; Transport is a future phase and not part of this release.');
         $this->check('Legacy card QR (card id only) is refused at the counter', ! (bool) config('id_cards.accept_legacy_qr'), false, 'ID_CARD_ACCEPT_LEGACY_QR is on: anyone who knows a card id can present it (decision D-3). Turn it off once the reprint is done.');
+        $this->check('National-ID lookup hashes are keyed', $this->nationalIdHashesKeyed(), $production, 'Stored hashes do not match the keyed hash (decision D-1): run php artisan security:rehash-national-ids.');
         if (config('database.default') === 'pgsql') {
             $sslmode = (string) config('database.connections.pgsql.sslmode', 'prefer');
             $this->check("PostgreSQL TLS (sslmode={$sslmode})", in_array($sslmode, ['require', 'verify-ca', 'verify-full'], true), false, 'Database traffic leaves the host; use DB_SSLMODE=require or verify-full unless the network is private and trusted.');
@@ -161,6 +164,28 @@ class ProductionReadiness extends Command
         $ran = $migrator->getRepository()->getRan();
 
         return array_values(array_diff(array_keys($files), $ran));
+    }
+
+    /** A sample of stored national-ID hashes matches the keyed hash (decision D-1). */
+    private function nationalIdHashesKeyed(): bool
+    {
+        try {
+            $sample = Employee::query()->whereNotNull('national_id')->limit(25)->get(['id', 'national_id', 'national_id_hash']);
+        } catch (Throwable) {
+            return true; // no table yet: nothing stored with the old hash
+        }
+
+        foreach ($sample as $employee) {
+            try {
+                if ($employee->national_id_hash !== NationalIdHash::of((string) $employee->national_id)) {
+                    return false;
+                }
+            } catch (Throwable) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /** Longest `$timeout` declared by a queued job class in app/Jobs. */

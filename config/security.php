@@ -6,6 +6,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | National-ID lookup hash key (decision D-1)
+    |--------------------------------------------------------------------------
+    |
+    | Key of the HMAC that makes `national_id_hash` irreversible without it.
+    | Empty: derived from APP_KEY (App\Support\Security\NationalIdHash). If set,
+    | escrow it with APP_KEY (docs/key-recovery-runbook.md); after any change
+    | run `php artisan security:rehash-national-ids`.
+    |
+    */
+
+    'national_id_hash_key' => env('NATIONAL_ID_HASH_KEY'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Public self-service registration
     |--------------------------------------------------------------------------
     |

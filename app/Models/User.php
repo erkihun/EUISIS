@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Security\MfaRequirementService;
+use App\Support\Security\NationalIdHash;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -110,7 +111,7 @@ class User extends Authenticatable
             if ($user->isDirty('national_id')) {
                 $value = $user->getAttribute('national_id');
                 $user->national_id_hash = $value !== null && $value !== ''
-                    ? hash('sha256', (string) $value)
+                    ? NationalIdHash::of((string) $value)
                     : null;
             }
         });
@@ -181,6 +182,7 @@ class User extends Authenticatable
         }
         // Compatibility for newly provisioned accounts awaiting an employee record.
         $matches = Employee::query()->where('email', $this->email)->limit(2)->get();
+
         return $matches->count() === 1 ? $matches->first() : null;
     }
 

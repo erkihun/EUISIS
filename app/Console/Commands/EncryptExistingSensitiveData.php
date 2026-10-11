@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Console\Commands;
 
 use App\Models\Employee;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Support\Facades\Crypt;
@@ -96,7 +97,7 @@ class EncryptExistingSensitiveData extends Command
                         // failed on every row: its dirty check decrypts the
                         // stored plaintext and throws. (saveQuietly also skipped
                         // the saving event that keeps national_id_hash current.)
-                        $updates = ['national_id_hash' => $nidPlain !== null ? hash('sha256', $nidPlain) : null];
+                        $updates = ['national_id_hash' => $nidPlain !== null ? NationalIdHash::of($nidPlain) : null];
                         if (! $alreadyNid) {
                             $updates['national_id'] = Crypt::encryptString((string) $nidPlain);
                         }

@@ -10,6 +10,7 @@ use App\Enums\OrganizationStatus;
 use App\Enums\OrganizationUnitStatus;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\Vacancy\PositionCapacityService;
+use App\Support\Security\NationalIdHash;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
@@ -29,7 +30,7 @@ class EmployeeStoreRequest extends FormRequest
             'name_en' => filled($this->input('name_en')) ? trim((string) $this->input('name_en')) : null,
             // Uniqueness is enforced via the deterministic hash because the
             // raw national_id column is stored encrypted.
-            'national_id_hash' => $nid !== null ? hash('sha256', $nid) : null,
+            'national_id_hash' => $nid !== null ? NationalIdHash::of($nid) : null,
         ]);
     }
 
