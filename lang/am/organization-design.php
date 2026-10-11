@@ -264,7 +264,20 @@ return [
         ],
     ],
 
+    'mapping_applied' => 'ጥቆማዎች ተተግብረዋል፡ :mapped ተገናኝተዋል፣ :review ለግምገማ ቀርተዋል፣ :none እጩ የሌላቸው።',
+    'occupation_linked' => 'የሙያ ምድብ ከISCO ቡድኑ ጋር ተገናኝቷል።',
+    'competency_linked' => 'ብቃት ከዓይነቱ ጋር ተገናኝቷል።',
+    'isco_group_invalid' => 'ንቁ የISCO ቡድን ይምረጡ።',
+    'competency_type_invalid' => 'ንቁ የብቃት ዓይነት ይምረጡ።',
+
     'validation' => [
+        'unmapped_position_tasks' => 'የ:subject :count ነባር የሥራ መደብ ተግባራት ከዋና ተግባር ጋር አልተገናኙም (UNMAPPED_EXISTING_RECORD)።',
+        'unmapped_positions' => 'የ:subject :count ንቁ የሥራ መደቦች ከምንም ሥራ ጋር አልተገናኙም (UNMAPPED_EXISTING_RECORD)።',
+        'unmapped_units' => 'የ:subject :count ንቁ ክፍሎች ምንም ኃላፊነት የላቸውም (UNMAPPED_EXISTING_RECORD)።',
+        'needs_data_review' => 'የሥራ መደብ ተግባር :subject :candidates እጩ ዋና ተግባራት አሉት፤ ሰው መምረጥ አለበት (NEEDS_DATA_REVIEW)።',
+        'position_task_master_inactive' => 'የሥራ መደብ ተግባር :subject ንቁ ካልሆነው ዋና ተግባር :master ጋር ተገናኝቷል።',
+        'position_task_master_foreign' => 'የሥራ መደብ ተግባር :subject የሌላ ተቋም ዋና ተግባር (:master) ጋር ተገናኝቷል።',
+        'work_link_object_missing' => 'የሥራ መደቡ :subject ከእንግዲህ ከሌለ ወይም ንቁ ካልሆነ :object_type ጋር ተገናኝቷል።',
         'mandate_without_functions' => 'የታተመው ሥልጣን :subject ከሥሩ ምንም ተግባር የለውም።',
         'function_without_services' => 'ተግባሩ :subject ምንም አገልግሎት አያጸድቅም።',
         'service_without_processes' => 'የታተመው አገልግሎት :subject የታተመ ሂደት የለውም።',

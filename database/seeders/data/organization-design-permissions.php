@@ -131,4 +131,7 @@ return [
         'Coverage, traceability, gap, position readiness and workforce reports for organizations within scope.', 'በወሰን ውስጥ ላሉ ተቋማት የሽፋን፣ የመከታተያ፣ የክፍተት፣ የሥራ መደብ ዝግጁነትና የሰው ኃይል ሪፖርቶች።'),
     $entry('organization-design-reports.export', 'organization-design-reports', 20, 'Export design reports', 'የንድፍ ሪፖርቶችን ወደ ውጭ ይላኩ',
         'Queue CSV or XLSX exports of the design reports and download them.', 'የንድፍ ሪፖርቶችን በCSV ወይም XLSX ወደ ውጭ መላክ ያስይዙና ያውርዱ።'),
+
+    $entry('data-mapping.view', 'data-mapping', 10, 'View the mapping workspace', 'የካርታ ሥራ ቦታውን ይመልከቱ',
+        'See existing records not yet linked to the design, their suggestions and the data-quality report. Mapping itself uses the permissions of each record kind.', 'ከንድፉ ጋር ገና ያልተገናኙ ነባር መዝገቦችን፣ ጥቆማዎቻቸውንና የመረጃ ጥራት ሪፖርቱን ይመልከቱ። ማገናኘቱ ራሱ የእያንዳንዱን መዝገብ ዓይነት ፈቃዶች ይጠቀማል።'),
 ];

@@ -264,7 +264,20 @@ return [
         ],
     ],
 
+    'mapping_applied' => 'Suggestions applied: :mapped mapped, :review left for review, :none without a candidate.',
+    'occupation_linked' => 'Occupation linked to its ISCO group.',
+    'competency_linked' => 'Competency linked to its type.',
+    'isco_group_invalid' => 'Choose an active ISCO group.',
+    'competency_type_invalid' => 'Choose an active competency type.',
+
     'validation' => [
+        'unmapped_position_tasks' => ':count existing position tasks of :subject are not linked to a master task (UNMAPPED_EXISTING_RECORD).',
+        'unmapped_positions' => ':count active positions of :subject are not linked to any work (UNMAPPED_EXISTING_RECORD).',
+        'unmapped_units' => ':count active units of :subject hold no responsibility (UNMAPPED_EXISTING_RECORD).',
+        'needs_data_review' => 'The position task :subject has :candidates candidate master tasks; a person must choose (NEEDS_DATA_REVIEW).',
+        'position_task_master_inactive' => 'The position task :subject is linked to the inactive master task :master.',
+        'position_task_master_foreign' => 'The position task :subject is linked to a master task of another organization (:master).',
+        'work_link_object_missing' => 'The position :subject is linked to a :object_type that no longer exists or is inactive.',
         'mandate_without_functions' => 'The published mandate :subject has no functions under it.',
         'function_without_services' => 'The function :subject justifies no service.',
         'service_without_processes' => 'The published service :subject has no published process.',

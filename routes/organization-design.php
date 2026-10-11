@@ -9,6 +9,7 @@ use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
 use App\Http\Controllers\OrganizationDesign\ManpowerPlanController;
+use App\Http\Controllers\OrganizationDesign\MappingController;
 use App\Http\Controllers\OrganizationDesign\MethodologyController;
 use App\Http\Controllers\OrganizationDesign\PositionDesignController;
 use App\Http\Controllers\OrganizationDesign\ProcessController;
@@ -180,6 +181,12 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::post('/reports/exports', [ReportController::class, 'export'])->middleware('throttle:30,1')->name('reports.export');
         Route::get('/reports/exports/{export}/download', [ReportController::class, 'download'])->whereUuid('export')->name('reports.exports.download');
+
+        // Phase 10: mapping workspace for records that pre-date the design.
+        Route::get('/mapping', [MappingController::class, 'index'])->name('mapping.index');
+        Route::post('/mapping/apply', [MappingController::class, 'apply'])->middleware('throttle:30,1')->name('mapping.apply');
+        Route::put('/mapping/occupations/{occupation}', [MappingController::class, 'linkOccupation'])->whereUuid('occupation')->name('mapping.occupations.link');
+        Route::put('/mapping/competencies/{competency}', [MappingController::class, 'linkCompetency'])->whereUuid('competency')->name('mapping.competencies.link');
         Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
         Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
         Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');
