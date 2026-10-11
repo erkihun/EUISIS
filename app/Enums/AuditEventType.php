@@ -749,4 +749,5 @@ enum AuditEventType: string
     case JobDescriptionSectionUpdated = 'organization_design.job_description_section_updated';
     case JobDescriptionApproved = 'organization_design.job_description_approved';
     case JobDescriptionPublished = 'organization_design.job_description_published';
+    case ReportExported = 'organization_design.report_exported';
 }

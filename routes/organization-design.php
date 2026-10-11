@@ -12,6 +12,7 @@ use App\Http\Controllers\OrganizationDesign\ManpowerPlanController;
 use App\Http\Controllers\OrganizationDesign\MethodologyController;
 use App\Http\Controllers\OrganizationDesign\PositionDesignController;
 use App\Http\Controllers\OrganizationDesign\ProcessController;
+use App\Http\Controllers\OrganizationDesign\ReportController;
 use App\Http\Controllers\OrganizationDesign\ProcessDesignController;
 use App\Http\Controllers\OrganizationDesign\ProfessionController;
 use App\Http\Controllers\OrganizationDesign\RequirementController;
@@ -174,6 +175,11 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/job-descriptions/{jobDescription}/publish', [JobDescriptionController::class, 'publish'])->whereUuid('jobDescription')->name('job-descriptions.publish');
         Route::post('/job-descriptions/{jobDescription}/cancel', [JobDescriptionController::class, 'cancel'])->whereUuid('jobDescription')->name('job-descriptions.cancel');
         Route::post('/job-descriptions/{jobDescription}/versions', [JobDescriptionController::class, 'storeVersion'])->whereUuid('jobDescription')->name('job-descriptions.versions.store');
+
+        // Phase 9: reports, traceability, gaps and queued exports.
+        Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+        Route::post('/reports/exports', [ReportController::class, 'export'])->middleware('throttle:30,1')->name('reports.export');
+        Route::get('/reports/exports/{export}/download', [ReportController::class, 'download'])->whereUuid('export')->name('reports.exports.download');
         Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
         Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
         Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');

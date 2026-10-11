@@ -131,7 +131,10 @@ All tables: UUID PK, `organization_id` where scoped, `created_by`/`updated_by`, 
 
 ### 3.8 Cross-cutting
 - `organization_design_status_history` — entity_type, entity_id, from/to status, actor, reason, at (§94).
-- `organization_design_documents` — entity, document_type (catalog), private path, uploader (§95).
+- `organization_design_documents` — entity, document_type (catalog), private path, uploader (§95). *Not built yet* (no phase has needed attachments so far).
+- `organization_design_report_exports` — *phase 9 ruling:* the plan budgeted no table for phase 9, but a queued export needs a record of who asked for which report and where the private file landed; one row per export (organization_id nullable = whole scope, report, format csv|xlsx, status queued → ready | failed, disk, path, filename, row_count, error, requested_by, completed_at). The file is built by `ExportOrganizationDesignReport` on the queue **as the requester**, so the organization scope is theirs, stored under `organization-design/exports/` on the private disk, and downloaded only by the requester or an exporter whose scope covers it.
+
+*Phase 9 as built:* `TraceabilityService::trace($type, $id)` walks one object up to its mandate and down to the job descriptions in force (nothing inferred: a link exists only where the design recorded it) and `rows($organizationId)` gives one row per task with the whole chain. `OrganizationDesignGapService::gaps($organizationId)` reuses the validation report shape with warning/info findings only: `mandate_without_functions`, `function_without_services`, `service_without_processes`, `process_without_tasks`, `task_without_standard`, `task_without_requirements` (info), `object_without_responsible_unit`, `position_without_work_links`, `position_without_profile`, `position_without_job_description`, `unit_without_positions` (info). `OrganizationDesignReportService::run($report, $user, $filters)` serves `coverage` (one row per organization), `traceability`, `gaps`, `position_readiness` and `workforce` (plans with totals), always cut to the organizations in scope (first 200; the organization filter narrows). Exports bind strings explicitly (no formula execution in XLSX) and pass CSV rows through `csv_safe_row`. Permissions `organization-design-reports.{view,export}`; page `organization-design/reports`.
 - `classification_import_batches` — dataset (ISCO/ISIC/CPC/services/activities/standards), dry-run flag, row counts, error report path, idempotency key (§96).
 
 ---
@@ -181,7 +184,7 @@ Each phase ends with migrations, models, services, policies, routes, pages, tran
 | **6. Structure, organogram, impact** — *done* | §40–44, 79, 114–115 (D-1 = b); `OrganizationDesignValidationService` (ERROR/WARNING/INFO for the unit tree and for a study), approval gate on studies, impact per proposal from `ChangeRequestImpactAnalyzer`, design-side Structure page (validation, unit tree + functional overlay, published hierarchy versions) | 0 | 43–48 | M |
 | **7. Workforce planning** — *done* | §45–57, 80; methodologies (4 strategies, schema-checked parameters, versioned), plans, lines with `Dec` maths + trace, gate, roll-up, implementation as positions + approved establishments | 4 | 49–58 | L |
 | **8. Position profile & job description** — *done* | §58–71, 81; profile versions, work links, derived/written requirements, JD sections (derived + custom), lifecycle with gate, assignment stamping | 6 (+1 column) | 59–68 | L |
-| **9. Traceability, gaps, reports, analytics** | §76–78, 88, 98–99, 104–105; queued exports | 0 | report/export tests | M |
+| **9. Traceability, gaps, reports, analytics** — *done* | §76–78, 88, 98–99, 104–105; traceability up/down one object and per task, gap report, five scoped tabular reports, queued CSV/XLSX exports on the private disk | 1 (ruling: export records) | 69–74 | M |
 | **10. Mapping workspace & data quality** | §116–118; UNMAPPED_EXISTING_RECORD flags, mapping UI | 0 | migration-safety tests | S |
 | **11. Hardening** | §89–93, 101–103, 122–123: scope audit, IDOR tests, indexes from EXPLAIN, concurrency locks, 3M-scale checks | — | security + scale tests | M |
 

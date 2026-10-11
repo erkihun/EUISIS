@@ -126,4 +126,9 @@ return [
         'Review and approve a submitted job description prepared by someone else.', 'በሌላ ሰው የተዘጋጀ የቀረበ የሥራ መግለጫ ይገምግሙና ያጽድቁ።'),
     $entry('job-descriptions.publish', 'job-descriptions', 40, 'Publish job descriptions', 'የሥራ መግለጫዎችን ያትሙ',
         'Publish an approved job description; it is recorded on the position\'s current assignments.', 'የጸደቀ የሥራ መግለጫ ያትሙ፤ በሥራ መደቡ የአሁኑ ምደባዎች ላይ ይመዘገባል።'),
+
+    $entry('organization-design-reports.view', 'organization-design-reports', 10, 'View design reports', 'የንድፍ ሪፖርቶችን ይመልከቱ',
+        'Coverage, traceability, gap, position readiness and workforce reports for organizations within scope.', 'በወሰን ውስጥ ላሉ ተቋማት የሽፋን፣ የመከታተያ፣ የክፍተት፣ የሥራ መደብ ዝግጁነትና የሰው ኃይል ሪፖርቶች።'),
+    $entry('organization-design-reports.export', 'organization-design-reports', 20, 'Export design reports', 'የንድፍ ሪፖርቶችን ወደ ውጭ ይላኩ',
+        'Queue CSV or XLSX exports of the design reports and download them.', 'የንድፍ ሪፖርቶችን በCSV ወይም XLSX ወደ ውጭ መላክ ያስይዙና ያውርዱ።'),
 ];
