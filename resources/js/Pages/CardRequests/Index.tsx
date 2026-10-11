@@ -8,7 +8,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
-import { buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type CardRequestRow = {
     id: string;
     request_type?: string | null;
@@ -31,12 +31,7 @@ type CardRequestRow = {
 };
 
 type PageProps = {
-    cardRequests: {
-        data: CardRequestRow[];
-        current_page: number;
-        last_page: number;
-        total: number;
-    };
+    cardRequests: LaravelPageMeta & { data: CardRequestRow[] };
     can?: { create?: boolean };
     filters?: {
         search?: string;
@@ -67,8 +62,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
         router.get(route('card-requests.index'), {}, { preserveState: false, replace: true });
     }
 
-    const selectCls = selectClassName;
-    const inputCls  = 'rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder:text-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:placeholder:text-slate-500';
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
     return (
         <AuthenticatedLayout
@@ -91,84 +85,48 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
         >
             <Head title={t('idCards.cardRequests')} />
 
-            {/* Filter bar */}
-            <div className="mb-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                <div className="flex flex-wrap gap-3 items-end">
-                    <div className="flex-1 min-w-[180px]">
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('common.search')}
-                        </label>
-                        <input
-                            className={inputCls + ' w-full'}
-                            placeholder={t('idCards.searchRequests')}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') applyFilters(); }}
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('common.status')}
-                        </label>
-                        <select className={selectCls} value={status} onChange={(e) => setStatus(e.target.value)}>
-                            <option value="">{t('common.filter')}…</option>
-                            {REQUEST_STATUSES.map((s) => (
-                                <option key={s} value={s}>
-                                    {t(`idCards.requestStatus_${s}`) || s}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('idCards.requestType')}
-                        </label>
-                        <select className={selectCls} value={reqType} onChange={(e) => setReqType(e.target.value)}>
-                            <option value="">{t('common.filter')}…</option>
-                            {REQUEST_TYPES.map((rt) => (
-                                <option key={rt} value={rt}>
-                                    {t(`idCards.requestType_${rt}`) || rt}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            onClick={applyFilters}
-                            className={buttonClassName({ variant: 'primary' })}
-                        >
-                            {t('common.filter')}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={resetFilters}
-                            className={buttonClassName({ variant: 'outline' })}
-                        >
-                            {t('common.reset')}
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <FilterPanel onSubmit={applyFilters} onReset={resetFilters} hasActiveFilters={hasActiveFilters} className="mb-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input type="search" placeholder={t('idCards.searchRequests')} value={search} onChange={(e) => setSearch(e.target.value)} />
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                        <option value="">{t('common.allStatuses')}</option>
+                        {REQUEST_STATUSES.map((s) => (
+                            <option key={s} value={s}>
+                                {t(`idCards.requestStatus_${s}`) || s}
+                            </option>
+                        ))}
+                    </Select>
+                </FilterField>
+                <FilterField label={t('idCards.requestType')}>
+                    <Select value={reqType} onChange={(e) => setReqType(e.target.value)}>
+                        <option value="">{t('common.all')}</option>
+                        {REQUEST_TYPES.map((rt) => (
+                            <option key={rt} value={rt}>
+                                {t(`idCards.requestType_${rt}`) || rt}
+                            </option>
+                        ))}
+                    </Select>
+                </FilterField>
+            </FilterPanel>
 
-            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <div className={tableContainerClassName}>
                 {cardRequests.data.length === 0 ? (
-                    <div className="p-8">
-                        <EmptyState
-                            title={t('idCards.noCardRequestsFound')}
-                            description={t('idCards.noRequestsDescription')}
-                            action={
-                                can?.create ? (
-                                    <Link
-                                        href={route('card-requests.create')}
-                                        className={buttonClassName({ variant: 'primary' })}
-                                    >
-                                        {t('idCards.newRequest')}
-                                    </Link>
-                                ) : undefined
-                            }
-                        />
-                    </div>
+                    <EmptyState
+                        title={t('idCards.noCardRequestsFound')}
+                        description={t('idCards.noRequestsDescription')}
+                        action={
+                            can?.create ? (
+                                <Link
+                                    href={route('card-requests.create')}
+                                    className={buttonClassName({ variant: 'primary' })}
+                                >
+                                    {t('idCards.newRequest')}
+                                </Link>
+                            ) : undefined
+                        }
+                    />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className={tableClassName}>
@@ -240,15 +198,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                         </table>
                     </div>
                 )}
-
-                {cardRequests.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-[color:var(--app-border)] px-4 py-3 text-xs text-[color:var(--app-muted-foreground)]">
-                        <span>
-                            {t('common.page')} {cardRequests.current_page} {t('common.of')} {cardRequests.last_page}
-                        </span>
-                        <span>{cardRequests.total} {t('common.total').toLowerCase()}</span>
-                    </div>
-                )}
+                <ListPagination meta={cardRequests} />
             </div>
         </AuthenticatedLayout>
     );

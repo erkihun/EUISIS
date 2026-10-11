@@ -5,7 +5,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type BatchRow = {
     id: string;
     batch_number: string;
@@ -18,12 +18,7 @@ type BatchRow = {
 };
 
 type PageProps = {
-    batches: {
-        data: BatchRow[];
-        current_page: number;
-        last_page: number;
-        total: number;
-    };
+    batches: LaravelPageMeta & { data: BatchRow[] };
     can?: { create?: boolean };
 };
 
@@ -79,24 +74,22 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
         >
             <Head title={t('idCards.printBatches')} />
 
-            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <div className={tableContainerClassName}>
                 {batches.data.length === 0 ? (
-                    <div className="p-8">
-                        <EmptyState
-                            title={t('idCards.noPrintBatchesFound')}
-                            description={t('idCards.noBatchesDescription')}
-                            action={
-                                can?.create ? (
-                                    <Link
-                                        href={route('print-batches.create')}
-                                        className={buttonClassName({ variant: 'primary' })}
-                                    >
-                                        {t('idCards.createPrintBatch')}
-                                    </Link>
-                                ) : undefined
-                            }
-                        />
-                    </div>
+                    <EmptyState
+                        title={t('idCards.noPrintBatchesFound')}
+                        description={t('idCards.noBatchesDescription')}
+                        action={
+                            can?.create ? (
+                                <Link
+                                    href={route('print-batches.create')}
+                                    className={buttonClassName({ variant: 'primary' })}
+                                >
+                                    {t('idCards.createPrintBatch')}
+                                </Link>
+                            ) : undefined
+                        }
+                    />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className={tableClassName}>
@@ -179,15 +172,7 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                         </table>
                     </div>
                 )}
-
-                {batches.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-[color:var(--app-border)] px-4 py-3 text-xs text-[color:var(--app-muted-foreground)]">
-                        <span>
-                            {t('common.page')} {batches.current_page} {t('common.of')} {batches.last_page}
-                        </span>
-                        <span>{batches.total} {t('common.total').toLowerCase()}</span>
-                    </div>
-                )}
+                <ListPagination meta={batches} />
             </div>
         </AuthenticatedLayout>
     );

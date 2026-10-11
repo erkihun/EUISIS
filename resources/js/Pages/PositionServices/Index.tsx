@@ -2,10 +2,10 @@ import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 /**
  * Feedback services per position.
  *
@@ -37,25 +37,22 @@ type Record = {
 };
 
 type Props = {
-    records: { data: Record[]; links: { url: string | null; label: string; active: boolean }[] };
+    records: LaravelPageMeta & { data: Record[] };
     filters: { organization_id?: string; position_id?: string; search?: string };
     organizations: { id: string; name_en: string; name_am: string | null }[];
     can: { create: boolean; viewPlanUsage: boolean };
 };
-
-const inputCls = inputClassName;
 
 export default function PositionServicesIndex({ records, filters, organizations, can }: Props): JSX.Element {
     const { locale, t } = useLocale();
     const { confirm } = useConfirm();
     const am = locale === 'am';
 
-    function applyFilter(key: string, value: string) {
-        router.get(
-            route('position-services.index'),
-            { ...filters, [key]: value || undefined },
-            { preserveState: true, preserveScroll: true },
-        );
+    const [draft, setDraft] = useState({ organization_id: filters.organization_id ?? '', search: filters.search ?? '' });
+    const hasActiveFilters = Object.values(filters).some(Boolean);
+
+    function submit() {
+        router.get(route('position-services.index'), { ...filters, ...draft }, { preserveState: true, preserveScroll: true });
     }
 
     async function destroy(id: string) {
@@ -85,35 +82,24 @@ export default function PositionServicesIndex({ records, filters, organizations,
                     }
                 />
 
-                <div className="flex flex-wrap gap-2 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
-                    <select
-                        className={inputCls}
-                        value={filters.organization_id ?? ''}
-                        onChange={(e) => applyFilter('organization_id', e.target.value)}
-                        aria-label={t('serviceFeedback.filterOrganization')}
-                    >
-                        <option value="">{t('serviceFeedback.filterOrganization')}</option>
-                        {organizations.map((org) => (
-                            <option key={org.id} value={org.id}>
-                                {am ? (org.name_am ?? org.name_en) : org.name_en}
-                            </option>
-                        ))}
-                    </select>
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('position-services.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={draft.search} placeholder={t('serviceFeedback.searchServices')} onChange={(e) => setDraft({ ...draft, search: e.target.value })} />
+                    </FilterField>
+                    <FilterField label={t('serviceFeedback.filterOrganization')}>
+                        <Select value={draft.organization_id} onChange={(e) => setDraft({ ...draft, organization_id: e.target.value })}>
+                            <option value="">{t('common.all')}</option>
+                            {organizations.map((org) => (
+                                <option key={org.id} value={org.id}>
+                                    {am ? (org.name_am ?? org.name_en) : org.name_en}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                    <input
-                        type="search"
-                        className={inputCls}
-                        defaultValue={filters.search ?? ''}
-                        placeholder={t('serviceFeedback.searchServices')}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                applyFilter('search', (e.target as HTMLInputElement).value);
-                            }
-                        }}
-                    />
-                </div>
-
-                <div className="overflow-x-auto rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
                     <table className={cx(tableClassName, 'min-w-full')}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -163,13 +149,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                             : '—'}
                                     </td>
                                     <td className={cx(tableCellClassName, 'whitespace-nowrap')}>
-                                        <span
-                                            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                                                row.is_active
-                                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                                    : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'
-                                            }`}
-                                        >
+                                        <span className={badgeClassName(row.is_active ? 'success' : 'neutral')}>
                                             {row.is_active ? t('common.active') : t('common.inactive')}
                                         </span>
                                     </td>
@@ -209,28 +189,10 @@ export default function PositionServicesIndex({ records, filters, organizations,
                             ))}
                         </tbody>
                     </table>
+                    </div>
+                    <ListPagination meta={records} />
                 </div>
 
-                {records.links.length > 3 && (
-                    <div className="flex flex-wrap gap-1">
-                        {records.links.map((link, index) => (
-                            <Link
-                                key={index}
-                                href={link.url ?? '#'}
-                                preserveState
-                                preserveScroll
-                                className={`rounded-md px-3 py-1.5 text-sm ${
-                                    link.active
-                                        ? 'bg-[color:var(--color-primary)] text-white'
-                                        : link.url
-                                          ? 'border border-[color:var(--app-border-strong)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'
-                                          : 'cursor-not-allowed border border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)]'
-                                }`}
-                                dangerouslySetInnerHTML={{ __html: link.label }}
-                            />
-                        ))}
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

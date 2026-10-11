@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
-import { Button, DataTable, FilterBar, type ColumnDef } from '@euisis/ui';
+import { Button, DataTable, type ColumnDef, FilterField, FilterPanel, Select } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, Money, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
@@ -53,19 +53,24 @@ export default function PoliciesIndex({ rows, meta, filters, organizations, prov
             actions={can.create ? <Button as={Link} href={route('cafeteria.policies.create')} variant="primary" size="sm">{t('cafeteriaPolicy.createPolicy')}</Button> : undefined} />}>
             <Head title={t('cafeteriaPolicy.navPolicies')} />
             <div className="space-y-4">
-                <FilterBar onSubmit={apply} hasActiveFilters={Boolean(f.organization_id || f.provider_id || f.status)} onReset={() => router.get(route('cafeteria.policies.index'))}
-                    actions={<Button type="submit" size="sm">{t('cafeteriaPolicy.search')}</Button>}>
-                    <select aria-label={t('cafeteriaPolicy.organization')} className={`${inputCls} w-auto`} value={f.organization_id} onChange={(e) => setF({ ...f, organization_id: e.target.value })}>
-                        <SelectOptions items={organizations} placeholder={t('cafeteriaPolicy.organization')} />
-                    </select>
-                    <select aria-label={t('cafeteriaPolicy.provider')} className={`${inputCls} w-auto`} value={f.provider_id} onChange={(e) => setF({ ...f, provider_id: e.target.value })}>
-                        <SelectOptions items={providers.map((p) => ({ ...p, code: p.provider_code }))} placeholder={t('cafeteriaPolicy.provider')} />
-                    </select>
-                    <select aria-label={t('cafeteriaPolicy.status')} className={`${inputCls} w-auto`} value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}>
-                        <option value="">{t('cafeteriaPolicy.status')}</option>
-                        {['draft', 'under_review', 'approved', 'active', 'superseded', 'expired', 'cancelled'].map((s) => <option key={s} value={s}>{t(`cafeteriaPolicy.statuses.${s}`)}</option>)}
-                    </select>
-                </FilterBar>
+                <FilterPanel onSubmit={apply} onReset={() => router.get(route('cafeteria.policies.index'))} hasActiveFilters={Boolean(f.organization_id || f.provider_id || f.status)}>
+                    <FilterField label={t('cafeteriaPolicy.organization')}>
+                        <Select value={f.organization_id} onChange={(e) => setF({ ...f, organization_id: e.target.value })}>
+                            <SelectOptions items={organizations} placeholder={t('cafeteriaPolicy.all')} />
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('cafeteriaPolicy.provider')}>
+                        <Select value={f.provider_id} onChange={(e) => setF({ ...f, provider_id: e.target.value })}>
+                            <SelectOptions items={providers.map((p) => ({ ...p, code: p.provider_code }))} placeholder={t('cafeteriaPolicy.all')} />
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('cafeteriaPolicy.status')}>
+                        <Select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}>
+                            <option value="">{t('cafeteriaPolicy.all')}</option>
+                            {['draft', 'under_review', 'approved', 'active', 'superseded', 'expired', 'cancelled'].map((s) => <option key={s} value={s}>{t(`cafeteriaPolicy.statuses.${s}`)}</option>)}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
                 <DataTable data={rows} columns={columns} emptyTitle={t('cafeteriaPolicy.noResults')} pagination={meta} onPageChange={pageTo(route('cafeteria.policies.index'), filters)} />
             </div>
         </AuthenticatedLayout>

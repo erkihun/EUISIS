@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 
 import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 export { fill } from '@/Components/dailyActivity/helpers';
-export { AppFilterBar, filterInputCls } from '@/Components/ui';
+export { AppFilterBar, FilterField, filterInputCls } from '@/Components/ui';
 
 /*
  * EPMS page kit. Every class here matches the admin pages (Employees,

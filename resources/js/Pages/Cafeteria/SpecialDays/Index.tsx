@@ -7,7 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type SpecialDay = {
     id: string; special_date: string; name_en: string; name_am: string | null;
     day_type: string; day_type_label: string; is_open: boolean; is_subsidy_day: boolean;
@@ -19,7 +19,7 @@ type Meta = { current_page: number; last_page: number; total: number };
 export default function SpecialDaysIndex({ days, meta, filters, can }: { days: SpecialDay[]; meta: Meta; filters: Record<string, string>; can: { create: boolean } }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
-    const inputCls = inputClassName;
+    const hasActiveFilters = Object.entries(filters).some(([key, value]) => key !== 'page' && Boolean(value));
 
     async function handleArchive(id: string) {
         const { confirmed } = await confirm({ title: t('confirmations.confirmDeleteTitle'), description: '', confirmLabel: t('confirmations.delete'), cancelLabel: t('confirmations.cancel'), variant: 'danger' });
@@ -30,9 +30,8 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
         router.post(route('cafeteria.special-days.restore', id));
     }
 
-    function submit(e: FormEvent) {
-        e.preventDefault();
-        const fd = new FormData(e.currentTarget as HTMLFormElement);
+    function submit(e: FormEvent<HTMLFormElement>) {
+        const fd = new FormData(e.currentTarget);
         router.get(route('cafeteria.special-days.index'), Object.fromEntries(fd), { preserveState: true });
     }
 
@@ -51,14 +50,17 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
         >
             <Head title={t('cafeteria.specialDays')} />
             <div className="space-y-4">
-                <form className="flex gap-3" onSubmit={submit}>
-                    <input name="search" defaultValue={filters.search ?? ''} placeholder={t('common.search')} className={inputCls} />
-                    <input name="year" type="number" defaultValue={filters.year ?? ''} placeholder="Year" className={`${inputCls} w-24`} />
-                    <button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button>
-                </form>
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('cafeteria.special-days.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" name="search" defaultValue={filters.search ?? ''} placeholder={t('common.search')} />
+                    </FilterField>
+                    <FilterField label={t('cafeteria.year')}>
+                        <Input name="year" type="number" defaultValue={filters.year ?? ''} />
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    {days.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
+                <div className={tableContainerClassName}>
+                    {days.length === 0 ? <EmptyState description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} /> : (
                         <div className="overflow-x-auto">
                             <table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
@@ -108,6 +110,7 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                             </table>
                         </div>
                     )}
+                    <ListPagination meta={meta} />
                 </div>
                 <p className="text-xs text-[color:var(--app-muted-foreground)]">{t('cafeteria.totalTransactions').replace('Total', 'Total')}: {meta.total}</p>
             </div>

@@ -3,7 +3,8 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { RecordStatus } from '@/Components/assessmentOversight/RecordStatus';
-import { AppFilterBar, Field, Section, Stat, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, formatScore, type Paginator } from '@/Components/performance/ui';
+import { AppFilterBar, Field, FilterField, Section, Stat, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, smallBtn, tdCls, thCls, formatScore, type Paginator } from '@/Components/performance/ui';
+import { cx } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -93,12 +94,18 @@ export default function AssessmentRecordsIndex({ records, canManage, forms, empl
                 )}
 
                 <AppFilterBar routeName="assessment-records.index" filters={filters} onBeforeSubmit={(params) => ({ ...params, period_start: period.start, period_end: period.end })}>
-                    <div className="w-44"><LocalizedDatePicker id="filter-start" className={filterInputCls} value={period.start} onChange={(value) => setPeriod({ ...period, start: value })} placeholder={t('assessments.records.periodStart')} /></div>
-                    <div className="w-44"><LocalizedDatePicker id="filter-end" className={filterInputCls} min={period.start} value={period.end} onChange={(value) => setPeriod({ ...period, end: value })} placeholder={t('assessments.records.periodEnd')} /></div>
-                    <select name="status" aria-label={t('assessments.records.status')} className={filterInputCls} defaultValue={filters.status ?? ''}>
-                        <option value="">{t('assessments.records.allStatuses')}</option>
-                        {STATUSES.map((status) => <option key={status} value={status}>{t(`assessmentOversight.recordStatuses.${status}`)}</option>)}
-                    </select>
+                    <FilterField label={t('assessments.records.periodStart')} htmlFor="filter-start">
+                        <LocalizedDatePicker id="filter-start" className={cx(filterInputCls, 'w-full')} value={period.start} onChange={(value) => setPeriod({ ...period, start: value })} />
+                    </FilterField>
+                    <FilterField label={t('assessments.records.periodEnd')} htmlFor="filter-end">
+                        <LocalizedDatePicker id="filter-end" className={cx(filterInputCls, 'w-full')} min={period.start} value={period.end} onChange={(value) => setPeriod({ ...period, end: value })} />
+                    </FilterField>
+                    <FilterField label={t('assessments.records.status')}>
+                        <select name="status" className={filterInputCls} defaultValue={filters.status ?? ''}>
+                            <option value="">{t('assessments.records.allStatuses')}</option>
+                            {STATUSES.map((status) => <option key={status} value={status}>{t(`assessmentOversight.recordStatuses.${status}`)}</option>)}
+                        </select>
+                    </FilterField>
                 </AppFilterBar>
 
                 {summary && (

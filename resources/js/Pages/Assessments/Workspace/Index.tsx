@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { AppFilterBar, filterInputCls, pageCls, Stat, Table, TablePanel, tdCls, thCls } from '@/Components/performance/ui';
+import { AppFilterBar, FilterField, filterInputCls, pageCls, Stat, Table, TablePanel, tdCls, thCls } from '@/Components/performance/ui';
 import { DeadlineBadge, ProgressMeter, RecordStatusBadge, ResponseStatus, usePick } from '@/Components/assessmentWorkspace/kit';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
@@ -25,10 +25,18 @@ export default function AssignedAssessments({ rows, filters, counts, options }: 
                 {kpis.map((key) => <Stat key={key} label={t(`assessmentWorkspace.kpi.${key}`)} value={counts[key] ?? 0} />)}
             </div>
             <AppFilterBar routeName="assessment-workspace.index" filters={filters}>
-                <select name="cycle" aria-label={t('assessmentWorkspace.filters.cycle')} className={filterInputCls} defaultValue={filters.cycle ?? ''}><option value="">{t('assessmentWorkspace.filters.allCycles')}</option>{options.cycles.map((value) => <option key={value.id} value={value.id}>{label(value)}</option>)}</select>
-                <select name="status" aria-label={t('assessmentWorkspace.filters.status')} className={filterInputCls} defaultValue={filters.status ?? ''}><option value="">{t('assessmentWorkspace.filters.allStatuses')}</option>{['not_started', 'in_progress', 'returned', 'submitted', 'due_soon', 'overdue', 'completed'].map((value) => <option key={value} value={value}>{t(`assessmentWorkspace.${['due_soon', 'overdue'].includes(value) ? 'deadline' : 'statuses'}.${value}`)}</option>)}</select>
-                <select name="form" aria-label={t('assessmentWorkspace.filters.form')} className={filterInputCls} defaultValue={filters.form ?? ''}><option value="">{t('assessmentWorkspace.filters.allForms')}</option>{options.forms.map((value) => <option key={value.id} value={value.id}>{label(value)}</option>)}</select>
-                <select name="unit" aria-label={t('assessmentWorkspace.filters.unit')} className={filterInputCls} defaultValue={filters.unit ?? ''}><option value="">{t('assessmentWorkspace.filters.allUnits')}</option>{options.units.map((value) => <option key={value.id} value={value.id}>{label(value)}</option>)}</select>
+                <FilterField label={t('assessmentWorkspace.filters.cycle')}>
+                    <select name="cycle" className={filterInputCls} defaultValue={filters.cycle ?? ''}><option value="">{t('assessmentWorkspace.filters.allCycles')}</option>{options.cycles.map((value) => <option key={value.id} value={value.id}>{label(value)}</option>)}</select>
+                </FilterField>
+                <FilterField label={t('assessmentWorkspace.filters.status')}>
+                    <select name="status" className={filterInputCls} defaultValue={filters.status ?? ''}><option value="">{t('assessmentWorkspace.filters.allStatuses')}</option>{['not_started', 'in_progress', 'returned', 'submitted', 'due_soon', 'overdue', 'completed'].map((value) => <option key={value} value={value}>{t(`assessmentWorkspace.${['due_soon', 'overdue'].includes(value) ? 'deadline' : 'statuses'}.${value}`)}</option>)}</select>
+                </FilterField>
+                <FilterField label={t('assessmentWorkspace.filters.form')}>
+                    <select name="form" className={filterInputCls} defaultValue={filters.form ?? ''}><option value="">{t('assessmentWorkspace.filters.allForms')}</option>{options.forms.map((value) => <option key={value.id} value={value.id}>{label(value)}</option>)}</select>
+                </FilterField>
+                <FilterField label={t('assessmentWorkspace.filters.unit')}>
+                    <select name="unit" className={filterInputCls} defaultValue={filters.unit ?? ''}><option value="">{t('assessmentWorkspace.filters.allUnits')}</option>{options.units.map((value) => <option key={value.id} value={value.id}>{label(value)}</option>)}</select>
+                </FilterField>
             </AppFilterBar>
             <TablePanel page={rows} empty={t('assessmentWorkspace.empty')}>
                 <Table head={<><th className={thCls}>{t('assessmentWorkspace.columns.employee')}</th><th className={thCls}>{t('assessmentWorkspace.columns.form')}</th><th className={thCls}>{t('assessmentWorkspace.columns.cycle')}</th><th className={thCls}>{t('assessmentWorkspace.columns.evaluatorType')}</th><th className={thCls}>{t('assessmentWorkspace.columns.dueDate')}</th><th className={thCls}>{t('assessmentWorkspace.columns.status')}</th><th className={thCls}>{t('assessmentWorkspace.columns.progress')}</th><th className={thCls}><span className="sr-only">{t('assessmentWorkspace.columns.action')}</span></th></>}>

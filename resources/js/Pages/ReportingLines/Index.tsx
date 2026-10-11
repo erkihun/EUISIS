@@ -1,5 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
@@ -8,7 +8,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type Party = {
     id: string;
     name_en: string | null;
@@ -44,11 +44,6 @@ type Options = {
     targetTypes: string[];
 };
 
-/** Laravel pagination labels arrive HTML-encoded. */
-function paginationLabel(label: string): string {
-    return label.replace(/&laquo;/g, '«').replace(/&raquo;/g, '»').replace(/&amp;/g, '&');
-}
-
 export default function ReportingLinesIndex({
     lines,
     filters,
@@ -57,8 +52,7 @@ export default function ReportingLinesIndex({
 }: {
     lines: {
         data: ReportingLine[];
-        links: Array<{ url: string | null; label: string; active: boolean }>;
-        meta: { total: number; from: number | null; to: number | null; current_page: number; last_page: number };
+        meta: LaravelPageMeta;
     };
     filters: Filters;
     options: Options;
@@ -72,10 +66,9 @@ export default function ReportingLinesIndex({
         target_type: filters.target_type ?? '',
     });
 
-    const hasFilters = Boolean(form.q || form.source_type || form.relationship_type || form.target_type);
+    const hasFilters = Boolean(filters.q || filters.source_type || filters.relationship_type || filters.target_type);
 
-    function submit(event: FormEvent) {
-        event.preventDefault();
+    function submit() {
         router.get(route('reporting-lines.index'), form, {
             preserveState: true,
             preserveScroll: true,
@@ -101,10 +94,8 @@ export default function ReportingLinesIndex({
         return { name: localizedName(party.name_en, party.name_am, locale) || fallback, code: party.code };
     }
 
-    const inputCls = cx(inputClassName, 'w-full');
-    const labelCls = 'mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]';
-    const thCls = 'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]';
-    const tdCls = 'px-4 py-3 text-sm text-[color:var(--app-foreground)]';
+    const thCls = cx(tableHeaderCellClassName, 'text-left');
+    const tdCls = tableCellClassName;
 
     return (
         <AuthenticatedLayout
@@ -135,81 +126,37 @@ export default function ReportingLinesIndex({
                     ))}
                 </div>
 
-                <form onSubmit={submit} className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <div>
-                            <label htmlFor="reporting-lines-q" className={labelCls}>{t('common.search')}</label>
-                            <input
-                                id="reporting-lines-q"
-                                className={inputCls}
-                                value={form.q}
-                                onChange={(e) => setForm({ ...form, q: e.target.value })}
-                                placeholder={t('relationships.searchSourcePlaceholder')}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="reporting-lines-source-type" className={labelCls}>{t('relationships.sourceType')}</label>
-                            <select
-                                id="reporting-lines-source-type"
-                                className={inputCls}
-                                value={form.source_type}
-                                onChange={(e) => setForm({ ...form, source_type: e.target.value })}
-                            >
-                                <option value="">{t('common.all')}</option>
-                                {options.sourceTypes.map((type) => (
-                                    <option key={type} value={type}>{t(`relationships.sourceTypes.${type}`)}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="reporting-lines-type" className={labelCls}>{t('relationships.type')}</label>
-                            <select
-                                id="reporting-lines-type"
-                                className={inputCls}
-                                value={form.relationship_type}
-                                onChange={(e) => setForm({ ...form, relationship_type: e.target.value })}
-                            >
-                                <option value="">{t('common.all')}</option>
-                                {options.relationshipTypes.map((type) => (
-                                    <option key={type} value={type}>{t(`relationships.types.${type}`)}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label htmlFor="reporting-lines-target-type" className={labelCls}>{t('relationships.targetType')}</label>
-                            <select
-                                id="reporting-lines-target-type"
-                                className={inputCls}
-                                value={form.target_type}
-                                onChange={(e) => setForm({ ...form, target_type: e.target.value })}
-                            >
-                                <option value="">{t('common.all')}</option>
-                                {options.targetTypes.map((type) => (
-                                    <option key={type} value={type}>{t(`relationships.targetTypes.${type}`)}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="mt-4 flex items-center gap-2">
-                        <button
-                            type="submit"
-                            className={buttonClassName({ variant: 'primary' })}
-                        >
-                            {t('common.filter')}
-                        </button>
-                        {hasFilters && (
-                            <button
-                                type="button"
-                                onClick={reset}
-                                className={buttonClassName({ variant: 'outline' })}
-                            >
-                                {t('common.reset')}
-                            </button>
-                        )}
-                    </div>
-                </form>
+                <FilterPanel onSubmit={submit} onReset={reset} hasActiveFilters={hasFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={form.q} onChange={(e) => setForm({ ...form, q: e.target.value })} placeholder={t('relationships.searchSourcePlaceholder')} />
+                    </FilterField>
+                    <FilterField label={t('relationships.sourceType')}>
+                        <Select value={form.source_type} onChange={(e) => setForm({ ...form, source_type: e.target.value })}>
+                            <option value="">{t('common.all')}</option>
+                            {options.sourceTypes.map((type) => (
+                                <option key={type} value={type}>{t(`relationships.sourceTypes.${type}`)}</option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('relationships.type')}>
+                        <Select value={form.relationship_type} onChange={(e) => setForm({ ...form, relationship_type: e.target.value })}>
+                            <option value="">{t('common.all')}</option>
+                            {options.relationshipTypes.map((type) => (
+                                <option key={type} value={type}>{t(`relationships.types.${type}`)}</option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('relationships.targetType')}>
+                        <Select value={form.target_type} onChange={(e) => setForm({ ...form, target_type: e.target.value })}>
+                            <option value="">{t('common.all')}</option>
+                            {options.targetTypes.map((type) => (
+                                <option key={type} value={type}>{t(`relationships.targetTypes.${type}`)}</option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
                     {lines.data.length === 0 ? (
                         <EmptyState
                             title={t('relationships.noReportingLines')}
@@ -278,37 +225,8 @@ export default function ReportingLinesIndex({
                             </table>
                         </div>
                     )}
+                    <ListPagination meta={lines.meta} />
                 </div>
-
-                {lines.meta.last_page > 1 && (
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span className="text-sm text-[color:var(--app-muted-foreground)]">
-                            {lines.meta.from}–{lines.meta.to} / {lines.meta.total}
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                            {lines.links.map((link, index) => (
-                                link.url ? (
-                                    <Link
-                                        key={index}
-                                        href={link.url}
-                                        preserveScroll
-                                        className={`rounded-control px-3 py-1.5 text-sm ${
-                                            link.active
-                                                ? 'bg-[color:var(--color-primary)] text-white'
-                                                : 'border border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'
-                                        }`}
-                                    >
-                                        {paginationLabel(link.label)}
-                                    </Link>
-                                ) : (
-                                    <span key={index} className="rounded-control px-3 py-1.5 text-sm text-gray-300 dark:text-slate-600">
-                                        {paginationLabel(link.label)}
-                                    </span>
-                                )
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

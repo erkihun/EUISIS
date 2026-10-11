@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { AppFilterBar, Field, Section, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, type Bilingual, type Paginator } from '@/Components/performance/ui';
+import { AppFilterBar, FilterField, Field, Section, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, type Bilingual, type Paginator } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -112,16 +112,22 @@ export default function AssessmentFormsIndex({ forms, filters, types, organizati
                 )}
 
                 <AppFilterBar routeName="assessment-forms.index" filters={filters as Record<string, string>}>
-                    <input name="search" aria-label={t('assessments.search')} placeholder={t('assessments.search')} className={filterInputCls} defaultValue={filters.search ?? ''} />
-                    <select name="type" aria-label={t('assessments.fields.type')} className={filterInputCls} defaultValue={filters.type ?? ''}>
-                        <option value="">{t('assessments.allTypes')}</option>
-                        {types.map((type) => <option key={type.id} value={type.id}>{nameOf(type, locale)}</option>)}
-                    </select>
-                    <select name="status" aria-label={t('assessments.fields.status')} className={filterInputCls} defaultValue={filters.status ?? ''}>
-                        <option value="">{t('assessments.allStatuses')}</option>
-                        <option value="active">{t('assessments.formStatuses.active')}</option>
-                        <option value="archived">{t('assessments.formStatuses.archived')}</option>
-                    </select>
+                    <FilterField label={t('assessments.search')} wide>
+                        <input name="search" placeholder={t('assessments.search')} className={filterInputCls} defaultValue={filters.search ?? ''} />
+                    </FilterField>
+                    <FilterField label={t('assessments.fields.type')}>
+                        <select name="type" className={filterInputCls} defaultValue={filters.type ?? ''}>
+                            <option value="">{t('assessments.allTypes')}</option>
+                            {types.map((type) => <option key={type.id} value={type.id}>{nameOf(type, locale)}</option>)}
+                        </select>
+                    </FilterField>
+                    <FilterField label={t('assessments.fields.status')}>
+                        <select name="status" className={filterInputCls} defaultValue={filters.status ?? ''}>
+                            <option value="">{t('assessments.allStatuses')}</option>
+                            <option value="active">{t('assessments.formStatuses.active')}</option>
+                            <option value="archived">{t('assessments.formStatuses.archived')}</option>
+                        </select>
+                    </FilterField>
                 </AppFilterBar>
 
                 <div>

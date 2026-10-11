@@ -7,7 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, hasFilterQuery, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Holiday = {
     id: string; name_en: string; name_am: string | null;
     holiday_date: string; is_recurring: boolean; is_active: boolean;
@@ -19,16 +19,15 @@ type Meta = { current_page: number; last_page: number; total: number; per_page: 
 export default function HolidaysIndex({ holidays, meta, filters, year, can }: { holidays: Holiday[]; meta: Meta; filters: Record<string, string>; year: number; can: { create: boolean } }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
-    const inputCls = inputClassName;
+    const hasActiveFilters = hasFilterQuery();
 
     async function handleArchive(id: string) {
         const { confirmed } = await confirm({ title: t('confirmations.confirmDeleteTitle'), description: '', confirmLabel: t('confirmations.delete'), cancelLabel: t('confirmations.cancel'), variant: 'danger' });
         if (confirmed) router.delete(route('cafeteria.holidays.archive', id));
     }
 
-    function submit(e: FormEvent) {
-        e.preventDefault();
-        const fd = new FormData(e.currentTarget as HTMLFormElement);
+    function submit(e: FormEvent<HTMLFormElement>) {
+        const fd = new FormData(e.currentTarget);
         router.get(route('cafeteria.holidays.index'), Object.fromEntries(fd), { preserveState: true });
     }
 
@@ -47,13 +46,14 @@ export default function HolidaysIndex({ holidays, meta, filters, year, can }: { 
         >
             <Head title={t('cafeteria.holidays')} />
             <div className="space-y-4">
-                <form className="flex gap-3" onSubmit={submit}>
-                    <input type="number" name="year" defaultValue={String(year)} min="2000" max="2100" className={inputCls} style={{ width: 90 }} />
-                    <button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button>
-                </form>
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('cafeteria.holidays.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('cafeteria.year')}>
+                        <Input type="number" name="year" defaultValue={String(year)} min="2000" max="2100" />
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    {holidays.length === 0 ? <EmptyState title={t('common.noResults')} /> : (
+                <div className={tableContainerClassName}>
+                    {holidays.length === 0 ? <EmptyState description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} /> : (
                         <div className="overflow-x-auto">
                             <table className={tableClassName}>
                                 <thead className={tableHeadClassName}>
@@ -84,6 +84,7 @@ export default function HolidaysIndex({ holidays, meta, filters, year, can }: { 
                             </table>
                         </div>
                     )}
+                    <ListPagination meta={meta} />
                 </div>
             </div>
         </AuthenticatedLayout>

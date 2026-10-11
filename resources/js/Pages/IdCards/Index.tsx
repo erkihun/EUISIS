@@ -6,8 +6,9 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type CardRow = {
     id: string;
     card_number: string;
@@ -39,12 +40,7 @@ type CardRow = {
 type PageProps = {
     cards: {
         data: CardRow[];
-        meta: {
-            current_page: number;
-            last_page: number;
-            total: number;
-            links: Array<{ url: string | null; label: string; active: boolean }>;
-        };
+        meta: LaravelPageMeta;
     };
     can?: {
         submitRequest?: boolean;
@@ -87,8 +83,8 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
         router.get(route('id-cards.index'), {}, { preserveState: false, replace: true });
     }
 
-    const selectCls = selectClassName;
-    const inputCls = inputClassName;
+    const dateCls = cx(inputClassName, 'w-full');
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
     return (
         <AuthenticatedLayout
@@ -109,14 +105,14 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                             {can?.createPrintBatch && (
                                 <Link
                                     href={route('print-batches.create')}
-                                    className="rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] transition-colors"
+                                    className={buttonClassName({ variant: 'outline' })}
                                 >
                                     {t('idCards.createPrintBatch')}
                                 </Link>
                             )}
                             <Link
                                 href={route('card-requests.index')}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] transition-colors"
+                                className={buttonClassName({ variant: 'outline' })}
                             >
                                 {t('idCards.smartButtons.requests')}
                             </Link>
@@ -143,88 +139,52 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                 ))}
             </div>
 
-            {/* Filter bar */}
-            <div className="mb-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                <div className="flex flex-wrap gap-3 items-end">
-                    <div className="flex-1 min-w-[180px]">
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('common.search')}
-                        </label>
-                        <input
-                            className={inputCls + ' w-full'}
-                            placeholder={t('idCards.searchCards')}
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === 'Enter') applyFilters(); }}
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('common.status')}
-                        </label>
-                        <select className={selectCls} value={status} onChange={(e) => setStatus(e.target.value)}>
-                            <option value="">{t('common.filter')}…</option>
-                            {CARD_STATUSES.map((s) => (
-                                <option key={s} value={s}>
-                                    {t(`idCards.status_${s}`) || s}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="min-w-[190px]">
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('idCards.organization')}</label>
-                        <select className={selectCls + ' w-full'} value={organizationId} onChange={(e) => setOrganizationId(e.target.value)}>
-                            <option value="">{t('common.all')}</option>
-                            {organizations.map((organization) => (
-                                <option key={organization.id} value={organization.id}>{locale === 'am' ? organization.name_am ?? organization.name_en : organization.name_en}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('idCards.issueDate')}</label>
-                        <input type="date" className={inputCls} value={issuedFrom} onChange={(e) => setIssuedFrom(e.target.value)} />
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('idCards.expiryDate')}</label>
-                        <input type="date" className={inputCls} value={expiresTo} onChange={(e) => setExpiresTo(e.target.value)} />
-                    </div>
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            onClick={applyFilters}
-                            className={buttonClassName({ variant: 'primary' })}
-                        >
-                            {t('common.filter')}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={resetFilters}
-                            className={buttonClassName({ variant: 'outline' })}
-                        >
-                            {t('common.reset')}
-                        </button>
-                    </div>
-                </div>
-            </div>
+            <FilterPanel onSubmit={applyFilters} onReset={resetFilters} hasActiveFilters={hasActiveFilters} className="mb-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input type="search" placeholder={t('idCards.searchCards')} value={search} onChange={(e) => setSearch(e.target.value)} />
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                        <option value="">{t('common.allStatuses')}</option>
+                        {CARD_STATUSES.map((s) => (
+                            <option key={s} value={s}>
+                                {t(`idCards.status_${s}`) || s}
+                            </option>
+                        ))}
+                    </Select>
+                </FilterField>
+                <FilterField label={t('idCards.organization')}>
+                    <Select value={organizationId} onChange={(e) => setOrganizationId(e.target.value)}>
+                        <option value="">{t('common.all')}</option>
+                        {organizations.map((organization) => (
+                            <option key={organization.id} value={organization.id}>{locale === 'am' ? organization.name_am ?? organization.name_en : organization.name_en}</option>
+                        ))}
+                    </Select>
+                </FilterField>
+                <FilterField label={t('idCards.issueDate')} htmlFor="cards-issued-from">
+                    <LocalizedDatePicker id="cards-issued-from" className={dateCls} value={issuedFrom} onChange={setIssuedFrom} />
+                </FilterField>
+                <FilterField label={t('idCards.expiryDate')} htmlFor="cards-expires-to">
+                    <LocalizedDatePicker id="cards-expires-to" className={dateCls} value={expiresTo} onChange={setExpiresTo} />
+                </FilterField>
+            </FilterPanel>
 
-            <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <div className={tableContainerClassName}>
                 {cards.data.length === 0 ? (
-                    <div className="p-8">
-                        <EmptyState
-                            title={t('idCards.noIdCardsFound')}
-                            description={t('idCards.cardsAfterApproval')}
-                            action={
-                                can?.submitRequest ? (
-                                    <Link
-                                        href={route('card-requests.create')}
-                                        className={buttonClassName({ variant: 'primary' })}
-                                    >
-                                        {t('idCards.newRequest')}
-                                    </Link>
-                                ) : undefined
-                            }
-                        />
-                    </div>
+                    <EmptyState
+                        title={t('idCards.noIdCardsFound')}
+                        description={t('idCards.cardsAfterApproval')}
+                        action={
+                            can?.submitRequest ? (
+                                <Link
+                                    href={route('card-requests.create')}
+                                    className={buttonClassName({ variant: 'primary' })}
+                                >
+                                    {t('idCards.newRequest')}
+                                </Link>
+                            ) : undefined
+                        }
+                    />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className={tableClassName}>
@@ -303,15 +263,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                         </table>
                     </div>
                 )}
-
-                {cards.meta.last_page > 1 && (
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--app-border)] px-4 py-3 text-xs text-[color:var(--app-muted-foreground)]">
-                        <span>
-                            {t('common.page')} {cards.meta.current_page} {t('common.of')} {cards.meta.last_page}
-                        </span>
-                        <div className="flex gap-1">{cards.meta.links.map((link, index) => link.url ? <Link key={index} href={link.url} preserveScroll className={`rounded-lg border px-3 py-1.5 ${link.active ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white' : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)]'}`} dangerouslySetInnerHTML={{ __html: link.label }} /> : <span key={index} className="rounded-lg border border-[color:var(--app-border)] px-3 py-1.5 opacity-50" dangerouslySetInnerHTML={{ __html: link.label }} />)}</div>
-                    </div>
-                )}
+                <ListPagination meta={cards.meta} />
             </div>
         </AuthenticatedLayout>
     );

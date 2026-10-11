@@ -1,7 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, router } from '@inertiajs/react';
-import { Button, DataTable, FilterBar, type ColumnDef } from '@euisis/ui';
+import { Button, DataTable, type ColumnDef, FilterField, FilterPanel, Input, Select } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
@@ -42,13 +42,16 @@ export default function NetworksIndex({ networks, meta, filters, providers, can 
             actions={can.manage ? <Button as={Link} href={route('cafeteria.networks.create')} variant="primary" size="sm">{t('cafeteriaPolicy.createNetwork')}</Button> : undefined} />}>
             <Head title={t('cafeteriaPolicy.networks')} />
             <div className="space-y-4">
-                <FilterBar search={search} onSearchChange={setSearch} onSubmit={apply}
-                    hasActiveFilters={Boolean(search || providerId)} onReset={() => router.get(route('cafeteria.networks.index'))}
-                    actions={<Button type="submit" size="sm">{t('cafeteriaPolicy.search')}</Button>}>
-                    <select aria-label={t('cafeteriaPolicy.provider')} className={`${inputCls} w-auto`} value={providerId} onChange={(e) => setProviderId(e.target.value)}>
-                        <SelectOptions items={providers.map((p) => ({ ...p, code: p.provider_code }))} placeholder={t('cafeteriaPolicy.all')} />
-                    </select>
-                </FilterBar>
+                <FilterPanel onSubmit={apply} onReset={() => router.get(route('cafeteria.networks.index'))} hasActiveFilters={Boolean(search || providerId)}>
+                    <FilterField label={t('cafeteriaPolicy.search')} wide>
+                        <Input type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+                    </FilterField>
+                    <FilterField label={t('cafeteriaPolicy.provider')}>
+                        <Select value={providerId} onChange={(e) => setProviderId(e.target.value)}>
+                            <SelectOptions items={providers.map((p) => ({ ...p, code: p.provider_code }))} placeholder={t('cafeteriaPolicy.all')} />
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
                 <DataTable data={networks} columns={columns} emptyTitle={t('cafeteriaPolicy.noResults')}
                     pagination={meta} onPageChange={pageTo(route('cafeteria.networks.index'), filters)} />
             </div>

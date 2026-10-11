@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useTerminalTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, buttonClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, buttonClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
 
@@ -63,52 +63,57 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
             <NfcSubNav can={can} current="terminals" />
 
             <AppFilterBar routeName="nfc-management.terminals.index" filters={filters}>
-                <input
-                    name="search"
-                    defaultValue={filters.search ?? ''}
-                    placeholder={t('nfc.searchTerminalsPlaceholder')}
-                    className={`${filterInputCls} min-w-[15rem] flex-1`}
-                    aria-label={t('nfc.searchTerminalsPlaceholder')}
-                />
-                <select
-                    name="terminal_type"
-                    defaultValue={filters.terminal_type ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.terminalType')}
-                >
-                    <option value="">{t('nfc.allTypes')}</option>
-                    {types.map((type) => (
-                        <option key={type} value={type}>
-                            {terminalTypeLabel(type)}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    name="status"
-                    defaultValue={filters.status ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.status')}
-                >
-                    <option value="">{t('nfc.allStatuses')}</option>
-                    {statuses.map((status) => (
-                        <option key={status} value={status}>
-                            {status}
-                        </option>
-                    ))}
-                </select>
-                <select
-                    name="organization_id"
-                    defaultValue={filters.organization_id ?? ''}
-                    className={filterInputCls}
-                    aria-label={t('nfc.organization')}
-                >
-                    <option value="">{t('nfc.allOrganizations')}</option>
-                    {organizations.map((organization) => (
-                        <option key={organization.id} value={organization.id}>
-                            {localizedName(organization)}
-                        </option>
-                    ))}
-                </select>
+                <FilterField label={t('common.search')} wide>
+                    <input
+                        type="search"
+                        name="search"
+                        defaultValue={filters.search ?? ''}
+                        placeholder={t('nfc.searchTerminalsPlaceholder')}
+                        className={filterInputCls}
+                    />
+                </FilterField>
+                <FilterField label={t('nfc.terminalType')}>
+                    <select
+                        name="terminal_type"
+                        defaultValue={filters.terminal_type ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allTypes')}</option>
+                        {types.map((type) => (
+                            <option key={type} value={type}>
+                                {terminalTypeLabel(type)}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
+                <FilterField label={t('nfc.status')}>
+                    <select
+                        name="status"
+                        defaultValue={filters.status ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allStatuses')}</option>
+                        {statuses.map((status) => (
+                            <option key={status} value={status}>
+                                {status}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
+                <FilterField label={t('nfc.organization')}>
+                    <select
+                        name="organization_id"
+                        defaultValue={filters.organization_id ?? ''}
+                        className={filterInputCls}
+                    >
+                        <option value="">{t('nfc.allOrganizations')}</option>
+                        {organizations.map((organization) => (
+                            <option key={organization.id} value={organization.id}>
+                                {localizedName(organization)}
+                            </option>
+                        ))}
+                    </select>
+                </FilterField>
             </AppFilterBar>
 
             {rows.length === 0 ? (
@@ -203,37 +208,7 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
                 </>
             )}
 
-            {meta.last_page > 1 && (
-                <div className="mt-4 flex items-center justify-between text-sm">
-                    <p className="text-[color:var(--app-muted-foreground)]">
-                        {meta.current_page} / {meta.last_page} · {meta.total}
-                    </p>
-                    <div className="flex gap-2">
-                        {meta.current_page > 1 && (
-                            <Link
-                                href={route('nfc-management.terminals.index', {
-                                    ...filters,
-                                    page: meta.current_page - 1,
-                                })}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5"
-                            >
-                                {t('common.previous')}
-                            </Link>
-                        )}
-                        {meta.current_page < meta.last_page && (
-                            <Link
-                                href={route('nfc-management.terminals.index', {
-                                    ...filters,
-                                    page: meta.current_page + 1,
-                                })}
-                                className="rounded-lg border border-[color:var(--app-border-strong)] px-3 py-1.5"
-                            >
-                                {t('common.next')}
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            )}
+            <ListPagination meta={meta} bare className="mt-4" />
         </AuthenticatedLayout>
     );
 }

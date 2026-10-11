@@ -1,11 +1,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-
-/** Safely decode Laravel pagination HTML entities without dangerouslySetInnerHTML. */
-function paginationLabel(label: string): string {
-    return label.replace(/&laquo;/g, '«').replace(/&raquo;/g, '»').replace(/&amp;/g, '&');
-}
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
@@ -14,7 +9,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type Version = {
     id: string;
     version_name: string;
@@ -43,8 +38,7 @@ export default function HierarchyVersionsIndex({
 }: {
     versions: {
         data: Version[];
-        links: Array<{ url: string | null; label: string; active: boolean }>;
-        meta: { total: number };
+        meta: LaravelPageMeta;
     };
     filters: {
         search: string | null;
@@ -61,8 +55,9 @@ export default function HierarchyVersionsIndex({
         effective_from: filters.effective_from ?? '',
     });
 
-    function submitFilters(event: React.FormEvent) {
-        event.preventDefault();
+    const hasActiveFilters = Boolean(filters.search || filters.status || filters.effective_from);
+
+    function submitFilters() {
         router.get(route('hierarchy-versions.index'), filterForm.data, {
             preserveState: true,
             preserveScroll: true,
@@ -92,83 +87,38 @@ export default function HierarchyVersionsIndex({
         >
             <Head title={t('hierarchyVersions.hierarchyVersions')} />
 
-            <form
-                onSubmit={submitFilters}
-                className="mb-4 grid gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 md:grid-cols-4"
-            >
-                <input
-                    className={inputClassName}
-                    placeholder={t('hierarchyVersions.searchHierarchyVersions')}
-                    value={filterForm.data.search}
-                    onChange={(event) => filterForm.setData('search', event.target.value)}
-                />
-                <select
-                    className={selectClassName}
-                    value={filterForm.data.status}
-                    onChange={(event) => filterForm.setData('status', event.target.value)}
-                >
-                    <option value="">{t('common.status')}</option>
-                    <option value="draft">{t('hierarchyVersions.draft')}</option>
-                    <option value="published">{t('hierarchyVersions.published')}</option>
-                    <option value="archived">{t('hierarchyVersions.archived')}</option>
-                </select>
-                <LocalizedDatePicker
-                    className="rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)]"
-                    value={filterForm.data.effective_from}
-                    onChange={(iso) => filterForm.setData('effective_from', iso)}
-                />
-                <div className="flex items-center justify-end gap-2">
-                    <button
-                        type="button"
-                        onClick={() => {
-                            filterForm.setData({
-                                search: '',
-                                status: '',
-                                effective_from: '',
-                            });
-                            router.get(route('hierarchy-versions.index'));
-                        }}
-                        className={buttonClassName({ variant: 'outline' })}
-                    >
-                        {t('common.reset')}
-                    </button>
-                    <button
-                        type="submit"
-                        className={buttonClassName({ variant: 'primary' })}
-                    >
-                        {t('common.filter')}
-                    </button>
-                </div>
-            </form>
+            <FilterPanel onSubmit={submitFilters} onReset={() => router.get(route('hierarchy-versions.index'))} hasActiveFilters={hasActiveFilters} className="mb-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input type="search" placeholder={t('hierarchyVersions.searchHierarchyVersions')} value={filterForm.data.search} onChange={(event) => filterForm.setData('search', event.target.value)} />
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={filterForm.data.status} onChange={(event) => filterForm.setData('status', event.target.value)}>
+                        <option value="">{t('common.allStatuses')}</option>
+                        <option value="draft">{t('hierarchyVersions.draft')}</option>
+                        <option value="published">{t('hierarchyVersions.published')}</option>
+                        <option value="archived">{t('hierarchyVersions.archived')}</option>
+                    </Select>
+                </FilterField>
+                <FilterField label={t('common.effectiveFrom')} htmlFor="versions-effective-from">
+                    <LocalizedDatePicker id="versions-effective-from" className={cx(inputClassName, 'w-full')} value={filterForm.data.effective_from} onChange={(iso) => filterForm.setData('effective_from', iso)} />
+                </FilterField>
+            </FilterPanel>
 
-            <section className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                <div className="flex items-center justify-between px-5 py-4">
-                    <div className="flex items-center gap-3">
-                        <h3 className="font-semibold text-[color:var(--app-foreground)]">
-                            {t('hierarchyVersions.hierarchyVersions')}
-                        </h3>
-                        <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {versions.meta.total}
-                        </span>
-                    </div>
-                </div>
-
+            <TableCard title={t('hierarchyVersions.hierarchyVersions')}>
                 {versions.data.length === 0 ? (
-                    <div className="p-6">
-                        <EmptyState
-                            title={t('hierarchyVersions.noHierarchyVersionsFound')}
-                            description={t('hierarchyVersions.description')}
-                            action={can.create ? (
-                                <Link
-                                    href={route('hierarchy-versions.create')}
-                                    className={buttonClassName({ variant: 'primary', size: 'sm' })}
-                                >
-                                    <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                                    {t('hierarchyVersions.createHierarchyVersion')}
-                                </Link>
-                            ) : undefined}
-                        />
-                    </div>
+                    <EmptyState
+                        title={t('hierarchyVersions.noHierarchyVersionsFound')}
+                        description={t('hierarchyVersions.description')}
+                        action={can.create ? (
+                            <Link
+                                href={route('hierarchy-versions.create')}
+                                className={buttonClassName({ variant: 'primary', size: 'sm' })}
+                            >
+                                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                                {t('hierarchyVersions.createHierarchyVersion')}
+                            </Link>
+                        ) : undefined}
+                    />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className={cx(tableClassName, 'min-w-full text-left')}>
@@ -220,14 +170,14 @@ export default function HierarchyVersionsIndex({
                                             <div className="flex flex-wrap justify-end gap-2">
                                                 <Link
                                                     href={route('hierarchy-versions.show', { hierarchyVersion: version.id })}
-                                                    className="rounded-lg border border-[color:var(--app-border)] px-3 py-1.5 text-sm font-medium text-[color:var(--color-primary)] hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:border-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                                 >
                                                     {t('common.view')}
                                                 </Link>
                                                 {version.can.update && (
                                                     <Link
                                                         href={route('hierarchy-versions.edit', { hierarchyVersion: version.id })}
-                                                        className="rounded-lg border border-[color:var(--app-border)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                                     >
                                                         {t('common.edit')}
                                                     </Link>
@@ -235,7 +185,7 @@ export default function HierarchyVersionsIndex({
                                                 {version.can.manageTree && (
                                                     <Link
                                                         href={route('hierarchy-versions.tree.edit', { hierarchyVersion: version.id })}
-                                                        className="rounded-lg border border-[color:var(--app-border)] px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                                                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                                     >
                                                         {t('hierarchyVersions.editTree')}
                                                     </Link>
@@ -253,7 +203,7 @@ export default function HierarchyVersionsIndex({
                                                             });
                                                             if (confirmed) router.post(route('hierarchy-versions.publish', { hierarchyVersion: version.id }));
                                                         }}
-                                                        className="rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-amber-600"
+                                                        className={buttonClassName({ variant: 'primary', size: 'sm' })}
                                                     >
                                                         {t('hierarchyVersions.publishVersion')}
                                                     </button>
@@ -284,19 +234,8 @@ export default function HierarchyVersionsIndex({
                         </table>
                     </div>
                 )}
-
-                {versions.links.length > 3 && (
-                    <div className="flex flex-wrap items-center justify-end gap-2 border-t border-[color:var(--app-border)] px-5 py-4">
-                        {versions.links.map((link, index) => (
-                            <Link
-                                key={`${link.label}-${index}`}
-                                href={link.url ?? '#'}
-                                className={`rounded-lg px-3 py-1.5 text-sm ${link.active ? 'bg-[color:var(--color-primary)] text-white' : 'border border-[color:var(--app-border)] text-[color:var(--app-foreground)]'} ${link.url ? '' : 'pointer-events-none opacity-50'}`}
-                            >{paginationLabel(link.label)}</Link>
-                        ))}
-                    </div>
-                )}
-            </section>
+                <ListPagination meta={versions.meta} />
+            </TableCard>
         </AuthenticatedLayout>
     );
 }

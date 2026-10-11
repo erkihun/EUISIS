@@ -2,7 +2,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import { Head, router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
 import { TrashIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -10,7 +9,7 @@ import { toast } from '@/lib/toast';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { badgeClassName, buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type RecycleBinRecord = {
     type: string;
     type_label_key: string;
@@ -48,10 +47,10 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
         deleted_to: filters.deleted_to ?? '',
     });
 
-    const inputClassName = uiInputClassName;
+    const dateCls = cx(uiInputClassName, 'w-full');
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    function submit() {
         router.get(route('recycle-bin.index'), form.data, { preserveState: true, preserveScroll: true });
     }
 
@@ -95,35 +94,31 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
             <Head title={t('recycleBin.title')} />
 
             <div className="space-y-6">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <form className="grid gap-3 lg:grid-cols-5" onSubmit={submit}>
-                        <input
-                            className={inputClassName}
-                            value={form.data.search}
-                            placeholder={t('recycleBin.searchPlaceholder')}
-                            onChange={(event) => form.setData('search', event.target.value)}
-                        />
-                        <select className={inputClassName} value={form.data.type} onChange={(event) => form.setData('type', event.target.value)}>
-                            <option value="">{t('recycleBin.filterByType')}</option>
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('recycle-bin.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={form.data.search} placeholder={t('recycleBin.searchPlaceholder')} onChange={(event) => form.setData('search', event.target.value)} />
+                    </FilterField>
+                    <FilterField label={t('recycleBin.filterByType')}>
+                        <Select value={form.data.type} onChange={(event) => form.setData('type', event.target.value)}>
+                            <option value="">{t('common.all')}</option>
                             {types.map((type) => (
                                 <option key={type.value} value={type.value}>
                                     {t(type.label_key)}
                                 </option>
                             ))}
-                        </select>
-                        <LocalizedDatePicker className={inputClassName} value={form.data.deleted_from} onChange={(iso) => form.setData('deleted_from', iso)} aria-label={t('recycleBin.deletedFrom')} />
-                        <LocalizedDatePicker className={inputClassName} value={form.data.deleted_to} onChange={(iso) => form.setData('deleted_to', iso)} aria-label={t('recycleBin.deletedTo')} />
-                        <button type="submit" className={buttonClassName({ variant: 'primary' })}>
-                            {t('common.filter')}
-                        </button>
-                    </form>
-                </section>
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('recycleBin.deletedFrom')} htmlFor="recycle-deleted-from">
+                        <LocalizedDatePicker id="recycle-deleted-from" className={dateCls} value={form.data.deleted_from} onChange={(iso) => form.setData('deleted_from', iso)} />
+                    </FilterField>
+                    <FilterField label={t('recycleBin.deletedTo')} htmlFor="recycle-deleted-to">
+                        <LocalizedDatePicker id="recycle-deleted-to" className={dateCls} value={form.data.deleted_to} onChange={(iso) => form.setData('deleted_to', iso)} />
+                    </FilterField>
+                </FilterPanel>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <section className={tableContainerClassName}>
                     {records.data.length === 0 ? (
-                        <div className="p-8">
-                            <EmptyState title={t('recycleBin.noDeletedRecords')} />
-                        </div>
+                        <EmptyState title={t('recycleBin.noDeletedRecords')} />
                     ) : (
                         <div className="overflow-x-auto">
                             <table className={cx(tableClassName, 'min-w-full text-left')}>
@@ -176,10 +171,7 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
                             </table>
                         </div>
                     )}
-
-                    <div className="border-t border-[color:var(--app-border)] px-4 py-3 text-xs text-[color:var(--app-muted-foreground)]">
-                        {records.meta.total} {t('common.results')}
-                    </div>
+                    <ListPagination meta={records.meta} />
                 </section>
             </div>
         </AuthenticatedLayout>

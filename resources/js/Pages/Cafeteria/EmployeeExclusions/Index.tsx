@@ -7,7 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type Exclusion = {
     id: string; employee_name: string | null; employee_number: string | null;
     exclusion_type: string; exclusion_type_label: string;
@@ -29,7 +29,7 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
 }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
-    const inputCls = inputClassName;
+    const hasActiveFilters = Object.entries(filters).some(([key, value]) => key !== 'page' && Boolean(value));
 
     async function handleArchive(id: string) {
         const { confirmed } = await confirm({ title: t('confirmations.confirmDeleteTitle'), description: '', confirmLabel: t('confirmations.delete'), cancelLabel: t('confirmations.cancel'), variant: 'danger' });
@@ -41,9 +41,8 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
         if (confirmed) router.post(route('cafeteria.employee-exclusions.end', id));
     }
 
-    function submit(e: FormEvent) {
-        e.preventDefault();
-        const fd = new FormData(e.currentTarget as HTMLFormElement);
+    function submit(e: FormEvent<HTMLFormElement>) {
+        const fd = new FormData(e.currentTarget);
         router.get(route('cafeteria.employee-exclusions.index'), Object.fromEntries(fd), { preserveState: true });
     }
 
@@ -69,18 +68,21 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                     </div>
                 )}
 
-                <form className="flex gap-3" onSubmit={submit}>
-                    <input name="search" defaultValue={filters.search ?? ''} placeholder={t('common.search')} className={inputCls} />
-                    <select name="status" defaultValue={filters.status ?? ''} className={inputCls}>
-                        <option value="">All statuses</option>
-                        <option value="active">{t('cafeteria.exclusionStatusActive')}</option>
-                        <option value="ended">{t('cafeteria.exclusionStatusEnded')}</option>
-                        <option value="cancelled">{t('cafeteria.exclusionStatusCancelled')}</option>
-                    </select>
-                    <button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button>
-                </form>
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('cafeteria.employee-exclusions.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" name="search" defaultValue={filters.search ?? ''} placeholder={t('common.search')} />
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select name="status" defaultValue={filters.status ?? ''}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            <option value="active">{t('cafeteria.exclusionStatusActive')}</option>
+                            <option value="ended">{t('cafeteria.exclusionStatusEnded')}</option>
+                            <option value="cancelled">{t('cafeteria.exclusionStatusCancelled')}</option>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
                     {exclusions.length === 0 ? <EmptyState title={t('cafeteria.noExclusionsFound')} /> : (
                         <div className="overflow-x-auto">
                             <table className={tableClassName}>
@@ -130,6 +132,7 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                             </table>
                         </div>
                     )}
+                    <ListPagination meta={meta} />
                 </div>
             </div>
         </AuthenticatedLayout>

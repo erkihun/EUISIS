@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { AppFilterBar, Field, Pill, Section, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, useEnumLabel, type Paginator } from '@/Components/performance/ui';
+import { AppFilterBar, FilterField, Field, Pill, Section, Table, TablePanel, filterInputCls, inputCls, linkBtn, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, useEnumLabel, type Paginator } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -153,12 +153,16 @@ export default function KpisIndex({ kpis, filters, options, organizations, can }
                 )}
 
                 <AppFilterBar routeName="performance.kpis.index" filters={{ search: filters.search, active: filters.active ?? '' }}>
-                    <input name="search" defaultValue={filters.search} placeholder={t('performance.actions.search')} aria-label={t('performance.actions.search')} className={`${filterInputCls} min-w-[15rem] flex-1`} />
-                    <select name="active" defaultValue={filters.active ?? ''} aria-label={t('performance.fields.status')} className={filterInputCls}>
-                        <option value="">{t('performance.fields.status')}: —</option>
-                        <option value="1">{t('performance.fields.active')}</option>
-                        <option value="0">{t('performance.fields.inactive')}</option>
-                    </select>
+                    <FilterField label={t('performance.actions.search')} wide>
+                        <input name="search" defaultValue={filters.search} placeholder={t('performance.actions.search')} className={filterInputCls} />
+                    </FilterField>
+                    <FilterField label={t('performance.fields.status')}>
+                        <select name="active" defaultValue={filters.active ?? ''} className={filterInputCls}>
+                            <option value="">{t('common.all')}</option>
+                            <option value="1">{t('performance.fields.active')}</option>
+                            <option value="0">{t('performance.fields.inactive')}</option>
+                        </select>
+                    </FilterField>
                 </AppFilterBar>
 
                 <TablePanel page={kpis} empty={t('performance.kpis.empty')}>

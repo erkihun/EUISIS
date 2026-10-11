@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
-import { Button, DataTable, FilterBar, type ColumnDef } from '@euisis/ui';
+import { Button, DataTable, type ColumnDef, FilterField, FilterPanel, Select } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { ActionButton, inputCls, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
@@ -50,19 +50,24 @@ export default function AccessIndex({ rows, meta, filters, organizations, networ
             actions={can.manage ? <Button as={Link} href={route('cafeteria.access.create')} variant="primary" size="sm">{t('cafeteriaPolicy.grantAccess')}</Button> : undefined} />}>
             <Head title={t('cafeteriaPolicy.navAccess')} />
             <div className="space-y-4">
-                <FilterBar onSubmit={apply} hasActiveFilters={Boolean(f.organization_id || f.network_id || f.status)} onReset={() => router.get(route('cafeteria.access.index'))}
-                    actions={<Button type="submit" size="sm">{t('cafeteriaPolicy.search')}</Button>}>
-                    <select aria-label={t('cafeteriaPolicy.organization')} className={`${inputCls} w-auto`} value={f.organization_id} onChange={(e) => setF({ ...f, organization_id: e.target.value })}>
-                        <SelectOptions items={organizations} placeholder={t('cafeteriaPolicy.organization')} />
-                    </select>
-                    <select aria-label={t('cafeteriaPolicy.network')} className={`${inputCls} w-auto`} value={f.network_id} onChange={(e) => setF({ ...f, network_id: e.target.value })}>
-                        <SelectOptions items={networks} placeholder={t('cafeteriaPolicy.network')} />
-                    </select>
-                    <select aria-label={t('cafeteriaPolicy.status')} className={`${inputCls} w-auto`} value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}>
-                        <option value="">{t('cafeteriaPolicy.status')}</option>
-                        {['pending_approval', 'active', 'ended', 'cancelled'].map((s) => <option key={s} value={s}>{t(`cafeteriaPolicy.statuses.${s}`)}</option>)}
-                    </select>
-                </FilterBar>
+                <FilterPanel onSubmit={apply} onReset={() => router.get(route('cafeteria.access.index'))} hasActiveFilters={Boolean(f.organization_id || f.network_id || f.status)}>
+                    <FilterField label={t('cafeteriaPolicy.organization')}>
+                        <Select value={f.organization_id} onChange={(e) => setF({ ...f, organization_id: e.target.value })}>
+                            <SelectOptions items={organizations} placeholder={t('cafeteriaPolicy.all')} />
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('cafeteriaPolicy.network')}>
+                        <Select value={f.network_id} onChange={(e) => setF({ ...f, network_id: e.target.value })}>
+                            <SelectOptions items={networks} placeholder={t('cafeteriaPolicy.all')} />
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('cafeteriaPolicy.status')}>
+                        <Select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}>
+                            <option value="">{t('cafeteriaPolicy.all')}</option>
+                            {['pending_approval', 'active', 'ended', 'cancelled'].map((s) => <option key={s} value={s}>{t(`cafeteriaPolicy.statuses.${s}`)}</option>)}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
                 <DataTable data={rows} columns={columns} emptyTitle={t('cafeteriaPolicy.noResults')} pagination={meta} onPageChange={pageTo(route('cafeteria.access.index'), filters)} />
             </div>
         </AuthenticatedLayout>

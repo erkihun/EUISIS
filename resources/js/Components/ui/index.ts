@@ -54,7 +54,6 @@ export {
     tableHeaderCellClassName,
     tableRowClassName,
     // The one filter panel and pagination bar (packages/euisis-ui/src/data.tsx).
-    FilterBar,
     FilterField,
     FilterPanel,
     Pagination,

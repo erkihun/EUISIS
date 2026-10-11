@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, router } from '@inertiajs/react';
-import { Button, EmptyState, FilterBar } from '@euisis/ui';
+import { Button, EmptyState, FilterField, FilterPanel, Select } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, Money, SelectOptions, StatusPill } from '@/Components/Cafeteria/PolicyUi';
@@ -42,29 +42,39 @@ export default function AnalyticsIndex({ filters, types, report, organizations, 
             actions={can.export ? <Button as="a" href={route('cafeteria.analytics.export', params)} size="sm" variant="outline">{tt('exportCsv')}</Button> : undefined} />}>
             <Head title={tt('navAnalytics')} />
             <div className="space-y-4">
-                <FilterBar onSubmit={apply} actions={<Button type="submit" size="sm" variant="primary">{tt('run')}</Button>}>
-                    <select aria-label={tt('reportType')} className={`${inputCls} w-auto`} value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
-                        {types.map((type) => <option key={type} value={type}>{t(`cafeteriaPolicy.reports.${type}`)}</option>)}
-                    </select>
-                    <label className="flex items-center gap-1 text-sm">{tt('dateFrom')}
-                        <LocalizedDatePicker id="analytics-from" className={`${inputCls} w-40`} value={f.date_from} onChange={(v) => setF({ ...f, date_from: v })} />
-                    </label>
-                    <label className="flex items-center gap-1 text-sm">{tt('dateTo')}
-                        <LocalizedDatePicker id="analytics-to" className={`${inputCls} w-40`} value={f.date_to} onChange={(v) => setF({ ...f, date_to: v })} />
-                    </label>
-                    <select aria-label={tt('organization')} className={`${inputCls} w-auto`} value={f.organization_id ?? ''} onChange={(e) => setF({ ...f, organization_id: e.target.value || null })}>
-                        <SelectOptions items={organizations.map((o) => ({ ...o, id: o.id }))} placeholder={tt('organization')} />
-                    </select>
-                    <select aria-label={tt('provider')} className={`${inputCls} w-auto`} value={f.provider_id ?? ''} onChange={(e) => setF({ ...f, provider_id: e.target.value || null })}>
-                        <SelectOptions items={providers.map((p) => ({ ...p, code: p.provider_code ?? p.code }))} placeholder={tt('provider')} />
-                    </select>
-                    <select aria-label={tt('network')} className={`${inputCls} w-auto`} value={f.network_id ?? ''} onChange={(e) => setF({ ...f, network_id: e.target.value || null })}>
-                        <SelectOptions items={networks} placeholder={tt('network')} />
-                    </select>
-                    <select aria-label={tt('cafeteria')} className={`${inputCls} w-auto`} value={f.cafeteria_id ?? ''} onChange={(e) => setF({ ...f, cafeteria_id: e.target.value || null })}>
-                        <SelectOptions items={cafeterias} placeholder={tt('cafeteria')} />
-                    </select>
-                </FilterBar>
+                <FilterPanel onSubmit={apply} submitLabel={tt('run')}>
+                    <FilterField label={tt('reportType')}>
+                        <Select value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
+                            {types.map((type) => <option key={type} value={type}>{t(`cafeteriaPolicy.reports.${type}`)}</option>)}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={tt('dateFrom')} htmlFor="analytics-from">
+                        <LocalizedDatePicker id="analytics-from" className={inputCls} value={f.date_from} onChange={(v) => setF({ ...f, date_from: v })} />
+                    </FilterField>
+                    <FilterField label={tt('dateTo')} htmlFor="analytics-to">
+                        <LocalizedDatePicker id="analytics-to" className={inputCls} value={f.date_to} onChange={(v) => setF({ ...f, date_to: v })} />
+                    </FilterField>
+                    <FilterField label={tt('organization')}>
+                        <Select value={f.organization_id ?? ''} onChange={(e) => setF({ ...f, organization_id: e.target.value || null })}>
+                            <SelectOptions items={organizations.map((o) => ({ ...o, id: o.id }))} placeholder={tt('all')} />
+                        </Select>
+                    </FilterField>
+                    <FilterField label={tt('provider')}>
+                        <Select value={f.provider_id ?? ''} onChange={(e) => setF({ ...f, provider_id: e.target.value || null })}>
+                            <SelectOptions items={providers.map((p) => ({ ...p, code: p.provider_code ?? p.code }))} placeholder={tt('all')} />
+                        </Select>
+                    </FilterField>
+                    <FilterField label={tt('network')}>
+                        <Select value={f.network_id ?? ''} onChange={(e) => setF({ ...f, network_id: e.target.value || null })}>
+                            <SelectOptions items={networks} placeholder={tt('all')} />
+                        </Select>
+                    </FilterField>
+                    <FilterField label={tt('cafeteria')}>
+                        <Select value={f.cafeteria_id ?? ''} onChange={(e) => setF({ ...f, cafeteria_id: e.target.value || null })}>
+                            <SelectOptions items={cafeterias} placeholder={tt('all')} />
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
                 <div className="overflow-x-auto rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     {report.rows.length === 0 ? <EmptyState title={tt('noResults')} /> : (

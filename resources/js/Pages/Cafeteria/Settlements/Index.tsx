@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
-import { Button, DataTable, FilterBar, type ColumnDef } from '@euisis/ui';
+import { Button, DataTable, type ColumnDef, FilterField, FilterPanel, Select } from '@euisis/ui';
 import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { inputCls, Money, pageTo, SelectOptions, StatusPill, useNames, type Meta, type NamePair } from '@/Components/Cafeteria/PolicyUi';
@@ -39,16 +39,19 @@ export default function SettlementsIndex({ rows, meta, filters, providers, can }
             actions={can.manage ? <Button as={Link} href={route('cafeteria.settlements.create')} variant="primary" size="sm">{t('cafeteriaPolicy.createSettlement')}</Button> : undefined} />}>
             <Head title={t('cafeteriaPolicy.navSettlements')} />
             <div className="space-y-4">
-                <FilterBar onSubmit={apply} hasActiveFilters={Boolean(f.provider_id || f.status)} onReset={() => router.get(route('cafeteria.settlements.index'))}
-                    actions={<Button type="submit" size="sm">{t('cafeteriaPolicy.search')}</Button>}>
-                    <select aria-label={t('cafeteriaPolicy.provider')} className={`${inputCls} w-auto`} value={f.provider_id} onChange={(e) => setF({ ...f, provider_id: e.target.value })}>
-                        <SelectOptions items={providers.map((p) => ({ ...p, code: p.provider_code }))} placeholder={t('cafeteriaPolicy.provider')} />
-                    </select>
-                    <select aria-label={t('cafeteriaPolicy.status')} className={`${inputCls} w-auto`} value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}>
-                        <option value="">{t('cafeteriaPolicy.status')}</option>
-                        {['draft', 'finalized', 'cancelled'].map((s) => <option key={s} value={s}>{t(`cafeteriaPolicy.statuses.${s}`)}</option>)}
-                    </select>
-                </FilterBar>
+                <FilterPanel onSubmit={apply} onReset={() => router.get(route('cafeteria.settlements.index'))} hasActiveFilters={Boolean(f.provider_id || f.status)}>
+                    <FilterField label={t('cafeteriaPolicy.provider')}>
+                        <Select value={f.provider_id} onChange={(e) => setF({ ...f, provider_id: e.target.value })}>
+                            <SelectOptions items={providers.map((p) => ({ ...p, code: p.provider_code }))} placeholder={t('cafeteriaPolicy.all')} />
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('cafeteriaPolicy.status')}>
+                        <Select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}>
+                            <option value="">{t('cafeteriaPolicy.all')}</option>
+                            {['draft', 'finalized', 'cancelled'].map((s) => <option key={s} value={s}>{t(`cafeteriaPolicy.statuses.${s}`)}</option>)}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
                 <DataTable data={rows} columns={columns} emptyTitle={t('cafeteriaPolicy.noResults')} pagination={meta} onPageChange={pageTo(route('cafeteria.settlements.index'), filters)} />
             </div>
         </AuthenticatedLayout>

@@ -16,7 +16,7 @@ import { useUiMessages } from './context';
 import { EmptyState } from './feedback';
 import { Button, Skeleton, cx } from './primitives';
 import { tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from './table';
-import { SearchInput, controlClassName, selectClassName } from './forms';
+import { controlClassName, selectClassName } from './forms';
 
 export type { ColumnDef } from '@tanstack/react-table';
 export { createColumnHelper } from '@tanstack/react-table';
@@ -119,8 +119,7 @@ export function DataTable<T>({ data, columns, loading = false, emptyTitle, empty
     className?: string;
 }) {
     const table = useReactTable({ data, columns, getCoreRowModel: getCoreRowModel() });
-    return <div className={cx('space-y-3', className)}>
-        <div className={tableContainerClassName}>
+    return <div className={cx(tableContainerClassName, className)}>
             {!loading && data.length === 0 ? <EmptyState title={emptyTitle} description={emptyDescription} action={emptyAction} /> : <div className="overflow-x-auto">
                 <table className={tableClassName}>
                     <thead className={tableHeadClassName}>
@@ -131,8 +130,7 @@ export function DataTable<T>({ data, columns, loading = false, emptyTitle, empty
                     </tbody>
                 </table>
             </div>}
-        </div>
-        {pagination && onPageChange && <Pagination meta={pagination} onPageChange={onPageChange} onPerPageChange={onPerPageChange} />}
+        {pagination && onPageChange && <Pagination meta={pagination} onPageChange={onPageChange} onPerPageChange={onPerPageChange} className="border-t border-[color:var(--app-border)] px-4 py-3" />}
     </div>;
 }
 
@@ -203,34 +201,6 @@ export function FilterField({ label, htmlFor, wide = false, className, children 
     const frame = cx(filterFieldClassName(wide), className);
     if (htmlFor) return <div className={frame}><label htmlFor={htmlFor} className={filterCaptionClassName}>{label}</label>{children}</div>;
     return <label className={frame}><span className={filterCaptionClassName}>{label}</span>{children}</label>;
-}
-
-/**
- * A filter row that applies as the user changes it (client-side lists). Same
- * frame as FilterPanel; prefer FilterPanel for server queries.
- */
-export function FilterBar({ search, onSearchChange, searchPlaceholder, children, secondary, actions, onReset, hasActiveFilters, onSubmit, className }: {
-    search?: string;
-    onSearchChange?: (value: string) => void;
-    searchPlaceholder?: string;
-    children?: ReactNode;
-    secondary?: ReactNode;
-    actions?: ReactNode;
-    onReset?: () => void;
-    hasActiveFilters?: boolean;
-    onSubmit?: () => void;
-    className?: string;
-}) {
-    const messages = useUiMessages();
-    return <form role="search" aria-label={messages.filters} className={cx(filterPanelClassName, 'flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between', className)} onSubmit={(event) => { event.preventDefault(); onSubmit?.(); }}>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
-            {search !== undefined && onSearchChange && <SearchInput value={search} onChange={onSearchChange} placeholder={searchPlaceholder ?? messages.search} className="w-full sm:w-72" />}
-            {children}
-            {secondary}
-            {hasActiveFilters && onReset && <Button variant="ghost" onClick={onReset}>{messages.reset}</Button>}
-        </div>
-        {actions && <div className="flex flex-wrap items-center gap-2 lg:justify-end">{actions}</div>}
-    </form>;
 }
 
 export interface SearchableOption { value: string; label: string; description?: string; disabled?: boolean }
