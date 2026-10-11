@@ -107,10 +107,11 @@ All tables: UUID PK, `organization_id` where scoped, `created_by`/`updated_by`, 
 - Requirements are replaced as sets (`PUT organization-design/requirements/{activity|task}/{id}`) only while the process is a draft, and are deep-copied with a new process version together with the tree.
 
 ### 3.5 Unit design and responsibility
-- `organization_design_studies` — organization_id, reference_number, title, study_type (INITIAL_STRUCTURE, RESTRUCTURE, …), reason, status, started_at, target_effective_date, hierarchy_version_id nullable, organizational_change_request_id nullable (D-1), prepared/reviewed/approved_by (§112–113).
-- `unit_design_proposals` — study_id, proposed_unit_type_id, proposed names, design_rationale, parent_proposed_unit_id, existing_unit_id nullable (when the proposal is a change to an existing unit), status (§36).
-- `responsibility_types` — RESPONSIBLE/ACCOUNTABLE/CONSULTED/SUPPORTING, configurable (§38).
-- `unit_responsibilities` — subject (organization_unit_id **or** unit_design_proposal_id), object (function/service/process/activity polymorphic), responsibility_type_id; unique per (subject, object, type) (§37).
+*Implemented in phase 5.*
+- `organization_design_studies` — organization_id, reference_number (`ODS-YYYY-NNNN`), titles, study_type (initial_structure / restructure / review), reason, scope_notes, status (draft → under_review → approved, or cancelled), started_at, target_effective_date, hierarchy_version_id nullable, prepared/reviewed/approved_by (§112–113). Maker ≠ checker on approval; a reviewer may return it with a comment.
+- `unit_design_proposals` — study_id, proposal_type (create / update / move / deactivate), existing_unit_id (required unless create), parent_existing_unit_id **or** parent_proposed_unit_id (cycle-checked), proposed_unit_type_id, names, design_rationale, effective dates, status (proposed → accepted on approval → converted → implemented), `organizational_change_request_id`, `resulting_unit_id`. *Ruling:* the change-request pipeline holds one item per request, so each proposal becomes **one** `OrganizationalChangeRequest` (the plan's single study-level request id moved to the proposal). "Create change requests" is idempotent and skips proposals whose proposed parent is not implemented yet; "Adopt implemented units" reads `resulting_entity_id` from the request item, records the unit on the proposal and moves its responsibilities to the unit.
+- `responsibility_types` — code, names, `is_exclusive` (held once per object, RACI's accountable), `covers_object` (counts in the gap report), configurable; RESPONSIBLE / ACCOUNTABLE / CONSULTED / SUPPORTING seeded as starting data (§38).
+- `unit_responsibilities` — organization_unit_id **xor** unit_design_proposal_id, object_type (function / service / process / activity) + object_id (same organization), responsibility_type_id, notes; unique per (subject, object, type) (§37). Matrix and gap report per organization at `organization-design/responsibilities`.
 
 ### 3.6 Workforce planning
 - `workforce_planning_methodologies` — code, names, `calculation_type` (whitelisted: `WORKLOAD_STANDARD_TIME`, `RATIO`, `FIXED_MINIMUM`, `SPAN_OF_CONTROL`), `parameters` JSON validated against a per-type schema, rounding_rule, version_no, status, effective dates (§47–48). No expressions, ever.
@@ -172,7 +173,7 @@ Each phase ends with migrations, models, services, policies, routes, pages, tran
 | **2. Services & classification** — *done* | §9–16; ISIC revision; one LOCAL/CPC catalog table + CSV importer (dry run, idempotent, per revision); `LegalInstrumentTypeSeeder` | 4 (+1 column) | 6–15 | M |
 | **3. Process architecture & standards** — *done* | §17–25; master process/activity/task; typed I/O rows; standard generalisation; Daily Work bridge (backend) | 4 (+3 columns) | 16–25 | L |
 | **4. Occupations & competencies** — *done* | §26–34; ISCO reference (via the classification importer), professions/specializations, competency types/levels, education ladder, three requirement tables + editor on the process page | 9 (+2 columns) | 26–34 | M |
-| **5. Unit design & responsibility** | §35–39, 112–113 | 4 | structure tests | M |
+| **5. Unit design & responsibility** — *done* | §35–39, 112–113; studies, proposals → one change request each, responsibility matrix + gaps | 4 | 35–42 | M |
 | **6. Structure, organogram, impact** | §40–44, 79, 114–115 (D-1) | 0–1 | validation gate tests | M (L if D-1 = a) |
 | **7. Workforce planning** | §45–57, 80; methodologies, plans, lines, calculation strategies, position requirements | 4 | manpower gate tests | L |
 | **8. Position profile & job description** | §58–71, 81; profiles, requirements, JD sections, versioning, assignment link | 6 | JD gate tests | L |

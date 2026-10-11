@@ -72,4 +72,20 @@ return [
         'Browse competency types, named levels, framework competencies and the education ladder.', 'የብቃት ዓይነቶችን፣ የተሰየሙ ደረጃዎችን፣ የማዕቀፍ ብቃቶችን እና የትምህርት ደረጃዎችን ያስሱ።'),
     $entry('competency-catalog.manage', 'competency-catalog', 20, 'Manage the competency catalog', 'የብቃት ካታሎግ ያስተዳድሩ',
         'City-level: maintain competency types, named levels, framework competencies and education levels.', 'የከተማ ደረጃ፡ የብቃት ዓይነቶችን፣ የተሰየሙ ደረጃዎችን፣ የማዕቀፍ ብቃቶችን እና የትምህርት ደረጃዎችን ያስተዳድሩ።'),
+
+    $entry('organization-design.viewAny', 'organization-design', 10, 'View design studies', 'የንድፍ ጥናቶችን ይመልከቱ',
+        'List design studies and the responsibility matrix of organizations within scope.', 'በወሰን ውስጥ ያሉ ተቋማትን የንድፍ ጥናቶች እና የኃላፊነት ማትሪክስ ይዘርዝሩ።'),
+    $entry('organization-design.view', 'organization-design', 20, 'View a design study', 'የንድፍ ጥናት ይመልከቱ',
+        'Open a design study with its unit proposals and responsibilities.', 'የንድፍ ጥናትን ከክፍል ሀሳቦቹ እና ኃላፊነቶቹ ጋር ይክፈቱ።'),
+    $entry('organization-design.create', 'organization-design', 30, 'Start design studies', 'የንድፍ ጥናቶችን ይጀምሩ',
+        'Open a new design study for an organization within scope.', 'በወሰን ውስጥ ላለ ተቋም አዲስ የንድፍ ጥናት ይክፈቱ።'),
+    $entry('organization-design.update', 'organization-design', 40, 'Design units and responsibilities', 'ክፍሎችንና ኃላፊነቶችን ይንደፉ',
+        'Edit draft studies, propose units, map responsibilities and hand approved proposals to the change-request pipeline.', 'ረቂቅ ጥናቶችን ያርትዑ፣ ክፍሎችን ያቅርቡ፣ ኃላፊነቶችን ያስተካክሉ እና የጸደቁ ሀሳቦችን ወደ የለውጥ ጥያቄ ሂደት ያስተላልፉ።'),
+    $entry('organization-design.review', 'organization-design', 50, 'Review design studies', 'የንድፍ ጥናቶችን ይገምግሙ',
+        'Return a submitted study to its preparer with comments.', 'የቀረበን ጥናት ከአስተያየቶች ጋር ወደ አዘጋጁ ይመልሱ።'),
+    $entry('organization-design.approve', 'organization-design', 60, 'Approve design studies', 'የንድፍ ጥናቶችን ያጽድቁ',
+        'Approve a submitted study prepared by someone else.', 'በሌላ ሰው የተዘጋጀ የቀረበ ጥናት ያጽድቁ።'),
+
+    $entry('responsibility-types.manage', 'responsibility-types', 10, 'Manage responsibility types', 'የኃላፊነት ዓይነቶችን ያስተዳድሩ',
+        'City-level: maintain the responsibility types (responsible, accountable, …) units are mapped with.', 'የከተማ ደረጃ፡ ክፍሎች የሚመደቡባቸውን የኃላፊነት ዓይነቶች (ኃላፊ፣ ተጠያቂ፣ …) ያስተዳድሩ።'),
 ];

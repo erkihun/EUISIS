@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 use App\Http\Controllers\OrganizationDesign\ClassificationController;
 use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
+use App\Http\Controllers\OrganizationDesign\DesignStudyController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
 use App\Http\Controllers\OrganizationDesign\ProcessController;
 use App\Http\Controllers\OrganizationDesign\ProcessDesignController;
 use App\Http\Controllers\OrganizationDesign\ProfessionController;
 use App\Http\Controllers\OrganizationDesign\RequirementController;
+use App\Http\Controllers\OrganizationDesign\ResponsibilityController;
 use App\Http\Controllers\OrganizationDesign\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -102,4 +104,24 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::put('/education-levels/{educationLevel}', [CompetencyCatalogController::class, 'updateEducationLevel'])->whereUuid('educationLevel')->name('education-levels.update');
         Route::post('/competency-frameworks/{framework}/competencies', [CompetencyCatalogController::class, 'storeCompetency'])->whereUuid('framework')->name('competencies.store');
         Route::put('/competencies/{competency}', [CompetencyCatalogController::class, 'updateCompetency'])->whereUuid('competency')->name('competencies.update');
+
+        // Phase 5: design studies, unit proposals, responsibility mapping.
+        Route::get('/studies', [DesignStudyController::class, 'index'])->name('studies.index');
+        Route::post('/studies', [DesignStudyController::class, 'store'])->middleware('throttle:60,1')->name('studies.store');
+        Route::get('/studies/{study}', [DesignStudyController::class, 'show'])->whereUuid('study')->name('studies.show');
+        Route::put('/studies/{study}', [DesignStudyController::class, 'update'])->whereUuid('study')->name('studies.update');
+        Route::post('/studies/{study}/submit', [DesignStudyController::class, 'submit'])->whereUuid('study')->name('studies.submit');
+        Route::post('/studies/{study}/return', [DesignStudyController::class, 'returnToDraft'])->whereUuid('study')->name('studies.return');
+        Route::post('/studies/{study}/approve', [DesignStudyController::class, 'approve'])->whereUuid('study')->name('studies.approve');
+        Route::post('/studies/{study}/cancel', [DesignStudyController::class, 'cancel'])->whereUuid('study')->name('studies.cancel');
+        Route::post('/studies/{study}/generate', [DesignStudyController::class, 'generate'])->whereUuid('study')->name('studies.generate');
+        Route::post('/studies/{study}/adopt', [DesignStudyController::class, 'adopt'])->whereUuid('study')->name('studies.adopt');
+        Route::post('/studies/{study}/proposals', [DesignStudyController::class, 'storeProposal'])->whereUuid('study')->name('studies.proposals.store');
+        Route::put('/proposals/{proposal}', [DesignStudyController::class, 'updateProposal'])->whereUuid('proposal')->name('proposals.update');
+        Route::delete('/proposals/{proposal}', [DesignStudyController::class, 'destroyProposal'])->whereUuid('proposal')->name('proposals.destroy');
+
+        Route::get('/responsibilities', [ResponsibilityController::class, 'index'])->name('responsibilities.index');
+        Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
+        Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
+        Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');
     });

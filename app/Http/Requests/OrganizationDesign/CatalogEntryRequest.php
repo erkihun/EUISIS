@@ -24,7 +24,11 @@ class CatalogEntryRequest extends FormRequest
     public function authorize(): bool
     {
         $record = $this->record();
-        $permission = in_array($this->kind(), ['profession', 'specialization'], true) ? 'professions.manage' : 'competency-catalog.manage';
+        $permission = match ($this->kind()) {
+            'profession', 'specialization' => 'professions.manage',
+            'responsibility_type' => 'responsibility-types.manage',
+            default => 'competency-catalog.manage',
+        };
 
         return ($this->user()?->can($permission) ?? false) && ($record === null || $record->exists);
     }
@@ -73,6 +77,15 @@ class CatalogEntryRequest extends FormRequest
                 'description_en' => ['nullable', 'string', 'max:2000'],
                 'description_am' => ['nullable', 'string', 'max:2000'],
             ],
+            'responsibility_type' => [
+                ...$base,
+                'code' => $codeRule('responsibility_types'),
+                'description_en' => ['nullable', 'string', 'max:2000'],
+                'description_am' => ['nullable', 'string', 'max:2000'],
+                'is_exclusive' => ['nullable', 'boolean'],
+                'covers_object' => ['nullable', 'boolean'],
+                'sort_order' => ['nullable', 'integer', 'min:0'],
+            ],
             'education_level' => [
                 ...$base,
                 'code' => $codeRule('education_levels'),
@@ -99,6 +112,7 @@ class CatalogEntryRequest extends FormRequest
 
         return match (true) {
             str_contains($name, 'specializations') => 'specialization',
+            str_contains($name, 'responsibility-types') => 'responsibility_type',
             str_contains($name, 'professions') => 'profession',
             str_contains($name, 'competency-types') => 'competency_type',
             str_contains($name, 'competency-levels') => 'competency_level',
@@ -109,7 +123,7 @@ class CatalogEntryRequest extends FormRequest
 
     public function record(): ?Model
     {
-        foreach (['profession', 'specialization', 'type', 'level', 'educationLevel'] as $param) {
+        foreach (['profession', 'specialization', 'type', 'level', 'educationLevel', 'responsibilityType'] as $param) {
             $value = $this->route($param);
             if ($value instanceof Model && $this->isUpdate()) {
                 return $value;

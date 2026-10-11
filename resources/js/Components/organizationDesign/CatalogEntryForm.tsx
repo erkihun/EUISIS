@@ -3,7 +3,7 @@ import { Button, FieldError, FormField, Input, Select, Textarea } from '@/Compon
 import { useForm } from '@inertiajs/react';
 import { nameOf, useDesignText } from './ui';
 
-export type CatalogEntry = { id?: string; code?: string; name_en?: string; name_am?: string | null; description_en?: string | null; description_am?: string | null; rank?: number | null; sort_order?: number | null; is_active?: boolean; occupation_id?: string | null; competency_type_id?: string | null };
+export type CatalogEntry = { id?: string; code?: string; name_en?: string; name_am?: string | null; description_en?: string | null; description_am?: string | null; rank?: number | null; sort_order?: number | null; is_active?: boolean; occupation_id?: string | null; competency_type_id?: string | null; [flag: string]: unknown };
 export type CatalogOption = { id: string; code: string; name_en: string; name_am: string | null; isco_code?: string | null };
 
 /**
@@ -17,7 +17,7 @@ export default function CatalogEntryForm({ title, record, url, method, fields, o
     record: CatalogEntry | null;
     url: string;
     method: 'post' | 'put';
-    fields: { description?: boolean; rank?: boolean; rankMax?: number; sortOrder?: boolean; occupation?: boolean; competencyType?: boolean };
+    fields: { description?: boolean; rank?: boolean; rankMax?: number; sortOrder?: boolean; occupation?: boolean; competencyType?: boolean; flags?: { key: string; label: string }[] };
     options?: { occupations?: CatalogOption[]; competencyTypes?: CatalogOption[] };
     onClose: () => void;
 }) {
@@ -26,6 +26,7 @@ export default function CatalogEntryForm({ title, record, url, method, fields, o
         code: record?.code ?? '', name_en: record?.name_en ?? '', name_am: record?.name_am ?? '', description_en: record?.description_en ?? '', description_am: record?.description_am ?? '',
         rank: record?.rank == null ? '' : String(record.rank), sort_order: String(record?.sort_order ?? 0), is_active: record?.is_active ?? true,
         occupation_id: record?.occupation_id ?? '', competency_type_id: record?.competency_type_id ?? '',
+        flags: Object.fromEntries((fields.flags ?? []).map((f) => [f.key, Boolean(record?.[f.key])])) as Record<string, boolean>,
     });
     const errors = form.errors as Record<string, string | undefined>;
 
@@ -38,6 +39,7 @@ export default function CatalogEntryForm({ title, record, url, method, fields, o
             if (fields.sortOrder) out.sort_order = Number(data.sort_order || 0);
             if (fields.occupation) out.occupation_id = data.occupation_id || null;
             if (fields.competencyType) out.competency_type_id = data.competency_type_id || null;
+            for (const f of fields.flags ?? []) out[f.key] = Boolean(data.flags[f.key]);
             return out;
         });
         const opts = { preserveScroll: true, onSuccess: onClose };
@@ -81,6 +83,12 @@ export default function CatalogEntryForm({ title, record, url, method, fields, o
                             <FormField id="cat-desc-am" label={tt('fields.descriptionAm')} className="sm:col-span-2" error={errors.description_am}>{({ id }) => <Textarea id={id} rows={2} value={form.data.description_am} onChange={(e) => form.setData('description_am', e.target.value)} />}</FormField>
                         </>
                     )}
+                    {(fields.flags ?? []).map((f) => (
+                        <label key={f.key} className="flex items-center gap-2 text-sm">
+                            <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={Boolean(form.data.flags[f.key])} onChange={(e) => form.setData('flags', { ...form.data.flags, [f.key]: e.target.checked })} />
+                            <span>{f.label}</span>
+                        </label>
+                    ))}
                     <label className="flex items-center gap-2 text-sm sm:col-span-2">
                         <input type="checkbox" className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)]" checked={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.checked)} />
                         <span>{tt('fields.isActive')}</span>

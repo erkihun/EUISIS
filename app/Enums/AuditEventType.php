@@ -718,4 +718,13 @@ enum AuditEventType: string
     case WorkRequirementsSynced = 'organization_design.work_requirements_synced';
     case ProfessionSaved = 'organization_design.profession_saved';
     case CompetencyCatalogSaved = 'organization_design.competency_catalog_saved';
+    case DesignStudyCreated = 'organization_design.study_created';
+    case DesignStudyUpdated = 'organization_design.study_updated';
+    case DesignStudyApproved = 'organization_design.study_approved';
+    case UnitProposalSaved = 'organization_design.unit_proposal_saved';
+    case UnitProposalRemoved = 'organization_design.unit_proposal_removed';
+    case UnitProposalConverted = 'organization_design.unit_proposal_converted';
+    case UnitProposalImplemented = 'organization_design.unit_proposal_implemented';
+    case ResponsibilitiesSynced = 'organization_design.responsibilities_synced';
+    case ResponsibilityTypeSaved = 'organization_design.responsibility_type_saved';
 }

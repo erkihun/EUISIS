@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Models\CompetencyLevel;
 use App\Models\CompetencyType;
 use App\Models\EducationLevel;
+use App\Models\ResponsibilityType;
 use Illuminate\Database\Seeder;
 
 /**
@@ -20,6 +21,15 @@ class OrganizationDesignCatalogSeeder extends Seeder
 {
     public function run(): void
     {
+        foreach ([
+            ['code' => 'RESPONSIBLE', 'name_en' => 'Responsible', 'name_am' => 'ኃላፊ', 'is_exclusive' => false, 'covers_object' => true, 'sort_order' => 10],
+            ['code' => 'ACCOUNTABLE', 'name_en' => 'Accountable', 'name_am' => 'ተጠያቂ', 'is_exclusive' => true, 'covers_object' => true, 'sort_order' => 20],
+            ['code' => 'CONSULTED', 'name_en' => 'Consulted', 'name_am' => 'የሚማከር', 'is_exclusive' => false, 'covers_object' => false, 'sort_order' => 30],
+            ['code' => 'SUPPORTING', 'name_en' => 'Supporting', 'name_am' => 'ደጋፊ', 'is_exclusive' => false, 'covers_object' => false, 'sort_order' => 40],
+        ] as $type) {
+            ResponsibilityType::query()->updateOrCreate(['code' => $type['code']], $type);
+        }
+
         foreach ([
             ['code' => 'CORE', 'name_en' => 'Core', 'name_am' => 'ዋና', 'sort_order' => 10],
             ['code' => 'TECHNICAL', 'name_en' => 'Technical', 'name_am' => 'ቴክኒካል', 'sort_order' => 20],
