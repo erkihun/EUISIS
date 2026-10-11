@@ -727,4 +727,15 @@ enum AuditEventType: string
     case UnitProposalImplemented = 'organization_design.unit_proposal_implemented';
     case ResponsibilitiesSynced = 'organization_design.responsibilities_synced';
     case ResponsibilityTypeSaved = 'organization_design.responsibility_type_saved';
+    case MethodologyCreated = 'organization_design.methodology_created';
+    case MethodologyUpdated = 'organization_design.methodology_updated';
+    case MethodologyPublished = 'organization_design.methodology_published';
+    case ManpowerPlanCreated = 'organization_design.manpower_plan_created';
+    case ManpowerPlanUpdated = 'organization_design.manpower_plan_updated';
+    case ManpowerPlanApproved = 'organization_design.manpower_plan_approved';
+    case ManpowerLineSaved = 'organization_design.manpower_line_saved';
+    case ManpowerLineCalculated = 'organization_design.manpower_line_calculated';
+    case ManpowerLineRemoved = 'organization_design.manpower_line_removed';
+    case PositionRequirementGenerated = 'organization_design.position_requirement_generated';
+    case PositionRequirementImplemented = 'organization_design.position_requirement_implemented';
 }

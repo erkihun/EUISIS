@@ -7,6 +7,8 @@ use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
+use App\Http\Controllers\OrganizationDesign\ManpowerPlanController;
+use App\Http\Controllers\OrganizationDesign\MethodologyController;
 use App\Http\Controllers\OrganizationDesign\ProcessController;
 use App\Http\Controllers\OrganizationDesign\ProcessDesignController;
 use App\Http\Controllers\OrganizationDesign\ProfessionController;
@@ -125,6 +127,28 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
 
         // Phase 6: structure validation, functional overlay, published hierarchy versions.
         Route::get('/structure', [StructureController::class, 'index'])->name('structure.index');
+
+        // Phase 7: methodologies, manpower plans, lines, requirements and implementation.
+        Route::get('/methodologies', [MethodologyController::class, 'index'])->name('methodologies.index');
+        Route::post('/methodologies', [MethodologyController::class, 'store'])->name('methodologies.store');
+        Route::put('/methodologies/{methodology}', [MethodologyController::class, 'update'])->whereUuid('methodology')->name('methodologies.update');
+        Route::post('/methodologies/{methodology}/versions', [MethodologyController::class, 'storeVersion'])->whereUuid('methodology')->name('methodologies.versions.store');
+        Route::post('/methodologies/{methodology}/publish', [MethodologyController::class, 'publish'])->whereUuid('methodology')->name('methodologies.publish');
+
+        Route::get('/manpower-plans', [ManpowerPlanController::class, 'index'])->name('manpower-plans.index');
+        Route::post('/manpower-plans', [ManpowerPlanController::class, 'store'])->middleware('throttle:60,1')->name('manpower-plans.store');
+        Route::get('/manpower-plans/{plan}', [ManpowerPlanController::class, 'show'])->whereUuid('plan')->name('manpower-plans.show');
+        Route::put('/manpower-plans/{plan}', [ManpowerPlanController::class, 'update'])->whereUuid('plan')->name('manpower-plans.update');
+        Route::post('/manpower-plans/{plan}/submit', [ManpowerPlanController::class, 'submit'])->whereUuid('plan')->name('manpower-plans.submit');
+        Route::post('/manpower-plans/{plan}/return', [ManpowerPlanController::class, 'returnToDraft'])->whereUuid('plan')->name('manpower-plans.return');
+        Route::post('/manpower-plans/{plan}/approve', [ManpowerPlanController::class, 'approve'])->whereUuid('plan')->name('manpower-plans.approve');
+        Route::post('/manpower-plans/{plan}/cancel', [ManpowerPlanController::class, 'cancel'])->whereUuid('plan')->name('manpower-plans.cancel');
+        Route::post('/manpower-plans/{plan}/implement', [ManpowerPlanController::class, 'implement'])->whereUuid('plan')->name('manpower-plans.implement');
+        Route::post('/manpower-plans/{plan}/calculate', [ManpowerPlanController::class, 'calculateAll'])->whereUuid('plan')->name('manpower-plans.calculate');
+        Route::post('/manpower-plans/{plan}/lines', [ManpowerPlanController::class, 'storeLine'])->whereUuid('plan')->name('manpower-plans.lines.store');
+        Route::put('/manpower-plan-lines/{line}', [ManpowerPlanController::class, 'updateLine'])->whereUuid('line')->name('manpower-plans.lines.update');
+        Route::delete('/manpower-plan-lines/{line}', [ManpowerPlanController::class, 'destroyLine'])->whereUuid('line')->name('manpower-plans.lines.destroy');
+        Route::post('/manpower-plan-lines/{line}/calculate', [ManpowerPlanController::class, 'calculateLine'])->whereUuid('line')->name('manpower-plans.lines.calculate');
         Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
         Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
         Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');

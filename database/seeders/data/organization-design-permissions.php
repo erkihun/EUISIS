@@ -88,4 +88,26 @@ return [
 
     $entry('responsibility-types.manage', 'responsibility-types', 10, 'Manage responsibility types', 'የኃላፊነት ዓይነቶችን ያስተዳድሩ',
         'City-level: maintain the responsibility types (responsible, accountable, …) units are mapped with.', 'የከተማ ደረጃ፡ ክፍሎች የሚመደቡባቸውን የኃላፊነት ዓይነቶች (ኃላፊ፣ ተጠያቂ፣ …) ያስተዳድሩ።'),
+
+    $entry('workforce-planning.viewAny', 'workforce-planning', 10, 'View manpower plans', 'የሰው ኃይል ዕቅዶችን ይመልከቱ',
+        'List manpower plans of organizations within scope.', 'በወሰን ውስጥ ያሉ ተቋማትን የሰው ኃይል ዕቅዶች ይዘርዝሩ።'),
+    $entry('workforce-planning.view', 'workforce-planning', 20, 'View a manpower plan', 'የሰው ኃይል ዕቅድ ይመልከቱ',
+        'Open a plan with its lines, calculations and position requirements.', 'ዕቅድን ከመስመሮቹ፣ ስሌቶቹ እና የሥራ መደብ መስፈርቶቹ ጋር ይክፈቱ።'),
+    $entry('workforce-planning.create', 'workforce-planning', 30, 'Start manpower plans', 'የሰው ኃይል ዕቅዶችን ይጀምሩ',
+        'Open a new manpower plan for an organization within scope.', 'በወሰን ውስጥ ላለ ተቋም አዲስ የሰው ኃይል ዕቅድ ይክፈቱ።'),
+    $entry('workforce-planning.update', 'workforce-planning', 40, 'Plan manpower', 'የሰው ኃይል ያቅዱ',
+        'Edit draft plans, add and calculate lines, and adjust headcounts with a reason.', 'ረቂቅ ዕቅዶችን ያርትዑ፣ መስመሮችን ይጨምሩና ያስሉ፣ እና ከምክንያት ጋር የሠራተኛ ብዛትን ያስተካክሉ።'),
+    $entry('workforce-planning.review', 'workforce-planning', 50, 'Review manpower plans', 'የሰው ኃይል ዕቅዶችን ይገምግሙ',
+        'Return a submitted plan to its preparer with comments.', 'የቀረበን ዕቅድ ከአስተያየቶች ጋር ወደ አዘጋጁ ይመልሱ።'),
+    $entry('workforce-planning.approve', 'workforce-planning', 60, 'Approve manpower plans', 'የሰው ኃይል ዕቅዶችን ያጽድቁ',
+        'Approve a submitted plan prepared by someone else; this rolls lines up into position requirements.', 'በሌላ ሰው የተዘጋጀ የቀረበ ዕቅድ ያጽድቁ፤ ይህ መስመሮችን ወደ የሥራ መደብ መስፈርቶች ያጠቃልላል።'),
+    $entry('workforce-planning.implement', 'workforce-planning', 70, 'Implement position requirements', 'የሥራ መደብ መስፈርቶችን ይተግብሩ',
+        'Create the positions and approved establishments of an approved plan. Never assigns people.', 'የጸደቀ ዕቅድ የሥራ መደቦችንና የጸደቁ ድልድሎችን ይፍጠሩ። በጭራሽ ሰዎችን አይመድብም።'),
+
+    $entry('methodologies.viewAny', 'methodologies', 10, 'View methodologies', 'ዘዴዎችን ይመልከቱ',
+        'Browse the manpower estimation methodologies and their parameters.', 'የሰው ኃይል ግምት ዘዴዎችን እና መለኪያዎቻቸውን ያስሱ።'),
+    $entry('methodologies.manage', 'methodologies', 20, 'Draft methodologies', 'ዘዴዎችን ያርቅቁ',
+        'City-level: draft methodologies and new versions with their parameters.', 'የከተማ ደረጃ፡ ዘዴዎችንና አዲስ ስሪቶችን ከመለኪያዎቻቸው ጋር ያርቅቁ።'),
+    $entry('methodologies.approve', 'methodologies', 30, 'Publish methodologies', 'ዘዴዎችን ያትሙ',
+        'Publish a methodology drafted by someone else once every parameter it uses is set.', 'የሚጠቀመው እያንዳንዱ መለኪያ ከተቀመጠ በኋላ በሌላ ሰው የተረቀቀ ዘዴ ያትሙ።'),
 ];
