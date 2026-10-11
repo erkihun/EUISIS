@@ -1,11 +1,14 @@
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { router } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import { FilterField, FilterPanel, Input, Select, cx, hasFilterQuery, inputClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
-import { compactInputCls, named, primaryBtn, secondaryBtn } from './helpers';
+import { named } from './helpers';
 import type { FilterOptions } from './types';
 
 type Values = Record<string, string>;
+
+const dateCls = cx(inputClassName, 'w-full');
 
 /**
  * Server-side filters. The server bounds the date window and intersects every
@@ -31,58 +34,66 @@ export default function Filters({ routeName, filters, options, showStatus = true
     });
     const set = (key: string, value: string) => setValues((current) => ({ ...current, [key]: value }));
 
-    function apply(event: FormEvent) {
-        event.preventDefault();
+    function apply() {
         router.get(route(routeName), Object.fromEntries(Object.entries(values).filter(([, v]) => v !== '')), { preserveScroll: true, preserveState: true });
     }
 
-    const field = `${compactInputCls} w-full sm:w-auto`;
+    // The server echoes its bounded date window; only the URL says what the viewer chose.
+    const hasActiveFilters = hasFilterQuery();
 
     return (
-        <form onSubmit={apply} className="flex flex-wrap items-end gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
-            <input aria-label={t('fieldWork.filters.search')} placeholder={t('fieldWork.filters.search')} className={`${field} sm:w-64`} value={values.search} onChange={(e) => set('search', e.target.value)} maxLength={100} />
+        <FilterPanel onSubmit={apply} onReset={() => router.get(route(routeName))} hasActiveFilters={hasActiveFilters}>
+            <FilterField label={t('common.search')} wide>
+                <Input type="search" placeholder={t('fieldWork.filters.search')} value={values.search} onChange={(e) => set('search', e.target.value)} maxLength={100} />
+            </FilterField>
             {showStatus && (
-                <select aria-label={t('fieldWork.columns.status')} className={field} value={values.status} onChange={(e) => set('status', e.target.value)}>
-                    <option value="">{t('fieldWork.filters.allStatuses')}</option>
-                    {options.statuses.map((s) => <option key={s} value={s}>{t(`fieldWork.status.${s}`)}</option>)}
-                </select>
+                <FilterField label={t('fieldWork.columns.status')}>
+                    <Select value={values.status} onChange={(e) => set('status', e.target.value)}>
+                        <option value="">{t('fieldWork.filters.allStatuses')}</option>
+                        {options.statuses.map((s) => <option key={s} value={s}>{t(`fieldWork.status.${s}`)}</option>)}
+                    </Select>
+                </FilterField>
             )}
-            <select aria-label={t('fieldWork.flags.overdue')} className={field} value={values.flag} onChange={(e) => set('flag', e.target.value)}>
-                <option value="">{t('fieldWork.filters.allFlags')}</option>
-                {(['overdue', 'check_in_missing', 'supervisor_not_resolved', 'gps_issues'] as const).map((f) => <option key={f} value={f}>{t(`fieldWork.flags.${f}`)}</option>)}
-            </select>
-            <select aria-label={t('fieldWork.columns.type')} className={field} value={values.field_work_type_id} onChange={(e) => set('field_work_type_id', e.target.value)}>
-                <option value="">{t('fieldWork.filters.allTypes')}</option>
-                {options.types.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-            </select>
-            <select aria-label={t('fieldWork.fields.destinationType')} className={field} value={values.destination_type} onChange={(e) => set('destination_type', e.target.value)}>
-                <option value="">{t('fieldWork.filters.allDestinations')}</option>
-                {options.destination_types.map((d) => <option key={d} value={d}>{t(`fieldWork.destinationTypes.${d}`)}</option>)}
-            </select>
+            <FilterField label={t('fieldWork.filters.flag')}>
+                <Select value={values.flag} onChange={(e) => set('flag', e.target.value)}>
+                    <option value="">{t('fieldWork.filters.allFlags')}</option>
+                    {(['overdue', 'check_in_missing', 'supervisor_not_resolved', 'gps_issues'] as const).map((f) => <option key={f} value={f}>{t(`fieldWork.flags.${f}`)}</option>)}
+                </Select>
+            </FilterField>
+            <FilterField label={t('fieldWork.columns.type')}>
+                <Select value={values.field_work_type_id} onChange={(e) => set('field_work_type_id', e.target.value)}>
+                    <option value="">{t('fieldWork.filters.allTypes')}</option>
+                    {options.types.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                </Select>
+            </FilterField>
+            <FilterField label={t('fieldWork.fields.destinationType')}>
+                <Select value={values.destination_type} onChange={(e) => set('destination_type', e.target.value)}>
+                    <option value="">{t('fieldWork.filters.allDestinations')}</option>
+                    {options.destination_types.map((d) => <option key={d} value={d}>{t(`fieldWork.destinationTypes.${d}`)}</option>)}
+                </Select>
+            </FilterField>
             {options.organizations.length > 1 && (
-                <select aria-label={t('fieldWork.filters.allOrganizations')} className={field} value={values.organization_id} onChange={(e) => setValues((c) => ({ ...c, organization_id: e.target.value, organization_unit_id: '' }))}>
-                    <option value="">{t('fieldWork.filters.allOrganizations')}</option>
-                    {options.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-                </select>
+                <FilterField label={t('common.organization')}>
+                    <Select value={values.organization_id} onChange={(e) => setValues((c) => ({ ...c, organization_id: e.target.value, organization_unit_id: '' }))}>
+                        <option value="">{t('fieldWork.filters.allOrganizations')}</option>
+                        {options.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                    </Select>
+                </FilterField>
             )}
             {options.units.length > 0 && (
-                <select aria-label={t('fieldWork.filters.allUnits')} className={field} value={values.organization_unit_id} onChange={(e) => set('organization_unit_id', e.target.value)}>
-                    <option value="">{t('fieldWork.filters.allUnits')}</option>
-                    {options.units.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-                </select>
+                <FilterField label={t('fieldWork.columns.unit')}>
+                    <Select value={values.organization_unit_id} onChange={(e) => set('organization_unit_id', e.target.value)}>
+                        <option value="">{t('fieldWork.filters.allUnits')}</option>
+                        {options.units.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                    </Select>
+                </FilterField>
             )}
-            <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
-                {t('fieldWork.filters.from')}
-                <LocalizedDatePicker value={values.date_from} onChange={(v) => set('date_from', v)} />
-            </label>
-            <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
-                {t('fieldWork.filters.to')}
-                <LocalizedDatePicker value={values.date_to} onChange={(v) => set('date_to', v)} />
-            </label>
-            <div className="flex w-full gap-2 sm:w-auto">
-                <button type="submit" className={`${primaryBtn} min-h-9 flex-1 py-1.5 sm:flex-none`}>{t('fieldWork.actions.apply')}</button>
-                <button type="button" onClick={() => router.get(route(routeName))} className={`${secondaryBtn} min-h-9 flex-1 py-1.5 sm:flex-none`}>{t('fieldWork.actions.reset')}</button>
-            </div>
-        </form>
+            <FilterField label={t('fieldWork.filters.from')} htmlFor="field-work-from">
+                <LocalizedDatePicker id="field-work-from" className={dateCls} value={values.date_from} onChange={(v) => set('date_from', v)} />
+            </FilterField>
+            <FilterField label={t('fieldWork.filters.to')} htmlFor="field-work-to">
+                <LocalizedDatePicker id="field-work-to" className={dateCls} value={values.date_to} onChange={(v) => set('date_to', v)} />
+            </FilterField>
+        </FilterPanel>
     );
 }

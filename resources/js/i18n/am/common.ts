@@ -134,6 +134,7 @@ const common = {
     replaced: 'የተተካ',
     copy: 'ቅዳ',
     copied: 'ተቀድቷል',
+    confirmDelete: 'ይህን መዝገብ ይሰርዙ? ይህ ድርጊት ሊቀለበስ አይችልም።',
 } as const;
 
 export default common;

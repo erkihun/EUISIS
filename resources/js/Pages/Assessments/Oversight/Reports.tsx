@@ -2,7 +2,7 @@ import { ExportButtons, Filters, IssueTile, Kpi, KpiGroup, OversightLayout, name
 import { Section, Table, filterInputCls, tdCls, thCls } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
 
-import { cx, tableRowClassName } from '@/Components/ui';
+import { FilterField, cx, tableRowClassName } from '@/Components/ui';
 type Row = { organization: { id: string; code?: string; name_en?: string; name_am?: string | null }; metrics: Metrics; bands: Record<string, number> | null };
 type ReasonRow = { code: string | null; name_en: string | null; name_am: string | null; n: number };
 
@@ -37,10 +37,12 @@ export default function OversightReports(props: Props) {
             {cycle && (
                 <>
                     <Filters routeName="assessment-oversight.reports" cycle={cycle}>
-                        <select name="organization_id" aria-label={t('assessmentOversight.institution')} className={filterInputCls} defaultValue={filters.organization_id ?? ''}>
-                            <option value="">{t('assessmentOversight.allInstitutions')}</option>
-                            {organizations.map((organization) => <option key={organization.id} value={organization.id}>{named(organization, locale)}</option>)}
-                        </select>
+                        <FilterField label={t('assessmentOversight.institution')}>
+                            <select name="organization_id" className={filterInputCls} defaultValue={filters.organization_id ?? ''}>
+                                <option value="">{t('assessmentOversight.allInstitutions')}</option>
+                                {organizations.map((organization) => <option key={organization.id} value={organization.id}>{named(organization, locale)}</option>)}
+                            </select>
+                        </FilterField>
                     </Filters>
 
                     {totals && <>

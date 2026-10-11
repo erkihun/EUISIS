@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { Link } from '@inertiajs/react';
 import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-import { buttonClassName, selectClassName } from '@/Components/ui';
+import { FilterField, buttonClassName, selectClassName } from '@/Components/ui';
 type InstitutionRow = {
     organization: { id: string; code: string; name_en: string; name_am: string | null };
     eligible: number; assessed: number; unassessed: number; coverage_percent: string | null; status: string; submission_status: string;
@@ -62,10 +62,12 @@ export default function OversightDashboard(props: Props) {
                 </div>
             </>}
             {cycle && props.organizations.length > 0 && <Filters routeName="assessment-oversight.dashboard" cycle={cycle}>
-                <select aria-label={t('assessmentOversight.institution')} name="organization_id" defaultValue={props.filters.organization_id ?? ''} className={selectClassName}>
-                    <option value="">{t('assessmentOversight.allInstitutions')}</option>
-                    {props.organizations.map((org) => <option key={org.id} value={org.id}>{named(org, locale)}</option>)}
-                </select>
+                <FilterField label={t('assessmentOversight.institution')}>
+                    <select name="organization_id" defaultValue={props.filters.organization_id ?? ''} className={selectClassName}>
+                        <option value="">{t('assessmentOversight.allInstitutions')}</option>
+                        {props.organizations.map((org) => <option key={org.id} value={org.id}>{named(org, locale)}</option>)}
+                    </select>
+                </FilterField>
             </Filters>}
             {data && cycle && (
                 <>

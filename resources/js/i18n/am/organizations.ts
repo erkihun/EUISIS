@@ -197,6 +197,7 @@ const organizations = {
     employeePhoto: 'የሠራተኛ ፎቶ',
     noPhoto: 'ፎቶ የለም',
     photoUnavailable: 'ፎቶ አይገኝም',
+    positionsByStatus: 'በሁኔታ የሥራ መደቦች',
 } as const;
 
 export default organizations;

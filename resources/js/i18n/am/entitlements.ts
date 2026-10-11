@@ -14,6 +14,22 @@ const entitlements = {
     searchEntitlements: 'መብቶችን ፈልግ…',
     filterByProvider: 'በአቅራቢ ፍልተር',
     filterByStatus: 'በሁኔታ ፍልተር',
+    active: 'ንቁ',
+    activeEntitlements: 'ንቁ መብቶች',
+    cafeteriaProviders: 'የካፌቴሪያ አቅራቢዎች',
+    code: 'ኮድ',
+    employee: 'ሠራተኛ',
+    globalScope: 'ዓለም አቀፍ ወሰን',
+    grant: 'መብት ስጥ',
+    grantFirst: 'ከቀጣዩ ቅጽ ጋር ለመጀመሪያ ጊዜ መብት ስጥ።',
+    inactive: 'ንቁ አይደለም',
+    location: 'ቦታ',
+    noCafeteriaProviders: 'ምንም የካፌቴሪያ አቅራቢ አልተዋቀረም',
+    noProviderRestriction: 'ምንም የአቅራቢ ገደብ የለም',
+    providerOptional: 'አቅራቢ (አማራጭ)',
+    quotaLimit: 'የኮታ ገደብ',
+    serviceType: 'አገልግሎት ዓይነት',
+    unknownService: 'ያልታወቀ አገልግሎት',
 } as const;
 
 export default entitlements;

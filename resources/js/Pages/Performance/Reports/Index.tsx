@@ -73,7 +73,7 @@ export default function ReportsIndex({ reports, report, filters, cycles, rows, c
                             ))}
                         </Table>
                     )}
-                    {rows.last_page > 1 && <div className="border-t border-[color:var(--app-border)] px-4 py-3"><Pager page={rows} /></div>}
+                    <Pager page={rows} />
                 </Section>
             </div>
         </AuthenticatedLayout>

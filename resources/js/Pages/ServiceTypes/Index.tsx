@@ -3,12 +3,11 @@ import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type ServiceTypeRow = {
     id: string;
     code: string;
@@ -36,10 +35,10 @@ export default function ServiceTypesIndex({
         search: filters.search ?? '',
         is_active: filters.is_active ?? '',
     });
-    const inputClassName = uiInputClassName;
 
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    const hasActiveFilters = Object.values(filters).some(Boolean);
+
+    function submit() {
         router.get(route('service-types.index'), form.data, { preserveState: true, preserveScroll: true });
     }
 
@@ -63,34 +62,29 @@ export default function ServiceTypesIndex({
             <Head title={t('serviceTypes.title')} />
 
             <div className="space-y-6">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <form className="grid gap-3 md:grid-cols-[1fr_220px_auto]" onSubmit={submit}>
-                        <input
-                            className={inputClassName}
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('service-types.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search"
                             value={form.data.search}
                             placeholder={t('serviceTypes.searchPlaceholder')}
                             onChange={(event) => form.setData('search', event.target.value)}
                         />
-                        <select
-                            className={inputClassName}
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select
                             value={form.data.is_active}
                             onChange={(event) => form.setData('is_active', event.target.value)}
                         >
-                            <option value="">{t('common.status')}</option>
+                            <option value="">{t('common.allStatuses')}</option>
                             <option value="1">{t('serviceTypes.activeOnly')}</option>
                             <option value="0">{t('serviceTypes.inactiveOnly')}</option>
-                        </select>
-                        <button className={buttonClassName({ variant: 'primary' })} type="submit">
-                            {t('common.filter')}
-                        </button>
-                    </form>
-                </section>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <section className={tableContainerClassName}>
                     {serviceTypes.length === 0 ? (
-                        <div className="p-6">
-                            <EmptyState title={t('serviceTypes.noServiceTypes')} />
-                        </div>
+                        <EmptyState title={t('serviceTypes.noServiceTypes')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
                             <table className={cx(tableClassName, 'min-w-full text-left')}>

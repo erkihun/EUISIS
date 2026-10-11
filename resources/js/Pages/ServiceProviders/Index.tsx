@@ -1,6 +1,5 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronRight, Layers, Plus, SearchIcon } from '@/Components/Icons';
-import PaginatorLinks, { type PaginatorLink } from '@/Components/PaginatorLinks';
 import {
     DemoTag,
     PROVIDER_STATUSES,
@@ -20,7 +19,7 @@ import { Input, Select, buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState, type JSX, type ReactNode } from 'react';
 
-import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type ProviderRow = {
     id: string;
     name: string;
@@ -46,7 +45,7 @@ type TransactionRow = {
 type Filters = { search: string; service_type_id: string | null; status: string | null };
 
 type Props = {
-    providers: { data: ProviderRow[]; links: PaginatorLink[]; from: number | null; to: number | null; total: number };
+    providers: LaravelPageMeta & { data: ProviderRow[] };
     filters: Filters;
     statusCounts: Record<string, number>;
     stats: {
@@ -307,17 +306,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             </>
                         )}
 
-                        {providers.total > 0 && (
-                            <div className="flex flex-col gap-3 border-t border-[color:var(--app-border)] px-4 py-3 text-[13px] text-[color:var(--app-muted-foreground)] sm:flex-row sm:items-center sm:justify-between">
-                                <span>
-                                    {t('providers.showingRange')
-                                        .replace(':from', String(providers.from ?? 0))
-                                        .replace(/:to\b/, String(providers.to ?? 0))
-                                        .replace(':total', providers.total.toLocaleString())}
-                                </span>
-                                <PaginatorLinks links={providers.links} label={t('providers.pagination')} />
-                            </div>
-                        )}
+                        <ListPagination meta={providers} label={t('providers.pagination')} />
                     </section>
 
                     <aside className="space-y-5 lg:col-span-4">

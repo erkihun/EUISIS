@@ -4,8 +4,10 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useState } from 'react';
+import EmptyState from '@/Components/EmptyState';
 
-import { cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type Application = {
     id: string;
     status: string;
@@ -17,7 +19,7 @@ type Application = {
 };
 
 type Props = {
-    applications: { data: Application[] };
+    applications: LaravelPageMeta & { data: Application[] };
     filters: { status?: string };
 };
 
@@ -31,7 +33,7 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
 
-    const inputCls = selectClassName;
+    const [status, setStatus] = useState(filters.status ?? '');
 
     return (
         <AuthenticatedLayout
@@ -45,21 +47,24 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
             <Head title={t('transfers.applications')} />
 
             <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2">
-                    <select
-                        className={inputCls}
-                        value={filters.status ?? ''}
-                        onChange={(e) => router.get(route('transfer-applications.index'), e.target.value ? { status: e.target.value } : {}, { preserveState: true })}
-                    >
-                        <option value="">{t('common.status')} — {t('common.all')}</option>
-                        {STATUSES.map((s) => {
-                            const key = `transfers.status${s.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}` as never;
-                            return <option key={s} value={s}>{t(key)}</option>;
-                        })}
-                    </select>
-                </div>
+                <FilterPanel
+                    onSubmit={() => router.get(route('transfer-applications.index'), status ? { status } : {}, { preserveState: true })}
+                    onReset={() => router.get(route('transfer-applications.index'))}
+                    hasActiveFilters={Boolean(filters.status)}
+                >
+                    <FilterField label={t('common.status')}>
+                        <Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            {STATUSES.map((s) => {
+                                const key = `transfers.status${s.split('_').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join('')}` as never;
+                                return <option key={s} value={s}>{t(key)}</option>;
+                            })}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
                     <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -92,9 +97,9 @@ export default function TransferApplicationsIndex({ applications, filters }: Pro
                             ))}
                         </tbody>
                     </table>
-                    {applications.data.length === 0 && (
-                        <p className="px-4 py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('transfers.noApplications')}</p>
-                    )}
+                    </div>
+                    {applications.data.length === 0 && <EmptyState title={t('transfers.noApplications')} description={filters.status ? t('common.noMatchingRecords') : undefined} />}
+                    <ListPagination meta={applications} />
                 </div>
             </div>
         </AuthenticatedLayout>

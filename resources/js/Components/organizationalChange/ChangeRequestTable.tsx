@@ -7,7 +7,7 @@ import { ChevronRight } from '@/Components/Icons';
 import type { JSX } from 'react';
 import type { ChangeRequestSummary, ChangeRequestListMeta } from './types';
 
-import { buttonClassName, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { ListPagination, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Props = {
     requests: ChangeRequestSummary[];
     meta: ChangeRequestListMeta;
@@ -115,29 +115,7 @@ export default function ChangeRequestTable({
                 </table>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-3 text-sm">
-                <p className="text-[color:var(--app-muted-foreground)]">
-                    {meta.current_page} / {meta.last_page} · {meta.total}
-                </p>
-                <nav className="flex gap-2">
-                    <button
-                        type="button"
-                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                        disabled={meta.current_page <= 1}
-                        onClick={() => goToPage(meta.current_page - 1)}
-                    >
-                        {t('common.previous')}
-                    </button>
-                    <button
-                        type="button"
-                        className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                        disabled={meta.current_page >= meta.last_page}
-                        onClick={() => goToPage(meta.current_page + 1)}
-                    >
-                        {t('common.next')}
-                    </button>
-                </nav>
-            </div>
+            <ListPagination meta={meta} onPageChange={goToPage} />
         </section>
     );
 }

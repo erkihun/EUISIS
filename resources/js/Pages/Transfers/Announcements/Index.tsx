@@ -4,14 +4,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, router } from '@inertiajs/react';
 
-function paginationLabel(label: string): string {
-    return label.replace(/&laquo;/g, '«').replace(/&raquo;/g, '»').replace(/&amp;/g, '&');
-}
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type AnnouncementCan = {
     update: boolean;
     publish: boolean;
@@ -33,10 +30,8 @@ type Announcement = {
     can: AnnouncementCan;
 };
 
-type PaginationLink = { url: string | null; label: string; active: boolean };
-
 type Props = {
-    announcements: { data: Announcement[]; links: PaginationLink[] };
+    announcements: LaravelPageMeta & { data: Announcement[] };
     filters: { status?: string; search?: string };
     can: { create: boolean };
 };
@@ -44,11 +39,11 @@ type Props = {
 const STATUSES = ['draft', 'published', 'closed', 'cancelled'] as const;
 
 
-const btnBase = 'inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] disabled:opacity-50 disabled:pointer-events-none';
-const btnGray  = `${btnBase} border border-[color:var(--app-border)] text-[color:var(--app-foreground)] hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] dark:hover:border-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]`;
-const btnBlue  = `${btnBase} bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] dark:bg-blue-500 dark:hover:bg-[color:var(--color-primary-hover)]`;
-const btnAmber = `${btnBase} border border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-700 dark:text-amber-400 dark:hover:bg-amber-950/30`;
-const btnRed   = `${btnBase} border border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30`;
+// Row actions use the shared small buttons.
+const btnGray = buttonClassName({ variant: 'outline', size: 'sm' });
+const btnBlue = buttonClassName({ variant: 'primary', size: 'sm' });
+const btnAmber = buttonClassName({ variant: 'outline', size: 'sm' });
+const btnRed = buttonClassName({ variant: 'destructiveOutline', size: 'sm' });
 
 export default function TransferAnnouncementsIndex({ announcements, filters, can }: Props) {
     const { locale, t } = useLocale();
@@ -56,13 +51,11 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
     const useAmharic = locale === 'am';
     const [processing, setProcessing] = useState<string | null>(null);
 
-    const inputCls = inputClassName;
+    const [draft, setDraft] = useState({ search: filters.search ?? '', status: filters.status ?? '' });
 
-    const applyFilters = useCallback((patch: Record<string, string>) => {
-        const next = { ...(filters as Record<string, string>), ...patch };
-        Object.keys(next).forEach((k) => { if (!next[k]) delete next[k]; });
-        router.get(route('transfer-announcements.index'), next, { preserveState: true, replace: true });
-    }, [filters]);
+    function applyFilters() {
+        router.get(route('transfer-announcements.index'), Object.fromEntries(Object.entries(draft).filter(([, value]) => value)), { preserveState: true, replace: true });
+    }
 
     async function handlePublish(a: Announcement) {
         const { confirmed } = await confirm({
@@ -150,32 +143,25 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
             <Head title={t('transfers.announcements')} />
 
             <div className="space-y-4">
-                {/* Filter bar */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <input
-                        type="search"
-                        placeholder={t('common.search')}
-                        className={inputCls}
-                        defaultValue={filters.search ?? ''}
-                        onKeyDown={(e) => { if (e.key === 'Enter') applyFilters({ search: (e.target as HTMLInputElement).value }); }}
-                        onBlur={(e) => applyFilters({ search: e.target.value })}
-                    />
-                    <select
-                        className={inputCls}
-                        value={filters.status ?? ''}
-                        onChange={(e) => applyFilters({ status: e.target.value })}
-                    >
-                        <option value="">{t('common.status')} — {t('common.all')}</option>
-                        {STATUSES.map((s) => (
-                            <option key={s} value={s}>
-                                {t(`transfers.status${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                <FilterPanel onSubmit={applyFilters} onReset={() => router.get(route('transfer-announcements.index'))} hasActiveFilters={Boolean(filters.search || filters.status)}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={draft.search} onChange={(e) => setDraft({ ...draft, search: e.target.value })} />
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            {STATUSES.map((s) => (
+                                <option key={s} value={s}>
+                                    {t(`transfers.status${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
                 {/* Table */}
-                <div className="overflow-x-auto rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
                     <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -298,26 +284,10 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                             )}
                         </tbody>
                     </table>
+                    </div>
+                    <ListPagination meta={announcements} />
                 </div>
 
-                {/* Pagination */}
-                {announcements.links && announcements.links.length > 3 && (
-                    <div className="flex flex-wrap items-center justify-center gap-1">
-                        {announcements.links.map((link, i) => (
-                            <button
-                                key={i}
-                                disabled={!link.url}
-                                onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
-                                className={[
-                                    'rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
-                                    link.active
-                                        ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary)] text-white'
-                                        : 'border-[color:var(--app-border)] text-[color:var(--app-muted-foreground)] hover:border-blue-300 hover:text-[color:var(--color-primary-hover)] disabled:opacity-40 disabled:pointer-events-none',
-                                ].join(' ')}
-                            >{paginationLabel(link.label)}</button>
-                        ))}
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

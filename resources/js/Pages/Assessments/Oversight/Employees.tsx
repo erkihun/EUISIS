@@ -1,3 +1,4 @@
+import { FilterField } from '@/Components/ui';
 import { ExportButtons, Filters, OUTCOMES, OversightLayout, StatusBadge, named, pct, type ShellProps } from '@/Components/assessmentOversight/shell';
 import { Table, TablePanel, filterInputCls, inputCls, smallBtn, smallPrimaryBtn, tdCls, thCls, type Paginator } from '@/Components/performance/ui';
 import { useLocale } from '@/hooks/useLocale';
@@ -39,40 +40,54 @@ export default function OversightEmployees(props: Props) {
             active={unassessedView ? 'unassessed' : 'coverage'} shell={props}
             actions={cycle && can.export ? <ExportButtons report="unassessed" cycle={cycle} filters={{ ...filters, outcome: filters.outcome ?? 'unassessed' }} /> : undefined}>
             <Filters routeName="assessment-oversight.employees" cycle={cycle}>
-                <input name="search" aria-label={t('assessmentOversight.searchEmployee')} placeholder={t('assessmentOversight.searchEmployee')} className={filterInputCls} defaultValue={filters.search ?? ''} />
+                <FilterField label={t('assessmentOversight.searchEmployee')} wide>
+                    <input name="search" placeholder={t('assessmentOversight.searchEmployee')} className={filterInputCls} defaultValue={filters.search ?? ''} />
+                </FilterField>
                 {props.organizations.length > 1 && (
-                    <select name="organization_id" aria-label={t('assessmentOversight.institution')} className={filterInputCls} defaultValue={filters.organization_id ?? ''}>
-                        <option value="">{t('assessmentOversight.allInstitutions')}</option>
-                        {props.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-                    </select>
+                    <FilterField label={t('assessmentOversight.institution')}>
+                        <select name="organization_id" className={filterInputCls} defaultValue={filters.organization_id ?? ''}>
+                            <option value="">{t('assessmentOversight.allInstitutions')}</option>
+                            {props.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                        </select>
+                    </FilterField>
                 )}
                 {props.organizations.length <= 1 && filters.organization_id && <input type="hidden" name="organization_id" value={filters.organization_id} />}
                 {props.units.length > 0 && (
-                    <select name="organization_unit_id" aria-label={t('assessmentOversight.unit')} className={filterInputCls} defaultValue={filters.organization_unit_id ?? ''}>
-                        <option value="">{t('assessmentOversight.allUnits')}</option>
-                        {props.units.map((u) => <option key={u.id} value={u.id}>{named(u, locale)}</option>)}
-                    </select>
+                    <FilterField label={t('assessmentOversight.unit')}>
+                        <select name="organization_unit_id" className={filterInputCls} defaultValue={filters.organization_unit_id ?? ''}>
+                            <option value="">{t('assessmentOversight.allUnits')}</option>
+                            {props.units.map((u) => <option key={u.id} value={u.id}>{named(u, locale)}</option>)}
+                        </select>
+                    </FilterField>
                 )}
-                <select name="outcome" aria-label={t('assessmentOversight.outcome')} className={filterInputCls} defaultValue={filters.outcome ?? ''}>
-                    <option value="">{t('assessmentOversight.allOutcomes')}</option>
-                    <option value="unassessed">{t('assessmentOversight.unassessed')}</option>
-                    {OUTCOMES.map((o) => <option key={o} value={o}>{t(`assessmentOversight.outcomes.${o}`)}</option>)}
-                </select>
-                <select name="eligibility_status" aria-label={t('assessmentOversight.eligibility')} className={filterInputCls} defaultValue={filters.eligibility_status ?? ''}>
-                    <option value="">{t('assessmentOversight.allEligibility')}</option>
-                    <option value="eligible">{t('assessmentOversight.eligible')}</option>
-                    <option value="excluded">{t('assessmentOversight.excluded')}</option>
-                </select>
+                <FilterField label={t('assessmentOversight.outcome')}>
+                    <select name="outcome" className={filterInputCls} defaultValue={filters.outcome ?? ''}>
+                        <option value="">{t('assessmentOversight.allOutcomes')}</option>
+                        <option value="unassessed">{t('assessmentOversight.unassessed')}</option>
+                        {OUTCOMES.map((o) => <option key={o} value={o}>{t(`assessmentOversight.outcomes.${o}`)}</option>)}
+                    </select>
+                </FilterField>
+                <FilterField label={t('assessmentOversight.eligibility')}>
+                    <select name="eligibility_status" className={filterInputCls} defaultValue={filters.eligibility_status ?? ''}>
+                        <option value="">{t('assessmentOversight.allEligibility')}</option>
+                        <option value="eligible">{t('assessmentOversight.eligible')}</option>
+                        <option value="excluded">{t('assessmentOversight.excluded')}</option>
+                    </select>
+                </FilterField>
                 {can.demographics && (
-                    <select name="gender" aria-label={t('assessmentOversight.gender')} className={filterInputCls} defaultValue={filters.gender ?? ''}>
-                        <option value="">{t('assessmentOversight.allGenders')}</option>
-                        {['male', 'female', 'other', 'unknown'].map((g) => <option key={g} value={g}>{t(`assessmentOversight.genders.${g}`)}</option>)}
-                    </select>
+                    <FilterField label={t('assessmentOversight.gender')}>
+                        <select name="gender" className={filterInputCls} defaultValue={filters.gender ?? ''}>
+                            <option value="">{t('assessmentOversight.allGenders')}</option>
+                            {['male', 'female', 'other', 'unknown'].map((g) => <option key={g} value={g}>{t(`assessmentOversight.genders.${g}`)}</option>)}
+                        </select>
+                    </FilterField>
                 )}
-                <select name="reason_id" aria-label={t('assessmentOversight.reason')} className={filterInputCls} defaultValue={filters.reason_id ?? ''}>
-                    <option value="">{t('assessmentOversight.allReasons')}</option>
-                    {props.reasons.map((r) => <option key={r.id} value={r.id}>{named(r, locale)}</option>)}
-                </select>
+                <FilterField label={t('assessmentOversight.reason')}>
+                    <select name="reason_id" className={filterInputCls} defaultValue={filters.reason_id ?? ''}>
+                        <option value="">{t('assessmentOversight.allReasons')}</option>
+                        {props.reasons.map((r) => <option key={r.id} value={r.id}>{named(r, locale)}</option>)}
+                    </select>
+                </FilterField>
             </Filters>
 
             {excluding && cycle && <ExclusionForm row={excluding} cycleId={cycle.id} reasons={props.exceptionReasons} onDone={() => setExcluding(null)} />}

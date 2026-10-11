@@ -47,6 +47,12 @@ function adminUiCounts(): array
         'raw dark slate colour' => '/\bdark:(text|bg|border|divide)-slate-\d/',
         'raw gray border' => '/\bborder-gray-(100|200|300)\b/',
         'raw gray text' => '/(?<![:\w-])text-gray-\d00\b/',
+        // Lists page through ListPagination / Pagination: one bar, a bounded set of pages.
+        'hand-rolled pagination' => '/\b(current_page|currentPage)\s*[-+]\s*1\b|\blinks\.map\(/',
+        'one button per page' => '/Array\.from\(\{\s*length:\s*[\w.?]*last_?[pP]age/',
+        // Lists filter through FilterPanel / AppFilterBar: labelled fields, Filter then Reset.
+        'search form outside the filter panel' => '/<form\b(?:[^>]|=>)*?onSubmit=\{[^}]*router\.get\(/',
+        'select that reloads the page' => '/<(select|Select)\b(?:[^>]|=>)*?onChange=\{(?:[^}]|\}\))*?router\.get\(/',
     ];
     $counts = array_fill_keys(array_keys($patterns), 0);
 
@@ -69,6 +75,14 @@ it('keeps hand-rolled admin UI from growing', function (): void {
         'raw dark slate colour' => 185,
         'raw gray border' => 32,
         'raw gray text' => 69,
+        // PaginatorLinks itself.
+        'hand-rolled pagination' => 1,
+        'one button per page' => 0,
+        // The institution picker on an assessment cycle (a form, not a list filter).
+        'search form outside the filter panel' => 1,
+        // View switchers, not filters: the performance dashboard cycle and the
+        // daily-activity report type each change what the whole page shows.
+        'select that reloads the page' => 2,
     ];
 
     $counts = adminUiCounts();

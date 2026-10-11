@@ -5,9 +5,8 @@ import AppMetricCard from '@/Components/ui/AppMetricCard';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Briefcase, ClipboardCheckIcon, Inbox, TrendingUpIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
-import { Button, Card, EmptyState, Input, Pagination, Select, StatusBadge as UiStatusBadge, cx } from '@euisis/ui';
+import { Button, FilterField, FilterPanel, Card, EmptyState, Input, Pagination, Select, StatusBadge as UiStatusBadge, cx } from '@euisis/ui';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
 
 import { tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Summary = {
@@ -85,8 +84,7 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
         return (useAmharic ? option.name_am : option.name_en) ?? option.name_en ?? option.id;
     }
 
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    function submit() {
         router.get(route('positions.status'), form.data, { preserveState: true, preserveScroll: true });
     }
 
@@ -95,12 +93,12 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
     }
 
     function goToPage(page: number) {
-        router.get(route('positions.status'), { ...form.data, page }, { preserveState: true, preserveScroll: true });
+        router.get(route('positions.status'), { ...filters, page }, { preserveState: true, preserveScroll: true });
     }
 
     function changePageSize(size: number) {
         form.setData('per_page', String(size));
-        router.get(route('positions.status'), { ...form.data, per_page: size, page: 1 }, { preserveState: true, preserveScroll: true });
+        router.get(route('positions.status'), { ...filters, per_page: size, page: 1 }, { preserveState: true, preserveScroll: true });
     }
 
     const cell = 'px-4 py-3';
@@ -126,34 +124,37 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
 
                 <PositionOccupancyBreakdown breakdowns={breakdowns} />
 
-                <Card className="p-4">
-                    <form className="grid gap-3 md:grid-cols-2 lg:grid-cols-4" onSubmit={submit}>
-                        <Input className="md:col-span-2" value={form.data.search} aria-label={t('positions.searchPositions')} placeholder={t('positions.searchPositions')}
+                <FilterPanel onSubmit={submit} onReset={clearFilters} hasActiveFilters={Object.entries(filters).some(([key, value]) => key !== 'per_page' && key !== 'page' && Boolean(value))}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={form.data.search} placeholder={t('positions.searchPositions')}
                             onChange={(event) => form.setData('search', event.target.value)} />
-                        {!isOrganizationScoped && (
-                            <Select aria-label={t('positions.organization')} value={form.data.organization_id}
+                    </FilterField>
+                    {!isOrganizationScoped && (
+                        <FilterField label={t('positions.organization')}>
+                            <Select value={form.data.organization_id}
                                 onChange={(event) => form.setData({ ...form.data, organization_id: event.target.value, organization_unit_id: '' })}>
-                                <option value="">{t('positions.organization')}</option>
+                                <option value="">{t('common.all')}</option>
                                 {organizations.map((organization) => <option key={organization.id} value={organization.id}>{optionLabel(organization)}</option>)}
                             </Select>
-                        )}
-                        <Select aria-label={t('positions.organizationUnit')} value={form.data.organization_unit_id} onChange={(event) => form.setData('organization_unit_id', event.target.value)}>
-                            <option value="">{t('positions.organizationUnit')}</option>
+                        </FilterField>
+                    )}
+                    <FilterField label={t('positions.organizationUnit')}>
+                        <Select value={form.data.organization_unit_id} onChange={(event) => form.setData('organization_unit_id', event.target.value)}>
+                            <option value="">{t('common.all')}</option>
                             {organizationUnits.map((unit) => <option key={unit.id} value={unit.id}>{optionLabel(unit)}</option>)}
                         </Select>
-                        <Input aria-label={t('positions.gradeLevel')} value={form.data.grade_level} placeholder={t('positions.gradeLevel')}
-                            onChange={(event) => form.setData('grade_level', event.target.value)} />
-                        <Select aria-label={t('common.status')} value={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.value)}>
-                            <option value="">{t('common.status')}</option>
+                    </FilterField>
+                    <FilterField label={t('positions.gradeLevel')}>
+                        <Input value={form.data.grade_level} onChange={(event) => form.setData('grade_level', event.target.value)} />
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select value={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.value)}>
+                            <option value="">{t('common.allStatuses')}</option>
                             <option value="1">{t('common.active')}</option>
                             <option value="0">{t('common.inactive')}</option>
                         </Select>
-                        <div className={cx('flex gap-2', isOrganizationScoped ? 'md:col-span-2 lg:col-span-1' : 'md:col-span-2')}>
-                            <Button type="submit" variant="primary" className="flex-1 lg:flex-none">{t('common.filter')}</Button>
-                            <Button variant="outline" onClick={clearFilters}>{t('common.clear')}</Button>
-                        </div>
-                    </form>
-                </Card>
+                    </FilterField>
+                </FilterPanel>
 
                 <Card className="overflow-hidden p-0">
                     {positions.data.length === 0 ? (
@@ -211,10 +212,8 @@ export default function PositionStatus({ summary, breakdowns, positions, organiz
                         </div>
                     )}
 
-                    <div className="border-t border-[color:var(--app-border)] px-4 py-3">
-                        <Pagination meta={{ currentPage: positions.meta.current_page, lastPage: positions.meta.last_page, perPage: positions.meta.per_page, total: positions.meta.total }}
-                            onPageChange={goToPage} onPerPageChange={changePageSize} pageSizes={[10, 15, 25, 50]} />
-                    </div>
+                    <Pagination meta={{ currentPage: positions.meta.current_page, lastPage: positions.meta.last_page, perPage: positions.meta.per_page, total: positions.meta.total }}
+                        onPageChange={goToPage} onPerPageChange={changePageSize} pageSizes={[10, 15, 25, 50]} className="border-t border-[color:var(--app-border)] px-4 py-3" />
                 </Card>
             </div>
         </AuthenticatedLayout>

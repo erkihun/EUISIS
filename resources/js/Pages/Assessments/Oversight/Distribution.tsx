@@ -1,3 +1,4 @@
+import { FilterField } from '@/Components/ui';
 import { ExportButtons, Filters, OversightLayout, named, pct, type Distribution, type ShellProps } from '@/Components/assessmentOversight/shell';
 import { Section, Table, filterInputCls, tdCls, thCls } from '@/Components/performance/ui';
 import { useChartColors } from '@/hooks/useChartColors';
@@ -22,13 +23,15 @@ export default function OversightDistribution(props: Props) {
         <OversightLayout title={t('assessmentOversight.nav.distribution')} description={t('assessmentOversight.distributionHelp')} active="distribution" shell={props}
             actions={cycle && can.export ? <ExportButtons report="distribution" cycle={cycle} filters={filters} /> : undefined}>
             <Filters routeName="assessment-oversight.distribution" cycle={cycle} keep={{ organization_id: filters.organization_id }}>
-                <select name="breakdown" aria-label={t('assessmentOversight.breakdown')} className={filterInputCls} defaultValue={filters.breakdown ?? ''}>
-                    <option value="">{t('assessmentOversight.noBreakdown')}</option>
-                    <option value="organization_id">{t('assessmentOversight.institution')}</option>
-                    <option value="organization_unit_id">{t('assessmentOversight.unit')}</option>
-                    {can.demographics && <option value="gender">{t('assessmentOversight.gender')}</option>}
-                    <option value="form_version_id">{t('assessmentOversight.form')}</option>
-                </select>
+                <FilterField label={t('assessmentOversight.breakdown')}>
+                    <select name="breakdown" className={filterInputCls} defaultValue={filters.breakdown ?? ''}>
+                        <option value="">{t('assessmentOversight.noBreakdown')}</option>
+                        <option value="organization_id">{t('assessmentOversight.institution')}</option>
+                        <option value="organization_unit_id">{t('assessmentOversight.unit')}</option>
+                        {can.demographics && <option value="gender">{t('assessmentOversight.gender')}</option>}
+                        <option value="form_version_id">{t('assessmentOversight.form')}</option>
+                    </select>
+                </FilterField>
             </Filters>
 
             {data && !data.policy && <Section title={t('assessmentOversight.nav.distribution')}><p className="text-sm text-amber-700">{t('assessmentOversight.noBandPolicy')}</p></Section>}

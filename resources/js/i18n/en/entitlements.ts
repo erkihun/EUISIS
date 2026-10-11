@@ -14,6 +14,22 @@ const entitlements = {
     searchEntitlements: 'Search entitlements…',
     filterByProvider: 'Filter by provider',
     filterByStatus: 'Filter by status',
+    active: 'Active',
+    activeEntitlements: 'Active Entitlements',
+    cafeteriaProviders: 'Cafeteria Providers',
+    code: 'Code',
+    employee: 'Employee',
+    globalScope: 'Global scope',
+    grant: 'Grant entitlement',
+    grantFirst: 'Grant the first entitlement using the form.',
+    inactive: 'Inactive',
+    location: 'Location',
+    noCafeteriaProviders: 'No cafeteria providers configured',
+    noProviderRestriction: 'No provider restriction',
+    providerOptional: 'Provider (optional)',
+    quotaLimit: 'Quota limit',
+    serviceType: 'Service Type',
+    unknownService: 'Unknown service',
 } as const;
 
 export default entitlements;

@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
@@ -11,7 +11,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
-import { badgeClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type EstablishmentSummary = {
     id: string;
     status: 'draft' | 'approved' | 'archived';
@@ -79,7 +79,6 @@ export default function PositionsIndex({
         is_active:   filters.is_active ?? '',
     });
 
-    const inputCls = inputClassName;
     const displayOrg = localSelected ?? selectedOrganization;
     const hasUnits = (displayOrg?.organization_units_count ?? 0) > 0;
 
@@ -119,8 +118,7 @@ export default function PositionsIndex({
     function clearUnit() {
         router.get(route('positions.index'), { organization_id: displayOrg?.id ?? '' }, { preserveState: true });
     }
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    function submit() {
         router.get(route('positions.index'), {
             ...form.data,
             organization_id: displayOrg?.id ?? '',
@@ -207,29 +205,33 @@ export default function PositionsIndex({
                                 )}
                             </div>
 
-                            {/* Filters */}
-                            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                                <form className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" onSubmit={submit}>
-                                    <input className={inputCls} value={form.data.search} placeholder={t('positions.searchPositions')} onChange={(e) => form.setData('search', e.target.value)} />
-                                    <input className={inputCls} value={form.data.job_family} placeholder={t('positions.jobFamily')} onChange={(e) => form.setData('job_family', e.target.value)} />
-                                    <input className={inputCls} value={form.data.grade_level} placeholder={t('positions.gradeLevel')} onChange={(e) => form.setData('grade_level', e.target.value)} />
-                                    <div className="flex gap-2">
-                                        <select className={`${inputCls} flex-1`} value={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.value)}>
-                                            <option value="">{t('common.status')}</option>
-                                            <option value="1">{t('common.active')}</option>
-                                            <option value="0">{t('common.inactive')}</option>
-                                        </select>
-                                        <button className={buttonClassName({ variant: 'primary' })} type="submit">
-                                            {t('common.filter')}
-                                        </button>
-                                    </div>
-                                </form>
-                            </section>
+                            <FilterPanel
+                                onSubmit={submit}
+                                onReset={() => router.get(route('positions.index'), { organization_id: displayOrg?.id ?? '', ...(selectedUnit ? { organization_unit_id: selectedUnit.id } : {}) }, { preserveState: true })}
+                                hasActiveFilters={Boolean(filters.search || filters.job_family || filters.grade_level || filters.is_active)}
+                            >
+                                <FilterField label={t('common.search')} wide>
+                                    <Input type="search" value={form.data.search} placeholder={t('positions.searchPositions')} onChange={(e) => form.setData('search', e.target.value)} />
+                                </FilterField>
+                                <FilterField label={t('positions.jobFamily')}>
+                                    <Input value={form.data.job_family} onChange={(e) => form.setData('job_family', e.target.value)} />
+                                </FilterField>
+                                <FilterField label={t('positions.gradeLevel')}>
+                                    <Input value={form.data.grade_level} onChange={(e) => form.setData('grade_level', e.target.value)} />
+                                </FilterField>
+                                <FilterField label={t('common.status')}>
+                                    <Select value={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.value)}>
+                                        <option value="">{t('common.allStatuses')}</option>
+                                        <option value="1">{t('common.active')}</option>
+                                        <option value="0">{t('common.inactive')}</option>
+                                    </Select>
+                                </FilterField>
+                            </FilterPanel>
 
                             {/* Table */}
-                            <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                            <section className={tableContainerClassName}>
                                 {positions.length === 0 ? (
-                                    <div className="p-6"><EmptyState title={t('positions.noPositionsFound')} /></div>
+                                    <EmptyState title={t('positions.noPositionsFound')} />
                                 ) : (
                                     <div className="overflow-x-auto">
                                         <table className={cx(tableClassName, 'min-w-full text-left')}>

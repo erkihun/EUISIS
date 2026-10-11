@@ -134,6 +134,7 @@ const common = {
     replaced: 'Replaced',
     copy: 'Copy',
     copied: 'Copied',
+    confirmDelete: 'Delete this record? This action cannot be undone.',
 } as const;
 
 export default common;

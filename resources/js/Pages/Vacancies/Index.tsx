@@ -2,11 +2,12 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import EmptyState from '@/Components/EmptyState';
 import { useLocale } from '@/hooks/useLocale';
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { badgeClassName, buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type Announcement = {
     id: string;
     announcement_number: string;
@@ -24,7 +25,7 @@ type Announcement = {
 };
 
 type Props = {
-    announcements: { data: Announcement[]; links: unknown[] };
+    announcements: LaravelPageMeta & { data: Announcement[] };
     filters: { status?: string };
     can: { create: boolean };
 };
@@ -44,11 +45,7 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
     const { locale, t } = useLocale();
     const useAmharic = locale === 'am';
 
-    function applyStatus(status: string) {
-        router.get(route('vacancy-announcements.index'), status ? { status } : {}, { preserveState: true });
-    }
-
-    const inputCls = selectClassName;
+    const [status, setStatus] = useState(filters.status ?? '');
 
     return (
         <AuthenticatedLayout
@@ -68,23 +65,25 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
             <Head title={t('vacancies.announcements')} />
 
             <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2">
-                    <select className={inputCls} value={filters.status ?? ''} onChange={e => applyStatus(e.target.value)}>
-                        <option value="">{t('common.status')} — {t('common.all')}</option>
-                        {STATUSES.map(s => (
-                            <option key={s} value={s}>
-                                {t(`vacancies.status${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
-                            </option>
-                        ))}
-                    </select>
-                    {filters.status && (
-                        <button type="button" onClick={() => applyStatus('')} className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
-                            {t('common.clear')}
-                        </button>
-                    )}
-                </div>
+                <FilterPanel
+                    onSubmit={() => router.get(route('vacancy-announcements.index'), status ? { status } : {}, { preserveState: true })}
+                    onReset={() => router.get(route('vacancy-announcements.index'))}
+                    hasActiveFilters={Boolean(filters.status)}
+                >
+                    <FilterField label={t('common.status')}>
+                        <Select value={status} onChange={e => setStatus(e.target.value)}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            {STATUSES.map(s => (
+                                <option key={s} value={s}>
+                                    {t(`vacancies.status${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
                     <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -150,9 +149,11 @@ export default function VacanciesIndex({ announcements, filters, can }: Props) {
                             })}
                         </tbody>
                     </table>
+                    </div>
                     {announcements.data.length === 0 && (
-                        <p className="px-4 py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('common.noResults')}</p>
+                        <EmptyState description={filters.status ? t('common.noMatchingRecords') : undefined} />
                     )}
+                    <ListPagination meta={announcements} />
                 </div>
             </div>
         </AuthenticatedLayout>

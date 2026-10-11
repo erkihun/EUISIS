@@ -11,7 +11,7 @@ test('position status conditionally renders the organization filter and column f
         // The column header names the organization only for global users ...
         ->toContain('isOrganizationScoped ? t(\'positions.organizationUnit\') : `${t(\'positions.organizationUnit\')} / ${t(\'positions.organization\')}`')
         // ... the organization filter is rendered only for them ...
-        ->toMatch('/!isOrganizationScoped && \(\s*<Select[\s\S]*?organizations\.map/')
+        ->toMatch('/!isOrganizationScoped && \(\s*(<FilterField[^>]*>\s*)?<Select[\s\S]*?organizations\.map/')
         // ... and so is the organization name beside each position's unit.
         ->toMatch('/!isOrganizationScoped && organizationName !== departmentName && <p[^>]*>\{organizationName\}<\/p>/');
 });

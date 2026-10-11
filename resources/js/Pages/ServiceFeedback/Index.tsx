@@ -10,22 +10,15 @@ import {
 } from '@/Components/ServiceFeedback/feedbackUi';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronRight, DownloadIcon, EyeOffIcon, Inbox } from '@/Components/Icons';
-import PaginatorLinks, { type PaginatorLink } from '@/Components/PaginatorLinks';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { buttonClassName, cx } from '@euisis/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import type { JSX } from 'react';
 
-import { tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { ListPagination, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, type LaravelPageMeta } from '@/Components/ui';
 type Props = {
-    feedback: {
-        data: FeedbackSummary[];
-        links: PaginatorLink[];
-        from: number | null;
-        to: number | null;
-        total: number;
-    };
+    feedback: LaravelPageMeta & { data: FeedbackSummary[] };
     statusCounts: Record<string, number>;
     filters: FeedbackFilters;
     filterOptions: FeedbackFilterOptions;
@@ -222,17 +215,7 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                         </>
                     )}
 
-                    {feedback.total > 0 && (
-                        <div className="flex flex-col gap-3 border-t border-[color:var(--app-border)] px-4 py-3 text-[13px] text-[color:var(--app-muted-foreground)] sm:flex-row sm:items-center sm:justify-between">
-                            <span>
-                                {t('serviceFeedback.showingRange')
-                                    .replace(':from', String(feedback.from ?? 0))
-                                    .replace(/:to\b/, String(feedback.to ?? 0))
-                                    .replace(':total', feedback.total.toLocaleString())}
-                            </span>
-                            <PaginatorLinks links={feedback.links} label={t('serviceFeedback.pagination')} />
-                        </div>
-                    )}
+                    <ListPagination meta={feedback} label={t('serviceFeedback.pagination')} />
                 </section>
             </div>
         </AuthenticatedLayout>

@@ -250,6 +250,7 @@ const transfers = {
     removeFile: 'Remove file',
     submitApplication: 'Submit Application',
     submitting: 'Submitting…',
+    includedPositions: 'Included positions',
 } as const;
 
 export default transfers;

@@ -17,10 +17,10 @@ page adds hand-rolled versions.
 | Textarea | `<Textarea>` | `textareaClassName` + your width |
 | Label, help, error | `<FormField>`, `<FormLabel>`, `<FieldError>` | — |
 | Search box | `<SearchInput>` | — |
-| Filter row | `<FilterBar>` or `<AppFilterBar>` (Inertia GET) | `filterInputCls` for its controls |
+| List filters | `<FilterPanel>` + `<FilterField label>`; `<AppFilterBar routeName>` when the controls are uncontrolled (`name` + `defaultValue`) | `filterPanelClassName`, `filterFieldClassName(wide)`, `filterCaptionClassName` |
 | Table | `<TableCard>` + `<Table>`, `<THead>`, `<TBody>`, `<Tr>`, `<Th align>`, `<Td align numeric muted>` | `tableClassName`, `tableHeadClassName`, `tableBodyClassName`, `tableRowClassName`, `tableHeaderCellClassName`, `tableCellClassName` |
 | Column-defined table | `<AppDataTable columns data>` | — |
-| Pagination | `<PaginatorLinks links>` (Laravel paginator), `<Pagination meta>` (client) | — |
+| Pagination | `<ListPagination meta>` (any Laravel paginator; keeps the query string), `<Pagination meta onPageChange>` (kit) | `paginationItemClassName(active)` |
 | Status | `<StatusBadge status>` (`@/Components/StatusBadge`) | `badgeClassName(tone, className)` — tone `neutral`, `info`, `success`, `warning`, `danger` |
 | Row actions | `<AppActionMenu items>` | — |
 | Card / panel | `<Card>`, `<CardHeader>`, `<CardTitle>` | — |
@@ -40,6 +40,47 @@ page adds hand-rolled versions.
 
 Sizes: `sm` in tables and dense toolbars, default elsewhere, `lg` only for a
 page's single call to action.
+
+## A list page
+
+Every admin list is built the same way, top to bottom:
+
+1. `PageHeader` with the page's main action (Create).
+2. `FilterPanel` — one labelled `FilterField` per filter (the search box is
+   `wide`), then **Filter** (primary) and **Reset** (only while something is
+   filtered). Filters apply when the user presses Filter or Enter, never per
+   keystroke: one query per intent against a registry of millions.
+3. The table in a frame with `tableContainerClassName` (or `TableCard`),
+   `EmptyState` inside it — with `common.noMatchingRecords` as the
+   description when filters are active — and `ListPagination` as its last
+   child. The pagination bar states the range ("26–50 of 340") and draws at
+   most seven page numbers.
+
+```tsx
+<FilterPanel onSubmit={submit} onReset={reset} hasActiveFilters={Object.values(filters).some(Boolean)}>
+    <FilterField label={t('common.search')} wide><Input type="search" value={draft.search} onChange={…} /></FilterField>
+    <FilterField label={t('common.status')}><Select value={draft.status} onChange={…}>…</Select></FilterField>
+    <FilterField label={t('common.effectiveFrom')} htmlFor="from"><LocalizedDatePicker id="from" … /></FilterField>
+</FilterPanel>
+<div className={tableContainerClassName}>
+    {rows.length === 0 ? <EmptyState … /> : <div className="overflow-x-auto"><table …>…</table></div>}
+    <ListPagination meta={paginator} />
+</div>
+```
+
+When the server echoes default filter values (a default date window or
+period), decide "is something filtered?" with `hasFilterQuery()`, which reads
+the URL, so Reset does not appear for values the user never chose. Dates use
+`LocalizedDatePicker`, never a native `<input type="date">`.
+
+Deliberate exceptions, which keep their own controls: view switchers that
+change what the whole page shows (the performance dashboard cycle, the
+daily-activity report type, the oversight cycle picker), the service-feedback
+filter bar (instant filters, chips and date presets shared by its dashboard,
+reports and inbox) and the service-providers toolbar (status tabs with a
+type sidebar). `tests/Unit/AdminUiConsistencyTest.php` counts hand-rolled
+pagination, one-button-per-page lists, GET search forms and selects that
+reload the page, so new ones fail the build.
 
 ## Rules
 
@@ -75,6 +116,15 @@ import { Button, TableCard, Table, THead, TBody, Tr, Th, Td, selectClassName, cx
 ```
 
 ## History
+
+On 2026-10-11 (third pass) every admin list moved onto one filter panel and
+one pagination bar. The audit log drew one button per page; twelve lists —
+the five cafeteria setup lists, card requests, print batches, the recycle
+bin, vacancy announcements, tribunal cases, transfer applications and
+hierarchy versions — received page data but drew no working page controls,
+so nothing past the first page was reachable. Range text is now filled in one pass (`:to` no longer corrupts
+`:total`), and the kit's one-row `FilterBar` was removed.
+
 
 On 2026-10-11 a codemod moved 356 admin files onto the kit: static class
 names on buttons, button-styled links, inputs, selects, textareas and every

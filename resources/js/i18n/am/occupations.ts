@@ -34,6 +34,8 @@ const occupations = {
     allStatuses: 'ሁሉም ሁኔታዎች',
     backToList: '← ወደ ሙያዎች ዝርዝር ተመለስ',
     noDescription: 'መግለጫ አልተሰጠም',
+    description: 'መግለጫ',
+    iscoCodePlaceholder: 'ለምሳሌ 2512',
 } as const;
 
 export default occupations;

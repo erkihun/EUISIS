@@ -1,8 +1,9 @@
 import { router } from '@inertiajs/react';
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import { FilterField as Field, FilterPanel, Input, Select, cx, hasFilterQuery, inputClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
-import { compactInputCls, named, secondaryBtn, primaryBtn } from './helpers';
+import { named } from './helpers';
 import type { FilterOptions } from './types';
 
 export type FilterField = 'search' | 'dateRange' | 'date' | 'month' | 'organization' | 'unit' | 'position' | 'status' | 'late' | 'service';
@@ -17,8 +18,10 @@ type Props = {
     statusNamespace?: string;
 };
 
+const dateCls = cx(inputClassName, 'w-full');
+
 /**
- * Filter row for the management pages. Filters are applied on submit, not
+ * Filter panel for the management pages. Filters are applied on submit, not
  * per keystroke, so a slow report is not recomputed on every character.
  * Options come from the server already limited to the user's scope.
  */
@@ -39,10 +42,9 @@ export default function ActivityFilters({ routeName, filters, options, fields, k
         return next;
     });
 
-    function apply(event?: FormEvent, override?: Record<string, string>) {
-        event?.preventDefault();
+    function apply() {
         const params = Object.fromEntries(
-            Object.entries({ ...values, ...override, ...keep }).filter(([, v]) => v !== undefined && v !== ''),
+            Object.entries({ ...values, ...keep }).filter(([, v]) => v !== undefined && v !== ''),
         );
         router.get(route(routeName), params, { preserveState: false, preserveScroll: true });
     }
@@ -53,84 +55,85 @@ export default function ActivityFilters({ routeName, filters, options, fields, k
     }
 
     const has = (field: FilterField) => fields.includes(field);
+    // The server echoes a default date window; only the URL says what the viewer chose.
+    const hasActiveFilters = hasFilterQuery(['page', ...Object.keys(keep)]);
 
     return (
-        <form onSubmit={apply} className="flex flex-wrap items-end gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
+        <FilterPanel onSubmit={apply} onReset={reset} hasActiveFilters={hasActiveFilters}>
             {has('search') && (
-                <input
-                    type="search"
-                    className={`${compactInputCls} w-full sm:w-56`}
-                    placeholder={t('dailyActivities.filters.search')}
-                    aria-label={t('dailyActivities.filters.search')}
-                    value={values.search ?? ''}
-                    onChange={(e) => set('search', e.target.value)}
-                />
+                <Field label={t('common.search')} wide>
+                    <Input type="search" placeholder={t('dailyActivities.filters.search')} value={values.search ?? ''} onChange={(e) => set('search', e.target.value)} />
+                </Field>
             )}
             {has('dateRange') && (
                 <>
-                    <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
-                        {t('dailyActivities.filters.from')}
-                        <LocalizedDatePicker value={values.date_from ?? ''} onChange={(v) => set('date_from', v)} />
-                    </label>
-                    <label className="flex w-[calc(50%-0.25rem)] flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
-                        {t('dailyActivities.filters.to')}
-                        <LocalizedDatePicker value={values.date_to ?? ''} onChange={(v) => set('date_to', v)} />
-                    </label>
+                    <Field label={t('dailyActivities.filters.from')} htmlFor="activity-filter-from">
+                        <LocalizedDatePicker id="activity-filter-from" className={dateCls} value={values.date_from ?? ''} onChange={(v) => set('date_from', v)} />
+                    </Field>
+                    <Field label={t('dailyActivities.filters.to')} htmlFor="activity-filter-to">
+                        <LocalizedDatePicker id="activity-filter-to" className={dateCls} value={values.date_to ?? ''} onChange={(v) => set('date_to', v)} />
+                    </Field>
                 </>
             )}
             {has('date') && (
-                <label className="flex w-full flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
-                    {t('dailyActivities.filters.date')}
-                    <LocalizedDatePicker value={values.date ?? ''} onChange={(v) => set('date', v)} />
-                </label>
+                <Field label={t('dailyActivities.filters.date')} htmlFor="activity-filter-date">
+                    <LocalizedDatePicker id="activity-filter-date" className={dateCls} value={values.date ?? ''} onChange={(v) => set('date', v)} />
+                </Field>
             )}
             {has('month') && (
-                <label className="flex w-full flex-col text-xs text-[color:var(--app-muted-foreground)] sm:w-40">
-                    {t('dailyActivities.filters.month')}
-                    <input type="month" className={compactInputCls} value={values.month ?? ''} onChange={(e) => set('month', e.target.value)} />
-                </label>
+                <Field label={t('dailyActivities.filters.month')}>
+                    <Input type="month" value={values.month ?? ''} onChange={(e) => set('month', e.target.value)} />
+                </Field>
             )}
             {has('organization') && options.organizations.length > 1 && (
-                <select aria-label={t('dailyActivities.filters.allOrganizations')} className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.organization_id ?? ''} onChange={(e) => set('organization_id', e.target.value)}>
-                    <option value="">{t('dailyActivities.filters.allOrganizations')}</option>
-                    {options.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-                </select>
+                <Field label={t('common.organization')}>
+                    <Select value={values.organization_id ?? ''} onChange={(e) => set('organization_id', e.target.value)}>
+                        <option value="">{t('dailyActivities.filters.allOrganizations')}</option>
+                        {options.organizations.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                    </Select>
+                </Field>
             )}
             {has('unit') && options.units.length > 0 && (
-                <select aria-label={t('dailyActivities.filters.allUnits')} className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.organization_unit_id ?? ''} onChange={(e) => set('organization_unit_id', e.target.value)}>
-                    <option value="">{t('dailyActivities.filters.allUnits')}</option>
-                    {options.units.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-                </select>
+                <Field label={t('dailyActivities.columns.unit')}>
+                    <Select value={values.organization_unit_id ?? ''} onChange={(e) => set('organization_unit_id', e.target.value)}>
+                        <option value="">{t('dailyActivities.filters.allUnits')}</option>
+                        {options.units.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                    </Select>
+                </Field>
             )}
             {has('position') && options.positions.length > 0 && (
-                <select aria-label={t('dailyActivities.filters.allPositions')} className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.position_id ?? ''} onChange={(e) => set('position_id', e.target.value)}>
-                    <option value="">{t('dailyActivities.filters.allPositions')}</option>
-                    {options.positions.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-                </select>
+                <Field label={t('dailyActivities.columns.position')}>
+                    <Select value={values.position_id ?? ''} onChange={(e) => set('position_id', e.target.value)}>
+                        <option value="">{t('dailyActivities.filters.allPositions')}</option>
+                        {options.positions.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                    </Select>
+                </Field>
             )}
             {has('service') && options.services.length > 0 && (
-                <select aria-label={t('dailyActivities.filters.allTasks')} className={`${compactInputCls} w-full sm:w-auto sm:max-w-56`} value={values.position_service_id ?? ''} onChange={(e) => set('position_service_id', e.target.value)}>
-                    <option value="">{t('dailyActivities.filters.allTasks')}</option>
-                    {options.services.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
-                </select>
+                <Field label={t('dailyActivities.fields.relatedTask')}>
+                    <Select value={values.position_service_id ?? ''} onChange={(e) => set('position_service_id', e.target.value)}>
+                        <option value="">{t('dailyActivities.filters.allTasks')}</option>
+                        {options.services.map((o) => <option key={o.id} value={o.id}>{named(o, locale)}</option>)}
+                    </Select>
+                </Field>
             )}
             {has('status') && options.statuses && (
-                <select aria-label={t('dailyActivities.filters.allStatuses')} className={`${compactInputCls} w-full sm:w-auto`} value={values.status ?? ''} onChange={(e) => set('status', e.target.value)}>
-                    <option value="">{t('dailyActivities.filters.allStatuses')}</option>
-                    {options.statuses.map((s) => <option key={s} value={s}>{t(`${statusNamespace}.${s}`)}</option>)}
-                </select>
+                <Field label={t('dailyActivities.columns.status')}>
+                    <Select value={values.status ?? ''} onChange={(e) => set('status', e.target.value)}>
+                        <option value="">{t('dailyActivities.filters.allStatuses')}</option>
+                        {options.statuses.map((s) => <option key={s} value={s}>{t(`${statusNamespace}.${s}`)}</option>)}
+                    </Select>
+                </Field>
             )}
             {has('late') && (
-                <select aria-label={t('dailyActivities.filters.lateAny')} className={`${compactInputCls} w-full sm:w-auto`} value={values.late ?? ''} onChange={(e) => set('late', e.target.value)}>
-                    <option value="">{t('dailyActivities.filters.lateAny')}</option>
-                    <option value="1">{t('dailyActivities.filters.lateOnly')}</option>
-                    <option value="0">{t('dailyActivities.filters.onTimeOnly')}</option>
-                </select>
+                <Field label={t('dailyActivities.columns.late')}>
+                    <Select value={values.late ?? ''} onChange={(e) => set('late', e.target.value)}>
+                        <option value="">{t('dailyActivities.filters.lateAny')}</option>
+                        <option value="1">{t('dailyActivities.filters.lateOnly')}</option>
+                        <option value="0">{t('dailyActivities.filters.onTimeOnly')}</option>
+                    </Select>
+                </Field>
             )}
-            <div className="flex w-full gap-2 sm:w-auto">
-                <button type="submit" className={`${primaryBtn} min-h-9 flex-1 py-1.5 sm:flex-none`}>{t('dailyActivities.actions.apply')}</button>
-                <button type="button" onClick={reset} className={`${secondaryBtn} min-h-9 flex-1 py-1.5 sm:flex-none`}>{t('dailyActivities.actions.reset')}</button>
-            </div>
-        </form>
+        </FilterPanel>
     );
 }

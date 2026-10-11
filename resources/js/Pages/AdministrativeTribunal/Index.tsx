@@ -3,10 +3,11 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
+import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type TribunalCase = {
     id: string; case_number: string; status: string; hearing_date: string | null; decision_date: string | null;
     grievance: {
@@ -18,32 +19,38 @@ type TribunalCase = {
 };
 
 type Props = {
-    cases: { data: TribunalCase[]; links: unknown[] };
+    cases: LaravelPageMeta & { data: TribunalCase[] };
     filters: { status?: string };
     statuses: string[];
 };
 
-const inputCls = selectClassName;
-
 export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.Element {
     const { locale, t } = useLocale();
     const am = locale === 'am';
+    const [status, setStatus] = useState(filters.status ?? '');
 
     return (
         <AuthenticatedLayout header={<PageHeader title={t('grievances.tribunalCases')} />}>
             <Head title={t('grievances.tribunalCases')} />
 
             <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <select className={inputCls} value={filters.status ?? ''} onChange={e => router.get(route('tribunal-cases.index'), e.target.value ? { status: e.target.value } : {}, { preserveState: true })}>
-                        <option value="">{t('grievances.filterByStatus')} — {t('common.all')}</option>
-                        {statuses.map(s => (
-                            <option key={s} value={s}>{t(`grievances.tribunalStatus${s.charAt(0).toUpperCase() + s.slice(1)}` as never)}</option>
-                        ))}
-                    </select>
-                </div>
+                <FilterPanel
+                    onSubmit={() => router.get(route('tribunal-cases.index'), status ? { status } : {}, { preserveState: true })}
+                    onReset={() => router.get(route('tribunal-cases.index'))}
+                    hasActiveFilters={Boolean(filters.status)}
+                >
+                    <FilterField label={t('grievances.status')}>
+                        <Select value={status} onChange={e => setStatus(e.target.value)}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            {statuses.map(s => (
+                                <option key={s} value={s}>{t(`grievances.tribunalStatus${s.charAt(0).toUpperCase() + s.slice(1)}` as never)}</option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
                     <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -74,9 +81,11 @@ export default function TribunalIndex({ cases, filters, statuses }: Props): JSX.
                             ))}
                         </tbody>
                     </table>
+                    </div>
                     {cases.data.length === 0 && (
-                        <p className="px-4 py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('common.noResults')}</p>
+                        <EmptyState description={filters.status ? t('common.noMatchingRecords') : undefined} />
                     )}
+                    <ListPagination meta={cases} />
                 </div>
             </div>
         </AuthenticatedLayout>

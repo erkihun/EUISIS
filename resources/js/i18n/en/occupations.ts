@@ -34,6 +34,8 @@ const occupations = {
     allStatuses: 'All Statuses',
     backToList: '← Back to Occupations',
     noDescription: 'No description provided',
+    description: 'Description',
+    iscoCodePlaceholder: 'e.g. 2512',
 } as const;
 
 export default occupations;

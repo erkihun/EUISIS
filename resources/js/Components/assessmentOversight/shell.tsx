@@ -11,7 +11,7 @@ import { Alert, StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
 import { AlertTriangle } from '@/Components/Icons';
 import type { FormEvent, ReactNode } from 'react';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { FilterPanel, cx, hasFilterQuery, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 /*
  * Assessment Oversight & Compliance page kit (docs/assessment-oversight.md).
  * Every page is cycle-aware: the selected cycle travels in ?cycle= and the
@@ -245,21 +245,21 @@ export function StatusBadge({ group, value }: { group: 'institutionStatuses' | '
     return <UiStatusBadge tone={STATUS_TONES[value] ?? 'neutral'}>{t(`assessmentOversight.${group}.${value}`)}</UiStatusBadge>;
 }
 
-/** GET filter form that always keeps the selected cycle. */
+/** The filter panel for oversight lists; it always keeps the selected cycle. */
 export function Filters({ routeName, cycle, children, keep = {} }: { routeName: string; cycle: Cycle | null; children: ReactNode; keep?: Record<string, string | undefined> }) {
-    const { t } = useLocale();
     function submit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
         const params = { ...keep, ...Object.fromEntries(new FormData(e.currentTarget)) } as Record<string, string>;
         Object.keys(params).forEach((k) => { if (!params[k]) delete params[k]; });
         router.get(route(routeName), { ...params, cycle: cycle?.id ?? '' }, { preserveState: true });
     }
     return (
-        <form className="flex flex-wrap items-center gap-3" onSubmit={submit}>
+        <FilterPanel
+            onSubmit={submit}
+            onReset={() => router.get(oversightHref(routeName, cycle, keep))}
+            hasActiveFilters={hasFilterQuery(['page', 'sort', 'direction', 'cycle', ...Object.keys(keep)])}
+        >
             {children}
-            <button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button>
-            <Link href={oversightHref(routeName, cycle, keep)} className={secondaryBtn}>{t('assessmentOversight.clearFilters')}</Link>
-        </form>
+        </FilterPanel>
     );
 }
 

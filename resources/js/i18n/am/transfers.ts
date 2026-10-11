@@ -250,6 +250,7 @@ const transfers = {
     removeFile: 'ፋይሉን አስወግድ',
     submitApplication: 'ማመልከቻ አስገባ',
     submitting: 'እያስገባ ነው…',
+    includedPositions: 'የተካተቱ የሥራ መደቦች',
 } as const;
 
 export default transfers;

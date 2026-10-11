@@ -2,7 +2,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import Lookup from '@/Components/performance/Lookup';
-import { Empty, Field, Pager, Pill, Section, Table, compactInputCls, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, titleOf, useEnumLabel, type Bilingual, type BilingualTitle, type Paginator } from '@/Components/performance/ui';
+import { Empty, Field, FilterField, Pager, Pill, Section, Table, compactInputCls, inputCls, nameOf, pageCls, primaryBtn, secondaryBtn, tdCls, thCls, titleOf, useEnumLabel, type Bilingual, type BilingualTitle, type Paginator } from '@/Components/performance/ui';
+import { FilterPanel, Select } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent } from 'react';
@@ -41,8 +42,10 @@ export default function PlansIndex({ plans, filters, cycles, types, statuses, pu
     const parents = publishedParents.filter((p) => p.cycle_id === form.data.cycle_id && p.organization_id === form.data.organization_id
         && (form.data.plan_type === 'UNIT' ? true : form.data.plan_type === 'POSITION' ? p.type === 'UNIT' || p.type === 'ORGANIZATION' : false));
 
-    function filter(key: string, value: string) {
-        router.get(route('performance.plans.index'), { ...filters, [key]: value || undefined }, { preserveState: true, replace: true });
+    const [draft, setDraft] = useState({ cycle_id: filters.cycle_id ?? '', plan_type: filters.plan_type ?? '', status: filters.status ?? '', history: filters.history ?? '' });
+
+    function applyFilters() {
+        router.get(route('performance.plans.index'), Object.fromEntries(Object.entries(draft).filter(([, v]) => v)), { preserveState: true, replace: true });
     }
 
     function submit(e: FormEvent) {
@@ -113,25 +116,31 @@ export default function PlansIndex({ plans, filters, cycles, types, statuses, pu
                     </Section>
                 )}
 
-                <Section title={t('performance.plans.title')} actions={
-                    <div className="flex flex-wrap gap-2">
-                        <select aria-label={t('performance.fields.cycle')} className={compactInputCls} value={filters.cycle_id ?? ''} onChange={(e) => filter('cycle_id', e.target.value)}>
-                            <option value="">{t('performance.fields.cycle')}: —</option>
+                <FilterPanel onSubmit={applyFilters} onReset={() => router.get(route('performance.plans.index'))} hasActiveFilters={Boolean(filters.cycle_id || filters.plan_type || filters.status || filters.history)}>
+                    <FilterField label={t('performance.fields.cycle')}>
+                        <Select value={draft.cycle_id} onChange={(e) => setDraft({ ...draft, cycle_id: e.target.value })}>
+                            <option value="">{t('common.all')}</option>
                             {cycles.map((c) => <option key={c.id} value={c.id}>{nameOf(c, locale)}</option>)}
-                        </select>
-                        <select aria-label={t('performance.fields.type')} className={compactInputCls} value={filters.plan_type ?? ''} onChange={(e) => filter('plan_type', e.target.value)}>
-                            <option value="">{t('performance.fields.type')}: —</option>
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('performance.fields.type')}>
+                        <Select value={draft.plan_type} onChange={(e) => setDraft({ ...draft, plan_type: e.target.value })}>
+                            <option value="">{t('common.all')}</option>
                             {types.map((v) => <option key={v} value={v}>{label('planType', v)}</option>)}
-                        </select>
-                        <select aria-label={t('performance.fields.status')} className={compactInputCls} value={filters.status ?? ''} onChange={(e) => filter('status', e.target.value)}>
-                            <option value="">{t('performance.fields.status')}: —</option>
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('performance.fields.status')}>
+                        <Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
+                            <option value="">{t('common.allStatuses')}</option>
                             {statuses.map((v) => <option key={v} value={v}>{label('plan', v)}</option>)}
-                        </select>
-                        <label className="flex items-center gap-1.5 text-xs text-[color:var(--app-muted-foreground)]">
-                            <input type="checkbox" checked={filters.history === '1'} onChange={(e) => filter('history', e.target.checked ? '1' : '')} />{t('performance.fields.history')}
-                        </label>
-                    </div>
-                }>
+                        </Select>
+                    </FilterField>
+                    <label className="flex h-[var(--control-h-md)] items-center gap-2 text-sm text-[color:var(--app-foreground)]">
+                        <input type="checkbox" className="rounded border-[color:var(--app-border-strong)]" checked={draft.history === '1'} onChange={(e) => setDraft({ ...draft, history: e.target.checked ? '1' : '' })} />{t('performance.fields.history')}
+                    </label>
+                </FilterPanel>
+
+                <Section title={t('performance.plans.title')}>
                     {plans.data.length === 0 ? <Empty>{t('performance.plans.empty')}</Empty> : (
                         <Table head={<>
                             <th className={thCls}>{t('performance.fields.title')}</th>

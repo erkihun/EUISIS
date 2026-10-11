@@ -4,7 +4,7 @@ import ChangeRequestTable from '@/Components/organizationalChange/ChangeRequestT
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { Plus } from '@/Components/Icons';
-import type { JSX } from 'react';
+import { useState, type JSX } from 'react';
 import type {
     ChangeRequestSummary,
     ChangeRequestListMeta,
@@ -12,7 +12,7 @@ import type {
     QueueAbilities,
 } from '@/Components/organizationalChange/types';
 
-import { buttonClassName, selectClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, buttonClassName } from '@/Components/ui';
 export type QueueProps = {
     requests: { data: ChangeRequestSummary[]; meta: ChangeRequestListMeta };
     filters: Record<string, string>;
@@ -28,8 +28,6 @@ type Props = QueueProps & {
     showAssignee?: boolean;
     showCreate?: boolean;
 };
-
-const inputCls = selectClassName;
 
 /**
  * Shared shell for the four queues.
@@ -51,8 +49,10 @@ export default function QueueShell({
     const { t, locale } = useLocale();
     const am = locale === 'am';
 
-    function applyFilter(key: string, value: string) {
-        router.get(route(routeName), { ...filters, [key]: value || undefined }, { preserveState: true, preserveScroll: true });
+    const [draft, setDraft] = useState({ search: filters.search ?? '', status: filters.status ?? '', request_type: filters.request_type ?? '', organization_id: filters.organization_id ?? '' });
+
+    function applyFilters() {
+        router.get(route(routeName), Object.fromEntries(Object.entries(draft).filter(([, value]) => value)), { preserveState: true, preserveScroll: true });
     }
 
     return (
@@ -78,43 +78,41 @@ export default function QueueShell({
             <Head title={t(`organizationalChangeRequests.queues.${titleKey}`)} />
 
             <div className="space-y-4">
-                <section className="flex flex-wrap items-center gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
-                    <input
-                        type="search"
-                        className={`${inputCls} min-w-56 flex-1`}
-                        placeholder={t('organizationalChangeRequests.filters.search')}
-                        defaultValue={filters.search ?? ''}
-                        onKeyDown={event => {
-                            if (event.key === 'Enter') {
-                                applyFilter('search', (event.target as HTMLInputElement).value);
-                            }
-                        }}
-                    />
-                    <select className={inputCls} value={filters.status ?? ''} onChange={event => applyFilter('status', event.target.value)}>
-                        <option value="">{t('organizationalChangeRequests.filters.allStatuses')}</option>
-                        {options.statuses.map(status => (
-                            <option key={status} value={status}>
-                                {t(`organizationalChangeRequests.statuses.${status}`)}
-                            </option>
-                        ))}
-                    </select>
-                    <select className={inputCls} value={filters.request_type ?? ''} onChange={event => applyFilter('request_type', event.target.value)}>
-                        <option value="">{t('organizationalChangeRequests.filters.allTypes')}</option>
-                        {options.requestTypes.map(type => (
-                            <option key={type} value={type}>
-                                {t(`organizationalChangeRequests.types.${type}`)}
-                            </option>
-                        ))}
-                    </select>
-                    <select className={inputCls} value={filters.organization_id ?? ''} onChange={event => applyFilter('organization_id', event.target.value)}>
-                        <option value="">{t('organizationalChangeRequests.filters.allOrganizations')}</option>
-                        {options.organizations.map(organization => (
-                            <option key={organization.id} value={organization.id}>
-                                {am ? organization.name_am || organization.name_en : organization.name_en}
-                            </option>
-                        ))}
-                    </select>
-                </section>
+                <FilterPanel onSubmit={applyFilters} onReset={() => router.get(route(routeName))} hasActiveFilters={Boolean(filters.search || filters.status || filters.request_type || filters.organization_id)}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" placeholder={t('organizationalChangeRequests.filters.search')} value={draft.search} onChange={event => setDraft({ ...draft, search: event.target.value })} />
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select value={draft.status} onChange={event => setDraft({ ...draft, status: event.target.value })}>
+                            <option value="">{t('organizationalChangeRequests.filters.allStatuses')}</option>
+                            {options.statuses.map(status => (
+                                <option key={status} value={status}>
+                                    {t(`organizationalChangeRequests.statuses.${status}`)}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('common.type')}>
+                        <Select value={draft.request_type} onChange={event => setDraft({ ...draft, request_type: event.target.value })}>
+                            <option value="">{t('organizationalChangeRequests.filters.allTypes')}</option>
+                            {options.requestTypes.map(type => (
+                                <option key={type} value={type}>
+                                    {t(`organizationalChangeRequests.types.${type}`)}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('common.organization')}>
+                        <Select value={draft.organization_id} onChange={event => setDraft({ ...draft, organization_id: event.target.value })}>
+                            <option value="">{t('organizationalChangeRequests.filters.allOrganizations')}</option>
+                            {options.organizations.map(organization => (
+                                <option key={organization.id} value={organization.id}>
+                                    {am ? organization.name_am || organization.name_en : organization.name_en}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
                 <ChangeRequestTable
                     requests={requests.data}

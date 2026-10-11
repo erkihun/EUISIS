@@ -247,6 +247,7 @@ export default {
         allStatuses: 'ሁሉም ሁኔታዎች',
         allTypes: 'ሁሉም ዓይነቶች',
         allDestinations: 'ሁሉም የመድረሻ ዓይነቶች',
+        flag: 'ማሳሰቢያ',
         allFlags: 'ሁሉም',
         allOrganizations: 'ሁሉም ተቋማት',
         allUnits: 'ሁሉም ክፍሎች',

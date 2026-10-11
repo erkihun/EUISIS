@@ -3,12 +3,11 @@ import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName as uiInputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type EntitlementRuleRow = {
     id: string;
     name: string;
@@ -39,10 +38,10 @@ export default function EntitlementRulesIndex({
         service_type_id: filters.service_type_id ?? '',
         is_active: filters.is_active ?? '',
     });
-    const inputClassName = uiInputClassName;
 
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    const hasActiveFilters = Object.values(filters).some(Boolean);
+
+    function submit() {
         router.get(route('entitlement-rules.index'), form.data, { preserveState: true, preserveScroll: true });
     }
 
@@ -66,46 +65,42 @@ export default function EntitlementRulesIndex({
             <Head title={t('entitlementRules.title')} />
 
             <div className="space-y-6">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <form className="grid gap-3 md:grid-cols-[1fr_260px_220px_auto]" onSubmit={submit}>
-                        <input
-                            className={inputClassName}
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('entitlement-rules.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search"
                             value={form.data.search}
                             placeholder={t('entitlementRules.searchPlaceholder')}
                             onChange={(event) => form.setData('search', event.target.value)}
                         />
-                        <select
-                            className={inputClassName}
+                    </FilterField>
+                    <FilterField label={t('entitlementRules.serviceType')}>
+                        <Select
                             value={form.data.service_type_id}
                             onChange={(event) => form.setData('service_type_id', event.target.value)}
                         >
-                            <option value="">{t('entitlementRules.serviceType')}</option>
+                            <option value="">{t('common.all')}</option>
                             {serviceTypes.map((serviceType) => (
                                 <option key={serviceType.id} value={serviceType.id}>
                                     {locale === 'am' ? (serviceType.name_am ?? serviceType.name_en) : serviceType.name_en}
                                 </option>
                             ))}
-                        </select>
-                        <select
-                            className={inputClassName}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select
                             value={form.data.is_active}
                             onChange={(event) => form.setData('is_active', event.target.value)}
                         >
-                            <option value="">{t('common.status')}</option>
+                            <option value="">{t('common.allStatuses')}</option>
                             <option value="1">{t('common.active')}</option>
                             <option value="0">{t('common.inactive')}</option>
-                        </select>
-                        <button className={buttonClassName({ variant: 'primary' })} type="submit">
-                            {t('common.filter')}
-                        </button>
-                    </form>
-                </section>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <section className={tableContainerClassName}>
                     {rules.length === 0 ? (
-                        <div className="p-6">
-                            <EmptyState title={t('entitlementRules.noRules')} />
-                        </div>
+                        <EmptyState title={t('entitlementRules.noRules')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
                             <table className={cx(tableClassName, 'min-w-full text-left')}>

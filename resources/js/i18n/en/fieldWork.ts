@@ -247,6 +247,7 @@ export default {
         allStatuses: 'All statuses',
         allTypes: 'All types',
         allDestinations: 'All destination types',
+        flag: 'Flag',
         allFlags: 'All',
         allOrganizations: 'All organizations',
         allUnits: 'All units',

@@ -3,13 +3,12 @@ import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import { AlertTriangle } from '@/Components/Icons';
-import PaginatorLinks, { type PaginatorLink } from '@/Components/PaginatorLinks';
 import SearchPicker from '@/Components/fieldWork/SearchPicker';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { ListPagination, buttonClassName, cx, inputClassName, type LaravelPageMeta } from '@/Components/ui';
 type EntitlementRow = {
     id: string;
     status: string;
@@ -58,7 +57,7 @@ export default function EntitlementsIndex({
     providers,
     cafeteriaProviders,
 }: {
-    entitlements: { data: EntitlementRow[]; links: PaginatorLink[] };
+    entitlements: LaravelPageMeta & { data: EntitlementRow[] };
     serviceTypes: ServiceTypeOption[];
     providers: ProviderOption[];
     cafeteriaProviders: CafeteriaProviderRow[];
@@ -182,9 +181,7 @@ export default function EntitlementsIndex({
                             })
                         )}
                     </div>
-                    <div className="mt-4">
-                        <PaginatorLinks links={entitlements.links} label={t('entitlements.activeEntitlements')} />
-                    </div>
+                    <ListPagination meta={entitlements} label={t('entitlements.activeEntitlements')} bare className="mt-4" />
                 </section>
 
                 <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
