@@ -12,6 +12,7 @@ use App\Models\OrganizationFunction;
 use App\Models\OrganizationType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -164,7 +165,7 @@ test('a function requires a mandate of its own organization', function (): void 
     $b = odOrganization('C2');
     $officer = odOfficerFor($a);
     $mandateB = InstitutionMandate::query()->create([
-        ...odMandatePayload($b, ['code' => 'MND-B']), 'lineage_key' => (string) \Illuminate\Support\Str::uuid(), 'version_no' => 1,
+        ...odMandatePayload($b, ['code' => 'MND-B']), 'lineage_key' => (string) Str::uuid(), 'version_no' => 1,
         'status' => OrganizationDesignStatus::Published,
     ]);
     $mandateA = odPublishedMandate($a, $officer);

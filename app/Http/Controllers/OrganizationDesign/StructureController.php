@@ -12,6 +12,7 @@ use App\Models\OrganizationDesignStudy;
 use App\Models\OrganizationEdge;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitRelationship;
+use App\Models\Position;
 use App\Services\OrganizationDesign\OrganizationDesignValidationService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\Request;
@@ -53,7 +54,7 @@ class StructureController extends Controller
     private function unitTree(string $organizationId): array
     {
         $units = OrganizationUnit::query()->where('organization_id', $organizationId)->with('unitType:id,code,name_en,name_am')->orderBy('sort_order')->orderBy('code')->get();
-        $positionCounts = \App\Models\Position::query()->whereIn('organization_unit_id', $units->pluck('id'))->where('is_active', true)->selectRaw('organization_unit_id, count(*) as c')->groupBy('organization_unit_id')->pluck('c', 'organization_unit_id');
+        $positionCounts = Position::query()->whereIn('organization_unit_id', $units->pluck('id'))->where('is_active', true)->selectRaw('organization_unit_id, count(*) as c')->groupBy('organization_unit_id')->pluck('c', 'organization_unit_id');
         $relationships = OrganizationUnitRelationship::query()->whereIn('source_unit_id', $units->pluck('id'))->where('status', 'active')->orderBy('relationship_type')->get();
         $targetUnits = OrganizationUnit::query()->whereIn('id', $relationships->where('target_type', 'organization_unit')->pluck('target_id'))->get(['id', 'code', 'name_en', 'name_am'])->keyBy('id');
         $targetOrganizations = Organization::query()->whereIn('id', $relationships->where('target_type', 'organization')->pluck('target_id'))->get(['id', 'code', 'name_en', 'name_am'])->keyBy('id');

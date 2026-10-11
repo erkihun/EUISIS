@@ -28,6 +28,7 @@ use App\Models\UserOrganizationScope;
 use App\Models\WorkforcePlanningMethodology;
 use App\Services\OrganizationDesign\ManpowerCalculationService;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -185,8 +186,8 @@ test('workload × standard time is computed in decimals with a trace, and the ro
     $exact = $calculator->calculate('WORKLOAD_STANDARD_TIME', ['annual_working_hours' => '1000', 'productive_time_percent' => '100', 'leave_allowance_percent' => '0'], ['annual_volume' => '2500', 'standard_time_minutes' => '60'], 'half_up');
     expect($exact['calculated_fte'])->toBe('2.5000')->and($exact['recommended_headcount'])->toBe(3);
 
-    expect(fn () => $calculator->calculate('WORKLOAD_STANDARD_TIME', wpWorkloadParams(), ['annual_volume' => '10'], 'ceil'))->toThrow(\Illuminate\Validation\ValidationException::class);
-    expect(fn () => $calculator->calculate('WORKLOAD_STANDARD_TIME', ['annual_working_hours' => '0', 'productive_time_percent' => '85', 'leave_allowance_percent' => '0'], $inputs, 'ceil'))->toThrow(\Illuminate\Validation\ValidationException::class);
+    expect(fn () => $calculator->calculate('WORKLOAD_STANDARD_TIME', wpWorkloadParams(), ['annual_volume' => '10'], 'ceil'))->toThrow(ValidationException::class);
+    expect(fn () => $calculator->calculate('WORKLOAD_STANDARD_TIME', ['annual_working_hours' => '0', 'productive_time_percent' => '85', 'leave_allowance_percent' => '0'], $inputs, 'ceil'))->toThrow(ValidationException::class);
 });
 
 // 51 ─────────────────────────────────────────────────────────────────────────
@@ -202,8 +203,8 @@ test('ratio, fixed-minimum and span-of-control strategies compute from their own
     $span = $calculator->calculate('SPAN_OF_CONTROL', ['span' => '8'], ['subordinate_count' => '20'], 'ceil');
     expect($span['calculated_fte'])->toBe('2.5000')->and($span['recommended_headcount'])->toBe(3);
 
-    expect(fn () => $calculator->calculate('RATIO', ['units_per_position' => '0'], ['driver_quantity' => '10'], 'ceil'))->toThrow(\Illuminate\Validation\ValidationException::class);
-    expect(fn () => $calculator->calculate('SOMETHING_ELSE', [], [], 'ceil'))->toThrow(\Illuminate\Validation\ValidationException::class);
+    expect(fn () => $calculator->calculate('RATIO', ['units_per_position' => '0'], ['driver_quantity' => '10'], 'ceil'))->toThrow(ValidationException::class);
+    expect(fn () => $calculator->calculate('SOMETHING_ELSE', [], [], 'ceil'))->toThrow(ValidationException::class);
     expect($calculator->strategies())->toBe(['WORKLOAD_STANDARD_TIME', 'RATIO', 'FIXED_MINIMUM', 'SPAN_OF_CONTROL']);
 });
 

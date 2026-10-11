@@ -6,7 +6,6 @@ use App\Enums\OrganizationDesignStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\OrganizationStatus;
 use App\Models\InstitutionMandate;
-use App\Models\JobDescription;
 use App\Models\LegalInstrumentType;
 use App\Models\ManpowerPlan;
 use App\Models\ManpowerPlanLine;

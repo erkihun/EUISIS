@@ -9,6 +9,7 @@ use App\Enums\OrganizationDesignStatus;
 use App\Models\OrganizationFunction;
 use App\Models\OrganizationUnit;
 use App\Models\Process;
+use App\Models\ProcessActivity;
 use App\Models\ResponsibilityType;
 use App\Models\Service;
 use App\Models\UnitDesignProposal;
@@ -131,7 +132,7 @@ class ResponsibilityService
             'function' => OrganizationFunction::query()->where('organization_id', $organizationId)->orderBy('path')->get(['id', 'code', 'title_en', 'title_am', 'depth'])->map(fn ($f) => ['id' => $f->id, 'code' => $f->code, 'name_en' => $f->title_en, 'name_am' => $f->title_am, 'depth' => $f->depth])->values()->all(),
             'service' => Service::query()->where('organization_id', $organizationId)->whereIn('status', [OrganizationDesignStatus::Published, OrganizationDesignStatus::Draft])->orderBy('code')->get(['id', 'code', 'name_en', 'name_am'])->map->only(['id', 'code', 'name_en', 'name_am'])->values()->all(),
             'process' => Process::query()->where('organization_id', $organizationId)->whereIn('status', [OrganizationDesignStatus::Published, OrganizationDesignStatus::Draft])->orderBy('code')->get(['id', 'code', 'name_en', 'name_am'])->map->only(['id', 'code', 'name_en', 'name_am'])->values()->all(),
-            'activity' => \App\Models\ProcessActivity::query()->where('organization_id', $organizationId)->orderBy('code')->limit(2000)->get(['id', 'code', 'name_en', 'name_am'])->map->only(['id', 'code', 'name_en', 'name_am'])->values()->all(),
+            'activity' => ProcessActivity::query()->where('organization_id', $organizationId)->orderBy('code')->limit(2000)->get(['id', 'code', 'name_en', 'name_am'])->map->only(['id', 'code', 'name_en', 'name_am'])->values()->all(),
         ];
     }
 

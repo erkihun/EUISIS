@@ -17,7 +17,6 @@ use App\Models\User;
 use App\Models\WorkCompetencyRequirement;
 use App\Models\WorkOccupationRequirement;
 use App\Models\WorkQualificationRequirement;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 

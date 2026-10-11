@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\OrganizationDesign;
 
 use App\Models\CompetencyLevel;
-use App\Models\CompetencyType;
-use App\Models\EducationLevel;
-use App\Models\Profession;
 use App\Models\Specialization;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;

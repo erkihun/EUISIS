@@ -45,10 +45,12 @@ class PositionDesignService
             $unitId = $requirement->organization_unit_id ?? $requirement->proposal?->resulting_unit_id;
             if ($unitId === null || ! OrganizationUnit::query()->whereKey($unitId)->where('organization_id', $plan->organization_id)->exists()) {
                 $waiting++;
+
                 continue;
             }
             if (($requirement->approved_headcount ?? 0) < 1) {
                 $waiting++;
+
                 continue;
             }
             DB::transaction(function () use ($actor, $plan, $requirement, $unitId, &$implemented): void {

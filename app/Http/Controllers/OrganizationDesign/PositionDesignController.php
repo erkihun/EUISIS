@@ -192,6 +192,7 @@ class PositionDesignController extends Controller
     private function catalog(Position $position): array
     {
         $org = $position->organization_id;
+
         // Work objects and positions are searched on the server (organization-design.lookups), never shipped whole.
         return [
             'organization_id' => $org,

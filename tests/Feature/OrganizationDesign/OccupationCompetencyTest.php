@@ -25,7 +25,9 @@ use App\Models\UserOrganizationScope;
 use App\Models\WorkCompetencyRequirement;
 use App\Models\WorkOccupationRequirement;
 use App\Models\WorkQualificationRequirement;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -318,7 +320,7 @@ test('catalog entries in use are never deleted, only deactivated; an inactive en
     $this->actingAs($designer)->put($url, ['occupations' => [['occupation_id' => $occupation->id, 'profession_id' => $profession->id]]])->assertRedirect();
 
     // A savepoint keeps the test transaction usable on PostgreSQL after the refused delete.
-    expect(fn () => \Illuminate\Support\Facades\DB::transaction(fn () => $profession->delete()))->toThrow(\Illuminate\Database\QueryException::class);
+    expect(fn () => DB::transaction(fn () => $profession->delete()))->toThrow(QueryException::class);
 
     $this->actingAs($steward)->put(route('organization-design.professions.update', $profession), ['is_active' => false])->assertRedirect();
     expect($profession->fresh()->is_active)->toBeFalse()

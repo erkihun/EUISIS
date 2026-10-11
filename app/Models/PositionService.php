@@ -57,7 +57,7 @@ class PositionService extends Model
     }
 
     /** The EPMS tasks under this position service (through its sub-services). */
-    public function tasks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function tasks(): HasMany
     {
         return $this->hasMany(PositionServiceTask::class, 'position_service_id');
     }

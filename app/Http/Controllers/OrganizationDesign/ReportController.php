@@ -11,6 +11,7 @@ use App\Services\OrganizationDesign\OrganizationDesignReportService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -68,10 +69,10 @@ class ReportController extends Controller
     public function download(Request $request, OrganizationDesignReportExport $export): HttpResponse
     {
         $this->authorize('download', $export);
-        abort_unless($export->isReady() && \Illuminate\Support\Facades\Storage::disk($export->disk)->exists($export->path), 404);
+        abort_unless($export->isReady() && Storage::disk($export->disk)->exists($export->path), 404);
         $mime = $export->format === 'csv' ? 'text/csv; charset=UTF-8' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-        return \Illuminate\Support\Facades\Storage::disk($export->disk)->download($export->path, $export->filename ?? ($export->id.'.'.$export->format), ['Content-Type' => $mime, 'Cache-Control' => 'no-store, private', 'X-Content-Type-Options' => 'nosniff']);
+        return Storage::disk($export->disk)->download($export->path, $export->filename ?? ($export->id.'.'.$export->format), ['Content-Type' => $mime, 'Cache-Control' => 'no-store, private', 'X-Content-Type-Options' => 'nosniff']);
     }
 
     /** @return array{organization_id: string|null} */

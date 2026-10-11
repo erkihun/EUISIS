@@ -16,6 +16,7 @@ use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
 use App\Models\OrganizationUnitType;
 use App\Models\Position;
+use App\Models\PositionProfile;
 use App\Models\PositionRequirement;
 use App\Models\PositionService;
 use App\Models\PositionServiceSubService;
@@ -25,16 +26,19 @@ use App\Models\PositionWorkLink;
 use App\Models\Process;
 use App\Models\ProcessActivity;
 use App\Models\ProcessTask;
+use App\Models\ResponsibilityType;
 use App\Models\Service;
 use App\Models\UnitResponsibility;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
 use App\Models\WorkforcePlanningMethodology;
+use App\Services\DailyActivity\TaskStandardService;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use App\Services\OrganizationDesign\LegacyMappingService;
 use App\Services\OrganizationDesign\OrganizationDesignGapService;
 use App\Services\OrganizationDesign\PositionProfileService;
 use App\Services\OrganizationDesign\WorkforcePlanningService;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -252,7 +256,7 @@ test('legacy units, positions and position services are classified as FULLY_MAPP
     $bare = pgPosition($organization, $bareUnit, 'P-BARE');
     $broken = pgPosition($organization, $unit, 'P-BROKEN');
     PositionWorkLink::query()->create(['position_id' => $broken->id, 'organization_id' => $organization->id, 'object_type' => 'task', 'object_id' => (string) Str::uuid()]);
-    $responsible = \App\Models\ResponsibilityType::query()->create(['code' => 'PG-R', 'name_en' => 'Responsible', 'is_exclusive' => false, 'covers_object' => true]);
+    $responsible = ResponsibilityType::query()->create(['code' => 'PG-R', 'name_en' => 'Responsible', 'is_exclusive' => false, 'covers_object' => true]);
     UnitResponsibility::query()->create(['organization_id' => $organization->id, 'organization_unit_id' => $unit->id, 'object_type' => 'service', 'object_id' => $task->process->service_id, 'responsibility_type_id' => $responsible->id]);
     // U-PART holds a responsibility but its position is not linked to any work: partially mapped.
     UnitResponsibility::query()->create(['organization_id' => $organization->id, 'organization_unit_id' => $partialUnit->id, 'object_type' => 'process', 'object_id' => $task->process_id, 'responsibility_type_id' => $responsible->id]);
@@ -345,8 +349,8 @@ test('a new version never rewrites history: version 1 of a profile, job descript
     $jds->submit($designer, $jd2);
     $jds->approve($approver, $jd2);
     $jds->publish($approver, $jd2);
-    $standard2 = app(\App\Services\DailyActivity\TaskStandardService::class)->createDraft($designer, $task, ['planned_quantity' => '20', 'quantity_unit' => 'items', 'effective_from' => now()->addDay()->toDateString()]);
-    app(\App\Services\DailyActivity\TaskStandardService::class)->approve($approver, $standard2);
+    $standard2 = app(TaskStandardService::class)->createDraft($designer, $task, ['planned_quantity' => '20', 'quantity_unit' => 'items', 'effective_from' => now()->addDay()->toDateString()]);
+    app(TaskStandardService::class)->approve($approver, $standard2);
 
     expect($profile1->fresh()->status)->toBe(OrganizationDesignStatus::Superseded)->and($profile1->fresh()->purpose_en)->toBe('Purpose')->and($profile1->fresh()->effective_to?->toDateString())->toBe('2025-12-31')
         ->and($jd1->fresh()->status)->toBe(OrganizationDesignStatus::Superseded)->and($jd1->fresh()->effective_to?->toDateString())->toBe('2026-01-31')
@@ -373,7 +377,7 @@ test('double approval, double publication and a duplicate requirement are refuse
     $draft = $profiles->createDraft($designer, $position, ['purpose_en' => 'P', 'effective_from' => '2025-01-01']);
     $profiles->publish($approver, $draft);
     $this->actingAs($second)->from('/')->post(route('organization-design.position-profiles.publish', $draft))->assertSessionHasErrors('status');
-    expect(\App\Models\PositionProfile::query()->where('position_id', $position->id)->where('status', OrganizationDesignStatus::Published)->count())->toBe(1);
+    expect(PositionProfile::query()->where('position_id', $position->id)->where('status', OrganizationDesignStatus::Published)->count())->toBe(1);
 
     $jds = app(JobDescriptionService::class);
     $jd = $jds->createDraft($designer, $position, ['effective_from' => '2025-01-01']);
@@ -387,5 +391,5 @@ test('double approval, double publication and a duplicate requirement are refuse
 
     // One lineage version at a time, one current requirement row per (unit, occupation, profession) in a plan.
     expect(fn () => JobDescription::query()->create(['position_id' => $position->id, 'organization_id' => $organization->id, 'position_profile_id' => $draft->id, 'lineage_key' => $jd->lineage_key, 'version_no' => $jd->version_no, 'status' => 'draft', 'effective_from' => '2027-01-01']))
-        ->toThrow(\Illuminate\Database\UniqueConstraintViolationException::class);
+        ->toThrow(UniqueConstraintViolationException::class);
 });

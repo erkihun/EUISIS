@@ -51,6 +51,7 @@ class ClassificationImportService
                     $parentId = $byCode[$row['parent_code']] ?? $this->findParent($dataset, $revision, $row['parent_code']);
                     if ($parentId === null) {
                         $errors[] = ['line' => $line, 'column' => 'parent_code', 'message' => __('organization-design.import_parent_unknown', ['code' => $row['parent_code']])];
+
                         continue;
                     }
                 }
@@ -111,18 +112,22 @@ class ClassificationImportService
             $level = $get('level');
             if ($code === '' || ! preg_match('/^[A-Za-z0-9][A-Za-z0-9._\/-]{0,39}$/', $code)) {
                 $errors[] = ['line' => $line, 'column' => 'code', 'message' => __('organization-design.import_invalid_code', ['code' => $code])];
+
                 continue;
             }
             if (isset($seen[$code])) {
                 $errors[] = ['line' => $line, 'column' => 'code', 'message' => __('organization-design.import_duplicate_code', ['code' => $code])];
+
                 continue;
             }
             if ($nameEn === '' || mb_strlen($nameEn) > 255) {
                 $errors[] = ['line' => $line, 'column' => 'name_en', 'message' => __('organization-design.import_name_required')];
+
                 continue;
             }
             if ($level !== '' && ! ctype_digit($level)) {
                 $errors[] = ['line' => $line, 'column' => 'level', 'message' => __('organization-design.import_invalid_level')];
+
                 continue;
             }
             $seen[$code] = true;

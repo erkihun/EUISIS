@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Models\JobDescription;
 use App\Models\OrganizationDesignStatusHistory;
 use App\Models\Position;
-use App\Models\PositionProfile;
 use App\Services\Calendar\LocalizedDateService;
 use App\Services\OrganizationDesign\JobDescriptionService;
 use Barryvdh\DomPDF\Facade\Pdf;

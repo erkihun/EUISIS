@@ -298,7 +298,7 @@ test('a CSV export is queued, stored on the private disk with formulas neutralis
     expect($export->status)->toBe('ready')->and($export->report)->toBe('position_readiness')->and($export->format)->toBe('csv')->and($export->row_count)->toBe(1)->and($export->path)->not->toBeNull();
     Storage::disk('local')->assertExists($export->path);
     $content = Storage::disk('local')->get($export->path);
-    expect($content)->toContain("'=HYPERLINK")->not->toContain(",=HYPERLINK");
+    expect($content)->toContain("'=HYPERLINK")->not->toContain(',=HYPERLINK');
 
     $response = $this->actingAs($exporter)->get(route('organization-design.reports.exports.download', $export));
     $response->assertOk();

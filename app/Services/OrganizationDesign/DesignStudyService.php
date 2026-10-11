@@ -6,8 +6,8 @@ namespace App\Services\OrganizationDesign;
 
 use App\Actions\OrganizationalChange\SaveChangeRequestAction;
 use App\Enums\AuditEventType;
-use App\Enums\OrganizationDesignStatus;
 use App\Enums\OrganizationalChangeRequestType;
+use App\Enums\OrganizationDesignStatus;
 use App\Models\OrganizationDesignStudy;
 use App\Models\OrganizationUnit;
 use App\Models\UnitDesignProposal;
@@ -204,6 +204,7 @@ class DesignStudyService
             $parentId = $this->resolvedParentId($proposal);
             if ($proposal->proposal_type !== 'deactivate' && $proposal->parent_proposed_unit_id !== null && $parentId === null) {
                 $waiting++;
+
                 continue;
             }
             DB::transaction(function () use ($actor, $study, $proposal, $parentId): void {

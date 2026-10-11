@@ -11,7 +11,6 @@ use App\Models\IscoGroup;
 use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\PositionService;
-use App\Models\ProcessTask;
 use App\Services\OrganizationDesign\DataQualityService;
 use App\Services\OrganizationDesign\LegacyMappingService;
 use App\Services\OrganizationDesign\MappingWorkspaceService;

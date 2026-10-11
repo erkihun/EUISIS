@@ -113,11 +113,13 @@ class ManpowerCalculationService
                 if ($complete && ($rule['required'] ?? true)) {
                     $errors["{$prefix}.{$key}"] = __('organization-design.calc_missing', ['key' => $key]);
                 }
+
                 continue;
             }
             $text = is_string($raw) || is_int($raw) ? trim((string) $raw) : null;
             if ($text === null || ! preg_match($rule['type'] === 'integer' ? '/^-?\d+$/' : '/^-?\d+(\.\d+)?$/', $text)) {
                 $errors["{$prefix}.{$key}"] = __('organization-design.calc_not_a_number', ['key' => $key]);
+
                 continue;
             }
             $value = BigDecimal::of($text);
@@ -127,6 +129,7 @@ class ManpowerCalculationService
             $aboveMax = $max !== null && (($rule['max_exclusive'] ?? false) ? $value->isGreaterThanOrEqualTo($max) : $value->isGreaterThan($max));
             if ($belowMin || $aboveMax) {
                 $errors["{$prefix}.{$key}"] = __('organization-design.calc_out_of_range', ['key' => $key, 'min' => $rule['min'] ?? '-∞', 'max' => $rule['max'] ?? '∞']);
+
                 continue;
             }
             $out[$key] = $value;
