@@ -233,5 +233,10 @@ Validation run summary (2026-10-11): `php artisan migrate --pretend` —
 nothing to migrate; `route:list` — 129 domain routes; `vendor/bin/pint`
 applied to the domain's files; `composer audit --locked` — no advisories;
 `npm audit` — 0 vulnerabilities; `tsc --noEmit` — clean; `vite build` — ok;
-Pest: organization-design suite (97 tests) on SQLite and PostgreSQL; full
-feature suite — see the final hand-over message for the run of record.
+Pest: organization-design suite (97 tests) on SQLite and PostgreSQL; run
+of record of the whole suite (SQLite, 2026-10-11): `tests/Unit` 155
+passed; `tests/Feature` 3,077 passed, 5 failed — the five pre-existing
+baseline failures that are unrelated to this domain (DemoDataSeederTest 01
+and 10 are clock-dependent and pass at a weekday clock; IdCardFrontFieldsTest
+×2 and CourtCasesPlaceholderTest depend on uncommitted work in the working
+copy). No organization-design test failed.
