@@ -258,7 +258,6 @@ test('the mapping page needs its permission, stays inside the organization scope
             ->where('unmapped.position_tasks.0.suggestions.0.code', 'T-500')
             ->has('unmapped.positions', 1)
             ->where('quality.ok', true)
-            ->has('masterTasks', 1)
             ->where('can.map', true)
             ->where('can.apply', true)
             ->where('can.catalog', false)

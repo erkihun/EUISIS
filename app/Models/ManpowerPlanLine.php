@@ -22,6 +22,7 @@ class ManpowerPlanLine extends Model
         'plan_id', 'organization_id', 'organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id',
         'methodology_id', 'methodology_version_no', 'standard_id', 'inputs', 'calculated_fte', 'recommended_headcount', 'approved_headcount',
         'adjustment_reason', 'adjusted_by', 'calculation_trace', 'calculated_at', 'position_requirement_id', 'notes', 'sequence',
+        'workload_source_type', 'workload_source_reference',
     ];
 
     protected function casts(): array

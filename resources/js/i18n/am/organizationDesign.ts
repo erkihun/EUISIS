@@ -375,6 +375,10 @@ const organizationDesign = {
     },
 
     plans: {
+        workloadSource: 'የሥራ ጫና ምንጭ',
+        workloadSourceReference: 'የምንጭ ማጣቀሻ',
+        workloadSourceHelp: 'የዚህ መስመር የሥራ ጫና አሃዞች ከየት እንደመጡ። የጸደቀ ዕቅድ ያልተገለጸ ቁጥር አይይዝም።',
+        workloadSources: { historical_transactions: 'ያለፉ የአገልግሎት ግብይቶች', approved_forecast: 'የጸደቀ ትንበያ', administrative_input: 'የአስተዳደር ዕቅድ ግብዓት', work_measurement_study: 'ዳሰሳ / የሥራ መለኪያ ጥናት', service_target: 'የአገልግሎት ዒላማ' },
         title: 'የሰው ኃይል ዕቅዶች',
         description: 'ተቋም ለአንድ ጊዜ ምን ያህል የሥራ መደቦች እንደሚያስፈልጉት፡ በክፍልና በሙያ ምድብ ከዘዴ የሚገመቱ መስመሮች፣ ሲጸድቁ ወደ የሥራ መደብ መስፈርቶች የሚጠቃለሉ፣ እና እንደ የሥራ መደቦች ከጸደቁ ድልድሎች ጋር የሚተገበሩ — በጭራሽ እንደ ምደባ አይደለም።',
         create: 'አዲስ ዕቅድ',
@@ -504,6 +508,9 @@ const organizationDesign = {
         latestPublished: 'በሥራ ላይ ያለ የታተመ መገለጫ',
         history: 'ታሪክ',
         jd: {
+            pdf: 'PDF አውርድ',
+            pdfEn: 'PDF (እንግሊዝኛ)',
+            pdfAm: 'PDF (አማርኛ)',
             title: 'የሥራ መግለጫ',
             details: 'ዝርዝሮች',
             sections: 'ክፍሎች',
@@ -569,6 +576,14 @@ const organizationDesign = {
         openJd: 'የሥራ መግለጫ ይክፈቱ',
     },
     mapping: {
+        positionServices: 'ዋና አገልግሎት የሌላቸው ነባር የሥራ መደብ አገልግሎቶች',
+        noPositionServices: 'እያንዳንዱ ንቁ የሥራ መደብ አገልግሎት ከዋና አገልግሎት ጋር ተገናኝቷል።',
+        masterService: 'ዋና አገልግሎት',
+        tasksMapped: 'ከ:total ተግባራት :mapped ተገናኝተዋል',
+        legacy: 'ነባር መዝገቦች',
+        legacyHelp: 'ከንድፉ በፊት የነበሩ መዝገቦች ከእሱ ጋር እንዴት እንደሚዛመዱ። እዚህ ምንም በራስ-ሰር አይቀየርም፤ INVALID_REFERENCE ሰው ያስፈልገዋል።',
+        legacyStatuses: { FULLY_MAPPED: 'ሙሉ በሙሉ የተገናኘ', PARTIALLY_MAPPED: 'በከፊል የተገናኘ', UNMAPPED_LEGACY: 'ያልተገናኘ ነባር', INVALID_REFERENCE: 'ልክ ያልሆነ ማጣቀሻ' },
+        legacyKinds: { units: 'ክፍሎች', positions: 'የሥራ መደቦች', position_services: 'የሥራ መደብ አገልግሎቶች' },
         title: 'የካርታ ሥራ ቦታ',
         description: 'ከንድፉ በፊት የነበሩና ገና ከእሱ ጋር ያልተገናኙ መዝገቦች። ጥቆማዎች የሚተገበሩት በሰው ብቻ ነው፤ ብዙ እጩ ያለው ሁሉ ለግምገማ ይተዋል።',
         selectOrganization: 'ያልተገናኙ መዝገቦቹን ለማየት ተቋም ይምረጡ።',
@@ -603,6 +618,12 @@ const organizationDesign = {
         service: 'የሥራ መደብ አገልግሎት',
         position: 'የሥራ መደብ',
         unit: 'ክፍል',
+    },
+    lookup: {
+        placeholder: 'ለመፈለግ ይተይቡ…',
+        searching: 'በመፈለግ ላይ…',
+        noResults: 'ምንም አልተገኘም',
+        clear: 'አጽዳ',
     },
     classifications: {
         title: 'ምደባዎች',

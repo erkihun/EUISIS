@@ -19,10 +19,6 @@ use App\Models\PositionCompetencyRequirement;
 use App\Models\PositionProfile;
 use App\Models\PositionQualificationRequirement;
 use App\Models\PositionWorkLink;
-use App\Models\Process;
-use App\Models\ProcessActivity;
-use App\Models\ProcessTask;
-use App\Models\Service;
 use App\Services\OrganizationDesign\PositionProfileService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
@@ -196,16 +192,9 @@ class PositionDesignController extends Controller
     private function catalog(Position $position): array
     {
         $org = $position->organization_id;
-        $row = fn ($o) => ['id' => $o->id, 'code' => $o->code, 'name_en' => $o->name_en, 'name_am' => $o->name_am];
-
+        // Work objects and positions are searched on the server (organization-design.lookups), never shipped whole.
         return [
-            'objects' => [
-                'service' => Service::query()->where('organization_id', $org)->whereIn('status', ['published', 'draft'])->orderBy('code')->limit(1000)->get(['id', 'code', 'name_en', 'name_am'])->map($row)->values(),
-                'process' => Process::query()->where('organization_id', $org)->whereIn('status', ['published', 'draft'])->orderBy('code')->limit(1000)->get(['id', 'code', 'name_en', 'name_am'])->map($row)->values(),
-                'activity' => ProcessActivity::query()->where('organization_id', $org)->orderBy('code')->limit(2000)->get(['id', 'code', 'name_en', 'name_am'])->map($row)->values(),
-                'task' => ProcessTask::query()->where('organization_id', $org)->orderBy('code')->limit(2000)->get(['id', 'code', 'name_en', 'name_am'])->map($row)->values(),
-            ],
-            'positions' => Position::query()->where('organization_id', $org)->where('is_active', true)->whereKeyNot($position->getKey())->orderBy('job_position_code')->limit(1000)->get(['id', 'job_position_code', 'title_en', 'title_am'])->map(fn ($p) => ['id' => $p->id, 'code' => $p->job_position_code, 'name_en' => $p->title_en, 'name_am' => $p->title_am])->values(),
+            'organization_id' => $org,
             'competencies' => Competency::query()->where('is_active', true)->with('framework:id,code')->orderBy('code')->limit(2000)->get()->map(fn (Competency $c) => ['id' => $c->id, 'code' => $c->code, 'name_en' => $c->name_en, 'name_am' => $c->name_am, 'framework_code' => $c->framework?->code])->values(),
             'levels' => CompetencyLevel::query()->where('is_active', true)->orderBy('rank')->get()->map->only(['id', 'code', 'name_en', 'name_am', 'rank'])->values(),
             'educationLevels' => EducationLevel::query()->where('is_active', true)->orderBy('rank')->get()->map->only(['id', 'code', 'name_en', 'name_am', 'rank'])->values(),

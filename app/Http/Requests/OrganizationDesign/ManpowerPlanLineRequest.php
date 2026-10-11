@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\OrganizationDesign;
 
 use App\Enums\OrganizationDesignStatus;
+use App\Enums\WorkloadSourceType;
 use App\Models\ManpowerPlan;
 use App\Models\ManpowerPlanLine;
 use Illuminate\Foundation\Http\FormRequest;
@@ -39,6 +40,8 @@ class ManpowerPlanLineRequest extends FormRequest
             'approved_headcount' => ['nullable', 'integer', 'min:0', 'max:100000'],
             'adjustment_reason' => ['nullable', 'string', 'max:2000'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'workload_source_type' => ['nullable', Rule::in(WorkloadSourceType::values())],
+            'workload_source_reference' => ['nullable', 'string', 'max:255'],
             'sequence' => ['nullable', 'integer', 'min:0', 'max:100000'],
         ];
     }

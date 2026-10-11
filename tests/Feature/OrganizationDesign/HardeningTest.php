@@ -114,7 +114,7 @@ function hdFixtures(Organization $organization): array
     $profile = $profiles->newVersion($designer, $published, ['effective_from' => '2026-01-01']);
     $study = OrganizationDesignStudy::query()->create(['organization_id' => $o, 'reference_number' => 'ODS-'.substr(uniqid(), -6), 'title_en' => 'Study', 'study_type' => 'review', 'status' => OrganizationDesignStatus::Draft, 'prepared_by' => $designer->id, 'created_by' => $designer->id]);
     $proposal = UnitDesignProposal::query()->create(['study_id' => $study->id, 'organization_id' => $o, 'proposal_type' => 'create', 'name_en' => 'New unit', 'proposed_unit_type_id' => $unitType->id, 'status' => 'proposed']);
-    $methodology = WorkforcePlanningMethodology::query()->create(['lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'code' => 'HD-'.substr(uniqid(), -4), 'name_en' => 'Fixed', 'calculation_type' => 'FIXED_MINIMUM', 'parameters' => ['minimum_headcount' => '1'], 'rounding_rule' => 'ceil', 'status' => OrganizationDesignStatus::Published, 'effective_from' => '2024-01-01']);
+    $methodology = WorkforcePlanningMethodology::query()->create(['lineage_key' => (string) Str::uuid(), 'version_no' => 1, 'code' => 'HD-'.substr(uniqid(), -4), 'name_en' => 'Fixed', 'calculation_type' => 'FIXED_MINIMUM', 'parameters' => ['minimum_positions' => '1'], 'rounding_rule' => 'ceil', 'status' => OrganizationDesignStatus::Published, 'effective_from' => '2024-01-01']);
     $plan = ManpowerPlan::query()->create(['reference_number' => 'MPP-'.substr(uniqid(), -6), 'organization_id' => $o, 'methodology_id' => $methodology->id, 'title_en' => 'Plan', 'planning_period_start' => '2027-01-01', 'planning_period_end' => '2027-12-31', 'status' => OrganizationDesignStatus::Draft, 'prepared_by' => $designer->id]);
     $occupation = Occupation::query()->create(['code' => 'HD-'.substr(uniqid(), -4), 'isco_code' => '26'.random_int(10, 99), 'name_en' => 'Occupation', 'is_active' => true]);
     $line = ManpowerPlanLine::query()->create(['plan_id' => $plan->id, 'organization_id' => $o, 'organization_unit_id' => $unit->id, 'occupation_id' => $occupation->id, 'inputs' => [], 'sequence' => 1]);
@@ -122,7 +122,7 @@ function hdFixtures(Organization $organization): array
 
     return [
         'organization' => $organization, 'unit' => $unit, 'mandate' => $mandate, 'power' => $power, 'function' => $function, 'service' => $service, 'process' => $process, 'activity' => $activity, 'task' => $task,
-        'standard' => $standard, 'position' => $position, 'positionTask' => $positionTask, 'profile' => $profile, 'jobDescription' => $jd, 'study' => $study, 'proposal' => $proposal, 'plan' => $plan, 'line' => $line, 'export' => $export,
+        'standard' => $standard, 'position' => $position, 'positionTask' => $positionTask, 'positionService' => $positionService, 'profile' => $profile, 'jobDescription' => $jd, 'study' => $study, 'proposal' => $proposal, 'plan' => $plan, 'line' => $line, 'export' => $export,
     ];
 }
 
@@ -161,6 +161,9 @@ test('every organization-design route refuses a fully permitted user of another 
                 $values['subject'] = $subjects[$short][1]->getKey();
             } elseif ($param === 'sectionKey') {
                 $values[$param] = 'authorities';
+            } elseif ($param === 'kind') {
+                // The lookup endpoint: an organization-scoped kind without the organization in scope.
+                $values[$param] = 'tasks';
             } elseif (isset($f[$param])) {
                 $values[$param] = $f[$param]->getKey();
             } elseif (in_array($param, $cityLevel, true)) {

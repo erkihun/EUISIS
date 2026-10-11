@@ -11,9 +11,11 @@ use App\Models\IscoGroup;
 use App\Models\Occupation;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
+use App\Models\PositionService;
 use App\Models\PositionServiceTask;
 use App\Models\PositionWorkLink;
 use App\Models\ProcessTask;
+use App\Models\Service;
 use App\Models\UnitResponsibility;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -69,7 +71,15 @@ class MappingWorkspaceService
             ->reject(fn (OrganizationUnit $u) => $responsible->has($u->id))
             ->map(fn (OrganizationUnit $u) => ['id' => $u->id, 'code' => $u->code, 'name_en' => $u->name_en, 'name_am' => $u->name_am, 'flag' => self::UNMAPPED])->values()->all();
 
-        return ['position_tasks' => $positionTasks, 'positions' => $positions, 'units' => $units];
+        $positionServices = PositionService::query()->where('organization_id', $organizationId)->whereNull('master_service_id')->where('is_active', true)
+            ->with('position:id,job_position_code,title_en,title_am')->withCount(['tasks as tasks_count' => fn ($q) => $q->where('is_active', true), 'tasks as mapped_tasks_count' => fn ($q) => $q->where('is_active', true)->whereNotNull('master_task_id')])
+            ->orderBy('service_no')->limit(2000)->get()
+            ->map(fn (PositionService $s) => [
+                'id' => $s->id, 'service_no' => $s->service_no, 'name_en' => $s->name_en, 'name_am' => $s->name_am, 'tasks' => (int) $s->tasks_count, 'tasks_mapped' => (int) $s->mapped_tasks_count,
+                'position' => $s->position ? ['id' => $s->position->id, 'code' => $s->position->job_position_code, 'title_en' => $s->position->title_en, 'title_am' => $s->position->title_am] : null, 'flag' => self::UNMAPPED,
+            ])->values()->all();
+
+        return ['position_tasks' => $positionTasks, 'positions' => $positions, 'units' => $units, 'position_services' => $positionServices];
     }
 
     /**
@@ -129,6 +139,20 @@ class MappingWorkspaceService
         $this->audit->record(AuditEventType::OccupationLinked, $actor, $occupation, ['isco_group_id' => $group?->getKey()], ['isco_group_id' => $old]);
 
         return $occupation;
+    }
+
+    /** A person maps a legacy position service to a master service of the same organization; never inferred. */
+    public function linkPositionService(User $actor, PositionService $positionService, ?string $serviceId): PositionService
+    {
+        $service = $serviceId === null ? null : Service::query()->whereKey($serviceId)->where('organization_id', $positionService->organization_id)->first();
+        if ($serviceId !== null && $service === null) {
+            throw ValidationException::withMessages(['master_service_id' => __('organization-design.master_service_foreign')]);
+        }
+        $old = $positionService->master_service_id;
+        $positionService->forceFill(['master_service_id' => $service?->getKey(), 'updated_by' => $actor->getKey()])->save();
+        $this->audit->record(AuditEventType::PositionServiceLinked, $actor, $positionService, ['master_service_id' => $service?->getKey()], ['master_service_id' => $old]);
+
+        return $positionService;
     }
 
     public function linkCompetency(User $actor, Competency $competency, ?string $typeId): Competency

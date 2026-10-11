@@ -3,8 +3,8 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import JobDescriptionForm, { type ProfileOption } from '@/Components/organizationDesign/JobDescriptionForm';
 import PositionRequirementsForm, { type PositionRequirementCatalog } from '@/Components/organizationDesign/PositionRequirementsForm';
-import ProfileForm, { emptyProfile, type PositionOption, type ProfileFormValues } from '@/Components/organizationDesign/ProfileForm';
-import WorkLinksForm, { type WorkCatalog, type WorkObject, type WorkObjectType } from '@/Components/organizationDesign/WorkLinksForm';
+import ProfileForm, { emptyProfile, type ProfileFormValues } from '@/Components/organizationDesign/ProfileForm';
+import WorkLinksForm, { type WorkObject, type WorkObjectType } from '@/Components/organizationDesign/WorkLinksForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -32,7 +32,7 @@ type Props = {
     qualifications: QualificationRow[];
     jobDescriptions: Jd[];
     history: { from: string | null; to: string; actor: string | null; reason: string | null; at: string }[];
-    catalog: { objects: WorkCatalog; positions: PositionOption[]; competencies: PositionRequirementCatalog['competencies']; levels: Level[]; educationLevels: Level[] } | null;
+    catalog: { organization_id: string; competencies: PositionRequirementCatalog['competencies']; levels: Level[]; educationLevels: Level[] } | null;
     can: { design: boolean; approveProfile: boolean; draftJobDescription: boolean };
 };
 
@@ -57,6 +57,7 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
         effective_from: version ? '' : p.effective_from ?? '', effective_to: version ? '' : p.effective_to ?? '',
     });
     const published = profiles.filter((p) => p.status === 'published' || p.status === 'superseded').map<ProfileOption>((p) => ({ id: p.id, version_no: p.version_no, status: p.status, effective_from: p.effective_from }));
+    const reportsToLabel = (p: Profile) => (p.reports_to ? `${p.reports_to.job_position_code} · ${titleOf(p.reports_to, locale)}` : '');
 
     async function publishProfile(p: Profile) {
         const { confirmed } = await confirm({ title: tt('positionDesign.publishProfile'), description: tt('positionDesign.publishProfileConfirm'), variant: 'warning' });
@@ -250,10 +251,10 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                 </div>
             </div>
 
-            {catalog && profileEdit === 'new' && <ProfileForm show onClose={() => setProfileEdit(null)} title={tt('positionDesign.draftProfile')} initial={emptyProfile()} url={route('organization-design.position-profiles.store', position.id)} method="post" positions={catalog.positions} />}
-            {catalog && profileEdit === 'edit' && profile && <ProfileForm show onClose={() => setProfileEdit(null)} title={tt('positionDesign.editProfile')} initial={profileValues(profiles.find((p) => p.status === 'draft') ?? profile, false)} url={route('organization-design.position-profiles.update', (profiles.find((p) => p.status === 'draft') ?? profile).id)} method="put" positions={catalog.positions} />}
-            {catalog && profileEdit === 'version' && profile && <ProfileForm show onClose={() => setProfileEdit(null)} title={tt('positionDesign.newVersion')} initial={profileValues(profile, true)} url={route('organization-design.position-profiles.versions.store', profile.id)} method="post" positions={catalog.positions} />}
-            {catalog && linksOpen && <WorkLinksForm positionId={position.id} current={workLinks} catalog={catalog.objects} onClose={() => setLinksOpen(false)} />}
+            {catalog && profileEdit === 'new' && <ProfileForm show onClose={() => setProfileEdit(null)} title={tt('positionDesign.draftProfile')} initial={emptyProfile()} url={route('organization-design.position-profiles.store', position.id)} method="post" organizationId={position.organization_id} />}
+            {catalog && profileEdit === 'edit' && profile && <ProfileForm show onClose={() => setProfileEdit(null)} title={tt('positionDesign.editProfile')} initial={profileValues(profiles.find((p) => p.status === 'draft') ?? profile, false)} url={route('organization-design.position-profiles.update', (profiles.find((p) => p.status === 'draft') ?? profile).id)} method="put" organizationId={position.organization_id} reportsToLabel={reportsToLabel(profiles.find((p) => p.status === 'draft') ?? profile)} />}
+            {catalog && profileEdit === 'version' && profile && <ProfileForm show onClose={() => setProfileEdit(null)} title={tt('positionDesign.newVersion')} initial={profileValues(profile, true)} url={route('organization-design.position-profiles.versions.store', profile.id)} method="post" organizationId={position.organization_id} reportsToLabel={reportsToLabel(profile)} />}
+            {catalog && linksOpen && <WorkLinksForm positionId={position.id} organizationId={position.organization_id} current={workLinks} onClose={() => setLinksOpen(false)} />}
             {catalog && requirementsOpen && (
                 <PositionRequirementsForm
                     positionId={position.id}

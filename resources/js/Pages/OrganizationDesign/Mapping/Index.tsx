@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
+import DesignLookup from '@/Components/organizationDesign/DesignLookup';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, FilterField, FilterPanel, Select, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
@@ -16,26 +17,31 @@ type UnmappedPosition = { id: string; code: string; title_en: string; title_am: 
 type UnmappedUnit = Named & { flag: Flag };
 type OccupationRow = { id: string; code: string; isco_code: string | null; name_en: string; name_am: string | null; suggestions: (Named & { revision: string })[]; needs_review: boolean; flag: Flag };
 type CompetencyRow = Named & { framework_code: string | null; flag: Flag };
-type MasterTask = Named & { process_code: string | null };
+type UnmappedService = { id: string; service_no: string; name_en: string; name_am: string | null; tasks: number; tasks_mapped: number; position: { id: string; code: string; title_en: string; title_am: string | null } | null; flag: Flag };
+type LegacyStatus = 'FULLY_MAPPED' | 'PARTIALLY_MAPPED' | 'UNMAPPED_LEGACY' | 'INVALID_REFERENCE';
 type Props = {
     organizationId: string | null;
     organizations: Named[];
-    unmapped: { position_tasks: PositionTask[]; positions: UnmappedPosition[]; units: UnmappedUnit[] } | null;
+    unmapped: { position_tasks: PositionTask[]; positions: UnmappedPosition[]; units: UnmappedUnit[]; position_services: UnmappedService[] } | null;
     quality: Report | null;
-    masterTasks: MasterTask[];
+    legacy: { summary: Record<'units' | 'positions' | 'position_services', Record<LegacyStatus, number>> } | null;
     catalog: { occupations: OccupationRow[]; competencies: CompetencyRow[]; iscoGroups: (Named & { revision: string })[]; competencyTypes: Named[] } | null;
     can: { map: boolean; apply: boolean; catalog: boolean; occupations: boolean; competencies: boolean };
 };
 
-export default function MappingIndex({ organizationId, organizations, unmapped, quality, masterTasks, catalog, can }: Props) {
+const LEGACY_TONES: Record<LegacyStatus, 'success' | 'info' | 'neutral' | 'danger'> = { FULLY_MAPPED: 'success', PARTIALLY_MAPPED: 'info', UNMAPPED_LEGACY: 'neutral', INVALID_REFERENCE: 'danger' };
+
+export default function MappingIndex({ organizationId, organizations, unmapped, quality, legacy, catalog, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [draft, setDraft] = useState({ organization_id: organizationId ?? '' });
     const [choices, setChoices] = useState<Record<string, string>>({});
+    const [labels, setLabels] = useState<Record<string, string>>({});
     const flag = (value: Flag) => <span className={badgeClassName(value === 'NEEDS_DATA_REVIEW' ? 'warning' : 'info')}>{tt(`mapping.flags.${value}`)}</span>;
-    const taskLabel = (s: MasterTask | Suggestion) => `${s.process_code ? `${s.process_code} · ` : ''}${s.code} · ${nameOf(s, locale)}`;
+    const taskLabel = (s: Suggestion) => `${s.process_code ? `${s.process_code} · ` : ''}${s.code} · ${nameOf(s, locale)}`;
 
     const linkTask = (task: PositionTask, masterId: string | null) => router.put(route('organization-design.position-tasks.link', task.id), { master_task_id: masterId }, { preserveScroll: true });
+    const linkService = (service: UnmappedService, masterId: string | null) => router.put(route('organization-design.mapping.position-services.link', service.id), { master_service_id: masterId }, { preserveScroll: true });
     const linkOccupation = (row: OccupationRow, groupId: string | null) => router.put(route('organization-design.mapping.occupations.link', row.id), { isco_group_id: groupId }, { preserveScroll: true });
     const linkCompetency = (row: CompetencyRow, typeId: string | null) => router.put(route('organization-design.mapping.competencies.link', row.id), { competency_type_id: typeId }, { preserveScroll: true });
     async function applyAll() {
@@ -89,13 +95,39 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                     </Td>
                                                     <Td>
                                                         {can.map && (
-                                                            <Select aria-label={tt('mapping.masterTask')} value={chosen(task)} onChange={(e) => setChoices({ ...choices, [task.id]: e.target.value })}>
-                                                                <option value="">—</option>
-                                                                {masterTasks.map((m) => <option key={m.id} value={m.id}>{taskLabel(m)}</option>)}
-                                                            </Select>
+                                                            <DesignLookup id={`map-task-${task.id}`} kind="tasks" organizationId={organizationId} value={chosen(task)} display={labels[chosen(task)] ?? task.suggestions.find((s) => s.id === chosen(task))?.code ?? ''}
+                                                                onChange={(masterId, hit) => { setChoices({ ...choices, [task.id]: masterId }); if (hit) setLabels({ ...labels, [masterId]: `${hit.process_code ? `${hit.process_code} · ` : ''}${hit.code} · ${(locale === 'am' && hit.name_am) || hit.name_en}` }); }} />
                                                         )}
                                                     </Td>
                                                     <Td align="right">{can.map && <button type="button" className={actionLinkClassName()} disabled={!chosen(task)} onClick={() => linkTask(task, chosen(task) || null)}>{tt('mapping.map')}</button>}</Td>
+                                                </Tr>
+                                            ))}
+                                        </TBody>
+                                    </Table>
+                                )}
+                            </Card>
+
+                            <Card>
+                                <CardHeader><CardTitle>{tt('mapping.positionServices')}</CardTitle></CardHeader>
+                                {unmapped.position_services.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('mapping.noPositionServices')}</p> : (
+                                    <Table>
+                                        <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('mapping.position')}</Th><Th>{tt('mapping.masterService')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
+                                        <TBody>
+                                            {unmapped.position_services.map((s) => (
+                                                <Tr key={s.id}>
+                                                    <Td>
+                                                        <p className="font-mono text-xs">{s.service_no}</p>
+                                                        <p className="text-sm">{nameOf(s, locale)}</p>
+                                                        <p className="mt-1 flex flex-wrap items-center gap-2">{flag(s.flag)}<span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.tasksMapped').replace(':mapped', String(s.tasks_mapped)).replace(':total', String(s.tasks))}</span></p>
+                                                    </Td>
+                                                    <Td muted>{s.position ? `${s.position.code} · ${titleOf(s.position, locale)}` : '—'}</Td>
+                                                    <Td>
+                                                        {can.map && (
+                                                            <DesignLookup id={`map-service-${s.id}`} kind="services" organizationId={organizationId} value={choices[s.id] ?? ''} display={labels[choices[s.id] ?? ''] ?? ''}
+                                                                onChange={(masterId, hit) => { setChoices({ ...choices, [s.id]: masterId }); if (hit) setLabels({ ...labels, [masterId]: `${hit.code} · ${(locale === 'am' && hit.name_am) || hit.name_en}` }); }} />
+                                                        )}
+                                                    </Td>
+                                                    <Td align="right">{can.map && <button type="button" className={actionLinkClassName()} disabled={!choices[s.id]} onClick={() => linkService(s, choices[s.id] || null)}>{tt('mapping.map')}</button>}</Td>
                                                 </Tr>
                                             ))}
                                         </TBody>
@@ -194,6 +226,23 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                         </div>
 
                         <div className="space-y-4">
+                            {legacy && (
+                                <Card>
+                                    <CardHeader><CardTitle>{tt('mapping.legacy')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.legacyHelp')}</p></CardHeader>
+                                    <div className="divide-y divide-[color:var(--app-border)]">
+                                        {(['units', 'positions', 'position_services'] as const).map((kind) => (
+                                            <div key={kind} className="px-5 py-3">
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{tt(`mapping.legacyKinds.${kind}`)}</p>
+                                                <div className="mt-1 flex flex-wrap gap-2">
+                                                    {(['FULLY_MAPPED', 'PARTIALLY_MAPPED', 'UNMAPPED_LEGACY', 'INVALID_REFERENCE'] as const).map((status) => (
+                                                        <span key={status} className={badgeClassName(LEGACY_TONES[status])}>{tt(`mapping.legacyStatuses.${status}`)} {legacy.summary[kind][status]}</span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            )}
                             {quality && <ValidationReport report={quality} compact />}
                         </div>
                     </div>

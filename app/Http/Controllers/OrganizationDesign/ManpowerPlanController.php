@@ -10,13 +10,11 @@ use App\Http\Requests\OrganizationDesign\ManpowerPlanLineRequest;
 use App\Http\Requests\OrganizationDesign\ManpowerPlanRequest;
 use App\Models\ManpowerPlan;
 use App\Models\ManpowerPlanLine;
-use App\Models\Occupation;
 use App\Models\Organization;
 use App\Models\OrganizationDesignStatusHistory;
 use App\Models\OrganizationDesignStudy;
 use App\Models\OrganizationUnit;
 use App\Models\PositionRequirement;
-use App\Models\ProcessTask;
 use App\Models\UnitDesignProposal;
 use App\Models\WorkforcePlanningMethodology;
 use App\Services\OrganizationDesign\ManpowerCalculationService;
@@ -85,7 +83,7 @@ class ManpowerPlanController extends Controller
             ],
             'lines' => $plan->lines()->with(['unit:id,code,name_en,name_am', 'proposal:id,name_en,name_am', 'task:id,code,name_en,name_am', 'activity:id,code,name_en,name_am', 'occupation:id,code,isco_code,name_en,name_am', 'profession:id,code,name_en,name_am', 'methodology:id,code,version_no', 'adjuster:id,name'])->get()
                 ->map(fn (ManpowerPlanLine $l) => [
-                    ...$l->only(['id', 'organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id', 'methodology_id', 'methodology_version_no', 'standard_id', 'inputs', 'recommended_headcount', 'approved_headcount', 'adjustment_reason', 'calculation_trace', 'notes', 'sequence', 'position_requirement_id']),
+                    ...$l->only(['id', 'organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id', 'methodology_id', 'methodology_version_no', 'standard_id', 'inputs', 'recommended_headcount', 'approved_headcount', 'adjustment_reason', 'calculation_trace', 'notes', 'sequence', 'position_requirement_id', 'workload_source_type', 'workload_source_reference']),
                     'calculated_fte' => $l->calculated_fte, 'calculated_at' => $l->calculated_at?->toISOString(), 'headcount' => $l->headcount(),
                     'unit' => $l->unit?->only(['id', 'code', 'name_en', 'name_am']), 'proposal' => $l->proposal?->only(['id', 'name_en', 'name_am']),
                     'task' => $l->task?->only(['id', 'code', 'name_en', 'name_am']), 'activity' => $l->activity?->only(['id', 'code', 'name_en', 'name_am']),
@@ -107,9 +105,7 @@ class ManpowerPlanController extends Controller
                 ->map(fn ($h) => ['from' => $h->from_status, 'to' => $h->to_status, 'actor' => $h->actor?->name, 'reason' => $h->reason, 'at' => $h->created_at->toISOString()]),
             'units' => OrganizationUnit::query()->where('organization_id', $plan->organization_id)->whereIn('status', ['active', 'draft'])->orderBy('code')->limit(1000)->get(['id', 'code', 'name_en', 'name_am'])->map->only(['id', 'code', 'name_en', 'name_am']),
             'proposals' => $plan->study_id ? UnitDesignProposal::query()->where('study_id', $plan->study_id)->where('proposal_type', 'create')->orderBy('sequence')->get(['id', 'name_en', 'name_am', 'status'])->map->only(['id', 'name_en', 'name_am', 'status']) : [],
-            'tasks' => ProcessTask::query()->where('organization_id', $plan->organization_id)->with('process:id,code,status')->orderBy('code')->limit(2000)->get()->filter(fn ($t) => $t->process?->status === OrganizationDesignStatus::Published)->map(fn ($t) => ['id' => $t->id, 'code' => $t->code, 'name_en' => $t->name_en, 'name_am' => $t->name_am, 'process_code' => $t->process?->code])->values(),
-            'occupations' => Occupation::query()->where('is_active', true)->with(['professions' => fn ($q) => $q->where('is_active', true)])->orderBy('isco_code')->limit(2000)->get()
-                ->map(fn (Occupation $o) => ['id' => $o->id, 'code' => $o->code, 'isco_code' => $o->isco_code, 'name_en' => $o->name_en ?? $o->code, 'name_am' => $o->name_am, 'professions' => $o->professions->map->only(['id', 'code', 'name_en', 'name_am'])->values()])->values(),
+            // Tasks and occupations are searched on the server (organization-design.lookups), never shipped whole.
             'methodologies' => $this->methodologyOptions(),
             'studies' => OrganizationDesignStudy::query()->where('organization_id', $plan->organization_id)->whereIn('status', [OrganizationDesignStatus::Approved->value, OrganizationDesignStatus::UnderReview->value, OrganizationDesignStatus::Draft->value])->orderByDesc('created_at')->limit(50)->get(['id', 'reference_number', 'title_en', 'status'])->map(fn ($s) => ['id' => $s->id, 'reference_number' => $s->reference_number, 'title_en' => $s->title_en, 'status' => $s->status->value]),
             'can' => [

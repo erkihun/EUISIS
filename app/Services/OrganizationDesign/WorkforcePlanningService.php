@@ -32,7 +32,7 @@ class WorkforcePlanningService
 
     public const PLAN_FIELDS = ['hierarchy_version_id', 'study_id', 'methodology_id', 'title_en', 'title_am', 'notes', 'planning_period_start', 'planning_period_end'];
 
-    public const LINE_FIELDS = ['organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id', 'methodology_id', 'inputs', 'notes', 'sequence'];
+    public const LINE_FIELDS = ['organization_unit_id', 'unit_design_proposal_id', 'activity_id', 'task_id', 'occupation_id', 'profession_id', 'methodology_id', 'inputs', 'notes', 'sequence', 'workload_source_type', 'workload_source_reference'];
 
     private const PREFIX = 'MPP';
 
@@ -335,6 +335,10 @@ class WorkforcePlanningService
                 $findings[] = $this->finding('error', 'line_not_calculated', $subject);
             } elseif ($line->headcount() === null) {
                 $findings[] = $this->finding('error', 'line_without_headcount', $subject);
+            }
+            // Brief §19: an approved plan never carries an unexplained workload figure.
+            if ($line->workload_source_type === null || $line->workload_source_type === '') {
+                $findings[] = $this->finding('error', 'line_without_workload_source', $subject);
             }
             if ($line->approved_headcount !== null && $line->recommended_headcount !== null && $line->approved_headcount !== $line->recommended_headcount) {
                 $findings[] = $this->finding('info', 'line_adjusted', $subject, ['from' => $line->recommended_headcount, 'to' => $line->approved_headcount]);

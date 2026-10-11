@@ -11,6 +11,7 @@ use App\Models\OrganizationFunction;
 use App\Models\OrganizationUnit;
 use App\Models\Position;
 use App\Models\PositionProfile;
+use App\Models\PositionRequirement;
 use App\Models\PositionServiceTaskStandard;
 use App\Models\PositionWorkLink;
 use App\Models\Process;
@@ -50,11 +51,25 @@ class OrganizationDesignGapService
             $findings[] = $this->finding('warning', 'function_without_services', ['type' => 'function', 'id' => $function->id, 'code' => $function->code, 'name' => $function->title_en]);
         }
 
-        // Services → processes.
+        // Services → processes, and who owns the service (brief §14).
         $services = Service::query()->where('organization_id', $organizationId)->where('status', OrganizationDesignStatus::Published)->orderBy('code')->get();
         $servicesWithProcess = Process::query()->where('organization_id', $organizationId)->where('status', OrganizationDesignStatus::Published)->pluck('service_id')->flip();
-        foreach ($services->reject(fn ($s) => $servicesWithProcess->has($s->id)) as $service) {
-            $findings[] = $this->finding('warning', 'service_without_processes', ['type' => 'service', 'id' => $service->id, 'code' => $service->code, 'name' => $service->name_en]);
+        $liveUnits = OrganizationUnit::query()->where('organization_id', $organizationId)->where('status', 'active')->pluck('id')->flip();
+        foreach ($services as $service) {
+            $subject = ['type' => 'service', 'id' => $service->id, 'code' => $service->code, 'name' => $service->name_en];
+            if (! $servicesWithProcess->has($service->id)) {
+                $findings[] = $this->finding('warning', 'service_without_processes', $subject);
+            }
+            if ($service->owner_organization_unit_id === null) {
+                $findings[] = $this->finding('warning', 'service_without_owner_unit', $subject);
+            } elseif (! $liveUnits->has($service->owner_organization_unit_id)) {
+                $findings[] = $this->finding('warning', 'service_owner_unit_invalid', $subject);
+            }
+        }
+
+        // Approved manpower that never became a position (brief §34).
+        foreach (PositionRequirement::query()->where('organization_id', $organizationId)->where('status', 'approved')->whereNull('position_id')->orderBy('sequence')->get() as $requirement) {
+            $findings[] = $this->finding('warning', 'approved_requirement_without_position', ['type' => 'position_requirement', 'id' => $requirement->id, 'code' => $requirement->id, 'name' => $requirement->position_title_en], ['headcount' => $requirement->approved_headcount]);
         }
 
         // Processes → tasks.
@@ -90,7 +105,7 @@ class OrganizationDesignGapService
         }
 
         // Positions → links, profile, job description.
-        $positions = Position::query()->where('organization_id', $organizationId)->where('is_active', true)->orderBy('job_position_code')->get(['id', 'job_position_code', 'title_en', 'organization_unit_id']);
+        $positions = Position::query()->where('organization_id', $organizationId)->where('is_active', true)->orderBy('job_position_code')->get(['id', 'job_position_code', 'title_en', 'organization_unit_id', 'occupation_id']);
         $linked = PositionWorkLink::query()->where('organization_id', $organizationId)->distinct()->pluck('position_id')->flip();
         $profiled = PositionProfile::query()->where('organization_id', $organizationId)->where('status', OrganizationDesignStatus::Published)->pluck('position_id')->flip();
         $described = JobDescription::query()->where('organization_id', $organizationId)
@@ -99,6 +114,9 @@ class OrganizationDesignGapService
             ->pluck('position_id')->flip();
         foreach ($positions as $position) {
             $subject = ['type' => 'position', 'id' => $position->id, 'code' => $position->job_position_code, 'name' => $position->title_en];
+            if ($position->occupation_id === null) {
+                $findings[] = $this->finding('warning', 'position_without_occupation', $subject);
+            }
             if (! $linked->has($position->id)) {
                 $findings[] = $this->finding('warning', 'position_without_work_links', $subject);
             }

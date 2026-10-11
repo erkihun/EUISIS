@@ -3,7 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { ParameterSchema } from '@/Components/organizationDesign/MethodologyForm';
 import PlanForm, { type MethodologyOption, type Option, type PlanFormValues, type StudyOption } from '@/Components/organizationDesign/PlanForm';
-import PlanLineForm, { type LineRecord, type Named, type OccupationOption, type ProposalOption, type TaskOption } from '@/Components/organizationDesign/PlanLineForm';
+import PlanLineForm, { type LineRecord, type Named, type ProposalOption } from '@/Components/organizationDesign/PlanLineForm';
 import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
@@ -31,8 +31,6 @@ type Props = {
     history: { from: string | null; to: string; actor: string | null; reason: string | null; at: string }[];
     units: Named[];
     proposals: ProposalOption[];
-    tasks: TaskOption[];
-    occupations: OccupationOption[];
     methodologies: MethodologyOption[];
     studies: StudyOption[];
     can: { update: boolean; submit: boolean; review: boolean; approve: boolean; cancel: boolean; implement: boolean };
@@ -40,7 +38,7 @@ type Props = {
 
 const REQ_TONES: Record<string, 'neutral' | 'info' | 'success'> = { proposed: 'neutral', approved: 'info', implemented: 'success' };
 
-export default function ManpowerPlanShow({ plan, lines, requirements, totals, validation, history, units, proposals, tasks, occupations, methodologies, studies, can }: Props) {
+export default function ManpowerPlanShow({ plan, lines, requirements, totals, validation, history, units, proposals, methodologies, studies, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState(false);
@@ -131,6 +129,7 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                                         <Th>{tt('fields.occupation')}</Th>
                                         <Th>{tt('fields.task')}</Th>
                                         <Th>{tt('plans.inputs')}</Th>
+                                        <Th>{tt('plans.workloadSource')}</Th>
                                         <Th align="right">{tt('plans.fte')}</Th>
                                         <Th align="right">{tt('plans.recommended')}</Th>
                                         <Th align="right">{tt('plans.approvedHeadcount')}</Th>
@@ -144,6 +143,7 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                                             <Td muted>{l.occupation ? `${l.occupation.isco_code ?? l.occupation.code} · ${nameOf(l.occupation, locale)}` : '—'}{l.profession ? ` › ${nameOf(l.profession, locale)}` : ''}</Td>
                                             <Td muted>{l.task ? `${l.task.code} · ${nameOf(l.task, locale)}` : '—'}</Td>
                                             <Td muted className="text-xs">{Object.entries(l.inputs ?? {}).map(([k, v]) => `${tt(`methodologies.inputNames.${k}`)}: ${v}`).join(' · ') || '—'}</Td>
+                                            <Td muted className="text-xs">{l.workload_source_type ? <>{tt(`plans.workloadSources.${l.workload_source_type}`)}{l.workload_source_reference && <p>{l.workload_source_reference}</p>}</> : <span className={badgeClassName('warning')}>—</span>}</Td>
                                             <Td align="right" className="font-mono text-xs">{l.calculated_fte ?? <span className={badgeClassName('warning')}>{tt('plans.notCalculated')}</span>}{l.methodology_version_no != null && <span className="ml-1 text-[color:var(--app-muted-foreground)]">v{l.methodology_version_no}</span>}</Td>
                                             <Td align="right">{l.recommended_headcount ?? '—'}</Td>
                                             <Td align="right">{l.approved_headcount ?? '—'}{l.adjustment_reason && <p className="text-xs text-[color:var(--app-muted-foreground)]">{l.adjustment_reason}</p>}</Td>
@@ -214,7 +214,7 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
             </div>
 
             {can.update && <PlanForm show={editing} onClose={() => setEditing(false)} title={tt('plans.edit')} initial={values} url={route('organization-design.manpower-plans.update', plan.id)} method="put" methodologies={methodologies} studies={studies} />}
-            {lineEdit && <PlanLineForm planId={plan.id} record={lineEdit === 'new' ? null : lineEdit} units={units} proposals={proposals} tasks={tasks} occupations={occupations} inputSchema={m.inputs} onClose={() => setLineEdit(null)} />}
+            {lineEdit && <PlanLineForm planId={plan.id} organizationId={plan.organization_id} record={lineEdit === 'new' ? null : lineEdit} units={units} proposals={proposals} inputSchema={m.inputs} onClose={() => setLineEdit(null)} />}
             {trace && (
                 <TraceModal line={trace} onClose={() => setTrace(null)} />
             )}

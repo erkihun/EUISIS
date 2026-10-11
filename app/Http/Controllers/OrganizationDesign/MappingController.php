@@ -10,8 +10,10 @@ use App\Models\CompetencyType;
 use App\Models\IscoGroup;
 use App\Models\Occupation;
 use App\Models\Organization;
+use App\Models\PositionService;
 use App\Models\ProcessTask;
 use App\Services\OrganizationDesign\DataQualityService;
+use App\Services\OrganizationDesign\LegacyMappingService;
 use App\Services\OrganizationDesign\MappingWorkspaceService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +24,7 @@ use Inertia\Response;
 /** The mapping workspace: unmapped legacy records, suggestions a person applies, data quality. */
 class MappingController extends Controller
 {
-    public function __construct(private readonly MappingWorkspaceService $mapping, private readonly DataQualityService $quality, private readonly OrganizationScopeService $scope) {}
+    public function __construct(private readonly MappingWorkspaceService $mapping, private readonly DataQualityService $quality, private readonly LegacyMappingService $legacy, private readonly OrganizationScopeService $scope) {}
 
     public function index(Request $request): Response
     {
@@ -42,9 +44,8 @@ class MappingController extends Controller
             'organizationId' => $organizationId,
             'organizations' => $options->map->only(['id', 'code', 'name_en', 'name_am']),
             'unmapped' => $organizationId ? $this->mapping->unmapped($organizationId) : null,
+            'legacy' => $organizationId ? ['summary' => $this->legacy->classify($organizationId)['summary']] : null,
             'quality' => $organizationId ? $this->quality->check($organizationId) : null,
-            'masterTasks' => $organizationId ? ProcessTask::query()->where('organization_id', $organizationId)->where('is_active', true)->with('process:id,code')->orderBy('code')->limit(5000)->get()
-                ->map(fn (ProcessTask $t) => ['id' => $t->id, 'code' => $t->code, 'name_en' => $t->name_en, 'name_am' => $t->name_am, 'process_code' => $t->process?->code])->values() : [],
             'catalog' => $canCatalog ? [
                 ...$this->mapping->unmappedCatalog(),
                 'iscoGroups' => IscoGroup::query()->where('is_active', true)->orderBy('code')->limit(5000)->get(['id', 'revision', 'code', 'name_en', 'name_am'])->map->only(['id', 'revision', 'code', 'name_en', 'name_am'])->values(),
@@ -78,6 +79,16 @@ class MappingController extends Controller
         $this->mapping->linkOccupation($request->user(), $occupation, $data['isco_group_id'] ?? null);
 
         return back()->with('flash', ['message' => __('organization-design.occupation_linked'), 'type' => 'success']);
+    }
+
+    public function linkPositionService(Request $request, PositionService $positionService): RedirectResponse
+    {
+        $user = $request->user();
+        abort_unless($user->can('processes.update') && $this->scope->canAccess($user, $positionService->organization_id), 403);
+        $data = $request->validate(['master_service_id' => ['nullable', 'uuid']]);
+        $this->mapping->linkPositionService($user, $positionService, $data['master_service_id'] ?? null);
+
+        return back()->with('flash', ['message' => __('organization-design.position_service_linked'), 'type' => 'success']);
     }
 
     public function linkCompetency(Request $request, Competency $competency): RedirectResponse

@@ -1,32 +1,45 @@
 import Modal from '@/Components/Modal';
 import { Button, FieldError, FormField, Input, Select, Textarea } from '@/Components/ui';
 import { useForm } from '@inertiajs/react';
+import { useState } from 'react';
+import DesignLookup, { type LookupHit } from './DesignLookup';
 import type { ParameterSchema } from './MethodologyForm';
 import { nameOf, useDesignText } from './ui';
 
 export type Named = { id: string; code: string; name_en: string; name_am: string | null };
-export type OccupationOption = Named & { isco_code: string | null; professions: Named[] };
-export type TaskOption = Named & { process_code: string | null };
 export type ProposalOption = { id: string; name_en: string; name_am: string | null; status: string };
+type Profession = { id: string; code: string; name_en: string; name_am: string | null };
+
+export const WORKLOAD_SOURCES = ['historical_transactions', 'approved_forecast', 'administrative_input', 'work_measurement_study', 'service_target'] as const;
 
 export type LineRecord = {
     id?: string; organization_unit_id: string | null; unit_design_proposal_id: string | null; task_id: string | null; occupation_id: string; profession_id: string | null;
     inputs: Record<string, string> | null; recommended_headcount: number | null; approved_headcount: number | null; adjustment_reason: string | null; notes: string | null; sequence: number;
+    workload_source_type: string | null; workload_source_reference: string | null;
+    task?: Named | null; occupation?: (Named & { isco_code: string | null; professions?: Profession[] }) | null; profession?: Named | null;
 };
 
-/** One plan line: the subject (unit or proposed unit), the occupation, an optional task, the inputs, and the planner's headcount override. */
-export default function PlanLineForm({ planId, record, units, proposals, tasks, occupations, inputSchema, onClose }: {
-    planId: string; record: LineRecord | null; units: Named[]; proposals: ProposalOption[]; tasks: TaskOption[]; occupations: OccupationOption[]; inputSchema: ParameterSchema; onClose: () => void;
+/**
+ * One plan line: the subject (unit or proposed unit), the occupation and
+ * task searched on the server, the inputs with their provenance, and the
+ * planner's headcount override.
+ */
+export default function PlanLineForm({ planId, organizationId, record, units, proposals, inputSchema, onClose }: {
+    planId: string; organizationId: string; record: LineRecord | null; units: Named[]; proposals: ProposalOption[]; inputSchema: ParameterSchema; onClose: () => void;
 }) {
     const { locale, tt } = useDesignText();
+    const label = (hit: { code: string; name_en: string; name_am: string | null } | null | undefined) => (hit ? `${hit.code} · ${nameOf(hit, locale)}` : '');
     const form = useForm({
         subject_kind: record?.unit_design_proposal_id ? 'proposal' : 'unit', organization_unit_id: record?.organization_unit_id ?? '', unit_design_proposal_id: record?.unit_design_proposal_id ?? '',
         task_id: record?.task_id ?? '', occupation_id: record?.occupation_id ?? '', profession_id: record?.profession_id ?? '',
         inputs: { ...(record?.inputs ?? {}) } as Record<string, string>, approved_headcount: record?.approved_headcount == null ? '' : String(record.approved_headcount),
         adjustment_reason: record?.adjustment_reason ?? '', notes: record?.notes ?? '', sequence: String(record?.sequence ?? 0),
+        workload_source_type: record?.workload_source_type ?? '', workload_source_reference: record?.workload_source_reference ?? '',
     });
+    const [taskLabel, setTaskLabel] = useState(label(record?.task));
+    const [occupationLabel, setOccupationLabel] = useState(record?.occupation ? `${record.occupation.isco_code ?? record.occupation.code} · ${nameOf(record.occupation, locale)}` : '');
+    const [professions, setProfessions] = useState<Profession[]>(record?.occupation?.professions ?? (record?.profession ? [record.profession] : []));
     const errors = form.errors as Record<string, string | undefined>;
-    const occupation = occupations.find((o) => o.id === form.data.occupation_id);
 
     function submit(event: React.FormEvent) {
         event.preventDefault();
@@ -37,6 +50,7 @@ export default function PlanLineForm({ planId, record, units, proposals, tasks, 
                 organization_unit_id: subject_kind === 'unit' ? data.organization_unit_id || null : null,
                 unit_design_proposal_id: subject_kind === 'proposal' ? data.unit_design_proposal_id || null : null,
                 task_id: data.task_id || null, profession_id: data.profession_id || null, notes: data.notes || null,
+                workload_source_type: data.workload_source_type || null, workload_source_reference: data.workload_source_reference || null,
                 inputs: Object.fromEntries(Object.entries(data.inputs).filter(([, v]) => v !== '')), sequence: Number(data.sequence || 0),
             };
             if (record?.id) { out.approved_headcount = data.approved_headcount === '' ? null : Number(data.approved_headcount); out.adjustment_reason = data.adjustment_reason || null; }
@@ -72,13 +86,19 @@ export default function PlanLineForm({ planId, record, units, proposals, tasks, 
                         </FormField>
                     )}
                     <FormField {...field('occupation_id', tt('fields.occupation'), true)}>
-                        {({ id }) => <Select id={id} value={form.data.occupation_id} onChange={(e) => { form.setData('occupation_id', e.target.value); form.setData('profession_id', ''); }}><option value="">—</option>{occupations.map((o) => <option key={o.id} value={o.id}>{o.isco_code ?? o.code} · {nameOf(o, locale)}</option>)}</Select>}
+                        {({ id }) => (
+                            <DesignLookup id={id} kind="occupations" value={form.data.occupation_id} display={occupationLabel}
+                                onChange={(occupationId, hit: LookupHit | null) => { form.setData('occupation_id', occupationId); form.setData('profession_id', ''); setOccupationLabel(hit ? `${hit.code} · ${(locale === 'am' && hit.name_am) || hit.name_en}` : ''); setProfessions(hit?.professions ?? []); }} />
+                        )}
                     </FormField>
                     <FormField {...field('profession_id', tt('fields.profession'))}>
-                        {({ id }) => <Select id={id} value={form.data.profession_id} disabled={!occupation || occupation.professions.length === 0} onChange={(e) => form.setData('profession_id', e.target.value)}><option value="">—</option>{(occupation?.professions ?? []).map((p) => <option key={p.id} value={p.id}>{p.code} · {nameOf(p, locale)}</option>)}</Select>}
+                        {({ id }) => <Select id={id} value={form.data.profession_id} disabled={professions.length === 0} onChange={(e) => form.setData('profession_id', e.target.value)}><option value="">—</option>{professions.map((p) => <option key={p.id} value={p.id}>{p.code} · {nameOf(p, locale)}</option>)}</Select>}
                     </FormField>
                     <FormField {...field('task_id', tt('fields.task'))} className="sm:col-span-2">
-                        {({ id }) => <Select id={id} value={form.data.task_id} onChange={(e) => form.setData('task_id', e.target.value)}><option value="">—</option>{tasks.map((t) => <option key={t.id} value={t.id}>{t.process_code ? `${t.process_code} · ` : ''}{t.code} · {nameOf(t, locale)}</option>)}</Select>}
+                        {({ id }) => (
+                            <DesignLookup id={id} kind="tasks" organizationId={organizationId} value={form.data.task_id} display={taskLabel}
+                                onChange={(taskId, hit: LookupHit | null) => { form.setData('task_id', taskId); setTaskLabel(hit ? `${hit.process_code ? `${hit.process_code} · ` : ''}${hit.code} · ${(locale === 'am' && hit.name_am) || hit.name_en}` : ''); }} />
+                        )}
                     </FormField>
 
                     <fieldset className="sm:col-span-2">
@@ -91,6 +111,11 @@ export default function PlanLineForm({ planId, record, units, proposals, tasks, 
                             ))}
                         </div>
                     </fieldset>
+
+                    <FormField {...field('workload_source_type', tt('plans.workloadSource'), true)} description={tt('plans.workloadSourceHelp')}>
+                        {({ id }) => <Select id={id} value={form.data.workload_source_type} onChange={(e) => form.setData('workload_source_type', e.target.value)}><option value="">—</option>{WORKLOAD_SOURCES.map((s) => <option key={s} value={s}>{tt(`plans.workloadSources.${s}`)}</option>)}</Select>}
+                    </FormField>
+                    <FormField {...field('workload_source_reference', tt('plans.workloadSourceReference'))}>{({ id }) => <Input id={id} value={form.data.workload_source_reference} maxLength={255} onChange={(e) => form.setData('workload_source_reference', e.target.value)} />}</FormField>
 
                     {record?.id && (
                         <>

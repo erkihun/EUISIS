@@ -37,6 +37,7 @@ class PositionService extends Model
         'is_active',
         'is_performance_evaluation_enabled',
         'sort_order',
+        'master_service_id',
         'created_by',
         'updated_by',
     ];
@@ -53,6 +54,18 @@ class PositionService extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /** The EPMS tasks under this position service (through its sub-services). */
+    public function tasks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PositionServiceTask::class, 'position_service_id');
+    }
+
+    /** The master service this legacy position service was explicitly mapped to (organization design, brief §7); never set automatically. */
+    public function masterService(): BelongsTo
+    {
+        return $this->belongsTo(Service::class, 'master_service_id');
     }
 
     public function position(): BelongsTo

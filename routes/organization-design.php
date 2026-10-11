@@ -7,6 +7,7 @@ use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
+use App\Http\Controllers\OrganizationDesign\LookupController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
 use App\Http\Controllers\OrganizationDesign\ManpowerPlanController;
 use App\Http\Controllers\OrganizationDesign\MappingController;
@@ -187,6 +188,11 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/mapping/apply', [MappingController::class, 'apply'])->middleware('throttle:30,1')->name('mapping.apply');
         Route::put('/mapping/occupations/{occupation}', [MappingController::class, 'linkOccupation'])->whereUuid('occupation')->name('mapping.occupations.link');
         Route::put('/mapping/competencies/{competency}', [MappingController::class, 'linkCompetency'])->whereUuid('competency')->name('mapping.competencies.link');
+        Route::put('/mapping/position-services/{positionService}', [MappingController::class, 'linkPositionService'])->whereUuid('positionService')->name('mapping.position-services.link');
+
+        // Production gate: scoped server search for pickers, formal job-description output.
+        Route::get('/lookups/{kind}', LookupController::class)->where('kind', '[a-z-]+')->name('lookups');
+        Route::get('/job-descriptions/{jobDescription}/pdf', [JobDescriptionController::class, 'pdf'])->whereUuid('jobDescription')->name('job-descriptions.pdf');
         Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
         Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
         Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');

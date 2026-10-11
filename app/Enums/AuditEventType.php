@@ -753,4 +753,5 @@ enum AuditEventType: string
     case MappingSuggestionsApplied = 'organization_design.mapping_suggestions_applied';
     case OccupationLinked = 'organization_design.occupation_linked';
     case CompetencyLinked = 'organization_design.competency_linked';
+    case PositionServiceLinked = 'organization_design.position_service_linked';
 }

@@ -375,6 +375,10 @@ const organizationDesign = {
     },
 
     plans: {
+        workloadSource: 'Workload source',
+        workloadSourceReference: 'Source reference',
+        workloadSourceHelp: 'Where the workload figures of this line come from. An approved plan never carries an unexplained number.',
+        workloadSources: { historical_transactions: 'Historical service transactions', approved_forecast: 'Approved forecast', administrative_input: 'Administrative planning input', work_measurement_study: 'Survey / work measurement study', service_target: 'Service target' },
         title: 'Manpower Plans',
         description: 'How many positions an institution needs for a period: lines estimated per unit and occupation from a methodology, rolled up into position requirements on approval, and implemented as positions with approved establishments — never as assignments.',
         create: 'New plan',
@@ -504,6 +508,9 @@ const organizationDesign = {
         latestPublished: 'Published profile in force',
         history: 'History',
         jd: {
+            pdf: 'Download PDF',
+            pdfEn: 'PDF (English)',
+            pdfAm: 'PDF (Amharic)',
             title: 'Job description',
             details: 'Details',
             sections: 'Sections',
@@ -569,6 +576,14 @@ const organizationDesign = {
         openJd: 'Open job description',
     },
     mapping: {
+        positionServices: 'Existing position services without a master service',
+        noPositionServices: 'Every active position service is linked to a master service.',
+        masterService: 'Master service',
+        tasksMapped: ':mapped of :total tasks mapped',
+        legacy: 'Legacy records',
+        legacyHelp: 'How the records that existed before the design relate to it. Nothing here is changed automatically; INVALID_REFERENCE needs a person.',
+        legacyStatuses: { FULLY_MAPPED: 'Fully mapped', PARTIALLY_MAPPED: 'Partially mapped', UNMAPPED_LEGACY: 'Unmapped legacy', INVALID_REFERENCE: 'Invalid reference' },
+        legacyKinds: { units: 'Units', positions: 'Positions', position_services: 'Position services' },
         title: 'Mapping workspace',
         description: 'Records that existed before the design and are not linked to it yet. Suggestions are only ever applied by a person; anything with several candidates is left for review.',
         selectOrganization: 'Choose an organization to see its unmapped records.',
@@ -603,6 +618,12 @@ const organizationDesign = {
         service: 'Position service',
         position: 'Position',
         unit: 'Unit',
+    },
+    lookup: {
+        placeholder: 'Type to search…',
+        searching: 'Searching…',
+        noResults: 'No matches',
+        clear: 'Clear',
     },
     classifications: {
         title: 'Classifications',

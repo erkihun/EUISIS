@@ -10,12 +10,16 @@ use App\Models\JobDescription;
 use App\Models\OrganizationDesignStatusHistory;
 use App\Models\Position;
 use App\Models\PositionProfile;
+use App\Services\Calendar\LocalizedDateService;
 use App\Services\OrganizationDesign\JobDescriptionService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 /** Job descriptions: drafting from the profile, sections, regeneration, workflow and publication. */
 class JobDescriptionController extends Controller
@@ -125,6 +129,32 @@ class JobDescriptionController extends Controller
         $this->jobDescriptions->cancel($request->user(), $jobDescription, $request->string('reason')->toString() ?: null);
 
         return to_route('organization-design.position-design.show', $jobDescription->position_id)->with('flash', ['message' => __('organization-design.jd_cancelled'), 'type' => 'success']);
+    }
+
+    /** The formal bilingual document (brief §26): English dated in the Gregorian calendar, Amharic in the Ethiopian one. */
+    public function pdf(Request $request, JobDescription $jobDescription, LocalizedDateService $dates): HttpResponse
+    {
+        $this->authorize('view', $jobDescription);
+        $locale = $request->string('locale')->toString() === 'am' ? 'am' : 'en';
+        $jobDescription->load(['position.organization:id,code,name_en,name_am', 'position.organizationUnit:id,code,name_en,name_am', 'position.occupation:id,code,isco_code,name_en,name_am', 'profile:id,version_no', 'preparer:id,name', 'approver:id,name', 'publisher:id,name']);
+        $view = view('organization-design.job-description-pdf', [
+            'jd' => $jobDescription,
+            'sections' => $jobDescription->sections()->get(),
+            'locale' => $locale,
+            'am' => $locale === 'am',
+            'dates' => $dates,
+            'effectiveFrom' => $dates->displayDate($jobDescription->effective_from, $locale),
+            'effectiveTo' => $jobDescription->effective_to ? $dates->displayDate($jobDescription->effective_to, $locale) : null,
+            'publishedAt' => $jobDescription->published_at ? $dates->displayDate($jobDescription->published_at, $locale) : null,
+            'generatedAt' => $dates->displayDateTime(now(), $locale),
+            'generatedBy' => $request->user()->name,
+        ]);
+        if ($request->boolean('preview')) {
+            return response($view->render());
+        }
+        $filename = 'job-description-'.Str::slug((string) $jobDescription->reference_number).'-'.$locale.'.pdf';
+
+        return Pdf::loadHTML($view->render())->setPaper('a4', 'portrait')->download($filename);
     }
 
     public function storeVersion(Request $request, JobDescription $jobDescription): RedirectResponse

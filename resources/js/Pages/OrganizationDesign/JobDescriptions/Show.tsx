@@ -123,6 +123,8 @@ export default function JobDescriptionShow({ jobDescription: jd, sections, versi
                 description={[nameOf(jd.position.organization, locale), jd.position.unit ? `${jd.position.unit.code} · ${nameOf(jd.position.unit, locale)}` : null, jd.position.grade_level].filter(Boolean).join(' · ')}
                 actions={(
                     <div className="flex flex-wrap gap-2">
+                        <a href={route('organization-design.job-descriptions.pdf', { jobDescription: jd.id, locale: 'en' })} className={actionLinkClassName()}>{tt('positionDesign.jd.pdfEn')}</a>
+                        <a href={route('organization-design.job-descriptions.pdf', { jobDescription: jd.id, locale: 'am' })} className={actionLinkClassName()}>{tt('positionDesign.jd.pdfAm')}</a>
                         {can.update && <Button variant="outline" onClick={() => act('regenerate')}>{tt('positionDesign.jd.regenerate')}</Button>}
                         {can.cancel && <Button variant="destructiveOutline" onClick={() => act('cancel', 'danger')}>{tt('positionDesign.jd.cancel')}</Button>}
                         {can.submit && <Button variant="primary" onClick={() => act('submit')}>{tt('positionDesign.jd.submit')}</Button>}

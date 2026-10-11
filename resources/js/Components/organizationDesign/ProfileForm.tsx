@@ -1,10 +1,10 @@
 import Modal from '@/Components/Modal';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
-import { Button, FieldError, FormField, Select, Textarea } from '@/Components/ui';
+import { Button, FieldError, FormField, Textarea } from '@/Components/ui';
 import { useForm } from '@inertiajs/react';
-import { nameOf, useDesignText } from './ui';
-
-export type PositionOption = { id: string; code: string; name_en: string; name_am: string | null };
+import { useState } from 'react';
+import DesignLookup from './DesignLookup';
+import { useDesignText } from './ui';
 
 export type ProfileFormValues = {
     purpose_en: string; purpose_am: string; reports_to_position_id: string; working_conditions_en: string; working_conditions_am: string;
@@ -14,11 +14,12 @@ export type ProfileFormValues = {
 export const emptyProfile = (): ProfileFormValues => ({ purpose_en: '', purpose_am: '', reports_to_position_id: '', working_conditions_en: '', working_conditions_am: '', authorities_en: '', authorities_am: '', relationships_en: '', relationships_am: '', effective_from: '', effective_to: '' });
 
 /** A position profile: first draft (POST), draft edit (PUT) or a new version of the published one (POST versions). */
-export default function ProfileForm({ show, onClose, title, initial, url, method, positions }: {
-    show: boolean; onClose: () => void; title: string; initial: ProfileFormValues; url: string; method: 'post' | 'put'; positions: PositionOption[];
+export default function ProfileForm({ show, onClose, title, initial, url, method, organizationId, reportsToLabel = '' }: {
+    show: boolean; onClose: () => void; title: string; initial: ProfileFormValues; url: string; method: 'post' | 'put'; organizationId: string; reportsToLabel?: string;
 }) {
     const { locale, tt } = useDesignText();
     const form = useForm<ProfileFormValues>(initial);
+    const [reportsTo, setReportsTo] = useState(reportsToLabel);
     const errors = form.errors as Record<string, string | undefined>;
 
     function submit(event: React.FormEvent) {
@@ -41,7 +42,10 @@ export default function ProfileForm({ show, onClose, title, initial, url, method
                     {text('purpose_en', tt('positionDesign.purposeEn'))}
                     {text('purpose_am', tt('positionDesign.purposeAm'))}
                     <FormField {...field('reports_to_position_id', tt('positionDesign.reportsTo'))} className="sm:col-span-2">
-                        {({ id }) => <Select id={id} value={form.data.reports_to_position_id} onChange={(e) => form.setData('reports_to_position_id', e.target.value)}><option value="">—</option>{positions.map((p) => <option key={p.id} value={p.id}>{p.code} · {nameOf(p, locale)}</option>)}</Select>}
+                        {({ id }) => (
+                            <DesignLookup id={id} kind="positions" organizationId={organizationId} value={form.data.reports_to_position_id} display={reportsTo}
+                                onChange={(positionId, hit) => { form.setData('reports_to_position_id', positionId); setReportsTo(hit ? `${hit.code} · ${(locale === 'am' && hit.name_am) || hit.name_en}` : ''); }} />
+                        )}
                     </FormField>
                     {text('working_conditions_en', tt('positionDesign.workingConditionsEn'), 2)}
                     {text('working_conditions_am', tt('positionDesign.workingConditionsAm'), 2)}

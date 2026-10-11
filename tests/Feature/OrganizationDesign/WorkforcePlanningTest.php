@@ -117,7 +117,8 @@ function wpPlan(Organization $organization, User $planner, WorkforcePlanningMeth
 
 function wpLine(User $planner, ManpowerPlan $plan, array $payload): ManpowerPlanLine
 {
-    test()->actingAs($planner)->post(route('organization-design.manpower-plans.lines.store', $plan), $payload)->assertRedirect();
+    // Every line says where its workload came from (brief §19); the tests here are about the maths and the workflow.
+    test()->actingAs($planner)->post(route('organization-design.manpower-plans.lines.store', $plan), ['workload_source_type' => 'administrative_input', ...$payload])->assertRedirect();
 
     return ManpowerPlanLine::query()->where('plan_id', $plan->id)->latest('id')->firstOrFail();
 }
