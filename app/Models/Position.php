@@ -80,6 +80,16 @@ class Position extends Model
         return $this->belongsTo(Occupation::class);
     }
 
+    public function profiles(): HasMany
+    {
+        return $this->hasMany(PositionProfile::class);
+    }
+
+    public function jobDescriptions(): HasMany
+    {
+        return $this->hasMany(JobDescription::class);
+    }
+
     public function assignments(): HasMany
     {
         return $this->hasMany(EmployeeAssignment::class);

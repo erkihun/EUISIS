@@ -6,9 +6,11 @@ use App\Http\Controllers\OrganizationDesign\ClassificationController;
 use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
 use App\Http\Controllers\OrganizationDesign\DesignStudyController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
+use App\Http\Controllers\OrganizationDesign\JobDescriptionController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
 use App\Http\Controllers\OrganizationDesign\ManpowerPlanController;
 use App\Http\Controllers\OrganizationDesign\MethodologyController;
+use App\Http\Controllers\OrganizationDesign\PositionDesignController;
 use App\Http\Controllers\OrganizationDesign\ProcessController;
 use App\Http\Controllers\OrganizationDesign\ProcessDesignController;
 use App\Http\Controllers\OrganizationDesign\ProfessionController;
@@ -149,6 +151,29 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::put('/manpower-plan-lines/{line}', [ManpowerPlanController::class, 'updateLine'])->whereUuid('line')->name('manpower-plans.lines.update');
         Route::delete('/manpower-plan-lines/{line}', [ManpowerPlanController::class, 'destroyLine'])->whereUuid('line')->name('manpower-plans.lines.destroy');
         Route::post('/manpower-plan-lines/{line}/calculate', [ManpowerPlanController::class, 'calculateLine'])->whereUuid('line')->name('manpower-plans.lines.calculate');
+
+        // Phase 8: position profiles, work links, requirements and job descriptions.
+        Route::get('/position-design', [PositionDesignController::class, 'index'])->name('position-design.index');
+        Route::get('/position-design/{position}', [PositionDesignController::class, 'show'])->whereUuid('position')->name('position-design.show');
+        Route::post('/position-design/{position}/profiles', [PositionDesignController::class, 'storeProfile'])->whereUuid('position')->name('position-profiles.store');
+        Route::put('/position-profiles/{profile}', [PositionDesignController::class, 'updateProfile'])->whereUuid('profile')->name('position-profiles.update');
+        Route::post('/position-profiles/{profile}/versions', [PositionDesignController::class, 'storeProfileVersion'])->whereUuid('profile')->name('position-profiles.versions.store');
+        Route::post('/position-profiles/{profile}/publish', [PositionDesignController::class, 'publishProfile'])->whereUuid('profile')->name('position-profiles.publish');
+        Route::post('/position-profiles/{profile}/cancel', [PositionDesignController::class, 'cancelProfile'])->whereUuid('profile')->name('position-profiles.cancel');
+        Route::put('/position-design/{position}/work-links', [PositionDesignController::class, 'syncWorkLinks'])->whereUuid('position')->name('position-work-links.sync');
+        Route::put('/position-design/{position}/requirements', [PositionDesignController::class, 'syncRequirements'])->whereUuid('position')->name('position-requirements.sync');
+        Route::post('/position-design/{position}/requirements/derive', [PositionDesignController::class, 'deriveRequirements'])->whereUuid('position')->name('position-requirements.derive');
+
+        Route::post('/position-design/{position}/job-descriptions', [JobDescriptionController::class, 'store'])->whereUuid('position')->name('job-descriptions.store');
+        Route::get('/job-descriptions/{jobDescription}', [JobDescriptionController::class, 'show'])->whereUuid('jobDescription')->name('job-descriptions.show');
+        Route::put('/job-descriptions/{jobDescription}/sections/{sectionKey}', [JobDescriptionController::class, 'updateSection'])->whereUuid('jobDescription')->where('sectionKey', '[a-z_]+')->name('job-descriptions.sections.update');
+        Route::post('/job-descriptions/{jobDescription}/regenerate', [JobDescriptionController::class, 'regenerate'])->whereUuid('jobDescription')->name('job-descriptions.regenerate');
+        Route::post('/job-descriptions/{jobDescription}/submit', [JobDescriptionController::class, 'submit'])->whereUuid('jobDescription')->name('job-descriptions.submit');
+        Route::post('/job-descriptions/{jobDescription}/return', [JobDescriptionController::class, 'returnToDraft'])->whereUuid('jobDescription')->name('job-descriptions.return');
+        Route::post('/job-descriptions/{jobDescription}/approve', [JobDescriptionController::class, 'approve'])->whereUuid('jobDescription')->name('job-descriptions.approve');
+        Route::post('/job-descriptions/{jobDescription}/publish', [JobDescriptionController::class, 'publish'])->whereUuid('jobDescription')->name('job-descriptions.publish');
+        Route::post('/job-descriptions/{jobDescription}/cancel', [JobDescriptionController::class, 'cancel'])->whereUuid('jobDescription')->name('job-descriptions.cancel');
+        Route::post('/job-descriptions/{jobDescription}/versions', [JobDescriptionController::class, 'storeVersion'])->whereUuid('jobDescription')->name('job-descriptions.versions.store');
         Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
         Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
         Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');

@@ -738,4 +738,15 @@ enum AuditEventType: string
     case ManpowerLineRemoved = 'organization_design.manpower_line_removed';
     case PositionRequirementGenerated = 'organization_design.position_requirement_generated';
     case PositionRequirementImplemented = 'organization_design.position_requirement_implemented';
+    case PositionProfileCreated = 'organization_design.position_profile_created';
+    case PositionProfileUpdated = 'organization_design.position_profile_updated';
+    case PositionProfilePublished = 'organization_design.position_profile_published';
+    case PositionWorkLinksSynced = 'organization_design.position_work_links_synced';
+    case PositionRequirementsSynced = 'organization_design.position_requirements_synced';
+    case PositionRequirementsDerived = 'organization_design.position_requirements_derived';
+    case JobDescriptionCreated = 'organization_design.job_description_created';
+    case JobDescriptionRegenerated = 'organization_design.job_description_regenerated';
+    case JobDescriptionSectionUpdated = 'organization_design.job_description_section_updated';
+    case JobDescriptionApproved = 'organization_design.job_description_approved';
+    case JobDescriptionPublished = 'organization_design.job_description_published';
 }

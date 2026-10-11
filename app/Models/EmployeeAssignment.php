@@ -18,6 +18,7 @@ class EmployeeAssignment extends Model
         'organization_id',
         'organization_unit_id',
         'position_id',
+        'job_description_id',
         'hierarchy_version_id',
         'assignment_status',
         'effective_from',
@@ -49,6 +50,12 @@ class EmployeeAssignment extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
+    }
+
+    /** The job description in force when the person was assigned (brief §66). */
+    public function jobDescription(): BelongsTo
+    {
+        return $this->belongsTo(JobDescription::class, 'job_description_id');
     }
 
     public function hierarchyVersion(): BelongsTo

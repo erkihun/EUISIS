@@ -110,4 +110,20 @@ return [
         'City-level: draft methodologies and new versions with their parameters.', 'የከተማ ደረጃ፡ ዘዴዎችንና አዲስ ስሪቶችን ከመለኪያዎቻቸው ጋር ያርቅቁ።'),
     $entry('methodologies.approve', 'methodologies', 30, 'Publish methodologies', 'ዘዴዎችን ያትሙ',
         'Publish a methodology drafted by someone else once every parameter it uses is set.', 'የሚጠቀመው እያንዳንዱ መለኪያ ከተቀመጠ በኋላ በሌላ ሰው የተረቀቀ ዘዴ ያትሙ።'),
+
+    $entry('position-profiles.viewAny', 'position-profiles', 10, 'View position design', 'የሥራ መደብ ንድፍ ይመልከቱ',
+        'Browse position profiles, work links and requirements of positions within scope.', 'በወሰን ውስጥ ያሉ የሥራ መደቦችን መገለጫዎች፣ የሥራ አገናኞች እና መስፈርቶች ያስሱ።'),
+    $entry('position-profiles.manage', 'position-profiles', 20, 'Design positions', 'የሥራ መደቦችን ይንደፉ',
+        'Draft position profiles, link positions to the work design, and write or derive their requirements.', 'የሥራ መደብ መገለጫዎችን ያርቅቁ፣ የሥራ መደቦችን ከሥራ ንድፉ ጋር ያገናኙ፣ እና መስፈርቶቻቸውን ይጻፉ ወይም ያመንጩ።'),
+    $entry('position-profiles.approve', 'position-profiles', 30, 'Publish position profiles', 'የሥራ መደብ መገለጫዎችን ያትሙ',
+        'Publish a profile drafted by someone else.', 'በሌላ ሰው የተረቀቀ መገለጫ ያትሙ።'),
+
+    $entry('job-descriptions.viewAny', 'job-descriptions', 10, 'View job descriptions', 'የሥራ መግለጫዎችን ይመልከቱ',
+        'Read job descriptions of positions within scope.', 'በወሰን ውስጥ ያሉ የሥራ መደቦችን የሥራ መግለጫዎች ያንብቡ።'),
+    $entry('job-descriptions.manage', 'job-descriptions', 20, 'Draft job descriptions', 'የሥራ መግለጫዎችን ያርቅቁ',
+        'Draft job descriptions from published profiles, write custom sections and regenerate derived ones.', 'ከታተሙ መገለጫዎች የሥራ መግለጫዎችን ያርቅቁ፣ ብጁ ክፍሎችን ይጻፉ እና የተመነጩትን ያድሱ።'),
+    $entry('job-descriptions.approve', 'job-descriptions', 30, 'Approve job descriptions', 'የሥራ መግለጫዎችን ያጽድቁ',
+        'Review and approve a submitted job description prepared by someone else.', 'በሌላ ሰው የተዘጋጀ የቀረበ የሥራ መግለጫ ይገምግሙና ያጽድቁ።'),
+    $entry('job-descriptions.publish', 'job-descriptions', 40, 'Publish job descriptions', 'የሥራ መግለጫዎችን ያትሙ',
+        'Publish an approved job description; it is recorded on the position\'s current assignments.', 'የጸደቀ የሥራ መግለጫ ያትሙ፤ በሥራ መደቡ የአሁኑ ምደባዎች ላይ ይመዘገባል።'),
 ];
