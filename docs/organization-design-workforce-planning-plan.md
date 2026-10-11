@@ -80,10 +80,11 @@ All tables: UUID PK, `organization_id` where scoped, `created_by`/`updated_by`, 
 - `organization_functions` — as powers plus `parent_function_id`, `power_id` nullable, version_no. Cycle check in `FunctionService` (the `OrganizationTreeService` DFS pattern); tree read with one query ordered by a materialised `path` column.
 
 ### 3.2 Services and classification
-- `service_classifications` — scheme (`LOCAL`, `CPC`), code, parent_id, names, revision, is_active (D-3, D-4).
-- `cpc_classifications` — code, level, parent_code, title, revision (**OFFICIAL_DATASET_REQUIRED**).
-- `services` — organization_id, code, names, descriptions, service_type_id (nullable, reuse `ServiceType` only where the service is delivered through a platform module), service_classification_id, beneficiary_type, delivery_channel, legal_basis, owner_organization_unit_id, status, version_no, lineage_key, effective dates.
-- `function_service` — function_id, service_id, unique pair (§11).
+- `service_classifications` — one table for both schemes: scheme (`LOCAL`, `CPC`), revision, code, parent_id, level, names, is_active; unique (scheme, revision, code) (D-3, D-4, **OFFICIAL_DATASET_REQUIRED** — ships empty). *Implemented in phase 2; the separate `cpc_classifications` table in the first draft was folded in here so one importer and one steward permission cover both.*
+- `isic_activities.revision` — added (default `Rev.4`) so ISIC rows carry their revision like the other reference data.
+- `classification_import_batches` — every CSV import run (LOCAL / CPC / ISIC), dry or real: counts, status, error report, fingerprint. Dry run writes no reference rows; a real run is idempotent on (scheme, revision, code).
+- `services` — organization_id, code, names, descriptions, service_type_id (nullable, reuse `ServiceType` only where the service is delivered through a platform module), service_classification_id (active LOCAL), cpc_classification_id (CPC), beneficiary_type, delivery_channel, legal_basis, owner_organization_unit_id, status, version_no, lineage_key, effective dates. Versioned exactly like mandates (maker ≠ checker on publish).
+- `function_service` — function_id, service_id, unique pair (§11); functions must belong to the service's organization.
 - `service_isic_activity` — optional domain-level ISIC link (§16), never on tasks.
 
 ### 3.3 Processes, activities, tasks, standards
@@ -165,8 +166,8 @@ Each phase ends with migrations, models, services, policies, routes, pages, tran
 | Phase | Scope | New tables | Tests (brief numbering) | Size |
 |---|---|---|---|---|
 | **0. Foundations** | status history, documents, import batches, permissions, code-rule entity types, validation service skeleton, sidebar group, dashboard shell | 3 | catalog/permission tests | S |
-| **1. Mandate & functions** | §3–8 | 4 | 1–5 | M |
-| **2. Services & classification** | §9–16; ISIC revision; CPC/LOCAL catalogs + importers | 5 | 6–15 | M |
+| **1. Mandate & functions** — *done* | §3–8 | 4 | 1–5 | M |
+| **2. Services & classification** — *done* | §9–16; ISIC revision; one LOCAL/CPC catalog table + CSV importer (dry run, idempotent, per revision); `LegalInstrumentTypeSeeder` | 4 (+1 column) | 6–15 | M |
 | **3. Process architecture & standards** | §17–25; master process/activity/task; standard generalisation; Daily Work bridge | 4 (+2 columns) | 16–25 | L |
 | **4. Occupations & competencies** | §26–34; ISCO reference, professions, requirement tables, competency types/levels | 7 | 26–… (truncated in brief) | M |
 | **5. Unit design & responsibility** | §35–39, 112–113 | 4 | structure tests | M |

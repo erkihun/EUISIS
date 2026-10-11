@@ -10,6 +10,7 @@ use App\Models\IdCard;
 use App\Models\InstitutionMandate;
 use App\Models\OrganizationFunction;
 use App\Models\OrganizationPower;
+use App\Models\Service;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
@@ -64,6 +65,13 @@ class CodeRuleTargetRegistry
                 'code_column' => 'code',
                 'label' => 'Organization Function Code',
                 'immutable_after_create' => false,
+            ],
+            CodeRuleEntityType::Service->value => [
+                'model' => Service::class,
+                'table' => 'services',
+                'code_column' => 'code',
+                'label' => 'Service Code',
+                'immutable_after_create' => true,
             ],
             CodeRuleEntityType::OrganizationType->value => [
                 'model' => OrganizationType::class,

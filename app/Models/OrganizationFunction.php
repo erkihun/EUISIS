@@ -8,6 +8,7 @@ use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -50,6 +51,12 @@ class OrganizationFunction extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_function_id')->orderBy('sequence');
+    }
+
+    /** The services this function justifies. */
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class, 'function_service', 'function_id', 'service_id')->withTimestamps();
     }
 
     /** This function and everything under it. */

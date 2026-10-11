@@ -37,4 +37,20 @@ return [
         'View the powers and function tree of organizations within scope.', 'በወሰን ውስጥ ያሉ ተቋማትን ኃይሎችና የተግባር ዛፍ ይመልከቱ።'),
     $entry('organization-functions.manage', 'organization-functions', 20, 'Manage powers and functions', 'ኃይሎችና ተግባራትን ያስተዳድሩ',
         'Add, edit, move and remove powers and functions under a mandate within scope.', 'በወሰን ውስጥ በሥልጣን ሥር ኃይሎችና ተግባራትን ይጨምሩ፣ ያርትዑ፣ ያንቀሳቅሱ እና ያስወግዱ።'),
+
+    $entry('service-catalog.viewAny', 'service-catalog', 10, 'View the service catalog', 'የአገልግሎት ካታሎግ ይመልከቱ',
+        'List the services of organizations within scope.', 'በወሰን ውስጥ ያሉ ተቋማትን አገልግሎቶች ይዘርዝሩ።'),
+    $entry('service-catalog.view', 'service-catalog', 20, 'View a service', 'አገልግሎት ይመልከቱ',
+        'Open a service with its functions, classification and version history.', 'አገልግሎትን ከተግባራቱ፣ ምደባውና የስሪት ታሪኩ ጋር ይክፈቱ።'),
+    $entry('service-catalog.create', 'service-catalog', 30, 'Draft services', 'የአገልግሎት ረቂቅ ይፍጠሩ',
+        'Draft a new service or a new version of a published one.', 'አዲስ አገልግሎት ወይም የታተመ አገልግሎት አዲስ ስሪት ረቂቅ ይፍጠሩ።'),
+    $entry('service-catalog.update', 'service-catalog', 40, 'Edit draft services', 'ረቂቅ አገልግሎቶችን ያርትዑ',
+        'Edit a service and its function and ISIC links while it is a draft.', 'አገልግሎትን እና የተግባርና የISIC አገናኞቹን ረቂቅ እያለ ያርትዑ።'),
+    $entry('service-catalog.approve', 'service-catalog', 50, 'Publish services', 'አገልግሎቶችን ያትሙ',
+        'Publish a draft service drafted by someone else.', 'በሌላ ሰው የተረቀቀ አገልግሎት ያትሙ።'),
+
+    $entry('classifications.viewAny', 'classifications', 10, 'View classifications', 'ምደባዎችን ይመልከቱ',
+        'Browse the local service classification, CPC and ISIC reference data.', 'የአካባቢ የአገልግሎት ምደባ፣ CPC እና ISIC ማጣቀሻ መረጃን ያስሱ።'),
+    $entry('classifications.manage', 'classifications', 20, 'Manage classifications', 'ምደባዎችን ያስተዳድሩ',
+        'City-level: import and maintain classification revisions. Institution designers only cite them.', 'የከተማ ደረጃ፡ የምደባ ስሪቶችን ያስገቡ እና ያስተዳድሩ። የተቋም ዲዛይነሮች ይጠቅሷቸዋል ብቻ።'),
 ];

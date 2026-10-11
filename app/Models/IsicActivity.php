@@ -26,6 +26,7 @@ class IsicActivity extends Model
         'description_en',
         'description_am',
         'level',
+        'revision',
         'parent_id',
         'is_active',
         'sort_order',

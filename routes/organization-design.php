@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\OrganizationDesign\ClassificationController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
+use App\Http\Controllers\OrganizationDesign\ServiceController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -36,4 +38,18 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::put('/functions/{function}', [FunctionController::class, 'update'])->whereUuid('function')->name('functions.update');
         Route::post('/functions/{function}/move', [FunctionController::class, 'move'])->whereUuid('function')->name('functions.move');
         Route::delete('/functions/{function}', [FunctionController::class, 'destroy'])->whereUuid('function')->name('functions.destroy');
+
+        // Phase 2: service catalog and classifications.
+        Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+        Route::post('/services', [ServiceController::class, 'store'])->middleware('throttle:60,1')->name('services.store');
+        Route::get('/services/{service}', [ServiceController::class, 'show'])->whereUuid('service')->name('services.show');
+        Route::put('/services/{service}', [ServiceController::class, 'update'])->whereUuid('service')->name('services.update');
+        Route::post('/services/{service}/versions', [ServiceController::class, 'storeVersion'])->whereUuid('service')->name('services.versions.store');
+        Route::post('/services/{service}/publish', [ServiceController::class, 'publish'])->whereUuid('service')->name('services.publish');
+        Route::post('/services/{service}/cancel', [ServiceController::class, 'cancel'])->whereUuid('service')->name('services.cancel');
+
+        Route::get('/classifications', [ClassificationController::class, 'index'])->name('classifications.index');
+        Route::post('/classifications', [ClassificationController::class, 'store'])->name('classifications.store');
+        Route::put('/classifications/{classification}', [ClassificationController::class, 'update'])->whereUuid('classification')->name('classifications.update');
+        Route::post('/classifications/import', [ClassificationController::class, 'import'])->middleware('throttle:10,1')->name('classifications.import');
     });

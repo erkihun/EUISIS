@@ -74,6 +74,7 @@ class DatabaseSeeder extends Seeder
         $this->call(FieldWorkTypeSeeder::class);
         $this->call(OrganizationUnitTypeSeeder::class);
         $this->call(IsicActivitySeeder::class);
+        $this->call(LegalInstrumentTypeSeeder::class);
         $this->call(OccupationSeeder::class);
 
         $organizationTypes = collect([

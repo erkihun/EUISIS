@@ -696,4 +696,11 @@ enum AuditEventType: string
     case FunctionSaved = 'organization_design.function_saved';
     case FunctionMoved = 'organization_design.function_moved';
     case FunctionRemoved = 'organization_design.function_removed';
+    case ServiceCreated = 'organization_design.service_created';
+    case ServiceUpdated = 'organization_design.service_updated';
+    case ServicePublished = 'organization_design.service_published';
+    case ServiceSuperseded = 'organization_design.service_superseded';
+    case ServiceCancelled = 'organization_design.service_cancelled';
+    case ClassificationSaved = 'organization_design.classification_saved';
+    case ClassificationImported = 'organization_design.classification_imported';
 }

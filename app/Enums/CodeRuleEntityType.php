@@ -43,4 +43,5 @@ enum CodeRuleEntityType: string
     case InstitutionMandate = 'institution_mandate';
     case OrganizationPower = 'organization_power';
     case OrganizationFunction = 'organization_function';
+    case Service = 'service';
 }
