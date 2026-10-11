@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
     Combobox,
     ComboboxButton,
@@ -16,7 +16,7 @@ import { useUiMessages } from './context';
 import { EmptyState } from './feedback';
 import { Button, Skeleton, cx } from './primitives';
 import { tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from './table';
-import { SearchInput, controlClassName } from './forms';
+import { SearchInput, controlClassName, selectClassName } from './forms';
 
 export type { ColumnDef } from '@tanstack/react-table';
 export { createColumnHelper } from '@tanstack/react-table';
@@ -26,13 +26,22 @@ export interface PaginationMeta {
     lastPage: number;
     perPage: number;
     total: number;
+    /** First and last row numbers on this page, when the server sends them. */
+    from?: number | null;
+    to?: number | null;
 }
 
+/*
+ * At most seven page numbers whatever the page count: 3M employees at 25 a
+ * page is 120,000 pages, which must never become 120,000 buttons.
+ */
 function pageRange(current: number, last: number): Array<number | 'ellipsis'> {
     if (last <= 7) return Array.from({ length: last }, (_, index) => index + 1);
+    let left = Math.max(2, current - 1);
+    let right = Math.min(last - 1, current + 1);
+    if (current <= 4) { left = 2; right = 5; }
+    if (current >= last - 3) { left = last - 4; right = last - 1; }
     const result: Array<number | 'ellipsis'> = [1];
-    const left = Math.max(2, current - 2);
-    const right = Math.min(last - 1, current + 2);
     if (left > 2) result.push('ellipsis');
     for (let page = left; page <= right; page += 1) result.push(page);
     if (right < last - 1) result.push('ellipsis');
@@ -40,27 +49,58 @@ function pageRange(current: number, last: number): Array<number | 'ellipsis'> {
     return result;
 }
 
-export function Pagination({ meta, onPageChange, onPerPageChange, pageSizes = [10, 25, 50, 100] }: {
+/** One page button or link; Laravel paginator links use it too. */
+export function paginationItemClassName(active = false): string {
+    return cx(
+        'inline-flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-control)] px-2 text-[13px] tabular-nums transition-colors',
+        'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50',
+        active
+            ? 'bg-[color:var(--color-primary)] font-semibold text-[color:var(--color-on-primary,#fff)]'
+            : 'border border-[color:var(--app-border)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]',
+    );
+}
+
+export function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
+    return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d={direction === 'left' ? 'm15 18-6-6 6-6' : 'm9 18 6-6-6-6'} /></svg>;
+}
+
+/** "26–50 of 340" in the viewer's language. */
+export function paginationRange(template: string, meta: PaginationMeta): string {
+    const from = meta.from ?? (meta.total === 0 ? 0 : (meta.currentPage - 1) * meta.perPage + 1);
+    const to = meta.to ?? Math.min(meta.currentPage * meta.perPage, meta.total);
+    const values: Record<string, number> = { from, to, total: meta.total };
+    // One pass, whole names: ':to' must not eat the start of ':total'.
+    return template.replace(/:(from|total|to)\b/g, (_, name: string) => values[name].toLocaleString());
+}
+
+/**
+ * The one pagination bar: the visible range on the left, page buttons on the
+ * right. Draws nothing for an empty list and no buttons for a single page.
+ */
+export function Pagination({ meta, onPageChange, onPerPageChange, pageSizes = [10, 25, 50, 100], disabled = false, label, className }: {
     meta: PaginationMeta;
     onPageChange: (page: number) => void;
     onPerPageChange?: (size: number) => void;
     pageSizes?: number[];
+    /** While a page loads. */
+    disabled?: boolean;
+    label?: string;
+    className?: string;
 }) {
     const messages = useUiMessages();
-    const start = meta.total === 0 ? 0 : (meta.currentPage - 1) * meta.perPage + 1;
-    const end = Math.min(meta.currentPage * meta.perPage, meta.total);
+    if (meta.total <= 0) return null;
     return (
-        <nav aria-label={`${messages.results} pagination`} className="flex flex-wrap items-center justify-between gap-3 text-sm text-[color:var(--app-muted-foreground)]">
-            <div className="flex items-center gap-3">
-                <span className="whitespace-nowrap">{start}–{end} / {meta.total} {messages.results}</span>
-                {onPerPageChange && <select aria-label={messages.results} value={meta.perPage} onChange={(event) => onPerPageChange(Number(event.target.value))} className={cx(controlClassName, 'h-[var(--control-h-sm)] w-auto py-0 pr-8')}>{pageSizes.map((size) => <option key={size} value={size}>{size}</option>)}</select>}
+        <nav aria-label={label ?? messages.pagination} className={cx('flex flex-wrap items-center justify-between gap-3', className)}>
+            <div className="flex items-center gap-3 text-xs text-[color:var(--app-muted-foreground)]">
+                <p role="status" className="whitespace-nowrap tabular-nums">{paginationRange(messages.range, meta)}</p>
+                {onPerPageChange && <select aria-label={messages.results} value={meta.perPage} disabled={disabled} onChange={(event) => onPerPageChange(Number(event.target.value))} className={cx(selectClassName, 'h-8 w-auto')}>{pageSizes.map((size) => <option key={size} value={size}>{size}</option>)}</select>}
             </div>
-            {meta.lastPage > 1 && <div className="flex items-center gap-1">
-                <Button variant="ghost" size="sm" disabled={meta.currentPage <= 1} onClick={() => onPageChange(meta.currentPage - 1)} aria-label={messages.previous}>‹</Button>
+            {meta.lastPage > 1 && <div className="flex flex-wrap items-center gap-1">
+                <button type="button" className={paginationItemClassName()} disabled={disabled || meta.currentPage <= 1} onClick={() => onPageChange(meta.currentPage - 1)} aria-label={messages.previous}><ChevronIcon direction="left" /></button>
                 {pageRange(meta.currentPage, meta.lastPage).map((page, index) => page === 'ellipsis'
-                    ? <span key={`ellipsis-${index}`} className="px-1" aria-hidden="true">…</span>
-                    : <Button key={page} variant={page === meta.currentPage ? 'default' : 'ghost'} size="sm" onClick={() => onPageChange(page)} aria-current={page === meta.currentPage ? 'page' : undefined}>{page}</Button>)}
-                <Button variant="ghost" size="sm" disabled={meta.currentPage >= meta.lastPage} onClick={() => onPageChange(meta.currentPage + 1)} aria-label={messages.next}>›</Button>
+                    ? <span key={`ellipsis-${index}`} className="px-1 text-[color:var(--app-muted-foreground)]" aria-hidden="true">…</span>
+                    : <button key={page} type="button" data-page={page} className={paginationItemClassName(page === meta.currentPage)} disabled={disabled} onClick={() => page !== meta.currentPage && onPageChange(page)} aria-label={`${messages.page} ${page}`} aria-current={page === meta.currentPage ? 'page' : undefined}>{page.toLocaleString()}</button>)}
+                <button type="button" className={paginationItemClassName()} disabled={disabled || meta.currentPage >= meta.lastPage} onClick={() => onPageChange(meta.currentPage + 1)} aria-label={messages.next}><ChevronIcon direction="right" /></button>
             </div>}
         </nav>
     );
@@ -96,6 +136,79 @@ export function DataTable<T>({ data, columns, loading = false, emptyTitle, empty
     </div>;
 }
 
+/** The filter panel's frame, for a page whose filter markup must stay its own. */
+export const filterPanelClassName = 'rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4';
+
+/**
+ * The one filter panel. Fields sit in a wrapping row, each labelled above its
+ * control; Filter applies them (so a server is queried once per intent, not
+ * per keystroke) and Reset appears only while something is filtered.
+ */
+export function FilterPanel({ children, onSubmit, onReset, hasActiveFilters = false, processing = false, label, submitLabel, resetLabel, actions, footer, className }: {
+    children: ReactNode;
+    /** Called after the browser submit is prevented. */
+    onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+    onReset?: () => void;
+    hasActiveFilters?: boolean;
+    /** Disables the fields while results load. */
+    processing?: boolean;
+    /** Accessible name of the form, e.g. "Employee filters". */
+    label?: string;
+    submitLabel?: ReactNode;
+    resetLabel?: ReactNode;
+    /** Page actions that belong with the filters (Export), pushed to the right. */
+    actions?: ReactNode;
+    /** A hint under the fields. */
+    footer?: ReactNode;
+    className?: string;
+}) {
+    const messages = useUiMessages();
+    return (
+        <form role="search" aria-label={label ?? messages.filters} className={cx(filterPanelClassName, className)} onSubmit={(event) => { event.preventDefault(); onSubmit(event); }}>
+            <fieldset disabled={processing} className="flex min-w-0 flex-wrap items-end gap-3">
+                {children}
+                <div className="flex items-center gap-2">
+                    <Button type="submit" variant="primary">{submitLabel ?? messages.filter}</Button>
+                    {hasActiveFilters && onReset && <Button type="button" variant="ghost" onClick={onReset}>{resetLabel ?? messages.reset}</Button>}
+                </div>
+                {actions && <div className="flex flex-wrap items-center gap-2 sm:ml-auto">{actions}</div>}
+            </fieldset>
+            {footer && <div className="mt-3 text-xs text-[color:var(--app-muted-foreground)]">{footer}</div>}
+        </form>
+    );
+}
+
+/** A filter field's frame, for a widget that draws its own label (an employee picker). */
+export function filterFieldClassName(wide = false): string {
+    // A plain input or select fills its field, whatever width class it carries.
+    return cx('flex min-w-0 flex-col gap-1.5 [&>input]:w-full [&>select]:w-full', wide ? 'w-full sm:min-w-64 sm:flex-[2_1_16rem]' : 'w-full sm:w-48');
+}
+
+/** The caption above a filter control. */
+export const filterCaptionClassName = 'text-xs font-medium text-[color:var(--app-muted-foreground)]';
+
+/**
+ * One labelled field of a filter panel. It wraps its control in the label;
+ * for a widget with buttons of its own (a date picker), pass the control's
+ * id as `htmlFor` instead.
+ */
+export function FilterField({ label, htmlFor, wide = false, className, children }: {
+    label: ReactNode;
+    htmlFor?: string;
+    /** The search box: grows to fill the row. */
+    wide?: boolean;
+    className?: string;
+    children: ReactNode;
+}) {
+    const frame = cx(filterFieldClassName(wide), className);
+    if (htmlFor) return <div className={frame}><label htmlFor={htmlFor} className={filterCaptionClassName}>{label}</label>{children}</div>;
+    return <label className={frame}><span className={filterCaptionClassName}>{label}</span>{children}</label>;
+}
+
+/**
+ * A filter row that applies as the user changes it (client-side lists). Same
+ * frame as FilterPanel; prefer FilterPanel for server queries.
+ */
 export function FilterBar({ search, onSearchChange, searchPlaceholder, children, secondary, actions, onReset, hasActiveFilters, onSubmit, className }: {
     search?: string;
     onSearchChange?: (value: string) => void;
@@ -109,12 +222,12 @@ export function FilterBar({ search, onSearchChange, searchPlaceholder, children,
     className?: string;
 }) {
     const messages = useUiMessages();
-    return <form className={cx('flex flex-col gap-3 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3 lg:flex-row lg:items-center lg:justify-between', className)} onSubmit={(event) => { event.preventDefault(); onSubmit?.(); }}>
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+    return <form role="search" aria-label={messages.filters} className={cx(filterPanelClassName, 'flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between', className)} onSubmit={(event) => { event.preventDefault(); onSubmit?.(); }}>
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
             {search !== undefined && onSearchChange && <SearchInput value={search} onChange={onSearchChange} placeholder={searchPlaceholder ?? messages.search} className="w-full sm:w-72" />}
             {children}
             {secondary}
-            {hasActiveFilters && onReset && <Button variant="ghost" size="sm" onClick={onReset}>{messages.clear}</Button>}
+            {hasActiveFilters && onReset && <Button variant="ghost" onClick={onReset}>{messages.reset}</Button>}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2 lg:justify-end">{actions}</div>}
     </form>;

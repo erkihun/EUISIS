@@ -43,7 +43,7 @@ class EmployeeCafeteriaExclusionController extends Controller
 
         return Inertia::render('Cafeteria/EmployeeExclusions/Index', [
             'exclusions' => EmployeeCafeteriaExclusionResource::collection($exclusions)->resolve(),
-            'meta' => ['current_page' => $exclusions->currentPage(), 'last_page' => $exclusions->lastPage(), 'total' => $exclusions->total()],
+            'meta' => ['current_page' => $exclusions->currentPage(), 'last_page' => $exclusions->lastPage(), 'per_page' => $exclusions->perPage(), 'total' => $exclusions->total()],
             'filters' => $request->only(['search', 'archived', 'status']),
             'exclusion_types' => collect(CafeteriaExclusionType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
             'status_options' => collect(CafeteriaExclusionStatus::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),

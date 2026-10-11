@@ -1,8 +1,8 @@
 import LocalizedEmptyState from '@/Components/EmptyState';
 import { Inbox } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
-import { Pagination, StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
-import { router } from '@inertiajs/react';
+import { StatusBadge as UiStatusBadge, type Tone } from '@euisis/ui';
+import ListPagination from '@/Components/ui/ListPagination';
 import type { ReactNode } from 'react';
 
 import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
@@ -205,19 +205,14 @@ export function TablePanel<T>({ page, empty, children }: { page?: Paginator<T>; 
     return (
         <section className={`${panelCls} overflow-hidden`}>
             {rows === 0 ? <Empty>{empty}</Empty> : children}
-            {page && page.last_page > 1 && <div className="border-t border-[color:var(--app-border)] px-4 py-3"><Pager page={page} /></div>}
+            {page && <Pager page={page} />}
         </section>
     );
 }
 
 /** The design-system pager, driven by Laravel's paginator; keeps the current filters. */
-export function Pager<T>({ page }: { page: Paginator<T> }) {
-    if (page.last_page <= 1) return null;
-    const go = (n: number) => {
-        const query = Object.fromEntries(new URLSearchParams(window.location.search));
-        router.get(page.path, { ...query, page: n }, { preserveScroll: true, preserveState: true });
-    };
-    return <Pagination meta={{ currentPage: page.current_page, lastPage: page.last_page, perPage: page.per_page, total: page.total }} onPageChange={go} />;
+export function Pager<T>({ page, bare = false }: { page: Paginator<T>; bare?: boolean }) {
+    return <ListPagination meta={page} bare={bare} />;
 }
 
 // ── Figures ───────────────────────────────────────────────────────────────────

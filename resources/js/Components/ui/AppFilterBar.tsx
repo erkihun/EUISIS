@@ -1,45 +1,39 @@
 import { FormEvent, ReactNode } from 'react';
 import { router } from '@inertiajs/react';
-import { useLocale } from '@/hooks/useLocale';
-import { Button, controlClassName, cx } from '@euisis/ui';
+import { FilterPanel, cx, inputClassName } from '@euisis/ui';
 
-/** Classes for any filter input/select: the shared control style, sized to its content. */
-export const filterInputCls = cx(controlClassName, 'w-auto min-w-40');
+/** Classes for a filter control: the shared control style; inside a FilterField it fills the field. */
+export const filterInputCls = cx(inputClassName, 'min-w-40');
 
 interface AppFilterBarProps {
     /** Route name used for `router.get` on submit. */
     routeName: string;
-    /** Current filter values — restored into form on mount via `defaultValue`. */
-    filters?: Record<string, string>;
+    /** Current filter values — decide whether Reset is offered. */
+    filters?: Record<string, string | null | undefined>;
     children: ReactNode;
     /** Called with the raw FormData values before navigation. Useful for controlled inputs not in the form. */
     onBeforeSubmit?: (params: Record<string, string>) => Record<string, string>;
+    /** Accessible name of the form, e.g. "KPI filters". */
+    label?: string;
+    /** Page actions that belong with the filters (Export). */
+    actions?: ReactNode;
 }
 
 /**
- * Wraps a filter form with consistent styles and handles the Inertia submit.
+ * The filter panel for an Inertia list whose controls are uncontrolled
+ * (`name` + `defaultValue`): Filter sends them as the query string, Reset
+ * clears it. Wrap each control in a FilterField so it is labelled.
  *
- * Usage:
  * ```tsx
- * <AppFilterBar routeName="employees.index" filters={filters}>
- *   <input name="search" defaultValue={filters.search ?? ''} className={filterInputCls} />
- *   <select name="status" defaultValue={filters.status ?? ''} className={filterInputCls}>
- *     ...
- *   </select>
+ * <AppFilterBar routeName="kpis.index" filters={filters}>
+ *   <FilterField label={t('common.search')} wide><Input name="search" defaultValue={filters.search ?? ''} /></FilterField>
+ *   <FilterField label={t('kpis.status')}><Select name="status" defaultValue={filters.status ?? ''}>…</Select></FilterField>
  * </AppFilterBar>
  * ```
  */
-export default function AppFilterBar({
-    routeName,
-    filters = {},
-    children,
-    onBeforeSubmit,
-}: AppFilterBarProps) {
-    const { t } = useLocale();
-
-    function handleSubmit(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
-        let params = Object.fromEntries(new FormData(e.currentTarget)) as Record<string, string>;
+export default function AppFilterBar({ routeName, filters = {}, children, onBeforeSubmit, label, actions }: AppFilterBarProps) {
+    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+        let params = Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>;
         if (onBeforeSubmit) params = onBeforeSubmit(params);
         // Remove empty strings to keep URLs clean
         Object.keys(params).forEach((k) => { if (!params[k]) delete params[k]; });
@@ -47,24 +41,18 @@ export default function AppFilterBar({
     }
 
     function handleReset() {
-        router.get(route(routeName), {}, { preserveState: true });
+        router.get(route(routeName), {}, { preserveState: false });
     }
 
-    const hasActiveFilters = Object.values(filters).some(Boolean);
-
     return (
-        <form className="flex flex-wrap items-center gap-2 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3" onSubmit={handleSubmit}>
+        <FilterPanel
+            label={label}
+            onSubmit={handleSubmit}
+            onReset={handleReset}
+            hasActiveFilters={Object.entries(filters).some(([key, value]) => key !== 'page' && Boolean(value))}
+            actions={actions}
+        >
             {children}
-
-            <Button type="submit" variant="primary">
-                {t('common.filter')}
-            </Button>
-
-            {hasActiveFilters && (
-                <Button variant="ghost" onClick={handleReset}>
-                    {t('common.reset')}
-                </Button>
-            )}
-        </form>
+        </FilterPanel>
     );
 }

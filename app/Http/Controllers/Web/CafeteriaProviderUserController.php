@@ -41,6 +41,7 @@ class CafeteriaProviderUserController extends Controller
             'meta' => [
                 'current_page' => $users->currentPage(),
                 'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
                 'total' => $users->total(),
             ],
             'can' => [

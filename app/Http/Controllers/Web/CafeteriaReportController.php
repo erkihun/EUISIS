@@ -57,6 +57,7 @@ class CafeteriaReportController extends Controller
             'meta' => [
                 'current_page' => $reports->currentPage(),
                 'last_page' => $reports->lastPage(),
+                'per_page' => $reports->perPage(),
                 'total' => $reports->total(),
             ],
             'filters' => $request->only(['type', 'organization_id']),

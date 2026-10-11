@@ -40,7 +40,7 @@ class CafeteriaSpecialDayController extends Controller
 
         return Inertia::render('Cafeteria/SpecialDays/Index', [
             'days' => CafeteriaSpecialDayResource::collection($days)->resolve(),
-            'meta' => ['current_page' => $days->currentPage(), 'last_page' => $days->lastPage(), 'total' => $days->total()],
+            'meta' => ['current_page' => $days->currentPage(), 'last_page' => $days->lastPage(), 'per_page' => $days->perPage(), 'total' => $days->total()],
             'filters' => $request->only(['search', 'archived', 'year']),
             'day_types' => collect(CafeteriaSpecialDayType::cases())->map(fn ($c) => ['value' => $c->value, 'label' => $c->label()])->values(),
             'can' => ['create' => $request->user()?->can('create', CafeteriaSpecialDay::class) ?? false],
