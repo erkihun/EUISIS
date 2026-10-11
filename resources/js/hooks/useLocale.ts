@@ -18,6 +18,7 @@ import amIdCards from '@/i18n/am/idCards';
 import amNfc from '@/i18n/am/nfc';
 import amIsicActivities from '@/i18n/am/isicActivities';
 import amOccupations from '@/i18n/am/occupations';
+import amOrganizationDesign from '@/i18n/am/organizationDesign';
 import amOrganizationalChangeRequests from '@/i18n/am/organizationalChangeRequests';
 import amOrganizationTypes from '@/i18n/am/organizationTypes';
 import amPositionEstablishments from '@/i18n/am/positionEstablishments';
@@ -71,6 +72,7 @@ import enIdCards from '@/i18n/en/idCards';
 import enNfc from '@/i18n/en/nfc';
 import enIsicActivities from '@/i18n/en/isicActivities';
 import enOccupations from '@/i18n/en/occupations';
+import enOrganizationDesign from '@/i18n/en/organizationDesign';
 import enOrganizationalChangeRequests from '@/i18n/en/organizationalChangeRequests';
 import enOrganizationTypes from '@/i18n/en/organizationTypes';
 import enPositionEstablishments from '@/i18n/en/positionEstablishments';
@@ -153,6 +155,7 @@ const translations: Record<Locale, TranslationTree> = {
         nfc: enNfc,
         isicActivities: enIsicActivities,
         occupations: enOccupations,
+        organizationDesign: enOrganizationDesign,
         apiManagement: enApiManagement,
         idChecker: enIdChecker,
         publicSite: enPublicSite,
@@ -219,6 +222,7 @@ const translations: Record<Locale, TranslationTree> = {
         nfc: amNfc,
         isicActivities: amIsicActivities,
         occupations: amOccupations,
+        organizationDesign: amOrganizationDesign,
         apiManagement: amApiManagement,
         idChecker: amIdChecker,
         publicSite: amPublicSite,

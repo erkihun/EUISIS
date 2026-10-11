@@ -38,6 +38,8 @@ final class PermissionCatalog
         ],
         // A separate domain from grievances (docs/court-cases.md).
         'Court Cases' => ['court_cases'],
+        // Legal mandate → functions → services → … → job descriptions (docs/organization-design-workforce-planning-plan.md).
+        'Organization Design & Workforce Planning' => ['institution-mandates', 'organization-functions'],
         'ID & Verification' => ['id-cards', 'id_card_templates', 'nfc_credentials', 'nfc_terminals', 'nfc_logs'],
         'Daily Activity' => ['daily_activities', 'daily_activity_settings', 'work_standards'],
         'Field Work Management' => ['field_work'],

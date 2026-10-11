@@ -685,4 +685,15 @@ enum AuditEventType: string
     case DisciplinaryCaseDiscontinued = 'discipline.case_discontinued';
     case DisciplinaryCaseTerminated = 'discipline.case_terminated';
     case DisciplinaryCaseClosed = 'discipline.case_closed';
+    // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md)
+    case MandateCreated = 'organization_design.mandate_created';
+    case MandateUpdated = 'organization_design.mandate_updated';
+    case MandatePublished = 'organization_design.mandate_published';
+    case MandateSuperseded = 'organization_design.mandate_superseded';
+    case MandateCancelled = 'organization_design.mandate_cancelled';
+    case PowerSaved = 'organization_design.power_saved';
+    case PowerRemoved = 'organization_design.power_removed';
+    case FunctionSaved = 'organization_design.function_saved';
+    case FunctionMoved = 'organization_design.function_moved';
+    case FunctionRemoved = 'organization_design.function_removed';
 }

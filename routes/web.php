@@ -1308,6 +1308,9 @@ require __DIR__.'/grievances.php';
 // Field Work Management (docs/field-work-management.md).
 require __DIR__.'/field-work.php';
 
+// Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
+require __DIR__.'/organization-design.php';
+
 // Court Cases — planned standalone module, separate from Grievance Management.
 require __DIR__.'/court-cases.php';
 

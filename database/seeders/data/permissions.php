@@ -1473,6 +1473,9 @@ return [
     // Court Cases — planned standalone module; entry permission only (docs/court-cases.md).
     ...require database_path('seeders/data/court-case-permissions.php'),
 
+    // Organization Design & Workforce Planning (docs/organization-design-workforce-planning-plan.md).
+    ...require database_path('seeders/data/organization-design-permissions.php'),
+
     // API Management
     ['name' => 'api_management.view', 'group' => 'api_management', 'sort_order' => 10, 'is_system' => true,
         'label_en' => 'View API Management', 'label_am' => 'የኤፒአይ አስተዳደር ይመልከቱ',

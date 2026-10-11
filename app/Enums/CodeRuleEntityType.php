@@ -39,4 +39,8 @@ enum CodeRuleEntityType: string
     case GrievanceCase = 'grievance_case';
     case GrievanceDecision = 'grievance_decision';
     case GrievanceLetter = 'grievance_letter';
+    // Organization Design & Workforce Planning
+    case InstitutionMandate = 'institution_mandate';
+    case OrganizationPower = 'organization_power';
+    case OrganizationFunction = 'organization_function';
 }
