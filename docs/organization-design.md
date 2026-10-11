@@ -90,6 +90,10 @@ building it live in
 
 ## Operating notes
 
+- Demo data: `php artisan db:seed --class=DemoDataSeeder` seeds a complete
+  chain for ORG-1 (see [demo-seed-data.md](demo-seed-data.md), accounts
+  `demo.org1.designer@example.test` and
+  `demo.org1.design.approver@example.test`). Never in production.
 - Exports run on the queue (`ExportOrganizationDesignReport`). With
   `QUEUE_CONNECTION=database` a worker must be running
   (`php artisan queue:work`) or the export stays *Queued*.

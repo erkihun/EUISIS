@@ -78,7 +78,7 @@ test('01 seeds the full dataset, passes every check, and a second run changes no
     expect(collect($validator->validate())->reject(fn (array $r) => $r['passed'])->values()->all())->toBe([]);
     expect($validator->counts())->toMatchArray([
         'Organizations' => 5, 'Support organizations' => 1, 'Organization Units' => 32, 'Positions' => 38,
-        'Employees' => 32, 'Users' => 15, 'Provider users' => 4, 'ID Cards' => 32, 'Providers' => 3,
+        'Employees' => 32, 'Users' => 17, 'Provider users' => 4, 'ID Cards' => 32, 'Providers' => 3,
         'Cafeteria Networks' => 5, 'Cafeterias' => 25, 'Cafeteria Policies' => 6, 'Transactions' => 27,
         'Daily Activity logs' => 5, 'Performance goals' => 3, 'Grievance cases' => 2,
     ]);

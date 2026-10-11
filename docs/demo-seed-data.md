@@ -82,6 +82,8 @@ No Super Admin is created: use the one from `DatabaseSeeder` / `UserSeeder` (`su
 | demo.org1.admin@example.test | Organizational Admin | self: ORG-1 | Organization scope |
 | demo.org4.subtree.admin@example.test | Organizational Admin | subtree: ORG-4 | Sees ORG-4 and ORG-5, not ORG-1 |
 | demo.org1.hr@example.test | HR Officer | self: ORG-1 | Authorized for ORG-1, refused for ORG-2 |
+| demo.org1.designer@example.test | Organization Designer | self: ORG-1 | Drafts the organization-design chain (mandate … job descriptions); never approves |
+| demo.org1.design.approver@example.test | Organization Design Approver | self: ORG-1 | Publishes and approves what the designer drafted |
 | demo.idcard.officer@example.test | ID Card Officer | self: ORG-1, ORG-2 | Card work in two organizations |
 | demo.org1.manager@example.test | Employee, Daily Activity Reviewer | self: ORG-1 | Portal account of `E-1-1` (manager); reviews Daily Activity |
 | demo.org1.employee@example.test | Employee | — | Portal account of `E-1-6` |
@@ -159,6 +161,7 @@ Printing stores the card artwork on the local disk, as in production.
 | Daily Activity | Seeded | On the latest working day that backdating still allows: `E-1-6` approved (by the ORG-1 manager), `E-1-2` submitted, `E-1-3` draft. Skipped if the module is disabled or no working day is open |
 | EPMS | Seeded (planning only) | ORG-5 cycle `DEMO-EPMS-{year}` in PLANNING; three draft strategic goals, 30 + 40 + 30 = **100%**, each fully allocated to units with one lead. `DEMO-SG-1` (30%) is shared: Planning 15% (lead), Service Delivery 10%, ICT 5%. **Not seeded:** plans, objectives, KPIs, targets (they come from the plan/cascade workflow), so the goals stay drafts |
 | Grievance Management | Seeded | ORG-5 committee (chairperson `E-5-2`, writer `E-5-3`, member `E-5-4`), created by the Grievance Administrator and approved by the City Admin. Approved routes: ORG-5 → committee → ORG-4 Customer Service Team → ORG-4 HR Directorate. Category `DEMO-WORK-CONDITIONS`. Two cases by `E-5-6`: one **submitted** (waiting at intake), one accepted, routed and **under review** by the chairperson. **Not seeded:** an escalation-ready case (needs an SLA clock that has run out) and a decision (drafting, approval and issue workflow) |
+| Organization Design & Workforce Planning | Seeded | ORG-1 chain through the domain services (`DemoOrganizationDesignSeeder`): published mandate `MND-01` with power `PW-01` and functions `F-01`/`F-02`; published services `SRV-01`/`SRV-02`; published processes `PRC-01`/`PRC-02` with activities, tasks `T-01`…`T-04`, occupation/competency/qualification requirements and an approved standard on `T-01`; HR/SVC/ICT responsibilities; an **approved** design study proposing a Records Team; `P-HR` linked to its work with derived requirements, a published profile and a published job description (stamped on its occupant's assignment); `P-CLERK` linked with a **draft** profile. Drafted by the designer, published by the approver. **Not seeded:** classifications (OFFICIAL_DATASET_REQUIRED), methodologies and manpower plans (no policy parameters are invented, D-6/D-7) |
 | Court Cases | `SKIPPED_PLANNED_MODULE` | Placeholder only (see [court-cases.md](court-cases.md)) |
 
 ## Validation

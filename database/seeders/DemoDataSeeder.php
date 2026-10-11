@@ -13,6 +13,7 @@ use Database\Seeders\Demo\DemoDailyActivitySeeder;
 use Database\Seeders\Demo\DemoEmployeeSeeder;
 use Database\Seeders\Demo\DemoGrievanceSeeder;
 use Database\Seeders\Demo\DemoIdCardSeeder;
+use Database\Seeders\Demo\DemoOrganizationDesignSeeder;
 use Database\Seeders\Demo\DemoOrganizationSeeder;
 use Database\Seeders\Demo\DemoPerformanceSeeder;
 use Database\Seeders\Demo\DemoPositionSeeder;
@@ -53,6 +54,7 @@ class DemoDataSeeder extends DemoSeeder
             DemoDailyActivitySeeder::class,
             DemoPerformanceSeeder::class,
             DemoGrievanceSeeder::class,
+            DemoOrganizationDesignSeeder::class,
         ]);
 
         if ($this->command === null) {

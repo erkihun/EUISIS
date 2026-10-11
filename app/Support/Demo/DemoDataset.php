@@ -389,6 +389,9 @@ final class DemoDataset
             'demo.org1.admin@example.test' => ['name' => 'DEMO Organizational Admin (Org 1)', 'roles' => ['Organizational Admin'], 'scopes' => [['self', 'ORG-1']]],
             'demo.org4.subtree.admin@example.test' => ['name' => 'DEMO Organizational Admin (Org 4 subtree)', 'roles' => ['Organizational Admin'], 'scopes' => [['subtree', 'ORG-4']]],
             'demo.org1.hr@example.test' => ['name' => 'DEMO HR Officer (Org 1)', 'roles' => ['HR Officer'], 'scopes' => [['self', 'ORG-1']]],
+            // Organization design (Organization 1): a designer who drafts and a separate approver who publishes.
+            'demo.org1.designer@example.test' => ['name' => 'DEMO Organization Designer (Org 1)', 'roles' => ['Organization Designer'], 'scopes' => [['self', 'ORG-1']]],
+            'demo.org1.design.approver@example.test' => ['name' => 'DEMO Organization Design Approver (Org 1)', 'roles' => ['Organization Design Approver'], 'scopes' => [['self', 'ORG-1']]],
             'demo.idcard.officer@example.test' => ['name' => 'DEMO ID Card Officer (Org 1 and 2)', 'roles' => ['ID Card Officer'], 'scopes' => [['self', 'ORG-1'], ['self', 'ORG-2']]],
             // Employee portal: a manager (also the Daily Activity reviewer) and an ordinary employee.
             'demo.org1.manager@example.test' => ['name' => 'DEMO Unit Manager (Org 1 head)', 'roles' => ['Employee', 'Daily Activity Reviewer'], 'scopes' => [['self', 'ORG-1']], 'employee' => 'E-1-1'],
