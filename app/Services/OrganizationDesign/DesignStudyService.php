@@ -37,7 +37,7 @@ class DesignStudyService
 
     private const PREFIX = 'ODS';
 
-    public function __construct(private readonly OrganizationDesignAudit $audit, private readonly SaveChangeRequestAction $changeRequests) {}
+    public function __construct(private readonly OrganizationDesignAudit $audit, private readonly SaveChangeRequestAction $changeRequests, private readonly OrganizationDesignValidationService $validation) {}
 
     // ── Study lifecycle ──────────────────────────────────────────────────
 
@@ -105,6 +105,11 @@ class DesignStudyService
         }
         if ($study->prepared_by !== null && (int) $study->prepared_by === (int) $actor->getKey()) {
             throw ValidationException::withMessages(['status' => __('organization-design.study_approve_same_person')]);
+        }
+        // The validation gate (brief §79): ERROR findings block approval; the server decides, never the page.
+        $report = $this->validation->validateStudy($study);
+        if (! $report['ok']) {
+            throw ValidationException::withMessages(['validation' => collect($report['findings'])->where('severity', 'error')->pluck('message')->all()]);
         }
 
         return DB::transaction(function () use ($actor, $study): OrganizationDesignStudy {

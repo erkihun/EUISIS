@@ -285,6 +285,48 @@ const organizationDesign = {
         readOnly: 'You can browse the matrix. Mapping needs the design permission for this organization.',
     },
 
+    validation: {
+        title: 'Validation',
+        help: 'Errors block approval; warnings and information are shown so the design is reviewed with open eyes. The server decides, never this page.',
+        ok: 'No errors',
+        blocked: 'Approval blocked',
+        errors: 'Errors',
+        warnings: 'Warnings',
+        infos: 'Information',
+        none: 'Nothing to report.',
+        severity: { error: 'Error', warning: 'Warning', info: 'Info' },
+        generatedAt: 'Checked',
+    },
+
+    impact: {
+        title: 'Impact',
+        help: 'What each proposal touches in the current structure, from the same analysis the change-request pipeline runs.',
+        newUnit: 'New unit',
+        parentChildren: 'Parent currently has :count sub-units',
+        childUnits: ':direct direct / :total total sub-units',
+        positions: ':active active of :total positions',
+        employees: ':count employees',
+        assignments: ':count active assignments',
+        establishments: ':count establishments',
+        scopes: ':count user scopes',
+    },
+
+    structure: {
+        title: 'Structure',
+        description: 'The current unit tree of an organization with its functional relationships, the validation report, and the published hierarchy versions that place it. Changes go through design studies and the change-request pipeline.',
+        units: 'Unit tree',
+        noUnits: 'No units.',
+        activePositions: ':count active positions',
+        relationships: 'Functional relationships',
+        versions: 'Published hierarchy versions',
+        versionsHelp: 'Organization-level structure is versioned; these are the published versions that place this organization.',
+        noVersions: 'No published hierarchy version places this organization.',
+        parents: 'Reports to',
+        children: 'Oversees',
+        chooseOrganization: 'Choose an organization to see its structure.',
+        openOrganogram: 'Open organogram',
+    },
+
     classifications: {
         title: 'Classifications',
         description: 'City-level reference data: the local service classification, the CPC and ISIC references. Institutions cite these; only classification stewards change them, and every revision is kept.',

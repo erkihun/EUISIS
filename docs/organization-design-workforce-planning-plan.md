@@ -148,6 +148,8 @@ With default (b): a design study collects unit proposals and responsibilities; "
 
 If the owner chooses (a), add a phase 0 that versions units; everything downstream is unchanged but the estimate roughly doubles for phases 5–6.
 
+*Phase 6 as built:* `OrganizationDesignValidationService::validateStructure($organizationId)` grades the live unit tree (ERROR: parent loops, duplicate codes, foreign/missing parents, active unit under an inactive parent, inactive unit with active positions; WARNING: unit without type or positions, functions/services/processes nobody covers; INFO: span of control per unit and root count — **no thresholds invented, NEEDS_DECISION for limits**) and `validateStudy($study)` grades proposals (ERROR: create without unit type/name, deactivating a unit with active positions or live sub-units not also deactivated, a move that lands a unit under itself; WARNING: proposal without responsibilities). Study approval refuses on any ERROR (`validation` error key) — the server decides. The study page shows the report and, per proposal, the impact figures from `ChangeRequestImpactAnalyzer::unitImpact`. *Ruling:* instead of changing the existing organogram page, a read-only design-side **Structure** page (`organization-design/structure?organization_id=`) shows the validation report, the unit tree with active functional relationships, and the published hierarchy versions that place the organization, with a link to the organogram; the organogram's own version selector/overlay stays for the UI pass once the sidebar WIP lands.
+
 ---
 
 ## 6. Permissions (project convention: `kebab-group.camelAction`)
@@ -174,7 +176,7 @@ Each phase ends with migrations, models, services, policies, routes, pages, tran
 | **3. Process architecture & standards** — *done* | §17–25; master process/activity/task; typed I/O rows; standard generalisation; Daily Work bridge (backend) | 4 (+3 columns) | 16–25 | L |
 | **4. Occupations & competencies** — *done* | §26–34; ISCO reference (via the classification importer), professions/specializations, competency types/levels, education ladder, three requirement tables + editor on the process page | 9 (+2 columns) | 26–34 | M |
 | **5. Unit design & responsibility** — *done* | §35–39, 112–113; studies, proposals → one change request each, responsibility matrix + gaps | 4 | 35–42 | M |
-| **6. Structure, organogram, impact** | §40–44, 79, 114–115 (D-1) | 0–1 | validation gate tests | M (L if D-1 = a) |
+| **6. Structure, organogram, impact** — *done* | §40–44, 79, 114–115 (D-1 = b); `OrganizationDesignValidationService` (ERROR/WARNING/INFO for the unit tree and for a study), approval gate on studies, impact per proposal from `ChangeRequestImpactAnalyzer`, design-side Structure page (validation, unit tree + functional overlay, published hierarchy versions) | 0 | 43–48 | M |
 | **7. Workforce planning** | §45–57, 80; methodologies, plans, lines, calculation strategies, position requirements | 4 | manpower gate tests | L |
 | **8. Position profile & job description** | §58–71, 81; profiles, requirements, JD sections, versioning, assignment link | 6 | JD gate tests | L |
 | **9. Traceability, gaps, reports, analytics** | §76–78, 88, 98–99, 104–105; queued exports | 0 | report/export tests | M |

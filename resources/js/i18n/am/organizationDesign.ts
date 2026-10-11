@@ -285,6 +285,48 @@ const organizationDesign = {
         readOnly: 'ማትሪክሱን ማሰስ ይችላሉ። መመደብ ለዚህ ተቋም የንድፍ ፈቃድ ያስፈልገዋል።',
     },
 
+    validation: {
+        title: 'ማረጋገጫ',
+        help: 'ስህተቶች ማጽደቅን ያግዳሉ፤ ማስጠንቀቂያዎችና መረጃዎች ንድፉ በግልጽ ዓይን እንዲገመገም ይታያሉ። አገልጋዩ ይወስናል፣ ይህ ገጽ በጭራሽ አይደለም።',
+        ok: 'ስህተት የለም',
+        blocked: 'ማጽደቅ ታግዷል',
+        errors: 'ስህተቶች',
+        warnings: 'ማስጠንቀቂያዎች',
+        infos: 'መረጃ',
+        none: 'የሚዘገብ ነገር የለም።',
+        severity: { error: 'ስህተት', warning: 'ማስጠንቀቂያ', info: 'መረጃ' },
+        generatedAt: 'የተፈተሸው',
+    },
+
+    impact: {
+        title: 'ተጽዕኖ',
+        help: 'እያንዳንዱ ሀሳብ በአሁኑ መዋቅር ውስጥ የሚነካው፣ የለውጥ ጥያቄ ሂደቱ ከሚያካሂደው ተመሳሳይ ትንተና።',
+        newUnit: 'አዲስ ክፍል',
+        parentChildren: 'ወላጁ በአሁኑ ጊዜ :count ንዑስ ክፍሎች አሉት',
+        childUnits: ':direct ቀጥተኛ / :total ጠቅላላ ንዑስ ክፍሎች',
+        positions: 'ከ:total የሥራ መደቦች :active ንቁ',
+        employees: ':count ሠራተኞች',
+        assignments: ':count ንቁ ምደባዎች',
+        establishments: ':count የሥራ መደብ ድልድሎች',
+        scopes: ':count የተጠቃሚ ወሰኖች',
+    },
+
+    structure: {
+        title: 'መዋቅር',
+        description: 'የተቋም የአሁኑ የክፍል ዛፍ ከተግባራዊ ግንኙነቶቹ፣ የማረጋገጫ ሪፖርቱ እና የሚያስቀምጡት የታተሙ የተዋረድ ስሪቶች ጋር። ለውጦች በንድፍ ጥናቶችና በለውጥ ጥያቄ ሂደት በኩል ያልፋሉ።',
+        units: 'የክፍል ዛፍ',
+        noUnits: 'ክፍሎች የሉም።',
+        activePositions: ':count ንቁ የሥራ መደቦች',
+        relationships: 'ተግባራዊ ግንኙነቶች',
+        versions: 'የታተሙ የተዋረድ ስሪቶች',
+        versionsHelp: 'የተቋም ደረጃ መዋቅር በስሪት ይያዛል፤ እነዚህ ይህን ተቋም የሚያስቀምጡ የታተሙ ስሪቶች ናቸው።',
+        noVersions: 'ይህን ተቋም የሚያስቀምጥ የታተመ የተዋረድ ስሪት የለም።',
+        parents: 'ሪፖርት የሚያደርግለት',
+        children: 'የሚቆጣጠራቸው',
+        chooseOrganization: 'መዋቅሩን ለማየት ተቋም ይምረጡ።',
+        openOrganogram: 'ኦርጋኖግራም ክፈት',
+    },
+
     classifications: {
         title: 'ምደባዎች',
         description: 'የከተማ ደረጃ ማጣቀሻ መረጃ፡ የአካባቢ የአገልግሎት ምደባ፣ የCPC እና የISIC ማጣቀሻዎች። ተቋማት ይጠቅሷቸዋል፤ የምደባ ኃላፊዎች ብቻ ይቀይሯቸዋል፣ እና እያንዳንዱ ስሪት ይቀመጣል።',

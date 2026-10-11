@@ -4,6 +4,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import ProposalForm, { type ProposalOption, type ProposalRecord } from '@/Components/organizationDesign/ProposalForm';
 import ResponsibilitiesForm, { ResponsibilitiesSummary, type ObjectCatalog, type ResponsibilityRow, type ResponsibilityTypeOption } from '@/Components/organizationDesign/ResponsibilitiesForm';
 import StudyForm, { type Option, type StudyFormValues } from '@/Components/organizationDesign/StudyForm';
+import ValidationReport, { type Report } from '@/Components/organizationDesign/ValidationReport';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, actionLinkClassName, badgeClassName } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -18,9 +19,13 @@ type ProposalNode = ProposalRecord & {
     responsibilities: ResponsibilityRow[]; children: ProposalNode[];
 };
 
+type Impact = { kind: string; is_new_unit?: boolean; parent_current_children?: number; child_units_direct?: number; child_units_total?: number; positions_affected?: number; active_positions_affected?: number; employees_affected?: number; active_assignments?: number; establishments_affected?: number; user_scopes_affected?: number };
+
 type Props = {
     study: StudySummary & { reason: string | null; scope_notes: string | null; hierarchy_version_id: string | null; hierarchy_version: { id: string; version_name: string } | null; submitted_at: string | null; reviewed_by: string | null; reviewed_at: string | null; review_comment: string | null; approved_by: string | null; approved_at: string | null };
     proposals: ProposalNode[];
+    validation: Report;
+    impact: Record<string, Impact>;
     history: { from: string | null; to: string; actor: string | null; reason: string | null; at: string }[];
     units: (Option & { parent_unit_id: string | null })[];
     unitTypes: Option[];
@@ -39,13 +44,25 @@ function flatten(tree: ProposalNode[], depth = 0, out: ProposalOption[] = []): P
 
 const PROPOSAL_TONES: Record<string, 'neutral' | 'info' | 'success' | 'warning' | 'danger'> = { proposed: 'neutral', accepted: 'info', converted: 'warning', implemented: 'success', rejected: 'danger' };
 
-export default function StudyShow({ study, proposals, history, units, unitTypes, hierarchyVersions, objects, responsibilityTypes, proposalTypes, studyTypes, can }: Props) {
+export default function StudyShow({ study, proposals, validation, impact, history, units, unitTypes, hierarchyVersions, objects, responsibilityTypes, proposalTypes, studyTypes, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState(false);
     const [proposalEdit, setProposalEdit] = useState<{ record: ProposalNode | null; parentId: string | null } | null>(null);
     const [respEdit, setRespEdit] = useState<ProposalNode | null>(null);
     const allProposals = flatten(proposals);
+    const fill = (key: string, params: Record<string, number | undefined>) => Object.entries(params).reduce((text, [k, v]) => text.replace(`:${k}`, String(v ?? 0)), tt(key));
+    const impactLine = (node: ProposalNode) => {
+        const i = impact[node.id];
+        if (!i) return null;
+        if (i.is_new_unit) return `${tt('impact.newUnit')} · ${fill('impact.parentChildren', { count: i.parent_current_children })}`;
+        return [
+            fill('impact.childUnits', { direct: i.child_units_direct, total: i.child_units_total }),
+            fill('impact.positions', { active: i.active_positions_affected, total: i.positions_affected }),
+            fill('impact.employees', { count: i.employees_affected }),
+            fill('impact.assignments', { count: i.active_assignments }),
+        ].join(' · ');
+    };
 
     const values: StudyFormValues = {
         organization_id: study.organization_id, title_en: study.title_en, title_am: study.title_am ?? '', study_type: study.study_type, reason: study.reason ?? '', scope_notes: study.scope_notes ?? '',
@@ -87,6 +104,7 @@ export default function StudyShow({ study, proposals, history, units, unitTypes,
                             {node.resulting_unit && <>{tt('studies.resultingUnit')}: {node.resulting_unit.code}</>}
                         </p>
                         {node.design_rationale && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{node.design_rationale}</p>}
+                        {impactLine(node) && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]"><span className="font-medium">{tt('impact.title')}:</span> {impactLine(node)}</p>}
                         <div className="mt-1"><ResponsibilitiesSummary rows={node.responsibilities} /></div>
                     </div>
                     <span className={badgeClassName(PROPOSAL_TONES[node.status] ?? 'neutral')}>{tt(`studies.proposalStatuses.${node.status}`)}</span>
@@ -161,6 +179,7 @@ export default function StudyShow({ study, proposals, history, units, unitTypes,
                 </div>
 
                 <div className="space-y-4">
+                    <ValidationReport report={validation} compact />
                     <Card>
                         <CardHeader><CardTitle>{tt('studies.history')}</CardTitle></CardHeader>
                         <ul className="divide-y divide-[color:var(--app-border)]">

@@ -13,6 +13,7 @@ use App\Http\Controllers\OrganizationDesign\ProfessionController;
 use App\Http\Controllers\OrganizationDesign\RequirementController;
 use App\Http\Controllers\OrganizationDesign\ResponsibilityController;
 use App\Http\Controllers\OrganizationDesign\ServiceController;
+use App\Http\Controllers\OrganizationDesign\StructureController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -121,6 +122,9 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::delete('/proposals/{proposal}', [DesignStudyController::class, 'destroyProposal'])->whereUuid('proposal')->name('proposals.destroy');
 
         Route::get('/responsibilities', [ResponsibilityController::class, 'index'])->name('responsibilities.index');
+
+        // Phase 6: structure validation, functional overlay, published hierarchy versions.
+        Route::get('/structure', [StructureController::class, 'index'])->name('structure.index');
         Route::put('/responsibilities/{subjectType}/{subject}', [ResponsibilityController::class, 'sync'])->whereIn('subjectType', ['unit', 'proposal'])->whereUuid('subject')->name('responsibilities.sync');
         Route::post('/responsibility-types', [ResponsibilityController::class, 'storeType'])->name('responsibility-types.store');
         Route::put('/responsibility-types/{responsibilityType}', [ResponsibilityController::class, 'updateType'])->whereUuid('responsibilityType')->name('responsibility-types.update');

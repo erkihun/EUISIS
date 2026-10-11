@@ -18,6 +18,8 @@ use App\Models\OrganizationUnitType;
 use App\Models\ResponsibilityType;
 use App\Models\UnitDesignProposal;
 use App\Services\OrganizationDesign\DesignStudyService;
+use App\Services\OrganizationDesign\OrganizationDesignValidationService;
+use App\Services\OrganizationalChange\ChangeRequestImpactAnalyzer;
 use App\Services\OrganizationDesign\ResponsibilityService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +30,7 @@ use Inertia\Response;
 /** Design studies, their proposals and the hand-over to the change-request pipeline. */
 class DesignStudyController extends Controller
 {
-    public function __construct(private readonly DesignStudyService $studies, private readonly ResponsibilityService $responsibilities, private readonly OrganizationScopeService $scope) {}
+    public function __construct(private readonly DesignStudyService $studies, private readonly ResponsibilityService $responsibilities, private readonly OrganizationScopeService $scope, private readonly OrganizationDesignValidationService $validation, private readonly ChangeRequestImpactAnalyzer $impact) {}
 
     public function index(Request $request): Response
     {
@@ -75,6 +77,8 @@ class DesignStudyController extends Controller
                 'approved_by' => $study->approver?->name, 'approved_at' => $study->approved_at?->toISOString(),
             ],
             'proposals' => $this->studies->tree($study),
+            'validation' => $this->validation->validateStudy($study),
+            'impact' => $this->impactByProposal($study),
             'history' => OrganizationDesignStatusHistory::query()->where('entity_type', $study->getMorphClass())->where('entity_id', $study->getKey())->with('actor:id,name')->orderByDesc('created_at')->get()
                 ->map(fn ($h) => ['from' => $h->from_status, 'to' => $h->to_status, 'actor' => $h->actor?->name, 'reason' => $h->reason, 'at' => $h->created_at->toISOString()]),
             'units' => OrganizationUnit::query()->where('organization_id', $study->organization_id)->whereIn('status', ['active', 'draft'])->orderBy('code')->limit(1000)->get(['id', 'code', 'name_en', 'name_am', 'parent_unit_id'])->map->only(['id', 'code', 'name_en', 'name_am', 'parent_unit_id']),
@@ -173,6 +177,24 @@ class DesignStudyController extends Controller
         $this->studies->removeProposal($request->user(), $proposal);
 
         return back()->with('flash', ['message' => __('organization-design.proposal_removed'), 'type' => 'success']);
+    }
+
+    /**
+     * The structural impact of each proposal (brief §114–115), from the same
+     * analyzer the change-request pipeline uses, keyed by proposal id.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function impactByProposal(OrganizationDesignStudy $study): array
+    {
+        $out = [];
+        foreach (UnitDesignProposal::query()->where('study_id', $study->getKey())->get() as $proposal) {
+            $out[$proposal->id] = $proposal->proposal_type === 'create'
+                ? $this->impact->unitImpact(null, ['parent_unit_id' => $proposal->parent_existing_unit_id])
+                : $this->impact->unitImpact($proposal->existing_unit_id, []);
+        }
+
+        return $out;
     }
 
     /** @return array<string, mixed> */
