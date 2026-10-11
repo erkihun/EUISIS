@@ -21,8 +21,13 @@ class PositionServiceTaskStandard extends Model
 {
     use HasUuidPrimaryKey;
 
+    /** The columns a standard may hang off; exactly one is set per row. */
+    public const SUBJECT_COLUMNS = ['task_id', 'master_task_id', 'activity_id'];
+
     protected $fillable = [
         'task_id',
+        'master_task_id',
+        'activity_id',
         'organization_id',
         'version_no',
         'status',
@@ -58,9 +63,60 @@ class PositionServiceTaskStandard extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        // One subject per standard, on every driver (PostgreSQL also has a CHECK).
+        static::saving(function (self $standard): void {
+            $set = array_filter(array_map(fn (string $column) => $standard->getAttribute($column), self::SUBJECT_COLUMNS));
+            if (count($set) !== 1) {
+                throw new \LogicException('A work standard measures exactly one of: a position task, a master task or an activity.');
+            }
+        });
+    }
+
     public function task(): BelongsTo
     {
         return $this->belongsTo(PositionServiceTask::class, 'task_id');
+    }
+
+    public function masterTask(): BelongsTo
+    {
+        return $this->belongsTo(ProcessTask::class, 'master_task_id');
+    }
+
+    public function activity(): BelongsTo
+    {
+        return $this->belongsTo(ProcessActivity::class, 'activity_id');
+    }
+
+    /** The column that names this standard's subject. */
+    public static function subjectColumnFor(PositionServiceTask|ProcessTask|ProcessActivity $subject): string
+    {
+        return match (true) {
+            $subject instanceof ProcessTask => 'master_task_id',
+            $subject instanceof ProcessActivity => 'activity_id',
+            default => 'task_id',
+        };
+    }
+
+    public function subjectColumn(): string
+    {
+        foreach (self::SUBJECT_COLUMNS as $column) {
+            if ($this->getAttribute($column) !== null) {
+                return $column;
+            }
+        }
+
+        return 'task_id';
+    }
+
+    public function subjectModel(): PositionServiceTask|ProcessTask|ProcessActivity
+    {
+        return match ($this->subjectColumn()) {
+            'master_task_id' => $this->masterTask ?? abort(404),
+            'activity_id' => $this->activity ?? abort(404),
+            default => $this->task ?? abort(404),
+        };
     }
 
     public function approver(): BelongsTo

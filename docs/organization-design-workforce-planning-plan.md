@@ -88,12 +88,12 @@ All tables: UUID PK, `organization_id` where scoped, `created_by`/`updated_by`, 
 - `service_isic_activity` — optional domain-level ISIC link (§16), never on tasks.
 
 ### 3.3 Processes, activities, tasks, standards
-- `processes` — organization_id, service_id, code, names, process_type, owner_unit_id, status, version_no, effective dates.
-- `activities` — process_id, parent_activity_id, code, names, sequence, status, version_no.
-- `tasks` — activity_id, code, names, sequence, required_output, status, version_no.
-- `work_items_io` — polymorphic (process/activity/task) inputs, outputs, beneficiaries, dependencies as typed rows (§22).
-- **Standards:** generalise `position_service_task_standards` → add nullable `activity_id`/`task_id` columns and a CHECK that exactly one of (`task_id` [position-service task], `activity_id`, `master_task_id`) is set, so `TaskStandardService` serves both. Alternative if the owner prefers isolation: a new `work_standards` table with the same columns; the plan recommends the extension because snapshots, versioning and approval are already tested.
-- `position_service_tasks.master_task_id` nullable FK → `tasks` (the bridge to Daily Work, §25, §67).
+- `processes` — organization_id, service_id, code, names, process_type (core/support/management), owner_organization_unit_id, lineage_key, version_no, status, effective dates. *Implemented in phase 3.* The process is the versioned aggregate: its activities, tasks and I/O rows are editable only while it is a draft, and a new version deep-copies the whole tree (activities and tasks therefore carry no version_no of their own).
+- `process_activities` — process_id, parent_activity_id, code (unique per process), names, sequence, materialised path/depth, is_active. (Named `process_*` rather than the generic `activities`/`tasks` to leave those table names free.)
+- `process_tasks` — activity_id, process_id, code (unique per activity), names, sequence, required_output, is_active.
+- `work_item_ios` — polymorphic (process/activity/task) inputs, outputs, beneficiaries, dependencies as typed rows (§22); a dependency may name an activity of the same process.
+- **Standards:** `position_service_task_standards` generalised — `task_id` now nullable, plus nullable `master_task_id` and `activity_id`; exactly one is set (PostgreSQL CHECK + model guard on every driver). `TaskStandardService` serves all three subjects unchanged in behaviour; standards on master tasks/activities reuse the existing `work_standards.manage/approve` permissions.
+- `position_service_tasks.master_task_id` nullable FK → `process_tasks` (the bridge to Daily Work, §25, §67). Traceability only: Daily Work keeps measuring against the position task's own standards; the mapping UI arrives with phase 10 (the route `organization-design.position-tasks.link` exists now).
 - Internal codes `HR-WFP-001-01` via new `CodeRuleEntityType::{Process, Activity, Task}` with parent-code tokens (§17).
 
 ### 3.4 Occupation and competency requirements
@@ -168,7 +168,7 @@ Each phase ends with migrations, models, services, policies, routes, pages, tran
 | **0. Foundations** | status history, documents, import batches, permissions, code-rule entity types, validation service skeleton, sidebar group, dashboard shell | 3 | catalog/permission tests | S |
 | **1. Mandate & functions** — *done* | §3–8 | 4 | 1–5 | M |
 | **2. Services & classification** — *done* | §9–16; ISIC revision; one LOCAL/CPC catalog table + CSV importer (dry run, idempotent, per revision); `LegalInstrumentTypeSeeder` | 4 (+1 column) | 6–15 | M |
-| **3. Process architecture & standards** | §17–25; master process/activity/task; standard generalisation; Daily Work bridge | 4 (+2 columns) | 16–25 | L |
+| **3. Process architecture & standards** — *done* | §17–25; master process/activity/task; typed I/O rows; standard generalisation; Daily Work bridge (backend) | 4 (+3 columns) | 16–25 | L |
 | **4. Occupations & competencies** | §26–34; ISCO reference, professions, requirement tables, competency types/levels | 7 | 26–… (truncated in brief) | M |
 | **5. Unit design & responsibility** | §35–39, 112–113 | 4 | structure tests | M |
 | **6. Structure, organogram, impact** | §40–44, 79, 114–115 (D-1) | 0–1 | validation gate tests | M (L if D-1 = a) |

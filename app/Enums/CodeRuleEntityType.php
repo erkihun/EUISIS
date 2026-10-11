@@ -44,4 +44,7 @@ enum CodeRuleEntityType: string
     case OrganizationPower = 'organization_power';
     case OrganizationFunction = 'organization_function';
     case Service = 'service';
+    case Process = 'process';
+    case ProcessActivity = 'process_activity';
+    case ProcessTask = 'process_task';
 }

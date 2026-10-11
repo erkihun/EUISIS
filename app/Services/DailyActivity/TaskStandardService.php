@@ -9,6 +9,8 @@ use App\Enums\AuditEventType;
 use App\Enums\TaskStandardStatus;
 use App\Models\PositionServiceTask;
 use App\Models\PositionServiceTaskStandard;
+use App\Models\ProcessActivity;
+use App\Models\ProcessTask;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -40,17 +42,23 @@ class TaskStandardService
         private readonly DailyActivitySettings $settings,
     ) {}
 
-    /** @param array<string, mixed> $data */
-    public function createDraft(User $actor, PositionServiceTask $task, array $data): PositionServiceTaskStandard
+    /**
+     * A standard measures a position task (Daily Work), or — in the master
+     * design — a process task or an activity. Same rules for all three.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function createDraft(User $actor, PositionServiceTask|ProcessTask|ProcessActivity $task, array $data): PositionServiceTaskStandard
     {
         return DB::transaction(function () use ($actor, $task, $data): PositionServiceTaskStandard {
-            // Serialise version numbering per task.
-            PositionServiceTask::query()->whereKey($task->getKey())->lockForUpdate()->first();
-            $next = (int) PositionServiceTaskStandard::query()->where('task_id', $task->getKey())->max('version_no') + 1;
+            $column = PositionServiceTaskStandard::subjectColumnFor($task);
+            // Serialise version numbering per subject.
+            $task::query()->whereKey($task->getKey())->lockForUpdate()->first();
+            $next = (int) PositionServiceTaskStandard::query()->where($column, $task->getKey())->max('version_no') + 1;
 
             $standard = new PositionServiceTaskStandard([
                 ...$this->only($data),
-                'task_id' => $task->getKey(),
+                $column => $task->getKey(),
                 'organization_id' => $task->organization_id,
                 'version_no' => $next,
                 'status' => TaskStandardStatus::Draft,
@@ -86,13 +94,14 @@ class TaskStandardService
     public function approve(User $actor, PositionServiceTaskStandard $standard): PositionServiceTaskStandard
     {
         return DB::transaction(function () use ($actor, $standard): PositionServiceTaskStandard {
-            PositionServiceTask::query()->whereKey($standard->task_id)->lockForUpdate()->first();
+            $column = $standard->subjectColumn();
+            $standard->subjectModel()::query()->whereKey($standard->getAttribute($column))->lockForUpdate()->first();
             $standard = PositionServiceTaskStandard::query()->whereKey($standard->getKey())->lockForUpdate()->firstOrFail();
             $this->assertDraft($standard);
 
             $from = $standard->effective_from->toDateString();
             $approved = PositionServiceTaskStandard::query()
-                ->where('task_id', $standard->task_id)
+                ->where($column, $standard->getAttribute($column))
                 ->where('status', TaskStandardStatus::Approved->value)
                 ->lockForUpdate()
                 ->get();

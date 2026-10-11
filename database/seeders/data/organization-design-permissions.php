@@ -53,4 +53,15 @@ return [
         'Browse the local service classification, CPC and ISIC reference data.', 'የአካባቢ የአገልግሎት ምደባ፣ CPC እና ISIC ማጣቀሻ መረጃን ያስሱ።'),
     $entry('classifications.manage', 'classifications', 20, 'Manage classifications', 'ምደባዎችን ያስተዳድሩ',
         'City-level: import and maintain classification revisions. Institution designers only cite them.', 'የከተማ ደረጃ፡ የምደባ ስሪቶችን ያስገቡ እና ያስተዳድሩ። የተቋም ዲዛይነሮች ይጠቅሷቸዋል ብቻ።'),
+
+    $entry('processes.viewAny', 'processes', 10, 'View processes', 'ሂደቶችን ይመልከቱ',
+        'List the process architecture of organizations within scope.', 'በወሰን ውስጥ ያሉ ተቋማትን የሂደት አወቃቀር ይዘርዝሩ።'),
+    $entry('processes.view', 'processes', 20, 'View a process', 'ሂደት ይመልከቱ',
+        'Open a process with its activities, tasks, inputs/outputs and standards.', 'ሂደትን ከእንቅስቃሴዎቹ፣ ተግባሮቹ፣ ግብዓት/ውጤቶቹ እና ስታንዳርዶቹ ጋር ይክፈቱ።'),
+    $entry('processes.create', 'processes', 30, 'Draft processes', 'የሂደት ረቂቅ ይፍጠሩ',
+        'Draft a new process or a new version of a published one.', 'አዲስ ሂደት ወይም የታተመ ሂደት አዲስ ስሪት ረቂቅ ይፍጠሩ።'),
+    $entry('processes.update', 'processes', 40, 'Design draft processes', 'ረቂቅ ሂደቶችን ይንደፉ',
+        'Edit a draft process and its activities, tasks and typed inputs/outputs; trace position tasks to master tasks.', 'ረቂቅ ሂደትን እና እንቅስቃሴዎቹን፣ ተግባሮቹን እና ግብዓት/ውጤቶቹን ያርትዑ፤ የሥራ መደብ ተግባራትን ከዋና ተግባራት ጋር ያገናኙ።'),
+    $entry('processes.approve', 'processes', 50, 'Publish processes', 'ሂደቶችን ያትሙ',
+        'Publish a draft process drafted by someone else.', 'በሌላ ሰው የተረቀቀ ሂደት ያትሙ።'),
 ];

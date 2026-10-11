@@ -10,6 +10,9 @@ use App\Models\IdCard;
 use App\Models\InstitutionMandate;
 use App\Models\OrganizationFunction;
 use App\Models\OrganizationPower;
+use App\Models\Process;
+use App\Models\ProcessActivity;
+use App\Models\ProcessTask;
 use App\Models\Service;
 use App\Models\Organization;
 use App\Models\OrganizationType;
@@ -72,6 +75,27 @@ class CodeRuleTargetRegistry
                 'code_column' => 'code',
                 'label' => 'Service Code',
                 'immutable_after_create' => true,
+            ],
+            CodeRuleEntityType::Process->value => [
+                'model' => Process::class,
+                'table' => 'processes',
+                'code_column' => 'code',
+                'label' => 'Process Code',
+                'immutable_after_create' => true,
+            ],
+            CodeRuleEntityType::ProcessActivity->value => [
+                'model' => ProcessActivity::class,
+                'table' => 'process_activities',
+                'code_column' => 'code',
+                'label' => 'Activity Code',
+                'immutable_after_create' => false,
+            ],
+            CodeRuleEntityType::ProcessTask->value => [
+                'model' => ProcessTask::class,
+                'table' => 'process_tasks',
+                'code_column' => 'code',
+                'label' => 'Master Task Code',
+                'immutable_after_create' => false,
             ],
             CodeRuleEntityType::OrganizationType->value => [
                 'model' => OrganizationType::class,

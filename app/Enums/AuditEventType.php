@@ -703,4 +703,16 @@ enum AuditEventType: string
     case ServiceCancelled = 'organization_design.service_cancelled';
     case ClassificationSaved = 'organization_design.classification_saved';
     case ClassificationImported = 'organization_design.classification_imported';
+    case ProcessCreated = 'organization_design.process_created';
+    case ProcessUpdated = 'organization_design.process_updated';
+    case ProcessPublished = 'organization_design.process_published';
+    case ProcessSuperseded = 'organization_design.process_superseded';
+    case ProcessCancelled = 'organization_design.process_cancelled';
+    case ActivitySaved = 'organization_design.activity_saved';
+    case ActivityMoved = 'organization_design.activity_moved';
+    case ActivityRemoved = 'organization_design.activity_removed';
+    case TaskSaved = 'organization_design.task_saved';
+    case TaskRemoved = 'organization_design.task_removed';
+    case WorkItemIoSynced = 'organization_design.work_item_io_synced';
+    case PositionTaskLinked = 'organization_design.position_task_linked';
 }
