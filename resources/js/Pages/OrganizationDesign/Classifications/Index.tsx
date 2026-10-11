@@ -26,7 +26,7 @@ type Props = {
     can: { manage: boolean };
 };
 
-const SCHEMES = ['LOCAL', 'CPC', 'ISIC'];
+const SCHEMES = ['LOCAL', 'CPC', 'ISIC', 'ISCO'];
 
 export default function ClassificationsIndex({ scheme, revision, revisions, rows, filters, batches, can }: Props) {
     const { t, locale, tt } = useDesignText();
@@ -35,7 +35,8 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
     const [editing, setEditing] = useState<Row | 'new' | null>(null);
     const [report, setReport] = useState<Batch | null>(null);
     const hasActiveFilters = Boolean(filters.search);
-    const editable = scheme !== 'ISIC';
+    // ISIC and ISCO are official datasets: imported, never typed in.
+    const editable = scheme === 'LOCAL' || scheme === 'CPC';
 
     const go = (params: Record<string, string>) => router.get(route('organization-design.classifications.index'), Object.fromEntries(Object.entries(params).filter(([, v]) => v)), { preserveState: true, replace: true });
 

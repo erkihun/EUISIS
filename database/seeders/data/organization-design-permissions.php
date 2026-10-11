@@ -64,4 +64,12 @@ return [
         'Edit a draft process and its activities, tasks and typed inputs/outputs; trace position tasks to master tasks.', 'ረቂቅ ሂደትን እና እንቅስቃሴዎቹን፣ ተግባሮቹን እና ግብዓት/ውጤቶቹን ያርትዑ፤ የሥራ መደብ ተግባራትን ከዋና ተግባራት ጋር ያገናኙ።'),
     $entry('processes.approve', 'processes', 50, 'Publish processes', 'ሂደቶችን ያትሙ',
         'Publish a draft process drafted by someone else.', 'በሌላ ሰው የተረቀቀ ሂደት ያትሙ።'),
+
+    $entry('professions.manage', 'professions', 10, 'Manage professions', 'ሙያዎችን ያስተዳድሩ',
+        'City-level: add and deactivate professions and specializations under occupations. Designers cite them.', 'የከተማ ደረጃ፡ በሙያ ምድቦች ሥር ሙያዎችንና ልዩ ሙያዎችን ይጨምሩ እና ያቦዝኑ። ዲዛይነሮች ይጠቅሷቸዋል።'),
+
+    $entry('competency-catalog.viewAny', 'competency-catalog', 10, 'View the competency catalog', 'የብቃት ካታሎግ ይመልከቱ',
+        'Browse competency types, named levels, framework competencies and the education ladder.', 'የብቃት ዓይነቶችን፣ የተሰየሙ ደረጃዎችን፣ የማዕቀፍ ብቃቶችን እና የትምህርት ደረጃዎችን ያስሱ።'),
+    $entry('competency-catalog.manage', 'competency-catalog', 20, 'Manage the competency catalog', 'የብቃት ካታሎግ ያስተዳድሩ',
+        'City-level: maintain competency types, named levels, framework competencies and education levels.', 'የከተማ ደረጃ፡ የብቃት ዓይነቶችን፣ የተሰየሙ ደረጃዎችን፣ የማዕቀፍ ብቃቶችን እና የትምህርት ደረጃዎችን ያስተዳድሩ።'),
 ];

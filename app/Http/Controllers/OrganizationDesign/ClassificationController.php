@@ -8,6 +8,7 @@ use App\Enums\AuditEventType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\OrganizationDesign\ClassificationRequest;
 use App\Models\ClassificationImportBatch;
+use App\Models\IscoGroup;
 use App\Models\IsicActivity;
 use App\Models\ServiceClassification;
 use App\Services\OrganizationDesign\ClassificationImportService;
@@ -33,7 +34,14 @@ class ClassificationController extends Controller
         $scheme = strtoupper($request->string('scheme')->toString() ?: ServiceClassification::SCHEME_LOCAL);
         $search = $request->string('search')->toString();
 
-        if ($scheme === 'ISIC') {
+        if ($scheme === 'ISCO') {
+            $revisions = IscoGroup::query()->select('revision')->distinct()->orderByDesc('revision')->pluck('revision')->all();
+            $revision = $request->string('revision')->toString() ?: ($revisions[0] ?? '');
+            $rows = IscoGroup::query()->where('revision', $revision)->with('parent:id,code')
+                ->when($search, fn ($q) => $q->where(fn ($n) => $n->where('code', ci_like_operator(), "%{$search}%")->orWhere('name_en', ci_like_operator(), "%{$search}%")->orWhere('name_am', ci_like_operator(), "%{$search}%")))
+                ->orderBy('code')->paginate(50)->withQueryString()
+                ->through(fn (IscoGroup $g) => ['id' => $g->id, 'code' => $g->code, 'level' => $g->level, 'name_en' => $g->name_en, 'name_am' => $g->name_am, 'is_active' => $g->is_active, 'parent_code' => $g->parent?->code]);
+        } elseif ($scheme === 'ISIC') {
             $revisions = IsicActivity::query()->select('revision')->distinct()->orderByDesc('revision')->pluck('revision')->all();
             $revision = $request->string('revision')->toString() ?: ($revisions[0] ?? 'Rev.4');
             $rows = IsicActivity::query()->where('revision', $revision)

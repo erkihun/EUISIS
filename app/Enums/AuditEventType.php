@@ -715,4 +715,7 @@ enum AuditEventType: string
     case TaskRemoved = 'organization_design.task_removed';
     case WorkItemIoSynced = 'organization_design.work_item_io_synced';
     case PositionTaskLinked = 'organization_design.position_task_linked';
+    case WorkRequirementsSynced = 'organization_design.work_requirements_synced';
+    case ProfessionSaved = 'organization_design.profession_saved';
+    case CompetencyCatalogSaved = 'organization_design.competency_catalog_saved';
 }

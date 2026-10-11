@@ -3,10 +3,13 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\OrganizationDesign\ClassificationController;
+use App\Http\Controllers\OrganizationDesign\CompetencyCatalogController;
 use App\Http\Controllers\OrganizationDesign\FunctionController;
 use App\Http\Controllers\OrganizationDesign\MandateController;
 use App\Http\Controllers\OrganizationDesign\ProcessController;
 use App\Http\Controllers\OrganizationDesign\ProcessDesignController;
+use App\Http\Controllers\OrganizationDesign\ProfessionController;
+use App\Http\Controllers\OrganizationDesign\RequirementController;
 use App\Http\Controllers\OrganizationDesign\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -80,4 +83,23 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         Route::post('/standards/{standard}/retire', [ProcessDesignController::class, 'retireStandard'])->whereUuid('standard')->name('standards.retire');
 
         Route::put('/position-tasks/{positionTask}/link', [ProcessDesignController::class, 'linkPositionTask'])->whereUuid('positionTask')->name('position-tasks.link');
+
+        // Phase 4: professions, the competency catalog and the requirements of activities and tasks.
+        Route::put('/requirements/{subjectType}/{subject}', [RequirementController::class, 'sync'])->whereIn('subjectType', ['activity', 'task'])->whereUuid('subject')->name('requirements.sync');
+
+        Route::get('/professions', [ProfessionController::class, 'index'])->name('professions.index');
+        Route::post('/professions', [ProfessionController::class, 'store'])->name('professions.store');
+        Route::put('/professions/{profession}', [ProfessionController::class, 'update'])->whereUuid('profession')->name('professions.update');
+        Route::post('/professions/{profession}/specializations', [ProfessionController::class, 'storeSpecialization'])->whereUuid('profession')->name('professions.specializations.store');
+        Route::put('/specializations/{specialization}', [ProfessionController::class, 'updateSpecialization'])->whereUuid('specialization')->name('specializations.update');
+
+        Route::get('/competency-catalog', [CompetencyCatalogController::class, 'index'])->name('competency-catalog.index');
+        Route::post('/competency-types', [CompetencyCatalogController::class, 'storeType'])->name('competency-types.store');
+        Route::put('/competency-types/{type}', [CompetencyCatalogController::class, 'updateType'])->whereUuid('type')->name('competency-types.update');
+        Route::post('/competency-levels', [CompetencyCatalogController::class, 'storeLevel'])->name('competency-levels.store');
+        Route::put('/competency-levels/{level}', [CompetencyCatalogController::class, 'updateLevel'])->whereUuid('level')->name('competency-levels.update');
+        Route::post('/education-levels', [CompetencyCatalogController::class, 'storeEducationLevel'])->name('education-levels.store');
+        Route::put('/education-levels/{educationLevel}', [CompetencyCatalogController::class, 'updateEducationLevel'])->whereUuid('educationLevel')->name('education-levels.update');
+        Route::post('/competency-frameworks/{framework}/competencies', [CompetencyCatalogController::class, 'storeCompetency'])->whereUuid('framework')->name('competencies.store');
+        Route::put('/competencies/{competency}', [CompetencyCatalogController::class, 'updateCompetency'])->whereUuid('competency')->name('competencies.update');
     });

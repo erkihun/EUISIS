@@ -6,6 +6,7 @@ namespace App\Services\OrganizationDesign;
 
 use App\Enums\AuditEventType;
 use App\Models\ClassificationImportBatch;
+use App\Models\IscoGroup;
 use App\Models\IsicActivity;
 use App\Models\ServiceClassification;
 use App\Models\User;
@@ -23,7 +24,7 @@ use Illuminate\Validation\ValidationException;
  */
 class ClassificationImportService
 {
-    public const DATASETS = ['LOCAL', 'CPC', 'ISIC'];
+    public const DATASETS = ['LOCAL', 'CPC', 'ISIC', 'ISCO'];
 
     private const MAX_ROWS = 20000;
 
@@ -137,6 +138,9 @@ class ClassificationImportService
         if ($dataset === 'ISIC') {
             return IsicActivity::query()->where('revision', $revision)->where('isic_code', $parentCode)->value('id');
         }
+        if ($dataset === 'ISCO') {
+            return IscoGroup::query()->where('revision', $revision)->where('code', $parentCode)->value('id');
+        }
 
         return ServiceClassification::query()->where('scheme', $dataset)->where('revision', $revision)->where('code', $parentCode)->value('id');
     }
@@ -144,9 +148,11 @@ class ClassificationImportService
     /** @return array{result: string, id?: string} */
     private function simulate(string $dataset, string $revision, array $row): array
     {
-        $existing = $dataset === 'ISIC'
-            ? IsicActivity::query()->where('revision', $revision)->where('isic_code', $row['code'])->first()
-            : ServiceClassification::query()->where('scheme', $dataset)->where('revision', $revision)->where('code', $row['code'])->first();
+        $existing = match ($dataset) {
+            'ISIC' => IsicActivity::query()->where('revision', $revision)->where('isic_code', $row['code'])->first(),
+            'ISCO' => IscoGroup::query()->where('revision', $revision)->where('code', $row['code'])->first(),
+            default => ServiceClassification::query()->where('scheme', $dataset)->where('revision', $revision)->where('code', $row['code'])->first(),
+        };
         if ($existing === null) {
             return ['result' => 'created'];
         }
@@ -162,6 +168,11 @@ class ClassificationImportService
             $model = IsicActivity::query()->firstOrNew(['revision' => $revision, 'isic_code' => $row['code']]);
             $wasNew = ! $model->exists;
             $levelName = ['section', 'division', 'group', 'class'][min(max($row['level'], 1), 4) - 1];
+            $model->fill(['name_en' => $row['name_en'], 'name_am' => $row['name_am'], 'level' => $levelName, 'parent_id' => $parentId, 'is_active' => true]);
+        } elseif ($dataset === 'ISCO') {
+            $model = IscoGroup::query()->firstOrNew(['revision' => $revision, 'code' => $row['code']]);
+            $wasNew = ! $model->exists;
+            $levelName = IscoGroup::LEVELS[min(max($row['level'], 1), 4) - 1];
             $model->fill(['name_en' => $row['name_en'], 'name_am' => $row['name_am'], 'level' => $levelName, 'parent_id' => $parentId, 'is_active' => true]);
         } else {
             $model = ServiceClassification::query()->firstOrNew(['scheme' => $dataset, 'revision' => $revision, 'code' => $row['code']]);

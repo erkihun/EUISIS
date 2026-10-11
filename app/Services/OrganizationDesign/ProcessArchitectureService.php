@@ -35,7 +35,7 @@ class ProcessArchitectureService
 
     public const TASK_FIELDS = ['code', 'name_en', 'name_am', 'description_en', 'description_am', 'sequence', 'required_output', 'is_active'];
 
-    public function __construct(private readonly OrganizationDesignAudit $audit) {}
+    public function __construct(private readonly OrganizationDesignAudit $audit, private readonly WorkRequirementService $requirements) {}
 
     // ── Process versions ─────────────────────────────────────────────────
 
@@ -344,6 +344,7 @@ class ProcessArchitectureService
             ->orderByDesc('version_no')->get();
         $byTask = $standards->whereNotNull('master_task_id')->groupBy('master_task_id');
         $byActivity = $standards->whereNotNull('activity_id')->groupBy('activity_id');
+        $requirements = $this->requirements->forSubjects($activities->pluck('id')->all(), $tasks->flatten()->pluck('id')->all());
 
         $nodes = [];
         foreach ($activities as $activity) {
@@ -351,10 +352,12 @@ class ProcessArchitectureService
                 ...$activity->only(['id', 'code', 'name_en', 'name_am', 'description_en', 'description_am', 'sequence', 'depth', 'is_active', 'parent_activity_id']),
                 'io' => $this->ioRows($io->get($activity->id)),
                 'standards' => $this->standardRows($byActivity->get($activity->id)),
+                'requirements' => $requirements[$activity->id] ?? WorkRequirementService::empty(),
                 'tasks' => collect($tasks->get($activity->id, []))->map(fn (ProcessTask $task) => [
                     ...$task->only(['id', 'code', 'name_en', 'name_am', 'description_en', 'description_am', 'sequence', 'required_output', 'is_active']),
                     'io' => $this->ioRows($io->get($task->id)),
                     'standards' => $this->standardRows($byTask->get($task->id)),
+                    'requirements' => $requirements[$task->id] ?? WorkRequirementService::empty(),
                 ])->values()->all(),
                 'children' => [],
             ];
@@ -427,6 +430,7 @@ class ProcessArchitectureService
             $copy->save();
             $map[$task->getKey()] = $copy->getKey();
         }
+        $this->requirements->copy($map);
         $map[$from->getKey()] = $to->getKey();
 
         $rows = WorkItemIo::query()->whereIn('subject_id', array_keys($map))->orderBy('sequence')->get();

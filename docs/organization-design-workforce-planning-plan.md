@@ -97,12 +97,14 @@ All tables: UUID PK, `organization_id` where scoped, `created_by`/`updated_by`, 
 - Internal codes `HR-WFP-001-01` via new `CodeRuleEntityType::{Process, Activity, Task}` with parent-code tokens (§17).
 
 ### 3.4 Occupation and competency requirements
-- `isco_groups` — code, level (major/sub-major/minor/unit), parent_code, titles, revision (D-12).
-- `professions` — occupation_id, code, names (profession/specialization, §28); `specializations` under them if needed.
-- `work_occupation_requirements` — activity_id or task_id, occupation_id, profession_id nullable, specialization_id nullable.
-- `competencies` + `competency_type` (CORE/TECHNICAL/…; §30), `competency_levels` (D-13).
-- `work_competency_requirements` — activity/task, competency_id, minimum_level_id, is_mandatory.
-- `work_qualification_requirements` — education_level, field_of_study, certification, license, experience_years (§34), typed columns not free text.
+*Implemented in phase 4.*
+- `isco_groups` — revision, code, level (major/sub_major/minor/unit), parent_id, names (D-12). Loaded through the same CSV importer as LOCAL/CPC/ISIC (`scheme=ISCO`), browsable on the Classifications page, never typed in. `occupations.isco_group_id` lets an occupation cite the reference row; the recorded ISCO codes stay on the occupation.
+- `professions` (occupation_id, code unique) and `specializations` (profession_id, code unique per profession) — city-level catalogs behind `professions.manage`; `restrictOnDelete` from requirements, so an entry in use is deactivated.
+- `competency_types` (CORE/TECHNICAL/LEADERSHIP/BEHAVIOURAL seeded as starting data), `competencies.competency_type_id`, `competency_levels` (code, rank 1–10 unique; five levels seeded mapping to the EPMS 1–5 competency scale, D-13), `education_levels` (ranked ladder; eight generic levels seeded — **NEEDS_DECISION:** align with the civil service qualification ladder). All behind `competency-catalog.manage`, read with `competency-catalog.viewAny`.
+- `work_occupation_requirements` — activity_id xor task_id, occupation_id, profession_id, specialization_id (each must belong to the one above and be active), is_primary.
+- `work_competency_requirements` — activity_id xor task_id, competency_id (unique per subject), minimum_level_id, is_mandatory.
+- `work_qualification_requirements` — activity_id xor task_id, education_level_id, field_of_study, certification, license, experience_years, is_mandatory — typed columns, no free-text requirement.
+- Requirements are replaced as sets (`PUT organization-design/requirements/{activity|task}/{id}`) only while the process is a draft, and are deep-copied with a new process version together with the tree.
 
 ### 3.5 Unit design and responsibility
 - `organization_design_studies` — organization_id, reference_number, title, study_type (INITIAL_STRUCTURE, RESTRUCTURE, …), reason, status, started_at, target_effective_date, hierarchy_version_id nullable, organizational_change_request_id nullable (D-1), prepared/reviewed/approved_by (§112–113).
@@ -169,7 +171,7 @@ Each phase ends with migrations, models, services, policies, routes, pages, tran
 | **1. Mandate & functions** — *done* | §3–8 | 4 | 1–5 | M |
 | **2. Services & classification** — *done* | §9–16; ISIC revision; one LOCAL/CPC catalog table + CSV importer (dry run, idempotent, per revision); `LegalInstrumentTypeSeeder` | 4 (+1 column) | 6–15 | M |
 | **3. Process architecture & standards** — *done* | §17–25; master process/activity/task; typed I/O rows; standard generalisation; Daily Work bridge (backend) | 4 (+3 columns) | 16–25 | L |
-| **4. Occupations & competencies** | §26–34; ISCO reference, professions, requirement tables, competency types/levels | 7 | 26–… (truncated in brief) | M |
+| **4. Occupations & competencies** — *done* | §26–34; ISCO reference (via the classification importer), professions/specializations, competency types/levels, education ladder, three requirement tables + editor on the process page | 9 (+2 columns) | 26–34 | M |
 | **5. Unit design & responsibility** | §35–39, 112–113 | 4 | structure tests | M |
 | **6. Structure, organogram, impact** | §40–44, 79, 114–115 (D-1) | 0–1 | validation gate tests | M (L if D-1 = a) |
 | **7. Workforce planning** | §45–57, 80; methodologies, plans, lines, calculation strategies, position requirements | 4 | manpower gate tests | L |

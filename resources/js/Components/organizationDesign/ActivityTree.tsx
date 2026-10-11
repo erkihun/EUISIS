@@ -1,6 +1,7 @@
 import Modal from '@/Components/Modal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import WorkStandardForm, { type StandardRow } from './WorkStandardForm';
+import RequirementsForm, { RequirementsSummary, type RequirementCatalog, type Requirements } from './RequirementsForm';
 import { StatusPill, nameOf, useDesignText } from './ui';
 import { Button, FieldError, FormField, Input, Select, Textarea, actionLinkClassName, badgeClassName } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -8,14 +9,15 @@ import { router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
 export type IoRow = { id?: string; kind: string; label_en: string; label_am: string | null; description: string | null; depends_on_activity_id: string | null; sequence?: number };
-export type TaskNode = { id: string; code: string; name_en: string; name_am: string | null; description_en: string | null; description_am: string | null; sequence: number; required_output: string | null; is_active: boolean; io: IoRow[]; standards: StandardRow[] };
-export type ActivityNode = { id: string; code: string; name_en: string; name_am: string | null; description_en: string | null; description_am: string | null; sequence: number; depth: number; is_active: boolean; parent_activity_id: string | null; io: IoRow[]; standards: StandardRow[]; tasks: TaskNode[]; children: ActivityNode[] };
+export type TaskNode = { id: string; code: string; name_en: string; name_am: string | null; description_en: string | null; description_am: string | null; sequence: number; required_output: string | null; is_active: boolean; io: IoRow[]; standards: StandardRow[]; requirements: Requirements };
+export type ActivityNode = { id: string; code: string; name_en: string; name_am: string | null; description_en: string | null; description_am: string | null; sequence: number; depth: number; is_active: boolean; parent_activity_id: string | null; io: IoRow[]; standards: StandardRow[]; requirements: Requirements; tasks: TaskNode[]; children: ActivityNode[] };
 
 type Props = {
     processId: string;
     tree: ActivityNode[];
     ioKinds: string[];
     qualitySources: string[];
+    catalog: RequirementCatalog;
     can: { update: boolean; manageStandards: boolean; approveStandards: boolean };
 };
 
@@ -23,7 +25,8 @@ type ActivityEdit = { kind: 'activity'; record: ActivityNode | null; parentId: s
 type TaskEdit = { kind: 'task'; record: TaskNode | null; activityId: string };
 type IoEdit = { kind: 'io'; subjectType: 'activity' | 'task'; subjectId: string; rows: IoRow[]; title: string };
 type StandardEdit = { kind: 'standard'; subjectType: 'activity' | 'task'; subjectId: string; record: StandardRow | null };
-type Editing = ActivityEdit | TaskEdit | IoEdit | StandardEdit | null;
+type RequirementsEdit = { kind: 'requirements'; subjectType: 'activity' | 'task'; subjectId: string; requirements: Requirements; title: string };
+type Editing = ActivityEdit | TaskEdit | IoEdit | StandardEdit | RequirementsEdit | null;
 
 /** Flat list of every activity for the dependency picker. */
 function flatten(tree: ActivityNode[], out: ActivityNode[] = []): ActivityNode[] {
@@ -36,7 +39,7 @@ function flatten(tree: ActivityNode[], out: ActivityNode[] = []): ActivityNode[]
  * standards. All writes go through the design routes; the process decides
  * whether anything may change (draft) — the tree only shows the controls.
  */
-export default function ActivityTree({ processId, tree, ioKinds, qualitySources, can }: Props) {
+export default function ActivityTree({ processId, tree, ioKinds, qualitySources, catalog, can }: Props) {
     const { t, locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState<Editing>(null);
@@ -106,11 +109,13 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
                     {task.required_output && <p className="text-xs text-[color:var(--app-muted-foreground)]">{tt('fields.requiredOutput')}: {task.required_output}</p>}
                     <div className="mt-1">{ioSummary(task.io)}</div>
                     {standards(task.standards, 'task', task.id)}
+                    <div className="mt-2"><RequirementsSummary requirements={task.requirements} /></div>
                 </div>
                 {can.update && (
                     <span className="flex flex-wrap gap-3">
                         <button type="button" className={actionLinkClassName()} onClick={() => setEditing({ kind: 'task', record: task, activityId: '' })}>{t('common.edit')}</button>
                         <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setEditing({ kind: 'io', subjectType: 'task', subjectId: task.id, rows: task.io, title: `${task.code} · ${nameOf(task, locale)}` })}>{tt('processes.editIo')}</button>
+                        <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setEditing({ kind: 'requirements', subjectType: 'task', subjectId: task.id, requirements: task.requirements, title: `${task.code} · ${nameOf(task, locale)}` })}>{tt('requirements.edit')}</button>
                         <button type="button" className={actionLinkClassName({ tone: 'danger' })} onClick={() => removeTask(task)}>{t('common.remove')}</button>
                     </span>
                 )}
@@ -133,6 +138,7 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
                             {(locale === 'am' ? node.description_am : node.description_en) && <p className="text-xs text-[color:var(--app-muted-foreground)]">{locale === 'am' ? node.description_am : node.description_en}</p>}
                             <div className="mt-1">{ioSummary(node.io)}</div>
                             {standards(node.standards, 'activity', node.id)}
+                            <div className="mt-2"><RequirementsSummary requirements={node.requirements} /></div>
                         </div>
                         {can.update && (
                             <span className="flex flex-wrap gap-3">
@@ -140,6 +146,7 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
                                 <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setEditing({ kind: 'activity', record: null, parentId: node.id })}>{tt('processes.addChildActivity')}</button>
                                 <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setEditing({ kind: 'task', record: null, activityId: node.id })}>{tt('processes.addTask')}</button>
                                 <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setEditing({ kind: 'io', subjectType: 'activity', subjectId: node.id, rows: node.io, title: `${node.code} · ${nameOf(node, locale)}` })}>{tt('processes.editIo')}</button>
+                                <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setEditing({ kind: 'requirements', subjectType: 'activity', subjectId: node.id, requirements: node.requirements, title: `${node.code} · ${nameOf(node, locale)}` })}>{tt('requirements.edit')}</button>
                                 <button type="button" className={actionLinkClassName({ tone: 'danger' })} onClick={() => removeActivity(node)}>{t('common.remove')}</button>
                             </span>
                         )}
@@ -159,6 +166,7 @@ export default function ActivityTree({ processId, tree, ioKinds, qualitySources,
             {editing?.kind === 'activity' && <ActivityForm processId={processId} record={editing.record} parentId={editing.parentId} parents={allActivities} onClose={() => setEditing(null)} />}
             {editing?.kind === 'task' && <TaskForm record={editing.record} activityId={editing.activityId} onClose={() => setEditing(null)} />}
             {editing?.kind === 'io' && <IoForm subjectType={editing.subjectType} subjectId={editing.subjectId} rows={editing.rows} title={editing.title} kinds={ioKinds} activities={allActivities} onClose={() => setEditing(null)} />}
+            {editing?.kind === 'requirements' && <RequirementsForm subjectType={editing.subjectType} subjectId={editing.subjectId} title={editing.title} requirements={editing.requirements} catalog={catalog} onClose={() => setEditing(null)} />}
             {editing?.kind === 'standard' && (
                 <WorkStandardForm
                     record={editing.record}

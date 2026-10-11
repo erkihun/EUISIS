@@ -17,6 +17,10 @@ use App\Models\OrganizationDesignStatusHistory;
 use App\Models\OrganizationUnit;
 use App\Models\Process;
 use App\Models\Service;
+use App\Models\Competency;
+use App\Models\CompetencyLevel;
+use App\Models\EducationLevel;
+use App\Models\Occupation;
 use App\Services\OrganizationDesign\ProcessArchitectureService;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
@@ -98,6 +102,7 @@ class ProcessController extends Controller
             'processTypes' => ProcessType::values(),
             'ioKinds' => WorkItemIoKind::values(),
             'qualitySources' => TaskQualitySource::values(),
+            'catalog' => $this->requirementCatalog(),
             'can' => [
                 'update' => $editable && $user->can('update', $process),
                 'publish' => $editable && $user->can('publish', $process) && (int) $process->created_by !== (int) $user->getKey(),
@@ -151,6 +156,29 @@ class ProcessController extends Controller
             'owner_unit' => $p->ownerUnit ? ['id' => $p->ownerUnit->id, 'code' => $p->ownerUnit->code, 'name_en' => $p->ownerUnit->name_en, 'name_am' => $p->ownerUnit->name_am] : null,
             'activities_count' => $p->activities_count ?? null, 'tasks_count' => $p->tasks_count ?? null,
             'effective_from' => $p->effective_from?->toDateString(), 'effective_to' => $p->effective_to?->toDateString(),
+        ];
+    }
+
+    /**
+     * The active catalog entries a designer may require: occupations with
+     * their professions and specializations, framework competencies, named
+     * levels and the education ladder. City-level, read by everyone.
+     *
+     * @return array<string, mixed>
+     */
+    private function requirementCatalog(): array
+    {
+        return [
+            'occupations' => Occupation::query()->where('is_active', true)->with(['professions' => fn ($q) => $q->where('is_active', true)->with(['specializations' => fn ($s) => $s->where('is_active', true)])])
+                ->orderBy('isco_code')->orderBy('code')->limit(2000)->get()
+                ->map(fn (Occupation $o) => [
+                    'id' => $o->id, 'code' => $o->code, 'isco_code' => $o->isco_code, 'name_en' => $o->name_en ?? $o->code, 'name_am' => $o->name_am,
+                    'professions' => $o->professions->map(fn ($p) => [...$p->only(['id', 'code', 'name_en', 'name_am']), 'specializations' => $p->specializations->map->only(['id', 'code', 'name_en', 'name_am'])->values()])->values(),
+                ])->values()->all(),
+            'competencies' => Competency::query()->where('is_active', true)->with('framework:id,code')->orderBy('code')->limit(2000)->get()
+                ->map(fn (Competency $c) => ['id' => $c->id, 'code' => $c->code, 'name_en' => $c->name_en, 'name_am' => $c->name_am, 'framework_code' => $c->framework?->code, 'competency_type_id' => $c->competency_type_id])->values()->all(),
+            'levels' => CompetencyLevel::query()->where('is_active', true)->orderBy('rank')->get()->map->only(['id', 'code', 'name_en', 'name_am', 'rank'])->values()->all(),
+            'educationLevels' => EducationLevel::query()->where('is_active', true)->orderBy('rank')->get()->map->only(['id', 'code', 'name_en', 'name_am', 'rank'])->values()->all(),
         ];
     }
 

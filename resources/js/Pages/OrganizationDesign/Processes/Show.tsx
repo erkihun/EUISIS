@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import ActivityTree, { IoForm, type ActivityNode, type IoRow } from '@/Components/organizationDesign/ActivityTree';
+import type { RequirementCatalog } from '@/Components/organizationDesign/RequirementsForm';
 import ProcessForm, { type Option, type ProcessFormValues, type ServiceOption } from '@/Components/organizationDesign/ProcessForm';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, actionLinkClassName, badgeClassName } from '@/Components/ui';
@@ -23,10 +24,11 @@ type Props = {
     processTypes: string[];
     ioKinds: string[];
     qualitySources: string[];
+    catalog: RequirementCatalog;
     can: { update: boolean; publish: boolean; version: boolean; manageStandards: boolean; approveStandards: boolean };
 };
 
-export default function ProcessShow({ process, activities, versions, history, services, organizationUnits, processTypes, ioKinds, qualitySources, can }: Props) {
+export default function ProcessShow({ process, activities, versions, history, services, organizationUnits, processTypes, ioKinds, qualitySources, catalog, can }: Props) {
     const { locale, tt } = useDesignText();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState(false);
@@ -110,7 +112,7 @@ export default function ProcessShow({ process, activities, versions, history, se
                     <Card>
                         <CardHeader><CardTitle>{tt('processes.tree')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('processes.treeHelp')}</p></CardHeader>
                         <div className="p-3">
-                            <ActivityTree processId={process.id} tree={activities} ioKinds={ioKinds} qualitySources={qualitySources} can={{ update: can.update, manageStandards: can.manageStandards && process.status !== 'cancelled', approveStandards: can.approveStandards }} />
+                            <ActivityTree processId={process.id} tree={activities} ioKinds={ioKinds} qualitySources={qualitySources} catalog={catalog} can={{ update: can.update, manageStandards: can.manageStandards && process.status !== 'cancelled', approveStandards: can.approveStandards }} />
                         </div>
                     </Card>
                 </div>

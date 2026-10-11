@@ -16,6 +16,7 @@ class Competency extends Model
 
     protected $fillable = [
         'framework_id',
+        'competency_type_id',
         'code',
         'name_en',
         'name_am',
@@ -30,6 +31,11 @@ class Competency extends Model
         return [
             'is_active' => 'boolean',
         ];
+    }
+
+    public function type(): BelongsTo
+    {
+        return $this->belongsTo(CompetencyType::class, 'competency_type_id');
     }
 
     public function framework(): BelongsTo
