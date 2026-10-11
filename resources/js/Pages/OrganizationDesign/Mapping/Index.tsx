@@ -75,7 +75,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                     <div className="grid gap-4 lg:grid-cols-3">
                         <div className="space-y-4 lg:col-span-2">
                             <Card>
-                                <CardHeader><CardTitle>{tt('mapping.positionTasks')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.positionTasksHelp')}</p></CardHeader>
+                                <CardHeader><div><CardTitle>{tt('mapping.positionTasks')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.positionTasksHelp')}</p></div></CardHeader>
                                 {unmapped.position_tasks.length === 0 ? <p className="px-5 py-6 text-center text-sm text-[color:var(--app-muted-foreground)]">{tt('mapping.noPositionTasks')}</p> : (
                                     <Table>
                                         <THead><tr><Th>{tt('fields.code')}</Th><Th>{tt('mapping.position')}</Th><Th>{tt('mapping.suggestions')}</Th><Th>{tt('mapping.masterTask')}</Th><Th align="right">{t('common.actions')}</Th></tr></THead>
@@ -168,7 +168,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
 
                             {can.catalog && catalog && (
                                 <Card>
-                                    <CardHeader><CardTitle>{tt('mapping.catalog')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.catalogHelp')}</p></CardHeader>
+                                    <CardHeader><div><CardTitle>{tt('mapping.catalog')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.catalogHelp')}</p></div></CardHeader>
                                     <div className="divide-y divide-[color:var(--app-border)]">
                                         <div>
                                             <p className="px-5 pt-4 text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{tt('mapping.occupations')}</p>
@@ -228,7 +228,7 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                         <div className="space-y-4">
                             {legacy && (
                                 <Card>
-                                    <CardHeader><CardTitle>{tt('mapping.legacy')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.legacyHelp')}</p></CardHeader>
+                                    <CardHeader><div><CardTitle>{tt('mapping.legacy')}</CardTitle><p className="mt-0.5 text-xs text-[color:var(--app-muted-foreground)]">{tt('mapping.legacyHelp')}</p></div></CardHeader>
                                     <div className="divide-y divide-[color:var(--app-border)]">
                                         {(['units', 'positions', 'position_services'] as const).map((kind) => (
                                             <div key={kind} className="px-5 py-3">
