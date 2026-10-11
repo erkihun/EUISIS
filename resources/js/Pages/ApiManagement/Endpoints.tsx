@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { badgeClassName, buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 interface Endpoint {
     id: string;
     method: string;
@@ -83,7 +83,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
             <Head title={t('apiManagement.endpointCatalog')} />
 
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                <Link href={route('api-management.index')} className={actionLinkClassName({ size: 'sm' })}>
                     &larr; {t('apiManagement.title')}
                 </Link>
 
@@ -163,7 +163,7 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                     <td className={tableCellClassName}>
                                         <Link
                                             href={route('api-management.endpoints.show', endpoint.id)}
-                                            className="font-mono text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                            className={actionLinkClassName({ className: 'font-mono' })}
                                         >
                                             {endpoint.uri}
                                         </Link>

@@ -8,7 +8,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronDown, ChevronRight, Layers, Plus, ShieldCheck, TagsIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Permission = {
     id: number;
     name: string;
@@ -264,7 +264,7 @@ function RowActions({
             {permission.can.view && (
                 <Link
                     href={route('permissions.show', permission.id)}
-                    className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                    className={actionLinkClassName({ tone: 'neutral' })}
                 >
                     {t('common.view')}
                 </Link>
@@ -272,7 +272,7 @@ function RowActions({
             {permission.can.update && (
                 <Link
                     href={route('permissions.edit', permission.id)}
-                    className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                    className={actionLinkClassName()}
                 >
                     {t('common.edit')}
                 </Link>

@@ -5,7 +5,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 type Establishment = {
     id: string;
     establishment_number: string;
@@ -132,7 +132,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             {establishment.status === 'approved' && (
                                 <Link
                                     href={route('vacancy-announcements.create') + `?establishment=${establishment.id}`}
-                                    className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                    className={actionLinkClassName()}
                                 >
                                     {t('vacancies.createAnnouncement')}
                                 </Link>

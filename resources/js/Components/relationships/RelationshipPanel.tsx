@@ -5,7 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type Option = {
     value: string;
     label: string;
@@ -232,7 +232,7 @@ export default function RelationshipPanel({
                             <button
                                 type="button"
                                 onClick={cancelEdit}
-                                className="text-xs text-[color:var(--app-muted-foreground)] hover:underline"
+                                className={actionLinkClassName({ tone: 'neutral' })}
                             >
                                 {t('common.cancel')}
                             </button>

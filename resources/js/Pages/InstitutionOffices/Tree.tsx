@@ -5,7 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 
-import { badgeClassName, buttonClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName } from '@/Components/ui';
 interface TreeNode {
     id: string;
     office_code: string;
@@ -59,7 +59,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                     </span>
                     <Link
                         href={route('institution-offices.show', node.id)}
-                        className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                        className={actionLinkClassName({ size: 'sm' })}
                     >
                         {node.name_en ?? node.office_code}
                     </Link>
@@ -77,13 +77,13 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                 <div className="flex items-center gap-1.5">
                     <Link
                         href={route('institution-offices.show', node.id)}
-                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-[color:var(--color-primary)] dark:hover:text-blue-400"
+                        className={actionLinkClassName({ tone: 'neutral' })}
                     >
                         {t('common.view')}
                     </Link>
                     <Link
                         href={route('institution-offices.edit', node.id)}
-                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                        className={actionLinkClassName({ tone: 'neutral' })}
                     >
                         {t('common.edit')}
                     </Link>

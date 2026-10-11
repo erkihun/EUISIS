@@ -5,7 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState, type JSX } from 'react';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 /**
  * Feedback services per position.
  *
@@ -167,13 +167,13 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                         {/* Sub-services, main tasks and task standards (BPR plans). */}
                                         <Link
                                             href={route('work-structure.show', row.id)}
-                                            className="mr-3 text-xs font-medium text-[color:var(--color-primary)] hover:underline"
+                                            className={actionLinkClassName({ className: 'mr-3' })}
                                         >
                                             {t('workStandards.open')}
                                         </Link>
                                         <Link
                                             href={route('position-services.edit', row.id)}
-                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                            className={actionLinkClassName()}
                                         >
                                             {t('common.edit')}
                                         </Link>

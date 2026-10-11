@@ -9,7 +9,7 @@ import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, inputClassName } from '@/Components/ui';
 interface UnitTypeOption {
     id: string;
     code: string;
@@ -323,7 +323,7 @@ export default function OrganizationUnitsCreate({
                         </PrimaryButton>
                         <Link
                             href={backUrl}
-                            className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                            className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}
                         >
                             {t('common.cancel')}
                         </Link>

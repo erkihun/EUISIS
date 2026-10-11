@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useState } from 'react';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type AnnouncementCan = {
     update: boolean;
     publish: boolean;
@@ -195,7 +195,7 @@ export default function TransferAnnouncementsIndex({ announcements, filters, can
                                             </svg>
                                             <p className="text-sm">{t('transfers.noAnnouncements')}</p>
                                             {can.create && (
-                                                <Link href={route('transfer-announcements.create')} className="mt-1 text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                                                <Link href={route('transfer-announcements.create')} className={actionLinkClassName({ size: 'sm', className: 'mt-1' })}>
                                                     {t('transfers.createAnnouncement')}
                                                 </Link>
                                             )}

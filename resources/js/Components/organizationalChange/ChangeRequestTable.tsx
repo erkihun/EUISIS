@@ -7,7 +7,7 @@ import { ChevronRight } from '@/Components/Icons';
 import type { JSX } from 'react';
 import type { ChangeRequestSummary, ChangeRequestListMeta } from './types';
 
-import { ListPagination, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { ListPagination, actionLinkClassName, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 type Props = {
     requests: ChangeRequestSummary[];
     meta: ChangeRequestListMeta;
@@ -70,7 +70,7 @@ export default function ChangeRequestTable({
                                 <td className={cellCls}>
                                     <Link
                                         href={route('organizational-change-requests.show', request.id)}
-                                        className="font-mono text-sm font-semibold text-[color:var(--color-primary)] hover:underline"
+                                        className={actionLinkClassName({ size: 'sm', className: 'font-mono' })}
                                     >
                                         {request.request_no}
                                     </Link>
@@ -103,7 +103,7 @@ export default function ChangeRequestTable({
                                     <Link
                                         href={route('organizational-change-requests.show', request.id)}
                                         aria-label={`${t('common.view')} ${request.request_no}`}
-                                        className="inline-flex items-center gap-1 text-xs font-semibold text-[color:var(--color-primary)] hover:underline"
+                                        className={actionLinkClassName({ className: 'inline-flex items-center gap-1' })}
                                     >
                                         {t('common.view')}
                                         <ChevronRight className="h-4 w-4" aria-hidden="true" />

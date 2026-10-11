@@ -9,7 +9,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { useLocale } from '@/hooks/useLocale';
 
-import { cx, selectClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, selectClassName } from '@/Components/ui';
 interface OrganizationOption {
     id: string;
     name_en: string;
@@ -298,7 +298,7 @@ export default function InstitutionOfficeCreate({
                         <PrimaryButton type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('institutionOffices.create')}
                         </PrimaryButton>
-                        <Link href={route('institution-offices.index')} className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]">
+                        <Link href={route('institution-offices.index')} className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}>
                             {t('common.cancel')}
                         </Link>
                     </div>

@@ -6,7 +6,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationUnitTreeNode } from '@/types/organizationUnit';
 
-import { cx, tableCellClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, tableCellClassName } from '@/Components/ui';
 interface Props {
     node: OrganizationUnitTreeNode;
     hierarchyNumber: string;
@@ -117,7 +117,7 @@ export default function OrganizationUnitTreeRow({
                                 organization_id: selectedOrgId,
                                 parent_unit_id: node.id,
                             })}
-                            className="flex items-center gap-0.5 text-xs font-medium text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300"
+                            className={actionLinkClassName({ tone: 'success', className: 'flex items-center gap-0.5' })}
                             title={t('organizationUnits.addOrganizationUnit')}
                         >
                             <Plus className="h-3 w-3" />
@@ -125,14 +125,14 @@ export default function OrganizationUnitTreeRow({
                     )}
                     <Link
                         href={route('organization-units.show', node.id)}
-                        className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                        className={actionLinkClassName({ tone: 'neutral' })}
                     >
                         {t('common.view')}
                     </Link>
                     {(canUpdate || node.can?.update) && !node.is_deleted && (
                         <Link
                             href={route('organization-units.edit', node.id)}
-                            className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                            className={actionLinkClassName()}
                         >
                             {t('common.edit')}
                         </Link>
@@ -141,7 +141,7 @@ export default function OrganizationUnitTreeRow({
                         <button
                             type="button"
                             onClick={handleDelete}
-                            className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                            className={actionLinkClassName({ tone: 'danger' })}
                         >
                             {t('common.delete')}
                         </button>
@@ -150,7 +150,7 @@ export default function OrganizationUnitTreeRow({
                         <button
                             type="button"
                             onClick={handleRestore}
-                            className="text-xs font-medium text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300"
+                            className={actionLinkClassName({ tone: 'success' })}
                         >
                             {t('common.restore')}
                         </button>

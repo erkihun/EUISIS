@@ -8,7 +8,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Row = {
     id: string;
     isic_code: string;
@@ -180,14 +180,14 @@ export default function IsicActivitiesIndex({
                                                 <div className="flex justify-end gap-3">
                                                     <Link
                                                         href={route('isic-activities.show', act.id)}
-                                                        className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                                                        className={actionLinkClassName({ tone: 'neutral' })}
                                                     >
                                                         {t('common.view')}
                                                     </Link>
                                                     {act.can.update && (
                                                         <Link
                                                             href={route('isic-activities.edit', act.id)}
-                                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]"
+                                                            className={actionLinkClassName()}
                                                         >
                                                             {t('common.edit')}
                                                         </Link>

@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 interface Endpoint {
     id: string;
     method: string;
@@ -61,7 +61,7 @@ export default function ApiManagementDocs({ markdown, scopes, groups }: Props) {
             <Head title={t('apiManagement.apiDocumentation')} />
 
             <div className="mb-4">
-                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                <Link href={route('api-management.index')} className={actionLinkClassName({ size: 'sm' })}>
                     &larr; {t('apiManagement.title')}
                 </Link>
             </div>

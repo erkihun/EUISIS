@@ -4,7 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Stats = {
     total_providers: number;
     active_providers: number;
@@ -113,7 +113,7 @@ export default function ProviderDashboard({
                         </h2>
                         <Link
                             href={route('cafeteria.providers.index')}
-                            className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                            className={actionLinkClassName()}
                         >
                             {t('common.viewAll')} →
                         </Link>
@@ -176,7 +176,7 @@ export default function ProviderDashboard({
                                         <td className={cx(tableCellClassName, 'text-right')}>
                                             <Link
                                                 href={route('cafeteria.providers.show', p.id)}
-                                                className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                className={actionLinkClassName()}
                                             >
                                                 {t('common.view')}
                                             </Link>

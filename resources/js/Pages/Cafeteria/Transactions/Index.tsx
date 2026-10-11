@@ -8,7 +8,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronRight } from '@/Components/Icons';
 
-import { FilterField, FilterPanel, ListPagination, Select, badgeClassName, buttonClassName, cx, hasFilterQuery, inputClassName, tableContainerClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, badgeClassName, buttonClassName, cx, hasFilterQuery, inputClassName, tableContainerClassName } from '@/Components/ui';
 type Transaction = {
     id: string; transaction_number: string; scanned_at: string | null;
     meal_amount: number; subsidy_amount_applied: number; employee_payable_amount: number; deduction_amount: number;
@@ -79,7 +79,7 @@ export default function TransactionsIndex({ transactions, meta, filters, provide
                             {transactions.map(txn => (
                                 <article key={txn.id} className="p-5 transition hover:bg-gray-50/60 dark:hover:bg-slate-800/20">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
-                                        <Link href={route('cafeteria.transactions.show', txn.id)} className="break-all font-mono text-sm font-semibold text-[color:var(--color-primary)] hover:underline">{txn.transaction_number}</Link>
+                                        <Link href={route('cafeteria.transactions.show', txn.id)} className={actionLinkClassName({ size: 'sm', className: 'break-all font-mono' })}>{txn.transaction_number}</Link>
                                         <div className="flex flex-wrap items-center gap-2"><StatusBadge status={txn.status} label={statusLabels[txn.status] ?? txn.status} />{txn.is_extra_scan && <span className={badgeClassName('warning')}>{t('cafeteria.extraScanBadge')}</span>}</div>
                                     </div>
                                     <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">

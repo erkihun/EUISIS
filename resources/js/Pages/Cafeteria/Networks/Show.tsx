@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { actionLinkClassName } from '@/Components/ui';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link } from '@inertiajs/react';
@@ -82,7 +83,7 @@ export default function NetworkShow({ network, tree, access, can }: {
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <StatusPill status={a.status} />
-                                        {can.manageAccess && <Link href={route('cafeteria.access.edit', a.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('cafeteriaPolicy.edit')}</Link>}
+                                        {can.manageAccess && <Link href={route('cafeteria.access.edit', a.id)} className={actionLinkClassName()}>{t('cafeteriaPolicy.edit')}</Link>}
                                     </div>
                                 </li>
                             ))}

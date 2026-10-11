@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import NfcStatusBadge, { useNfcTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, FilterField, ListPagination, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, actionLinkClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
 
@@ -179,7 +179,7 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                                         <td className={cx(tableCellClassName, 'text-right')}>
                                             <Link
                                                 href={route('nfc-management.credentials.show', row.credential_id)}
-                                                className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                className={actionLinkClassName({ size: 'sm' })}
                                             >
                                                 {t('nfc.view')}
                                             </Link>

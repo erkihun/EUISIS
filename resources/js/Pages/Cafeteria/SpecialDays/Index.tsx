@@ -7,7 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type SpecialDay = {
     id: string; special_date: string; name_en: string; name_am: string | null;
     day_type: string; day_type_label: string; is_open: boolean; is_subsidy_day: boolean;
@@ -98,7 +98,7 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                                                     {d.deleted_at
                                                         ? d.can.restore && <button onClick={() => handleRestore(d.id)} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.restore')}</button>
                                                         : <>
-                                                            {d.can.update && <Link href={route('cafeteria.special-days.edit', d.id)} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.edit')}</Link>}
+                                                            {d.can.update && <Link href={route('cafeteria.special-days.edit', d.id)} className={actionLinkClassName({ size: 'sm' })}>{t('common.edit')}</Link>}
                                                             {d.can.archive && <button onClick={() => handleArchive(d.id)} className="text-sm text-red-500 hover:underline">{t('common.delete')}</button>}
                                                         </>
                                                     }

@@ -6,7 +6,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import SearchPicker from '@/Components/fieldWork/SearchPicker';
 import { useState } from 'react';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type ExclusionTypeOption = { value: string; label: string };
 type EmployeeOption = { id: string; employee_number: string; full_name: string };
 
@@ -45,7 +45,7 @@ export default function EmployeeExclusionCreate({ exclusion_types }: { exclusion
                                     <span className={labelCls}>{t('common.employee')} *</span>
                                     <div className="flex items-center justify-between gap-2 rounded-lg border border-[color:var(--app-border-strong)] px-3 py-2 text-sm">
                                         <span>{selected.full_name} ({selected.employee_number})</span>
-                                        <button type="button" className="text-xs font-medium text-[color:var(--color-primary)] hover:underline" onClick={() => { setSelected(null); setData('employee_id', ''); }}>
+                                        <button type="button" className={actionLinkClassName()} onClick={() => { setSelected(null); setData('employee_id', ''); }}>
                                             {t('common.change')}
                                         </button>
                                     </div>

@@ -9,7 +9,7 @@ import { AlertTriangle, CheckCircle, Plus, ShieldCheck, TagsIcon, X, XCircle } f
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { SettingField, SettingsIndexProps } from '@/types/grievances';
 
-import { badgeClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, tableRowClassName } from '@/Components/ui';
 /*
  * Grievance Management → Settings (design: Claude Design canvas
  * "Grievance Settings redesign"). Readiness checklist, grouped section nav
@@ -234,7 +234,7 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
                         {rows.map(row => (
                             <tr key={row.id} className={tableRowClassName}>
                                 {cells(row).map((cell, i) => <td key={i} className={tdCls}>{cell}</td>)}
-                                <td className={`${tdCls} text-right`}>{canEdit && <button type="button" className="text-sm font-semibold text-[color:var(--color-primary)] hover:underline" onClick={() => setEditing(row)}>{t('grievances.common.edit')}</button>}</td>
+                                <td className={`${tdCls} text-right`}>{canEdit && <button type="button" className={actionLinkClassName({ size: 'sm' })} onClick={() => setEditing(row)}>{t('grievances.common.edit')}</button>}</td>
                             </tr>
                         ))}
                     </Table>
@@ -458,7 +458,7 @@ function DelegationsSection({ props }: { props: SettingsIndexProps }) {
 function RevokeButton({ id }: { id: string }) {
     const { t } = useLocale();
     const form = useForm({});
-    return <button type="button" className="text-xs font-semibold text-red-700 hover:underline disabled:opacity-50 dark:text-red-400" disabled={form.processing} onClick={() => form.post(route('grievances.settings.delegations.revoke', id), { preserveScroll: true })}>{t('grievanceAdmin.revoke')}</button>;
+    return <button type="button" className={actionLinkClassName({ tone: 'danger' })} disabled={form.processing} onClick={() => form.post(route('grievances.settings.delegations.revoke', id), { preserveScroll: true })}>{t('grievanceAdmin.revoke')}</button>;
 }
 
 function LetterheadsSection({ props }: { props: SettingsIndexProps }) {
@@ -497,7 +497,7 @@ function SealsSection({ props }: { props: SettingsIndexProps }) {
 
 function SealAction({ id, action, label }: { id: string; action: 'approve' | 'retire'; label: string }) {
     const form = useForm({ action });
-    return <button type="button" className="text-xs font-semibold text-[color:var(--color-primary)] hover:underline disabled:opacity-50" disabled={form.processing} onClick={() => form.post(route('grievances.settings.seals.decide', id), { preserveScroll: true })}>{label}</button>;
+    return <button type="button" className={actionLinkClassName()} disabled={form.processing} onClick={() => form.post(route('grievances.settings.seals.decide', id), { preserveScroll: true })}>{label}</button>;
 }
 
 // ── Letter templates: list + editor with token insertion and preview ────────

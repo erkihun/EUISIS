@@ -20,7 +20,7 @@ import {
     labelCls,
 } from '@/Components/employees/EmployeeFormLayout';
 
-import { buttonClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 /** Mirrors App\Enums\EmploymentType — how an employee is engaged. */
 const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation', 'daily_labor', 'intern', 'other'] as const;
 
@@ -286,7 +286,7 @@ export default function EmployeesEdit({
                                             <button
                                                 type="button"
                                                 onClick={toggleRemovePhoto}
-                                                className="text-xs text-red-500 transition hover:text-red-700"
+                                                className={actionLinkClassName({ tone: 'danger' })}
                                             >
                                                 {t('common.remove')}
                                             </button>
@@ -326,7 +326,7 @@ export default function EmployeesEdit({
                                             <button
                                                 type="button"
                                                 onClick={toggleRemovePhoto}
-                                                className="ml-auto text-xs text-red-500 transition hover:text-red-700"
+                                                className={actionLinkClassName({ tone: 'danger', className: 'ml-auto' })}
                                             >
                                                 {t('common.undo')}
                                             </button>

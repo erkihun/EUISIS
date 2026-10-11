@@ -11,7 +11,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
-import { FilterField, FilterPanel, Input, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type EstablishmentSummary = {
     id: string;
     status: 'draft' | 'approved' | 'archived';
@@ -303,7 +303,7 @@ export default function PositionsIndex({
                                                                     </Link>
                                                                 )}
                                                                 {position.can.update && (
-                                                                    <Link href={route('positions.edit', position.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]">
+                                                                    <Link href={route('positions.edit', position.id)} className={actionLinkClassName()}>
                                                                         {t('common.edit')}
                                                                     </Link>
                                                                 )}

@@ -5,7 +5,7 @@ import EmptyState from '@/Components/EmptyState';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type RoleRow = {
     id: number;
     name: string;
@@ -122,7 +122,7 @@ export default function RolesIndex({
                                                 {r.can.update && (
                                                     <Link
                                                         href={route('roles.edit', r.id)}
-                                                        className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                                        className={actionLinkClassName()}
                                                     >
                                                         {t('common.edit')}
                                                     </Link>

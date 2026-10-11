@@ -12,7 +12,7 @@ import OrganizationStructureTree, { type OrganizationStructureTreeData } from '@
 import StatusDistribution from '@/Components/dashboard/StatusDistribution';
 import { useState } from 'react';
 
-import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 /** Keys returned by OrganizationDeletionGuard::reasons(), mapped to i18n labels below. */
 type DeletionBlockerKey =
     | 'usedInPublishedHierarchy'
@@ -503,7 +503,7 @@ export default function OrganizationShow({
                         </h3>
                         <Link
                             href={`${route('institution-offices.create')}?institution_id=${organization.id}`}
-                            className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                            className={actionLinkClassName()}
                         >
                             + {t('institutionOffices.addOffice')}
                         </Link>
@@ -553,7 +553,7 @@ export default function OrganizationShow({
                                         <td className={tableCellClassName}>
                                             <Link
                                                 href={route('institution-offices.show', office.id)}
-                                                className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                className={actionLinkClassName()}
                                             >
                                                 {t('common.view')}
                                             </Link>

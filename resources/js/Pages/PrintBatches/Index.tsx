@@ -5,7 +5,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { ListPagination, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type BatchRow = {
     id: string;
     batch_number: string;
@@ -161,7 +161,7 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                                         <td className={cx(tableCellClassName, 'text-right')}>
                                             <Link
                                                 href={route('print-batches.show', batch.id)}
-                                                className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                                className={actionLinkClassName()}
                                             >
                                                 {t('common.view')}
                                             </Link>

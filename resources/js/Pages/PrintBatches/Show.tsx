@@ -5,7 +5,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { badgeClassName, buttonClassName, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, inputClassName } from '@/Components/ui';
 type BatchItem = {
     id: string;
     status: string;
@@ -227,7 +227,7 @@ export default function PrintBatchShow({ batch, can }: PageProps) {
                                             <>
                                                 <Link
                                                     href={route('id-cards.show', item.card.id)}
-                                                    className="font-mono text-sm font-semibold text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                                    className={actionLinkClassName({ size: 'sm', className: 'font-mono' })}
                                                 >
                                                     {item.card.card_number}
                                                 </Link>

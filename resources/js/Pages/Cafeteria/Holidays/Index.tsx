@@ -7,7 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, hasFilterQuery, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, actionLinkClassName, buttonClassName, cx, hasFilterQuery, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Holiday = {
     id: string; name_en: string; name_am: string | null;
     holiday_date: string; is_recurring: boolean; is_active: boolean;
@@ -74,7 +74,7 @@ export default function HolidaysIndex({ holidays, meta, filters, year, can }: { 
                                             <td className={cx(tableCellClassName, 'text-center')}>{h.is_recurring ? '✓' : '—'}</td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
                                                 <div className="flex justify-end gap-2">
-                                                    {h.can.update && <Link href={route('cafeteria.holidays.edit', h.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}
+                                                    {h.can.update && <Link href={route('cafeteria.holidays.edit', h.id)} className={actionLinkClassName()}>{t('common.edit')}</Link>}
                                                     {h.can.archive && !h.deleted_at && <button onClick={() => handleArchive(h.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
                                                 </div>
                                             </td>

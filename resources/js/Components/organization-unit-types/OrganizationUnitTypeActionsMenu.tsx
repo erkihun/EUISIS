@@ -1,4 +1,5 @@
 import { Link, router } from '@inertiajs/react';
+import { actionLinkClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 
 type UnitType = {
@@ -28,7 +29,7 @@ export default function OrganizationUnitTypeActionsMenu({ type }: Props) {
             {type.can.update && !type.deleted_at && (
                 <Link
                     href={route('organization-unit-types.edit', type.id)}
-                    className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                    className={actionLinkClassName()}
                 >
                     {t('common.edit')}
                 </Link>
@@ -37,7 +38,7 @@ export default function OrganizationUnitTypeActionsMenu({ type }: Props) {
                 <button
                     type="button"
                     onClick={archive}
-                    className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                    className={actionLinkClassName({ tone: 'danger' })}
                 >
                     {t('common.delete')}
                 </button>
@@ -46,7 +47,7 @@ export default function OrganizationUnitTypeActionsMenu({ type }: Props) {
                 <button
                     type="button"
                     onClick={restore}
-                    className="text-xs font-medium text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
+                    className={actionLinkClassName({ tone: 'success' })}
                 >
                     {t('common.restore')}
                 </button>

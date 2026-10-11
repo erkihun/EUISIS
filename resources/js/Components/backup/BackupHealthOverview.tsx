@@ -1,4 +1,5 @@
 import { ActivityIcon, AlertTriangle, ArchiveIcon, CheckCircle, ChevronRight, ClipboardCheckIcon, HistoryIcon, InfoIcon, Layers, ShieldCheck, XCircle } from '@/Components/Icons';
+import { actionLinkClassName } from '@/Components/ui';
 import { Card, StatusBadge, cx, type Tone } from '@euisis/ui';
 import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
@@ -63,7 +64,7 @@ export function BackupHealthCard({ status }: { status: BackupHealth }) {
                     </div>
                     <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{headline(status, text)}</p>
                 </div>
-                <Link href={route('backups.index')} className="inline-flex items-center gap-1 text-sm font-medium text-[color:var(--color-primary)] hover:underline">
+                <Link href={route('backups.index')} className={actionLinkClassName({ size: 'sm', className: 'inline-flex items-center gap-1' })}>
                     {text.t('backup.openPage')}<ChevronRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
             </div>

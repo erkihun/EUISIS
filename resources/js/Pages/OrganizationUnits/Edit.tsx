@@ -9,7 +9,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationUnit, OrganizationUnitStatus } from '@/types/organizationUnit';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, inputClassName } from '@/Components/ui';
 interface UnitTypeOption {
     id: string;
     code: string;
@@ -261,7 +261,7 @@ export default function OrganizationUnitsEdit({
                         </PrimaryButton>
                         <Link
                             href={route('organization-units.show', unit.id)}
-                            className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                            className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}
                         >
                             {t('common.cancel')}
                         </Link>

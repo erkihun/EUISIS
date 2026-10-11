@@ -7,7 +7,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type UnitType = {
     id: string;
     code: string;
@@ -138,7 +138,7 @@ export default function OrganizationUnitTypesIndex({
                                                 {type.can.update && !type.deleted_at && (
                                                     <Link
                                                         href={route('organization-unit-types.edit', type.id)}
-                                                        className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                                        className={actionLinkClassName()}
                                                     >
                                                         {t('common.edit')}
                                                     </Link>

@@ -52,6 +52,36 @@ export function buttonClassName({ variant = 'default', size = 'default', classNa
     );
 }
 
+export type ActionTone = 'primary' | 'neutral' | 'danger' | 'success';
+
+const actionTones: Record<ActionTone, string> = {
+    primary: 'text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]',
+    neutral: 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]',
+    danger: 'text-red-700 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300',
+    success: 'text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300',
+};
+
+/**
+ * An inline text action — Edit, View, Restore in a table row or beside a
+ * heading. Underlines on hover; `danger` for removals, `success` for restores.
+ * Add layout (`ml-auto`, `inline-flex gap-1`) and typography (`font-mono`)
+ * through `className`, never another colour.
+ */
+export function actionLinkClassName({ tone = 'primary', size = 'xs', className = '' }: {
+    tone?: ActionTone;
+    size?: 'xs' | 'sm';
+    className?: string;
+} = {}): string {
+    return cx(
+        'font-medium underline-offset-4 transition-colors hover:underline',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] focus-visible:ring-offset-2',
+        'disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50',
+        size === 'xs' ? 'text-xs' : 'text-sm',
+        actionTones[tone],
+        className,
+    );
+}
+
 type PolymorphicRef<T extends ElementType> = ComponentPropsWithoutRef<T>['ref'];
 export type ButtonProps<T extends ElementType = 'button'> = {
     as?: T;

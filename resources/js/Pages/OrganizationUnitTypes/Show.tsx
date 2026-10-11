@@ -4,7 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 type OrgUnitType = {
     id: string;
     code: string;
@@ -89,7 +89,7 @@ export default function OrganizationUnitTypesShow({ type }: { type: OrgUnitType 
                 <div className="flex">
                     <Link
                         href={route('organization-unit-types.index')}
-                        className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                        className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}
                     >
                         {t('organizationUnitTypes.backToList')}
                     </Link>

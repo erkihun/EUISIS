@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { actionLinkClassName } from '@/Components/ui';
 import { Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -18,7 +19,7 @@ export default function PageHeader({ title, description, actions, backHref }: Pr
                     {backHref && (
                         <Link
                             href={backHref}
-                            className="mb-2 inline-flex items-center gap-1 text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                            className={actionLinkClassName({ tone: 'neutral', className: 'mb-2 inline-flex items-center gap-1' })}
                         >
                             <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />

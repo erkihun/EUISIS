@@ -6,7 +6,7 @@ import { Details, Empty, GPill, HandlerName, Section, SlaBadge, Table, employeeN
 import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { CaseShowProps, ReasonCode } from '@/types/grievances';
 
-import { cx, inputClassName, selectClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, inputClassName, selectClassName } from '@/Components/ui';
 type Tab = { id: string; label: string; content: ReactNode };
 
 /**
@@ -328,7 +328,7 @@ function CustodyButton({ url }: { url: string }) {
     const { t } = useLocale(); const label = useEnumLabel();
     const [rows, setRows] = useState<{ action: string; actor: string | null; ip_address: string | null; occurred_at: string }[] | null>(null);
     const load = async () => { const res = await fetch(url, { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }); if (res.ok) setRows(await res.json()); };
-    return <div>{rows === null ? <button type="button" className="text-xs text-[color:var(--color-primary)] underline" onClick={load}>{t('grievanceCases.custody')}</button>
+    return <div>{rows === null ? <button type="button" className={actionLinkClassName()} onClick={load}>{t('grievanceCases.custody')}</button>
         : <ul className="space-y-1 text-[11px]">{rows.map((x, i) => <li key={i}>{label('custody_action', x.action)} · {x.actor ?? '—'} · <DateDisplay value={x.occurred_at} withTime /></li>)}</ul>}</div>;
 }
 

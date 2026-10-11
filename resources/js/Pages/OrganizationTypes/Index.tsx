@@ -7,7 +7,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type OrgType = {
     id: string;
     code: string;
@@ -174,14 +174,14 @@ export default function OrganizationTypesIndex({
                                             <div className="flex items-center justify-end gap-3">
                                                 <Link
                                                     href={route('organization-types.show', type.id)}
-                                                    className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                                                    className={actionLinkClassName({ tone: 'neutral' })}
                                                 >
                                                     {tr('common.view')}
                                                 </Link>
                                                 {type.can.update && (
                                                     <Link
                                                         href={route('organization-types.edit', type.id)}
-                                                        className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                                        className={actionLinkClassName()}
                                                     >
                                                         {tr('common.edit')}
                                                     </Link>

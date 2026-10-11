@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type CardRow = {
     id: string;
     card_number: string;
@@ -254,7 +254,7 @@ export default function IdCardsIndex({ cards, can, filters = {}, summary, organi
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>
                                             {card.can?.view !== false && (
-                                                <div className="flex justify-end gap-3"><Link href={route('id-cards.show', card.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">{t('common.view')}</Link><Link href={route('id-cards.preview', card.id)} className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]">{t('idCards.previewCard')}</Link></div>
+                                                <div className="flex justify-end gap-3"><Link href={route('id-cards.show', card.id)} className={actionLinkClassName()}>{t('common.view')}</Link><Link href={route('id-cards.preview', card.id)} className={actionLinkClassName({ tone: 'neutral' })}>{t('idCards.previewCard')}</Link></div>
                                             )}
                                         </td>
                                     </tr>

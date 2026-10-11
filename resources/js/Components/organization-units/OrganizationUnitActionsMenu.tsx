@@ -1,4 +1,5 @@
 import { Link, router } from '@inertiajs/react';
+import { actionLinkClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import type { OrganizationUnit } from '@/types/organizationUnit';
@@ -27,14 +28,14 @@ export default function OrganizationUnitActionsMenu({ unit }: Props) {
         <div className="flex items-center justify-end gap-3">
             <Link
                 href={route('organization-units.show', unit.id)}
-                className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                className={actionLinkClassName({ tone: 'neutral' })}
             >
                 {t('common.view')}
             </Link>
             {unit.can.update && (
                 <Link
                     href={route('organization-units.edit', unit.id)}
-                    className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                    className={actionLinkClassName()}
                 >
                     {t('common.edit')}
                 </Link>
@@ -43,7 +44,7 @@ export default function OrganizationUnitActionsMenu({ unit }: Props) {
                 <button
                     type="button"
                     onClick={handleDelete}
-                    className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                    className={actionLinkClassName({ tone: 'danger' })}
                 >
                     {t('common.delete')}
                 </button>

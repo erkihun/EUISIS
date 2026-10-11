@@ -7,7 +7,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type EntitlementRuleRow = {
     id: string;
     name: string;
@@ -145,7 +145,7 @@ export default function EntitlementRulesIndex({
                                             <td className={tableCellClassName}>
                                                 <div className="flex justify-end gap-3">
                                                     {rule.can.update && (
-                                                        <Link href={route('entitlement-rules.edit', rule.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]">
+                                                        <Link href={route('entitlement-rules.edit', rule.id)} className={actionLinkClassName()}>
                                                             {t('common.edit')}
                                                         </Link>
                                                     )}

@@ -7,7 +7,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type OccupationRow = {
     id: string;
     isco_code: string;
@@ -160,14 +160,14 @@ export default function OccupationsIndex({
                                                 <div className="flex justify-end gap-3">
                                                     <Link
                                                         href={route('occupations.show', occ.id)}
-                                                        className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                                                        className={actionLinkClassName({ tone: 'neutral' })}
                                                     >
                                                         {t('common.view')}
                                                     </Link>
                                                     {occ.can.update && (
                                                         <Link
                                                             href={route('occupations.edit', occ.id)}
-                                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)]"
+                                                            className={actionLinkClassName()}
                                                         >
                                                             {t('common.edit')}
                                                         </Link>

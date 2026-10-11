@@ -10,7 +10,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
-import { buttonClassName, cx, textareaClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, textareaClassName } from '@/Components/ui';
 type CardRequestData = {
     id: string;
     request_type?: string | null;
@@ -300,7 +300,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                 </div>
                                 <Link
                                     href={route('employees.show', cardRequest.employee.id)}
-                                    className="ml-auto shrink-0 text-xs text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                                    className={actionLinkClassName({ className: 'ml-auto shrink-0' })}
                                 >
                                     {t('common.view')}
                                 </Link>

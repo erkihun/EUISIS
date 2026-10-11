@@ -31,6 +31,7 @@ export {
     Textarea,
     Tooltip,
     UiProvider,
+    actionLinkClassName,
     badgeClassName,
     buttonClassName,
     controlClassName,
@@ -62,4 +63,4 @@ export {
     filterPanelClassName,
     paginationItemClassName,
 } from '@euisis/ui';
-export type { ButtonProps, ButtonSize, ButtonVariant, Tone, UiMessages } from '@euisis/ui';
+export type { ActionTone, ButtonProps, ButtonSize, ButtonVariant, Tone, UiMessages } from '@euisis/ui';

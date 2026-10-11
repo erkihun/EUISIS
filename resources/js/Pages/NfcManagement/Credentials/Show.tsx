@@ -11,7 +11,7 @@ import NfcStatusBadge, {
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
 
-import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type Props = {
     credential: {
         credential_id: string;
@@ -127,7 +127,7 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
                             {credential.replaced_by ? (
                                 <Link
                                     href={route('nfc-management.credentials.show', credential.replaced_by)}
-                                    className="break-all font-mono text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                    className={actionLinkClassName({ className: 'break-all font-mono' })}
                                 >
                                     {credential.replaced_by.slice(0, 18)}…
                                 </Link>

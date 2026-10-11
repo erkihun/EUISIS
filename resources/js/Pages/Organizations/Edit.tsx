@@ -8,7 +8,7 @@ import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import FormSection from '@/Components/FormSection';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
 
 type Organization = {
@@ -266,7 +266,7 @@ export default function EditOrganization({
                                                     <button
                                                         type="button"
                                                         onClick={toggleRemoveLogo}
-                                                        className="text-left text-xs text-red-500 hover:text-red-700"
+                                                        className={actionLinkClassName({ tone: 'danger' })}
                                                     >
                                                         {t('organizations.removeLogo')}
                                                     </button>
@@ -282,7 +282,7 @@ export default function EditOrganization({
                                                 <button
                                                     type="button"
                                                     onClick={toggleRemoveLogo}
-                                                    className="ml-auto text-xs text-red-500 hover:text-red-700"
+                                                    className={actionLinkClassName({ tone: 'danger', className: 'ml-auto' })}
                                                 >
                                                     {t('common.undo')}
                                                 </button>
@@ -303,7 +303,7 @@ export default function EditOrganization({
                                                     <button
                                                         type="button"
                                                         onClick={clearNewLogo}
-                                                        className="text-left text-xs text-red-500 hover:text-red-700"
+                                                        className={actionLinkClassName({ tone: 'danger' })}
                                                     >
                                                         {t('common.cancel')}
                                                     </button>

@@ -9,7 +9,7 @@ import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 
-import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Role = { id: number; name: string; scope: 'organization' | 'global' };
 
 type OrganizationScope = {
@@ -216,7 +216,7 @@ export default function EditUser({
                                         <button
                                             type="button"
                                             onClick={removePhoto}
-                                            className="text-left text-xs text-red-500 hover:text-red-700 dark:text-red-400"
+                                            className={actionLinkClassName({ tone: 'danger' })}
                                         >
                                             {t('common.remove')}
                                         </button>

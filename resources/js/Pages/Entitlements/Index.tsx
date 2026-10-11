@@ -8,7 +8,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { ListPagination, buttonClassName, cx, inputClassName, type LaravelPageMeta } from '@/Components/ui';
+import { ListPagination, actionLinkClassName, buttonClassName, cx, inputClassName, type LaravelPageMeta } from '@/Components/ui';
 type EntitlementRow = {
     id: string;
     status: string;
@@ -205,7 +205,7 @@ export default function EntitlementsIndex({
                                         <span>{selectedEmployee.employee_number} · {selectedEmployee.full_name}</span>
                                         <button
                                             type="button"
-                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:underline"
+                                            className={actionLinkClassName()}
                                             onClick={() => { setSelectedEmployee(null); form.setData('employee_id', ''); }}
                                         >
                                             {t('common.change')}

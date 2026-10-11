@@ -7,7 +7,7 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Provider = {
     id: string;
     code: string;
@@ -105,8 +105,8 @@ export default function ProvidersIndex({
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
                                                 <div className="flex justify-end gap-2">
-                                                    <Link href={route('cafeteria.providers.show', p.id)} className="text-xs font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.view')}</Link>
-                                                    {p.can.update && <Link href={route('cafeteria.providers.edit', p.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.edit')}</Link>}
+                                                    <Link href={route('cafeteria.providers.show', p.id)} className={actionLinkClassName()}>{t('common.view')}</Link>
+                                                    {p.can.update && <Link href={route('cafeteria.providers.edit', p.id)} className={actionLinkClassName()}>{t('common.edit')}</Link>}
                                                     {p.can.archive && !p.deleted_at && <button onClick={() => handleArchive(p.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
                                                     {p.can.restore && p.deleted_at && <button onClick={() => handleRestore(p.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.restore')}</button>}
                                                 </div>

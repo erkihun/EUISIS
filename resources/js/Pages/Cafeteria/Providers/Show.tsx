@@ -5,7 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Provider = {
     id: string; code: string; name_en: string; name_am: string | null;
     contact_person: string | null; phone_number: string | null; email: string | null;
@@ -162,7 +162,7 @@ export default function ProviderShow({
                                                     <div className="flex justify-end gap-3">
                                                         <Link
                                                             href={route('cafeteria.providers.branches.edit', { cafeteriaProvider: provider.id, branch: b.id })}
-                                                            className="text-xs text-[color:var(--color-primary)] hover:underline"
+                                                            className={actionLinkClassName()}
                                                         >
                                                             {t('common.edit')}
                                                         </Link>
@@ -193,7 +193,7 @@ export default function ProviderShow({
                         {can.manageUsers && (
                             <Link
                                 href={route('cafeteria.settings.index') + '?tab=provider-users'}
-                                className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                className={actionLinkClassName()}
                             >
                                 {t('cafeteria.manageAdminUsers')} →
                             </Link>

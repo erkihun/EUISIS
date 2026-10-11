@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { FilterField, FilterPanel, ListPagination, Select, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type LogRow = {
     id: string;
     application: { id: string; name: string; code: string } | null;
@@ -32,7 +32,7 @@ export default function ApiManagementLogs({ logs, filters, applications }: Props
             <Head title={t('apiManagement.apiLogs')} />
 
             <div className="mb-4">
-                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                <Link href={route('api-management.index')} className={actionLinkClassName({ size: 'sm' })}>
                     &larr; {t('apiManagement.title')}
                 </Link>
             </div>

@@ -11,7 +11,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useConfirm } from '@/Components/ConfirmProvider';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type UserRow = {
     id: number;
     name: string;
@@ -238,7 +238,7 @@ export default function UsersIndex({
                                                 {u.can.update && (
                                                     <Link
                                                         href={route('users.edit', u.id)}
-                                                        className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                                        className={actionLinkClassName()}
                                                     >
                                                         {t('common.edit')}
                                                     </Link>

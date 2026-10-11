@@ -4,7 +4,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { FormEvent, JSX } from 'react';
 import type { ChangeRequestDetail } from './types';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type Props = {
     request: ChangeRequestDetail;
     canUpload: boolean;
@@ -75,7 +75,7 @@ export default function AttachmentsPanel({ request, canUpload, attachmentTypes }
                             </div>
                             <a
                                 href={route('organizational-change-requests.attachments.download', [request.id, attachment.id])}
-                                className="shrink-0 text-xs font-semibold text-[color:var(--color-primary)] hover:underline"
+                                className={actionLinkClassName({ className: 'shrink-0' })}
                             >
                                 {t('organizationalChangeRequests.actions.download')}
                             </a>

@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { actionLinkClassName } from '@/Components/ui';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
@@ -37,7 +38,7 @@ export default function VacancyApplicationsMyApplications({ applications }: Prop
             {applications.data.length === 0 ? (
                 <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-10 text-center">
                     <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('vacancies.noApplications')}</p>
-                    <Link href={route('vacancy-announcements.index')} className="mt-4 inline-block text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                    <Link href={route('vacancy-announcements.index')} className={actionLinkClassName({ size: 'sm', className: 'mt-4 inline-block' })}>
                         {t('vacancies.announcements')}
                     </Link>
                 </div>

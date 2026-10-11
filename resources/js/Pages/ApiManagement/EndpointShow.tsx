@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 interface Endpoint {
     id: string;
     method: string;
@@ -80,7 +80,7 @@ export default function ApiManagementEndpointShow({
             <Head title={endpoint.uri} />
 
             <div className="mb-4">
-                <Link href={route('api-management.endpoints')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                <Link href={route('api-management.endpoints')} className={actionLinkClassName({ size: 'sm' })}>
                     &larr; {t('apiManagement.endpointCatalog')}
                 </Link>
             </div>

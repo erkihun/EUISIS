@@ -6,7 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { buttonClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 export default function OccupationsShow({ occupation }: { occupation: any }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
@@ -124,7 +124,7 @@ export default function OccupationsShow({ occupation }: { occupation: any }) {
                     <div>
                         <Link
                             href={route('occupations.index')}
-                            className="text-sm text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                            className={actionLinkClassName({ size: 'sm' })}
                         >
                             {t('occupations.backToList')}
                         </Link>

@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import RelationshipPanel, { type RelationshipRow } from '@/Components/relationships/RelationshipPanel';
 import ReportingLinesPanel from '@/Components/relationships/ReportingLinesPanel';
 
-import { badgeClassName, buttonClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName } from '@/Components/ui';
 interface ChildOffice {
     id: string;
     office_code: string;
@@ -198,7 +198,7 @@ export default function InstitutionOfficesShow({ office, can, relationships, rel
                                     <div>
                                         <Link
                                             href={route('institution-offices.show', child.id)}
-                                            className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                            className={actionLinkClassName({ size: 'sm' })}
                                         >
                                             {child.name_en ?? child.office_code}
                                         </Link>

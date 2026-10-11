@@ -8,7 +8,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import SearchPicker from '@/Components/fieldWork/SearchPicker';
 
-import { FilterField, FilterPanel, ListPagination, Select, cx, filterCaptionClassName, filterFieldClassName, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, cx, filterCaptionClassName, filterFieldClassName, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type EmployeeOption = { id: string; full_name: string; employee_number: string };
 
 type LedgerEntry = {
@@ -103,7 +103,7 @@ export default function LedgerIndex({
                                 <span className={filterCaptionClassName}>{t('cafeteria.employeeInfo')}</span>
                                 <div className="flex h-[var(--control-h-md)] items-center justify-between gap-2 rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)] px-3 text-sm">
                                     <span className="min-w-0 truncate text-[color:var(--app-foreground)]">{picked.employee_number} · {picked.full_name}</span>
-                                    <button type="button" className="text-xs font-medium text-[color:var(--color-primary)] hover:underline" onClick={() => setPicked(null)}>{t('common.change')}</button>
+                                    <button type="button" className={actionLinkClassName()} onClick={() => setPicked(null)}>{t('common.change')}</button>
                                 </div>
                             </>
                         ) : (

@@ -11,7 +11,7 @@ import ReportingLinesPanel from '@/Components/relationships/ReportingLinesPanel'
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { localizedName } from '@/utils/localizedName';
 
-import { buttonClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 type HostedOrgRef = { id: string; code: string; name_en: string; name_am: string | null };
 
 interface Props {
@@ -208,7 +208,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                                     <div>
                                         <Link
                                             href={route('organization-units.show', child.id)}
-                                            className="text-sm font-medium text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                            className={actionLinkClassName({ size: 'sm' })}
                                         >
                                             {localizedName(child.name_en, child.name_am, locale)}
                                         </Link>
@@ -240,7 +240,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
                 <div className="flex gap-2">
                     <Link
                         href={route('organization-units.index')}
-                        className="text-sm text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                        className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}
                     >
                         {t('organizationUnits.backToList')}
                     </Link>

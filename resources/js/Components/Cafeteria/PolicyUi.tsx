@@ -4,7 +4,7 @@ import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { useLocale } from '@/hooks/useLocale';
 import { useState, type ReactNode } from 'react';
 
-import { cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, inputClassName } from '@/Components/ui';
 /**
  * A workflow action (approve, end, cancel, finalize…) behind a confirmation
  * dialog, optionally asking for a date (dual calendar) or a reason.
@@ -144,7 +144,7 @@ export function ConfigurationHealthPanel({ health }: { health: Health }) {
             <ul className="mt-1 list-inside list-disc text-sm">
                 {items.slice(0, 5).map((item) => <li key={item.id}>{render(item)}</li>)}
             </ul>
-            <Link href={href} className="mt-1 inline-block text-xs font-medium text-[color:var(--color-primary)] hover:underline">{t('cafeteriaPolicy.view')} →</Link>
+            <Link href={href} className={actionLinkClassName({ className: 'mt-1 inline-block' })}>{t('cafeteriaPolicy.view')} →</Link>
         </div>
     );
 

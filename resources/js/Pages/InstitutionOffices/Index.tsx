@@ -6,7 +6,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 interface PaginatedResponse<T> {
     data: T[];
     current_page: number;
@@ -197,13 +197,13 @@ export default function InstitutionOfficesIndex({
                                             <div className="flex items-center gap-2">
                                                 <Link
                                                     href={route('organization-units.show', office.id)}
-                                                    className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]"
+                                                    className={actionLinkClassName()}
                                                 >
                                                     {t('common.view')}
                                                 </Link>
                                                 <Link
                                                     href={route('organization-units.edit', office.id)}
-                                                    className="text-xs text-[color:var(--app-muted-foreground)] hover:underline"
+                                                    className={actionLinkClassName({ tone: 'neutral' })}
                                                 >
                                                     {t('common.edit')}
                                                 </Link>

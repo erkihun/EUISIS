@@ -9,7 +9,7 @@ import FormSection from '@/Components/FormSection';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import ParentOrganizationSelect, { type ParentOrganizationOption } from '@/Components/organizations/ParentOrganizationSelect';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type OrgType = { id: string; name_en: string; name_am: string | null; code: string };
 type HierarchyVersion = { id: string; version_name: string; status: string };
 const inputCls = cx(inputClassName, 'w-full');
@@ -356,7 +356,7 @@ export default function CreateOrganization({
                                                 <button
                                                     type="button"
                                                     onClick={clearLogo}
-                                                    className="text-xs text-red-500 hover:text-red-700"
+                                                    className={actionLinkClassName({ tone: 'danger' })}
                                                 >
                                                     {t('organizations.removeLogo')}
                                                 </button>

@@ -4,7 +4,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 
-import { cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, inputClassName } from '@/Components/ui';
 export type ScopedPosition = {
     id: string;
     code: string | null;
@@ -236,7 +236,7 @@ export default function ScopedOrganizationStructure({
                     {isScoped ? t('organizationUnits.yourOrganizationStructure') : t('organizations.organizationStructure')}
                 </h2>
                 {selectedPositionId && (
-                    <button type="button" onClick={onClearPosition} className="text-xs text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]">
+                    <button type="button" onClick={onClearPosition} className={actionLinkClassName()}>
                         {t('common.clear')}
                     </button>
                 )}

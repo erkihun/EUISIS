@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type PermissionEntry = {
     name: string;
     label_en: string | null;
@@ -81,7 +81,7 @@ function PermissionGroup({
                     type="button"
                     onClick={toggleAll}
                     disabled={disabled}
-                    className="text-xs text-[color:var(--color-primary)] hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline dark:text-[color:var(--color-primary)] dark:disabled:text-slate-600"
+                    className={actionLinkClassName()}
                 >
                     {allSelected ? t('permissions.clearGroup') : t('permissions.selectAllInGroup')}
                 </button>

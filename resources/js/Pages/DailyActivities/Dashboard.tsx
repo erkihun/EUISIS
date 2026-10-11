@@ -11,7 +11,7 @@ import { Alert, Card, cx } from '@euisis/ui';
 import { Head, Link } from '@inertiajs/react';
 import type { JSX } from 'react';
 
-import { tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
+import { actionLinkClassName, tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
 type DayFigures = { date: string; expected: number; submitted: number; missing: number; late: number; leave: number };
 
 type Props = {
@@ -138,7 +138,7 @@ export default function DailyActivitiesDashboard({ today, todayFigures, days, pe
                                 {reviewRequired && pendingReview > 0 && <span className="ms-2 font-normal tabular-nums text-[color:var(--app-muted-foreground)]">({pendingReview})</span>}
                             </h2>
                             {reviewRequired && reviewQueue && (
-                                <Link href={reviewQueue} className="inline-flex items-center gap-1 text-sm font-medium text-[color:var(--color-primary)] hover:underline">
+                                <Link href={reviewQueue} className={actionLinkClassName({ size: 'sm', className: 'inline-flex items-center gap-1' })}>
                                     {t('dailyActivities.dashboard.openReviewQueue')}<ChevronRight className="h-4 w-4" aria-hidden="true" />
                                 </Link>
                             )}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 export interface CodeRuleFieldProps {
     entityType: string;
     scopeType?: string;
@@ -224,7 +224,7 @@ export default function CodeRuleField({
                     <button
                         type="button"
                         onClick={handleSwitchToAuto}
-                        className="text-xs text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                        className={actionLinkClassName({ tone: 'neutral' })}
                     >
                         {t('codeRules.autoGenerate')}
                     </button>

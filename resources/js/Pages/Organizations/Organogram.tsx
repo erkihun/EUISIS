@@ -9,7 +9,7 @@ import { toast } from '@/lib/toast';
 import { localizedName } from '@/utils/localizedName';
 import { useEffect } from 'react';
 
-import { buttonClassName } from '@/Components/ui';
+import { actionLinkClassName, buttonClassName } from '@/Components/ui';
 /**
  * Single-organization organogram. The tree itself is the same component the
  * detail page uses, so node content and expand/collapse behave identically;
@@ -63,7 +63,7 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 print:hidden">
                 <Link
                     href={route('organizations.show', tree.organization.id)}
-                    className="text-sm text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                    className={actionLinkClassName({ size: 'sm' })}
                 >
                     ← {t('organizations.backToOrganization')}
                 </Link>

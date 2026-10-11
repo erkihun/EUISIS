@@ -10,7 +10,7 @@ import ApplicationFields from '@/Components/apiManagement/ApplicationFields';
 import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
 type TokenRow = {
     id: number | string;
     name: string;
@@ -136,7 +136,7 @@ export default function ApiManagementShow({
             )}
 
             <div className="mb-4">
-                <Link href={route('api-management.index')} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
+                <Link href={route('api-management.index')} className={actionLinkClassName({ size: 'sm' })}>
                     &larr; {t('apiManagement.title')}
                 </Link>
             </div>

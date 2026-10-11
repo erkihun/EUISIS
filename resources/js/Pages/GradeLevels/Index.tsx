@@ -7,7 +7,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type GradeLevelRow = {
     id: string;
     name: string;
@@ -144,7 +144,7 @@ export default function GradeLevelsIndex({
                                                     {gl.can.view && (
                                                         <Link
                                                             href={route('grade-levels.show', gl.id)}
-                                                            className="text-xs font-medium text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]"
+                                                            className={actionLinkClassName({ tone: 'neutral' })}
                                                         >
                                                             {t('common.view')}
                                                         </Link>
@@ -152,14 +152,14 @@ export default function GradeLevelsIndex({
                                                     {gl.can.update && (
                                                         <Link
                                                             href={route('grade-levels.edit', gl.id)}
-                                                            className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)]"
+                                                            className={actionLinkClassName()}
                                                         >
                                                             {t('common.edit')}
                                                         </Link>
                                                     )}
                                                     {gl.can.archive && (
                                                         <button
-                                                            className="text-xs font-medium text-red-600 hover:text-red-800"
+                                                            className={actionLinkClassName({ tone: 'danger' })}
                                                             onClick={() => handleArchive(gl.id)}
                                                         >
                                                             {t('gradeLevels.archive')}
@@ -167,7 +167,7 @@ export default function GradeLevelsIndex({
                                                     )}
                                                     {gl.can.restore && (
                                                         <button
-                                                            className="text-xs font-medium text-green-600 hover:text-green-800"
+                                                            className={actionLinkClassName({ tone: 'success' })}
                                                             onClick={() => handleRestore(gl.id)}
                                                         >
                                                             {t('gradeLevels.restore')}

@@ -8,7 +8,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 type CardRequestRow = {
     id: string;
     request_type?: string | null;
@@ -186,7 +186,7 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                             {req.can?.view !== false && (
                                                 <Link
                                                     href={route('card-requests.show', req.id)}
-                                                    className="text-xs font-medium text-[color:var(--color-primary)] hover:text-[color:var(--color-primary-hover)] dark:text-[color:var(--color-primary)] dark:hover:text-[color:var(--color-primary-hover)]"
+                                                    className={actionLinkClassName()}
                                                 >
                                                     {t('common.view')}
                                                 </Link>
