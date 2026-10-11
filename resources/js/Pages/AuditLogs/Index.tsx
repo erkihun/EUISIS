@@ -2,13 +2,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import { Head, router, useForm } from '@inertiajs/react';
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type AuditLog = {
     id: string;
     event_type: string;
@@ -95,18 +95,10 @@ export default function AuditLogsIndex({
         to: filters?.to ?? '',
     });
 
-    const inputCls = inputClassName;
+    const dateCls = cx(inputClassName, 'w-full');
 
-    function submitFilters(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
+    function submitFilters() {
         router.get(route('audit-logs.index'), filterForm.data as Record<string, string>, {
-            preserveState: true,
-            preserveScroll: true,
-        });
-    }
-
-    function goToPage(page: number) {
-        router.get(route('audit-logs.index'), { ...filterForm.data, page: String(page) }, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -134,78 +126,25 @@ export default function AuditLogsIndex({
             <Head title={t('auditLogs.title')} />
 
             <div className="space-y-4">
-                {/* Filters */}
-                <form
-                    className="flex flex-wrap items-end gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4"
-                    onSubmit={submitFilters}
-                >
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('auditLogs.actor')}
-                        </label>
-                        <input
-                            className={inputCls}
-                            placeholder={t('auditLogs.searchLogs')}
-                            value={filterForm.data.search}
-                            onChange={(e) => filterForm.setData('search', e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('auditLogs.event')}
-                        </label>
-                        <input
-                            className={inputCls}
-                            placeholder={t('auditLogs.eventPlaceholder')}
-                            value={filterForm.data.event_type}
-                            onChange={(e) => filterForm.setData('event_type', e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('common.effectiveFrom')}
-                        </label>
-                        <LocalizedDatePicker
-                            className={inputCls}
-                            value={filterForm.data.from}
-                            onChange={(iso) => filterForm.setData('from', iso)}
-                        />
-                    </div>
-                    <div>
-                        <label className="mb-1 block text-xs font-medium text-[color:var(--app-muted-foreground)]">
-                            {t('common.effectiveTo')}
-                        </label>
-                        <LocalizedDatePicker
-                            className={inputCls}
-                            value={filterForm.data.to}
-                            onChange={(iso) => filterForm.setData('to', iso)}
-                        />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="submit"
-                            className={buttonClassName({ variant: 'primary' })}
-                        >
-                            {t('common.filter')}
-                        </button>
-                        {hasActiveFilters && (
-                            <button
-                                type="button"
-                                onClick={() => router.get(route('audit-logs.index'), {}, { preserveState: true })}
-                                className="text-sm text-[color:var(--app-muted-foreground)] underline hover:text-[color:var(--app-foreground)]"
-                            >
-                                {t('common.reset')}
-                            </button>
-                        )}
-                    </div>
-                </form>
+                <FilterPanel label={t('auditLogs.title')} onSubmit={submitFilters} onReset={() => router.get(route('audit-logs.index'), {}, { preserveState: false })} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('auditLogs.actor')} wide>
+                        <Input type="search" placeholder={t('auditLogs.searchLogs')} value={filterForm.data.search} onChange={(e) => filterForm.setData('search', e.target.value)} />
+                    </FilterField>
+                    <FilterField label={t('auditLogs.event')}>
+                        <Input placeholder={t('auditLogs.eventPlaceholder')} value={filterForm.data.event_type} onChange={(e) => filterForm.setData('event_type', e.target.value)} />
+                    </FilterField>
+                    <FilterField label={t('common.effectiveFrom')} htmlFor="audit-from">
+                        <LocalizedDatePicker id="audit-from" className={dateCls} value={filterForm.data.from} onChange={(iso) => filterForm.setData('from', iso)} />
+                    </FilterField>
+                    <FilterField label={t('common.effectiveTo')} htmlFor="audit-to">
+                        <LocalizedDatePicker id="audit-to" className={dateCls} value={filterForm.data.to} onChange={(iso) => filterForm.setData('to', iso)} />
+                    </FilterField>
+                </FilterPanel>
 
                 {/* Table */}
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
                     {auditLogs.length === 0 ? (
-                        <div className="p-6">
-                            <EmptyState title={t('auditLogs.noLogs')} />
-                        </div>
+                        <EmptyState title={t('auditLogs.noLogs')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
                             <table className={cx(tableClassName, 'min-w-full text-left')}>
@@ -268,46 +207,8 @@ export default function AuditLogsIndex({
                             </table>
                         </div>
                     )}
+                    <ListPagination meta={meta} />
                 </div>
-
-                {/* Pagination */}
-                {meta && meta.last_page > 1 && (
-                    <div className="flex flex-wrap items-center justify-between gap-3 px-1 text-sm text-[color:var(--app-muted-foreground)]">
-                        <p className="text-xs">
-                            {(meta.current_page - 1) * meta.per_page + 1}–{Math.min(meta.current_page * meta.per_page, meta.total)} / {meta.total}
-                        </p>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => goToPage(meta.current_page - 1)}
-                                disabled={meta.current_page <= 1}
-                                className="rounded px-2 py-1 hover:bg-[color:var(--app-surface-muted)] disabled:pointer-events-none disabled:opacity-40"
-                            >
-                                {t('common.previous')}
-                            </button>
-                            {Array.from({ length: meta.last_page }, (_, i) => i + 1).map((page) => (
-                                <button
-                                    key={page}
-                                    onClick={() => goToPage(page)}
-                                    className={`min-w-[2rem] rounded px-2 py-1 font-medium ${
-                                        page === meta.current_page
-                                            ? 'bg-[color:var(--color-primary)] text-white'
-                                            : 'hover:bg-[color:var(--app-surface-muted)]'
-                                    }`}
-                                    aria-current={page === meta.current_page ? 'page' : undefined}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                            <button
-                                onClick={() => goToPage(meta.current_page + 1)}
-                                disabled={meta.current_page >= meta.last_page}
-                                className="rounded px-2 py-1 hover:bg-[color:var(--app-surface-muted)] disabled:pointer-events-none disabled:opacity-40"
-                            >
-                                {t('common.next')}
-                            </button>
-                        </div>
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

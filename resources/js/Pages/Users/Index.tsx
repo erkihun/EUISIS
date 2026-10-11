@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -11,7 +11,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useConfirm } from '@/Components/ConfirmProvider';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type UserRow = {
     id: number;
     name: string;
@@ -45,7 +45,7 @@ export default function UsersIndex({
     can: { create: boolean };
     scopedUserManagement: boolean;
 }) {
-    const { t, locale } = useLocale();
+    const { t } = useLocale();
     const { confirm } = useConfirm();
     const [loading, setLoading] = useState(false);
 
@@ -70,27 +70,7 @@ export default function UsersIndex({
         onFinish: () => setLoading(false),
     };
 
-    /* Search applies as you type; the two selects apply on change. */
-    useEffect(() => {
-        if (filterForm.data.search === (filters.search ?? '')) {
-            return;
-        }
-
-        const timer = window.setTimeout(() => {
-            router.get(route('users.index'), filterForm.data, visitOptions);
-        }, 350);
-
-        return () => window.clearTimeout(timer);
-    }, [filterForm.data.search, filters.search]);
-
-    function applyFilter(key: 'status' | 'role', value: string) {
-        const next = { ...filterForm.data, [key]: value };
-        filterForm.setData(next);
-        router.get(route('users.index'), next, visitOptions);
-    }
-
-    function submitFilters(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
+    function submitFilters() {
         router.get(route('users.index'), filterForm.data, visitOptions);
     }
 
@@ -98,21 +78,7 @@ export default function UsersIndex({
         router.get(route('users.index'), {}, { ...visitOptions, preserveState: false });
     }
 
-    function goToPage(page: number) {
-        router.get(route('users.index'), { ...filterForm.data, page }, visitOptions);
-    }
-
-    const hasActiveFilters = Object.values(filterForm.data).some((value) => value !== '');
-    const countFormat = new Intl.NumberFormat(locale);
-    const total = users_pagination?.total ?? users.length;
-    const start = users.length === 0 ? 0 : ((users_pagination?.current_page ?? 1) - 1) * (users_pagination?.per_page ?? users.length) + 1;
-    const end = users.length === 0 ? 0 : start + users.length - 1;
-    const resultSummary = t('users.results')
-        .replace(':from', countFormat.format(start))
-        .replace(/:to\b/, countFormat.format(end))
-        .replace(':total', countFormat.format(total));
-
-    const inputCls = cx(inputClassName, 'w-full');
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
     const genderLabels: Record<string, string> = {
         male: t('users.genderMale'),
@@ -178,70 +144,30 @@ export default function UsersIndex({
                 </div>
             )}
 
-            <section className="mb-4 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                <form onSubmit={submitFilters} aria-label={t('users.filters')}>
-                    <fieldset disabled={loading} className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                        <label className="min-w-0 space-y-1.5 sm:col-span-2">
-                            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.search')}</span>
-                            <input
-                                type="search"
-                                className={inputCls}
-                                placeholder={t('users.searchPlaceholder')}
-                                value={filterForm.data.search}
-                                onChange={(e) => filterForm.setData('search', e.target.value)}
-                            />
-                        </label>
+            <FilterPanel label={t('users.filters')} onSubmit={submitFilters} onReset={resetFilters} hasActiveFilters={hasActiveFilters} processing={loading} className="mb-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input type="search" placeholder={t('users.searchPlaceholder')} value={filterForm.data.search} onChange={(e) => filterForm.setData('search', e.target.value)} />
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={filterForm.data.status} onChange={(e) => filterForm.setData('status', e.target.value)}>
+                        <option value="">{t('users.allStatuses')}</option>
+                        <option value="active">{t('users.statusActive')}</option>
+                        <option value="inactive">{t('users.statusInactive')}</option>
+                    </Select>
+                </FilterField>
+                <FilterField label={t('users.roles')}>
+                    <Select value={filterForm.data.role} onChange={(e) => filterForm.setData('role', e.target.value)}>
+                        <option value="">{t('users.allRoles')}</option>
+                        {roleOptions.map((role) => (
+                            <option key={role} value={role}>{role}</option>
+                        ))}
+                    </Select>
+                </FilterField>
+            </FilterPanel>
 
-                        <label className="min-w-0 space-y-1.5">
-                            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.status')}</span>
-                            <select
-                                className={inputCls}
-                                value={filterForm.data.status}
-                                onChange={(e) => applyFilter('status', e.target.value)}
-                            >
-                                <option value="">{t('users.allStatuses')}</option>
-                                <option value="active">{t('users.statusActive')}</option>
-                                <option value="inactive">{t('users.statusInactive')}</option>
-                            </select>
-                        </label>
-
-                        <label className="min-w-0 space-y-1.5">
-                            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('users.roles')}</span>
-                            <select
-                                className={inputCls}
-                                value={filterForm.data.role}
-                                onChange={(e) => applyFilter('role', e.target.value)}
-                            >
-                                <option value="">{t('users.allRoles')}</option>
-                                {roleOptions.map((role) => (
-                                    <option key={role} value={role}>{role}</option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <div className="flex flex-wrap items-center gap-2 sm:col-span-2 xl:col-span-4">
-                            {hasActiveFilters && (
-                                <button
-                                    type="button"
-                                    onClick={resetFilters}
-                                    className="shrink-0 rounded-control px-3 py-2 text-sm font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
-                                >
-                                    {t('common.reset')}
-                                </button>
-                            )}
-                            <p role="status" aria-live="polite" className="text-xs tabular-nums text-[color:var(--app-muted-foreground)]">
-                                {loading ? t('common.loading') : resultSummary}
-                            </p>
-                        </div>
-                    </fieldset>
-                </form>
-            </section>
-
-            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <div className={tableContainerClassName}>
                 {users.length === 0 ? (
-                    <div className="p-6">
-                        <EmptyState title={t('users.noUsers')} description="" />
-                    </div>
+                    <EmptyState title={t('users.noUsers')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                 ) : (
                     <div className="overflow-x-auto">
                         <table className={cx(tableClassName, 'min-w-full text-left')}>
@@ -344,33 +270,7 @@ export default function UsersIndex({
                     </div>
                 )}
 
-                {users_pagination && users_pagination.last_page > 1 && (
-                    <nav aria-label={t('users.pagination')} className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--app-border)] px-4 py-3">
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
-                            {t('common.page')} {users_pagination.current_page} / {users_pagination.last_page}
-                            {' - '}
-                            {countFormat.format(users_pagination.total)} {t('common.results')}
-                        </p>
-                        <div className="flex gap-2">
-                            <button
-                                type="button"
-                                disabled={loading || users_pagination.current_page <= 1}
-                                onClick={() => goToPage(users_pagination.current_page - 1)}
-                                className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                            >
-                                {t('common.previous')}
-                            </button>
-                            <button
-                                type="button"
-                                disabled={loading || users_pagination.current_page >= users_pagination.last_page}
-                                onClick={() => goToPage(users_pagination.current_page + 1)}
-                                className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                            >
-                                {t('common.next')}
-                            </button>
-                        </div>
-                    </nav>
-                )}
+                <ListPagination meta={users_pagination} label={t('users.pagination')} disabled={loading} onPageChange={(page) => router.get(route('users.index'), { ...filters, page }, visitOptions)} />
             </div>
         </AuthenticatedLayout>
     );

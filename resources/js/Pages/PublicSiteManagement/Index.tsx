@@ -7,7 +7,7 @@ import type { SettingsField } from '@/lib/settings';
 import { Head, Link, router, useForm, useRemember } from '@inertiajs/react';
 import { useEffect, useId, useState } from 'react';
 
-import { cx, inputClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, cx, inputClassName } from '@/Components/ui';
 type Scalar = string | number | boolean | null;
 type Values = Record<string, Scalar | Record<string, Scalar>>;
 type Field = { key: string; type: string; required?: boolean; max?: number };
@@ -15,7 +15,7 @@ type Section = { key: string; definition: { fields: string[]; options: Record<st
 type RecordRow = Record<string, Scalar> & { id: string; status?: string };
 type Props = {
     tabs: string[]; tab: string; search: string; sections: Section[]; fields: Field[];
-    records: { data: RecordRow[]; total: number; current_page: number; last_page: number } | null;
+    records: { data: RecordRow[]; total: number; current_page: number; last_page: number; per_page: number } | null;
     can: Record<string, boolean>; settingsFields: SettingsField[]; publicRoutes: Record<string, string>;
 };
 const surface = 'min-w-0 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-5';
@@ -134,10 +134,17 @@ function Collection({ props }: { props: Props }) {
             <h2 className="text-base font-semibold">{t(`publicSite.admin.tabs.${props.tab}`)} <span className="text-sm font-normal text-[color:var(--app-muted-foreground)]">({new Intl.NumberFormat(locale).format(rows.total)})</span></h2>
             {props.can.create && <Button type="button" onClick={() => setEditing({ row: null, session: Date.now() })}>{t('publicSite.admin.add')}</Button>}
         </div>
-        <form className="my-4 flex flex-wrap items-end gap-2" onSubmit={e => { e.preventDefault(); search.get(route('public-site-management.index'), { preserveScroll: true }); }}>
-            <label className="min-w-0 flex-1 space-y-1 text-sm">{t('publicSite.search')}<input className={input} type="search" maxLength={160} value={search.data.search} onChange={e => search.setData('search', e.target.value)} /></label>
-            <Button type="submit" variant="secondary" disabled={search.processing}>{t('publicSite.search')}</Button>
-        </form>
+        <FilterPanel
+            className="my-4"
+            onSubmit={() => search.get(route('public-site-management.index'), { preserveScroll: true })}
+            onReset={() => router.get(route('public-site-management.index'), { tab: props.tab })}
+            hasActiveFilters={Boolean(props.search)}
+            processing={search.processing}
+        >
+            <FilterField label={t('publicSite.search')} wide>
+                <Input type="search" maxLength={160} value={search.data.search} onChange={e => search.setData('search', e.target.value)} />
+            </FilterField>
+        </FilterPanel>
         {error && <p role="alert" className="mb-3 text-sm text-red-700 dark:text-red-300">{error}</p>}
         <ul className="divide-y divide-[color:var(--app-border)]" aria-busy={busy}>
             {rows.data.map(row => {
@@ -161,11 +168,7 @@ function Collection({ props }: { props: Props }) {
             })}
         </ul>
         {rows.data.length === 0 && <p className="py-6 text-sm text-[color:var(--app-muted-foreground)]">{t('publicSite.admin.empty')}</p>}
-        {rows.last_page > 1 && <nav aria-label={t('publicSite.admin.pagination')} className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--app-border)] pt-4 text-sm">
-            <Button type="button" variant="secondary" disabled={busy || rows.current_page <= 1} onClick={() => router.get(route('public-site-management.index'), { tab: props.tab, search: props.search, page: rows.current_page - 1 })}>{t('common.previous')}</Button>
-            <span>{rows.current_page} / {rows.last_page}</span>
-            <Button type="button" variant="secondary" disabled={busy || rows.current_page >= rows.last_page} onClick={() => router.get(route('public-site-management.index'), { tab: props.tab, search: props.search, page: rows.current_page + 1 })}>{t('common.next')}</Button>
-        </nav>}
+        <ListPagination meta={rows} label={t('publicSite.admin.pagination')} disabled={busy} bare className="mt-4 border-t border-[color:var(--app-border)] pt-4" />
     </section>;
 }
 

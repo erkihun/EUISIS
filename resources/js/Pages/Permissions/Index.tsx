@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -8,7 +8,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronDown, ChevronRight, Layers, Plus, ShieldCheck, TagsIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
-import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Permission = {
     id: number;
     name: string;
@@ -46,9 +46,6 @@ const CRITICAL = new Set([
     'recycle-bin.forceDelete',
 ]);
 
-const inputCls =
-    'rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-primary)] dark:placeholder-slate-500';
-
 export default function PermissionsIndex({
     permissions,
     groups,
@@ -68,7 +65,7 @@ export default function PermissionsIndex({
 }) {
     const { t, locale } = useLocale();
     const [view, setView] = useState<'table' | 'grouped'>('grouped');
-    const searchTimer = useRef<ReturnType<typeof setTimeout>>();
+    const [draft, setDraft] = useState({ search: filters.search ?? '', group: filters.group ?? '', guard: filters.guard ?? '' });
     const permissionRows = permissions.data;
     const meta = permissions.meta;
 
@@ -89,22 +86,12 @@ export default function PermissionsIndex({
         });
     }
 
-    function applyFilter(key: keyof Filters, value: string) {
-        const params: Record<string, string> = { ...filters, [key]: value };
+    function clean(params: Record<string, string | number>) {
         Object.keys(params).forEach((k) => { if (!params[k]) delete params[k]; });
-        navigate(params);
+        return params;
     }
 
-    function onSearchChange(value: string) {
-        clearTimeout(searchTimer.current);
-        searchTimer.current = setTimeout(() => applyFilter('search', value), 300);
-    }
-
-    function goToPage(page: number) {
-        const params: Record<string, string | number> = { ...filters, page };
-        Object.keys(params).forEach((k) => { if (!params[k]) delete params[k]; });
-        navigate(params);
-    }
+    const hasActiveFilters = Boolean(filters.search || filters.group || filters.guard);
 
     function destroy(p: Permission) {
         if (!confirm(`${t('permissions.deletePermission')} "${p.name}"? ${t('common.cannotUndo')}`)) return;
@@ -161,61 +148,53 @@ export default function PermissionsIndex({
                 />
             </div>
 
-            {/* Toolbar */}
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-                <input
-                    type="search"
-                    placeholder={t('permissions.searchPermissions')}
-                    defaultValue={filters.search}
-                    onChange={(e) => onSearchChange(e.target.value)}
-                    className={`${inputCls} w-64`}
-                    aria-label={t('permissions.searchPermissions')}
-                />
-                <select
-                    value={filters.group}
-                    onChange={(e) => applyFilter('group', e.target.value)}
-                    className={`${inputCls} w-48`}
-                    aria-label={t('permissions.filterByGroup')}
-                >
-                    <option value="">{t('permissions.allGroups')}</option>
-                    {groups.map((g) => (
-                        <option key={g} value={g}>{g}</option>
-                    ))}
-                </select>
-                {guards.length > 1 && (
-                    <select
-                        value={filters.guard}
-                        onChange={(e) => applyFilter('guard', e.target.value)}
-                        className={`${inputCls} w-36`}
-                        aria-label={t('permissions.guardName')}
-                    >
-                        <option value="">{t('permissions.allGuards')}</option>
-                        {guards.map((g) => (
+            <FilterPanel
+                onSubmit={() => navigate(clean({ ...draft }))}
+                onReset={() => { setDraft({ search: '', group: '', guard: '' }); navigate({}); }}
+                hasActiveFilters={hasActiveFilters}
+                className="mb-4"
+                actions={(
+                    <div className="flex items-center rounded-[var(--radius-control)] border border-[color:var(--app-border)]">
+                        {(['grouped', 'table'] as const).map((mode) => (
+                            <button
+                                key={mode}
+                                type="button"
+                                aria-pressed={view === mode}
+                                onClick={() => setView(mode)}
+                                className={cx('px-3 py-1.5 text-xs font-medium transition-colors first:rounded-l-[var(--radius-control)] last:rounded-r-[var(--radius-control)]', view === mode ? 'bg-[color:var(--color-primary)] text-[color:var(--color-on-primary,#fff)]' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]')}
+                            >
+                                {mode === 'grouped' ? t('permissions.groupedView') : t('permissions.tableView')}
+                            </button>
+                        ))}
+                    </div>
+                )}
+            >
+                <FilterField label={t('common.search')} wide>
+                    <Input type="search" placeholder={t('permissions.searchPermissions')} value={draft.search} onChange={(e) => setDraft({ ...draft, search: e.target.value })} />
+                </FilterField>
+                <FilterField label={t('permissions.permissionGroup')}>
+                    <Select value={draft.group} onChange={(e) => setDraft({ ...draft, group: e.target.value })}>
+                        <option value="">{t('permissions.allGroups')}</option>
+                        {groups.map((g) => (
                             <option key={g} value={g}>{g}</option>
                         ))}
-                    </select>
+                    </Select>
+                </FilterField>
+                {guards.length > 1 && (
+                    <FilterField label={t('permissions.guardName')}>
+                        <Select value={draft.guard} onChange={(e) => setDraft({ ...draft, guard: e.target.value })}>
+                            <option value="">{t('permissions.allGuards')}</option>
+                            {guards.map((g) => (
+                                <option key={g} value={g}>{g}</option>
+                            ))}
+                        </Select>
+                    </FilterField>
                 )}
-                <div className="ml-auto flex items-center rounded-lg border border-[color:var(--app-border)]">
-                    <button
-                        type="button"
-                        onClick={() => setView('grouped')}
-                        className={`rounded-l-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'grouped' ? 'bg-[color:var(--color-primary)] text-white' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}
-                    >
-                        {t('permissions.groupedView')}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setView('table')}
-                        className={`rounded-r-lg px-3 py-1.5 text-xs font-medium transition-colors ${view === 'table' ? 'bg-[color:var(--color-primary)] text-white' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}
-                    >
-                        {t('permissions.tableView')}
-                    </button>
-                </div>
-            </div>
+            </FilterPanel>
 
             {permissionRows.length === 0 ? (
-                <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
-                    <EmptyState title={t('permissions.noPermissionsFound')} description="" />
+                <div className={tableContainerClassName}>
+                    <EmptyState title={t('permissions.noPermissionsFound')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                 </div>
             ) : view === 'table' ? (
                 <TableView
@@ -236,35 +215,7 @@ export default function PermissionsIndex({
                 />
             )}
 
-            {/* Pagination */}
-            {meta.last_page > 1 && (
-                <div className="mt-4 flex items-center justify-between text-sm text-[color:var(--app-muted-foreground)]">
-                    <span>
-                        {t('permissions.pageOf')
-                            .replace(':current', String(meta.current_page))
-                            .replace(':last', String(meta.last_page))
-                            .replace(':total', String(meta.total))}
-                    </span>
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            disabled={meta.current_page <= 1}
-                            onClick={() => goToPage(meta.current_page - 1)}
-                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                        >
-                            {t('common.previous')}
-                        </button>
-                        <button
-                            type="button"
-                            disabled={meta.current_page >= meta.last_page}
-                            onClick={() => goToPage(meta.current_page + 1)}
-                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                        >
-                            {t('common.next')}
-                        </button>
-                    </div>
-                </div>
-            )}
+            <ListPagination meta={meta} bare className="mt-4" onPageChange={(page) => navigate(clean({ ...filters, page }))} />
         </AuthenticatedLayout>
     );
 }

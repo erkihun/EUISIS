@@ -1,11 +1,12 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 interface PaginatedResponse<T> {
     data: T[];
     current_page: number;
@@ -65,14 +66,15 @@ export default function InstitutionOfficesIndex({
 }: Props) {
     const { t } = useLocale();
 
-    const inputCls = inputClassName;
+    const [draft, setDraft] = useState({
+        search: filters.search ?? '',
+        institution_id: filters.institution_id ?? '',
+        status: filters.status ?? '',
+    });
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
-    function handleFilter(key: string, value: string) {
-        router.get(
-            route('institution-offices.index'),
-            { ...filters, [key]: value || undefined },
-            { preserveState: true, preserveScroll: true },
-        );
+    function submit() {
+        router.get(route('institution-offices.index'), draft, { preserveState: true, preserveScroll: true });
     }
 
     return (
@@ -96,46 +98,33 @@ export default function InstitutionOfficesIndex({
         >
             <Head title={t('institutionOffices.title')} />
 
-            <section className="mb-4 flex flex-wrap items-center gap-3">
-                <input
-                    type="text"
-                    placeholder={t('institutionOffices.searchOffices')}
-                    defaultValue={filters.search ?? ''}
-                    onBlur={(event) => handleFilter('search', event.target.value)}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Enter') handleFilter('search', (event.target as HTMLInputElement).value);
-                    }}
-                    className={inputCls}
-                />
+            <FilterPanel onSubmit={submit} onReset={() => router.get(route('institution-offices.index'))} hasActiveFilters={hasActiveFilters} className="mb-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input type="search" placeholder={t('institutionOffices.searchOffices')} value={draft.search} onChange={(event) => setDraft({ ...draft, search: event.target.value })} />
+                </FilterField>
+                <FilterField label={t('institutionOffices.institution')}>
+                    <Select value={draft.institution_id} onChange={(event) => setDraft({ ...draft, institution_id: event.target.value })}>
+                        <option value="">{t('institutionOffices.filterByInstitution')}</option>
+                        {institutions.map((institution) => (
+                            <option key={institution.id} value={institution.id}>
+                                {institution.name_en} ({institution.code})
+                            </option>
+                        ))}
+                    </Select>
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value })}>
+                        <option value="">{t('institutionOffices.filterByStatus')}</option>
+                        {statusOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </Select>
+                </FilterField>
+            </FilterPanel>
 
-                <select
-                    value={filters.institution_id ?? ''}
-                    onChange={(event) => handleFilter('institution_id', event.target.value)}
-                    className={inputCls}
-                >
-                    <option value="">{t('institutionOffices.filterByInstitution')}</option>
-                    {institutions.map((institution) => (
-                        <option key={institution.id} value={institution.id}>
-                            {institution.name_en} ({institution.code})
-                        </option>
-                    ))}
-                </select>
-
-                <select
-                    value={filters.status ?? ''}
-                    onChange={(event) => handleFilter('status', event.target.value)}
-                    className={inputCls}
-                >
-                    <option value="">{t('institutionOffices.filterByStatus')}</option>
-                    {statusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                            {option.label}
-                        </option>
-                    ))}
-                </select>
-            </section>
-
-            <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <section className={tableContainerClassName}>
                 <div className="overflow-x-auto">
                     <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
@@ -226,32 +215,7 @@ export default function InstitutionOfficesIndex({
                         </tbody>
                     </table>
                 </div>
-
-                {offices.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-[color:var(--app-border)] px-4 py-3">
-                        <p className="text-xs text-[color:var(--app-muted-foreground)]">
-                            {offices.from}-{offices.to} / {offices.total}
-                        </p>
-                        <div className="flex gap-2">
-                            {offices.prev_page_url && (
-                                <Link
-                                    href={offices.prev_page_url}
-                                    className="rounded-md border border-[color:var(--app-border-strong)] px-3 py-1 text-xs hover:bg-[color:var(--app-surface-muted)]"
-                                >
-                                    {t('common.previous')}
-                                </Link>
-                            )}
-                            {offices.next_page_url && (
-                                <Link
-                                    href={offices.next_page_url}
-                                    className="rounded-md border border-[color:var(--app-border-strong)] px-3 py-1 text-xs hover:bg-[color:var(--app-surface-muted)]"
-                                >
-                                    {t('common.next')}
-                                </Link>
-                            )}
-                        </div>
-                    </div>
-                )}
+                <ListPagination meta={offices} />
             </section>
         </AuthenticatedLayout>
     );

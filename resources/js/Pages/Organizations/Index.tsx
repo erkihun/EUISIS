@@ -5,13 +5,13 @@ import OrganizationFlatTable, { type DeletionBlockerKey, type OrgRow, type OrgRo
 import PageHeader from '@/Components/PageHeader';
 import StatCard from '@/Components/StatCard';
 import StatusBadge from '@/Components/StatusBadge';
-import { Building2, CheckCircle, Layers, Plus, SearchIcon, Upload, XCircle } from '@/Components/Icons';
+import { Building2, CheckCircle, Layers, Plus, Upload, XCircle } from '@/Components/Icons';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 
-import { buttonClassName, selectClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, buttonClassName } from '@/Components/ui';
 type OrganizationRow = {
     id: string;
     code: string;
@@ -35,8 +35,6 @@ type Paginator = {
 
 type HierarchyVersion = { id: string; version_name: string; status: string; approval_date: string | null };
 type Filters = { search: string; type: string; status: string; category: string };
-
-const filterInputCls = selectClassName;
 
 export default function OrganizationsIndex({
     organizations,
@@ -79,8 +77,7 @@ export default function OrganizationsIndex({
         );
     }
 
-    function submit(event: React.FormEvent) {
-        event.preventDefault();
+    function submit() {
         navigate({ page: 1 });
     }
 
@@ -90,7 +87,7 @@ export default function OrganizationsIndex({
         router.get(route('organizations.index'), empty, { preserveScroll: true, replace: true });
     }
 
-    const filtersActive = Object.values(values).some((value) => value !== '');
+    const filtersActive = Object.values(filters).some(Boolean);
 
     return (
         <AuthenticatedLayout
@@ -128,47 +125,36 @@ export default function OrganizationsIndex({
                 <StatCard label={t('organizations.kpiTypes')} value={stats.types} tone="neutral" icon={<Layers className="h-4 w-4" />} />
             </div>
 
-            <form onSubmit={submit} className="mt-4 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-3">
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-                    <div className="relative min-w-0 flex-1">
-                        <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
-                        <input type="search" value={values.search} onChange={(event) => setValues({ ...values, search: event.target.value })} placeholder={t('organizations.searchByCodeOrName')} className={`${filterInputCls} w-full pl-9`} />
-                    </div>
-                    <select className={filterInputCls} value={values.type} onChange={(event) => { const type = event.target.value; setValues({ ...values, type }); navigate({ type, page: 1 }); }} aria-label={t('organizations.filterByType')}>
+            <FilterPanel onSubmit={submit} onReset={resetFilters} hasActiveFilters={filtersActive} className="mt-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input type="search" value={values.search} onChange={(event) => setValues({ ...values, search: event.target.value })} placeholder={t('organizations.searchByCodeOrName')} />
+                </FilterField>
+                <FilterField label={t('organizations.organizationType')}>
+                    <Select value={values.type} onChange={(event) => setValues({ ...values, type: event.target.value })}>
                         <option value="">{t('organizations.allTypes')}</option>
                         {filterOptions.types.map((type) => <option key={type.code} value={type.code}>{localizedName(type.name_en, type.name_am, locale)}</option>)}
-                    </select>
-                    <select className={filterInputCls} value={values.status} onChange={(event) => { const status = event.target.value; setValues({ ...values, status }); navigate({ status, page: 1 }); }} aria-label={t('organizations.filterByStatus')}>
+                    </Select>
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
                         <option value="">{t('organizations.allStatuses')}</option>
                         {filterOptions.statuses.map((status) => <option key={status} value={status}>{t(`common.${status}`)}</option>)}
-                    </select>
-                    {filterOptions.categories.length > 0 && (
-                        <select className={filterInputCls} value={values.category} onChange={(event) => { const category = event.target.value; setValues({ ...values, category }); navigate({ category, page: 1 }); }} aria-label={t('organizations.category')}>
+                    </Select>
+                </FilterField>
+                {filterOptions.categories.length > 0 && (
+                    <FilterField label={t('organizations.category')}>
+                        <Select value={values.category} onChange={(event) => setValues({ ...values, category: event.target.value })}>
                             <option value="">{t('organizations.allCategories')}</option>
                             {filterOptions.categories.map((category) => <option key={category} value={category}>{t(`organizations.categories.${category}`)}</option>)}
-                        </select>
-                    )}
-                    <button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.search')}</button>
-                    {filtersActive && <button type="button" onClick={resetFilters} className={buttonClassName({ variant: 'outline' })}>{t('common.reset')}</button>}
-                </div>
-            </form>
-
-            <section className="mt-4 overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                <div className="flex items-center justify-between gap-3 px-5 py-4">
-                    <h3 className="font-semibold text-[color:var(--app-foreground)]">{t('organizations.registeredOrganizations')}</h3>
-                    <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2 py-0.5 text-xs font-medium text-[color:var(--app-muted-foreground)]">{organizations.total}</span>
-                </div>
-                <OrganizationFlatTable rows={rows} emptyText={filtersActive ? t('organizations.noResultsMatchFilters') : t('organizations.noOrganizations')} />
-                {organizations.last_page > 1 && (
-                    <div className="flex items-center justify-between border-t border-[color:var(--app-border)] px-5 py-4 text-sm">
-                        <span className="text-[color:var(--app-muted-foreground)]">{t('common.page')} {organizations.current_page} {t('common.of')} {organizations.last_page}</span>
-                        <div className="flex gap-2">
-                            <button type="button" disabled={organizations.current_page <= 1} onClick={() => navigate({ page: organizations.current_page - 1 })} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('common.previous')}</button>
-                            <button type="button" disabled={organizations.current_page >= organizations.last_page} onClick={() => navigate({ page: organizations.current_page + 1 })} className={buttonClassName({ variant: 'outline', size: 'sm' })}>{t('common.next')}</button>
-                        </div>
-                    </div>
+                        </Select>
+                    </FilterField>
                 )}
-            </section>
+            </FilterPanel>
+
+            <TableCard title={t('organizations.registeredOrganizations')} className="mt-4">
+                <OrganizationFlatTable rows={rows} emptyText={filtersActive ? t('organizations.noResultsMatchFilters') : t('organizations.noOrganizations')} />
+                <ListPagination meta={organizations} onPageChange={(page) => router.get(route('organizations.index'), { ...filters, page }, { preserveState: true, preserveScroll: true, replace: true })} />
+            </TableCard>
 
             {hierarchyVersions.length > 0 && (
                 <section className="mt-4 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">

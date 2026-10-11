@@ -4,7 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, badgeClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type LogRow = {
     id: string;
     application: { id: string; name: string; code: string } | null;
@@ -37,21 +37,27 @@ export default function ApiManagementLogs({ logs, filters, applications }: Props
                 </Link>
             </div>
 
-            <form className="mb-4 flex flex-wrap items-end gap-3" onSubmit={e => { e.preventDefault(); form.get(route('api-management.logs')); }}>
-                <label className="min-w-0 space-y-1 text-sm dark:text-slate-200">{t('apiManagement.externalApplications')}
-                    <select className={cx(selectClassName, 'block max-w-full')} value={form.data.application_id} onChange={e => form.setData('application_id', e.target.value)}>
+            <FilterPanel
+                onSubmit={() => form.get(route('api-management.logs'), { preserveState: true, preserveScroll: true })}
+                onReset={() => router.get(route('api-management.logs'))}
+                hasActiveFilters={Boolean(filters.application_id || filters.status)}
+                processing={form.processing}
+                className="mb-4"
+            >
+                <FilterField label={t('apiManagement.externalApplications')}>
+                    <Select value={form.data.application_id} onChange={e => form.setData('application_id', e.target.value)}>
                         <option value="">{t('apiManagement.allApplications')}</option>
                         {applications.map(app => <option key={app.id} value={app.id}>{app.name}</option>)}
-                    </select>
-                </label>
-                <label className="space-y-1 text-sm dark:text-slate-200">{t('common.status')}
-                    <select className={cx(selectClassName, 'block')} value={form.data.status} onChange={e => form.setData('status', e.target.value)}>
+                    </Select>
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={form.data.status} onChange={e => form.setData('status', e.target.value)}>
                         <option value="">{t('apiManagement.allStatuses')}</option><option value="failed">{t('apiManagement.failedRequests')}</option>
-                    </select>
-                </label>
-                <button disabled={form.processing} className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button>
-            </form>
-            <section className="overflow-x-auto rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                    </Select>
+                </FilterField>
+            </FilterPanel>
+            <section className={tableContainerClassName}>
+                <div className="overflow-x-auto">
                 <table className={cx(tableClassName, 'min-w-full text-left')}>
                     <thead className={tableHeadClassName}>
                         <tr>
@@ -75,11 +81,7 @@ export default function ApiManagementLogs({ logs, filters, applications }: Props
                                 </td>
                                 <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>{log.ip_address ?? '—'}</td>
                                 <td className={tableCellClassName}>
-                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                                        log.success
-                                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
-                                            : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200'
-                                    }`}>
+                                    <span className={badgeClassName(log.success ? 'success' : 'danger')}>
                                         {log.status_code}{log.failure_reason ? ` · ${log.failure_reason}` : ''}
                                     </span>
                                 </td>
@@ -88,12 +90,9 @@ export default function ApiManagementLogs({ logs, filters, applications }: Props
                         ))}
                     </tbody>
                 </table>
+                </div>
+                <ListPagination meta={logs} />
             </section>
-            {logs.last_page > 1 && <nav aria-label={t('apiManagement.apiLogs')} className="mt-4 flex items-center justify-between gap-3 text-sm dark:text-slate-200">
-                <button className={buttonClassName({ variant: 'outline' })} disabled={logs.current_page <= 1} onClick={() => router.get(route('api-management.logs'), { ...filters, page: logs.current_page - 1 })}>{t('common.previous')}</button>
-                <span>{logs.current_page} / {logs.last_page}</span>
-                <button className={buttonClassName({ variant: 'outline' })} disabled={logs.current_page >= logs.last_page} onClick={() => router.get(route('api-management.logs'), { ...filters, page: logs.current_page + 1 })}>{t('common.next')}</button>
-            </nav>}
         </AuthenticatedLayout>
     );
 }

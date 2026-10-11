@@ -7,7 +7,7 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type ReportRun = {
     id: string;
     report_number: string;
@@ -21,7 +21,7 @@ type ReportRun = {
     organization?: { name_en: string; name_am?: string } | null;
 };
 
-type Meta = { current_page: number; last_page: number; total: number };
+type Meta = { current_page: number; last_page: number; per_page: number; total: number };
 
 export default function ReportsIndex({
     reports,
@@ -119,18 +119,23 @@ export default function ReportsIndex({
                     </form>
                 )}
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h2 className="font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.reportHistory')}</h2>
-                    <form className="mt-4 grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]" onSubmit={event => { event.preventDefault(); router.get(route('cafeteria.reports.index'), Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>, { preserveScroll: true }); }}>
-                        <label className="space-y-2 text-sm text-[color:var(--app-muted-foreground)]"><span>{t('cafeteria.reportType')}</span><select name="type" defaultValue={filters.type ?? ''} className={inputCls}><option value="">{t('common.all')}</option>{['daily', 'weekly', 'monthly'].map(type => <option key={type} value={type}>{reportTypeLabel(type)}</option>)}</select></label>
-                        <label className="space-y-2 text-sm text-[color:var(--app-muted-foreground)]"><span>{t('employees.organization')}</span><select name="organization_id" defaultValue={filters.organization_id ?? ''} className={inputCls}><option value="">{t('common.all')}</option>{organizations.map(org => <option key={org.id} value={org.id}>{locale === 'am' ? org.name_am || org.name_en : org.name_en}</option>)}</select></label>
-                        <div className="flex gap-2"><button type="button" onClick={() => router.get(route('cafeteria.reports.index'))} className={buttonClassName({ variant: 'outline' })}>{t('common.clear')}</button><button type="submit" className={buttonClassName({ variant: 'primary' })}>{t('common.filter')}</button></div>
-                    </form>
-                    {!showForm && Object.entries(errors).map(([key, error]) => <p key={key} role="alert" className="mt-2 text-sm text-red-600">{error}</p>)}
-                </section>
+                <FilterPanel
+                    label={t('cafeteria.reportHistory')}
+                    onSubmit={event => router.get(route('cafeteria.reports.index'), Object.fromEntries(new FormData(event.currentTarget)) as Record<string, string>, { preserveScroll: true })}
+                    onReset={() => router.get(route('cafeteria.reports.index'))}
+                    hasActiveFilters={Boolean(filters.type || filters.organization_id)}
+                    footer={!showForm && Object.keys(errors).length > 0 ? Object.entries(errors).map(([key, error]) => <p key={key} role="alert" className="text-red-600">{error}</p>) : undefined}
+                >
+                    <FilterField label={t('cafeteria.reportType')}>
+                        <Select name="type" defaultValue={filters.type ?? ''}><option value="">{t('common.all')}</option>{['daily', 'weekly', 'monthly'].map(type => <option key={type} value={type}>{reportTypeLabel(type)}</option>)}</Select>
+                    </FilterField>
+                    <FilterField label={t('employees.organization')}>
+                        <Select name="organization_id" defaultValue={filters.organization_id ?? ''}><option value="">{t('common.all')}</option>{organizations.map(org => <option key={org.id} value={org.id}>{locale === 'am' ? org.name_am || org.name_en : org.name_en}</option>)}</Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <div className="flex flex-wrap justify-between gap-3 border-b border-[color:var(--app-border)] p-5"><h2 className="font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.reports')}</h2><span className="text-sm text-[color:var(--app-muted-foreground)]">{t('cafeteria.reportCount').replace(':count', String(meta.total))}</span></div>
+                <div className={tableContainerClassName}>
+                    <div className="border-b border-[color:var(--app-border)] px-4 py-3"><h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('cafeteria.reports')}</h2></div>
                     {reports.length === 0 ? (
                         <EmptyState title={t('common.noResults')} />
                     ) : (
@@ -169,7 +174,7 @@ export default function ReportsIndex({
                             </table>
                         </div>
                     )}
-                    <nav aria-label={t('cafeteria.reportHistory')} className="flex items-center justify-between border-t border-[color:var(--app-border)] p-4"><button type="button" disabled={meta.current_page <= 1} onClick={() => router.get(route('cafeteria.reports.index'), { ...filters, page: meta.current_page - 1 }, { preserveScroll: true })} className={buttonClassName({ variant: 'outline' })}>{t('common.previous')}</button><span className="text-sm text-[color:var(--app-muted-foreground)]">{meta.current_page} / {meta.last_page}</span><button type="button" disabled={meta.current_page >= meta.last_page} onClick={() => router.get(route('cafeteria.reports.index'), { ...filters, page: meta.current_page + 1 }, { preserveScroll: true })} className={buttonClassName({ variant: 'outline' })}>{t('common.next')}</button></nav>
+                    <ListPagination meta={meta} label={t('cafeteria.reportHistory')} />
                 </div>
             </div>
         </AuthenticatedLayout>

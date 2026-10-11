@@ -3,9 +3,11 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
+import EmptyState from '@/Components/EmptyState';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Application = {
     id: string;
     application_number: string;
@@ -40,15 +42,7 @@ const STATUSES = ['submitted', 'screened', 'shortlisted', 'selected', 'rejected'
 export default function VacancyApplicationsIndex({ applications, filters }: Props) {
     const { t } = useLocale();
 
-    function applyFilter(status: string) {
-        router.get(route('vacancy-applications.index'), { ...filters, status: status || undefined }, { preserveState: true, preserveScroll: true });
-    }
-
-    function goToPage(page: number) {
-        router.get(route('vacancy-applications.index'), { ...filters, page }, { preserveState: true, preserveScroll: true });
-    }
-
-    const inputCls = selectClassName;
+    const [status, setStatus] = useState(filters.status ?? '');
 
     return (
         <AuthenticatedLayout
@@ -57,30 +51,25 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
             <Head title={t('vacancies.applications')} />
 
             <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-2">
-                    <select
-                        className={inputCls}
-                        value={filters.status ?? ''}
-                        onChange={e => applyFilter(e.target.value)}
-                    >
-                        <option value="">{t('common.status')} — {t('common.all')}</option>
-                        {STATUSES.map(s => (
-                            <option key={s} value={s}>
-                                {t(`vacancies.appStatus${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
-                            </option>
-                        ))}
-                    </select>
-                    {filters.status && (
-                        <button type="button" onClick={() => applyFilter('')} className="text-xs text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">
-                            {t('common.clear')}
-                        </button>
-                    )}
-                    <span className="ml-auto text-sm text-[color:var(--app-muted-foreground)]">
-                        {applications.from ?? 0}–{applications.to ?? 0} / {applications.total}
-                    </span>
-                </div>
+                <FilterPanel
+                    onSubmit={() => router.get(route('vacancy-applications.index'), { status: status || undefined }, { preserveState: true, preserveScroll: true })}
+                    onReset={() => router.get(route('vacancy-applications.index'))}
+                    hasActiveFilters={Boolean(filters.status)}
+                >
+                    <FilterField label={t('common.status')}>
+                        <Select value={status} onChange={e => setStatus(e.target.value)}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            {STATUSES.map(s => (
+                                <option key={s} value={s}>
+                                    {t(`vacancies.appStatus${s.charAt(0).toUpperCase()}${s.slice(1)}` as never)}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <div className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <div className={tableContainerClassName}>
+                    <div className="overflow-x-auto">
                     <table className={cx(tableClassName, 'min-w-full text-left')}>
                         <thead className={tableHeadClassName}>
                             <tr>
@@ -115,34 +104,13 @@ export default function VacancyApplicationsIndex({ applications, filters }: Prop
                             ))}
                         </tbody>
                     </table>
+                    </div>
                     {applications.data.length === 0 && (
-                        <p className="px-4 py-8 text-center text-sm text-[color:var(--app-muted-foreground)]">{t('common.noResults')}</p>
+                        <EmptyState description={filters.status ? t('common.noMatchingRecords') : undefined} />
                     )}
+                    <ListPagination meta={applications} />
                 </div>
 
-                {applications.last_page > 1 && (
-                    <div className="flex items-center justify-end gap-2 text-sm">
-                        <button
-                            type="button"
-                            disabled={applications.current_page <= 1}
-                            onClick={() => goToPage(applications.current_page - 1)}
-                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                        >
-                            {t('common.previous')}
-                        </button>
-                        <span className="text-[color:var(--app-muted-foreground)]">
-                            {t('common.page')} {applications.current_page} {t('common.of')} {applications.last_page}
-                        </span>
-                        <button
-                            type="button"
-                            disabled={applications.current_page >= applications.last_page}
-                            onClick={() => goToPage(applications.current_page + 1)}
-                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                        >
-                            {t('common.next')}
-                        </button>
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

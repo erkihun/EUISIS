@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
@@ -11,7 +11,7 @@ import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
 const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation', 'daily_labor', 'intern', 'other'] as const;
 const SYSTEM_STATUSES = ['draft', 'active', 'suspended', 'transferred', 'retired', 'terminated', 'deceased'] as const;
 
@@ -126,30 +126,16 @@ export default function EmployeesIndex({
     }, [filters, selectedOrganization?.id, selectedPosition?.id]);
 
     /*
-     * Search applies as you type. The registry is the one filter people reach
-     * for constantly, and requiring a round trip to the Filter button for every
-     * query made a 50-row page feel like a form submission. The other five
-     * controls still submit explicitly — they are cheap to set exactly once.
+     * Filters apply with the Filter button (or Enter), as on every admin list:
+     * one query per intent rather than one per keystroke against the whole
+     * registry. Organization and unit are the exception: the unit and
+     * position options come from the server, so choosing one reloads them.
      */
-    useEffect(() => {
-        if (filterForm.data.search === (filters.search ?? '')) {
-            return;
-        }
-
-        const timer = window.setTimeout(() => {
-            router.get(route('employees.index'), withSort(filterForm.data), visitOptions);
-        }, 350);
-
-        return () => window.clearTimeout(timer);
-    }, [filterForm.data.search, filters.search]);
-
     const visitOptions = {
         preserveState: true, preserveScroll: true,
         onStart: () => setLoading(true), onFinish: () => setLoading(false),
         onError: () => toast.error(t('employees.registryLoadError')),
     };
-
-    const inputCls = cx(inputClassName, 'w-full');
 
     const selectedPositionIsOccupied = selectedPosition?.occupancy_status === 'occupied';
 
@@ -170,8 +156,7 @@ export default function EmployeesIndex({
         return { ...params, sort: sort.column, direction: sort.direction };
     }
 
-    function submitFilters(e: FormEvent<HTMLFormElement>) {
-        e.preventDefault();
+    function submitFilters() {
         router.get(route('employees.index'), withSort(filterForm.data), visitOptions);
     }
 
@@ -229,11 +214,6 @@ export default function EmployeesIndex({
     const hasActiveFilters = Object.entries(filterForm.data).some(([key, value]) => value !== ''
         && !(key === 'organization_id' && isOrganizationScoped && value === organizations[0]?.id));
     const filtersChanged = Object.entries(filterForm.data).some(([key, value]) => value !== (filters[key as keyof Filters] ?? ''));
-    const countFormat = new Intl.NumberFormat(locale);
-    const resultTotal = employees_pagination?.total ?? employees.length;
-    const resultStart = employees.length === 0 ? 0 : ((employees_pagination?.current_page ?? 1) - 1) * (employees_pagination?.per_page ?? employees.length) + 1;
-    const resultEnd = employees.length === 0 ? 0 : resultStart + employees.length - 1;
-    const resultSummary = t('employees.registryResults').replace(':from', countFormat.format(resultStart)).replace(/:to\b/, countFormat.format(resultEnd)).replace(':total', countFormat.format(resultTotal));
 
     /* Columns carry their own sort key so the header row and the query agree on
      * what is sortable; the assignment columns live on a joined table and are
@@ -286,54 +266,32 @@ export default function EmployeesIndex({
             <Head title={t('employees.title')} />
 
             <div className="min-w-0 space-y-4">
-                <section className="rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4">
-                    <form onSubmit={submitFilters} aria-label={t('employees.registryFilters')}>
-                    <fieldset disabled={loading} className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                        {/*
-                          * Each control is labelled for assistive technology.
-                          * The visible affordance is the "All …" first option,
-                          * which is why no <label> is drawn — but a screen
-                          * reader previously reached six unnamed selects.
-                          */}
-                        <label className="min-w-0 space-y-1.5 sm:col-span-2 xl:col-span-3">
-                        <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('common.search')}</span>
-                        <input
-                            type="search"
-                            className={inputCls}
-                            aria-label={t('employees.searchPlaceholder')}
-                            placeholder={t('employees.searchPlaceholder')}
-                            value={filterForm.data.search}
-                            onChange={(e) => filterForm.setData('search', e.target.value)}
-                        />
-                        </label>
-
-                        {(!isOrganizationScoped || organizations.length > 1) && (
-                            <label className="min-w-0 space-y-1.5">
-                            <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('employees.columnOrganization')}</span>
-                            <select
-                                className={inputCls}
-                                aria-label={t('employees.allOrganizations')}
-                                value={filterForm.data.organization_id}
-                                onChange={(e) => updateFilter('organization_id', e.target.value)}
-                            >
+                <FilterPanel
+                    label={t('employees.registryFilters')}
+                    onSubmit={submitFilters}
+                    onReset={resetFilters}
+                    hasActiveFilters={hasActiveFilters}
+                    processing={loading}
+                    submitLabel={loading ? t('common.loading') : t('common.filter')}
+                    footer={<span role="status">{filtersChanged ? t('employees.registryApplyHint') : t('employees.registryDependentHint')}</span>}
+                >
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" placeholder={t('employees.searchPlaceholder')} value={filterForm.data.search} onChange={(e) => filterForm.setData('search', e.target.value)} />
+                    </FilterField>
+                    {(!isOrganizationScoped || organizations.length > 1) && (
+                        <FilterField label={t('employees.columnOrganization')}>
+                            <Select value={filterForm.data.organization_id} onChange={(e) => updateFilter('organization_id', e.target.value)}>
                                 <option value="">{t('employees.allOrganizations')}</option>
                                 {organizations.map((organization) => (
                                     <option key={organization.id} value={organization.id}>
                                         {organizationName(organization.name_en, organization.name_am)}
                                     </option>
                                 ))}
-                            </select>
-                            </label>
-                        )}
-
-                        <label className="min-w-0 space-y-1.5">
-                        <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('employees.organizationUnit')}</span>
-                        <select
-                            className={inputCls}
-                            aria-label={t('employees.allOrganizationUnits')}
-                            value={filterForm.data.organization_unit_id}
-                            onChange={(e) => updateFilter('organization_unit_id', e.target.value)}
-                        >
+                            </Select>
+                        </FilterField>
+                    )}
+                    <FilterField label={t('employees.organizationUnit')}>
+                        <Select value={filterForm.data.organization_unit_id} onChange={(e) => updateFilter('organization_unit_id', e.target.value)}>
                             <option value="">{t('employees.allOrganizationUnits')}</option>
                             {organizationUnits.map((unit) => (
                                 <option key={unit.id} value={unit.id}>
@@ -341,17 +299,10 @@ export default function EmployeesIndex({
                                     {localizedName(unit.name_en ?? '', unit.name_am, locale)}
                                 </option>
                             ))}
-                        </select>
-                        </label>
-
-                        <label className="min-w-0 space-y-1.5">
-                        <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('employees.columnPosition')}</span>
-                        <select
-                            className={inputCls}
-                            aria-label={t('employees.allPositions')}
-                            value={filterForm.data.position_id}
-                            onChange={(e) => updateFilter('position_id', e.target.value)}
-                        >
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('employees.columnPosition')}>
+                        <Select value={filterForm.data.position_id} onChange={(e) => updateFilter('position_id', e.target.value)}>
                             <option value="">{t('employees.allPositions')}</option>
                             {positions.map((position) => (
                                 <option key={position.id} value={position.id}>
@@ -359,74 +310,36 @@ export default function EmployeesIndex({
                                     {localizedName(position.title_en ?? '', position.title_am, locale)}
                                 </option>
                             ))}
-                        </select>
-                        </label>
-
-                        <label className="min-w-0 space-y-1.5">
-                        <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('employees.employmentType')}</span>
-                        <select
-                            className={inputCls}
-                            aria-label={t('employees.allEmploymentTypes')}
-                            value={filterForm.data.employment_type}
-                            onChange={(e) => filterForm.setData('employment_type', e.target.value)}
-                        >
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('employees.employmentType')}>
+                        <Select value={filterForm.data.employment_type} onChange={(e) => filterForm.setData('employment_type', e.target.value)}>
                             <option value="">{t('employees.allEmploymentTypes')}</option>
                             {EMPLOYMENT_TYPES.map((type) => (
                                 <option key={type} value={type}>
                                     {t(`employees.employmentType_${type}`)}
                                 </option>
                             ))}
-                        </select>
-                        </label>
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('employees.systemStatus')}>
+                        <Select value={filterForm.data.status} onChange={(e) => filterForm.setData('status', e.target.value)}>
+                            <option value="">{t('employees.allStatuses')}</option>
+                            {SYSTEM_STATUSES.map((status) => (
+                                <option key={status} value={status}>
+                                    {t(`employees.${status}`)}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                        <label className="min-w-0 space-y-1.5">
-                        <span className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('employees.systemStatus')}</span>
-                            <select
-                                className={inputCls}
-                                aria-label={t('employees.allStatuses')}
-                                value={filterForm.data.status}
-                                onChange={(e) => filterForm.setData('status', e.target.value)}
-                            >
-                                <option value="">{t('employees.allStatuses')}</option>
-                                {SYSTEM_STATUSES.map((status) => (
-                                    <option key={status} value={status}>
-                                        {t(`employees.${status}`)}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-                        <div className="flex flex-wrap items-center gap-2 sm:col-span-2 xl:col-span-3">
-                            <button
-                                type="submit"
-                                className={buttonClassName({ variant: 'primary', className: 'shrink-0' })}
-                            >
-                                {loading ? t('common.loading') : t('common.filter')}
-                            </button>
-                            {/* Only offered when there is something to clear. */}
-                            {hasActiveFilters && (
-                                <button
-                                    type="button"
-                                    onClick={resetFilters}
-                                    className="shrink-0 rounded-control px-3 py-2 text-sm font-medium text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
-                                >
-                                    {t('common.reset')}
-                                </button>
-                            )}
-                            <p role="status" className="text-xs text-[color:var(--app-muted-foreground)]">{filtersChanged ? t('employees.registryApplyHint') : t('employees.registryDependentHint')}</p>
-                        </div>
-                    </fieldset>
-                    </form>
-                </section>
-
-                <section aria-busy={loading} className="min-w-0 overflow-hidden rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[color:var(--app-border)] px-4 py-3">
+                <section aria-busy={loading} className={cx(tableContainerClassName, 'min-w-0')}>
+                    <div className="border-b border-[color:var(--app-border)] px-4 py-3">
                         <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('employees.registryTitle')}</h2>
-                        <p role="status" aria-live="polite" className="text-xs tabular-nums text-[color:var(--app-muted-foreground)]">{loading ? t('common.loading') : resultSummary}</p>
                     </div>
                     {employees.length === 0 ? (
-                        <div className="p-6">
-                            <EmptyState title={t('employees.noEmployeesFound')} description={t('employees.searchFiltersHint')} />
-                        </div>
+                        <EmptyState title={t('employees.noEmployeesFound')} description={t('employees.searchFiltersHint')} />
                     ) : (
                         <>
                         <div className="hidden overflow-x-auto md:block">
@@ -642,34 +555,7 @@ export default function EmployeesIndex({
                         </ul>
                         </>
                     )}
-
-                    {employees_pagination && employees_pagination.last_page > 1 && (
-                        <nav aria-label={t('employees.registryPagination')} className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--app-border)] px-4 py-3">
-                            <p className="text-xs text-[color:var(--app-muted-foreground)]">
-                                {t('common.page')} {employees_pagination.current_page} / {employees_pagination.last_page}
-                                {' - '}
-                                {employees_pagination.total} {t('common.results')}
-                            </p>
-                            <div className="flex gap-2">
-                                <button
-                                    type="button"
-                                    disabled={loading || filtersChanged || employees_pagination.current_page <= 1}
-                                    onClick={() => goToPage(employees_pagination.current_page - 1)}
-                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                                >
-                                    {t('common.previous')}
-                                </button>
-                                <button
-                                    type="button"
-                                    disabled={loading || filtersChanged || employees_pagination.current_page >= employees_pagination.last_page}
-                                    onClick={() => goToPage(employees_pagination.current_page + 1)}
-                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                                >
-                                    {t('common.next')}
-                                </button>
-                            </div>
-                        </nav>
-                    )}
+                    <ListPagination meta={employees_pagination} label={t('employees.registryPagination')} disabled={loading || filtersChanged} onPageChange={goToPage} />
                 </section>
             </div>
         </AuthenticatedLayout>

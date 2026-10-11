@@ -1,10 +1,47 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
+import { Button, ListPagination, TableCard, Table, TBody, Td, Th, THead, Tr, buttonClassName, type LaravelPageMeta } from '@/Components/ui';
 
-import { cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Card = { id: string; employee: string; employee_number: string; card_number: string; status: string; changed_fields: string[]; changed_at: string; can_print: boolean };
-export default function ReprintQueue({ cards, labels }: { cards: { data: Card[]; prev_page_url: string | null; next_page_url: string | null }; labels: Record<string, string> & { fields: Record<string, string> } }) {
-    return <AuthenticatedLayout header={<PageHeader title={labels.reprint_queue} />}><Head title={labels.reprint_queue} /><div className="overflow-x-auto rounded-panel border bg-[color:var(--app-surface)]"><table className={cx(tableClassName, 'text-left')}><thead className={tableHeadClassName}><tr>{[labels.fields.full_name, labels.fields.employee_number, labels.card_number, labels.changed_fields, labels.date, labels.status, labels.action].map((label, i) => <th className={cx(tableHeaderCellClassName, 'text-left')} key={i}>{label}</th>)}</tr></thead><tbody className={tableBodyClassName}>{cards.data.map(card => <tr className={tableRowClassName} key={card.id}><td className={tableCellClassName}>{card.employee}</td><td className={tableCellClassName}>{card.employee_number}</td><td className={tableCellClassName}>{card.card_number}</td><td className={tableCellClassName}>{card.changed_fields.join(', ')}</td><td className={tableCellClassName}><LocalizedDateDisplay value={card.changed_at} /></td><td className={tableCellClassName}>{card.status}</td><td className={tableCellClassName}><Link className="block text-blue-700" href={route('id-cards.show', card.id)}>{labels.review}</Link>{card.can_print && <button className="text-blue-700" onClick={() => router.post(route('id-cards.prepare-print', card.id))}>{labels.prepare_print}</button>}</td></tr>)}</tbody></table>{!cards.data.length && <p className="p-5">{labels.empty}</p>}</div><div className="mt-4 flex gap-4">{cards.prev_page_url && <Link href={cards.prev_page_url}>←</Link>}{cards.next_page_url && <Link href={cards.next_page_url}>→</Link>}</div></AuthenticatedLayout>;
+
+export default function ReprintQueue({ cards, labels }: { cards: LaravelPageMeta & { data: Card[] }; labels: Record<string, string> & { fields: Record<string, string> } }) {
+    return (
+        <AuthenticatedLayout header={<PageHeader title={labels.reprint_queue} />}>
+            <Head title={labels.reprint_queue} />
+            <TableCard>
+                {cards.data.length === 0 ? <EmptyState title={labels.empty} /> : (
+                    <Table>
+                        <THead>
+                            <tr>
+                                {[labels.fields.full_name, labels.fields.employee_number, labels.card_number, labels.changed_fields, labels.date, labels.status].map((label, i) => <Th key={i}>{label}</Th>)}
+                                <Th align="right">{labels.action}</Th>
+                            </tr>
+                        </THead>
+                        <TBody>
+                            {cards.data.map((card) => (
+                                <Tr key={card.id}>
+                                    <Td className="font-medium">{card.employee}</Td>
+                                    <Td muted className="tabular-nums">{card.employee_number}</Td>
+                                    <Td className="font-mono text-xs">{card.card_number}</Td>
+                                    <Td muted>{card.changed_fields.join(', ')}</Td>
+                                    <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={card.changed_at} /></Td>
+                                    <Td>{card.status}</Td>
+                                    <Td align="right">
+                                        <div className="flex flex-wrap justify-end gap-2">
+                                            <Link href={route('id-cards.show', card.id)} className={buttonClassName({ variant: 'ghost', size: 'sm' })}>{labels.review}</Link>
+                                            {card.can_print && <Button size="sm" variant="outline" onClick={() => router.post(route('id-cards.prepare-print', card.id))}>{labels.prepare_print}</Button>}
+                                        </div>
+                                    </Td>
+                                </Tr>
+                            ))}
+                        </TBody>
+                    </Table>
+                )}
+                <ListPagination meta={cards} />
+            </TableCard>
+        </AuthenticatedLayout>
+    );
 }

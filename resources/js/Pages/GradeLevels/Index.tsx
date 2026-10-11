@@ -3,12 +3,11 @@ import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import { FormEvent } from 'react';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type GradeLevelRow = {
     id: string;
     name: string;
@@ -42,10 +41,9 @@ export default function GradeLevelsIndex({
         is_active: filters.is_active ?? '',
     });
 
-    const inputCls = inputClassName;
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    function submit() {
         router.get(route('grade-levels.index'), form.data, { preserveState: true, preserveScroll: true });
     }
 
@@ -93,37 +91,22 @@ export default function GradeLevelsIndex({
             <Head title={t('gradeLevels.gradeLevels')} />
 
             <div className="space-y-6">
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <form className="grid gap-3 sm:grid-cols-2 md:grid-cols-3" onSubmit={submit}>
-                        <input
-                            className={inputCls}
-                            value={form.data.search}
-                            placeholder={t('gradeLevels.search')}
-                            onChange={(e) => form.setData('search', e.target.value)}
-                        />
-                        <select
-                            className={inputCls}
-                            value={form.data.is_active}
-                            onChange={(e) => form.setData('is_active', e.target.value)}
-                        >
-                            <option value="">All Statuses</option>
+                <FilterPanel onSubmit={submit} onReset={() => router.get(route('grade-levels.index'))} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={form.data.search} placeholder={t('gradeLevels.search')} onChange={(e) => form.setData('search', e.target.value)} />
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select value={form.data.is_active} onChange={(e) => form.setData('is_active', e.target.value)}>
+                            <option value="">{t('common.allStatuses')}</option>
                             <option value="1">{t('common.active')}</option>
                             <option value="0">{t('common.inactive')}</option>
-                        </select>
-                        <button
-                            className={buttonClassName({ variant: 'primary' })}
-                            type="submit"
-                        >
-                            {t('common.filter')}
-                        </button>
-                    </form>
-                </section>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <section className={tableContainerClassName}>
                     {gradeLevels.length === 0 ? (
-                        <div className="p-6">
-                            <EmptyState title={t('gradeLevels.noGradeLevels')} />
-                        </div>
+                        <EmptyState title={t('gradeLevels.noGradeLevels')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="overflow-x-auto">
                             <table className={cx(tableClassName, 'min-w-full text-left')}>
@@ -198,37 +181,8 @@ export default function GradeLevelsIndex({
                             </table>
                         </div>
                     )}
+                    <ListPagination meta={meta} />
                 </section>
-
-                {meta.last_page > 1 && (
-                    <div className="flex items-center justify-between text-sm text-[color:var(--app-muted-foreground)]">
-                        <span>
-                            Page {meta.current_page} / {meta.last_page} — {meta.total} {t('common.total')}
-                        </span>
-                        <div className="flex gap-2">
-                            {meta.current_page > 1 && (
-                                <button
-                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                                    onClick={() =>
-                                        router.get(route('grade-levels.index'), { ...form.data, page: meta.current_page - 1 })
-                                    }
-                                >
-                                    {t('common.previous')}
-                                </button>
-                            )}
-                            {meta.current_page < meta.last_page && (
-                                <button
-                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                                    onClick={() =>
-                                        router.get(route('grade-levels.index'), { ...form.data, page: meta.current_page + 1 })
-                                    }
-                                >
-                                    {t('common.next')}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
             </div>
         </AuthenticatedLayout>
     );

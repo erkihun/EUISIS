@@ -2,14 +2,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, router, useForm } from '@inertiajs/react';
-import type { FormEvent } from 'react';
 import { Plus, Layers, CheckCircle, ScrollText, SettingsIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleActionMenu from '@/Components/code-rules/CodeRuleActionMenu';
 import CodeRuleEntityTypeBadge from '@/Components/code-rules/CodeRuleEntityTypeBadge';
 import CodeRuleStatusBadge from '@/Components/code-rules/CodeRuleStatusBadge';
 
-import { buttonClassName, cx, inputClassName as uiInputClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, tableContainerClassName } from '@/Components/ui';
 type RuleRow = {
     id: string;
     entity_type: string;
@@ -52,16 +51,15 @@ export default function CodeRulesIndex({
         reset_frequency: filters.reset_frequency ?? '',
     });
 
-    const inputClassName = cx(uiInputClassName, 'min-w-0 w-full');
+    const hasActiveFilters = Object.values(filters).some(Boolean);
 
-    function submit(event: FormEvent<HTMLFormElement>) {
-        event.preventDefault();
+    function submit() {
         router.get(route('code-rules.index'), form.data, { preserveState: true, preserveScroll: true });
     }
 
     function clearFilters() {
         form.setData({ search: '', entity_type: '', scope_type: '', is_active: '', reset_frequency: '' });
-        router.get(route('code-rules.index'), {}, { preserveState: true, preserveScroll: true });
+        router.get(route('code-rules.index'), {}, { preserveScroll: true });
     }
 
     return (
@@ -95,51 +93,46 @@ export default function CodeRulesIndex({
                         </div>
                     ))}
                 </div>
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
-                    <h2 className="font-semibold text-[color:var(--app-foreground)]">{t('codeRules.filterTitle')}</h2>
-                    <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('codeRules.filterDescription')}</p>
-                    <form className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4" onSubmit={submit}>
-                        <div className="sm:col-span-2 xl:col-span-4"><input aria-label={t('codeRules.searchPlaceholder')} className={inputClassName} value={form.data.search} placeholder={t('codeRules.searchPlaceholder')} onChange={(event) => form.setData('search', event.target.value)} /></div>
-                        <label className="space-y-2 text-xs font-medium text-[color:var(--app-muted-foreground)]"><span>{t('codeRules.entityType')}</span><select className={inputClassName} value={form.data.entity_type} onChange={(event) => form.setData('entity_type', event.target.value)}>
+                <FilterPanel onSubmit={submit} onReset={clearFilters} hasActiveFilters={hasActiveFilters}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input type="search" value={form.data.search} placeholder={t('codeRules.searchPlaceholder')} onChange={(event) => form.setData('search', event.target.value)} />
+                    </FilterField>
+                    <FilterField label={t('codeRules.entityType')}>
+                        <Select value={form.data.entity_type} onChange={(event) => form.setData('entity_type', event.target.value)}>
                             <option value="">{t('codeRules.filters.entityType')}</option>
                             {options.entity_types.map((option) => (
                                 <option key={option.value} value={option.value}>{t(option.label_key)}</option>
                             ))}
-                        </select></label>
-                        <label className="space-y-2 text-xs font-medium text-[color:var(--app-muted-foreground)]"><span>{t('codeRules.scopeType')}</span><select className={inputClassName} value={form.data.scope_type} onChange={(event) => form.setData('scope_type', event.target.value)}>
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('codeRules.scopeType')}>
+                        <Select value={form.data.scope_type} onChange={(event) => form.setData('scope_type', event.target.value)}>
                             <option value="">{t('codeRules.filters.scopeType')}</option>
                             {options.scope_types.map((option) => (
                                 <option key={option.value} value={option.value}>{t(option.label_key)}</option>
                             ))}
-                        </select></label>
-                        <label className="space-y-2 text-xs font-medium text-[color:var(--app-muted-foreground)]"><span>{t('codeRules.resetFrequency')}</span><select className={inputClassName} value={form.data.reset_frequency} onChange={(event) => form.setData('reset_frequency', event.target.value)}>
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('codeRules.resetFrequency')}>
+                        <Select value={form.data.reset_frequency} onChange={(event) => form.setData('reset_frequency', event.target.value)}>
                             <option value="">{t('codeRules.filters.resetFrequency')}</option>
                             {options.reset_frequencies.map((option) => (
                                 <option key={option.value} value={option.value}>{t(option.label_key)}</option>
                             ))}
-                        </select></label>
-                        <label className="space-y-2 text-xs font-medium text-[color:var(--app-muted-foreground)]"><span>{t('common.status')}</span>
-                            <select className={`${inputClassName} flex-1`} value={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.value)}>
-                                <option value="">{t('codeRules.filters.status')}</option>
-                                <option value="1">{t('codeRules.statusActive')}</option>
-                                <option value="0">{t('codeRules.statusInactive')}</option>
-                            </select></label>
-                        <div className="flex justify-end gap-3 border-t border-[color:var(--app-border)] pt-4 sm:col-span-2 xl:col-span-4">
-                            <button className={buttonClassName({ variant: 'primary' })} type="submit">
-                                {t('common.filter')}
-                            </button>
-                            <button className={buttonClassName({ variant: 'outline' })} type="button" onClick={clearFilters}>
-                                {t('common.clear')}
-                            </button>
-                        </div>
-                    </form>
-                </section>
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select value={form.data.is_active} onChange={(event) => form.setData('is_active', event.target.value)}>
+                            <option value="">{t('codeRules.filters.status')}</option>
+                            <option value="1">{t('codeRules.statusActive')}</option>
+                            <option value="0">{t('codeRules.statusInactive')}</option>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
-                <section className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+                <section className={tableContainerClassName}>
                     {codeRules.data.length === 0 ? (
-                        <div className="p-6">
-                            <EmptyState title={t('codeRules.noRules')} />
-                        </div>
+                        <EmptyState title={t('codeRules.noRules')} description={hasActiveFilters ? t('common.noMatchingRecords') : undefined} />
                     ) : (
                         <div className="divide-y divide-[color:var(--app-border)]">
                                     {codeRules.data.map((ruleRow) => (
@@ -166,29 +159,9 @@ export default function CodeRulesIndex({
                                     ))}
                         </div>
                     )}
+                    <ListPagination meta={codeRules.meta} />
                 </section>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[color:var(--app-muted-foreground)]">
-                    <span>{t('codeRules.showingResults').replace(':from', String(codeRules.meta.from ?? 0)).replace(/:to\b/, String(codeRules.meta.to ?? 0)).replace(':total', String(codeRules.meta.total))}</span>
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            disabled={codeRules.meta.current_page <= 1}
-                            onClick={() => router.get(route('code-rules.index'), { ...filters, page: codeRules.meta.current_page - 1 }, { preserveState: true, preserveScroll: true })}
-                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                        >
-                            {t('common.previous')}
-                        </button>
-                        <button
-                            type="button"
-                            disabled={codeRules.meta.current_page >= codeRules.meta.last_page}
-                            onClick={() => router.get(route('code-rules.index'), { ...filters, page: codeRules.meta.current_page + 1 }, { preserveState: true, preserveScroll: true })}
-                            className={buttonClassName({ variant: 'outline', size: 'sm' })}
-                        >
-                            {t('common.next')}
-                        </button>
-                    </div>
-                </div>
             </div>
         </AuthenticatedLayout>
     );
