@@ -30,7 +30,8 @@ function InitialLoaderRemover() {
 }
 
 createInertiaApp({
-    title: (title) => (title ? `${title} | ${brandName}` : brandName),
+    // "{Page} | Addis One"; a page titled with the brand itself is not doubled.
+    title: (title) => (title && title !== brandName ? `${title} | ${brandName}` : brandName),
     resolve: async (name) => {
         try {
             return await resolvePageComponent(`./Pages/${name}.tsx`, pages);

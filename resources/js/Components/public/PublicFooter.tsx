@@ -4,6 +4,7 @@ import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { useBilingual } from './bilingual';
 import type { PublicLink } from './PublicHeader';
 import type { PageProps } from '@/types';
+import { useBranding } from '@/hooks/useBranding';
 
 type SharedProps = PageProps & {
     publicSite?: { navigation: PublicLink[]; footerLinks: Record<string, PublicLink[]> };
@@ -29,6 +30,7 @@ function FooterLink({ link, label }: { link: PublicLink; label: string }) {
 export default function PublicFooter() {
     const { publicSite } = usePage<SharedProps>().props;
     const { t } = useLocale();
+    const { withBrand } = useBranding();
     const { getString } = useSystemSettings();
     const pick = useBilingual();
 
@@ -41,7 +43,7 @@ export default function PublicFooter() {
 
     const organization = getString('general.organization_name', getString('app.name'));
     // An unconfigured footer still says what the site is, in the home page's own words.
-    const description = pick(settings, 'description') || t('home.metaDescription');
+    const description = pick(settings, 'description') || withBrand(t('home.metaDescription'));
     const copyright = pick(settings, 'copyright');
     const email = getString('general.support_email');
     const phone = getString('general.support_phone');

@@ -7,6 +7,7 @@ namespace App\Services\Branding;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 /**
  * The one place the product's identity is resolved (docs/branding.md).
@@ -59,12 +60,12 @@ final class BrandingService
 
     public function logoUrl(): ?string
     {
-        return $this->assetUrl($this->settings->get(SystemSettingsRegistry::GROUP_GENERAL, 'identity_system_logo'));
+        return $this->assetUrl($this->read('identity_system_logo'));
     }
 
     public function faviconUrl(): ?string
     {
-        return $this->assetUrl($this->settings->get(SystemSettingsRegistry::GROUP_GENERAL, 'favicon'));
+        return $this->assetUrl($this->read('favicon'));
     }
 
     /** @return list<string> former names, for migration and readiness reporting only */
@@ -100,10 +101,24 @@ final class BrandingService
 
     private function setting(string $key, string $fallback): string
     {
-        $value = $this->settings->get(SystemSettingsRegistry::GROUP_GENERAL, $key);
+        $value = $this->read($key);
         $value = is_scalar($value) ? trim((string) $value) : '';
 
         return $value !== '' ? $value : $fallback;
+    }
+
+    /**
+     * A settings read that survives a missing or unreachable settings table
+     * (first boot, a view rendered without a database, maintenance): the
+     * config fallback answers instead of an exception.
+     */
+    private function read(string $key): mixed
+    {
+        try {
+            return $this->settings->get(SystemSettingsRegistry::GROUP_GENERAL, $key);
+        } catch (Throwable) {
+            return null;
+        }
     }
 
     private function assetUrl(mixed $path): ?string

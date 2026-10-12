@@ -99,8 +99,6 @@ export default function Login({
                         <div>
                             <p className="text-lg font-bold tracking-wide text-white">{systemName}</p>
                             <p className="mt-1 max-w-xs text-[11px] leading-snug text-slate-300/80">{officialName}</p>
-                            <p className="mt-1 max-w-xs text-[11px] leading-snug text-slate-300/80">{officialName}</p>
-                            <p className="mt-1 max-w-xs text-[11px] leading-snug text-slate-300/80">{officialName}</p>
                             <p className="text-[11px] text-orange-300/60">{bureauName}</p>
                         </div>
                     </div>
