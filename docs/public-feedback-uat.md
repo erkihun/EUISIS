@@ -131,3 +131,45 @@ tests; the subject was named through the service instead).
 
 See `docs/public-feedback-readiness.md` §4 for the full-suite numbers,
 type-check, build, key parity and dependency audits.
+
+## 9. Formal UAT scenarios (QA brief §92–§98)
+
+Format: ID · Role · Precondition · Steps · Expected · Actual · Result.
+"Automated" names the test that performs the scenario end to end on every
+run; "Browser" is the manual pass of 2026-10-12 on the local build (EN and
+AM, see §10 for the responsive and accessibility pass).
+
+| ID | Role | Precondition | Steps | Expected | Actual | Result |
+| --- | --- | --- | --- | --- | --- | --- |
+| UAT-92-F | citizen | active employee with card QR, service on the position | scan card → landing shows employee, institution, services → choose Feedback → rate, write, submit | row `target_type=employee`, `source=employee_card_qr`, `type=feedback`, context = assignment at scan time, history `[pending]`, no assignment, no reference; receipt shown | `PublicFeedbackMatrixTest` "employee × feedback"; browser pass | PASS |
+| UAT-92-S | citizen | as above, routing rule for the institution | choose Suggestion → write, pick category, submit | `type=suggestion`, routed to the rule's handler, history `[pending, assigned]`, handler sees it in the suggestions inbox | `PublicFeedbackMatrixTest` "employee × suggestion"; browser pass | PASS |
+| UAT-92-C | citizen | as above | choose Complaint → write, attach a PDF, submit | `type=complaint`, reference `PSC-…`, routed, attachment private, receipt with reference | `PublicFeedbackMatrixTest` "employee × complaint"; `PublicFeedbackAbuseTest` uploads; browser pass | PASS |
+| UAT-93-F/S/C | institution QR admin, citizen | institution without a code | Organization QR codes → enable → export PDF → scan → each of the three types | landing shows the institution only (no employee, no service list); rows `target_type=organization`, `source=organization_feedback_qr`, `employee_id` NULL (CHECK-enforced); routing as above | `PublicFeedbackMatrixTest` "organization × …"; `OrganizationFeedbackQrTest`; `TargetIntegrityTest`; browser pass | PASS |
+| UAT-94 | citizen, HR, handler | employee complaint stored | transfer the employee to another institution → open the old complaint → scan the card again and submit | old complaint keeps institution/unit/position of submission time and stays in the old institution's scope; the new submission carries the new context; the token is unchanged | `PublicFeedbackContextTest` "transfer keeps the old context…"; `PublicFeedbackQrStabilityTest`; browser pass | PASS |
+| UAT-95 | citizen, institution admin | institution feedback stored | rename the institution → open the record → scan the poster | record shows `target_name_snapshot` (old name) and current name side by side; the poster still resolves | `PublicFeedbackContextTest` "rename keeps the snapshot…"; browser pass | PASS |
+| UAT-96 | institution QR admin | active code, submissions stored against it | Rotate (with reason) → scan the old poster → scan the new one | old URL 404 and no scan counted; new URL works; stored submissions keep `source_organization_qr_id` of the old row; new token ≠ any previous token; audit `organization_qr_rotated` with actor and reason | `PublicFeedbackQrStabilityTest` "rotation…"; `OrganizationFeedbackQrTest`; browser pass | PASS |
+| UAT-97 | handler with `refer_discipline`, second decider | employee complaint under review | review → request discipline referral with notes → a different authorised user decides "accepted" | `public_feedback_referrals` row (requested → accepted); complaint row unchanged (type, target, status); no disciplinary case, grievance, tribunal or KPI row; employee record byte-for-byte unchanged | `PublicFeedbackReferralTest`; `PublicFeedbackBoundaryTest` "changes nothing about the employee…"; browser pass | PASS |
+| UAT-98 | handler with `complaints.review` | institution complaint assigned | add an employee of the institution as subject ("identified by review") → view detail → list | subject listed as secondary relation; `target_type` stays `organization`, `employee_id` stays NULL; subject employee cannot open the complaint; removing the subject leaves the complaint intact | `PublicFeedbackReferralTest` subjects; `PublicFeedbackHardeningTest`; browser pass (subject named through the service, see §7) | PASS |
+
+Reruns: `vendor/bin/pest tests/Feature/PublicFeedback` (all of the above),
+then the browser pass in `docs/public-feedback-readiness.md` §5.
+
+## 10. Route crawl, responsive, keyboard and language pass (QA brief §80–§85, 2026-10-12)
+
+Local build (`npm run build`, `php artisan serve`), Chromium through
+Playwright, development database after `branding:migrate-addis-one`.
+
+| Check | Result |
+| --- | --- |
+| Route crawl (signed in as Super Admin): feedback dashboard, ratings inbox, suggestions and complaints inboxes, a complaint detail, categories, routing rules, institution QR list, one institution's QR page, feedback reports, submission reports, policy settings, System Settings › General | every page 200 with its own document title (`{Page} \| Addis One`); no React exception, no blank page, no 403 from a visible link |
+| Console | only the four pre-existing development-only CSP notices (`http://[::1]:5173` listed as a Vite source in the CSP; not present in production builds); the one 409 seen was Inertia's version reload after a rebuild |
+| Public flow at 390×844 (phone), 820×1180 (tablet), 1280×900 (desktop) | sign-in, institution landing, employee complaint form render without horizontal scroll; the three type links stack on the phone |
+| Keyboard and labels (employee complaint form, tablet) | 11 controls, all with an accessible name; skip link present; focus visible (1.6 px outline + ring) on the first control; no unlabelled button |
+| Touch targets | form controls are 36 px high (the UI kit's standard; above the 24 px WCAG 2.2 minimum, below the 44 px recommendation) — kit-wide, not feedback-specific; noted, not changed |
+| Error summary | errors appear inline next to the field after submit; there is no summary region above the form — noted for the UI kit |
+| Languages | Amharic default and English both rendered the public landing, the complaint form, the inbox and the detail page with no raw enum or untranslated key; the brand placeholders resolve in both |
+| Sidebar for an employee account (`walkthrough.employee@example.test`) | no "Public Feedback Management" group and no feedback, suggestion or complaint entry in the employee portal navigation; the management routes answer 403 (automated 403 sweep) |
+| Public feedback vs grievance navigation | separate groups ("Public Feedback Management" under Service delivery, "Grievance Management" under Administration); no public complaint under grievances and no grievance under public feedback |
+| Maintenance page | `errors/503` renders from config with brand, short name and both official names, without a database |
+
+Screenshots were taken during the pass and not kept in the repository.
