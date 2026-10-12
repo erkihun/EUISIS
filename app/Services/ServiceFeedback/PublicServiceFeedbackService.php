@@ -8,8 +8,12 @@ use App\Actions\Audit\WriteAuditLogAction;
 use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
 use App\Enums\CodeRuleEntityType;
+use App\Enums\PublicFeedbackSourceType;
+use App\Enums\PublicFeedbackTargetType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
+use App\Enums\SubmitterIdentityMode;
+use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeFeedbackToken;
 use App\Models\EmployeeServiceFeedback;
@@ -133,7 +137,7 @@ class PublicServiceFeedbackService
         $service = PositionService::query()->find($data['position_service_id']);
 
         $feedback = EmployeeServiceFeedback::query()->create([
-            'employee_id' => $token->employee_id,
+            ...$this->targetColumns($token, $assignment),
             'employee_feedback_token_id' => $token->getKey(),
             'employee_assignment_id' => $assignment?->getKey(),
             'type' => ServiceFeedbackType::Feedback,
@@ -191,7 +195,7 @@ class PublicServiceFeedbackService
         try {
             return DB::transaction(function () use ($token, $type, $data, $request, $assignment, $service, &$storedPaths): EmployeeServiceFeedback {
                 $entry = EmployeeServiceFeedback::query()->create([
-                    'employee_id' => $token->employee_id,
+                    ...$this->targetColumns($token, $assignment),
                     'employee_feedback_token_id' => $token->getKey(),
                     'employee_assignment_id' => $assignment?->getKey(),
                     'type' => $type,
@@ -281,6 +285,27 @@ class PublicServiceFeedbackService
             reason: 'Service feedback scan for unknown or inactive token',
             request: $request,
         );
+    }
+
+    /**
+     * The unified target columns for an employee-card submission: who it is
+     * about, which QR produced it, when, and the target's identity as it was
+     * at that moment (brief §22, 25).
+     *
+     * @return array<string, mixed>
+     */
+    private function targetColumns(EmployeeFeedbackToken $token, ?EmployeeAssignment $assignment): array
+    {
+        return [
+            'employee_id' => $token->employee_id,
+            'organization_target_id' => null,
+            'target_type' => PublicFeedbackTargetType::Employee,
+            'source_type' => PublicFeedbackSourceType::EmployeeCardQr,
+            'target_name_snapshot' => $this->maskedDisplayName($assignment, 'en'),
+            'target_code_snapshot' => Employee::query()->whereKey($token->employee_id)->value('employee_number'),
+            'submitter_identity_mode' => SubmitterIdentityMode::Optional,
+            'submitted_at' => now(),
+        ];
     }
 
     private function currentAssignment(string $employeeId): ?EmployeeAssignment

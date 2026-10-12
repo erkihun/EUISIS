@@ -4,14 +4,24 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\PublicFeedbackSourceType;
+use App\Enums\PublicFeedbackTargetType;
 use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
+use App\Enums\SubmitterIdentityMode;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use InvalidArgumentException;
 
+/**
+ * One public submission — feedback, suggestion or complaint — about exactly
+ * one target: the employee whose card QR was scanned, or the organization
+ * whose feedback QR was scanned. The table name predates organization
+ * targets; the rows do not.
+ */
 class EmployeeServiceFeedback extends Model
 {
     use HasUuidPrimaryKey;
@@ -20,6 +30,16 @@ class EmployeeServiceFeedback extends Model
 
     protected $fillable = [
         'employee_id',
+        'organization_target_id',
+        'target_type',
+        'source_type',
+        'source_organization_qr_id',
+        'target_name_snapshot',
+        'target_code_snapshot',
+        'category_id',
+        'subject',
+        'submitter_identity_mode',
+        'submitted_at',
         'employee_feedback_token_id',
         'employee_assignment_id',
         'type',
@@ -59,15 +79,68 @@ class EmployeeServiceFeedback extends Model
         return [
             'status' => ServiceFeedbackStatus::class,
             'type' => ServiceFeedbackType::class,
+            'target_type' => PublicFeedbackTargetType::class,
+            'source_type' => PublicFeedbackSourceType::class,
+            'submitter_identity_mode' => SubmitterIdentityMode::class,
             'rating' => 'integer',
             'incident_date' => 'date',
+            'submitted_at' => 'datetime',
+            'acknowledged_at' => 'datetime',
+            'assigned_at' => 'datetime',
+            'resolved_at' => 'datetime',
+            'closed_at' => 'datetime',
             'reviewed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // PHP's copy of the PostgreSQL CHECK constraints: every driver, every path.
+        static::saving(function (self $submission): void {
+            $submission->assertTargetIntegrity();
+        });
+    }
+
+    /**
+     * Exactly one primary target, produced by a matching source (brief §23, 24).
+     * Rows written before the unified model carry no target columns yet and
+     * are employee submissions from the card QR, which the defaults say.
+     */
+    public function assertTargetIntegrity(): void
+    {
+        $target = $this->target_type ?? PublicFeedbackTargetType::Employee;
+        $source = $this->source_type ?? PublicFeedbackSourceType::EmployeeCardQr;
+        $hasEmployee = $this->employee_id !== null;
+        $hasOrganization = $this->organization_target_id !== null;
+
+        $valid = match ($target) {
+            PublicFeedbackTargetType::Employee => $hasEmployee && ! $hasOrganization,
+            PublicFeedbackTargetType::Organization => $hasOrganization && ! $hasEmployee,
+        };
+
+        if (! $valid) {
+            throw new InvalidArgumentException('A public submission names exactly one target: an employee or an organization.');
+        }
+
+        if ($source->targetType() !== $target) {
+            throw new InvalidArgumentException('The submission source does not produce this target type.');
+        }
+    }
+
+    public function isEmployeeTarget(): bool
+    {
+        return ($this->target_type ?? PublicFeedbackTargetType::Employee) === PublicFeedbackTargetType::Employee;
     }
 
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    /** The organization a submission is ABOUT (organization QR); not the employee's office context. */
+    public function organizationTarget(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'organization_target_id');
     }
 
     public function organization(): BelongsTo
