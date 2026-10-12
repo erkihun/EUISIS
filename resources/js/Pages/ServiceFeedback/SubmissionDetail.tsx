@@ -2,6 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import { FeedbackStatusBadge, statusLabelKey } from '@/Components/ServiceFeedback/feedbackUi';
+import { ReferralsPanel, SubjectsPanel, type ReferralRow, type SubjectRow } from '@/Components/ServiceFeedback/ReferralPanels';
 import { useLocale } from '@/hooks/useLocale';
 import { AppDialog, Alert, Button, Card, FormField, Select, Textarea } from '@euisis/ui';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -30,7 +31,9 @@ type Props = {
     assignments: AssignmentRow[];
     currentAssignment: AssignmentRow | null;
     allowedTransitions: string[];
-    can: { assign: boolean };
+    subjects: SubjectRow[];
+    referrals: ReferralRow[];
+    can: { assign: boolean; subjects: boolean; refer: boolean; decideReferral: boolean };
     handlerOptions: HandlerOptions | null;
 };
 
@@ -45,7 +48,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
  * stands and every step it took (brief §52–53). The transition form offers
  * only the statuses this user may set from here; assignment opens a dialog.
  */
-export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions }: Props) {
+export default function SubmissionDetail({ type, entry, history, assignments, currentAssignment, allowedTransitions, can, handlerOptions, subjects = [], referrals = [] }: Props) {
     const { t, locale } = useLocale();
     const title = t(type === 'complaint' ? 'serviceFeedback.typeComplaint' : 'serviceFeedback.typeSuggestion');
     const [assigning, setAssigning] = useState(false);
@@ -137,6 +140,8 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                     {allowedTransitions.length > 0 && <TransitionForm key={`${entry.status}:${allowedTransitions.join(',')}`} type={type} submissionId={entry.id} allowedTransitions={allowedTransitions} />}
 
                     {entry.review_note && <Card className="p-5 text-sm"><h2 className="font-semibold">{t('serviceFeedback.reviewNote')}</h2><p className="mt-2 whitespace-pre-wrap">{entry.review_note}</p></Card>}
+                    {type === 'complaint' && <SubjectsPanel submissionId={entry.id} subjects={subjects} canManage={can.subjects} />}
+                    {type === 'complaint' && <ReferralsPanel submissionId={entry.id} referrals={referrals} canRefer={can.refer} canDecide={can.decideReferral} />}
                 </div>
             </div>
         </div>

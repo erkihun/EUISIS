@@ -73,6 +73,14 @@ class EmployeeServiceFeedbackPolicy
             && $this->withinScope($user, $feedback);
     }
 
+    /** Naming investigation subjects on a complaint (§61) takes the complaint review grant. */
+    public function manageSubjects(User $user, EmployeeServiceFeedback $feedback): bool
+    {
+        return $feedback->type === ServiceFeedbackType::Complaint
+            && $user->hasAnyPermission(['service_feedback.complaints.review'])
+            && $this->withinScope($user, $feedback);
+    }
+
     /** Handing the submission to a handler; a first assignment or a reassignment (§53). */
     public function assign(User $user, EmployeeServiceFeedback $feedback): bool
     {

@@ -38,6 +38,17 @@ return [
     'category_out_of_scope' => 'ምድቡ ከተማ አቀፍ ወይም የደንቡ ተቋም መሆን አለበት።',
     'settings_saved' => 'የሕዝብ አስተያየት ፖሊሲው ተቀምጧል።',
     'export_queued' => 'ወደ ውጭ መላክ ተሰልፏል። ፋይሉ ሲዘጋጅ ከታች ባለው ዝርዝር ውስጥ ይታያል።',
+    'subject_added' => 'ሠራተኛው እንደ የምርመራ ተሳታፊ ተሰይሟል።',
+    'subject_removed' => 'የምርመራ ተሳታፊው ተወግዷል።',
+    'subject_not_in_organization' => 'የዚህ ማቅረብ ተቋም ንቁ ሠራተኛ ይምረጡ።',
+    'subject_is_target' => 'ቅሬታው የሚመለከተው ሠራተኛ ዒላማው እንጂ ተሳታፊ አይደለም።',
+    'subject_duplicate' => 'ይህ ሠራተኛ አስቀድሞ ተሰይሟል።',
+    'referral_requested' => 'የዲሲፕሊን ማስተላለፍ ተጠይቋል።',
+    'referral_decided' => 'የማስተላለፍ ውሳኔው ተመዝግቧል።',
+    'referral_not_reviewed' => 'ቅሬታው ከተገመገመ በኋላ ማስተላለፍ ሊጠየቅ ይችላል።',
+    'referral_open_exists' => 'የማስተላለፍ ጥያቄ አስቀድሞ ውሳኔ እየጠበቀ ነው።',
+    'referral_already_decided' => 'ይህ የማስተላለፍ ጥያቄ አስቀድሞ ተወስኗል።',
+    'referral_already_accepted' => 'ለዚህ ቅሬታ የተቀበለ ማስተላለፍ አስቀድሞ አለ።',
 
     'export_columns' => [
         'submitted_at' => 'የገባበት ጊዜ',
@@ -70,6 +81,8 @@ return [
         'assigned' => 'የሕዝብ :type :reference ለእርስዎ ወይም ለቡድንዎ ተሰጥቷል።',
         'resolved_title' => 'የሕዝብ ማቅረብ ውጤት ተመዝግቧል',
         'resolved' => 'ለሕዝብ :type :reference ውጤት ተመዝግቧል።',
+        'referred_title' => 'የዲሲፕሊን ማስተላለፍ ተጠይቋል',
+        'referred' => 'ለሕዝብ :type :reference የዲሲፕሊን ማስተላለፍ ተጠይቋል፤ ውሳኔ እየጠበቀ ነው።',
     ],
 
     'acknowledgement' => [

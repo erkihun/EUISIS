@@ -17,6 +17,7 @@ use App\Models\PublicFeedbackStatusHistory;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\PublicFeedbackAssignmentService;
+use App\Services\ServiceFeedback\PublicFeedbackReferralService;
 use App\Services\ServiceFeedback\PublicFeedbackRoutingService;
 use App\Services\ServiceFeedback\PublicFeedbackTransitionException;
 use App\Services\ServiceFeedback\PublicFeedbackVisibility;
@@ -53,6 +54,7 @@ class ServiceSubmissionController extends Controller
         private readonly PublicFeedbackWorkflow $workflow,
         private readonly PublicFeedbackAssignmentService $assignments,
         private readonly PublicFeedbackVisibility $visibility,
+        private readonly PublicFeedbackReferralService $referrals,
     ) {}
 
     public function suggestions(Request $request): Response
@@ -114,6 +116,10 @@ class ServiceSubmissionController extends Controller
             'statusHistory.actor:id,name',
             'assignments.assignedBy:id,name',
             'currentAssignment',
+            'subjects.employee:id,full_name,employee_number',
+            'subjects.addedBy:id,name',
+            'referrals.requester:id,name',
+            'referrals.decider:id,name',
         ]);
         $locale = app()->getLocale();
 
@@ -163,7 +169,33 @@ class ServiceSubmissionController extends Controller
             'assignments' => $submission->assignments->map(fn (PublicFeedbackAssignment $row): array => $this->assignmentRow($row, $locale))->values()->all(),
             'currentAssignment' => $current === null ? null : $this->assignmentRow($current, $locale),
             'allowedTransitions' => $allowed,
-            'can' => ['assign' => $assignable],
+            'subjects' => $submission->subjects->map(fn ($subject): array => [
+                'id' => $subject->id,
+                'employee' => ['id' => $subject->employee_id, 'full_name' => $subject->employee?->full_name, 'employee_number' => $subject->employee?->employee_number],
+                'subject_role' => $subject->subject_role,
+                'added_by' => $subject->addedBy?->name,
+                'added_at' => $subject->added_at?->toIso8601String(),
+            ])->values()->all(),
+            'referrals' => $submission->referrals->map(fn ($referral): array => [
+                'id' => $referral->id,
+                'kind' => $referral->kind,
+                'status' => $referral->status,
+                'notes' => $referral->notes,
+                'requested_by' => $referral->requester?->name,
+                'requested_at' => $referral->requested_at?->toIso8601String(),
+                'decided_by' => $referral->decider?->name,
+                'decided_at' => $referral->decided_at?->toIso8601String(),
+                'decision_notes' => $referral->decision_notes,
+                'disciplinary_case_id' => $referral->disciplinary_case_id,
+                'mine' => (int) $referral->requested_by === (int) $user->getKey(),
+            ])->values()->all(),
+            'can' => [
+                'assign' => $assignable,
+                'subjects' => $kind === ServiceFeedbackType::Complaint && $user->can('manageSubjects', $submission),
+                // Brief §59–60: asking for a referral, and deciding one, never by the employee involved.
+                'refer' => $this->referrals->canRequest($user, $submission),
+                'decideReferral' => $submission->referrals->contains(fn ($r) => $r->status === 'requested' && (int) $r->requested_by !== (int) $user->getKey()) && $this->referrals->canRefer($user, $submission),
+            ],
             'handlerOptions' => $assignable ? $this->assignments->options($submission->organization_id) : null,
         ]);
     }

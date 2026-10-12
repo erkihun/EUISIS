@@ -63,6 +63,18 @@ final class PublicFeedbackNotifier
         $this->send($this->without($users, $actor), 'resolved', $submission);
     }
 
+    /** Brief §88 "Referral": the other referral decision-makers in scope, never the employees involved. */
+    public function referred(EmployeeServiceFeedback $submission, ?User $actor): void
+    {
+        $subjectEmployeeIds = $submission->subjects()->pluck('employee_id')->map(fn ($id): string => (string) $id)->all();
+        $users = array_values(array_filter(
+            $this->usersWithPermission(PublicFeedbackReferralService::PERMISSION, $submission),
+            fn (User $user): bool => $user->employee_id === null || ! in_array((string) $user->employee_id, $subjectEmployeeIds, true),
+        ));
+
+        $this->send($this->without($users, $actor), 'referred', $submission);
+    }
+
     /**
      * Brief §89: an asynchronous receipt to a submitter who left an e-mail,
      * when the policy allows. A phone number gets nothing: SMS is undecided.

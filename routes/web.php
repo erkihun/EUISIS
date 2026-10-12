@@ -78,9 +78,11 @@ use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
 use App\Http\Controllers\Web\OrganizationFeedbackQrController;
 use App\Http\Controllers\Web\PublicFeedbackCategoryController;
+use App\Http\Controllers\Web\PublicFeedbackReferralController;
 use App\Http\Controllers\Web\PublicFeedbackReportController;
 use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
 use App\Http\Controllers\Web\PublicFeedbackSettingsController;
+use App\Http\Controllers\Web\PublicFeedbackSubjectController;
 use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
@@ -1339,6 +1341,14 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
         ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.transition');
     Route::post('/service-submissions/{type}/{submission}/assign', [ServiceSubmissionController::class, 'assign'])
         ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.assign');
+    Route::post('/service-submissions/{type}/{submission}/subjects', [PublicFeedbackSubjectController::class, 'store'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.subjects.store');
+    Route::delete('/service-submissions/{type}/{submission}/subjects/{subject}', [PublicFeedbackSubjectController::class, 'destroy'])
+        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'subject'])->name('service-submissions.subjects.destroy');
+    Route::post('/service-submissions/{type}/{submission}/referrals', [PublicFeedbackReferralController::class, 'store'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.referrals.store');
+    Route::patch('/service-submissions/{type}/{submission}/referrals/{referral}', [PublicFeedbackReferralController::class, 'update'])
+        ->where('type', 'suggestion|complaint')->whereUuid(['submission', 'referral'])->name('service-submissions.referrals.update');
     Route::get('/service-submissions/{type}/{submission}/attachments/{attachment}', [ServiceSubmissionController::class, 'download'])
         ->where('type', 'complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
 

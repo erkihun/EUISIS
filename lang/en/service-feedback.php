@@ -38,6 +38,17 @@ return [
     'category_out_of_scope' => 'The category must be city-wide or belong to the rule\'s institution.',
     'settings_saved' => 'The public feedback policy was saved.',
     'export_queued' => 'Export queued. It appears in the list below once the file is ready.',
+    'subject_added' => 'The employee was named as an investigation subject.',
+    'subject_removed' => 'The investigation subject was removed.',
+    'subject_not_in_organization' => 'Choose an active employee of this submission\'s institution.',
+    'subject_is_target' => 'The employee the complaint is about is its target, not a subject.',
+    'subject_duplicate' => 'This employee is already named.',
+    'referral_requested' => 'The discipline referral was requested.',
+    'referral_decided' => 'The referral decision was recorded.',
+    'referral_not_reviewed' => 'A referral can be requested once the complaint has been reviewed.',
+    'referral_open_exists' => 'A referral request is already waiting for a decision.',
+    'referral_already_decided' => 'This referral request was already decided.',
+    'referral_already_accepted' => 'An accepted referral already stands for this complaint.',
 
     'export_columns' => [
         'submitted_at' => 'Submitted At',
@@ -70,6 +81,8 @@ return [
         'assigned' => 'Public :type :reference was handed to you or your team.',
         'resolved_title' => 'Public submission outcome recorded',
         'resolved' => 'An outcome was recorded for public :type :reference.',
+        'referred_title' => 'Discipline referral requested',
+        'referred' => 'A discipline referral was requested for public :type :reference and waits for a decision.',
     ],
 
     'acknowledgement' => [

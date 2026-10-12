@@ -204,6 +204,18 @@ class EmployeeServiceFeedback extends Model
         return $this->hasMany(PublicFeedbackAssignment::class, 'submission_id')->orderBy('assigned_at');
     }
 
+    /** Employees an internal review named as involved (brief §61); never the target. */
+    public function subjects(): HasMany
+    {
+        return $this->hasMany(PublicFeedbackSubjectEmployee::class, 'submission_id')->orderBy('added_at');
+    }
+
+    /** Controlled referral requests to the discipline domain (brief §59). */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(PublicFeedbackReferral::class, 'submission_id')->orderBy('requested_at');
+    }
+
     /** The open hand-over; at most one exists (unique partial index). */
     public function currentAssignment(): HasOne
     {

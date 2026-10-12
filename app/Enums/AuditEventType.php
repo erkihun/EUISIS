@@ -560,6 +560,10 @@ enum AuditEventType: string
     case ServiceFeedbackUnrouted = 'service_feedback.unrouted';
     case ServiceFeedbackRoutingRuleSaved = 'service_feedback.routing_rule_saved';
     case ServiceFeedbackRoutingRuleDeleted = 'service_feedback.routing_rule_deleted';
+    case ServiceFeedbackSubjectAdded = 'service_feedback.subject_added';
+    case ServiceFeedbackSubjectRemoved = 'service_feedback.subject_removed';
+    case ServiceFeedbackReferralRequested = 'service_feedback.referral_requested';
+    case ServiceFeedbackReferralDecided = 'service_feedback.referral_decided';
 
     /*
      * Public Site Management. Changed field NAMES are recorded, never uploaded
