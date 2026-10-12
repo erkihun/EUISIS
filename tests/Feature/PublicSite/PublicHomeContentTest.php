@@ -153,6 +153,7 @@ it('routes support visitors to real pages and keeps FAQ answers when none are co
 
 it('gives an unconfigured footer a description and a way to help', function (): void {
     $footer = (string) file_get_contents(resource_path('js/Components/public/PublicFooter.tsx'));
-    expect($footer)->toContain("|| t('home.metaDescription')")->toContain("route('public.support')")
+    // The fallback description names the product through the brand resolver ({brand} placeholder).
+    expect($footer)->toContain("|| withBrand(t('home.metaDescription'))")->toContain("route('public.support')")
         ->toContain('grid grid-cols-2');
 });
