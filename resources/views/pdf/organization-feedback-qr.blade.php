@@ -1,3 +1,8 @@
+@php
+    // System attribution only (rebrand brief §56): the poster's subject stays the primary identity.
+    $branding = app(App\Services\Branding\BrandingService::class);
+    $organizationName = (string) app(App\Services\SystemSettings\SystemSettingsService::class)->get('general', 'organization_name', 'Addis Ababa City Administration');
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,7 +59,8 @@
         <div class="url">{{ $url }}</div>
 
         <div class="footer">
-            Addis Ababa City Administration — Employee Unified ID and Service Integration System
+            {{ $organizationName }} — {{ $branding->officialNameEn() }} ({{ $branding->shortName() }})<br>
+            {{ $branding->officialNameAm() }}
         </div>
     </div>
 </body>

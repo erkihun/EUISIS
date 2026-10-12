@@ -119,7 +119,7 @@ export default {
     revokeWarning: 'ይህን ቶከን የሚጠቀም ማንኛውም ስርዓት ወዲያውኑ መዳረሻ ያጣል።',
     scopeChangeHint: 'የስኮፕ ለውጦች ለአዲስ ቶከኖች ብቻ ይሰራሉ። ነባር ቶከኖችን ሰርዘው እንደገና ያውጡ።',
     ipAllowlistHint: 'የተፈቀዱ አይፒዎች፣ በኮማ ተለያይተው (ባዶ = ማንኛውም)',
-    tokenEnvHint: 'ይህንን በውህደትዎ EUISIS_API_TOKEN ቅንብር ውስጥ ይለጥፉ። ትክክለኛ ቶከን | ቁምፊ ይዟል።',
+    tokenEnvHint: 'ይህንን በውህደትዎ የAPI ቶከን ቅንብር ውስጥ ይለጥፉ። ትክክለኛ ቶከን | ቁምፊ ይዟል።',
     // Index redesign
     applications: 'መተግበሪያዎች',
     sections: 'የኤፒአይ አስተዳደር ክፍሎች',

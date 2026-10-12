@@ -26,8 +26,8 @@ const auth = {
     createEmployeeAccount: 'የሰራተኛ መለያ ይፍጠሩ',
     securePortal: 'ደህንነቱ የተጠበቀ የመንግስት ፖርታል',
     systemHeadline1: 'የተቀናጀ የሰራተኛ',
-    systemHeadlineHighlight: 'መታወቂያ',
-    systemHeadline2: 'አስተዳደር',
+    systemHeadlineHighlight: 'አስተዳደር',
+    systemHeadline2: 'እና አገልግሎት',
     systemDesc1: 'የሰራተኞችን መታወቂያ መዝገቦች፣ ዲጂታል መታወቂያ ካርዶችና የሰው ሃብት መረጃን ለማስተዳደር የሚያገለግል ማዕከላዊ መድረክ።',
     systemDesc2: 'ስርዓቱ በዝርዝር የሚያደርጉ ሚና-ተኮር ፈቃዶችን ያስከብራል፣ እያንዳንዱን ድርጊት በምርመራ ዱካ ይመዘግባል፣ እና ትክክለኛ መረጃ ለማረጋገጥ ከሙያ ምደባ ደረጃዎች ጋር ይናበባል።',
     featureRoleAccess: 'ሚና-ተኮር ፈቃድ',
@@ -40,7 +40,7 @@ const auth = {
 
     registration: {
         title: 'መለያ ይፍጠሩ',
-        systemName: 'የሠራተኞች የተቀናጀ መታወቂያ ስርዓት',
+        systemName: '{officialName}',
         secureRegistration: 'ደህንነቱ የተጠበቀ የሠራተኛ ምዝገባ',
         verifyIdentity: 'መለያ ከመፍጠርዎ በፊት ማንነትዎን ያረጋግጡ።',
         stepEmployeeNumber: '1. በሰው ሀብት ክፍል የተሰጠዎትን የሠራተኛ ቁጥር ያስገቡ።',

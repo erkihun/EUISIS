@@ -11,6 +11,7 @@ import Dropdown from '@/Components/Dropdown';
 import { LogOut, MenuIcon, SettingsIcon, X } from '@/Components/Icons';
 import { useBilingual } from './bilingual';
 import type { PageProps } from '@/types';
+import { useBranding } from '@/hooks/useBranding';
 
 export type PublicLink = {
     id: string;
@@ -56,7 +57,7 @@ export default function PublicHeader() {
 
     const links = publicSite?.navigation ?? [];
     const user = auth?.user ?? null;
-    const appName = getString('app.short_name', 'AA Employee ID');
+    const { brandName: appName } = useBranding();
     const logoUrl = getString('general.identity_system_logo_url');
 
     // Any navigation — link, back button, redirect — closes the menu.

@@ -234,7 +234,7 @@ export default {
         description: 'Who is on official field work right now. This is workflow status, not live location or attendance.',
         empty: 'No employees are on field work right now.',
         expectedReturn: 'Expected return',
-        unknownNote: 'Employees not listed are UNKNOWN, not absent: EUISIS has no attendance, leave, training or travel source yet.',
+        unknownNote: 'Employees not listed are UNKNOWN, not absent: {brand} has no attendance, leave, training or travel source yet.',
         status: {
             official_field_work: 'On official field work',
             approved_not_checked_in: 'Approved, not checked in',

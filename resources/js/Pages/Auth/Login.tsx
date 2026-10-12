@@ -4,6 +4,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { useBranding } from '@/hooks/useBranding';
 
 export default function Login({
     status,
@@ -28,7 +29,7 @@ export default function Login({
     >().props;
 
     // Branding pulled from system settings
-    const systemName  = getString('app.short_name', 'EUISIS');
+    const { brandName: systemName, officialName } = useBranding();
     const orgName     = locale === 'am'
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
@@ -97,6 +98,9 @@ export default function Login({
                         )}
                         <div>
                             <p className="text-lg font-bold tracking-wide text-white">{systemName}</p>
+                            <p className="mt-1 max-w-xs text-[11px] leading-snug text-slate-300/80">{officialName}</p>
+                            <p className="mt-1 max-w-xs text-[11px] leading-snug text-slate-300/80">{officialName}</p>
+                            <p className="mt-1 max-w-xs text-[11px] leading-snug text-slate-300/80">{officialName}</p>
                             <p className="text-[11px] text-orange-300/60">{bureauName}</p>
                         </div>
                     </div>

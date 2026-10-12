@@ -31,6 +31,7 @@ use App\Models\OrganizationLetterhead;
 use App\Models\OrganizationSeal;
 use App\Models\Position;
 use App\Models\User;
+use App\Services\Branding\BrandingService;
 use App\Services\Calendar\EthiopianCalendarService;
 use App\Services\SystemSettings\SystemSettingsService;
 use App\Support\Storage\StoredFileChecksum;
@@ -524,7 +525,7 @@ final class GrievanceCorrespondenceService
         if ($channel === GrievanceDispatchChannel::SmsNotice) {
             $phone = $grievance->employee?->phone;
             $destination = $phone ? substr($phone, 0, 3).'****'.substr($phone, -2) : null;
-            $ok = $phone && $this->sms->isConfigured() && $this->sms->send($phone, (string) __('grievances.notifications.sms_letter', ['case' => $grievance->reference_number]));
+            $ok = $phone && $this->sms->isConfigured() && $this->sms->send($phone, (string) __('grievances.notifications.sms_letter', ['app' => app(BrandingService::class)->brandName(), 'case' => $grievance->reference_number]));
             if (! $ok) {
                 $status = GrievanceDispatchStatus::Failed;
                 $failure = $phone ? 'sms_gateway_failed' : 'no_phone';

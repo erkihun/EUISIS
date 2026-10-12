@@ -33,6 +33,7 @@ import {
 import type { PageProps } from '@/types';
 import { SVGProps } from 'react';
 import './Welcome.css';
+import { useBranding } from '@/hooks/useBranding';
 
 type IconProps = SVGProps<SVGSVGElement>;
 type Icon = ComponentType<IconProps>;
@@ -294,12 +295,12 @@ export default function Welcome() {
     const { ref: stepsRef, inView: stepsInView } = useInView();
     const { ref: verifyRef, inView: verifyInView } = useInView();
 
-    const appNameEn = getString('app.short_name', getString('app.name', 'AA Employee ID'));
+    const { brandName: appNameEn, withBrand } = useBranding();
     const steps = Array.from({ length: STEP_COUNT }, (_, i) => i + 1);
     const faqs = Array.from({ length: FAQ_COUNT }, (_, i) => i + 1);
 
     return (
-        <PublicLayout title={appNameEn} description={t('home.metaDescription')} meta={meta}>
+        <PublicLayout title={appNameEn} description={withBrand(t('home.metaDescription'))} meta={meta}>
             <div className="public-home" data-motion={getBoolean('appearance.enable_ui_animations', true) ? 'on' : 'off'}>
             {/* ─────────────────────────── HERO ────────────────────────────── */}
             <section
@@ -327,7 +328,7 @@ export default function Welcome() {
                                 className="mt-4 text-[clamp(1.5rem,6vw,1.875rem)] font-extrabold leading-tight tracking-tight text-white sm:text-4xl xl:text-5xl animate-fade-up"
                                 style={{ animationDelay: '0.12s' }}
                             >
-                                {t('home.heroTitle')}
+                                {withBrand(t('home.heroTitle'))}
                             </h1>
                             <p className="mt-4 text-base leading-relaxed text-blue-100 sm:mt-5 sm:text-xl animate-fade-up" style={{ animationDelay: '0.24s' }}>
                                 {t('home.heroSubtitle')}
@@ -395,7 +396,7 @@ export default function Welcome() {
                 </div>
             </section>
 
-            {/* ───────────────────── WHAT EUISIS MANAGES ───────────────────── */}
+            {/* ───────────────────── WHAT THE SYSTEM MANAGES ───────────────────── */}
             <CardSection id="manage-heading" prefix="manage" cards={MANAGE_CARDS} tinted />
 
             {/* ─────────────────── ONE ID — MULTIPLE SERVICES ──────────────── */}
@@ -520,10 +521,10 @@ export default function Welcome() {
                         {faqs.map((n) => (
                             <details key={n} className={`${publicCardClass} group py-2`}>
                                 <summary className="relative flex min-h-[44px] cursor-pointer list-none items-center justify-between gap-3 py-2 text-sm font-semibold text-gray-900 marker:hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] dark:text-slate-100 [&::-webkit-details-marker]:hidden">
-                                    <span className="[overflow-wrap:anywhere]">{t(`home.faq${n}Q`)}</span>
+                                    <span className="[overflow-wrap:anywhere]">{withBrand(t(`home.faq${n}Q`))}</span>
                                     <span aria-hidden="true" className="shrink-0 text-gray-400 transition-transform group-open:rotate-45">+</span>
                                 </summary>
-                                <p className="relative pb-2 text-sm text-gray-700 dark:text-slate-300">{t(`home.faq${n}A`)}</p>
+                                <p className="relative pb-2 text-sm text-gray-700 dark:text-slate-300">{withBrand(t(`home.faq${n}A`))}</p>
                             </details>
                         ))}
                     </div>

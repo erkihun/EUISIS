@@ -2,8 +2,10 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import PasswordPolicyChecklist from '@/Components/PasswordPolicyChecklist';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useState } from 'react';
+import { useBranding } from '@/hooks/useBranding';
 
 export default function ResetPassword({ token, email }: { token: string; email: string }) {
+    const { brandName, officialName } = useBranding();
     const { data, setData, post, processing, errors, reset } = useForm({
         token,
         email,
@@ -70,8 +72,8 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                     <div className="flex flex-col items-center gap-3">
                         <ApplicationLogo className="h-24 w-24 fill-white drop-shadow-lg" />
                         <div>
-                            <p className="text-lg font-bold tracking-wide text-white">EUISIS</p>
-                            <p className="text-[11px] text-orange-300/60">Employee Unified Identity System</p>
+                            <p className="text-lg font-bold tracking-wide text-white">{brandName}</p>
+                            <p className="max-w-xs text-[11px] leading-snug text-orange-300/60">{officialName}</p>
                         </div>
                     </div>
 
@@ -125,7 +127,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                 {/* Mobile top bar */}
                 <div className="flex items-center gap-2.5 px-6 py-5 lg:hidden">
                     <ApplicationLogo className="h-8 w-8 fill-slate-800 dark:fill-white" />
-                    <span className="text-sm font-bold text-slate-900 dark:text-white">EUISIS</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-white">{brandName}</span>
                 </div>
 
                 <div className="flex flex-1 items-center justify-center px-6 py-10">

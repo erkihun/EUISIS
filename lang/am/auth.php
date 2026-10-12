@@ -34,7 +34,7 @@ return [
     'registration_otp_intro' => 'የሠራተኛ ፖርታል መለያዎን መፍጠር ለማጠናቀቅ ይህን የአንድ ጊዜ ኮድ ይጠቀሙ፦',
     'registration_otp_expiry' => 'የዚህ ኮድ ጊዜ በ:minutes ደቂቃዎች ውስጥ ያበቃል።',
     'registration_otp_ignore' => 'መለያ እንዲፈጠርልዎ ካልጠየቁ፣ ይህን መልዕክት ችላ ይበሉ እና አስተዳዳሪዎን ያነጋግሩ።',
-    'registration_otp_sms' => 'የEUISIS ምዝገባ ኮድ፦ :code። ጊዜው በ:minutes ደቂቃዎች ውስጥ ያበቃል። ይህን ኮድ ለማንም አያጋሩ።',
+    'registration_otp_sms' => 'የ:app ምዝገባ ኮድ፦ :code። ጊዜው በ:minutes ደቂቃዎች ውስጥ ያበቃል። ይህን ኮድ ለማንም አያጋሩ።',
 
     // Forced password change on first login
     'must_change_password' => 'ከመቀጠልዎ በፊት የይለፍ ቃልዎን መቀየር አለብዎት።',

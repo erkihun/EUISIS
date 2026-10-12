@@ -11,6 +11,7 @@ use App\Models\Grievance;
 use App\Models\GrievanceCaseStage;
 use App\Models\User;
 use App\Notifications\GrievanceNotification;
+use App\Services\Branding\BrandingService;
 use App\Services\DailyActivity\DailyActivityNotifier;
 use App\Services\SystemSettings\SystemSettingsRegistry;
 use App\Services\SystemSettings\SystemSettingsService;
@@ -98,7 +99,7 @@ final class GrievanceNotifier
                 }
                 if ($smsPhone && $this->grievanceSettings->smsNoticesEnabled() && $this->sms->isConfigured()) {
                     // Deliberately generic: a case number and a pointer to the portal.
-                    $this->sms->send($smsPhone, (string) __('grievances.notifications.sms', ['case' => $caseNumber]));
+                    $this->sms->send($smsPhone, (string) __('grievances.notifications.sms', ['app' => app(BrandingService::class)->brandName(), 'case' => $caseNumber]));
                 }
             } catch (Throwable $exception) {
                 Log::warning('Grievance notification failed', ['kind' => $kind, 'exception' => $exception->getMessage()]);

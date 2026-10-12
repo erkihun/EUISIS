@@ -34,7 +34,7 @@ return [
     'registration_otp_intro' => 'Use this one-time code to finish creating your employee portal account:',
     'registration_otp_expiry' => 'This code expires in :minutes minutes.',
     'registration_otp_ignore' => 'If you did not request an account, ignore this message and contact your administrator.',
-    'registration_otp_sms' => 'EUISIS registration code: :code. Expires in :minutes minutes. Do not share this code.',
+    'registration_otp_sms' => ':app registration code: :code. Expires in :minutes minutes. Do not share this code.',
 
     // Forced password change on first login
     'must_change_password' => 'You must change your default password before continuing.',

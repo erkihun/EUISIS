@@ -119,8 +119,8 @@ class PublicSiteDefaultsSeeder extends Seeder
         $sections = [
             Registry::PAGE_HOME => [
                 'intro' => [
-                    'title_en' => 'Unified Employee ID & Service Integration System',
-                    'title_am' => 'የተቀናጀ የሠራተኛ መታወቂያ እና አገልግሎት ስርዓት',
+                    'title_en' => 'Addis Ababa Integrated Employee Management & Service System',
+                    'title_am' => 'የአዲስ አበባ የተቀናጀ የሰራተኛ አስተዳደርና አገልግሎት ሥርዓት',
                     'subtitle_en' => 'Secure digital identity and service access management for Addis Ababa City Administration employees.',
                     'subtitle_am' => 'ለአዲስ አበባ ከተማ አስተዳደር ሠራተኞች ደህንነቱ የተጠበቀ ዲጂታል መታወቂያ እና የአገልግሎት ፈቃድ አስተዳደር።',
                     'options' => [

@@ -119,7 +119,7 @@ export default {
     revokeWarning: 'Any system using this token will lose access immediately.',
     scopeChangeHint: 'Scope changes apply to new tokens only. Revoke and reissue existing tokens to apply them.',
     ipAllowlistHint: 'Allowed IPs, comma separated (empty = any)',
-    tokenEnvHint: "Paste this into your integration's EUISIS_API_TOKEN setting. A valid token contains a | character.",
+    tokenEnvHint: "Paste this into your integration's API token setting. A valid token contains a | character.",
     // Index redesign
     applications: 'Applications',
     sections: 'API Management sections',

@@ -5,6 +5,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Head } from '@inertiajs/react';
 import { PropsWithChildren } from 'react';
+import { useBranding } from '@/hooks/useBranding';
 
 const FEATURES = [
     { key: 'providerPortal.featureScan', icon: 'M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 3.75 9.375v-4.5ZM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 0 1-1.125-1.125v-4.5ZM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0 1 13.5 9.375v-4.5ZM6.75 6.75h.75v.75h-.75v-.75ZM6.75 16.5h.75v.75h-.75v-.75ZM16.5 6.75h.75v.75h-.75v-.75ZM13.5 13.5h.75v.75h-.75v-.75ZM13.5 19.5h.75v.75h-.75v-.75ZM19.5 13.5h.75v.75h-.75v-.75ZM19.5 19.5h.75v.75h-.75v-.75ZM16.5 16.5h.75v.75h-.75v-.75Z' },
@@ -18,7 +19,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
     const { t, locale } = useLocale();
     const { getString } = useSystemSettings();
 
-    const systemName = getString('app.short_name', 'EUISIS');
+    const { brandName: systemName } = useBranding();
     const systemLogoUrl = getString('general.identity_system_logo_url', '');
     const orgName = locale === 'am'
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))

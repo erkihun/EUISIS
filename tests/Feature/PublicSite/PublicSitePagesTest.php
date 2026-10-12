@@ -63,7 +63,7 @@ it('lists navigation in the fixed order Home, Announcements, Verify, Services, S
 
 it('builds the home page from its CMS sections in order', function (): void {
     $this->get('/')->assertInertia(fn (Assert $page) => $page
-        ->where('sections.intro.title_en', 'Unified Employee ID & Service Integration System')
+        ->where('sections.intro.title_en', 'Addis Ababa Integrated Employee Management & Service System')
         ->where('sections.intro.options.primary_cta_href', '/verify')
         ->has('services', 4)
         ->missing('sections.intro.options.primary_cta_route'));

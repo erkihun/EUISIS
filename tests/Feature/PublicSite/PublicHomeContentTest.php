@@ -69,7 +69,7 @@ it('passes administrator SEO metadata for the home page to the layout', function
     PublicSiteContent::flush();
 
     $this->get('/')->assertInertia(fn (Assert $page) => $page->where('meta.description_en', 'Configured home description'));
-    expect(welcomeSource())->toContain('meta={meta}')->toContain("description={t('home.metaDescription')}");
+    expect(welcomeSource())->toContain('meta={meta}')->toContain("description={withBrand(t('home.metaDescription'))}");
 });
 
 it('explains every capability in both languages', function (string $topic, array $keys): void {

@@ -11,6 +11,7 @@ import { Head, Link } from '@inertiajs/react';
 import type { JSX } from 'react';
 
 import { cx, tableBodyClassName, tableClassName, tableHeadClassName } from '@/Components/ui';
+import { useBranding } from '@/hooks/useBranding';
 type Row = {
     id: string;
     status: 'official_field_work' | 'approved_not_checked_in' | 'unknown';
@@ -27,6 +28,7 @@ type Row = {
  */
 export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginated<Row>; at: string; can: ManagementAbilities }): JSX.Element {
     const { t, locale } = useLocale();
+    const { withBrand } = useBranding();
     const th = 'px-3 py-2 text-left text-xs font-medium text-[color:var(--app-muted-foreground)]';
     const td = 'px-3 py-2 align-top text-sm text-[color:var(--app-foreground)]';
     const destination = (row: Row) => (locale === 'am' && row.destination.name_am ? row.destination.name_am : row.destination.name_en) ?? '—';
@@ -37,7 +39,7 @@ export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginat
             <Head title={t('fieldWork.availability.title')} />
             <div className="space-y-3">
                 <ManagementNav can={can} current="field-work.availability.index" />
-                <p className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={at} withTime /> · {t('fieldWork.availability.unknownNote')}</p>
+                <p className="text-xs text-[color:var(--app-muted-foreground)]"><LocalizedDateDisplay value={at} withTime /> · {withBrand(t('fieldWork.availability.unknownNote'))}</p>
                 {rows.data.length === 0 ? (
                     <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{t('fieldWork.availability.empty')}</p>
                 ) : (

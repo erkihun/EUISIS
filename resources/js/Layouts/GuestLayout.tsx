@@ -5,11 +5,12 @@ import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
+import { useBranding } from '@/hooks/useBranding';
 
 export default function GuestLayout({ children }: PropsWithChildren) {
     const { locale } = useLocale();
     const { getString } = useSystemSettings();
-    const appName = getString('app.short_name', 'AA Employee ID');
+    const { brandName: appName } = useBranding();
     const organizationName = getString('general.organization_name', 'Addis Ababa City Administration');
     const loginMessage = locale === 'am'
         ? getString('general.login_page_message_am')

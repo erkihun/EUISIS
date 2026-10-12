@@ -70,6 +70,7 @@ test('an active employee receives a registration otp by email and phone in their
             && $mail->greeting === trans('auth.registration_otp_greeting', [], $locale)
             && in_array(trans('auth.registration_otp_intro', [], $locale), $mail->introLines, true)
             && $this->sms->sent[0]['message'] === trans('auth.registration_otp_sms', [
+                'app' => app(\App\Services\Branding\BrandingService::class)->brandName(),
                 'code' => $notification->code,
                 'minutes' => EmployeeRegistrationOtp::TTL_MINUTES,
             ], $locale);

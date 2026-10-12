@@ -23,7 +23,7 @@
     </style>
 </head>
 <body>
-    <h1>EUISIS Typography Test</h1>
+    <h1>{{ config('app.name') }} Typography Test</h1>
     <h1>የሰራተኞች አስተዳደር</h1>
     <div class="meta">Variant: {{ $variant }} · Font: {{ $family }}</div>
 

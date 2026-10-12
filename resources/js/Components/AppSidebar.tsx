@@ -54,6 +54,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { useBranding } from '@/hooks/useBranding';
 
 /** A leaf nav item — renders as a clickable link. */
 type NavSubItem = {
@@ -639,7 +640,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
     const [query, setQuery] = useState('');
     const normalizedQuery = query.trim().toLocaleLowerCase();
 
-    const appName = getString('app.short_name', 'AA Employee ID');
+    const { brandName: appName, shortName } = useBranding();
     const orgName = locale === 'am'
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
@@ -894,6 +895,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                         </span>
                         {!collapsed && <div className="min-w-0">
                             <p className="whitespace-normal break-words text-[15px] font-medium leading-snug">{appName}</p>
+                            <p className="whitespace-normal break-words text-[11px] font-semibold uppercase tracking-wide text-[color:var(--sidebar-muted)]">{shortName}</p>
                             <p className="mt-1 whitespace-normal break-words text-xs leading-relaxed text-[color:var(--sidebar-muted)]">{orgName}</p>
                         </div>}
                     </Link>

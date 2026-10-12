@@ -8,6 +8,7 @@ import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler, useEffect, useRef, useState } from 'react';
 import '../../../css/public-site.css';
+import { useBranding } from '@/hooks/useBranding';
 
 type Props = {
     otpSent?: boolean;
@@ -24,7 +25,7 @@ const STEPS = [
 ] as const;
 
 /**
- * Employee self-registration (Claude Design canvas "EUISIS Register Redesign").
+ * Employee self-registration (Claude Design canvas "Register Redesign", drawn under the former product name).
  *
  * Two server steps behind three visible ones: the employee number sends a
  * code (step 1); the code and the new password finish the account (steps 2
@@ -36,6 +37,7 @@ const STEPS = [
 export default function Register({ otpSent = false, pendingEmployeeNumber = null, status = null }: Props) {
     const { t } = useLocale();
     const { getBoolean } = useSystemSettings();
+    const { brandName, officialName } = useBranding();
     const form = useForm({ employee_number: pendingEmployeeNumber ?? '', otp: '', password: '', password_confirmation: '' });
     const [showPassword, setShowPassword] = useState(false);
     const [sendingCode, setSendingCode] = useState(false);
@@ -112,8 +114,8 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                     <div className="relative flex items-center gap-3">
                         <ApplicationLogo className="h-12 w-12 shrink-0 fill-white" />
                         <div>
-                            <p className="text-lg font-extrabold">EUISIS</p>
-                            <p className="text-xs text-blue-200">{t('auth.registration.systemName')}</p>
+                            <p className="text-lg font-extrabold">{brandName}</p>
+                            <p className="max-w-xs text-xs leading-snug text-blue-200">{officialName}</p>
                         </div>
                     </div>
 
@@ -155,7 +157,7 @@ export default function Register({ otpSent = false, pendingEmployeeNumber = null
                     <div className="relative flex items-center justify-between gap-3">
                         <Link href="/" className="flex items-center gap-2.5 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
                             <ApplicationLogo className="h-9 w-9 shrink-0 fill-white" />
-                            <span className="text-base font-extrabold">EUISIS</span>
+                            <span className="text-base font-extrabold">{brandName}</span>
                         </Link>
                         <div className="rounded-lg bg-white/95 text-slate-900"><LanguageSwitcher /></div>
                     </div>

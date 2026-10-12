@@ -5,6 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { InfoIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { useBranding } from '@/hooks/useBranding';
 
 /**
  * Court Cases — planned standalone module (docs/court-cases.md).
@@ -14,6 +15,7 @@ import { useLocale } from '@/hooks/useLocale';
  */
 export default function CourtCasesIndex(): JSX.Element {
     const { t } = useLocale();
+    const { withBrand } = useBranding();
 
     return (
         <AuthenticatedLayout>
@@ -26,7 +28,7 @@ export default function CourtCasesIndex(): JSX.Element {
                 />
                 <p className="flex items-start gap-2 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm text-[color:var(--app-muted-foreground)]">
                     <InfoIcon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>{t('courtCases.notice')}</span>
+                    <span>{withBrand(t('courtCases.notice'))}</span>
                 </p>
             </div>
         </AuthenticatedLayout>
