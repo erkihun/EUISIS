@@ -19,10 +19,14 @@ use App\Services\ServiceFeedback\PublicFeedbackSubmissionService;
 use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
 use App\Services\ServiceFeedback\PublicServiceFeedbackService;
 use App\Services\ServiceFeedback\TargetContext;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 /**
  * Public Feedback, Suggestion and Complaint — no authentication.
@@ -205,7 +209,22 @@ class PublicServiceFeedbackController extends Controller
             return back()->withErrors(['position_service_id' => __('service-feedback.service_not_provided')]);
         }
 
-        $entry = $this->submissions->submit($context, $type, $validated, $request);
+        try {
+            $entry = $this->submissions->submit($context, $type, $validated, $request);
+        } catch (ValidationException $exception) {
+            throw $exception;
+        } catch (Throwable $exception) {
+            // Brief §76–78: storage or database trouble rolls the submission back (nothing is kept) and the
+            // citizen is told to try again. A query exception embeds the bound values, so it is logged by class
+            // and SQLSTATE only; the citizen's words never reach the log.
+            if ($exception instanceof QueryException) {
+                Log::error('Public feedback submission failed', ['exception' => $exception::class, 'sqlstate' => (string) $exception->getCode(), 'target' => $context->targetType->value]);
+            } else {
+                report($exception);
+            }
+
+            return back()->withErrors(['message' => __('service-feedback.submission_failed')])->withInput($request->except('attachments'));
+        }
 
         return redirect()->to($legacyRedirect ? $links['landing'] : $links[$type->value])
             ->with('feedback_submitted', true)

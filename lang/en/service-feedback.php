@@ -9,6 +9,7 @@ declare(strict_types=1);
 return [
     'service_not_provided' => 'This service is not provided by this officer.',
     'form_replayed' => 'This form was already submitted. Open the page again to send another response.',
+    'submission_failed' => 'Your submission could not be saved and nothing was stored. Please try again in a moment.',
     'category_not_applicable' => 'This category does not apply to this submission.',
 
     // Category management

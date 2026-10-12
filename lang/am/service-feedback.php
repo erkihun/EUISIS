@@ -9,6 +9,7 @@ declare(strict_types=1);
 return [
     'service_not_provided' => 'ይህ አገልግሎት በዚህ ባለሙያ አይሰጥም።',
     'form_replayed' => 'ይህ ቅጽ አስቀድሞ ገብቷል። ሌላ ምላሽ ለመላክ ገጹን እንደገና ይክፈቱ።',
+    'submission_failed' => 'ያስገቡት መረጃ ሊቀመጥ አልቻለም፤ ምንም አልተቀመጠም። እባክዎ ከጥቂት ጊዜ በኋላ እንደገና ይሞክሩ።',
     'category_not_applicable' => 'ይህ ምድብ ለዚህ ማቅረብ አይተገበርም።',
 
     // የምድብ አስተዳደር
