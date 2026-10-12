@@ -34,7 +34,7 @@ class PublicFeedbackRoutingRuleController extends Controller
         private readonly OrganizationScopeService $scope,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $user = $this->user();
         abort_unless($user->hasAnyPermission([PublicFeedbackRoutingService::PERMISSION]), 403);
@@ -46,8 +46,18 @@ class PublicFeedbackRoutingRuleController extends Controller
             : Organization::query()->where('status', 'active');
         $names = [];
 
+        // The same filter bar as every other list: status and organization, kept in the query string.
+        $status = $request->string('status')->toString();
+        $filters = [
+            'status' => in_array($status, ['active', 'inactive'], true) ? $status : '',
+            'organization_id' => $request->string('organization_id')->toString(),
+        ];
+
         return Inertia::render('ServiceFeedback/RoutingRules/Index', [
+            'filters' => $filters,
             'rules' => $this->routing->queryFor($user)
+                ->when($filters['status'] !== '', fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
+                ->when($filters['organization_id'] !== '', fn ($query) => $query->where('organization_id', $filters['organization_id']))
                 ->orderByRaw('CASE WHEN organization_id IS NULL THEN 0 ELSE 1 END')
                 ->orderBy('priority')->orderBy('created_at')
                 ->get()

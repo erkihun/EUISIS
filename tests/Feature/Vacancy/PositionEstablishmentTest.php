@@ -163,3 +163,26 @@ it('counts approved slots for today by default, including the last effective day
     expect($capacity->approvedSlotsForPosition($establishment->position_id))->toBe(3)
         ->and($capacity->approvedSlotsForPosition($establishment->position_id, now()->addDay()))->toBe(0);
 });
+
+it('filters the establishment index by search and status like every other list', function (): void {
+    makeEstablishment(['establishment_number' => 'EST-ALPHA', 'status' => EstablishmentStatus::Approved->value]);
+    makeEstablishment(['establishment_number' => 'EST-BETA']);
+    $user = superAdminForEstablishment();
+
+    $this->actingAs($user)
+        ->get(route('position-establishments.index', ['search' => 'alpha']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('PositionEstablishments/Index')
+            ->has('establishments.data', 1)
+            ->where('establishments.data.0.establishment_number', 'EST-ALPHA')
+            ->where('filters.search', 'alpha')
+        );
+
+    $this->actingAs($user)
+        ->get(route('position-establishments.index', ['status' => 'draft']))
+        ->assertInertia(fn ($page) => $page
+            ->has('establishments.data', 1)
+            ->where('establishments.data.0.establishment_number', 'EST-BETA')
+        );
+});

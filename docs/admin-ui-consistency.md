@@ -117,7 +117,16 @@ appearance settings wired to the tokens.
     change-request table were replaced by it (an AST codemod converted 51
     cells; 7 were done by hand). Text action links remain only in cards,
     detail pages, form repeaters and the organization-design trees (113,
-    capped by the guard). Trigger and list stop click propagation so
+    capped by the guard).
+12. **Filter bars on every registry**: organization types, organization-unit
+    types, roles, position establishments, feedback categories, routing rules
+    and print batches had no filtering at all (or only query parameters without
+    a panel). Each now has the same `FilterPanel` as the organizations list —
+    search, status and the one extra facet that matters (category, scope,
+    organization) — applied server-side with the query string kept, and the
+    reference lists are paginated through `ListPagination` like every other
+    list. Settings-style tables (SLA policies, performance cycles, cafeteria
+    settings) stay unfiltered on purpose. Trigger and list stop click propagation so
     rows that navigate on click are not triggered.
 
 ## 4. Deprecated patterns

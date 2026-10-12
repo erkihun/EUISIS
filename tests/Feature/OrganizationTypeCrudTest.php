@@ -70,6 +70,37 @@ test('authenticated users with viewAny can view the org types index', function (
         ->assertOk();
 });
 
+test('the org types index filters by search and status and paginates like every other list', function (): void {
+    OrganizationType::query()->create(['code' => 'MIN', 'name_en' => 'Ministry', 'is_active' => true]);
+    OrganizationType::query()->create(['code' => 'AGY', 'name_en' => 'Agency', 'is_active' => true]);
+    OrganizationType::query()->create(['code' => 'OLD', 'name_en' => 'Retired Bureau', 'is_active' => false]);
+
+    $this->actingAs(orgTypeViewerUser())
+        ->get(route('organization-types.index', ['search' => 'agen']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('OrganizationTypes/Index')
+            ->has('types.data', 1)
+            ->where('types.data.0.code', 'AGY')
+            ->where('filters.search', 'agen')
+        );
+
+    $this->actingAs(orgTypeViewerUser())
+        ->get(route('organization-types.index', ['status' => 'inactive']))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('types.data', 1)
+            ->where('types.data.0.code', 'OLD')
+        );
+
+    $this->actingAs(orgTypeViewerUser())
+        ->get(route('organization-types.index'))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->has('types.data', 3)
+            ->where('types.total', 3)
+            ->where('filters.search', '')
+        );
+});
+
 // ── Create page ────────────────────────────────────────────────────────────
 
 test('users without create permission cannot access the create page', function (): void {
@@ -185,7 +216,7 @@ test('organization type index and edit pages include prefix props', function ():
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('OrganizationTypes/Index')
-            ->where('types.0.prefix', 'PFX')
+            ->where('types.data.0.prefix', 'PFX')
         );
 
     $this->actingAs(orgTypeAdminUser())

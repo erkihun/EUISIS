@@ -183,3 +183,29 @@ test('non-super-admin users cannot delete the Super Admin role', function (): vo
         ->delete(route('roles.destroy', $superAdminRole))
         ->assertForbidden();
 });
+
+test('the roles index filters by search and scope and paginates like every other list', function (): void {
+    makeTestRole('Alpha Reviewer')->update(['scope_type' => 'global']);
+    makeTestRole('Beta Clerk')->update(['scope_type' => 'scoped']);
+
+    $this->actingAs(roleMgmtViewer())
+        ->get(route('roles.index', ['search' => 'alpha']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('Roles/Index')
+            ->has('roles.data', 1)
+            ->where('roles.data.0.name', 'Alpha Reviewer')
+            ->where('filters.search', 'alpha')
+        );
+
+    $this->actingAs(roleMgmtViewer())
+        ->get(route('roles.index', ['scope' => 'scoped', 'search' => 'clerk']))
+        ->assertInertia(fn ($page) => $page
+            ->has('roles.data', 1)
+            ->where('roles.data.0.name', 'Beta Clerk')
+        );
+
+    $this->actingAs(roleMgmtViewer())
+        ->get(route('roles.index'))
+        ->assertInertia(fn ($page) => $page->has('roles.total'));
+});

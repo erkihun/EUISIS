@@ -2,7 +2,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { AppDialog, Alert, Button, Card, FormField, Input, Select, TBody, THead, Table, TableCard, Td, Textarea, Th, Tr } from '@euisis/ui';
+import { AppDialog, Alert, Button, Card, FilterField, FilterPanel, FormField, Input, Select, TBody, THead, Table, TableCard, Td, Textarea, Th, Tr } from '@euisis/ui';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -33,8 +33,11 @@ type Category = {
 
 type OrganizationOption = { id: string; code: string; name_en: string; name_am: string | null };
 
+type Filters = { search: string; status: string };
+
 type Props = {
     categories: Category[];
+    filters: Filters;
     organizations: OrganizationOption[];
     canManageCityWide: boolean;
 };
@@ -54,10 +57,22 @@ const TARGET_TYPES: Array<{ value: TargetType; key: string }> = [
  * an institution may add its own. A category referenced by submissions is
  * retired, never deleted.
  */
-export default function CategoriesIndex({ categories, organizations, canManageCityWide }: Props) {
+export default function CategoriesIndex({ categories, filters, organizations, canManageCityWide }: Props) {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState<Category | null | 'new'>(null);
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
+
+    function submitFilters() {
+        router.get(route('service-feedback.categories.index'), values, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { search: '', status: '' };
+        setValues(empty);
+        router.get(route('service-feedback.categories.index'), empty, { preserveScroll: true, replace: true });
+    }
 
     const name = (row: { name_en: string; name_am: string | null }) => (locale === 'am' && row.name_am ? row.name_am : row.name_en);
     const scopeLabel = (row: Category) =>
@@ -86,6 +101,24 @@ export default function CategoriesIndex({ categories, organizations, canManageCi
 
             <div className="space-y-4">
                 {!canManageCityWide && <Alert tone="info">{t('serviceFeedback.cityWideNeedsCityRole')}</Alert>}
+
+                <FilterPanel onSubmit={submitFilters} onReset={resetFilters} hasActiveFilters={filtersActive}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input
+                            type="search"
+                            value={values.search}
+                            onChange={(event) => setValues({ ...values, search: event.target.value })}
+                            placeholder={t('common.search')}
+                        />
+                    </FilterField>
+                    <FilterField label={t('serviceFeedback.filterStatus')}>
+                        <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            <option value="active">{t('common.active')}</option>
+                            <option value="inactive">{t('common.inactive')}</option>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
                 {categories.length === 0 ? (
                     <Card><EmptyState title={t('serviceFeedback.noCategories')} /></Card>

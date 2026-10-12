@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
@@ -7,7 +8,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type OrgType = {
     id: string;
@@ -25,15 +26,33 @@ type OrgType = {
     can: { update: boolean; delete: boolean };
 };
 
+type Filters = { search: string; status: string; category: string };
+
 export default function OrganizationTypesIndex({
     types,
+    filters,
+    filterOptions,
     can,
 }: {
-    types: OrgType[];
+    types: { data: OrgType[] } & LaravelPageMeta;
+    filters: Filters;
+    filterOptions: { categories: string[] };
     can: { create: boolean };
 }) {
     const { t: tr } = useLocale();
     const { confirm } = useConfirm();
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
+
+    function submit() {
+        router.get(route('organization-types.index'), { ...values, page: 1 }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { search: '', status: '', category: '' };
+        setValues(empty);
+        router.get(route('organization-types.index'), empty, { preserveScroll: true, replace: true });
+    }
 
     async function destroy(id: string) {
         const { confirmed } = await confirm({
@@ -87,107 +106,137 @@ export default function OrganizationTypesIndex({
         >
             <Head title={tr('organizationTypes.title')} />
 
-            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                {types.length === 0 ? (
-                    <div className="p-6">
-                        <EmptyState
-                            title={tr('organizationTypes.noTypes')}
-                            description=""
+            <div className="space-y-4">
+                <FilterPanel onSubmit={submit} onReset={resetFilters} hasActiveFilters={filtersActive}>
+                    <FilterField label={tr('common.search')} wide>
+                        <Input
+                            type="search"
+                            value={values.search}
+                            onChange={(event) => setValues({ ...values, search: event.target.value })}
+                            placeholder={tr('organizations.searchByCodeOrName')}
                         />
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
-                            <thead className={tableHeadClassName}>
-                                <tr>
-                                    {[
-                                        tr('common.code'),
-                                        tr('organizationTypes.prefix'),
-                                        tr('common.name'),
-                                        tr('organizationTypes.category'),
-                                        tr('organizationTypes.levelOrder'),
-                                        tr('organizationTypes.parentAllowedTypes'),
-                                        tr('organizationTypes.organizationsCount'),
-                                        tr('common.status'),
-                                        '',
-                                    ].map((h) => (
-                                        <th
-                                            key={h}
-                                            className={cx(tableHeaderCellClassName, 'text-left')}
-                                        >
-                                            {h}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className={tableBodyClassName}>
-                                {types.map((type) => (
-                                    <tr
-                                        key={type.id}
-                                        className={tableRowClassName}
-                                    >
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
-                                            {type.code}
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            {type.prefix ? (
-                                                <span className={badgeClassName('warning', 'font-mono')}>
-                                                    {type.prefix}
-                                                </span>
-                                            ) : (
-                                                <span className="text-xs text-[color:var(--app-muted-foreground)]">
-                                                    {tr('organizationTypes.noPrefix')}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            <p className="font-medium">{type.name_en}</p>
-                                            {type.name_am && (
-                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
-                                                    {type.name_am}
-                                                </p>
-                                            )}
-                                        </td>
-                                        <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
-                                            {categoryLabel(type.category)}
-                                        </td>
-                                        <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
-                                            {type.level_order}
-                                        </td>
-                                        <td className={cx(tableCellClassName, 'max-w-[180px]')}>
-                                            {type.parent_allowed_types.length === 0 ? (
-                                                <span className="text-xs text-amber-600 dark:text-amber-400">
-                                                    {tr('organizationTypes.rootOnly')}
-                                                </span>
-                                            ) : (
-                                                <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
-                                                    {parentTypesLabel(type.parent_allowed_types)}
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
-                                            {type.organizations_count}
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            <StatusBadge status={type.is_active ? 'active' : 'inactive'} />
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            <div className="flex justify-end">
-                                                <AppActionMenu
-                                                    items={[
-                                                        { label: tr('common.view'), href: route('organization-types.show', type.id) },
-                                                        { label: tr('common.edit'), href: route('organization-types.edit', type.id), show: type.can.update },
-                                                        { label: tr('common.delete'), onClick: () => destroy(type.id), variant: 'danger', show: type.can.delete },
-                                                    ]}
-                                                />
-                                            </div>
-                                        </td>
-                                    </tr>
+                    </FilterField>
+                    <FilterField label={tr('common.status')}>
+                        <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                            <option value="">{tr('common.allStatuses')}</option>
+                            <option value="active">{tr('common.active')}</option>
+                            <option value="inactive">{tr('common.inactive')}</option>
+                        </Select>
+                    </FilterField>
+                    {filterOptions.categories.length > 0 && (
+                        <FilterField label={tr('organizationTypes.category')}>
+                            <Select value={values.category} onChange={(event) => setValues({ ...values, category: event.target.value })}>
+                                <option value="">{tr('organizations.allCategories')}</option>
+                                {filterOptions.categories.map((category) => (
+                                    <option key={category} value={category}>{categoryLabel(category)}</option>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                            </Select>
+                        </FilterField>
+                    )}
+                </FilterPanel>
+
+                <TableCard footer={<ListPagination meta={types} />}>
+                    {types.data.length === 0 ? (
+                        <div className="p-6">
+                            <EmptyState
+                                title={filtersActive ? tr('common.noResults') : tr('organizationTypes.noTypes')}
+                                description=""
+                            />
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        {[
+                                            tr('common.code'),
+                                            tr('organizationTypes.prefix'),
+                                            tr('common.name'),
+                                            tr('organizationTypes.category'),
+                                            tr('organizationTypes.levelOrder'),
+                                            tr('organizationTypes.parentAllowedTypes'),
+                                            tr('organizationTypes.organizationsCount'),
+                                            tr('common.status'),
+                                            '',
+                                        ].map((h) => (
+                                            <th
+                                                key={h}
+                                                className={cx(tableHeaderCellClassName, 'text-left')}
+                                            >
+                                                {h}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className={tableBodyClassName}>
+                                    {types.data.map((type) => (
+                                        <tr
+                                            key={type.id}
+                                            className={tableRowClassName}
+                                        >
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
+                                                {type.code}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                {type.prefix ? (
+                                                    <span className={badgeClassName('warning', 'font-mono')}>
+                                                        {type.prefix}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                        {tr('organizationTypes.noPrefix')}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <p className="font-medium">{type.name_en}</p>
+                                                {type.name_am && (
+                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                        {type.name_am}
+                                                    </p>
+                                                )}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}>
+                                                {categoryLabel(type.category)}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                                {type.level_order}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'max-w-[180px]')}>
+                                                {type.parent_allowed_types.length === 0 ? (
+                                                    <span className="text-xs text-amber-600 dark:text-amber-400">
+                                                        {tr('organizationTypes.rootOnly')}
+                                                    </span>
+                                                ) : (
+                                                    <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">
+                                                        {parentTypesLabel(type.parent_allowed_types)}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                                {type.organizations_count}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <StatusBadge status={type.is_active ? 'active' : 'inactive'} />
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: tr('common.view'), href: route('organization-types.show', type.id) },
+                                                            { label: tr('common.edit'), href: route('organization-types.edit', type.id), show: type.can.update },
+                                                            { label: tr('common.delete'), onClick: () => destroy(type.id), variant: 'danger', show: type.can.delete },
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

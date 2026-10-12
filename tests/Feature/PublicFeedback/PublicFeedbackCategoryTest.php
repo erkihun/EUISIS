@@ -155,3 +155,21 @@ it('lists categories within the user scope on the management page', function ():
     $plain = User::factory()->create();
     $this->actingAs($plain)->get(route('service-feedback.categories.index'))->assertForbidden();
 });
+
+it('filters the category management page by search and status like every other list', function (): void {
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.categories.index', ['search' => $this->counterA->code]))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('categories', 1)
+            ->where('categories.0.id', $this->counterA->id)
+            ->where('filters.search', $this->counterA->code)
+        );
+
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.categories.index', ['status' => 'inactive']))
+        ->assertInertia(fn ($page) => $page
+            ->has('categories', 1)
+            ->where('categories.0.id', $this->retired->id)
+        );
+});

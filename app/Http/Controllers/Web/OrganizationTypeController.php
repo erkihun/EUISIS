@@ -22,20 +22,38 @@ use Inertia\Response;
 
 class OrganizationTypeController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', OrganizationType::class);
 
         /** @var User|null $user */
         $user = Auth::user();
+
+        // The same filter bar as every other list: search, status and category, kept in the query string.
+        $status = $request->string('status')->toString();
+        $filters = [
+            'search' => $request->string('search')->trim()->toString(),
+            'status' => in_array($status, ['active', 'inactive'], true) ? $status : '',
+            'category' => $request->string('category')->trim()->toString(),
+        ];
+
         $types = OrganizationType::query()
+            ->withCount('organizations')
+            ->when($filters['search'] !== '', function ($query) use ($filters): void {
+                $search = '%'.$filters['search'].'%';
+                $query->where(fn ($q) => $q
+                    ->where('code', ci_like_operator(), $search)
+                    ->orWhere('name_en', ci_like_operator(), $search)
+                    ->orWhere('name_am', ci_like_operator(), $search));
+            })
+            ->when($filters['status'] !== '', fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
+            ->when($filters['category'] !== '', fn ($query) => $query->where('category', $filters['category']))
             ->orderBy('level_order')
             ->orderBy('sort_order')
             ->orderBy('name_en')
-            ->get();
-
-        return Inertia::render('OrganizationTypes/Index', [
-            'types' => $types->map(fn (OrganizationType $t) => [
+            ->paginate(25)
+            ->withQueryString()
+            ->through(fn (OrganizationType $t) => [
                 'id' => $t->id,
                 'code' => $t->code,
                 'prefix' => $t->prefix,
@@ -47,12 +65,19 @@ class OrganizationTypeController extends Controller
                 'level_order' => $t->level_order,
                 'category' => $t->category,
                 'parent_allowed_types' => $t->parent_allowed_types ?? [],
-                'organizations_count' => $t->organizations()->count(),
+                'organizations_count' => (int) $t->organizations_count,
                 'can' => [
                     'update' => $user?->can('update', $t) ?? false,
                     'delete' => $user?->can('delete', $t) ?? false,
                 ],
-            ]),
+            ]);
+
+        return Inertia::render('OrganizationTypes/Index', [
+            'types' => $types,
+            'filters' => $filters,
+            'filterOptions' => [
+                'categories' => OrganizationType::query()->whereNotNull('category')->distinct()->orderBy('category')->pluck('category')->all(),
+            ],
             'can' => [
                 'create' => $user?->can('create', OrganizationType::class) ?? false,
             ],

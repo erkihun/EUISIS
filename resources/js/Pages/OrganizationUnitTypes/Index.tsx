@@ -1,4 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
@@ -7,7 +8,7 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type UnitType = {
     id: string;
@@ -22,15 +23,31 @@ type UnitType = {
     can: { update: boolean; archive: boolean; restore: boolean };
 };
 
+type Filters = { search: string; status: string };
+
 export default function OrganizationUnitTypesIndex({
     types,
+    filters,
     can,
 }: {
-    types: UnitType[];
+    types: { data: UnitType[] } & LaravelPageMeta;
+    filters: Filters;
     can: { create: boolean };
 }) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
+
+    function submit() {
+        router.get(route('organization-unit-types.index'), { ...values, page: 1 }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { search: '', status: '' };
+        setValues(empty);
+        router.get(route('organization-unit-types.index'), empty, { preserveScroll: true, replace: true });
+    }
 
     async function archive(id: string) {
         const { confirmed } = await confirm({
@@ -78,79 +95,99 @@ export default function OrganizationUnitTypesIndex({
         >
             <Head title={t('organizationUnitTypes.organizationUnitTypes')} />
 
-            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                {types.length === 0 ? (
-                    <div className="p-6">
-                        <EmptyState
-                            title={t('organizationUnitTypes.noOrganizationUnitTypesFound')}
-                            description=""
+            <div className="space-y-4">
+                <FilterPanel onSubmit={submit} onReset={resetFilters} hasActiveFilters={filtersActive}>
+                    <FilterField label={t('common.search')} wide>
+                        <Input
+                            type="search"
+                            value={values.search}
+                            onChange={(event) => setValues({ ...values, search: event.target.value })}
+                            placeholder={t('organizations.searchByCodeOrName')}
                         />
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className={cx(tableClassName, 'min-w-full text-left')}>
-                            <thead className={tableHeadClassName}>
-                                <tr>
-                                    {[
-                                        t('common.code'),
-                                        t('organizationUnitTypes.prefix'),
-                                        t('common.name'),
-                                        t('organizationUnitTypes.sortOrder'),
-                                        t('common.status'),
-                                        '',
-                                    ].map((h) => (
-                                        <th
-                                            key={h}
-                                            className={cx(tableHeaderCellClassName, 'text-left')}
-                                        >
-                                            {h}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className={tableBodyClassName}>
-                                {types.map((type) => (
-                                    <tr
-                                        key={type.id}
-                                        className={tableRowClassName}
-                                    >
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
-                                            {type.code}
-                                        </td>
-                                        <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-indigo-600 dark:text-indigo-400')}>
-                                            {type.prefix ?? '—'}
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            <p className="font-medium">{type.name_en}</p>
-                                            {type.name_am && (
-                                                <p className="text-xs text-[color:var(--app-muted-foreground)]">
-                                                    {type.name_am}
-                                                </p>
-                                            )}
-                                        </td>
-                                        <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
-                                            {type.sort_order}
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            <StatusBadge status={type.is_active ? 'active' : 'archived'} />
-                                        </td>
-                                        <td className={tableCellClassName}>
-                                            <div className="flex justify-end">
-                                                <AppActionMenu
-                                                    items={[
-                                                        { label: t('common.edit'), href: route('organization-unit-types.edit', type.id), show: type.can.update && !type.deleted_at },
-                                                        { label: t('common.delete'), onClick: () => archive(type.id), variant: 'danger', show: type.can.archive && type.is_active && !type.deleted_at },
-                                                        { label: t('common.restore'), onClick: () => restore(type.id), show: !!(type.can.restore && (type.deleted_at || !type.is_active)) },
-                                                    ]}
-                                                />
-                                            </div>
-                                        </td>
+                    </FilterField>
+                    <FilterField label={t('common.status')}>
+                        <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            <option value="active">{t('common.active')}</option>
+                            <option value="archived">{t('common.archived')}</option>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
+
+                <TableCard footer={<ListPagination meta={types} />}>
+                    {types.data.length === 0 ? (
+                        <div className="p-6">
+                            <EmptyState
+                                title={filtersActive ? t('common.noResults') : t('organizationUnitTypes.noOrganizationUnitTypesFound')}
+                                description=""
+                            />
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className={cx(tableClassName, 'min-w-full text-left')}>
+                                <thead className={tableHeadClassName}>
+                                    <tr>
+                                        {[
+                                            t('common.code'),
+                                            t('organizationUnitTypes.prefix'),
+                                            t('common.name'),
+                                            t('organizationUnitTypes.sortOrder'),
+                                            t('common.status'),
+                                            '',
+                                        ].map((h) => (
+                                            <th
+                                                key={h}
+                                                className={cx(tableHeaderCellClassName, 'text-left')}
+                                            >
+                                                {h}
+                                            </th>
+                                        ))}
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                                </thead>
+                                <tbody className={tableBodyClassName}>
+                                    {types.data.map((type) => (
+                                        <tr
+                                            key={type.id}
+                                            className={tableRowClassName}
+                                        >
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-[color:var(--app-muted-foreground)]')}>
+                                                {type.code}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'font-mono text-xs font-medium text-indigo-600 dark:text-indigo-400')}>
+                                                {type.prefix ?? '—'}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <p className="font-medium">{type.name_en}</p>
+                                                {type.name_am && (
+                                                    <p className="text-xs text-[color:var(--app-muted-foreground)]">
+                                                        {type.name_am}
+                                                    </p>
+                                                )}
+                                            </td>
+                                            <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>
+                                                {type.sort_order}
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <StatusBadge status={type.is_active && !type.deleted_at ? 'active' : 'archived'} />
+                                            </td>
+                                            <td className={tableCellClassName}>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), href: route('organization-unit-types.edit', type.id), show: type.can.update && !type.deleted_at },
+                                                            { label: t('common.delete'), onClick: () => archive(type.id), variant: 'danger', show: type.can.archive && type.is_active && !type.deleted_at },
+                                                            { label: t('common.restore'), onClick: () => restore(type.id), show: !!(type.can.restore && (type.deleted_at || !type.is_active)) },
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </TableCard>
             </div>
         </AuthenticatedLayout>
     );

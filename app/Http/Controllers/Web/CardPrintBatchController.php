@@ -14,6 +14,7 @@ use App\Models\CardPrintBatch;
 use App\Models\IdCard;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,11 +23,18 @@ class CardPrintBatchController extends Controller
     /** Pending cards offered per batch-builder page. */
     private const PRINT_QUEUE_LIMIT = 500;
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', CardPrintBatch::class);
 
-        $inScope = app(OrganizationScopeService::class)->employeeIdsInScope(request()->user());
+        $inScope = app(OrganizationScopeService::class)->employeeIdsInScope($request->user());
+
+        // The same filter bar as every other list: search by batch number and status, kept in the query string.
+        $status = $request->string('status')->toString();
+        $filters = [
+            'search' => $request->string('search')->trim()->toString(),
+            'status' => in_array($status, ['draft', 'printing', 'completed', 'cancelled'], true) ? $status : '',
+        ];
 
         $batches = CardPrintBatch::query()
             ->with(['creator:id,name', 'printer:id,name'])
@@ -35,13 +43,17 @@ class CardPrintBatchController extends Controller
             ->when($inScope !== null, fn ($query) => $query
                 ->whereHas('items')
                 ->whereDoesntHave('items.card', fn ($card) => $card->whereNotIn('employee_id', $inScope)))
+            ->when($filters['search'] !== '', fn ($query) => $query->where('batch_number', ci_like_operator(), '%'.$filters['search'].'%'))
+            ->when($filters['status'] !== '', fn ($query) => $query->where('status', $filters['status']))
             ->orderByDesc('created_at')
-            ->paginate(25);
+            ->paginate(25)
+            ->withQueryString();
 
         return Inertia::render('PrintBatches/Index', [
             'batches' => $batches,
+            'filters' => $filters,
             'can' => [
-                'create' => request()->user()?->can('create', CardPrintBatch::class),
+                'create' => $request->user()?->can('create', CardPrintBatch::class),
             ],
         ]);
     }

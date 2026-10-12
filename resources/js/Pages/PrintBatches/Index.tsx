@@ -2,10 +2,11 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
 import AppActionMenu from '@/Components/ui/AppActionMenu';
 type BatchRow = {
     id: string;
@@ -18,12 +19,16 @@ type BatchRow = {
     created_by?: { name: string } | null;
 };
 
+type Filters = { search: string; status: string };
+
 type PageProps = {
     batches: LaravelPageMeta & { data: BatchRow[] };
+    filters: Filters;
     can?: { create?: boolean };
 };
 
 type BatchStatus = 'draft' | 'printing' | 'completed' | 'cancelled';
+const BATCH_STATUSES: BatchStatus[] = ['draft', 'printing', 'completed', 'cancelled'];
 
 type StyleEntry = { badge: string; dot: string };
 
@@ -51,8 +56,20 @@ function BatchStatusBadge({ status }: { status: string }) {
     );
 }
 
-export default function PrintBatchesIndex({ batches, can }: PageProps) {
+export default function PrintBatchesIndex({ batches, filters, can }: PageProps) {
     const { t } = useLocale();
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
+
+    function submitFilters() {
+        router.get(route('print-batches.index'), { ...values, page: 1 }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { search: '', status: '' };
+        setValues(empty);
+        router.get(route('print-batches.index'), empty, { preserveScroll: true, replace: true });
+    }
 
     return (
         <AuthenticatedLayout
@@ -74,6 +91,25 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
             }
         >
             <Head title={t('idCards.printBatches')} />
+
+            <FilterPanel onSubmit={submitFilters} onReset={resetFilters} hasActiveFilters={filtersActive} className="mb-4">
+                <FilterField label={t('common.search')} wide>
+                    <Input
+                        type="search"
+                        value={values.search}
+                        onChange={(event) => setValues({ ...values, search: event.target.value })}
+                        placeholder={t('idCards.batchNumber')}
+                    />
+                </FilterField>
+                <FilterField label={t('common.status')}>
+                    <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                        <option value="">{t('common.allStatuses')}</option>
+                        {BATCH_STATUSES.map((status) => (
+                            <option key={status} value={status}>{t(`idCards.batchStatus_${status}`)}</option>
+                        ))}
+                    </Select>
+                </FilterField>
+            </FilterPanel>
 
             <div className={tableContainerClassName}>
                 {batches.data.length === 0 ? (

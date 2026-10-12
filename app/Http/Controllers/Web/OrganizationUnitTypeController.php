@@ -22,19 +22,36 @@ use Inertia\Response;
 
 class OrganizationUnitTypeController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', OrganizationUnitType::class);
 
         $user = Auth::user();
+
+        // The same filter bar as every other list: search and status ("archived" covers soft-deleted
+        // and switched-off types), kept in the query string.
+        $status = $request->string('status')->toString();
+        $filters = [
+            'search' => $request->string('search')->trim()->toString(),
+            'status' => in_array($status, ['active', 'archived'], true) ? $status : '',
+        ];
+
         $types = OrganizationUnitType::query()
             ->withTrashed()
+            ->when($filters['search'] !== '', function ($query) use ($filters): void {
+                $search = '%'.$filters['search'].'%';
+                $query->where(fn ($q) => $q
+                    ->where('code', ci_like_operator(), $search)
+                    ->orWhere('name_en', ci_like_operator(), $search)
+                    ->orWhere('name_am', ci_like_operator(), $search));
+            })
+            ->when($filters['status'] === 'active', fn ($query) => $query->whereNull('deleted_at')->where('is_active', true))
+            ->when($filters['status'] === 'archived', fn ($query) => $query->where(fn ($q) => $q->whereNotNull('deleted_at')->orWhere('is_active', false)))
             ->orderBy('sort_order')
             ->orderBy('name_en')
-            ->get();
-
-        return Inertia::render('OrganizationUnitTypes/Index', [
-            'types' => $types->map(fn (OrganizationUnitType $t) => [
+            ->paginate(25)
+            ->withQueryString()
+            ->through(fn (OrganizationUnitType $t) => [
                 'id' => $t->id,
                 'code' => $t->code,
                 'prefix' => $t->prefix,
@@ -49,7 +66,11 @@ class OrganizationUnitTypeController extends Controller
                     'archive' => $user?->can('archive', $t) ?? false,
                     'restore' => $user?->can('restore', $t) ?? false,
                 ],
-            ]),
+            ]);
+
+        return Inertia::render('OrganizationUnitTypes/Index', [
+            'types' => $types,
+            'filters' => $filters,
             'can' => [
                 'create' => $user?->can('create', OrganizationUnitType::class) ?? false,
             ],

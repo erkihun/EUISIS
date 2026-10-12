@@ -4,7 +4,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { AppDialog, Alert, Button, Card, FormField, Input, Select, TBody, THead, Table, TableCard, Td, Th, Tr } from '@euisis/ui';
+import { AppDialog, Alert, Button, Card, FilterField, FilterPanel, FormField, Input, Select, TBody, THead, Table, TableCard, Td, Th, Tr } from '@euisis/ui';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -38,7 +38,8 @@ type OrganizationOption = { id: string; code: string; name_en: string; name_am: 
 type CategoryOption = { id: string; organization_id: string | null; name_en: string; name_am: string | null };
 type HandlerOptions = { users: { id: string; name: string }[]; units: { id: string; name: string; name_am: string | null }[]; roles: { id: string; name: string }[] };
 
-type Props = { rules: Rule[]; organizations: OrganizationOption[]; categories: CategoryOption[]; canManageCityWide: boolean };
+type Filters = { status: string; organization_id: string };
+type Props = { rules: Rule[]; filters: Filters; organizations: OrganizationOption[]; categories: CategoryOption[]; canManageCityWide: boolean };
 
 const HANDLER_TYPE_KEY: Record<HandlerType, string> = { user: 'handlerUser', organization_unit: 'handlerUnit', role: 'handlerRole' };
 
@@ -47,10 +48,22 @@ const HANDLER_TYPE_KEY: Record<HandlerType, string> = { user: 'handlerUser', org
  * handler. Most specific rule wins, then the lowest priority number. A rule
  * that already routed something is retired, never deleted.
  */
-export default function RoutingRulesIndex({ rules, organizations, categories, canManageCityWide }: Props) {
+export default function RoutingRulesIndex({ rules, filters, organizations, categories, canManageCityWide }: Props) {
     const { t, locale } = useLocale();
     const { confirm } = useConfirm();
     const [editing, setEditing] = useState<Rule | null | 'new'>(null);
+    const [values, setValues] = useState<Filters>(filters);
+    const filtersActive = Object.values(filters).some(Boolean);
+
+    function submitFilters() {
+        router.get(route('service-feedback.routing-rules.index'), values, { preserveState: true, preserveScroll: true, replace: true });
+    }
+
+    function resetFilters() {
+        const empty: Filters = { status: '', organization_id: '' };
+        setValues(empty);
+        router.get(route('service-feedback.routing-rules.index'), empty, { preserveScroll: true, replace: true });
+    }
 
     const pair = (value: NamePair, fallback: string) => (value === null ? fallback : locale === 'am' && value.am ? value.am : value.en);
 
@@ -78,6 +91,26 @@ export default function RoutingRulesIndex({ rules, organizations, categories, ca
             <div className="space-y-4">
                 {!canManageCityWide && <Alert tone="info">{t('serviceFeedback.cityRulesNeedCityRole')}</Alert>}
                 <Alert tone="info">{t('serviceFeedback.routingPrecedence')}</Alert>
+
+                <FilterPanel onSubmit={submitFilters} onReset={resetFilters} hasActiveFilters={filtersActive}>
+                    <FilterField label={t('serviceFeedback.categoryScope')}>
+                        <Select value={values.organization_id} onChange={(event) => setValues({ ...values, organization_id: event.target.value })}>
+                            <option value="">{t('common.all')}</option>
+                            {organizations.map((organization) => (
+                                <option key={organization.id} value={organization.id}>
+                                    {locale === 'am' && organization.name_am ? organization.name_am : organization.name_en}
+                                </option>
+                            ))}
+                        </Select>
+                    </FilterField>
+                    <FilterField label={t('serviceFeedback.filterStatus')}>
+                        <Select value={values.status} onChange={(event) => setValues({ ...values, status: event.target.value })}>
+                            <option value="">{t('common.allStatuses')}</option>
+                            <option value="active">{t('common.active')}</option>
+                            <option value="inactive">{t('common.inactive')}</option>
+                        </Select>
+                    </FilterField>
+                </FilterPanel>
 
                 {rules.length === 0 ? (
                     <Card><EmptyState title={t('serviceFeedback.noRules')} description={t('serviceFeedback.noRulesHint')} /></Card>

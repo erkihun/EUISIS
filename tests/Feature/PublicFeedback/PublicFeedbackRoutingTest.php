@@ -310,3 +310,21 @@ it('falls through to the next usable rule when the most specific one cannot be u
     expect($complaint->status)->toBe(ServiceFeedbackStatus::Assigned)
         ->and(PublicFeedbackAssignment::query()->sole()->handler_id)->toBe((string) $this->handler->id);
 });
+
+it('filters the routing rules page by status and organization like every other list', function (): void {
+    rtRule(['priority' => 10]);
+    rtRule(['priority' => 20, 'is_active' => false]);
+
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.routing-rules.index', ['status' => 'inactive']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('rules', 1)
+            ->where('rules.0.is_active', false)
+            ->where('filters.status', 'inactive')
+        );
+
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.routing-rules.index', ['organization_id' => '00000000-0000-0000-0000-000000000000']))
+        ->assertInertia(fn ($page) => $page->has('rules', 0));
+});

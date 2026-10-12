@@ -38,24 +38,41 @@ class PublicFeedbackCategoryController extends Controller
             ? Organization::query()->whereIn('id', $this->scope->allowedOrganizationIds($user))
             : Organization::query()->where('status', 'active');
 
+        // The same filter bar as every other list: search and status, kept in the query string.
+        $status = $request->string('status')->toString();
+        $filters = [
+            'search' => $request->string('search')->trim()->toString(),
+            'status' => in_array($status, ['active', 'inactive'], true) ? $status : '',
+        ];
+
         return Inertia::render('ServiceFeedback/Categories/Index', [
-            'categories' => $this->categories->queryFor($user)->get()->map(fn (PublicFeedbackCategory $category): array => [
-                'id' => $category->id,
-                'code' => $category->code,
-                'name_en' => $category->name_en,
-                'name_am' => $category->name_am,
-                'description_en' => $category->description_en,
-                'description_am' => $category->description_am,
-                'submission_types' => $category->submission_types,
-                'target_types' => $category->target_types,
-                'organization_id' => $category->organization_id,
-                'organization_name_en' => $category->organization?->name_en,
-                'organization_name_am' => $category->organization?->name_am,
-                'is_active' => $category->is_active,
-                'sort_order' => $category->sort_order,
-                'is_referenced' => $category->isReferenced(),
-                'can_manage' => $this->categories->canManage($user, $category->organization_id),
-            ])->values()->all(),
+            'filters' => $filters,
+            'categories' => $this->categories->queryFor($user)
+                ->when($filters['search'] !== '', function ($query) use ($filters): void {
+                    $search = '%'.$filters['search'].'%';
+                    $query->where(fn ($q) => $q
+                        ->where('code', ci_like_operator(), $search)
+                        ->orWhere('name_en', ci_like_operator(), $search)
+                        ->orWhere('name_am', ci_like_operator(), $search));
+                })
+                ->when($filters['status'] !== '', fn ($query) => $query->where('is_active', $filters['status'] === 'active'))
+                ->get()->map(fn (PublicFeedbackCategory $category): array => [
+                    'id' => $category->id,
+                    'code' => $category->code,
+                    'name_en' => $category->name_en,
+                    'name_am' => $category->name_am,
+                    'description_en' => $category->description_en,
+                    'description_am' => $category->description_am,
+                    'submission_types' => $category->submission_types,
+                    'target_types' => $category->target_types,
+                    'organization_id' => $category->organization_id,
+                    'organization_name_en' => $category->organization?->name_en,
+                    'organization_name_am' => $category->organization?->name_am,
+                    'is_active' => $category->is_active,
+                    'sort_order' => $category->sort_order,
+                    'is_referenced' => $category->isReferenced(),
+                    'can_manage' => $this->categories->canManage($user, $category->organization_id),
+                ])->values()->all(),
             'organizations' => $organizations->orderBy('name_en')->get(['id', 'code', 'name_en', 'name_am'])->all(),
             'canManageCityWide' => $this->categories->canManageCityWide($user),
         ]);
