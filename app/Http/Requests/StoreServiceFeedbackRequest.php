@@ -25,14 +25,18 @@ class StoreServiceFeedbackRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $employeeTarget = $this->routeIs('service-feedback.*');
+
         return [
-            'position_service_id' => [
+            'form_token' => ['nullable', 'string', 'size:32'],
+            // A service belongs to an employee's position; an organization has none.
+            'position_service_id' => $employeeTarget ? [
                 'required',
                 'uuid',
                 // Existence only; whether this officer's POSITION delivers the
                 // service is checked in the controller, which knows the token.
                 Rule::exists('position_services', 'id')->whereNull('deleted_at'),
-            ],
+            ] : ['prohibited'],
             'rating' => ['required', 'integer', 'between:1,5'],
             'comment' => ['nullable', 'string', 'max:2000'],
             'client_name' => ['nullable', 'string', 'max:120'],

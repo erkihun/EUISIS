@@ -482,6 +482,29 @@ Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController
     ->name('service-feedback.entry.store');
 
 /*
+ * Organization public feedback QR — the same three submissions about an
+ * institution. /feedback/{token} is the URL printed on the institutional QR
+ * sheet (OrganizationFeedbackQrCode::publicUrl()).
+ */
+Route::get('/feedback/{token}', [PublicServiceFeedbackController::class, 'showOrganization'])
+    ->middleware('throttle:30,1')
+    ->name('public-feedback.organization.show');
+
+Route::get('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'formOrganization'])
+    ->where('type', 'feedback|suggestion|complaint')
+    ->middleware('throttle:30,1')
+    ->name('public-feedback.organization.form');
+
+Route::post('/feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeOrganizationFeedback'])
+    ->middleware('throttle:service-feedback-submit')
+    ->name('public-feedback.organization.feedback.store');
+
+Route::post('/feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeOrganizationEntry'])
+    ->where('type', 'suggestion|complaint')
+    ->middleware('throttle:service-feedback-submit')
+    ->name('public-feedback.organization.entry.store');
+
+/*
  * Legacy public card verification.
  *
  * This page displayed the organization and card number to anyone who scanned,

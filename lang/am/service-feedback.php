@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 return [
     'service_not_provided' => 'ይህ አገልግሎት በዚህ ባለሙያ አይሰጥም።',
+    'form_replayed' => 'ይህ ቅጽ አስቀድሞ ገብቷል። ሌላ ምላሽ ለመላክ ገጹን እንደገና ይክፈቱ።',
 
     // የተቋም የአስተያየት QR አስተዳደር
     'qrGenerated' => 'የተቋሙ የአስተያየት QR ነቅቷል።',

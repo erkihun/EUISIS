@@ -111,9 +111,9 @@ it('opens the public feedback page with a valid token', function (): void {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Public/ServiceFeedback')
             ->where('available', true)
-            ->where('context.organization', 'Feedback Organization')
-            ->where('context.organization_unit', 'Licensing Unit')
-            ->where('context.position', 'Licensing Officer')
+            ->where('target.organization', 'Feedback Organization')
+            ->where('target.organization_unit', 'Licensing Unit')
+            ->where('target.position', 'Licensing Officer')
         );
 });
 
@@ -143,7 +143,7 @@ it('returns a safe generic page for an unknown token', function (): void {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Public/ServiceFeedback')
             ->where('available', false)
-            ->where('context', null)
+            ->where('target', null)
         );
 });
 
@@ -156,7 +156,7 @@ it('returns the same generic page for a revoked token', function (): void {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('available', false)
-            ->where('context', null)
+            ->where('target', null)
         );
 });
 
@@ -188,7 +188,7 @@ it('shows the position as the masked display name rather than the employee name'
     $this->get('/service-feedback/'.$this->token->token)
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('context.display_name', 'Licensing Officer')
+            ->where('target.display_name', 'Licensing Officer')
         );
 });
 
@@ -293,12 +293,13 @@ it('rate limits repeated submissions from one device', function (): void {
         'rating' => 5,
     ];
 
-    // The per-token ceiling is 3 per 10 minutes.
+    // The per-token ceiling is 3 per 10 minutes. Each attempt carries a
+    // different comment: an identical repeat is a double submit, stored once.
     for ($i = 0; $i < 3; $i++) {
-        $this->post('/service-feedback/'.$this->token->token, $payload)->assertRedirect();
+        $this->post('/service-feedback/'.$this->token->token, $payload + ['comment' => 'Attempt '.$i])->assertRedirect();
     }
 
-    $this->post('/service-feedback/'.$this->token->token, $payload)
+    $this->post('/service-feedback/'.$this->token->token, $payload + ['comment' => 'Attempt 4'])
         ->assertStatus(429);
 
     expect(EmployeeServiceFeedback::query()->count())->toBe(3);
@@ -443,11 +444,11 @@ it('shows the office context a client needs to confirm the right desk', function
     $this->get('/service-feedback/'.$this->token->token)
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('context.organization', 'Feedback Organization')
-            ->where('context.organization_unit', 'Licensing Unit')
-            ->where('context.position', 'Licensing Officer')
+            ->where('target.organization', 'Feedback Organization')
+            ->where('target.organization_unit', 'Licensing Unit')
+            ->where('target.position', 'Licensing Officer')
             // Masked by design: the desk is identified, the person is not.
-            ->where('context.display_name', 'Licensing Officer')
+            ->where('target.display_name', 'Licensing Officer')
         );
 });
 

@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 return [
     'service_not_provided' => 'This service is not provided by this officer.',
+    'form_replayed' => 'This form was already submitted. Open the page again to send another response.',
 
     // Organization feedback QR management
     'qrGenerated' => 'The organization feedback QR is enabled.',

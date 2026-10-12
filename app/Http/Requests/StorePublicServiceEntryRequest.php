@@ -17,9 +17,13 @@ class StorePublicServiceEntryRequest extends FormRequest
     public function rules(): array
     {
         $complaint = $this->route('type') === 'complaint';
+        $employeeTarget = $this->routeIs('service-feedback.*');
 
         return [
-            'position_service_id' => ['nullable', 'uuid', Rule::exists('position_services', 'id')->whereNull('deleted_at')],
+            'form_token' => ['nullable', 'string', 'size:32'],
+            'position_service_id' => $employeeTarget
+                ? ['nullable', 'uuid', Rule::exists('position_services', 'id')->whereNull('deleted_at')]
+                : ['prohibited'],
             'message' => ['required', 'string', 'max:5000'],
             'client_name' => ['nullable', 'string', 'max:120'],
             'client_contact' => ['nullable', 'string', 'max:120'],
