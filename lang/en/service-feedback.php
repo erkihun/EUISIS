@@ -63,8 +63,21 @@ return [
     ],
 
     'notifications' => [
+        'open' => 'Open submission',
         'unrouted_title' => 'Public submission needs a handler',
         'unrouted' => 'Public :type :reference matched no routing rule and is waiting for a handler.',
+        'assigned_title' => 'Public submission assigned to you',
+        'assigned' => 'Public :type :reference was handed to you or your team.',
+        'resolved_title' => 'Public submission outcome recorded',
+        'resolved' => 'An outcome was recorded for public :type :reference.',
+    ],
+
+    'acknowledgement' => [
+        'subject' => 'Your :type was received',
+        'greeting' => 'Thank you.',
+        'received' => 'Your :type was received on :time.',
+        'reference' => 'Reference number: :reference. Please keep it for any follow-up.',
+        'no_tracking' => 'This message confirms receipt only; the institution will act on it internally.',
     ],
 
     'validation' => [

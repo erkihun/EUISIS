@@ -143,6 +143,7 @@ use App\Services\Calendar\LocalizedDateService;
 use App\Services\DailyActivity\NullEmployeeLeaveProvider;
 use App\Services\Security\SessionActivityService;
 use App\Services\Sms\BudgetedSmsGateway;
+use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\SystemSettings\SystemSettingsService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Events\DiagnosingHealth;
@@ -316,10 +317,26 @@ class AppServiceProvider extends ServiceProvider
          * the second, a script could rate every desk in a building from one
          * machine and still stay under a per-token limit.
          */
-        RateLimiter::for('service-feedback-submit', fn (Request $request): array => [
-            Limit::perMinutes(10, 3)->by('sf-submit:'.$request->route('token').'|'.$request->ip()),
-            Limit::perMinutes(10, 8)->by('sf-submit-ip:'.$request->ip()),
-        ]);
+        // Brief §37–38: per QR code and per address, thresholds from the public feedback policy.
+        RateLimiter::for('service-feedback-submit', function (Request $request): array {
+            $perSource = 3;
+            $perIp = 8;
+
+            try {
+                if (Schema::hasTable('system_settings')) {
+                    $policy = app(PublicFeedbackSettings::class);
+                    $perSource = $policy->rateLimitPerSource();
+                    $perIp = $policy->rateLimitPerIp();
+                }
+            } catch (\Throwable) {
+                // Defaults stand while the database is unavailable.
+            }
+
+            return [
+                Limit::perMinutes(10, $perSource)->by('sf-submit:'.$request->route('token').'|'.$request->ip()),
+                Limit::perMinutes(10, $perIp)->by('sf-submit-ip:'.$request->ip()),
+            ];
+        });
 
         RateLimiter::for('api', function (Request $request): array {
             $perMinute = 120;

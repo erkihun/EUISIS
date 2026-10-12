@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import { Alert, Button, Card, FormField, Select } from '@euisis/ui';
+import { Alert, Button, Card, FormField, Input, Select } from '@euisis/ui';
 import { Head, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import type { FormEvent } from 'react';
@@ -14,11 +14,14 @@ type Settings = {
     feedback_enabled: boolean;
     suggestion_enabled: boolean;
     complaint_enabled: boolean;
+    acknowledgement_enabled: boolean;
+    rate_limit_per_source: number;
+    rate_limit_per_ip: number;
 };
 
 type Props = { settings: Settings; identityModes: IdentityMode[] };
 
-const SWITCHES: Array<{ key: keyof Omit<Settings, 'identity_mode'>; label: string; hint: string }> = [
+const SWITCHES: Array<{ key: keyof Pick<Settings, 'enabled' | 'feedback_enabled' | 'suggestion_enabled' | 'complaint_enabled' | 'allow_attachments'>; label: string; hint: string }> = [
     { key: 'enabled', label: 'settingEnabled', hint: 'settingEnabledHint' },
     { key: 'feedback_enabled', label: 'settingFeedbackEnabled', hint: 'settingTypeHint' },
     { key: 'suggestion_enabled', label: 'settingSuggestionEnabled', hint: 'settingTypeHint' },
@@ -74,6 +77,27 @@ export default function PublicFeedbackSettings({ settings, identityModes }: Prop
                         )}
                     </FormField>
                     <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingIdentityPrivacyNote')}</p>
+                    <label htmlFor="setting-acknowledgement" className="flex items-start justify-between gap-4 border-t border-[color:var(--app-border)] pt-4 text-sm">
+                        <span>
+                            <span className="block font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.settingAcknowledgement')}</span>
+                            <span className="block text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingAcknowledgementHint')}</span>
+                            {errors.acknowledgement_enabled && <span role="alert" className="block text-red-600">{errors.acknowledgement_enabled}</span>}
+                        </span>
+                        <input id="setting-acknowledgement" type="checkbox" role="switch" aria-checked={form.data.acknowledgement_enabled} checked={form.data.acknowledgement_enabled} onChange={(e) => form.setData('acknowledgement_enabled', e.target.checked)} className="mt-1 h-5 w-5 shrink-0 rounded border-[color:var(--app-border-strong)]" />
+                    </label>
+                </Card>
+
+                <Card className="space-y-4 p-5">
+                    <h2 className="font-semibold">{t('serviceFeedback.settingsAbuse')}</h2>
+                    <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.settingsAbuseHint')}</p>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <FormField id="setting-rate-source" label={t('serviceFeedback.settingRatePerSource')} error={errors.rate_limit_per_source} required>
+                            {({ id, describedBy, invalid }) => <Input id={id} type="number" min={1} max={100} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.rate_limit_per_source} onChange={(e) => form.setData('rate_limit_per_source', Number(e.target.value))} />}
+                        </FormField>
+                        <FormField id="setting-rate-ip" label={t('serviceFeedback.settingRatePerIp')} error={errors.rate_limit_per_ip} required>
+                            {({ id, describedBy, invalid }) => <Input id={id} type="number" min={1} max={500} aria-describedby={describedBy} aria-invalid={invalid} value={form.data.rate_limit_per_ip} onChange={(e) => form.setData('rate_limit_per_ip', Number(e.target.value))} />}
+                        </FormField>
+                    </div>
                 </Card>
 
                 <Card className="space-y-2 p-5 text-sm text-[color:var(--app-muted-foreground)]">

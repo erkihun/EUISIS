@@ -63,8 +63,21 @@ return [
     ],
 
     'notifications' => [
+        'open' => 'ማቅረቡን ይክፈቱ',
         'unrouted_title' => 'የሕዝብ ማቅረብ አስተናጋጅ ይፈልጋል',
         'unrouted' => 'የሕዝብ :type :reference ከየትኛውም የመስመር ደንብ ጋር አልተዛመደም፤ አስተናጋጅ እየጠበቀ ነው።',
+        'assigned_title' => 'የሕዝብ ማቅረብ ለእርስዎ ተመድቧል',
+        'assigned' => 'የሕዝብ :type :reference ለእርስዎ ወይም ለቡድንዎ ተሰጥቷል።',
+        'resolved_title' => 'የሕዝብ ማቅረብ ውጤት ተመዝግቧል',
+        'resolved' => 'ለሕዝብ :type :reference ውጤት ተመዝግቧል።',
+    ],
+
+    'acknowledgement' => [
+        'subject' => ':type ደርሶናል',
+        'greeting' => 'እናመሰግናለን።',
+        'received' => ':type በ :time ደርሶናል።',
+        'reference' => 'የማጣቀሻ ቁጥር፦ :reference። ለማንኛውም ክትትል እባክዎ ያስቀምጡት።',
+        'no_tracking' => 'ይህ መልዕክት መድረሱን ብቻ ያረጋግጣል፤ ተቋሙ በውስጥ ይሠራበታል።',
     ],
 
     'validation' => [

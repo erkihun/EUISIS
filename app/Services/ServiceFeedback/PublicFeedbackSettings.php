@@ -28,7 +28,7 @@ final class PublicFeedbackSettings
 
     public const PERMISSION = 'service_feedback.settings.manage';
 
-    public const KEYS = ['enabled', 'identity_mode', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled'];
+    public const KEYS = ['enabled', 'identity_mode', 'allow_attachments', 'feedback_enabled', 'suggestion_enabled', 'complaint_enabled', 'acknowledgement_enabled', 'rate_limit_per_source', 'rate_limit_per_ip'];
 
     public function __construct(
         private readonly SystemSettingsService $settings,
@@ -51,6 +51,24 @@ final class PublicFeedbackSettings
     public function allowAttachments(): bool
     {
         return (bool) $this->settings->get(self::GROUP, 'allow_attachments', true);
+    }
+
+    /** Brief §89: a receipt to a submitter who left an e-mail; off until policy decides. */
+    public function acknowledgementEnabled(): bool
+    {
+        return (bool) $this->settings->get(self::GROUP, 'acknowledgement_enabled', false);
+    }
+
+    /** Brief §38: submissions one address may send through one QR code in ten minutes. */
+    public function rateLimitPerSource(): int
+    {
+        return max(1, (int) $this->settings->get(self::GROUP, 'rate_limit_per_source', 3));
+    }
+
+    /** Brief §38: submissions one address may send through any QR codes in ten minutes. */
+    public function rateLimitPerIp(): int
+    {
+        return max(1, (int) $this->settings->get(self::GROUP, 'rate_limit_per_ip', 8));
     }
 
     public function typeEnabled(ServiceFeedbackType $type): bool
@@ -77,6 +95,9 @@ final class PublicFeedbackSettings
             'feedback_enabled' => $this->typeEnabled(ServiceFeedbackType::Feedback),
             'suggestion_enabled' => $this->typeEnabled(ServiceFeedbackType::Suggestion),
             'complaint_enabled' => $this->typeEnabled(ServiceFeedbackType::Complaint),
+            'acknowledgement_enabled' => $this->acknowledgementEnabled(),
+            'rate_limit_per_source' => $this->rateLimitPerSource(),
+            'rate_limit_per_ip' => $this->rateLimitPerIp(),
         ];
     }
 

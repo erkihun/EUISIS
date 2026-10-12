@@ -31,6 +31,7 @@ final class PublicFeedbackAssignmentService
         private readonly PublicFeedbackWorkflow $workflow,
         private readonly OrganizationScopeService $scope,
         private readonly WriteAuditLogAction $audit,
+        private readonly PublicFeedbackNotifier $notifier,
     ) {}
 
     /**
@@ -103,6 +104,8 @@ final class PublicFeedbackAssignmentService
             );
 
             $submission->setRelation('currentAssignment', $assignment);
+            // Brief §88: the people behind the handler hear of it after commit.
+            $this->notifier->assigned($submission, $assignment, $actor);
 
             return $assignment;
         });

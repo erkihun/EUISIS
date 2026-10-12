@@ -28,7 +28,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class PublicFeedbackWorkflow
 {
-    public function __construct(private readonly WriteAuditLogAction $audit) {}
+    public function __construct(
+        private readonly WriteAuditLogAction $audit,
+        private readonly PublicFeedbackNotifier $notifier,
+    ) {}
 
     /** @return array<string, list<ServiceFeedbackStatus>> from-status value → reachable statuses */
     public function transitions(ServiceFeedbackType $type): array
@@ -126,6 +129,11 @@ final class PublicFeedbackWorkflow
                 reason: $reason,
                 request: $request,
             );
+
+            if ($to->isOutcome()) {
+                // Brief §88 "Resolution", delivered after commit.
+                $this->notifier->resolved($submission, $actor);
+            }
 
             return $submission;
         });

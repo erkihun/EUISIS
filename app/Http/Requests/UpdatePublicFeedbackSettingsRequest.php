@@ -28,6 +28,9 @@ class UpdatePublicFeedbackSettingsRequest extends FormRequest
             'feedback_enabled' => ['sometimes', 'boolean'],
             'suggestion_enabled' => ['sometimes', 'boolean'],
             'complaint_enabled' => ['sometimes', 'boolean'],
+            'acknowledgement_enabled' => ['sometimes', 'boolean'],
+            'rate_limit_per_source' => ['sometimes', 'integer', 'min:1', 'max:100'],
+            'rate_limit_per_ip' => ['sometimes', 'integer', 'min:1', 'max:500'],
         ];
     }
 }

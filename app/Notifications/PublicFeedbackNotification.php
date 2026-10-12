@@ -6,29 +6,33 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * Public feedback notices, rendered at read time in the reader's language by
- * NotificationPresenter. They carry only the submission type, a reference
- * and a link — never the text, the target or the submitter.
+ * Public feedback notices for staff (brief §88), rendered at read time in
+ * the reader's language by NotificationPresenter. They carry only the
+ * submission type, a reference and a portal link — never the text, the
+ * target or the submitter — so a mail copy leaks nothing.
  */
 class PublicFeedbackNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    /** @param  list<string>  $channels */
     public function __construct(
         public string $kind,
         public string $submissionType,
         public string $reference,
         public ?string $url,
+        public array $channels = ['database'],
     ) {
         $this->onQueue('notifications');
     }
 
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return $this->channels;
     }
 
     public function toArray(object $notifiable): array
@@ -40,6 +44,14 @@ class PublicFeedbackNotification extends Notification implements ShouldQueue
             'reference' => $this->reference,
             'url' => $this->url,
         ];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $text = self::render($this->toArray($notifiable), null);
+        $mail = (new MailMessage)->subject($text['title'].' — '.$this->reference)->line($text['message']);
+
+        return $this->url !== null ? $mail->action((string) __('service-feedback.notifications.open'), url($this->url)) : $mail;
     }
 
     /**

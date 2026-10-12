@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\ValidatesPublicSubmitter;
+use App\Rules\SafeUploadName;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -33,7 +34,7 @@ class StorePublicServiceEntryRequest extends FormRequest
             'incident_date' => [$complaint ? 'nullable' : 'prohibited', 'date', 'before_or_equal:today'],
             'incident_location' => [$complaint ? 'nullable' : 'prohibited', 'string', 'max:255'],
             'attachments' => $this->attachmentsRule($complaint),
-            'attachments.*' => ['file', 'max:5120', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'mimetypes:application/pdf,image/jpeg,image/png'],
+            'attachments.*' => ['file', new SafeUploadName, 'max:5120', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'mimetypes:application/pdf,image/jpeg,image/png'],
         ];
     }
 

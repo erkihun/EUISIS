@@ -41,6 +41,7 @@ class PublicFeedbackSubmissionService
         private readonly PublicFeedbackWorkflow $workflow,
         private readonly PublicFeedbackRoutingService $routing,
         private readonly PublicFeedbackSettings $settings,
+        private readonly PublicFeedbackNotifier $notifier,
     ) {}
 
     /**
@@ -124,6 +125,8 @@ class PublicFeedbackSubmissionService
                 // Brief §52: the history starts at submission. §45–46: routed, or unrouted and flagged.
                 $this->workflow->recordInitial($entry);
                 $this->routing->route($entry, $request);
+                // Brief §89: queued after commit; a failing mail provider never fails the submission.
+                $this->notifier->acknowledge($entry, app()->getLocale());
 
                 $this->audit->execute(
                     eventType: match ($type) {
