@@ -67,7 +67,7 @@ const home = {
     // Performance, feedback and self-service
     workSectionTitle: 'አፈጻጸም፣ አስተያየትና የሠራተኛ የራስ አገልግሎት',
     workSectionSubtitle: 'የተቋም ዕቅዶች እያንዳንዱ የሥራ ክፍል፣ የሥራ መደብና ሠራተኛ ድረስ ይደርሳሉ፤ ተገልጋዮችም ሠራተኞችም ሐሳባቸውን በሥርዓት የሚገልጹበት መንገድ አላቸው።',
-    workDailyTitle: 'ዕለታዊ ተግባር',
+    workDailyTitle: 'ዕለታዊ የሥራ እንቅስቃሴ',
     workDailyDesc: 'ሠራተኞች ሥራና ማስረጃ ይመዘግባሉ፤ ኃላፊዎች ይገመግማሉ። ማስረጃ ነው እንጂ ውጤት አይደለም።',
     workPerformanceTitle: 'የአፈጻጸም አስተዳደር',
     workPerformanceDesc: 'ስትራቴጂያዊ ግቦች ወደ የሥራ ክፍሎች፣ የሥራ መደቦችና የሠራተኞች ስምምነቶች ከመለኪያዎች ጋር ይወርዳሉ።',

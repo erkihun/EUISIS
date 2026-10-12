@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'title' => 'መብቶች',
+    'title' => 'ጥቅማ ጥቅሞች',
     'entitlement' => 'ጥቅማ ጥቅም',
     'employee' => 'ሠራተኛ',
     'provider' => 'አቅራቢ',

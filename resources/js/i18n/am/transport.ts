@@ -73,7 +73,7 @@ const transport = {
     scanNonceRequired: 'የቅኝት ኖንስ ያስፈልጋል',
     create: 'ይፍጠሩ',
     update: 'ያዘምኑ',
-    edit: 'ያስተካክሉ',
+    edit: 'ያርትዑ',
     view: 'ይመልከቱ',
     noRecords: 'መዝገብ አልተገኘም',
 };

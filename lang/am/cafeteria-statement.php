@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'title' => 'የካፍቴሪያ ክፍያ መግለጫ', 'provider' => 'ካፍቴሪያ / አቅራቢ',
+    'title' => 'የካፌቴሪያ ክፍያ መግለጫ', 'provider' => 'ካፌቴሪያ / አቅራቢ',
     'period' => 'የመግለጫ ጊዜ', 'prepared' => 'ያዘጋጀው', 'filters' => 'ማጣሪያዎች',
-    'all_providers' => 'ሁሉም የተፈቀዱ ካፍቴሪያዎች', 'all_time' => 'ሁሉም ቀናት', 'all_statuses' => 'ሁሉም ሁኔታዎች',
+    'all_providers' => 'ሁሉም የተፈቀዱ ካፌቴሪያዎች', 'all_time' => 'ሁሉም ቀናት', 'all_statuses' => 'ሁሉም ሁኔታዎች',
     'export_too_large' => 'ይህ መግለጫ :count ግብይቶች አሉት፤ አንድ ፋይል ቢበዛ :limit ብቻ ሊይዝ ይችላል። አጭር ጊዜ ወይም አንድ ካፊቴሪያ ይምረጡ።',
     'extra_only' => 'ተጨማሪ ቅኝቶች ብቻ', 'number' => 'ግብይት', 'date' => 'ቀን', 'employee' => 'ሠራተኛ / ቁጥር',
     'status' => 'ሁኔታ', 'meal' => 'የምግብ ዋጋ', 'subsidy' => 'ድጎማ', 'employee_payable' => 'በሠራተኛ የሚከፈል',

@@ -156,7 +156,7 @@ return [
     'exclusionTypeSuspension' => 'ታግዷል',
     'exclusionTypeTraining' => 'ሥልጠና',
     'exclusionTypeFieldAssignment' => 'የመስክ ሥራ',
-    'exclusionTypeUnpaidLeave' => 'ያለ ደሞዝ ፈቃድ',
+    'exclusionTypeUnpaidLeave' => 'ያለ ደመወዝ ፈቃድ',
     'exclusionTypeOther' => 'ሌላ',
     'exclusionStatusActive' => 'ንቁ',
     'exclusionStatusEnded' => 'ተጠናቋል',

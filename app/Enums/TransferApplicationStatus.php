@@ -56,20 +56,6 @@ enum TransferApplicationStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Submitted => 'Submitted',
-            self::UnderReview => 'Under Review',
-            self::Verified => 'Verified',
-            self::Selected => 'Selected',
-            self::ReleasePending => 'Release Pending',
-            self::ReceivingPending => 'Receiving Pending',
-            self::FinalApprovalPending => 'Final Approval Pending',
-            self::Approved => 'Approved',
-            self::ImplementationFailed => 'Implementation Failed',
-            self::Transferred => 'Transferred',
-            self::Rejected => 'Rejected',
-            self::Withdrawn => 'Withdrawn',
-            self::Cancelled => 'Cancelled',
-        };
+        return (string) __('enums.transfer_application_status.'.$this->value);
     }
 }

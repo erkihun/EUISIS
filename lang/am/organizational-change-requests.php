@@ -7,7 +7,7 @@ return [
 
     'statuses' => [
         'draft' => 'ረቂቅ',
-        'submitted' => 'ገብቷል',
+        'submitted' => 'ቀርቧል',
         'under_review' => 'በግምገማ ላይ',
         'correction_requested' => 'ማስተካከያ ተጠይቋል',
         'resubmitted' => 'እንደገና ገብቷል',

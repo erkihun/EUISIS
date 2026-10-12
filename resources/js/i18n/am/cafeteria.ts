@@ -214,7 +214,7 @@ const cafeteria = {
     periodStart: 'ከ',
     periodEnd: 'እስከ',
     reportType: 'ዓይነት',
-    reportsDescription: 'ዕለታዊ እና ወርሃዊ የካፍቴሪያ ሪፖርቶችን ያዘጋጁ እና ይመልከቱ።',
+    reportsDescription: 'ዕለታዊ እና ወርሃዊ የካፌቴሪያ ሪፖርቶችን ያዘጋጁ እና ይመልከቱ።',
     reportPeriodHelp: 'ዕለታዊ ሪፖርት የተመረጠውን ቀን ይሸፍናል፤ ወርሃዊ ሪፖርት ቀኑ ያለበትን ሙሉ ወር ይሸፍናል።',
     reportAnchorDate: 'የሪፖርት ቀን',
     reportChooseOrganization: 'ተቋም ይምረጡ',
@@ -372,7 +372,7 @@ const cafeteria = {
 
     // Report settings
     reportTimezone: 'ሪፖርት ሰዓት ቀጠና',
-    payrollCutoffDay: 'የደሞዝ ማቋረጫ ቀን',
+    payrollCutoffDay: 'የደመወዝ ማቋረጫ ቀን',
 
     // Day rules
     dayRules: 'የሥራ ቀን ህጎች',
@@ -392,8 +392,8 @@ const cafeteria = {
     closedDay: 'ዝግ ቀን',
     weekendScanMode: 'ቅዳሜ/እሁድ ቃኝ አሠራር',
     holidayScanMode: 'በዓል ቃኝ አሠራር',
-    scanModeReject: 'ይሰርዙ',
-    scanModeAllow: 'ፍቀድ',
+    scanModeReject: 'ውድቅ ያድርጉ',
+    scanModeAllow: 'ይፍቀዱ',
     scanModeEmployeePayable: 'ሠራተኛ ይከፍላል',
 
     // Special Days
@@ -442,7 +442,7 @@ const cafeteria = {
     exclusionTypeSuspension: 'ታስሯል',
     exclusionTypeTraining: 'ሥልጠና',
     exclusionTypeFieldAssignment: 'የሜዳ ሥራ',
-    exclusionTypeUnpaidLeave: 'ያለ ደሞዝ ፈቃድ',
+    exclusionTypeUnpaidLeave: 'ያለ ደመወዝ ፈቃድ',
     exclusionTypeOther: 'ሌላ',
     activeExclusions: 'ንቁ ማግለሎች',
     employeeIsExcluded: 'ሠራተኛ ከካፌቴሪያ ድጎማ ታግዷል',

@@ -248,7 +248,7 @@ const assessments = {
         peerResult: 'የአቻ ውጤት',
         contribution: 'አስተዋፅኦ',
         open: 'ይክፈቱ',
-        actions: 'ተግባራት',
+        actions: 'እርምጃዎች',
         showDescription: 'የአቻ ምዘና ምላሽ እና ማረጋገጫ',
         back: 'ወደ ምዘናዎች ይመለሱ',
         print: 'ያትሙ',

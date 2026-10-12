@@ -13,7 +13,7 @@ const organizationStructureImport = {
     requiredColumnMissing: 'የሚያስፈልግ አምድ ጠፍቷል',
 
     organizationSummary: 'የተቋም ማጠቃለያ',
-    unitTree: 'የተቋም ክፍል መዋቅር',
+    unitTree: 'የሥራ ክፍል መዋቅር',
     importSummary: 'የምዝገባ ማጠቃለያ',
     modeCreate: 'አዲስ ተቋም ይፈጠራል።',
     modeUpdate: 'ነባሩ ተቋም ይዘምናል።',

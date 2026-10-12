@@ -10,7 +10,7 @@ const entitlementRules = {
     quotaLimit: 'የኮታ ገደብ',
     periodDays: 'የጊዜ ቀናት',
     notes: 'ማስታወሻ',
-    entitlementsCount: 'መብቶች',
+    entitlementsCount: 'ጥቅማ ጥቅሞች',
     createSuccess: 'የጥቅማ ጥቅም ደንብ በተሳካ ሁኔታ ተፈጥሯል',
     updateSuccess: 'የጥቅማ ጥቅም ደንብ በተሳካ ሁኔታ ተዘምኗል',
     archiveSuccess: 'የጥቅማ ጥቅም ደንብ በተሳካ ሁኔታ ተሰርዟል',

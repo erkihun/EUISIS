@@ -54,7 +54,7 @@ export default {
     fullName: 'ሙሉ ስም',
     employeeNumber: 'የሠራተኛ ቁጥር',
     organization: 'ተቋም',
-    organizationUnit: 'የተቋም ክፍል',
+    organizationUnit: 'የሥራ ክፍል',
     position: 'የሥራ መደብ',
     cardNumber: 'የካርድ ቁጥር',
     issuedAt: 'የተሰጠበት ቀን',

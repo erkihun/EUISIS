@@ -28,7 +28,7 @@ const grievanceAdmin = {
     letterhead_help: 'በይፋዊ ደብዳቤዎች ላይ የሚታተሙ አድራሻዎች። አርማው ከተቋሙ መዝገብ ይወሰዳል።', saved_letterheads: 'የተቀመጡ የደብዳቤ ራሶች',
     seal_help: 'ማኅተሞች በግል ማከማቻ የሚጠበቁ ቁጥጥር የሚደረግባቸው ንብረቶች ናቸው። ከመዋላቸው በፊት ሁለተኛ የተፈቀደለት ሰው ያጸድቃቸዋል፤ እያንዳንዱ አጠቃቀም ይመዘገባል።',
     upload_seal: 'ማኅተም ይጫኑ', seal_file_help: 'PNG፣ እስከ 1 MB።', retire: 'ከአገልግሎት አውጣ',
-    delegation_help: 'ለተወሰነ ጊዜ የተጠባባቂ ወይም የውክልና የማጽደቅ ሥልጣን። ማንም ለራሱ ውክልና መስጠት አይችልም።', add_delegation: 'ውክልና ይመዝግቡ', revoke: 'ያንሱ',
+    delegation_help: 'ለተወሰነ ጊዜ የተጠባባቂ ወይም የውክልና የማጽደቅ ሥልጣን። ማንም ለራሱ ውክልና መስጠት አይችልም።', add_delegation: 'ውክልና ይመዝግቡ', revoke: 'ይሽሩ',
 
     settings_description: "ለቅሬታ ሂደቱ ፖሊሲ፣ የማጣቀሻ መረጃ እና ይፋዊ ደብዳቤዎች። እያንዳንዱ ለውጥ ይመዘገባል።",
     can_edit: "እነዚህን ቅንብሮች ማሻሻል ይችላሉ",
@@ -123,7 +123,7 @@ const grievanceAdmin = {
         name: 'ስም', name_en: 'ስም (እንግሊዝኛ)', name_am: 'ስም (አማርኛ)', description_en: 'መግለጫ (እንግሊዝኛ)', description_am: 'መግለጫ (አማርኛ)',
         organization: 'ተቋም', organization_id: 'ተቋም', organization_unit_id: 'የሥራ ክፍል', committee_type: 'ዓይነት', status: 'ሁኔታ', members: 'አባላት',
         openCases: 'ክፍት ጉዳዮች', effective_from: 'ከ (ተፈጻሚነት)', effective_to: 'እስከ (ተፈጻሚነት)', employee_id: 'ሠራተኛ', role: 'የኮሚቴ ሚና',
-        appointment_reference: 'የሹመት ደብዳቤ ቁጥር', actions: 'ተግባራት', source: 'ከ', target: 'ወደ', movement_type: 'እንቅስቃሴ', priority: 'ቅድሚያ',
+        appointment_reference: 'የሹመት ደብዳቤ ቁጥር', actions: 'እርምጃዎች', source: 'ከ', target: 'ወደ', movement_type: 'እንቅስቃሴ', priority: 'ቅድሚያ',
         source_handler_type: 'የመነሻ ዓይነት', target_handler_type: 'የመድረሻ ዓይነት', state: 'ሁኔታ', include_descendants: 'ለንዑስ ተቋማትም',
         purpose: 'ዓላማ', handler_type: 'የሚያስተናግደው አካል', handler_id: 'የሚያስተናግደው አካል', lookup_organization_id: 'ተቋም', resolution_days: 'ቀናት', day_type: 'የቀን ዓይነት',
         start_point: 'ጊዜው የሚጀምረው', warning_percent: 'ከጊዜው በ% ሲያልፍ አስጠንቅቅ', warning_days_remaining: 'በቀሩ ቀናት አስጠንቅቅ', warning_due_today: 'በመጨረሻው ቀን አስጠንቅቅ',

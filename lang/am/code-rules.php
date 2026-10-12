@@ -53,6 +53,6 @@ return [
     'sequence_reset_success' => 'ተከታታይ ቁጥሩ ዳግም ተጀምሯል።',
     'sequence_backfill_complete' => 'የተከታታይ ቁጥር ሙሌት ተጠናቋል።',
     'custom_tokens_required' => 'ብጁ ቶከኖች ስትራቴጂ ሲጠቀሙ ቢያንስ አንድ ወሰን ቶከን ያስፈልጋል።',
-    'custom_tokens_cannot_include_sequence' => 'SEQUENCE፣ SEQUENCE_PADDED፣ RAND_6 እና RAND_8 እንደ ወሰን ቶከኖች ሊጠቀሙ አይችሉም።',
+    'custom_tokens_cannot_include_sequence' => 'SEQUENCE፣ SEQUENCE_PADDED፣ RAND_6 እና RAND_8 እንደ ወሰን ቶከን ሊያገለግሉ አይችሉም።',
     'custom_tokens_must_exist_in_format' => 'ወሰን ቶከን :token በቅርጸቱ ውስጥ መኖር አለበት።',
 ];

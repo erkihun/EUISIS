@@ -162,7 +162,7 @@ return [
     'attributes' => [
         'employee_number' => 'ሠራተኛ ቁጥር',
         'otp' => 'ማረጋገጫ ኮድ',
-        'password' => 'ይለፍ ቃል',
+        'password' => 'የይለፍ ቃል',
         'password_confirmation' => 'ይለፍ ቃል ማረጋገጫ',
         'code' => 'ኮድ',
         'legal_basis_ref' => 'የሕግ መሠረት ማጣቀሻ',

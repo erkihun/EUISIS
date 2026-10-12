@@ -53,13 +53,13 @@ const grievanceCases = {
 
     current_stage: 'የአሁኑ ደረጃ', movement: 'እንዴት እንደደረሰ', paused_days: 'የቆሙ ቀናት', panel: 'ለዚህ ጉዳይ የተሰየመ የኮሚቴ ፓነል',
     replacement: 'ተተኪ', recused: 'ራሱን አግልሏል', left: 'ኮሚቴውን ለቋል', pauses: 'የጊዜ ገደብ ማቆሚያዎች', stage_history: 'የማስተናገድ ታሪክ',
-    pause_reason: 'ምክንያት', pause_status: 'ሁኔታ', pause_requested: 'የተጠየቀው', pause_period: 'ጊዜ', pause_due_change: 'የጊዜ ገደብ በፊት → በኋላ', pause_actions: 'ተግባራት',
+    pause_reason: 'ምክንያት', pause_status: 'ሁኔታ', pause_requested: 'የተጠየቀው', pause_period: 'ጊዜ', pause_due_change: 'የጊዜ ገደብ በፊት → በኋላ', pause_actions: 'እርምጃዎች',
     approve: 'ያጽድቁ', reject: 'ውድቅ ያድርጉ', resume: 'ይቀጥሉ',
     col_stage: 'ደረጃ', col_handler: 'የሚያስተናግደው አካል', col_movement: 'እንቅስቃሴ', col_status: 'ሁኔታ', col_received: 'የደረሰበት', col_due: 'የጊዜ ገደብ', col_completed: 'የተጠናቀቀበት',
-    recusals: 'የጥቅም ግጭቶች', recusal_member: 'አባል', recusal_reason: 'ምክንያት', recusal_status: 'ሁኔታ', recusal_decision: 'ውሳኔ', recusal_actions: 'ተግባራት',
+    recusals: 'የጥቅም ግጭቶች', recusal_member: 'አባል', recusal_reason: 'ምክንያት', recusal_status: 'ሁኔታ', recusal_decision: 'ውሳኔ', recusal_actions: 'እርምጃዎች',
     find_replacement: 'ተተኪ በስም ወይም በቁጥር ይፈልጉ', approve_recusal: 'ራስን ማግለሉን ያጽድቁ', decide: 'ውሳኔውን ይመዝግቡ',
 
-    ev_title: 'ርዕስ', ev_type: 'ዓይነት', ev_size: 'መጠን', ev_classification: 'ምደባ', ev_status: 'ሁኔታ', ev_submitted: 'የቀረበው', ev_actions: 'ተግባራት',
+    ev_title: 'ርዕስ', ev_type: 'ዓይነት', ev_size: 'መጠን', ev_classification: 'ምደባ', ev_status: 'ሁኔታ', ev_submitted: 'የቀረበው', ev_actions: 'እርምጃዎች',
     by_complainant: 'ቅሬታ አቅራቢ', accept: 'ይቀበሉ', more: 'ተጨማሪ', new_version: 'አዲስ ስሪት ይጫኑ', custody: 'የጥበቃ ሰንሰለት',
     upload_evidence: 'ማስረጃ ያክሉ', evidence_help: 'ፋይሎች በግል ማከማቻ ይቀመጣሉ፤ ይዘታቸውም ይፈተሻል። ተቀባይነት ያገኘ ማስረጃ አይተካም፤ አዲስ ስሪት ከጎኑ ይቀመጣል።',
 
@@ -80,7 +80,7 @@ const grievanceCases = {
     visible_to_complainant: 'ለቅሬታ አቅራቢው ይታያል', body: 'የደብዳቤው ጽሑፍ', void_reason: 'የተሰረዘበት ምክንያት',
     finalize_letter: 'አጠናቅቅ (የወጪ ቁጥር ስጥ)', sign: 'ይፈርሙ', signature_method: 'የፊርማ ዘዴ',
     signature_help: 'በPDF ላይ ያለ የፊርማ ምስል ምስጢራዊ ዲጂታል ፊርማ አይደለም።', apply_seal: 'ይፋዊ ማኅተም ያድርጉ', seal: 'ማኅተም',
-    issue: 'አውጣ', issue_help: 'ማውጣት ደብዳቤውን ያጸናል፤ ማስተካከያ መሰረዝ እና አዲስ ስሪት ይፈልጋል።', void: 'ሰርዝ', revise_letter: 'የተስተካከለ ረቂቅ ይፍጠሩ',
+    issue: 'ያውጡ', issue_help: 'ማውጣት ደብዳቤውን ያጸናል፤ ማስተካከያ መሰረዝ እና አዲስ ስሪት ይፈልጋል።', void: 'ሰርዝ', revise_letter: 'የተስተካከለ ረቂቅ ይፍጠሩ',
     dispatches: 'የመላኪያ መዝገብ', acknowledge: 'መድረሱን ይመዝግቡ', dispatch: 'መላኩን ይመዝግቡ', channel: 'መንገድ',
     dispatch_help: 'ኤስኤምኤስ እና ኢሜይል ማሳወቂያ ብቻ ይይዛሉ፤ የደብዳቤውን ይዘት በፍጹም። «ደርሷል» የሚመዘገበው ሲረጋገጥ ብቻ ነው።',
     hash_help: 'የተቀመጠው ፋይል በስህተት መተካቱን ይለያል። ዲጂታል ፊርማ አይደለም።',

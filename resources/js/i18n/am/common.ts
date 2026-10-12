@@ -84,7 +84,7 @@ const common = {
     archived: 'ወደ ማህደር የገባ',
     suspended: 'ታግዷል',
     approved: 'ጸድቋል',
-    rejected: 'ተቀባይነት አላገኘም',
+    rejected: 'ውድቅ ተደርጓል',
     pending: 'በመጠባበቅ ላይ',
     published: 'ይፋ ሆኗል',
     merged: 'ተዋህዷል',

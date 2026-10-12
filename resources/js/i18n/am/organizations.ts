@@ -80,7 +80,7 @@ const organizations = {
     deactivate: 'ያቦዝኑ',
     deactivateInstead: 'በምትኩ ያቦዝኑ',
     deactivateConfirm: 'ይህን ተቋም ማቦዝን ይፈልጋሉ? ንቁ ያልሆነ ይሆናል፣ አይሰረዝም።',
-    archive: 'ወደ ማህደር ይውሰዱ',
+    archive: 'ወደ ማህደር ያስቀምጡ',
     archiveInstead: 'በምትኩ ወደ ማህደር ይውሰዱ',
     archiveConfirm: 'ይህን ተቋም ወደ ማህደር ማስገባት ይፈልጋሉ? ወደ ማህደር ይገባል፣ አይሰረዝም።',
 
@@ -127,7 +127,7 @@ const organizations = {
     directOrganizationPositions: 'በቀጥታ በተቋሙ ሥር ያሉ መደቦች',
     occupied: 'የተያዘ',
     vacant: 'ክፍት',
-    noOrganizationUnitsFound: 'ምንም የተቋም ክፍል አልተገኘም',
+    noOrganizationUnitsFound: 'ምንም የሥራ ክፍል አልተገኘም',
     noPositionsFound: 'ምንም የሥራ መደብ አልተገኘም',
     noAssignedEmployees: 'የተመደበ ሠራተኛ የለም',
     searchStructure: 'መዋቅሩን ይፈልጉ',

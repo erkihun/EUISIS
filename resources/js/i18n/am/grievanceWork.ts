@@ -13,9 +13,9 @@ const grievanceWork = {
 
     correspondence: 'የደብዳቤ መዝገብ',
     correspondence_help: 'እርስዎ ማየት የሚችሏቸው ይፋዊ የቅሬታ ደብዳቤዎች። የመዝገብ ቤት ኃላፊዎች የተፈረሙ ደብዳቤዎችን እዚህ ማኅተም ያደርጋሉ፣ ያወጣሉ፣ ይልካሉ።',
-    search_reference: 'የወጪ ወይም የጉዳይ ቁጥር', no_letters: 'ደብዳቤ የለም።', sealed: 'ማኅተም ተደርጓል', apply_seal: 'ማኅተም ያድርጉ', seal: 'ማኅተም', issue: 'አውጣ',
+    search_reference: 'የወጪ ወይም የጉዳይ ቁጥር', no_letters: 'ደብዳቤ የለም።', sealed: 'ማኅተም ተደርጓል', apply_seal: 'ማኅተም ያድርጉ', seal: 'ማኅተም', issue: 'ያውጡ',
     dispatch: 'መላኩን ይመዝግቡ', channel: 'መንገድ',
-    col_reference: 'የወጪ ቁጥር', col_case: 'ጉዳይ', col_type: 'ዓይነት', col_subject: 'ርዕሰ ጉዳይ', col_status: 'ሁኔታ', col_signed: 'የፈረመው', col_issued: 'የወጣበት', col_actions: 'ተግባራት',
+    col_reference: 'የወጪ ቁጥር', col_case: 'ጉዳይ', col_type: 'ዓይነት', col_subject: 'ርዕሰ ጉዳይ', col_status: 'ሁኔታ', col_signed: 'የፈረመው', col_issued: 'የወጣበት', col_actions: 'እርምጃዎች',
 
     reports: 'የቅሬታ ሪፖርቶች',
     reports_note: 'የሂደት ማጠቃለያ ሪፖርቶች። ቅሬታ ያቀረቡ ሠራተኞችን ደረጃ አያወጡም፣ አይዘረዝሩም።',

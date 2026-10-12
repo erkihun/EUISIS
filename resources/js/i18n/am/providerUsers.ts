@@ -9,7 +9,7 @@ const providerUsers = {
 
     // Statistics
     statTotal: 'መለያዎች',
-    statActive: 'ገቢር',
+    statActive: 'ንቁ',
     statSuspended: 'የታገዱ',
     statInactive: 'ገቢር ያልሆኑ',
     statMustChange: 'የይለፍ ቃል መቀየር ያለባቸው',
@@ -35,7 +35,7 @@ const providerUsers = {
     lastLogin: 'የመጨረሻ መግቢያ',
     lastLoginIp: 'የመጨረሻ መግቢያ IP',
     never: 'በጭራሽ',
-    actions: 'ተግባራት',
+    actions: 'እርምጃዎች',
     name: 'ሙሉ ስም',
     email: 'የኢሜይል አድራሻ',
     username: 'የተጠቃሚ ስም',
@@ -55,7 +55,7 @@ const providerUsers = {
         operator: 'ከታች የተመረጡትን ፈቃዶች ብቻ ይጠቀማል።',
     },
     statuses: {
-        active: 'ገቢር',
+        active: 'ንቁ',
         inactive: 'ገቢር ያልሆነ',
         suspended: 'የታገደ',
         deleted: 'የተሰረዘ',
@@ -86,7 +86,7 @@ const providerUsers = {
     portalEnabled: 'ወደ አቅራቢ ፖርታል መግባት ይችላል',
     portalEnabledHelp: 'መለያውን ሳያግዱ መግባትን ለማገድ ያጥፉ።',
     permissionsTitle: 'የኦፕሬተር ፈቃዶች',
-    permissionsHelp: 'ኦፕሬተሮች የተመረጡትን ብቻ መጠቀም ይችላሉ። የካፍቴሪያ ገጾች የአቅራቢውን የካፍቴሪያ አገልግሎት ይከተላሉ፤ እዚህ ፈቃድ አያስፈልጋቸውም።',
+    permissionsHelp: 'ኦፕሬተሮች የተመረጡትን ብቻ መጠቀም ይችላሉ። የካፌቴሪያ ገጾች የአቅራቢውን የካፌቴሪያ አገልግሎት ይከተላሉ፤ እዚህ ፈቃድ አያስፈልጋቸውም።',
     permissionsImplied: 'ባለቤቶች እና ሥራ አስኪያጆች አቅራቢያቸው የሚሰጠውን ሁሉ መጠቀም ይችላሉ።',
     noPermissionsOffered: 'የዚህ አቅራቢ አገልግሎቶች የተጠቃሚ ፈቃድ አያስፈልጋቸውም።',
     selectProviderFirst: 'ፈቃዶቹን ለማየት አቅራቢ ይምረጡ።',
@@ -121,7 +121,7 @@ const providerUsers = {
 
     // Actions
     view: 'ይመልከቱ',
-    edit: 'ያሻሽሉ',
+    edit: 'ያርትዑ',
     resetPassword: 'የይለፍ ቃል ዳግም ያስጀምሩ',
     suspend: 'ያግዱ',
     activate: 'ገቢር ያድርጉ',

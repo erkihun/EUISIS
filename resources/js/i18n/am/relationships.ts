@@ -16,7 +16,7 @@ export default {
     relatedTo: 'የተያያዘው',
     relatedToType: 'የተያያዘው ዓይነት',
     source: 'ምንጭ',
-    target: 'መዳረሻ',
+    target: 'ዒላማ',
     effectiveFrom: 'ከ',
     effectiveTo: 'እስከ',
     primaryRelationship: 'ዋና ግንኙነት',
@@ -45,7 +45,7 @@ export default {
     targetTypes: {
         organization: 'ተቋም',
         institution_office: 'የተቋም ጽሕፈት ቤት',
-        organization_unit: 'የተቋም ክፍል',
+        organization_unit: 'የሥራ ክፍል',
     },
     statuses: {
         active: 'ንቁ',
@@ -59,11 +59,11 @@ export default {
     targetType: 'የዒላማ ዓይነት',
     sourceTypes: {
         institution_office: 'የተቋም ጽሕፈት ቤት',
-        organization_unit: 'የተቋም ክፍል',
+        organization_unit: 'የሥራ ክፍል',
     },
     searchSourcePlaceholder: 'በምንጭ ስም ወይም ኮድ ይፈልጉ',
     noReportingLines: 'ምንም የሪፖርት መስመር አልተገኘም',
-    noReportingLinesHint: 'የሪፖርት መስመሮች ከተቋም ጽሕፈት ቤት ወይም ከተቋም ክፍል ገጽ ይጨመራሉ።',
+    noReportingLinesHint: 'የሪፖርት መስመሮች ከተቋም ጽሕፈት ቤት ወይም ከሥራ ክፍል ገጽ ይጨመራሉ።',
     totalReportingLines: 'ጠቅላላ የሪፖርት መስመሮች',
     viewSource: 'ምንጭ ይክፈቱ',
     helpStructural: 'መዋቅራዊ ግንኙነት ዋናውን ተዋረድና የአስተዳደር ወሰን ይቆጣጠራል።',

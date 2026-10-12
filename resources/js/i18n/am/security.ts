@@ -5,7 +5,7 @@ const security = {
     tooManyAttempts: 'ብዙ ሙከራዎች። እባክዎ ጠብቀው እንደገና ይሞክሩ።',
     strongPasswordRequired: 'የሚስጥር ቃል ዝቅተኛ የደህንነት መስፈርቶችን ማሟላት አለበት።',
     securitySettingsUpdated: 'የደህንነት ቅንብሮች በተሳካ ሁኔታ ተዘምነዋል።',
-    auditLog: 'የኦዲት ምዝግብ ማስታወሻ',
+    auditLog: 'የኦዲት መዝገብ',
     incidentResponse: 'የአደጋ ምላሽ',
     vulnerabilityManagement: 'የተጋላጭነት አያያዝ',
 

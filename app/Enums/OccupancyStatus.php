@@ -11,9 +11,6 @@ enum OccupancyStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Active => 'Active',
-            self::Released => 'Released',
-        };
+        return (string) __('enums.occupancy_status.'.$this->value);
     }
 }

@@ -65,7 +65,7 @@ const codeRules = {
         card_request: 'የካርድ ጥያቄ ቁጥር',
         service_provider: 'የአገልግሎት አቅራቢ ኮድ',
         service_type: 'የአገልግሎት ዓይነት ኮድ',
-        organization_unit_type: 'የተቋም ክፍል ዓይነት ኮድ',
+        organization_unit_type: 'የሥራ ክፍል ዓይነት ኮድ',
         entitlement_rule: 'የጥቅማ ጥቅም ደንብ ኮድ',
         transport_route: 'የትራንስፖርት መስመር ኮድ',
         transport_plan: 'የትራንስፖርት ዕቅድ ኮድ',
@@ -88,7 +88,7 @@ const codeRules = {
         grievance_case: 'የቅሬታ ጉዳይ ቁጥር',
         grievance_decision: 'የቅሬታ ውሳኔ ቁጥር',
         grievance_letter: 'የቅሬታ ደብዳቤ የወጪ ቁጥር',
-        organization_unit: 'የተቋም ክፍል ኮድ',
+        organization_unit: 'የሥራ ክፍል ኮድ',
     },
     scopeTypes: {
         organization_unit_type: 'የሥራ ክፍል ዓይነት',
@@ -156,7 +156,7 @@ const codeRules = {
     manualMode: 'በእጅ',
     generationFailed: 'ኮድ ማመንጨት አልተሳካም',
     enterManuallyShort: 'በእጅ ያስገቡ',
-    organization_unit_type: 'የተቋም ክፍል ዓይነት ኮድ',
+    organization_unit_type: 'የሥራ ክፍል ዓይነት ኮድ',
     // የቶከን ፓኔል ቁልፎች
     insertToken: 'ቶከን አስገባ',
     copyToken: 'ቶከን ይቅዱ',

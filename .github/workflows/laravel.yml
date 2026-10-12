@@ -32,6 +32,10 @@ jobs:
       run: |
         npm ci --no-audit --no-fund
         npm run build
+    - name: Translation audit (English and Amharic)
+      # Blocks missing keys, English left in Amharic, raw status codes and
+      # deprecated Amharic terms (docs/amharic-terminology-guide.md).
+      run: npm run i18n:audit
     - name: Generate key
       run: php artisan key:generate
     - name: Directory Permissions

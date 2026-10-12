@@ -13,20 +13,15 @@ enum CafeteriaTransactionStatus: string
 
     public function label(): string
     {
-        return match($this) {
-            self::Accepted      => 'Accepted',
-            self::Rejected      => 'Rejected',
-            self::Reversed      => 'Reversed',
-            self::PendingReview => 'Pending Review',
-        };
+        return (string) __('enums.cafeteria_transaction_status.'.$this->value);
     }
 
     public function color(): string
     {
-        return match($this) {
-            self::Accepted      => 'green',
-            self::Rejected      => 'red',
-            self::Reversed      => 'gray',
+        return match ($this) {
+            self::Accepted => 'green',
+            self::Rejected => 'red',
+            self::Reversed => 'gray',
             self::PendingReview => 'yellow',
         };
     }

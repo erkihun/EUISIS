@@ -12,7 +12,7 @@ return [
     'to_organization' => 'ወደ ተቋም',
     'from_position' => 'ከመደብ',
     'to_position' => 'ወደ መደብ',
-    'effective_date' => 'የሚፀናበት ቀን',
+    'effective_date' => 'የሚጸናበት ቀን',
     'transfer_reason' => 'የዝውውር ምክንያት',
     'rejection_reason' => 'የመከልከል ምክንያት',
     'applicationSubmitted' => 'የዝውውር ማመልከቻዎ በተሳካ ሁኔታ ቀርቧል።',

@@ -189,7 +189,7 @@ const navigation = {
     fieldWorkManagement: 'የመስክ ሥራ አስተዳደር',
     myActivityCalendar: 'የእንቅስቃሴ ቀን መቁጠሪያ',
     myActivityHistory: 'የእንቅስቃሴ ታሪክ',
-    dailyActivities: 'ዕለታዊ እንቅስቃሴዎች',
+    dailyActivities: 'ዕለታዊ የሥራ እንቅስቃሴዎች',
     dailyActivityDashboard: 'የእንቅስቃሴ ዳሽቦርድ',
     dailyActivityRegister: 'የዕለታዊ እንቅስቃሴ መዝገብ',
     dailyActivityMissing: 'ያልቀረቡ እንቅስቃሴዎች',

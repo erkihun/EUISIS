@@ -21,14 +21,6 @@ enum VacancyApplicationStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Submitted => 'Submitted',
-            self::Withdrawn => 'Withdrawn',
-            self::Screened => 'Screened',
-            self::Shortlisted => 'Shortlisted',
-            self::Selected => 'Selected',
-            self::Rejected => 'Rejected',
-            self::Transferred => 'Transferred',
-        };
+        return (string) __('enums.vacancy_application_status.'.$this->value);
     }
 }

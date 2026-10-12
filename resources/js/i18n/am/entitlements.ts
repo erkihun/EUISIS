@@ -1,5 +1,5 @@
 const entitlements = {
-    title: 'መብቶች',
+    title: 'ጥቅማ ጥቅሞች',
     entitlement: 'ጥቅማ ጥቅም',
     grantEntitlement: 'ጥቅማ ጥቅም ስጥ',
     revokeEntitlement: 'ጥቅማ ጥቅም ይሽሩ',

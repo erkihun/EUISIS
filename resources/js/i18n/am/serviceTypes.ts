@@ -11,7 +11,7 @@ const serviceTypes = {
     description: 'መግለጫ',
     providersCount: 'አቅራቢዎች',
     rulesCount: 'የጥቅማ ጥቅም ደንቦች',
-    entitlementsCount: 'መብቶች',
+    entitlementsCount: 'ጥቅማ ጥቅሞች',
     activeOnly: 'ንቁ ብቻ',
     inactiveOnly: 'የቦዘኑ ብቻ',
     createSuccess: 'የአገልግሎት ዓይነት በተሳካ ሁኔታ ተፈጥሯል',

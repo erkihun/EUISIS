@@ -84,7 +84,7 @@ const employeePortal = {
     submittedOf: 'ከ:required ቀናት :submitted ቀርበዋል',
     missingCount: ':count የጎደለ',
     unreadMessages: 'ያልተነበቡ መልዕክቶች',
-    dailyActivity: 'ዕለታዊ እንቅስቃሴ',
+    dailyActivity: 'ዕለታዊ የሥራ እንቅስቃሴ',
     registerActivity: 'እንቅስቃሴ ይመዝግቡ',
     activityItems: ':count እንቅስቃሴዎች',
     notifications: 'ማሳወቂያዎች',

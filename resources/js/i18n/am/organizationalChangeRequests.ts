@@ -12,7 +12,7 @@ export default {
     actions: {
         create: 'አዲስ ጥያቄ',
         saveDraft: 'ረቂቅ ያስቀምጡ',
-        submit: 'ያስገቡ',
+        submit: 'ያቅርቡ',
         resubmit: 'እንደገና አስገባ',
         cancel: 'ጥያቄ ይሰርዙ',
         startReview: 'ግምገማ ይጀምሩ',
@@ -83,7 +83,7 @@ export default {
         selectOrganization: 'ተቋም ይምረጡ',
         none: 'የለም (ከፍተኛ ደረጃ)',
         effectiveDate: 'የሚጸናበት ቀን',
-        effectiveTo: 'የሚያባን ቀን',
+        effectiveTo: 'የማብቂያ ቀን',
     },
 
     compare: {
@@ -124,7 +124,7 @@ export default {
         heading: 'የጥያቄ የጊዜ ሰሌዳ',
         reviewHistory: 'የግምገማ ታሪክ',
         implementationHistory: 'የትግበራ ታሪክ',
-        stageSubmitted: 'ገብቷል',
+        stageSubmitted: 'ቀርቧል',
         stageReview: 'የተቋም ግምገማ',
         stageApproved: 'ጸድቋል',
         stagePendingImplementation: 'ትግበራ በመጠባበቅ ላይ',
@@ -165,7 +165,7 @@ export default {
 
     statuses: {
         draft: 'ረቂቅ',
-        submitted: 'ገብቷል',
+        submitted: 'ቀርቧል',
         under_review: 'በግምገማ ላይ',
         correction_requested: 'ማስተካከያ ተጠይቋል',
         resubmitted: 'እንደገና ገብቷል',

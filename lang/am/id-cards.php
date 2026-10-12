@@ -12,7 +12,7 @@ return [
     'expires_at' => 'የሚያበቃበት ቀን',
     'employee_number' => 'የሠራተኛ ቁጥር',
     'organization' => 'ተቋም',
-    'organization_unit' => 'የተቋም የሥራ ክፍል',
+    'organization_unit' => 'የሥራ ክፍል',
     'position' => 'የሥራ መደብ',
     'job_grade' => 'የሥራ ደረጃ',
     'return_if_found' => 'ከተገኘ ይመለስ',

@@ -10,7 +10,7 @@ return [
     'employment_status' => 'የቅጥር ሁኔታ',
     'phone_number' => 'ስ.ቁ',
     'issue_date' => 'የተሰጠበት ቀን',
-    'expiry_date' => 'ያልቃ',
+    'expiry_date' => 'ማብቂያ',
     'card_no' => 'የካርድ ቁጥር',
     'signature' => 'የባለስልጣኑ ፊርማ',
     'emergency_contact_name' => 'የአስቸኳይ ጊዜ ተጠሪ ስም',

@@ -17,7 +17,9 @@
 //   - placeholder sets that differ between the locales (blocking)
 //   - deprecated Amharic terms from resources/data/amharic-terminology.json
 //     (blocking when the entry says "block": true, otherwise a warning)
-//   - raw enum-like tokens (UPPER_SNAKE) inside display strings (warning)
+//   - bare status codes (UPPER_SNAKE) in Amharic display text (blocking). A code may
+//     appear only as a bracketed reference after its Amharic meaning, e.g.
+//     "ውሳኔ ያስፈልጋል (NEEDS_DECISION)", and format tokens such as {SEQUENCE} are syntax
 //   - spelling-variant statistics for the orthography policy (informational)
 // It never rewrites text: wording is a human decision recorded in the glossary.
 import fs from 'node:fs';
@@ -117,7 +119,37 @@ function placeholders(value, kind) {
     return [...found].filter((p) => kind !== 'php' || /^[a-z_][a-z0-9_]*$/.test(p)).sort();
 }
 
+// Status codes that are not inside a format token and not a bracketed reference after Amharic text.
+function bareCodes(value) {
+    const text = String(value).replace(/\{[A-Za-z0-9_]+\}/g, ' ');
+    const out = [];
+    for (const m of text.matchAll(UPPER_SNAKE)) {
+        const before = text.slice(0, m.index);
+        const bracketed = before.endsWith('(') && text[m.index + m[0].length] === ')' && ETHIOPIC.test(before);
+        if (!bracketed) out.push(m[0]);
+    }
+    return out;
+}
+
+// Spelling statistics count a variant only at the start of a word (optionally after a
+// preposition prefix), so ስራ inside ያስተሳስራል is not counted as a spelling of ሥራ.
+const wordStart = (w) => new RegExp(`(?<![ሀ-፿])(?:[የበለከ]|ወደ|እንደ)?${w}`, 'u');
+
 const moduleOf = (source, key) => (source === 'ts' ? key.split('.')[0] : key.split('.')[0]);
+
+// Framework sample keys that are never displayed.
+const IGNORED_KEYS = [/^validation\.custom\.attribute-name\./];
+
+// Amharic values that are deliberately Latin script.
+const ALLOWED_LATIN_VALUE_KEYS = [
+    /^users\.phonePlaceholder$/, /^calendar\.dateFormat$/, // input and date format masks
+    /^settings\.emailInEffect\.connections\.starttls$/, /^settings\.options\.mail_mailer\.(sendmail|ses)$/, // protocol and product names
+    /^backup\.archiveMode$/, // the PostgreSQL setting name an operator looks up
+    /^employee-portal\.languages\.en$/, // a language switcher names each language in itself
+];
+
+// Keys whose Amharic value names format tokens without braces (code-rule syntax users type).
+const ALLOWED_CODE_KEYS = [/^code-rules\.custom_tokens_cannot_include_sequence$/];
 
 // Keys whose English value legitimately carries Ethiopic (language names, bilingual labels).
 const ALLOWED_AM_IN_EN = [
@@ -147,11 +179,13 @@ const sets = [
 const findings = [];
 const modules = {};
 const spelling = Object.fromEntries(SPELLING.map(([a, b]) => [`${a}/${b}`, [0, 0]]));
+const SPELLING_RE = SPELLING.map(([a, b]) => [a, b, wordStart(a), wordStart(b)]);
 const add = (severity, rule, source, key, detail) => findings.push({ severity, rule, source, key, detail });
 
 for (const { source, en, am } of sets) {
     const keys = new Set([...Object.keys(en), ...Object.keys(am)]);
     for (const key of keys) {
+        if (IGNORED_KEYS.some((re) => re.test(key))) continue;
         const mod = `${source}:${moduleOf(source, key)}`;
         modules[mod] ??= { strings: 0, en: 0, am: 0, missing_en: 0, missing_am: 0, flagged: 0 };
         const m = modules[mod];
@@ -166,7 +200,9 @@ for (const { source, en, am } of sets) {
         if (e.trim() === '' || a.trim() === '') { m.flagged++; add('block', 'empty', source, key, { en: e, am: a }); continue; }
 
         const leftovers = latinLeftovers(a);
-        if (!ETHIOPIC.test(a) && leftovers.length > 0) { m.flagged++; add('block', 'english_in_am', source, key, a); }
+        if (!ETHIOPIC.test(a) && leftovers.length > 0) {
+            if (!ALLOWED_LATIN_VALUE_KEYS.some((re) => re.test(key))) { m.flagged++; add('block', 'english_in_am', source, key, a); }
+        }
         else if (ETHIOPIC.test(a) && leftovers.length > 0) add('warn', 'latin_words_in_am', source, key, { am: a, words: leftovers });
 
         if (ETHIOPIC.test(e) && !ALLOWED_AM_IN_EN.some((re) => re.test(key))) { m.flagged++; add('block', 'amharic_in_en', source, key, e); }
@@ -175,7 +211,9 @@ for (const { source, en, am } of sets) {
         const pa = placeholders(a, source);
         if (pe.join(',') !== pa.join(',')) { m.flagged++; add('block', 'placeholder_mismatch', source, key, { en: pe, am: pa }); }
 
-        for (const token of a.match(UPPER_SNAKE) ?? []) add('warn', 'raw_enum_in_text', source, key, token);
+        if (!ALLOWED_CODE_KEYS.some((re) => re.test(key))) {
+            for (const token of bareCodes(a)) { m.flagged++; add('block', 'raw_enum_in_text', source, key, token); }
+        }
 
         for (const d of terminology.deprecated ?? []) {
             if (d.pattern && new RegExp(d.pattern, 'u').test(a) && !(d.allowKeys ?? []).some((k) => key.startsWith(k))) {
@@ -183,9 +221,9 @@ for (const { source, en, am } of sets) {
                 add(d.block ? 'block' : 'warn', 'deprecated_term', source, key, { term: d.current, use: d.recommended, am: a });
             }
         }
-        for (const [x, y] of SPELLING) {
-            if (a.includes(x)) spelling[`${x}/${y}`][0]++;
-            if (a.includes(y)) spelling[`${x}/${y}`][1]++;
+        for (const [x, y, rx, ry] of SPELLING_RE) {
+            if (rx.test(a)) spelling[`${x}/${y}`][0]++;
+            if (ry.test(a)) spelling[`${x}/${y}`][1]++;
         }
     }
 }

@@ -375,7 +375,7 @@ it('gives the card number and signature their own sections with dates in both ca
     // Dates moved to the front, so the back no longer prints them.
     $front = app(IdCardSvgRenderer::class)->renderFront(app(IdCardRenderDataFactory::class)->make($card->fresh()));
     expect($front)->toContain('የተሰጠበት ቀን/Issue Date')
-        ->and($front)->toContain('ያልቃ/Exp')
+        ->and($front)->toContain('ማብቂያ/Exp')
         ->and($front)->not->toContain('ISSUE DATE')
         ->and($svg)->not->toContain('የተሰጠበት ቀን/Issue Date');
 

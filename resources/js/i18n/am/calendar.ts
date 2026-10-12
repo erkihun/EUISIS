@@ -4,8 +4,8 @@ const amCalendar = {
     calendarSystem: 'የቀን አቆጣጠር',
     selectDate: 'ቀን ይምረጡ',
     selectDateRange: 'የቀን ክልል ይምረጡ',
-    startDate: 'መጀመሪያ ቀን',
-    endDate: 'መጨረሻ ቀን',
+    startDate: 'የመጀመሪያ ቀን',
+    endDate: 'የማብቂያ ቀን',
     today: 'ዛሬ',
     clear: 'ያጥፉ',
     months: {

@@ -101,7 +101,7 @@ export default {
     organizationTreePreview: 'የተቋም አደረጃጀት ቅድመ-ዕይታ',
     // Organization Units in tree
     organizationNode: 'ተቋም',
-    organizationUnitNode: 'ክፍል',
+    organizationUnitNode: 'የሥራ ክፍል',
     fullHierarchyTree: 'ሙሉ የተዋረድ አደረጃጀት',
     includeOrganizationUnits: 'የተቋም ክፍሎችን አካትት',
     showFunctionalReporting: 'የተግባር ሪፖርት ያሳዩ',

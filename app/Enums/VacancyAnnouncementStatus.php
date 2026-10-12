@@ -23,11 +23,6 @@ enum VacancyAnnouncementStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Draft => 'Draft',
-            self::Published => 'Published',
-            self::Closed => 'Closed',
-            self::Cancelled => 'Cancelled',
-        };
+        return (string) __('enums.vacancy_announcement_status.'.$this->value);
     }
 }

@@ -21,7 +21,7 @@ const transfers = {
     ruleAtLeast: 'ቢያንስ',
     implementTransfer: 'ዝውውሩን ተግባራዊ ያድርጉ',
     transferCompleted: 'ዝውውሩ ተግባራዊ ተደርጓል።',
-    effectiveDate: 'ተፈጻሚ የሚሆንበት ቀን',
+    effectiveDate: 'የሚጸናበት ቀን',
     // Module
     module: 'የዝውውር አስተዳደር',
     dashboard: 'የዝውውር ዳሽቦርድ',
@@ -56,8 +56,8 @@ const transfers = {
     applicationSubmitted: 'ማመልከቻ ቀርቧል።',
     applicationScreened: 'ማመልከቻ ወደ ግምገማ ተላልፏል።',
     applicationSelected: 'ተወዳዳሪ ተመርጧል።',
-    applicationRejected: 'ማመልከቻ ውድቅ ሆኗል።',
-    applicationWithdrawn: 'ማመልከቻ ተቀልፏል።',
+    applicationRejected: 'ማመልከቻ ውድቅ ተደርጓል።',
+    applicationWithdrawn: 'ማመልከቻው ተነስቷል።',
     applyForTransfer: 'ለዝውውር ያመልክቱ',
     withdrawApplication: 'ማመልከቻ ያንሱ',
     withdrawReasonPrompt: 'ይህን ማመልከቻ ለምን ያስወግዳሉ?',
@@ -65,9 +65,9 @@ const transfers = {
 
     // Approval
     releaseApproved: 'መልቀቂያ ጸደቀ።',
-    releaseRejected: 'መልቀቂያ ውድቅ ሆኗል።',
+    releaseRejected: 'መልቀቂያ ውድቅ ተደርጓል።',
     receivingApproved: 'መቀበያ ጸደቀ።',
-    receivingRejected: 'መቀበያ ውድቅ ሆኗል።',
+    receivingRejected: 'መቀበያ ውድቅ ተደርጓል።',
     finalApproved: 'የመጨረሻ ማጽደቅ ተሰጥቷል።',
     finalRejected: 'የመጨረሻ ማጽደቅ ውድቅ ተደርጓል።',
     approveRelease: 'መልቀቂያ ያጽድቁ',
@@ -80,7 +80,7 @@ const transfers = {
     // Status labels
     statusDraft: 'ረቂቅ',
     statusPublished: 'ይፋ ሆኗል',
-    statusClosed: 'ተዘጋ',
+    statusClosed: 'ተዘግቷል',
     statusCancelled: 'ተሰርዟል',
     statusSubmitted: 'ቀርቧል',
     statusUnderReview: 'በግምገማ ላይ',
@@ -90,16 +90,16 @@ const transfers = {
     statusReceivingPending: 'የሚቀበለው ተቋም ይሁንታ በመጠባበቅ ላይ',
     statusFinalApprovalPending: 'የመጨረሻ ማጽደቅ በመጠባበቅ ላይ',
     statusApproved: 'ጸድቋል',
-    statusTransferred: 'ተዛወሯል',
-    statusRejected: 'ውድቅ ሆኗል',
-    statusWithdrawn: 'ተቀልፏል',
+    statusTransferred: 'ተዛውሯል',
+    statusRejected: 'ውድቅ ተደርጓል',
+    statusWithdrawn: 'ተነስቷል',
 
     // Fields
     organization: 'ተቋም',
     position: 'የሥራ መደብ',
     gradeLevel: 'ደረጃ',
-    salaryMin: 'ዝቅተኛ ደሞዝ',
-    salaryMax: 'ከፍተኛ ደሞዝ',
+    salaryMin: 'ዝቅተኛ ደመወዝ',
+    salaryMax: 'ከፍተኛ ደመወዝ',
     numberOfVacancies: 'የክፍት የሥራ መደቦች ብዛት',
     eligibilityRules: 'የብቃት መስፈርቶች',
     requiredDocuments: 'የሚያስፈልጉ ሰነዶች',
@@ -113,7 +113,7 @@ const transfers = {
     // Settings fields
     requireSamePosition: 'ተመሳሳይ የሥራ መደብ ያስፈልጋል',
     requireSameGrade: 'አንድ ዓይነት ደረጃ ያስፈልጋል',
-    requireSameSalary: 'አንድ ዓይነት ደሞዝ ያስፈልጋል',
+    requireSameSalary: 'አንድ ዓይነት ደመወዝ ያስፈልጋል',
     allowCrossInstitution: 'ተቋምን አቋርጦ ዝውውር ይፈቀዳል',
     allowExceptionalOverride: 'ልዩ ሁኔታ ፈቃድ ይፈቀዳል',
     overrideApproverRoles: 'ልዩ የማጽደቅ ሥልጣን ያላቸው ሚናዎች',
@@ -206,13 +206,13 @@ const transfers = {
 
     // Card reprint policy options
     cardReprintNoReprint: 'ዳግም ሕትመት አይደረግም',
-    cardReprintRequestReprint: 'ዳግም ሕትመት ጥያቄ ይፍጠሩ',
-    cardReprintAutoReprint: 'ራስ-ሰር ዳግም አትም',
+    cardReprintRequestReprint: 'የዳግም ሕትመት ጥያቄ መፍጠር',
+    cardReprintAutoReprint: 'በራስ-ሰር ዳግም ማተም',
 
     // Service recalculation policy options
     serviceRecalcNone: 'ዳግም ስሌት አይደረግም',
-    serviceRecalcFromTransfer: 'ከዝውውር ቀን ዳግም አሰላ',
-    serviceRecalcFromEffective: 'ከሥራ መጀመሪያ ቀን ዳግም አሰላ',
+    serviceRecalcFromTransfer: 'ከዝውውሩ ቀን ጀምሮ ዳግም ማስላት',
+    serviceRecalcFromEffective: 'ከሚጸናበት ቀን ጀምሮ ዳግም ማስላት',
 
     // Approval type labels
     approvalTypeRelease: 'የሚለቅቀው ተቋም ይሁንታ',
@@ -223,7 +223,7 @@ const transfers = {
     screenActionUnderReview: 'ወደ ግምገማ ተላልፏል',
     screenActionVerified: 'ተረጋግጧል',
     screenActionSelected: 'ተመርጧል',
-    screenActionRejected: 'ውድቅ ሆኗል',
+    screenActionRejected: 'ውድቅ ተደርጓል',
     screenActionSubmitted: 'ቀርቧል',
 
     // Public announcement detail & apply pages
@@ -231,7 +231,7 @@ const transfers = {
     // Used by the portal pages; previously only present in the PHP lang files,
     // so these screens rendered the raw key.
     noEmployeeProfile: 'ከአካውንትዎ ጋር የተያያዘ የሠራተኛ መገለጫ የለም። እባክዎ ከ HR ጋር ያነጋግሩ።',
-    salary: 'ደሞዝ',
+    salary: 'ደመወዝ',
     eligibilityRequirements: 'የብቃት መስፈርቶች',
     notAcceptingApplicationsInfo: 'ይህ ማስታወቂያ ማመልከቻዎችን መቀበል አቁሟል።',
     applicationAlreadySubmitted: 'ማመልከቻ ቀርቧል',

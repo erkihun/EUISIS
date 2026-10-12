@@ -14,7 +14,7 @@ return [
     'imported_successfully' => 'የተቋም መዋቅር በተሳካ ሁኔታ ገብቷል',
 
     'organization_summary' => 'የተቋም ማጠቃለያ',
-    'unit_tree' => 'የተቋም ክፍል መዋቅር',
+    'unit_tree' => 'የሥራ ክፍል መዋቅር',
     'import_summary' => 'የምዝገባ ማጠቃለያ',
     'mode_create' => 'አዲስ ተቋም ይፈጠራል።',
     'mode_update' => 'ነባሩ ተቋም ይዘምናል።',
