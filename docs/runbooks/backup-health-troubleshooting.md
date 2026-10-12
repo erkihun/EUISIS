@@ -44,6 +44,28 @@ or UNKNOWN with "Production blocker: NO". In production, or with
 **CRITICAL** and a production blocker. Development machines (including Windows) are not expected
 to run pgBackRest.
 
+## Local testing
+
+To exercise the backup page, `backup:health` and the restore-request workflow on a developer
+machine, let the application read a sample runner report instead of pgBackRest:
+
+```
+BACKUP_STATUS_ENABLED=true
+BACKUP_DRIVER=report
+BACKUP_STATUS_PATH=<repository>/storage/app/backup/status.json
+BACKUP_PITR_REQUIRED=false        # local PostgreSQL has archive_mode=off
+BACKUP_REPORT_STALE_MINUTES=1440  # a report is good for a day; rewrite it when it goes STALE
+BACKUP_RPO="15 minutes (local test value)"
+BACKUP_RTO="4 hours (local test value)"
+```
+
+then `php artisan backup:local-report` (add `--scenario=stale-backup`, `failed-verify` or
+`repository-down` to see the WARNING and CRITICAL states) and `php artisan backup:health`. The
+command refuses to run in production, and a sample report is never evidence of a backup: it only
+proves that the page, the thresholds and the workflow behave. The restore-request workflow uses
+the normal tables (`backup_restore_requests`, `backup_operations`), so requests made while testing
+should be cancelled or the tables cleared afterwards.
+
 ## Infrastructure reasons
 
 ### NOT_CONFIGURED

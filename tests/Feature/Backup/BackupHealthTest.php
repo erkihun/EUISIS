@@ -16,6 +16,9 @@ use Symfony\Component\Process\Process as SymfonyProcess;
 
 require_once __DIR__.'/../../Fixtures/backup_report.php';
 
+// Thresholds the assertions depend on, pinned so a developer's .env (local backup testing) cannot change them.
+beforeEach(fn () => config(['backup.pitr_required' => true, 'backup.report_stale_minutes' => 15]));
+
 function backupHealth(?bool $enforce = null): array
 {
     return app(BackupStatusService::class)->status(fresh: true, enforce: $enforce);

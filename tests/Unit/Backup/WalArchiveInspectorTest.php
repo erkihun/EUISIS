@@ -5,6 +5,9 @@ use Tests\TestCase;
 
 uses(TestCase::class);
 
+// PITR is required by default; pinned so a developer's .env (local backup testing) cannot change the expectations.
+beforeEach(fn () => config(['backup.pitr_required' => true]));
+
 function walRow(array $overrides = []): array
 {
     $now = 1_800_000_000;
