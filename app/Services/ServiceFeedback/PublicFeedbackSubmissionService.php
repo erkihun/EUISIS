@@ -82,6 +82,8 @@ class PublicFeedbackSubmissionService
                         ? $this->trimmedOrNull($data['comment'] ?? null)
                         : trim((string) ($data['message'] ?? '')),
                     'subject' => $this->trimmedOrNull($data['subject'] ?? null),
+                    // Applicability was checked by the controller against the resolved target.
+                    'category_id' => $this->trimmedOrNull($data['category_id'] ?? null),
                     'client_name' => $this->trimmedOrNull($data['client_name'] ?? null),
                     'client_contact' => $this->trimmedOrNull($data['client_contact'] ?? null),
                     'submitter_identity_mode' => SubmitterIdentityMode::Optional,

@@ -9,6 +9,13 @@ declare(strict_types=1);
 return [
     'service_not_provided' => 'ይህ አገልግሎት በዚህ ባለሙያ አይሰጥም።',
     'form_replayed' => 'ይህ ቅጽ አስቀድሞ ገብቷል። ሌላ ምላሽ ለመላክ ገጹን እንደገና ይክፈቱ።',
+    'category_not_applicable' => 'ይህ ምድብ ለዚህ ማቅረብ አይተገበርም።',
+
+    // የምድብ አስተዳደር
+    'category_saved' => 'ምድቡ ተቀምጧል።',
+    'category_retired' => 'ማቅረቦች ይህን ምድብ ስለሚጠቅሱ ከመሰረዝ ይልቅ ተሰናብቷል።',
+    'category_deleted' => 'ምድቡ ተሰርዟል።',
+    'category_code_taken' => 'በዚህ ወሰን ውስጥ ይህ ኮድ ያለው ምድብ አስቀድሞ አለ።',
 
     // የተቋም የአስተያየት QR አስተዳደር
     'qrGenerated' => 'የተቋሙ የአስተያየት QR ነቅቷል።',

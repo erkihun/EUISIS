@@ -58,12 +58,19 @@ interface Receipt {
     submitted_at: string | null;
 }
 
+interface CategoryOption {
+    id: string;
+    name: string;
+}
+
 interface Props {
     available: boolean;
     token: string;
     target: TargetDisplay | null;
     links: Links;
     serviceTypes: ServiceTypeOption[];
+    /** Active categories that apply to this type and target; empty when none are defined. */
+    categories: CategoryOption[];
     submitted: boolean;
     type: 'feedback' | 'suggestion' | 'complaint' | null;
     reference: string | null;
@@ -138,6 +145,26 @@ function ServiceSelect({ serviceTypes, value, onChange, error, optional }: {
     );
 }
 
+function CategorySelect({ categories, value, onChange, error }: { categories: CategoryOption[]; value: string; onChange: (value: string) => void; error?: string }) {
+    const { t } = useLocale();
+
+    if (categories.length === 0) return null;
+
+    return (
+        <div>
+            <label htmlFor="category_id" className="block text-sm font-medium text-slate-900 dark:text-slate-100">
+                {t('serviceFeedback.category')}
+                <span className="ml-1 font-normal text-slate-400">({t('serviceFeedback.clientNameHint')})</span>
+            </label>
+            <select id="category_id" value={value} onChange={(e) => onChange(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`}>
+                <option value="">{t('serviceFeedback.categoryPlaceholder')}</option>
+                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+            </select>
+            {error && <p role="alert" className={errorClass}>{error}</p>}
+        </div>
+    );
+}
+
 function ClientFields({ name, contact, onName, onContact, errors }: {
     name: string;
     contact: string;
@@ -169,17 +196,18 @@ function ClientFields({ name, contact, onName, onContact, errors }: {
     );
 }
 
-function ServiceEntryForm({ type, target, serviceTypes, links, formToken }: {
+function ServiceEntryForm({ type, target, serviceTypes, categories, links, formToken }: {
     type: 'suggestion' | 'complaint';
     target: TargetDisplay;
     serviceTypes: ServiceTypeOption[];
+    categories: CategoryOption[];
     links: Links;
     formToken: string | null;
 }) {
     const { t } = useLocale();
     const { data, setData, post, processing, errors } = useForm({
         form_token: formToken ?? '',
-        position_service_id: '', message: '', client_name: '', client_contact: '',
+        position_service_id: '', category_id: '', message: '', client_name: '', client_contact: '',
         incident_date: '', incident_location: '', attachments: [] as File[],
     });
 
@@ -195,6 +223,7 @@ function ServiceEntryForm({ type, target, serviceTypes, links, formToken }: {
             {target.target_type === 'employee' && (
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional />
             )}
+            <CategorySelect categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
             <div>
                 <label htmlFor="entry-message" className="block text-sm font-medium">{t(type === 'complaint' ? 'serviceFeedback.complaintDescription' : 'serviceFeedback.suggestionText')}</label>
                 <textarea id="entry-message" required maxLength={5000} rows={6} value={data.message} onChange={(event) => setData('message', event.target.value)} className={`${controlClassName} mt-1.5 h-auto min-h-32 py-2 text-base`} />
@@ -231,7 +260,7 @@ function StarIcon({ filled }: { filled: boolean }) {
     );
 }
 
-function RatingForm({ target, serviceTypes, links, formToken }: { target: TargetDisplay; serviceTypes: ServiceTypeOption[]; links: Links; formToken: string | null }) {
+function RatingForm({ target, serviceTypes, categories, links, formToken }: { target: TargetDisplay; serviceTypes: ServiceTypeOption[]; categories: CategoryOption[]; links: Links; formToken: string | null }) {
     const { t } = useLocale();
     /*
      * Hover preview is tracked separately from the committed rating so the
@@ -242,6 +271,7 @@ function RatingForm({ target, serviceTypes, links, formToken }: { target: Target
     const { data, setData, post, processing, errors, reset } = useForm({
         form_token: formToken ?? '',
         position_service_id: '',
+        category_id: '',
         rating: 0,
         comment: '',
         client_name: '',
@@ -261,6 +291,7 @@ function RatingForm({ target, serviceTypes, links, formToken }: { target: Target
             {target.target_type === 'employee' && (
                 <ServiceSelect serviceTypes={serviceTypes} value={data.position_service_id} onChange={(value) => setData('position_service_id', value)} error={errors.position_service_id} optional={false} />
             )}
+            <CategorySelect categories={categories} value={data.category_id} onChange={(value) => setData('category_id', value)} error={errors.category_id} />
 
             {/* Star rating — large touch targets for phone use. */}
             <div>
@@ -314,7 +345,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     );
 }
 
-export default function ServiceFeedback({ available, target, links, serviceTypes, submitted, type = null, receipt = null, formToken = null }: Props) {
+export default function ServiceFeedback({ available, target, links, serviceTypes, categories = [], submitted, type = null, receipt = null, formToken = null }: Props) {
     const { t } = useLocale();
 
     /*
@@ -402,8 +433,8 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
                 <Link href={links.landing} className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline underline-offset-4 dark:text-emerald-300">{t('serviceFeedback.backToOptions')}</Link>
                 <TargetCard target={target} />
                 {type === 'feedback'
-                    ? <RatingForm target={target} serviceTypes={serviceTypes} links={links} formToken={formToken} />
-                    : <ServiceEntryForm type={type} target={target} serviceTypes={serviceTypes} links={links} formToken={formToken} />}
+                    ? <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} />
+                    : <ServiceEntryForm type={type} target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} />}
             </div>
         </Shell>
     );

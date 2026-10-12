@@ -21,6 +21,7 @@ class StorePublicServiceEntryRequest extends FormRequest
 
         return [
             'form_token' => ['nullable', 'string', 'size:32'],
+            'category_id' => ['nullable', 'uuid'],
             'position_service_id' => $employeeTarget
                 ? ['nullable', 'uuid', Rule::exists('position_services', 'id')->whereNull('deleted_at')]
                 : ['prohibited'],

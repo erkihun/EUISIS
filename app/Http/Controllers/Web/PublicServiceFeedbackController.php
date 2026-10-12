@@ -12,6 +12,7 @@ use App\Http\Requests\StoreServiceFeedbackRequest;
 use App\Models\EmployeeServiceFeedback;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
+use App\Services\ServiceFeedback\PublicFeedbackCategoryService;
 use App\Services\ServiceFeedback\PublicFeedbackFormToken;
 use App\Services\ServiceFeedback\PublicFeedbackSubmissionService;
 use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
@@ -44,6 +45,7 @@ class PublicServiceFeedbackController extends Controller
         private readonly PublicFeedbackTargetResolver $resolver,
         private readonly PublicFeedbackSubmissionService $submissions,
         private readonly PublicFeedbackFormToken $formTokens,
+        private readonly PublicFeedbackCategoryService $categories,
     ) {}
 
     // ── Employee feedback QR ─────────────────────────────────────────────
@@ -112,6 +114,7 @@ class PublicServiceFeedbackController extends Controller
                 'target' => null,
                 'links' => $links,
                 'serviceTypes' => [],
+                'categories' => [],
                 'submitted' => false,
                 'type' => null,
                 'reference' => null,
@@ -133,6 +136,7 @@ class PublicServiceFeedbackController extends Controller
             'serviceTypes' => $context->targetType === PublicFeedbackTargetType::Employee
                 ? $this->feedback->serviceOptions($context->contextPositionId, $locale)
                 : [],
+            'categories' => $type === null ? [] : $this->categories->optionsFor($context, $type, $locale),
             'submitted' => (bool) $request->session()->get('feedback_submitted', false),
             'type' => $type?->value,
             'reference' => $receipt['reference'] ?? null,
@@ -158,6 +162,11 @@ class PublicServiceFeedbackController extends Controller
 
         if (isset($validated['form_token']) && ! $this->formTokens->consume((string) $validated['form_token'])) {
             return back()->withErrors(['form_token' => __('service-feedback.form_replayed')]);
+        }
+
+        // A category is accepted only if this visitor could have been offered it.
+        if (! empty($validated['category_id']) && ! $this->categories->isApplicable((string) $validated['category_id'], $context, $type)) {
+            return back()->withErrors(['category_id' => __('service-feedback.category_not_applicable')]);
         }
 
         /*

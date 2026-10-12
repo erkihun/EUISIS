@@ -77,6 +77,7 @@ use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
 use App\Http\Controllers\Web\OrganizationFeedbackQrController;
+use App\Http\Controllers\Web\PublicFeedbackCategoryController;
 use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
@@ -1302,6 +1303,11 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/work-structure/standards/{standard}/approve', [WorkStructureController::class, 'approveStandard'])->whereUuid('standard')->name('work-structure.standards.approve');
     Route::post('/work-structure/standards/{standard}/retire', [WorkStructureController::class, 'retireStandard'])->whereUuid('standard')->name('work-structure.standards.retire');
 
+    // Public feedback categories: before the {serviceFeedback} wildcard below.
+    Route::get('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'index'])->name('service-feedback.categories.index');
+    Route::post('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'store'])->name('service-feedback.categories.store');
+    Route::put('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'update'])->whereUuid('category')->name('service-feedback.categories.update');
+    Route::delete('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'destroy'])->whereUuid('category')->name('service-feedback.categories.destroy');
     Route::get('/feedback-admin/dashboard', [ServiceFeedbackController::class, 'dashboard'])->name('service-feedback.admin.dashboard');
     Route::get('/feedback-admin/reports', [ServiceFeedbackController::class, 'reports'])->name('service-feedback.admin.reports');
     Route::get('/feedback-admin/export', [ServiceFeedbackController::class, 'export'])->name('service-feedback.admin.export');

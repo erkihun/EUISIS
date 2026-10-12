@@ -9,6 +9,13 @@ declare(strict_types=1);
 return [
     'service_not_provided' => 'This service is not provided by this officer.',
     'form_replayed' => 'This form was already submitted. Open the page again to send another response.',
+    'category_not_applicable' => 'This category does not apply to this submission.',
+
+    // Category management
+    'category_saved' => 'The category was saved.',
+    'category_retired' => 'Submissions refer to this category, so it was retired instead of deleted.',
+    'category_deleted' => 'The category was deleted.',
+    'category_code_taken' => 'A category with this code already exists in this scope.',
 
     // Organization feedback QR management
     'qrGenerated' => 'The organization feedback QR is enabled.',
