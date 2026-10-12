@@ -128,6 +128,10 @@ class ProductionReadiness extends Command
                 $this->info_('Submitter identity policy', $settings->identityMode()->value.' (attachments '.($settings->allowAttachments() ? 'allowed' : 'off').')');
                 $this->check('Attachment disk (local) is writable', is_writable(Storage::disk('local')->path('')), $production, 'Attachments are stored on the private local disk; the web user must be able to write there.');
 
+                $assignGranted = DB::table('role_has_permissions')
+                    ->join('permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
+                    ->where('permissions.name', 'service_feedback.assign')->exists();
+                $this->check('A role holds the feedback assignment permission', $assignGranted, false, 'Migrations create the permissions but grant them to no role; run the role seeders (PermissionSeeder, RolePermissionSeeder) or assign service_feedback.assign to a handler role, or nobody can hand out complaints.');
                 $activeRules = (int) DB::table('public_feedback_routing_rules')->where('is_active', true)->count();
                 $this->check('Routing rules exist for suggestions and complaints', $activeRules > 0, false, 'Without an active routing rule every suggestion and complaint is stored as unrouted and only the routing administrators are told.');
                 $activeOrganizations = (int) DB::table('organizations')->where('status', 'active')->whereNull('deleted_at')->count();

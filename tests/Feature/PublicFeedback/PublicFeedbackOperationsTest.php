@@ -109,5 +109,6 @@ it('reports the public feedback prerequisites in the production gate', function 
         ->toContain('Attachment disk (local) is writable')
         ->toContain('Routing rules exist for suggestions and complaints')
         ->toContain('Public feedback data integrity')
-        ->toContain('No public feedback rows awaiting data review');
+        ->toContain('No public feedback rows awaiting data review')
+        ->toContain('A role holds the feedback assignment permission');
 });
