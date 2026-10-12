@@ -138,7 +138,7 @@ it('serves the PDF check sheet to signed-in users outside production only', func
     $this->actingAs($user)
         ->get(route('dev.typography-test', ['format' => 'html']))
         ->assertOk()
-        ->assertSee('የሰራተኞች አስተዳደር');
+        ->assertSee('የሠራተኞች አስተዳደር');
 
     app()->detectEnvironment(fn (): string => 'production');
 

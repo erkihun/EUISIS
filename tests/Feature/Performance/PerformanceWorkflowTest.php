@@ -975,7 +975,7 @@ test('forms that submit empty optional fields never hit a NOT NULL column (prior
 
     // The objective form sends every field, with empty ones as null (as the UI does).
     $this->actingAs($this->admin)->post(route('performance.plans.objectives.store', $draft), [
-        'code' => '001', 'title_en' => 'Training', 'title_am' => 'ስልጠና', 'description_en' => null, 'objective_type' => 'STRATEGIC', 'is_mandatory' => true, 'weight' => 50, 'priority' => null,
+        'code' => '001', 'title_en' => 'Training', 'title_am' => 'ሥልጠና', 'description_en' => null, 'objective_type' => 'STRATEGIC', 'is_mandatory' => true, 'weight' => 50, 'priority' => null,
     ])->assertSessionHasNoErrors();
     $objective = $draft->objectives()->where('code', '001')->firstOrFail();
     expect($objective->priority)->toBe(0);

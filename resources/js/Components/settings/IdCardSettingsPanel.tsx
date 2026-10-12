@@ -236,7 +236,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
                     <SystemSettingsPreviewContext.Provider value={previewSettings}>
                         <div data-card-live-preview className={`min-w-0 space-y-5 ${exportPreview ? 'rounded-card bg-slate-200 p-3 dark:bg-slate-950' : ''}`}>
                             <div className="min-w-0"><p className="mb-2 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('idCards.cardFront')}</p>
-                                <Front cardNumber="CARD-0001" employeeNumber="EMP-0001" fullName={templateLabel('sample_employee')} fullNameAm="ምሳሌ ሰራተኛ" organizationName={templateLabel('sample_organization')} status="active" rootStyle={{ maxWidth: preview?.orientation === 'portrait' ? 270 : 428 }} />
+                                <Front cardNumber="CARD-0001" employeeNumber="EMP-0001" fullName={templateLabel('sample_employee')} fullNameAm="ምሳሌ ሠራተኛ" organizationName={templateLabel('sample_organization')} status="active" rootStyle={{ maxWidth: preview?.orientation === 'portrait' ? 270 : 428 }} />
                             </div>
                             <div className="min-w-0"><p className="mb-2 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('idCards.cardBack')}</p>
                                 <Back cardNumber="CARD-0001" qrValue="https://example.invalid/id-card-preview" rootStyle={{ maxWidth: preview?.orientation === 'portrait' ? 270 : 428 }} />

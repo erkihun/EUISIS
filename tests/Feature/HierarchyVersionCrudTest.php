@@ -235,8 +235,8 @@ test('hierarchy version translation files exist', function (): void {
     expect($frontendEn)->toContain('expandAll');
     expect($frontendEn)->toContain('collapseAll');
     expect($frontendEn)->toContain('searchTree');
-    expect($frontendAm)->toContain('ሁሉንም አስፋ');
-    expect($frontendAm)->toContain('ዛፉን ፈልግ');
+    expect($frontendAm)->toContain('ሁሉንም ያስፉ');
+    expect($frontendAm)->toContain('ዛፉን ይፈልጉ');
     expect($frontendAm)->not->toContain('Ã¡');
     expect($frontendAm)->not->toContain('á‹');
     expect($backendAm)->not->toContain('Ã¡');

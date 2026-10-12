@@ -78,7 +78,7 @@ const employeePortal = {
     kpiNotReported: ':count ገና ያልተዘገቡ',
     noPerformanceAgreement: 'እስካሁን የአፈጻጸም ስምምነት የለዎትም። የአፈጻጸም ዑደቱ ሲከፈት ኃላፊዎ ያዘጋጃል።',
     noAgreementShort: 'ገና ስምምነት የለም',
-    open: 'ክፈት',
+    open: 'ይክፈቱ',
     todayActivity: 'የዛሬ እንቅስቃሴ',
     weekActivity: 'የዚህ ሳምንት እንቅስቃሴ',
     submittedOf: 'ከ:required ቀናት :submitted ቀርበዋል',
@@ -101,7 +101,7 @@ const employeePortal = {
     recentRides: 'የቅርብ ጉዞዎች',
     noRides: 'እስካሁን የተመዘገበ ጉዞ የለም።',
     statuses: {
-        active: 'ንቁ', paused: 'ለጊዜው የቆመ', suspended: 'የታገደ', revoked: 'የተሰረዘ', expired: 'ጊዜው ያለፈበት',
+        active: 'ንቁ', paused: 'ለጊዜው የቆመ', suspended: 'የታገደ', revoked: 'የተሻረ', expired: 'ጊዜው ያለፈበት',
         exhausted: 'ያለቀ', accepted: 'ተቀባይነት ያገኘ', rejected: 'ውድቅ የተደረገ', completed: 'የተጠናቀቀ',
         reversed: 'የተመለሰ', pending: 'በመጠባበቅ ላይ', cancelled: 'የተሰረዘ',
     },

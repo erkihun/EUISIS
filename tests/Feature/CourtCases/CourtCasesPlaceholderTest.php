@@ -99,7 +99,7 @@ it('has the module name, description and status in English and Amharic', functio
         ->toContain("description: 'Management of court-related cases involving employees and institutions will be implemented as a dedicated module in a future phase.'")
         ->toContain("planned: 'Planned Module'")
         ->and($am)->toContain("title: 'የፍርድ ቤት ጉዳዮች'")
-        ->toContain("description: 'ከሰራተኞችና ከተቋማት ጋር የተያያዙ የፍርድ ቤት ጉዳዮች አስተዳደር በቀጣይ ደረጃ ራሱን የቻለ ሞጁል ሆኖ ይገነባል።'")
+        ->toContain("description: 'ከሠራተኞችና ከተቋማት ጋር የተያያዙ የፍርድ ቤት ጉዳዮች አስተዳደር በቀጣይ ደረጃ ራሱን የቻለ ሞጁል ሆኖ ይገነባል።'")
         ->toContain("planned: 'የታቀደ ሞጁል'")
         ->and(courtCasesSource('resources/js/i18n/en/navigation.ts'))->toContain("courtCases: 'Court Cases'")
         ->and(courtCasesSource('resources/js/i18n/am/navigation.ts'))->toContain("courtCases: 'የፍርድ ቤት ጉዳዮች'")

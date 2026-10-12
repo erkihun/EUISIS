@@ -158,7 +158,7 @@ test('tree node type label is Amharic for organization unit type when locale is 
     $child = locTestOrg($this->orgType, 'LOC-UT2', 'Child Bureau', 'ልጅ');
     locTestEdge($version, $org, $child);
 
-    locTestUnit($org, $this->unitType, 'DIR-LOC', 'HR Directorate', 'ሰው ሃብት ዳይሬክቶሬት');
+    locTestUnit($org, $this->unitType, 'DIR-LOC', 'HR Directorate', 'ሰው ሀብት ዳይሬክቶሬት');
 
     $tree = app(HierarchyTreeService::class)->buildFullTree($version);
 
@@ -167,7 +167,7 @@ test('tree node type label is Amharic for organization unit type when locale is 
     expect($unitNode)->not->toBeNull();
     // unitType has name_en='Directorate', name_am='ዳይሬክቶሬት'
     expect($unitNode['node_type_label'])->toBe('ዳይሬክቶሬት');
-    expect($unitNode['label'])->toBe('ሰው ሃብት ዳይሬክቶሬት');
+    expect($unitNode['label'])->toBe('ሰው ሀብት ዳይሬክቶሬት');
 });
 
 test('tree node status_label is translated and not the raw enum value', function (): void {

@@ -176,7 +176,7 @@ test('10 the login page states the inactivity reason, in English and Amharic', f
     $en = file_get_contents(resource_path('js/i18n/en/auth.ts'));
     $am = file_get_contents(resource_path('js/i18n/am/auth.ts'));
     expect($en)->toContain('Your session expired due to inactivity. Please sign in again.')
-        ->and($am)->toContain('በተወሰነው ጊዜ ውስጥ እንቅስቃሴ ስላልነበረ የክፍለ ጊዜዎ ጊዜ አልፏል። እባክዎ እንደገና ይግቡ።');
+        ->and($am)->toContain('ለተወሰነ ጊዜ ምንም እንቅስቃሴ ስላልነበረ ክፍለ ጊዜዎ አብቅቷል። እባክዎ እንደገና ይግቡ።');
 });
 
 test('11 explicit logout never shows the timeout message', function (): void {

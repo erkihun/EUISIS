@@ -381,7 +381,7 @@ it('overrides the header text per template and inherits every blank field', func
     $card = templateCard();
     SystemSetting::query()->updateOrCreate(
         ['group' => 'id_cards', 'key' => 'city_name_am'],
-        ['type' => 'string', 'value' => 'የስርዓቱ ከተማ'],
+        ['type' => 'string', 'value' => 'የሥርዓቱ ከተማ'],
     );
     app(SystemSettingsService::class)->clearCache();
 
@@ -394,7 +394,7 @@ it('overrides the header text per template and inherits every blank field', func
         app(IdCardRenderDataFactory::class)->make($card->fresh()),
     );
 
-    expect($svg)->toContain('Template City')->toContain('የስርዓቱ ከተማ');
+    expect($svg)->toContain('Template City')->toContain('የሥርዓቱ ከተማ');
 });
 
 it('keeps the bureau names off the header band', function (): void {

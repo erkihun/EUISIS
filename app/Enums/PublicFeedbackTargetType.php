@@ -17,7 +17,7 @@ enum PublicFeedbackTargetType: string
     public function label(string $locale = 'en'): string
     {
         return match ($this) {
-            self::Employee => $locale === 'am' ? 'ሰራተኛ' : 'Employee',
+            self::Employee => $locale === 'am' ? 'ሠራተኛ' : 'Employee',
             self::Organization => $locale === 'am' ? 'ተቋም' : 'Organization',
         };
     }

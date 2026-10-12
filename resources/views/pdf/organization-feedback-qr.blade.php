@@ -43,7 +43,7 @@
         @endif
 
         <div class="title">Public Feedback</div>
-        <div class="title-am">የህዝብ አስተያየት</div>
+        <div class="title-am">የሕዝብ አስተያየት</div>
 
         <div class="prompt">Scan this code with your phone camera to send feedback, a suggestion or a complaint about this institution.</div>
         <div class="prompt-am">ስለዚህ ተቋም አስተያየት፣ ጥቆማ ወይም ቅሬታ ለመላክ ይህን ኮድ በስልክዎ ካሜራ ይስካኑ።</div>

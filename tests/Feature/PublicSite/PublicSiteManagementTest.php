@@ -79,15 +79,15 @@ test('section editing saves bilingual text and invalidates public section cache'
     $user = publicEditorUser(['public_site.view', 'public_home.update']);
     $this->actingAs($user)
         ->put(route('public-site-management.section', ['home', 'intro']), [
-            'title_en' => 'Our public services', 'title_am' => 'የህዝብ አገልግሎቶች',
+            'title_en' => 'Our public services', 'title_am' => 'የሕዝብ አገልግሎቶች',
             'is_visible' => true, 'options' => ['primary_cta_route' => 'public.verify'],
         ])->assertRedirect()->assertSessionHasNoErrors();
     expect($content->sections('home')['intro']['title_en'])->toBe('Our public services')
-        ->and($content->sections('home')['intro']['title_am'])->toBe('የህዝብ አገልግሎቶች')
+        ->and($content->sections('home')['intro']['title_am'])->toBe('የሕዝብ አገልግሎቶች')
         ->and($content->sections('home')['intro']['options']['primary_cta_href'])->toBe('/verify');
     $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
         ->component('Welcome')->where('sections.intro.title_en', 'Our public services')
-        ->where('sections.intro.title_am', 'የህዝብ አገልግሎቶች'));
+        ->where('sections.intro.title_am', 'የሕዝብ አገልግሎቶች'));
     $section = PublicPageSection::where('page', 'home')->where('section_key', 'intro')->firstOrFail();
     $audit = AuditLog::where('event_type', AuditEventType::PublicPageSectionUpdated->value)
         ->where('auditable_id', $section->id)->sole();

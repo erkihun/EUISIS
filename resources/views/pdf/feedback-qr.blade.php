@@ -38,10 +38,10 @@
         {{-- Matches the public page heading so the printed sheet and the page
              it opens read as one thing to the client. --}}
         <div class="title">Feedback and Suggestion</div>
-        <div class="title-am">ግብረመልስ እና አስተያየት</div>
+        <div class="title-am">ግብረ መልስ እና አስተያየት</div>
 
         <div class="prompt">Scan this code with your phone camera to give feedback.</div>
-        <div class="prompt-am">ግብረመልስ ለመስጠት ይህን ኮድ በስልክዎ ካሜራ ይስካኑ።</div>
+        <div class="prompt-am">ግብረ መልስ ለመስጠት ይህን ኮድ በስልክዎ ካሜራ ይስካኑ።</div>
 
         <div class="qr">
             @if ($qr !== '')

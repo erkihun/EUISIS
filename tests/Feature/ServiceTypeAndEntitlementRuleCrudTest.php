@@ -86,7 +86,7 @@ it('creates service types with validation and writes an audit log', function ():
         ->post(route('service-types.store'), [
             'code' => 'legal_aid',
             'name_en' => 'Legal Aid',
-            'name_am' => 'የህግ ድጋፍ',
+            'name_am' => 'የሕግ ድጋፍ',
             'description' => 'Legal aid service',
             'is_active' => true,
         ])

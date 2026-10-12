@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * የሕዝብ የደንበኛ አገልግሎት ግብረመልስ — ማንነቱ ያልታወቀ ጎብኚ የሚያነባቸው መልዕክቶች።
+ * የሕዝብ የደንበኛ አገልግሎት ግብረ መልስ — ማንነቱ ያልታወቀ ጎብኚ የሚያነባቸው መልዕክቶች።
  * ከ lang/en/service-feedback.php ጋር ይመሳሰላል።
  */
 return [
@@ -14,31 +14,31 @@ return [
 
     // የምድብ አስተዳደር
     'category_saved' => 'ምድቡ ተቀምጧል።',
-    'category_retired' => 'ማቅረቦች ይህን ምድብ ስለሚጠቅሱ ከመሰረዝ ይልቅ ተሰናብቷል።',
+    'category_retired' => 'ጉዳዮች ይህን ምድብ ስለሚጠቅሱ ከመሰረዝ ይልቅ ተሰናብቷል።',
     'category_deleted' => 'ምድቡ ተሰርዟል።',
     'category_code_taken' => 'በዚህ ወሰን ውስጥ ይህ ኮድ ያለው ምድብ አስቀድሞ አለ።',
 
     // የተቋም የአስተያየት QR አስተዳደር
     'qrGenerated' => 'የተቋሙ የአስተያየት QR ነቅቷል።',
-    'qrDisabled' => 'የተቋሙ የአስተያየት QR ታግዷል፤ ስካኖች የማይገኝ ገጽን ያሳያሉ።',
+    'qrDisabled' => 'የተቋሙ የአስተያየት QR ታግዷል፤ የተቃኙበት ብዛት የማይገኝ ገጽን ያሳያሉ።',
     'qrEnabled' => 'የተቋሙ የአስተያየት QR እንደገና ነቅቷል።',
-    'qrRotated' => 'አዲስ የተቋም የአስተያየት QR ተሰጥቷል፤ የቀድሞው ኮድ ተሰርዟል።',
-    'qrRevoked' => 'የተቋሙ የአስተያየት QR ተሰርዟል።',
+    'qrRotated' => 'አዲስ የተቋም የአስተያየት QR ተሰጥቷል፤ የቀድሞው ኮድ ተሽሯል።',
+    'qrRevoked' => 'የተቋሙ የአስተያየት QR ተሽሯል።',
 
     // የሥራ ፍሰት፣ ምደባ እና መስመር
     'status_changed' => 'ሁኔታው ተዘምኗል።',
-    'transition_not_allowed' => 'ለዚህ የማቅረብ ዓይነት ይህ ሁኔታ አሁን ካለው ሁኔታ ሊከተል አይችልም።',
-    'assigned' => 'ማቅረቡ ለአስተናጋጁ ተሰጥቷል።',
-    'handler_invalid' => 'ያለ አስተናጋጅ ይምረጡ።',
-    'handler_out_of_scope' => 'አስተናጋጁ የማቅረቡ ተቋም አባል መሆን አለበት።',
-    'handler_is_target' => 'ማቅረቡ የሚመለከተው ሠራተኛ ሊያስተናግደው አይችልም።',
+    'transition_not_allowed' => 'ለዚህ የጉዳይ ዓይነት ይህ ሁኔታ አሁን ካለው ሁኔታ ሊከተል አይችልም።',
+    'assigned' => 'ጉዳዩ ለየሚያስተናግደው አካል ተሰጥቷል።',
+    'handler_invalid' => 'ያለ የሚያስተናግድ አካል ይምረጡ።',
+    'handler_out_of_scope' => 'የሚያስተናግደው አካል የጉዳዩ ተቋም አባል መሆን አለበት።',
+    'handler_is_target' => 'ጉዳዩ የሚመለከተው ሠራተኛ ሊያስተናግደው አይችልም።',
     'not_assignable' => 'ውጤቱ የተመዘገበ ማቅረብ እንደገና ሊመደብ አይችልም።',
     'rule_saved' => 'የመስመር ደንቡ ተቀምጧል።',
-    'rule_retired' => 'ማቅረቦች በዚህ ደንብ ስለተመሩ ከመሰረዝ ይልቅ ተሰናብቷል።',
+    'rule_retired' => 'ጉዳዮች በዚህ ደንብ ስለተመሩ ከመሰረዝ ይልቅ ተሰናብቷል።',
     'rule_deleted' => 'የመስመር ደንቡ ተሰርዟል።',
     'category_out_of_scope' => 'ምድቡ ከተማ አቀፍ ወይም የደንቡ ተቋም መሆን አለበት።',
     'settings_saved' => 'የሕዝብ አስተያየት ፖሊሲው ተቀምጧል።',
-    'export_queued' => 'ወደ ውጭ መላክ ተሰልፏል። ፋይሉ ሲዘጋጅ ከታች ባለው ዝርዝር ውስጥ ይታያል።',
+    'export_queued' => 'ፋይሉ እንዲዘጋጅ ተይዟል። ሲዘጋጅ ከታች ባለው ዝርዝር ውስጥ ይታያል።',
     'subject_added' => 'ሠራተኛው እንደ የምርመራ ተሳታፊ ተሰይሟል።',
     'subject_removed' => 'የምርመራ ተሳታፊው ተወግዷል።',
     'subject_not_in_organization' => 'የዚህ ማቅረብ ተቋም ንቁ ሠራተኛ ይምረጡ።',
@@ -53,15 +53,15 @@ return [
 
     'export_columns' => [
         'submitted_at' => 'የገባበት ጊዜ',
-        'reference' => 'ማጣቀሻ',
+        'reference' => 'መለያ ቁጥር',
         'type' => 'ዓይነት',
-        'target_type' => 'የዒላማ ዓይነት',
+        'target_type' => 'የሚመለከተው አካል ዓይነት',
         'target_name' => 'ዒላማ',
         'organization' => 'ተቋም',
         'organization_unit' => 'ክፍል',
         'category' => 'ምድብ',
         'status' => 'ሁኔታ',
-        'handler' => 'አስተናጋጅ',
+        'handler' => 'የሚያስተናግደው አካል',
         'client_name' => 'የአቅራቢ ስም',
         'client_contact' => 'የአቅራቢ መገናኛ',
         'subject' => 'ርዕስ',
@@ -75,12 +75,12 @@ return [
     ],
 
     'notifications' => [
-        'open' => 'ማቅረቡን ይክፈቱ',
-        'unrouted_title' => 'የሕዝብ ማቅረብ አስተናጋጅ ይፈልጋል',
-        'unrouted' => 'የሕዝብ :type :reference ከየትኛውም የመስመር ደንብ ጋር አልተዛመደም፤ አስተናጋጅ እየጠበቀ ነው።',
-        'assigned_title' => 'የሕዝብ ማቅረብ ለእርስዎ ተመድቧል',
+        'open' => 'ጉዳዩን ይክፈቱ',
+        'unrouted_title' => 'የቀረበ ጉዳይ የሚያስተናግድ አካል ይፈልጋል',
+        'unrouted' => 'የሕዝብ :type :reference ከየትኛውም የማስተላለፊያ ደንብ ጋር አልተዛመደም፤ የሚያስተናግድ አካል እየጠበቀ ነው።',
+        'assigned_title' => 'የቀረበ ጉዳይ ለእርስዎ ተመድቧል',
         'assigned' => 'የሕዝብ :type :reference ለእርስዎ ወይም ለቡድንዎ ተሰጥቷል።',
-        'resolved_title' => 'የሕዝብ ማቅረብ ውጤት ተመዝግቧል',
+        'resolved_title' => 'የቀረበ ጉዳይ ውጤት ተመዝግቧል',
         'resolved' => 'ለሕዝብ :type :reference ውጤት ተመዝግቧል።',
         'referred_title' => 'የዲሲፕሊን ማስተላለፍ ተጠይቋል',
         'referred' => 'ለሕዝብ :type :reference የዲሲፕሊን ማስተላለፍ ተጠይቋል፤ ውሳኔ እየጠበቀ ነው።',
@@ -90,7 +90,7 @@ return [
         'subject' => ':type ደርሶናል',
         'greeting' => 'እናመሰግናለን።',
         'received' => ':type በ :time ደርሶናል።',
-        'reference' => 'የማጣቀሻ ቁጥር፦ :reference። ለማንኛውም ክትትል እባክዎ ያስቀምጡት።',
+        'reference' => 'መለያ ቁጥር፦ :reference። ለክትትል እባክዎ ይያዙት።',
         'no_tracking' => 'ይህ መልዕክት መድረሱን ብቻ ያረጋግጣል፤ ተቋሙ በውስጥ ይሠራበታል።',
     ],
 

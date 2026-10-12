@@ -34,7 +34,7 @@ export default function Login({
         ? getString('id_cards.city_name_am', getString('general.organization_name', 'አዲስ አበባ ከተማ አስተዳደር'))
         : getString('id_cards.city_name_en', getString('general.organization_name', 'Addis Ababa City Administration'));
     const bureauName  = locale === 'am'
-        ? getString('id_cards.bureau_name_am', 'የሲቪል ሰርቪስና ሰው ሃብት ልማት ቢሮ')
+        ? getString('id_cards.bureau_name_am', 'የሲቪል ሰርቪስና ሰው ሀብት ልማት ቢሮ')
         : getString('id_cards.bureau_name_en', 'Public Service & HRD Bureau');
     const customMsg   = locale === 'am'
         ? getString('general.login_page_message_am', '')

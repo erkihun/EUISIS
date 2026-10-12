@@ -25,7 +25,7 @@ const security = {
 
     // INSA-required የደህንነት መልዕክቶች
     uploadRejected: 'ፋይል መጫን ተከልክሏል።',
-    unsafeFileType: 'የፋይሉ አይነት አይፈቀድም። የተፈቀዱ አይነቶች ብቻ መጫን ይቻላል።',
+    unsafeFileType: 'የፋይሉ ዓይነት አይፈቀድም። የተፈቀዱ ዓይነቶች ብቻ መጫን ይቻላል።',
     rateLimitExceeded: 'የጥያቄ ገደቡ ተሻገረ። እባክዎ ጥቂት ጠብቀው እንደገና ይሞክሩ።',
     sensitiveInfoProtected: 'ሚስጥራዊ መረጃ ተጠብቋል እና ሊወጣ አይችልም።',
     orgScopeDenied: 'የተቋም ወሰንዎ ይህን መዝገብ አይጨምርም።',
@@ -33,7 +33,7 @@ const security = {
     securityHeadersEnabled: 'የደህንነት ራስጌዎች ነቅተዋል።',
     secureConfigRequired: 'ለዚህ አካባቢ ደህንነቱ የተጠበቀ ቅንብር ያስፈልጋል።',
     invalidRequest: 'ትክክል ያልሆነ ጥያቄ። እባክዎ ግቤቱን ያረጋግጡና እንደገና ይሞክሩ።',
-    unauthorized: 'ይህን ሀብት ለማግኘት ወደ ስርዓቱ መግባት አለቦት።',
+    unauthorized: 'ይህን ሀብት ለማግኘት ወደ ሥርዓቱ መግባት አለቦት።',
     forbidden: 'ይህን ድርጊት ለመፈጸም ፈቃድ የለዎትም።',
     securityPolicy: 'የደህንነት ፖሊሲ',
     piiViewDenied: 'ሚስጥራዊ የግል መረጃ ለማየት ፈቃድ የለዎትም።',

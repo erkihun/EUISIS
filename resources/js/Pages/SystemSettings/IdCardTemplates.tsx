@@ -302,7 +302,7 @@ function TemplateForm({
         organizationName: enSettings.templateManager.sample_organization,
         organizationNameAm: amSettings.templateManager.sample_organization,
         positionTitle: 'Employee Position',
-        positionTitleAm: 'የሰራተኛ የስራ መደብ',
+        positionTitleAm: 'የሠራተኛ የሥራ መደብ',
     };
 
     const portrait = form.data.orientation === 'portrait';

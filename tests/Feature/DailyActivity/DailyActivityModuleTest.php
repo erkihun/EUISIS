@@ -1239,7 +1239,7 @@ test('W4. EPMS treats a day as final according to its organization review policy
     expect($final())->toBe(0);
 });
 
-// ── Work execution register (የባለሞያ የእለት እቅድ ክንውን መመዝገቢያ) ─────────────────
+// ── Work execution register (የባለሞያ የዕለት ዕቅድ ክንውን መመዝገቢያ) ─────────────────
 
 /**
  * Sub-service → main task → approved standard under the HR Officer's service.

@@ -22,7 +22,7 @@ it('keeps dashboard refreshes focused and prevents overlapping requests', functi
         ->and($english)
         ->toContain("refresh: 'Refresh'")
         ->and($amharic)
-        ->toContain("refresh: 'አድስ'");
+        ->toContain("refresh: 'ያድሱ'");
 });
 
 it('provides keyboard accessible sticky dashboard navigation', function (): void {

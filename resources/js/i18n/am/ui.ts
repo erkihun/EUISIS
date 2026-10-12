@@ -27,7 +27,7 @@ const ui = {
     confirmDelete: 'ይህን ንጥል ይሰርዙ?',
     confirmArchive: 'ይህን ንጥል ያስቀምጡ?',
     confirmRestore: 'ይህን ንጥል ይመልሱ?',
-    confirmApprove: 'ይህን ንጥል ያፅድቁ?',
+    confirmApprove: 'ይህን ንጥል ያጽድቁ?',
     confirmReject: 'ይህን ንጥል ይቃወሙ?',
     cannotUndo: 'ይህ ድርጊት መቀልበስ አይቻልም።',
     // States
@@ -45,7 +45,7 @@ const ui = {
     switchLanguage: 'ቋንቋ ቀይር',
     lightMode: 'ብርሃን',
     darkMode: 'ጨለማ',
-    systemMode: 'ስርዓት',
+    systemMode: 'ሥርዓት',
     // Command palette
     commandMenu: 'ትዕዛዝ ምናሌ',
     typeCommandOrSearch: 'ትዕዛዝ ፃፉ ወይም ፈልጉ…',
@@ -59,7 +59,7 @@ const ui = {
     active: 'ንቁ',
     inactive: 'ንቁ ያልሆነ',
     pending: 'በመጠባበቅ ላይ',
-    approved: 'ፀድቋል',
+    approved: 'ጸድቋል',
     rejected: 'ውድቅ ተደርጓል',
     archived: 'ተቀምጧል',
     draft: 'ረቂቅ',

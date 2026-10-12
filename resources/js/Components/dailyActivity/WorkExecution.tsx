@@ -2,7 +2,7 @@ import { useLocale } from '@/hooks/useLocale';
 import type { TaskScores, TaskStandardView } from './types';
 
 /*
- * Work execution register (የባለሞያ የእለት እቅድ ክንውን መመዝገቢያ): the read-only
+ * Work execution register (የባለሞያ የዕለት ዕቅድ ክንውን መመዝገቢያ): the read-only
  * standard an employee works against, and the performance scores.
  *
  * Scores shown while editing are a PREVIEW of the same formulas; the server

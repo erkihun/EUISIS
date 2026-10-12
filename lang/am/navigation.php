@@ -14,7 +14,7 @@ return [
     'audit_logs' => 'የክትትል መዝገቦች',
     'users' => 'ተጠቃሚዎች',
     'roles' => 'ሚናዎች',
-    'permissions' => 'ፈቃዶች',
-    'system_settings' => 'የስርዓት ቅንብሮች',
+    'permissions' => 'የመዳረሻ መብቶች',
+    'system_settings' => 'የሥርዓት ቅንብሮች',
     'admin' => 'የሥርዓት አስተዳደር',
 ];

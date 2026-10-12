@@ -5,9 +5,9 @@ declare(strict_types=1);
 return [
     'provider_service_disabled' => 'አቅራቢው የትራንስፖርት አገልግሎት አልተነቃለትም።',
     'own_data_only' => 'ይህ የትራንስፖርት አቅራቢ የራሱን መረጃ ብቻ ማየት ይችላል።',
-    'scan_accepted' => 'የትራንስፖርት ስካን ተቀባይነት አግኝቷል።',
-    'scan_rejected' => 'የትራንስፖርት ስካን ውድቅ ተደርጓል።',
-    'duplicate_scan' => 'የተደገመ የትራንስፖርት ስካን ጥያቄ።',
+    'scan_accepted' => 'የትራንስፖርት ቅኝት ተቀባይነት አግኝቷል።',
+    'scan_rejected' => 'የትራንስፖርት ቅኝት ውድቅ ተደርጓል።',
+    'duplicate_scan' => 'የተደገመ የትራንስፖርት ቅኝት ጥያቄ።',
     'provider_created' => 'የትራንስፖርት አቅራቢ ተመዝግቧል።',
     'provider_updated' => 'የትራንስፖርት አቅራቢ በተሳካ ሁኔታ ተዘምኗል።',
     'provider_deleted' => 'የትራንስፖርት አቅራቢ ተሰርዟል።',

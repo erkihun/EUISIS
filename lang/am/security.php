@@ -30,7 +30,7 @@ return [
     'security_headers_enabled' => 'የደህንነት ራስጌዎች ነቅተዋል።',
     'secure_config_required' => 'ለዚህ አካባቢ ደህንነቱ የተጠበቀ ቅንብር ያስፈልጋል።',
     'invalid_request' => 'ትክክል ያልሆነ ጥያቄ። እባክዎ ግቤቱን ያረጋግጡና እንደገና ይሞክሩ።',
-    'unauthorized' => 'ይህን ሀብት ለማግኘት ወደ ስርዓቱ መግባት አለብዎት።',
+    'unauthorized' => 'ይህን ሀብት ለማግኘት ወደ ሥርዓቱ መግባት አለብዎት።',
     'forbidden' => 'ይህን ድርጊት ለመፈጸም ፈቃድ የለዎትም።',
     'security_policy' => 'የደህንነት ፖሊሲ',
     'pii_view_denied' => 'ሚስጥራዊ የግል መረጃ ለማየት ፈቃድ የለዎትም።',

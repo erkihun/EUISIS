@@ -138,7 +138,7 @@ it('creates a code rule', function (): void {
             'scope_type' => null,
             'scope_id' => null,
             'name_en' => 'Employee Number',
-            'name_am' => 'የሰራተኛ ቁጥር',
+            'name_am' => 'የሠራተኛ ቁጥር',
             'prefix' => 'EMP',
             'suffix' => null,
             'format' => '{PREFIX}-{YEAR}-{SEQUENCE}',

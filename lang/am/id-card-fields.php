@@ -9,7 +9,7 @@ return [
     'nationality' => 'ዜግነት',
     'employment_status' => 'የቅጥር ሁኔታ',
     'phone_number' => 'ስ.ቁ',
-    'issue_date' => 'የስጦታ ቀን',
+    'issue_date' => 'የተሰጠበት ቀን',
     'expiry_date' => 'ያልቃ',
     'card_no' => 'የካርድ ቁጥር',
     'signature' => 'የባለስልጣኑ ፊርማ',

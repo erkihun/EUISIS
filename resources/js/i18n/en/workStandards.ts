@@ -1,7 +1,7 @@
 /**
  * Work standards: Sub-Service → Main Task → Task Standard (BPR plan) under a
  * position service. Terminology follows the Employee Daily Plan & Work
- * Execution form (የባለሞያ የእለት እቅድ ክንውን መመዝገቢያ).
+ * Execution form (የባለሞያ የዕለት ዕቅድ ክንውን መመዝገቢያ).
  */
 const workStandards = {
     title: 'Sub-services, tasks and standards',

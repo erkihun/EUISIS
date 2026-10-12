@@ -34,7 +34,7 @@ test('maps real identity fields without mutating the employee or card', () => {
 for (const [type, en, am] of [
     ['permanent', 'Permanent', 'ቋሚ'], ['contract', 'Contract', 'ኮንትራት'],
     ['temporary', 'Temporary', 'ጊዜያዊ'], ['probation', 'Probation', 'የሙከራ ጊዜ'],
-    ['daily_labor', 'Daily Labor / Casual', 'የቀን ሰራተኛ'],
+    ['daily_labor', 'Daily Labor / Casual', 'የቀን ሠራተኛ'],
     ['intern', 'Intern', 'ተለማማጅ'], ['other', 'Other', 'ሌላ'],
 ]) {
     test(`renders ${type} in both languages`, () => {

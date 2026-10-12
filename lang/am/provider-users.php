@@ -20,7 +20,7 @@ return [
         'username' => 'የተጠቃሚ ስም',
         'phone_number' => 'ስልክ ቁጥር',
         'role' => 'ሚና',
-        'permissions' => 'ፈቃዶች',
+        'permissions' => 'የመዳረሻ መብቶች',
         'password' => 'የይለፍ ቃል',
     ],
 
