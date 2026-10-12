@@ -113,9 +113,11 @@ appearance settings wired to the tokens.
     `AppActionMenu` wraps it with Inertia links and the translated label. The
     organizations menu (its own portal and positioning code), the code-rule
     and organization-unit "menus" that were rows of text links, and the
-    inline Edit / View / Delete / Restore links in 48 list pages and the
+    inline Edit / View / Delete / Restore links in 49 list pages and the
     change-request table were replaced by it (an AST codemod converted 51
-    cells; 7 were done by hand). Trigger and list stop click propagation so
+    cells; 7 were done by hand). Text action links remain only in cards,
+    detail pages, form repeaters and the organization-design trees (113,
+    capped by the guard). Trigger and list stop click propagation so
     rows that navigate on click are not triggered.
 
 ## 4. Deprecated patterns
