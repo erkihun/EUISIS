@@ -2,8 +2,7 @@ import { FormEvent } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import InputError from '@/Components/InputError';
-import { buttonClassName, filterInputCls } from '@/Components/ui';
+import { buttonClassName, filterInputCls, FieldError } from '@/Components/ui';
 import { useTerminalTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
@@ -42,7 +41,7 @@ function Row({ label, error, children }: { label: string; error?: string; childr
         <label className="block">
             <span className="mb-1 block text-sm font-medium text-[color:var(--app-foreground)]">{label}</span>
             {children}
-            <InputError message={error} className="mt-1" />
+            <FieldError className="mt-1">{error}</FieldError>
         </label>
     );
 }
@@ -92,14 +91,13 @@ export default function NfcTerminalForm({
     }
 
     return (
-        <AuthenticatedLayout>
-            <Head title={isEdit ? t('nfc.editTerminal') : t('nfc.registerTerminal')} />
-
-            <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                 title={isEdit ? t('nfc.editTerminal') : t('nfc.registerTerminal')}
                 description={t('nfc.terminals')}
                 backHref={route('nfc-management.terminals.index')}
-            />
+            />}>
+            <Head title={isEdit ? t('nfc.editTerminal') : t('nfc.registerTerminal')} />
+
 
             <NfcSubNav can={can} current="terminals" />
 

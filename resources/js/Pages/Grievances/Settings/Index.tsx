@@ -91,7 +91,7 @@ export default function Index(props: SettingsIndexProps) {
                                     const sev = severity[id];
                                     return (
                                         <button key={id} type="button" onClick={() => go(id)} aria-current={active ? 'page' : undefined}
-                                            className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm ${active ? 'bg-[color:var(--color-primary-50,#eef1fa)] font-semibold text-[color:var(--color-primary)] dark:bg-slate-800' : 'text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>
+                                            className={`flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm ${active ? 'bg-[color:var(--color-primary-50,#eef1fa)] font-semibold text-[color:var(--color-primary)]' : 'text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>
                                             <span>{a(`tab_${id}`)}</span>
                                             {counts[id] !== null && (sev === 'error'
                                                 ? <span className="rounded-full bg-red-700 px-1.5 text-[11px] font-bold text-white" title={a('needs_setup')}>{counts[id]}</span>
@@ -201,7 +201,7 @@ function Drawer({ title, open, onClose, children }: { title: string; open: boole
             <div ref={panel} role="dialog" aria-modal="true" aria-label={title} className="absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-[color:var(--app-border)] bg-[color:var(--app-surface)] shadow-2xl">
                 <div className="flex items-center justify-between border-b border-[color:var(--app-border)] px-6 py-4">
                     <h2 className="text-[17px] font-semibold text-[color:var(--app-foreground)]">{title}</h2>
-                    <button type="button" onClick={onClose} aria-label={t('grievances.common.close')} className="flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:bg-[color:var(--app-surface-muted)]"><X className="h-4 w-4" /></button>
+                    <button type="button" onClick={onClose} aria-label={t('grievances.common.close')} className="flex h-9 w-9 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]"><X className="h-4 w-4" /></button>
                 </div>
                 <div className="flex-1 overflow-y-auto px-6 py-5">{children}</div>
             </div>
@@ -309,7 +309,7 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
                         {(f.options ?? []).map(o => {
                             const on = values.includes(o);
                             return <button key={o} type="button" aria-pressed={on} disabled={!editable} onClick={() => set(f.key, on ? values.filter(x => x !== o) : [...values, o])}
-                                className={`h-8 rounded-full px-3 text-xs font-semibold ${on ? 'bg-[color:var(--color-primary-50,#eef1fa)] text-[color:var(--color-primary)] ring-1 ring-[color:var(--color-primary-200,#bcc7eb)] dark:bg-slate-800' : 'border border-dashed border-[color:var(--app-border-strong)] text-gray-500'}`}>{o}</button>;
+                                className={`h-8 rounded-full px-3 text-xs font-semibold ${on ? 'bg-[color:var(--color-primary-50,#eef1fa)] text-[color:var(--color-primary)] ring-1 ring-[color:var(--color-primary-200,#bcc7eb)]' : 'border border-dashed border-[color:var(--app-border-strong)] text-[color:var(--app-muted-foreground)]'}`}>{o}</button>;
                         })}
                     </div>
                     {helpOf(f) && <p className="text-xs text-[color:var(--app-muted-foreground)]">{helpOf(f)}</p>}
@@ -355,7 +355,7 @@ function PolicyForm({ props }: { props: SettingsIndexProps }) {
                 })}
             </div>
             {editable && (
-                <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-3 border-t border-[color:var(--app-border)] bg-white/95 px-4 py-3 backdrop-blur dark:bg-slate-900/95 sm:mx-0 sm:rounded-panel sm:border">
+                <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-between gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-panel sm:border">
                     <span role="status" className="flex items-center gap-2 text-sm text-[color:var(--app-foreground)]">
                         {dirty > 0
                             ? <><span className="h-2 w-2 rounded-full bg-amber-600" aria-hidden="true" />{fmt(a('unsaved'), { n: dirty })}</>
@@ -380,7 +380,7 @@ function CategoriesSection({ props }: { props: SettingsIndexProps }) {
     return <ListSection<Row> id="categories" rows={props.categories} canEdit={props.can.update} emptyTone="danger"
         emptyTitle={a('empty_categories')} emptyBody={a('empty_categories_help')}
         head={['code', 'name', 'default_confidentiality', 'requires_executive_approval', 'grievances_count', 'status']}
-        cells={c => [<code className="text-xs">{c.code}</code>, <><span className="block font-medium">{c.name_en}</span>{c.name_am && <span className="block text-xs text-gray-500">{c.name_am}</span>}</>,
+        cells={c => [<code className="text-xs">{c.code}</code>, <><span className="block font-medium">{c.name_en}</span>{c.name_am && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{c.name_am}</span>}</>,
             c.default_confidentiality ? <GPill group="confidentiality" value={c.default_confidentiality} /> : '—', c.requires_executive_approval ? t('grievances.common.yes') : t('grievances.common.no'), c.grievances_count, <StatusPill active={c.is_active} />]}
         form={(c, close) => <AdminForm key={c?.id ?? 'new'} onSaved={close} onCancel={close} submitLabel={a('save_category')}
             url={c ? route('grievances.settings.categories.update', c.id) : route('grievances.settings.categories.store')} method={c ? 'patch' : 'post'}
@@ -448,7 +448,7 @@ function DelegationsSection({ props }: { props: SettingsIndexProps }) {
     return <ListSection<Row> id="delegations" rows={props.delegations} canEdit={props.can.delegations}
         head={['delegator', 'delegate', 'position', 'period', 'status']}
         cells={d => [d.delegator?.name ?? '—', d.delegate?.name ?? '—', d.position ? ((locale === 'am' && d.position.title_am) || d.position.title_en) : '—',
-            <><DateDisplay value={d.starts_at} /> – <DateDisplay value={d.ends_at} />{d.reason && <span className="block text-xs text-gray-500">{d.reason}</span>}</>,
+            <><DateDisplay value={d.starts_at} /> – <DateDisplay value={d.ends_at} />{d.reason && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{d.reason}</span>}</>,
             <span className="flex items-center gap-2"><StatusPill active={d.status === 'active'} />{props.can.delegations && d.status === 'active' && <RevokeButton id={d.id} />}</span>]}
         form={(_, close) => <AdminForm onSaved={close} onCancel={close} url={route('grievances.settings.delegations.store')}
             initial={{ delegator_user_id: '', delegate_user_id: '', position_id: '', organization_id: '', starts_at: today(), ends_at: '', reason: '' }}
@@ -470,7 +470,7 @@ function LetterheadsSection({ props }: { props: SettingsIndexProps }) {
     return <ListSection<Row> id="letterheads" rows={props.letterheads} canEdit={props.can.update}
         emptyTitle={a('empty_letterheads')} emptyBody={a('letterhead_help')}
         head={['organization', 'address', 'phone', 'email']}
-        cells={l => [nameOf(l.organization, locale), <>{(locale === 'am' ? l.address_am : l.address_en) ?? '—'}{l.po_box && <span className="block text-xs text-gray-500">{a('fields.po_box')} {l.po_box}</span>}</>, l.phone ?? '—', l.email ?? '—']}
+        cells={l => [nameOf(l.organization, locale), <>{(locale === 'am' ? l.address_am : l.address_en) ?? '—'}{l.po_box && <span className="block text-xs text-[color:var(--app-muted-foreground)]">{a('fields.po_box')} {l.po_box}</span>}</>, l.phone ?? '—', l.email ?? '—']}
         form={(l, close) => <AdminForm key={l?.id ?? 'new'} onSaved={close} onCancel={close} url={route('grievances.settings.letterheads.save')}
             initial={{ organization_id: l?.organization_id ?? '', ...Object.fromEntries(keys.map(k => [k, l?.[k] ?? ''])) }}
             fields={[{ key: 'organization_id', type: 'select', required: true, options: orgs }, ...keys.map(k => ({ key: k, type: k.startsWith('address') || k.startsWith('footer') ? 'textarea' as const : 'text' as const }))]} />} />;
@@ -484,8 +484,8 @@ function SealsSection({ props }: { props: SettingsIndexProps }) {
     return <ListSection<Row> id="seals" rows={props.seals} canEdit={props.can.seals}
         emptyTitle={a('empty_seals')} emptyBody={a('seal_help')} emptyIcon={<ShieldCheck className="h-5 w-5" />}
         head={['seal', 'organization', 'name', 'status', 'approved_at']}
-        cells={s => [<img alt={s.name} className="h-12 w-12 rounded border border-[color:var(--app-border)] bg-white object-contain" src={route('grievances.settings.seals.image', s.id)} />, nameOf(s.organization, locale),
-            <>{s.name}<span className="block font-mono text-[11px] text-gray-500" title={s.sha256}>SHA-256 {s.sha256.slice(0, 12)}…</span></>,
+        cells={s => [<img alt={s.name} className="h-12 w-12 rounded border border-[color:var(--app-border)] bg-[color:var(--app-surface)] object-contain" src={route('grievances.settings.seals.image', s.id)} />, nameOf(s.organization, locale),
+            <>{s.name}<span className="block font-mono text-[11px] text-[color:var(--app-muted-foreground)]" title={s.sha256}>SHA-256 {s.sha256.slice(0, 12)}…</span></>,
             <span className="flex flex-wrap items-center gap-2"><GPill group="seal_status" value={s.status} />{props.can.seals && s.status === 'pending' && <SealAction id={s.id} action="approve" label={a('approve')} />}{props.can.seals && s.status !== 'retired' && <SealAction id={s.id} action="retire" label={a('retire')} />}</span>,
             <DateDisplay value={s.approved_at} />]}
         form={(_, close) => <AdminForm onSaved={close} onCancel={close} url={route('grievances.settings.seals.store')} submitLabel={a('upload_seal')}
@@ -561,13 +561,13 @@ function TemplateEditor({ row, props, close }: { row: SettingsIndexProps['templa
             </label>
             <div className="space-y-2">
                 <p className="text-sm font-medium text-[color:var(--app-foreground)]">{a('insert_token')}</p>
-                <div className="flex flex-wrap gap-1.5">{props.options.tokens.map(tok => <button key={tok} type="button" onClick={() => insert(tok)} className="h-7 rounded-full border border-[color:var(--color-primary-200,#bcc7eb)] bg-[color:var(--color-primary-50,#eef1fa)] px-2.5 font-mono text-[11px] text-[color:var(--color-primary)] hover:bg-white dark:border-slate-700 dark:bg-slate-800">{tok}</button>)}</div>
+                <div className="flex flex-wrap gap-1.5">{props.options.tokens.map(tok => <button key={tok} type="button" onClick={() => insert(tok)} className="h-7 rounded-full border border-[color:var(--color-primary-200,#bcc7eb)] bg-[color:var(--color-primary-50,#eef1fa)] px-2.5 font-mono text-[11px] text-[color:var(--color-primary)] hover:bg-[color:var(--app-surface)]">{tok}</button>)}</div>
                 <p className="text-xs text-[color:var(--app-muted-foreground)]">{a('template_help')}</p>
                 {unknown.length > 0 && <p role="alert" className="text-xs font-medium text-red-700">{fmt(a('unknown_tokens'), { tokens: unknown.join(', ') })}</p>}
             </div>
             <div className="space-y-2">
                 <p className="text-xs font-semibold uppercase tracking-wider text-[color:var(--app-muted-foreground)]">{a('preview_sample')}</p>
-                <div className="space-y-2 rounded border border-gray-200 bg-white p-5 text-[13px] leading-relaxed text-gray-900 shadow-sm">
+                <div className="space-y-2 rounded border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 text-[13px] leading-relaxed text-[color:var(--app-foreground)] shadow-sm">
                     <p className="font-semibold underline">{preview(form.data.subject_template)}</p>
                     <p className="whitespace-pre-wrap">{preview(form.data.body_template)}</p>
                 </div>

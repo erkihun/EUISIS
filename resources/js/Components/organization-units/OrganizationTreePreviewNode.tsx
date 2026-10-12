@@ -52,7 +52,7 @@ export default function OrganizationTreePreviewNode({
                 {/* Expand/collapse toggle */}
                 <button
                     type="button"
-                    className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-gray-600 dark:hover:text-slate-300"
+                    className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-muted-foreground)]"
                     onClick={(e) => {
                         e.stopPropagation();
                         if (hasChildren) onToggle(node.id);

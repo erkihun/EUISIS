@@ -1,10 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
-import PaginatorLinks, { type PaginatorLink } from '@/Components/PaginatorLinks';
 import { FeedbackStatusBadge, statusLabelKey } from '@/Components/ServiceFeedback/feedbackUi';
 import { useLocale } from '@/hooks/useLocale';
 import { Card, EmptyState, cx } from '@euisis/ui';
+import { ListPagination, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link } from '@inertiajs/react';
 
 type Entry = {
@@ -16,7 +16,7 @@ type Entry = {
 
 type Props = {
     type: 'suggestion' | 'complaint';
-    entries: { data: Entry[]; links: PaginatorLink[]; total: number; from: number | null; to: number | null };
+    entries: { data: Entry[] } & LaravelPageMeta;
     counts: Record<string, number>;
     statuses: string[];
     filters: { status: string | null; mine: boolean };
@@ -105,7 +105,7 @@ export default function SubmissionInbox({ type, entries, counts, statuses, filte
                         </Link>
                     </li>)}</ul>}
             </section>
-            <PaginatorLinks links={entries.links} label={t('serviceFeedback.pagination')} />
+            <ListPagination meta={entries} label={t('serviceFeedback.pagination')} />
         </div>
     </AuthenticatedLayout>;
 }

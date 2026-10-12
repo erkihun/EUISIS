@@ -1,5 +1,4 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
@@ -9,7 +8,7 @@ import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import { localizedName } from '@/utils/localizedName';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
 type OccupationOption = { id: string; isco_code: string; name_en: string | null; name_am: string | null };
 type UnitOption = { id: string; name_en: string; name_am: string | null; code: string; organization_unit_type_id: string | null };
 
@@ -79,14 +78,14 @@ export default function PositionsEdit({ position, organizations, organizationUni
                     </div>
 
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="old_code" value={t('positions.oldCode')} />
+                        <FormLabel htmlFor="old_code">{t('positions.oldCode')}</FormLabel>
                         <input id="old_code" className={inputCls} value={form.data.old_code} onChange={(e) => form.setData('old_code', e.target.value)} />
                         {form.errors.old_code && <p className={errorCls}>{form.errors.old_code}</p>}
                     </div>
 
                     {/* Organization */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="organization_id" value={t('positions.organization')} />
+                        <FormLabel htmlFor="organization_id">{t('positions.organization')}</FormLabel>
                         <select
                             id="organization_id"
                             className={inputCls}
@@ -103,7 +102,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Organization Unit */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="organization_unit_id" value={t('positions.organizationUnit')} />
+                        <FormLabel htmlFor="organization_unit_id">{t('positions.organizationUnit')}</FormLabel>
                         <select
                             id="organization_unit_id"
                             className={inputCls}
@@ -122,7 +121,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Occupation */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="occupation_id" value={t('positions.occupation')} />
+                        <FormLabel htmlFor="occupation_id">{t('positions.occupation')}</FormLabel>
                         <select
                             id="occupation_id"
                             className={inputCls}
@@ -141,7 +140,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* English Title */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="title_en" value={t('positions.englishTitle')} />
+                        <FormLabel htmlFor="title_en">{t('positions.englishTitle')}</FormLabel>
                         <input
                             id="title_en"
                             className={inputCls}
@@ -154,7 +153,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Amharic Title */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="title_am" value={t('positions.amharicTitle')} />
+                        <FormLabel htmlFor="title_am">{t('positions.amharicTitle')}</FormLabel>
                         <input
                             id="title_am"
                             className={inputCls}
@@ -166,14 +165,14 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Grade Level */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="bpr_name" value={t('positions.bprName')} />
+                        <FormLabel htmlFor="bpr_name">{t('positions.bprName')}</FormLabel>
                         <input id="bpr_name" className={inputCls} value={form.data.bpr_name} onChange={(e) => form.setData('bpr_name', e.target.value)} />
                         {form.errors.bpr_name && <p className={errorCls}>{form.errors.bpr_name}</p>}
                     </div>
 
                     {/* Grade Level */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="grade_level" value={t('positions.gradeLevel')} />
+                        <FormLabel htmlFor="grade_level">{t('positions.gradeLevel')}</FormLabel>
                         <select
                             id="grade_level"
                             className={inputCls}
@@ -189,7 +188,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Job Family */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="job_family" value={t('positions.jobFamily')} />
+                        <FormLabel htmlFor="job_family">{t('positions.jobFamily')}</FormLabel>
                         <input
                             id="job_family"
                             className={inputCls}
@@ -201,7 +200,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Effective From */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="effective_from" value={t('common.effectiveFrom')} />
+                        <FormLabel htmlFor="effective_from">{t('common.effectiveFrom')}</FormLabel>
                         <LocalizedDatePicker
                             id="effective_from"
                             className={inputCls}
@@ -212,7 +211,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                     {/* Effective To */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="effective_to" value={t('common.effectiveTo')} />
+                        <FormLabel htmlFor="effective_to">{t('common.effectiveTo')}</FormLabel>
                         <LocalizedDatePicker
                             id="effective_to"
                             className={inputCls}
@@ -224,7 +223,7 @@ export default function PositionsEdit({ position, organizations, organizationUni
 
                 {/* Description */}
                 <div className="space-y-1.5">
-                    <InputLabel htmlFor="description_en" value={t('positions.positionDescription')} />
+                    <FormLabel htmlFor="description_en">{t('positions.positionDescription')}</FormLabel>
                     <textarea
                         id="description_en"
                         className={`${inputCls} min-h-28`}

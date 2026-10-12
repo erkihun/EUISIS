@@ -105,7 +105,7 @@ export default function ServiceFeedbackDashboard({
                     actions={summary.pending > 0 ? (
                         <Link href={withScope('service-feedback.admin.index', { status: 'pending' })} className={buttonClassName({ variant: 'primary' })}>
                             {t('serviceFeedback.reviewPending')}
-                            <span className="inline-flex h-5 min-w-[1.375rem] items-center justify-center rounded-full bg-white/20 px-1.5 text-xs font-bold tabular-nums">
+                            <span className="inline-flex h-5 min-w-[1.375rem] items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--app-surface)_20%,transparent)] px-1.5 text-xs font-bold tabular-nums">
                                 {summary.pending.toLocaleString()}
                             </span>
                         </Link>

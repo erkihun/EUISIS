@@ -1,11 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
 type ParentOption = { id: string; isic_code: string; name_en: string | null; level: string };
 
 export default function IsicActivitiesCreate({
@@ -48,7 +47,7 @@ export default function IsicActivitiesCreate({
             >
                 <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="isic_code" value={t('isicActivities.isicCode')} />
+                        <FormLabel htmlFor="isic_code">{t('isicActivities.isicCode')}</FormLabel>
                         <input
                             id="isic_code"
                             className={inputCls}
@@ -58,7 +57,7 @@ export default function IsicActivitiesCreate({
                         {form.errors.isic_code && <p className="text-xs text-red-600">{form.errors.isic_code}</p>}
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="level" value={t('isicActivities.activityLevel')} />
+                        <FormLabel htmlFor="level">{t('isicActivities.activityLevel')}</FormLabel>
                         <select
                             id="level"
                             className={inputCls}
@@ -74,7 +73,7 @@ export default function IsicActivitiesCreate({
                         {form.errors.level && <p className="text-xs text-red-600">{form.errors.level}</p>}
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="section_code" value={t('isicActivities.sectionCode')} />
+                        <FormLabel htmlFor="section_code">{t('isicActivities.sectionCode')}</FormLabel>
                         <input
                             id="section_code"
                             maxLength={1}
@@ -84,7 +83,7 @@ export default function IsicActivitiesCreate({
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="division_code" value={t('isicActivities.divisionCode')} />
+                        <FormLabel htmlFor="division_code">{t('isicActivities.divisionCode')}</FormLabel>
                         <input
                             id="division_code"
                             maxLength={2}
@@ -94,7 +93,7 @@ export default function IsicActivitiesCreate({
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="group_code" value={t('isicActivities.groupCode')} />
+                        <FormLabel htmlFor="group_code">{t('isicActivities.groupCode')}</FormLabel>
                         <input
                             id="group_code"
                             maxLength={3}
@@ -104,7 +103,7 @@ export default function IsicActivitiesCreate({
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="class_code" value={t('isicActivities.classCode')} />
+                        <FormLabel htmlFor="class_code">{t('isicActivities.classCode')}</FormLabel>
                         <input
                             id="class_code"
                             maxLength={4}
@@ -114,7 +113,7 @@ export default function IsicActivitiesCreate({
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="parent_id" value={t('isicActivities.parentActivity')} />
+                        <FormLabel htmlFor="parent_id">{t('isicActivities.parentActivity')}</FormLabel>
                         <select
                             id="parent_id"
                             className={inputCls}
@@ -130,7 +129,7 @@ export default function IsicActivitiesCreate({
                         </select>
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="name_en" value={t('isicActivities.nameEn')} />
+                        <FormLabel htmlFor="name_en">{t('isicActivities.nameEn')}</FormLabel>
                         <input
                             id="name_en"
                             className={inputCls}
@@ -140,7 +139,7 @@ export default function IsicActivitiesCreate({
                         {form.errors.name_en && <p className="text-xs text-red-600">{form.errors.name_en}</p>}
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="name_am" value={t('isicActivities.nameAm')} />
+                        <FormLabel htmlFor="name_am">{t('isicActivities.nameAm')}</FormLabel>
                         <input
                             id="name_am"
                             className={inputCls}
@@ -149,7 +148,7 @@ export default function IsicActivitiesCreate({
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="sort_order" value={t('isicActivities.sortOrder')} />
+                        <FormLabel htmlFor="sort_order">{t('isicActivities.sortOrder')}</FormLabel>
                         <input
                             id="sort_order"
                             type="number"
@@ -161,7 +160,7 @@ export default function IsicActivitiesCreate({
                     </div>
                 </div>
                 <div className="space-y-1.5">
-                    <InputLabel htmlFor="description_en" value={t('isicActivities.descriptionEn')} />
+                    <FormLabel htmlFor="description_en">{t('isicActivities.descriptionEn')}</FormLabel>
                     <textarea
                         id="description_en"
                         className={`${inputCls} min-h-28`}
@@ -170,7 +169,7 @@ export default function IsicActivitiesCreate({
                     />
                 </div>
                 <div className="space-y-1.5">
-                    <InputLabel htmlFor="description_am" value={t('isicActivities.descriptionAm')} />
+                    <FormLabel htmlFor="description_am">{t('isicActivities.descriptionAm')}</FormLabel>
                     <textarea
                         id="description_am"
                         className={`${inputCls} min-h-28`}

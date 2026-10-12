@@ -4,6 +4,7 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { CycleForm, type CycleData, type Option } from '@/Components/assessmentOversight/CycleForm';
 import { named, oversightHref, type Cycle as ShellCycle } from '@/Components/assessmentOversight/shell';
 import { Section, Table, dangerLinkBtn, filterInputCls, pageCls, primaryBtn, secondaryBtn, smallBtn, smallPrimaryBtn, tdCls, thCls } from '@/Components/performance/ui';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ type Props = {
 /** One cycle: settings, explicit participating institutions and the eligibility snapshot. */
 export default function OversightCycle({ cycle, participants, organizations, eligibility, pending, policies, types, employeeStatuses, search }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const [picked, setPicked] = useState<string[]>([]);
     const finalized = cycle.eligibility_status === 'finalized';
     const post = (name: string, data: Record<string, string> = {}) => router.post(route(name, cycle.id), data, { preserveScroll: true });
@@ -58,7 +60,7 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                         <div className="mt-4 flex flex-wrap gap-2">
                             <button type="button" className={smallPrimaryBtn} onClick={() => post('assessment-oversight.cycles.eligibility.snapshot')}>{cycle.eligibility_snapshot_at ? t('assessmentOversight.cycleActions.resnapshot') : t('assessmentOversight.cycleActions.snapshot')}</button>
                             {cycle.eligibility_snapshot_at && (
-                                <button type="button" className={smallBtn} onClick={() => { if (window.confirm(t('assessmentOversight.cycleActions.finalizeConfirm'))) post('assessment-oversight.cycles.eligibility.finalize'); }}>{t('assessmentOversight.cycleActions.finalize')}</button>
+                                <button type="button" className={smallBtn} onClick={async () => { if ((await confirm({ title: t('assessmentOversight.cycleActions.finalizeConfirm') })).confirmed) post('assessment-oversight.cycles.eligibility.finalize'); }}>{t('assessmentOversight.cycleActions.finalize')}</button>
                             )}
                         </div>
                     )}

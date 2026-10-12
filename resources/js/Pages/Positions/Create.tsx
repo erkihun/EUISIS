@@ -1,5 +1,4 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
@@ -7,7 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { localizedName } from '@/utils/localizedName';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
 type OccupationOption = { id: string; isco_code: string; name_en: string | null; name_am: string | null };
 type OrgRef = { id: string; code: string; name_en: string; name_am: string | null };
 type UnitOption = {
@@ -113,14 +112,14 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                     </div>
 
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="old_code" value={t('positions.oldCode')} />
+                        <FormLabel htmlFor="old_code">{t('positions.oldCode')}</FormLabel>
                         <input id="old_code" className={inputCls} value={form.data.old_code} onChange={(e) => form.setData('old_code', e.target.value)} />
                         {form.errors.old_code && <p className={errorCls}>{form.errors.old_code}</p>}
                     </div>
 
                     {/* Organization — read-only when pre-selected from tree */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="organization_id" value={t('positions.organization')} />
+                        <FormLabel htmlFor="organization_id">{t('positions.organization')}</FormLabel>
                         {selectedOrganizationId ? (
                             <>
                                 <input type="hidden" name="organization_id" value={form.data.organization_id} />
@@ -150,7 +149,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* Organization Unit (required) */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="organization_unit_id" value={t('positions.organizationUnit')} />
+                        <FormLabel htmlFor="organization_unit_id">{t('positions.organizationUnit')}</FormLabel>
                         {selectedOrganizationUnitId ? (
                             <>
                                 <input type="hidden" name="organization_unit_id" value={form.data.organization_unit_id} />
@@ -187,8 +186,8 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                         <div className="md:col-span-2 space-y-3 rounded-card border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
                             <div className="grid gap-3 md:grid-cols-2">
                                 <div className="space-y-1">
-                                    <InputLabel value={t('positions.ownerOrganization')} />
-                                    <div className={`${inputCls} cursor-not-allowed bg-white/60 dark:bg-slate-900/60`}>
+                                    <FormLabel>{t('positions.ownerOrganization')}</FormLabel>
+                                    <div className={`${inputCls} cursor-not-allowed bg-[color:color-mix(in_srgb,var(--app-surface)_60%,transparent)]`}>
                                         <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{selectedUnit.owner_organization?.code}</span>
                                         {' — '}
                                         {selectedUnit.owner_organization
@@ -197,8 +196,8 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                                     </div>
                                 </div>
                                 <div className="space-y-1">
-                                    <InputLabel value={t('positions.hostOrganization')} />
-                                    <div className={`${inputCls} cursor-not-allowed bg-white/60 dark:bg-slate-900/60`}>
+                                    <FormLabel>{t('positions.hostOrganization')}</FormLabel>
+                                    <div className={`${inputCls} cursor-not-allowed bg-[color:color-mix(in_srgb,var(--app-surface)_60%,transparent)]`}>
                                         <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{selectedUnit.host_organization.code}</span>
                                         {' — '}
                                         {localizedName(selectedUnit.host_organization.name_en, selectedUnit.host_organization.name_am, locale)}
@@ -210,7 +209,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* Occupation (required) */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="occupation_id" value={t('positions.occupation')} />
+                        <FormLabel htmlFor="occupation_id">{t('positions.occupation')}</FormLabel>
                         <select
                             id="occupation_id"
                             className={inputCls}
@@ -233,7 +232,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* English Title */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="title_en" value={t('positions.englishTitle')} />
+                        <FormLabel htmlFor="title_en">{t('positions.englishTitle')}</FormLabel>
                         <input
                             id="title_en"
                             className={inputCls}
@@ -246,7 +245,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
 
                     {/* Amharic Title */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="title_am" value={t('positions.amharicTitle')} />
+                        <FormLabel htmlFor="title_am">{t('positions.amharicTitle')}</FormLabel>
                         <input
                             id="title_am"
                             className={inputCls}
@@ -257,14 +256,14 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
                     </div>
 
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="bpr_name" value={t('positions.bprName')} />
+                        <FormLabel htmlFor="bpr_name">{t('positions.bprName')}</FormLabel>
                         <input id="bpr_name" className={inputCls} value={form.data.bpr_name} onChange={(e) => form.setData('bpr_name', e.target.value)} />
                         {form.errors.bpr_name && <p className={errorCls}>{form.errors.bpr_name}</p>}
                     </div>
 
                     {/* Grade Level */}
                     <div className="space-y-1.5">
-                        <InputLabel htmlFor="grade_level" value={t('positions.gradeLevel')} />
+                        <FormLabel htmlFor="grade_level">{t('positions.gradeLevel')}</FormLabel>
                         <select
                             id="grade_level"
                             className={inputCls}

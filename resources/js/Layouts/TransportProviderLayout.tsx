@@ -53,7 +53,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                     <p className="truncate text-xs text-[color:var(--app-muted-foreground)]">{providerName ?? provider?.code}</p>
                 </div>
                 {onClose && (
-                    <button type="button" onClick={onClose} className="rounded-md p-2 text-slate-500 hover:bg-[color:var(--app-surface-muted)]">
+                    <button type="button" onClick={onClose} className="rounded-md p-2 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]">
                         <X className="h-4 w-4" />
                     </button>
                 )}
@@ -96,7 +96,7 @@ function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void
 
     return (
         <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4">
-            <button type="button" onClick={onMenuClick} className="rounded-md p-2 text-slate-500 hover:bg-[color:var(--app-surface-muted)] lg:hidden">
+            <button type="button" onClick={onMenuClick} className="rounded-md p-2 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] lg:hidden">
                 <MenuIcon className="h-5 w-5" />
             </button>
             <p className="truncate text-sm font-semibold text-[color:var(--app-foreground)]">{title}</p>
@@ -107,7 +107,7 @@ function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void
                 <Dropdown.Trigger>
                     <button type="button" className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-[color:var(--app-surface-muted)]">
                         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-xs font-semibold text-white">{initials}</span>
-                        <ChevronDown className="h-4 w-4 text-slate-400" />
+                        <ChevronDown className="h-4 w-4 text-[color:var(--app-muted-foreground)]" />
                     </button>
                 </Dropdown.Trigger>
                 <Dropdown.Content>

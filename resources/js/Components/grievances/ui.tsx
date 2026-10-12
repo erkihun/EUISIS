@@ -82,9 +82,9 @@ const SLA_STYLE: Record<SlaSummary["state"], { tone: string; Icon: typeof CheckC
     due_soon: { tone: 'text-amber-800 bg-amber-50 ring-amber-200 dark:text-amber-300 dark:bg-amber-950/30 dark:ring-amber-900', Icon: ClockIcon },
     due_today: { tone: 'text-orange-800 bg-orange-50 ring-orange-200 dark:text-orange-300 dark:bg-orange-950/30 dark:ring-orange-900', Icon: AlertTriangle },
     overdue: { tone: 'text-red-700 bg-red-50 ring-red-200 dark:text-red-300 dark:bg-red-950/30 dark:ring-red-900', Icon: XCircle },
-    paused: { tone: 'text-[color:var(--app-foreground)] bg-[color:var(--app-surface-muted)] ring-slate-200 dark:ring-slate-700', Icon: MinusIcon },
-    stopped: { tone: 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)] ring-slate-200 dark:ring-slate-700', Icon: MinusIcon },
-    no_deadline: { tone: 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)] ring-slate-200 dark:ring-slate-700', Icon: InfoIcon },
+    paused: { tone: 'text-[color:var(--app-foreground)] bg-[color:var(--app-surface-muted)] ring-[color:var(--app-border-strong)]', Icon: MinusIcon },
+    stopped: { tone: 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)] ring-[color:var(--app-border-strong)]', Icon: MinusIcon },
+    no_deadline: { tone: 'text-[color:var(--app-muted-foreground)] bg-[color:var(--app-surface-muted)] ring-[color:var(--app-border-strong)]', Icon: InfoIcon },
 };
 
 /**

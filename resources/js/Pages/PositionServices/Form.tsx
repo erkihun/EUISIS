@@ -110,15 +110,14 @@ export default function PositionServiceForm({
     const label = (o: { name_en: string; name_am: string | null }) => (am ? (o.name_am ?? o.name_en) : o.name_en);
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.positionServices')} />
-
-            <div className="mx-auto max-w-2xl space-y-5">
-                <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                     title={isEdit ? t('serviceFeedback.editPositionService') : t('serviceFeedback.addPositionService')}
                     description={t('serviceFeedback.positionServicesHint')}
                     backHref={route('position-services.index')}
-                />
+                />}>
+            <Head title={t('serviceFeedback.positionServices')} />
+
+            <div className="mx-auto max-w-2xl space-y-5">
 
                 <form
                     onSubmit={submit}
@@ -249,7 +248,7 @@ export default function PositionServiceForm({
 }
 
 const selectCls =
-    'mt-1 block w-full rounded-lg border-[color:var(--app-border-strong)] py-2 text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:opacity-60 dark:bg-slate-950 dark:text-slate-100';
+    'mt-1 block w-full rounded-lg border-[color:var(--app-border-strong)] py-2 text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:opacity-60 text-[color:var(--app-foreground)]';
 
 function Field({
     label,

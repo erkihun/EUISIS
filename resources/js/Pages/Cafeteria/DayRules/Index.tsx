@@ -57,7 +57,7 @@ function DayRuleRow({ rule, canUpdate }: { rule: DayRule; canUpdate: boolean }) 
         });
     }
 
-    const timeCls = 'rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm dark:text-slate-100 disabled:opacity-50';
+    const timeCls = 'rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm text-[color:var(--app-foreground)] disabled:opacity-50';
 
     return (
         <div className={`flex flex-wrap items-center gap-4 rounded-card border border-[color:var(--app-border)] p-4 ${DAY_COLORS[rule.day_of_week]}`}>

@@ -105,7 +105,7 @@ reload the page, so new ones fail the build.
 import { Button, TableCard, Table, THead, TBody, Tr, Th, Td, selectClassName, cx } from '@/Components/ui';
 
 <TableCard title={t('employees.title')} actions={<Button variant="primary" size="sm">{t('common.add')}</Button>}
-    footer={<PaginatorLinks links={employees.links} label={t('common.pagination')} />}>
+    footer={<ListPagination meta={employees.meta} label={t('common.pagination')} />}>
     <Table>
         <THead><tr><Th>{t('common.name')}</Th><Th align="right">{t('common.amount')}</Th></tr></THead>
         <TBody>

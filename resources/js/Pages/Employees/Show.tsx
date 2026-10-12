@@ -401,7 +401,7 @@ export default function EmployeesShow({
                                 >
                                     <div className="min-w-0">
                                         <span className="font-medium text-[color:var(--app-foreground)]">{doc.document_type}</span>
-                                        <span className="mx-2 text-gray-300 dark:text-slate-600">·</span>
+                                        <span className="mx-2 text-[color:var(--app-muted-foreground)]">·</span>
                                         <span className="font-mono text-xs text-[color:var(--app-muted-foreground)]">{doc.storage_disk}</span>
                                     </div>
                                     <span className={`text-xs font-medium ${doc.is_private ? 'text-red-500' : 'text-green-600'}`}>

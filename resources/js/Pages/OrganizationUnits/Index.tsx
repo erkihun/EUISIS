@@ -190,7 +190,7 @@ export default function OrganizationUnitsIndex({
                         </div>
                     ) : (
                         <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-panel border border-dashed border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-16 text-center">
-                            <Building2 className="h-10 w-10 text-gray-300 dark:text-slate-600" />
+                            <Building2 className="h-10 w-10 text-[color:var(--app-muted-foreground)]" />
                             <p className="mt-3 text-sm font-medium text-[color:var(--app-muted-foreground)]">
                                 {t('organizationUnits.selectOrganizationToViewUnits')}
                             </p>

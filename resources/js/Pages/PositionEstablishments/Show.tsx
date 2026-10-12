@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link, router } from '@inertiajs/react';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 
 import { actionLinkClassName, buttonClassName } from '@/Components/ui';
@@ -28,6 +29,7 @@ type Establishment = {
 
 export default function PositionEstablishmentsShow({ establishment }: { establishment: Establishment }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
 
     return (
         <AuthenticatedLayout
@@ -55,7 +57,7 @@ export default function PositionEstablishmentsShow({ establishment }: { establis
                             {establishment.can.archive && (
                                 <button
                                     type="button"
-                                    onClick={() => { if (confirm(t('common.cannotUndo'))) router.delete(route('position-establishments.archive', establishment.id)); }}
+                                    onClick={async () => { if ((await confirm({ title: t('common.cannotUndo'), variant: 'danger' })).confirmed) router.delete(route('position-establishments.archive', establishment.id)); }}
                                     className={buttonClassName({ variant: 'outline', size: 'sm' })}
                                 >
                                     {t('common.archive')}

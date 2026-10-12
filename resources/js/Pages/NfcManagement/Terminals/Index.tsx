@@ -42,10 +42,7 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
     const meta = terminals.meta;
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('nfc.terminals')} />
-
-            <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                 title={t('nfc.terminals')}
                 description={t('nfc.management')}
                 actions={
@@ -58,7 +55,9 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
                         </Link>
                     )
                 }
-            />
+            />}>
+            <Head title={t('nfc.terminals')} />
+
 
             <NfcSubNav can={can} current="terminals" />
 

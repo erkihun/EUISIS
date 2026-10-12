@@ -205,7 +205,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
                                     <div key={approval.id} className="flex items-center justify-between rounded-lg border border-[color:var(--app-border)] px-4 py-3">
                                         <div>
                                             <p className="text-sm font-medium text-[color:var(--app-foreground)]">{APPROVAL_TYPE_LABELS[approval.approval_type] ?? approval.approval_type}</p>
-                                            {approval.approver && <p className="text-xs text-gray-400">{approval.approver.name} · <LocalizedDateDisplay value={approval.decided_at} /></p>}
+                                            {approval.approver && <p className="text-xs text-[color:var(--app-muted-foreground)]">{approval.approver.name} · <LocalizedDateDisplay value={approval.decided_at} /></p>}
                                         </div>
                                         <StatusBadge status={approval.status} />
                                     </div>
@@ -226,7 +226,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
                                 <li key={review.id} className="rounded-lg border border-[color:var(--app-border)] p-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-xs font-semibold uppercase text-[color:var(--app-muted-foreground)]">{SCREEN_ACTION_LABELS[review.action] ?? review.action}</span>
-                                        <LocalizedDateDisplay value={review.created_at} className="text-xs text-gray-400" />
+                                        <LocalizedDateDisplay value={review.created_at} className="text-xs text-[color:var(--app-muted-foreground)]" />
                                     </div>
                                     {review.reviewer && <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">{review.reviewer.name}</p>}
                                     {review.notes && <p className="mt-1 text-sm text-[color:var(--app-foreground)]">{review.notes}</p>}

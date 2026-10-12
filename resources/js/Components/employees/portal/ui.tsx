@@ -36,7 +36,7 @@ export function Block({ title, badge, badgeTone = 'neutral', description, childr
                                 'rounded-control px-1.5 py-0.5 text-[11px] font-medium ring-1 ring-inset',
                                 badgeTone === 'editable'
                                     ? 'bg-emerald-50 text-emerald-800 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900'
-                                    : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-gray-200 dark:ring-slate-700',
+                                    : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-[color:var(--app-border-strong)]',
                             ].join(' ')}>{badge}</span>
                         )}
                     </h2>

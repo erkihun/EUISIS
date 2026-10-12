@@ -84,15 +84,14 @@ export default function OrganizationFeedbackQr({ organization, qr, history, stat
     const card = 'rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]';
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.organizationFeedbackQr')} />
-
-            <div className="space-y-5">
-                <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                     title={t('serviceFeedback.organizationFeedbackQr')}
                     description={`${name} · ${organization.code}`}
                     backHref={route('organizations.show', organization.id)}
-                />
+                />}>
+            <Head title={t('serviceFeedback.organizationFeedbackQr')} />
+
+            <div className="space-y-5">
 
                 <div className="grid gap-5 lg:grid-cols-3">
                     <div className={`${card} p-5 text-center`}>

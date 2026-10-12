@@ -44,7 +44,7 @@ function QuotaBar({ used, limit, usedLabel }: { used: number; limit: number | nu
                 <span>{used} / {limit} {usedLabel}</span>
                 <span>{pct}%</span>
             </div>
-            <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200 dark:bg-slate-700">
+            <div className="mt-1 h-1.5 w-full rounded-full bg-[color:var(--app-surface-muted)]">
                 <div className={`h-1.5 rounded-full ${color}`} style={{ width: `${pct}%` }} />
             </div>
         </div>

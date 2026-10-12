@@ -162,10 +162,10 @@ export default function ProviderDashboard({
                                             </span>
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right tabular-nums font-medium text-[color:var(--app-foreground)]')}>
-                                            {p.today_tx > 0 ? p.today_tx.toLocaleString() : <span className="text-gray-300 dark:text-slate-600">—</span>}
+                                            {p.today_tx > 0 ? p.today_tx.toLocaleString() : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right tabular-nums font-medium text-emerald-600')}>
-                                            {p.today_subsidy > 0 ? money.format(p.today_subsidy) : <span className="text-gray-300 dark:text-slate-600">—</span>}
+                                            {p.today_subsidy > 0 ? money.format(p.today_subsidy) : <span className="text-[color:var(--app-muted-foreground)]">—</span>}
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-center')}>
                                             <StatusBadge

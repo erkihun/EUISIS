@@ -220,14 +220,14 @@ export default function OversightDashboard(props: Props) {
 
                     <div className="grid gap-4 xl:grid-cols-2">
                         {data.units.length > 0 && <Section title={t('assessmentOversight.sections.units')}>
-                            {data.units.map((unit) => <div key={unit.group_key ?? 'unassigned'} className="border-b py-3 text-sm dark:border-slate-800">
+                            {data.units.map((unit) => <div key={unit.group_key ?? 'unassigned'} className="border-b py-3 text-sm border-[color:var(--app-border)]">
                                 {unit.unit && can.employees ? <Link href={href('assessment-oversight.employees', { organization_unit_id: unit.unit.id, eligibility_status: 'eligible' })}>{named(unit.unit, locale)}</Link> : named(unit.unit, locale)}
                                 <p>{t('assessmentOversight.eligible')}: {unit.eligible} · {t('assessmentOversight.assessed')}: {unit.assessed} · {t('assessmentOversight.unassessed')}: {unit.unassessed}</p>
                                 <CoverageBar value={unit.coverage_percent} />
                             </div>)}
                         </Section>}
                         <Section title={t('assessmentOversight.dashboardForms')}>
-                            {data.forms.map((form) => <div key={form.version_id} className="border-b py-3 text-sm dark:border-slate-800">
+                            {data.forms.map((form) => <div key={form.version_id} className="border-b py-3 text-sm border-[color:var(--app-border)]">
                                 <p>{named({ name_en: form.form_en, name_am: form.form_am }, locale)} · v{form.version_no}</p>
                                 <p>{t('assessmentOversight.kpi.assigned')}: {form.assigned} · {t('assessmentOversight.assessed')}: {form.assessed}</p>
                                 <CoverageBar value={form.completion_percent} />
@@ -235,7 +235,7 @@ export default function OversightDashboard(props: Props) {
                             {data.forms.length === 0 && <p>{t('assessmentOversight.noData')}</p>}
                         </Section>
                         <Section title={t('assessmentOversight.dashboardEvaluators')}>
-                            {data.peers.map((peer) => <div key={peer.version_id} className="border-b py-3 text-sm dark:border-slate-800">
+                            {data.peers.map((peer) => <div key={peer.version_id} className="border-b py-3 text-sm border-[color:var(--app-border)]">
                                 <p>{named(peer, locale)}</p>
                                 <p>{t('assessmentOversight.dashboardRequired')}: {peer.required} · {t('assessmentOversight.kpi.assigned')}: {peer.assigned} · {t('assessmentOversight.kpi.submitted')}: {peer.completed}</p>
                             </div>)}

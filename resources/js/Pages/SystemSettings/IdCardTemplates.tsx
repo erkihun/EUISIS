@@ -519,7 +519,7 @@ function TemplateForm({
                 {step === 3 && <>
                 {/* Sections are flush inside the editor panel, so the two
                     logo slots are split by a rule rather than a gap. */}
-                <div className="grid border-b border-[color:var(--app-border)] md:grid-cols-2 md:divide-x md:divide-gray-100 md:dark:divide-slate-800 [&>section]:border-b-0">
+                <div className="grid border-b border-[color:var(--app-border)] md:grid-cols-2 md:divide-x md:divide-[color:var(--app-border)] md: [&>section]:border-b-0">
                 {([
                     { slot: 'left', show: 'show_logo', field: 'logo_primary', remove: 'remove_logo_primary', url: logoPrimaryUrl },
                     { slot: 'right', show: 'show_secondary_logo', field: 'logo_secondary', remove: 'remove_logo_secondary', url: logoSecondaryUrl },
@@ -550,7 +550,7 @@ function TemplateForm({
                 </div>
 
                 {/* Back-face marks. Portrait omits the signature entirely. */}
-                <div className="grid border-b border-[color:var(--app-border)] md:grid-cols-2 md:divide-x md:divide-gray-100 md:dark:divide-slate-800 [&>section]:border-b-0">
+                <div className="grid border-b border-[color:var(--app-border)] md:grid-cols-2 md:divide-x md:divide-[color:var(--app-border)] md: [&>section]:border-b-0">
                 {(portrait ? [
                     { mark: 'seal', field: 'seal', remove: 'remove_seal', url: sealUrl },
                 ] as const : [
@@ -1020,7 +1020,7 @@ export default function IdCardTemplates({ templates, can, uploadLimitMb }: Props
                                         'focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]',
                                         active
                                             ? 'border-[color:var(--color-primary)] bg-[color:var(--app-surface)] ring-1 ring-[color:var(--color-primary)]'
-                                            : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)] hover:border-gray-300 dark:hover:border-slate-700',
+                                            : 'border-[color:var(--app-border)] bg-[color:var(--app-surface)] hover:border-[color:var(--app-border-strong)]',
                                     ].join(' ')}
                                 >
                                     <span className="truncate text-sm font-medium text-[color:var(--app-foreground)]">

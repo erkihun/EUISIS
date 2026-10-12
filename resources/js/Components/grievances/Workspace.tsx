@@ -47,7 +47,7 @@ export function CaseTable({ rows, page, portal = false }: { rows?: GrievanceRow[
 
 export function CaseBanner({ grievance: g }: { grievance: GrievanceRow }) {
     const { t } = useLocale();
-    return <div className="space-y-3"><ConfidentialNotice level={g.confidentiality_level} /><div className="flex flex-wrap items-center gap-4 rounded-lg border p-4 dark:border-slate-700"><CaseNumber value={g.reference_number} /><GPill group="status" value={g.status} /><HandlerName handler={g.handler} /><span>{t('grievances.common.stage')}: {g.stage_no ?? '—'}</span><span>{t('grievances.common.submitted')}: <DateDisplay value={g.submitted_at} /></span><span>{t('grievances.common.due')}: <DateDisplay value={g.sla?.due_at} /></span><SlaBadge sla={g.sla} />{g.appeal_deadline_at && <span>{t('grievances.common.appeal_deadline')}: <DateDisplay value={g.appeal_deadline_at} /></span>}</div></div>;
+    return <div className="space-y-3"><ConfidentialNotice level={g.confidentiality_level} /><div className="flex flex-wrap items-center gap-4 rounded-lg border p-4 border-[color:var(--app-border)]"><CaseNumber value={g.reference_number} /><GPill group="status" value={g.status} /><HandlerName handler={g.handler} /><span>{t('grievances.common.stage')}: {g.stage_no ?? '—'}</span><span>{t('grievances.common.submitted')}: <DateDisplay value={g.submitted_at} /></span><span>{t('grievances.common.due')}: <DateDisplay value={g.sla?.due_at} /></span><SlaBadge sla={g.sla} />{g.appeal_deadline_at && <span>{t('grievances.common.appeal_deadline')}: <DateDisplay value={g.appeal_deadline_at} /></span>}</div></div>;
 }
 
 export function Timeline({ events }: { events: TimelineEvent[] }) {

@@ -35,7 +35,7 @@ export default function OrganizationOrganogram({ tree }: { tree: OrganizationStr
 
     const exportButtons = (
         <>
-            <span className="mx-1 h-4 w-px bg-gray-200 dark:bg-slate-700" />
+            <span className="mx-1 h-4 w-px bg-[color:var(--app-surface-muted)]" />
             <button type="button" onClick={exportPng} disabled={exporting !== null} className={exportButtonCls}>
                 {exporting === 'png' ? t('organizations.exporting') : t('organizations.exportPng')}
             </button>

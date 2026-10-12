@@ -79,7 +79,7 @@ function MetricCard({ label, value, detail, icon: Icon, tone }: MetricProps) {
                     <p className="text-xs font-semibold uppercase tracking-wide text-[color:var(--app-muted-foreground)]">{label}</p>
                     <div className="mt-2 text-2xl font-semibold tabular-nums text-gray-950 dark:text-white">{value}</div>
                 </div>
-                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${metricTones[tone]}`}>
+                <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-panel ${metricTones[tone]}`}>
                     <Icon className="h-5 w-5" aria-hidden="true" />
                 </span>
             </div>
@@ -176,7 +176,7 @@ export default function PerformanceDashboard({ cycles, cycleId, organizationPlan
                 {cycles.length === 0 ? (
                     <section className="overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                         <div className="border-b border-[color:var(--app-border)] bg-gradient-to-br from-[color:color-mix(in_srgb,var(--color-primary)_12%,white)] to-white px-6 py-8 dark:from-[color:color-mix(in_srgb,var(--color-primary)_18%,#0f172a)] dark:to-slate-900">
-                            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[color:var(--color-primary)] text-white shadow-sm"><LayoutDashboard className="h-6 w-6" aria-hidden="true" /></div>
+                            <div className="grid h-12 w-12 place-items-center rounded-panel bg-[color:var(--color-primary)] text-white shadow-sm"><LayoutDashboard className="h-6 w-6" aria-hidden="true" /></div>
                             <h2 className="mt-5 text-xl font-semibold text-gray-950 dark:text-white">{t('performance.dashboard.getStarted')}</h2>
                             <p className="mt-2 max-w-2xl text-sm leading-6 text-[color:var(--app-muted-foreground)]">{t('performance.dashboard.getStartedHelp')}</p>
                         </div>

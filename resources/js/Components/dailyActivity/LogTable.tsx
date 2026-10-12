@@ -64,7 +64,7 @@ export default function LogTable({ logs, emptyText }: { logs: LogSummary[]; empt
             <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
                 {logs.map((log) => (
                     <li key={log.id}>
-                        <Link href={route('daily-activities.show', log.id)} className="block px-3 py-2.5 active:bg-gray-50 dark:active:bg-slate-800/40">
+                        <Link href={route('daily-activities.show', log.id)} className="block px-3 py-2.5 active:bg-[color:var(--app-surface-muted)] dark:active:bg-slate-800/40">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="truncate text-sm font-medium text-[color:var(--app-foreground)]">{log.employee?.full_name}</p>

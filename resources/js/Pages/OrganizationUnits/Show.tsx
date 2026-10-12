@@ -4,6 +4,7 @@ import PageHeader from '@/Components/PageHeader';
 import OrganizationUnitStatusBadge from '@/Components/organization-units/OrganizationUnitStatusBadge';
 import OrganizationUnitTypeBadge from '@/Components/organization-units/OrganizationUnitTypeBadge';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import type { OrganizationUnit } from '@/types/organizationUnit';
 import RelationshipPanel, { type RelationshipRow } from '@/Components/relationships/RelationshipPanel';
@@ -32,12 +33,13 @@ interface Props {
 
 export default function OrganizationUnitsShow({ unit, relationships, relationshipOptions, hostedContext = null, can }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const { post, processing } = useForm();
     const unitName = localizedName(unit.name_en, unit.name_am, locale);
     const description = localizedName(unit.description_en, unit.description_am, locale);
 
-    function handleArchive() {
-        if (!confirm(t('common.cannotUndo'))) return;
+    async function handleArchive() {
+        if (!(await confirm({ title: t('common.cannotUndo'), variant: 'danger' })).confirmed) return;
         post(route('organization-units.archive', unit.id));
     }
 

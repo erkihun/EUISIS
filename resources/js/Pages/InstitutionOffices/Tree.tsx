@@ -45,7 +45,7 @@ function TreeNodeRow({ node, depth }: { node: TreeNode; depth: number }) {
                     <button
                         type="button"
                         onClick={() => setExpanded(!expanded)}
-                        className="flex h-5 w-5 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-gray-600 dark:hover:text-slate-300"
+                        className="flex h-5 w-5 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-muted-foreground)]"
                     >
                         {expanded ? '▾' : '▸'}
                     </button>

@@ -98,13 +98,13 @@ function ConfirmModal({
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
             onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
-            <div className="w-full max-w-md rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-gray-200 dark:ring-slate-700">
+            <div className="w-full max-w-md rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-[color:var(--app-border-strong)]">
                 <div className="flex items-start justify-between px-6 pt-5">
                     <h3 className="text-base font-semibold text-[color:var(--app-foreground)]">{title}</h3>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="ml-4 rounded-lg p-1 text-gray-400 hover:bg-[color:var(--app-surface-muted)]"
+                        className="ml-4 rounded-lg p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]"
                     >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -290,7 +290,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     <p className="text-sm text-[color:var(--app-muted-foreground)]">
                                         {cardRequest.employee.employee_number}
                                         {cardRequest.employee.current_assignment?.position?.title_en && (
-                                            <span className="mx-1.5 text-gray-300 dark:text-slate-600">·</span>
+                                            <span className="mx-1.5 text-[color:var(--app-muted-foreground)]">·</span>
                                         )}
                                         {cardRequest.employee.current_assignment?.position?.title_en}
                                     </p>
@@ -319,7 +319,7 @@ export default function CardRequestShow({ cardRequest, can }: PageProps) {
                                     <Link
                                         key={card.id}
                                         href={route('id-cards.show', card.id)}
-                                        className="flex items-center justify-between gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-2.5 hover:bg-gray-100 transition-colors dark:hover:bg-slate-700"
+                                        className="flex items-center justify-between gap-3 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-2.5 hover:bg-[color:var(--app-surface-muted)] transition-colors"
                                     >
                                         <span className="font-mono text-sm font-medium text-[color:var(--app-foreground)]">
                                             {card.card_number}

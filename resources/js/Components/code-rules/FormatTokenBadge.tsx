@@ -2,7 +2,7 @@ type TokenVariant = 'default' | 'active' | 'unknown' | 'inactive';
 
 const variantClasses: Record<TokenVariant, string> = {
     default:
-        'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)] hover:bg-gray-200 dark:hover:bg-slate-700 cursor-pointer',
+        'bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)] cursor-pointer',
     active:
         'bg-blue-100 text-blue-700 ring-1 ring-blue-400 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:ring-[color:var(--color-primary)] dark:hover:bg-blue-900/60 cursor-pointer',
     unknown:

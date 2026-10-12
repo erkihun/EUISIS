@@ -257,11 +257,7 @@ export default function ImportStructure({
     const result = preview?.result ?? null;
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('organizationStructureImport.title')} />
-
-            <div className="space-y-6">
-                <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                     title={t('organizationStructureImport.title')}
                     description={t('organizationStructureImport.description')}
                     backHref={route('organizations.index')}
@@ -270,7 +266,10 @@ export default function ImportStructure({
                             {t('organizationStructureImport.downloadTemplate')}
                         </a>
                     }
-                />
+                />}>
+            <Head title={t('organizationStructureImport.title')} />
+
+            <div className="space-y-6">
 
                 {/* ── Step 1: upload ─────────────────────────────────────── */}
                 <FormSection title={t('organizationStructureImport.uploadExcelFile')} grid={false}>
@@ -294,7 +293,7 @@ export default function ImportStructure({
                                     type="checkbox"
                                     checked={form.data.auto_generate_codes}
                                     onChange={(event) => form.setData('auto_generate_codes', event.target.checked)}
-                                    className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:bg-slate-950"
+                                    className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] "
                                 />
                                 {t('organizationStructureImport.autoGenerateCodes')}
                             </label>
@@ -307,7 +306,7 @@ export default function ImportStructure({
                                     type="checkbox"
                                     checked={form.data.import_employees}
                                     onChange={(event) => form.setData('import_employees', event.target.checked)}
-                                    className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] dark:bg-slate-950"
+                                    className="rounded border-[color:var(--app-border-strong)] text-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] "
                                 />
                                 {t('organizationStructureImport.importEmployees')}
                             </label>

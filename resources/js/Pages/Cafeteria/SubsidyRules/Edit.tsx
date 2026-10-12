@@ -1,12 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import InputLabel from '@/Components/InputLabel';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent, ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
 type Rule = {
     id: string; code: string; name_en: string; name_am: string | null;
     subsidy_amount: number; currency: string;
@@ -63,5 +62,5 @@ export default function SubsidyRulesEdit({ rule }: { rule: Rule }) {
 }
 
 function Field({ children, error, label }: { children: ReactNode; error?: string; label: string }) {
-    return <div className="space-y-1.5"><InputLabel value={label} />{children}{error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}</div>;
+    return <div className="space-y-1.5"><FormLabel>{label}</FormLabel>{children}{error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}</div>;
 }

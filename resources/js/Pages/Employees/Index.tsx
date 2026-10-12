@@ -370,7 +370,7 @@ export default function EmployeesIndex({
                                                                     ? <ChevronUp className="h-3 w-3" aria-hidden="true" />
                                                                     : <ChevronDown className="h-3 w-3" aria-hidden="true" />
                                                             ) : (
-                                                                <ChevronUpDown className="h-3 w-3 text-gray-300 dark:text-slate-600" aria-hidden="true" />
+                                                                <ChevronUpDown className="h-3 w-3 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
                                                             )}
                                                             <span className="sr-only">
                                                                 {isSorted

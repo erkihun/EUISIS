@@ -329,7 +329,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                 {contextSelected && goals.data.length > 0 && <div className="flex items-center gap-3">
                     <h2 className="text-sm font-semibold text-[color:var(--app-foreground)]">{t('performance.strategicGoals.title')}</h2>
                     <span className="rounded-full bg-[color:var(--app-surface-muted)] px-2.5 py-0.5 text-xs font-medium tabular-nums text-[color:var(--app-muted-foreground)]">{goals.total}</span>
-                    <div className="h-px flex-1 bg-gray-200 dark:bg-slate-800" />
+                    <div className="h-px flex-1 bg-[color:var(--app-surface-muted)]" />
                 </div>}
                 <div className="space-y-5">
                     {goals.data.map((goal) => {
@@ -368,7 +368,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                 {draft && goal.return_reason && <div className="px-5 pb-4"><Problems title={t('performance.strategicGoals.returned')} problems={[goal.return_reason]} /></div>}
 
                                 <details className="group/goal border-t border-[color:var(--app-border)]">
-                                    <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-blue-500 dark:text-slate-300 lg:px-6 [&::-webkit-details-marker]:hidden">
+                                    <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-blue-500 dark:text-[color:var(--app-muted-foreground)] lg:px-6 [&::-webkit-details-marker]:hidden">
                                         <span className="font-medium text-[color:var(--app-foreground)]">{t('common.details')}</span>
                                         <span className="text-[color:var(--app-muted-foreground)]">{t('performance.strategicGoals.allocations')} <span className="font-medium tabular-nums">{goal.allocations.length}</span></span>
                                         <span className={`ml-auto flex items-center gap-2 font-medium ${goal.readiness.ready ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'}`}>
@@ -446,7 +446,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                                         )}
 
                                         {goal.can_view_plans && <details className="group/objectives mt-5 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm font-medium text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
+                                            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-panel px-4 py-3 text-sm font-medium text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
                                                 {t('performance.strategicGoals.objectives')} ({goal.objectives.length})
                                                 <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)] transition-transform group-open/objectives:rotate-180" aria-hidden="true" />
                                             </summary>
@@ -490,7 +490,7 @@ export default function StrategicGoalsIndex({ goals, filters, cycles, organizati
                 </div>
                 {goals.last_page > 1 && <Pager page={goals} />}
                 <details className="group rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
-                    <summary className="flex cursor-pointer list-none items-center gap-3 rounded-xl px-5 py-4 text-sm font-medium text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
+                    <summary className="flex cursor-pointer list-none items-center gap-3 rounded-panel px-5 py-4 text-sm font-medium text-[color:var(--app-foreground)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 [&::-webkit-details-marker]:hidden">
                         <Layers className="h-4 w-4 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
                         {t('performance.strategicGoals.workflow')}
                         <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)] transition-transform group-open:rotate-180" aria-hidden="true" />

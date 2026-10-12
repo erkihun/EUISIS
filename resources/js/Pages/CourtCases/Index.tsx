@@ -18,14 +18,14 @@ export default function CourtCasesIndex(): JSX.Element {
     const { withBrand } = useBranding();
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('courtCases.title')} />
-            <div className="min-w-0 space-y-4">
-                <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                     title={t('courtCases.title')}
                     description={t('courtCases.description')}
                     actions={<StatusBadge tone="neutral">{t('courtCases.planned')}</StatusBadge>}
-                />
+                />}>
+            <Head title={t('courtCases.title')} />
+            <div className="min-w-0 space-y-4">
+                
                 <p className="flex items-start gap-2 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-3 text-sm text-[color:var(--app-muted-foreground)]">
                     <InfoIcon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>{withBrand(t('courtCases.notice'))}</span>

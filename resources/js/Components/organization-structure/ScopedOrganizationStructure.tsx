@@ -256,7 +256,7 @@ export default function ScopedOrganizationStructure({
             <div className="flex-1 space-y-3 overflow-y-auto p-2" role="tree">
                 {filteredOrganizations.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <Building2 className="h-8 w-8 text-gray-300 dark:text-slate-600" />
+                        <Building2 className="h-8 w-8 text-[color:var(--app-muted-foreground)]" />
                         <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">{t('organizationUnits.noOrganizationStructureFound')}</p>
                     </div>
                 ) : filteredOrganizations.map((organization) => {

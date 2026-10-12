@@ -1,15 +1,11 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import InputLabel from '@/Components/InputLabel';
-import TextInput from '@/Components/TextInput';
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 
-import { actionLinkClassName, cx, inputClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, inputClassName, Button, FieldError, FormLabel, Input } from '@/Components/ui';
 interface UnitTypeOption {
     id: string;
     code: string;
@@ -107,7 +103,7 @@ export default function OrganizationUnitsCreate({
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {/* Organization */}
                         <div>
-                            <InputLabel value={`${t('organizationUnits.organization')} *`} />
+                            <FormLabel>{`${t('organizationUnits.organization')} *`}</FormLabel>
                             {selectedOrg ? (
                                 <>
                                     <div className={`${inputCls} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`}>
@@ -133,12 +129,12 @@ export default function OrganizationUnitsCreate({
                                     ))}
                                 </select>
                             )}
-                            <InputError message={errors.organization_id} />
+                            <FieldError>{errors.organization_id}</FieldError>
                         </div>
 
                         {/* Unit Type */}
                         <div>
-                            <InputLabel value={`${t('organizationUnits.unitType')} *`} />
+                            <FormLabel>{`${t('organizationUnits.unitType')} *`}</FormLabel>
                             {noUnitTypes ? (
                                 <p className="mt-1 rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm text-yellow-800 dark:border-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300">
                                     {t('organizationUnitTypes.createUnitTypesFirst')}
@@ -157,12 +153,12 @@ export default function OrganizationUnitsCreate({
                                     ))}
                                 </select>
                             )}
-                            <InputError message={errors.organization_unit_type_id} />
+                            <FieldError>{errors.organization_unit_type_id}</FieldError>
                         </div>
 
                         {/* Parent Unit - optional */}
                         <div>
-                            <InputLabel value={t('organizationUnits.parentUnitOptional')} />
+                            <FormLabel>{t('organizationUnits.parentUnitOptional')}</FormLabel>
                             {data.organization_id ? (
                                 <>
                                     <select
@@ -190,7 +186,7 @@ export default function OrganizationUnitsCreate({
                                     {t('organizationUnits.selectOrganization')}
                                 </p>
                             )}
-                            <InputError message={errors.parent_unit_id} />
+                            <FieldError>{errors.parent_unit_id}</FieldError>
                         </div>
 
                     </div>
@@ -215,25 +211,25 @@ export default function OrganizationUnitsCreate({
 
                         {/* Name EN */}
                         <div>
-                            <InputLabel value={`${t('organizationUnits.nameEn')} *`} />
-                            <TextInput
+                            <FormLabel>{`${t('organizationUnits.nameEn')} *`}</FormLabel>
+                            <Input
                                 className="w-full"
                                 value={data.name_en}
                                 onChange={(e) => setData('name_en', e.target.value)}
                                 required
                             />
-                            <InputError message={errors.name_en} />
+                            <FieldError>{errors.name_en}</FieldError>
                         </div>
 
                         {/* Name AM */}
                         <div>
-                            <InputLabel value={t('organizationUnits.nameAm')} />
-                            <TextInput
+                            <FormLabel>{t('organizationUnits.nameAm')}</FormLabel>
+                            <Input
                                 className="w-full"
                                 value={data.name_am}
                                 onChange={(e) => setData('name_am', e.target.value)}
                             />
-                            <InputError message={errors.name_am} />
+                            <FieldError>{errors.name_am}</FieldError>
                         </div>
 
                     </div>
@@ -241,7 +237,7 @@ export default function OrganizationUnitsCreate({
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                         {/* Status */}
                         <div>
-                            <InputLabel value={`${t('common.status')} *`} />
+                            <FormLabel>{`${t('common.status')} *`}</FormLabel>
                             <select
                                 className={inputCls}
                                 value={data.status}
@@ -253,74 +249,74 @@ export default function OrganizationUnitsCreate({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={errors.status} />
+                            <FieldError>{errors.status}</FieldError>
                         </div>
 
                         {/* Sort Order */}
                         <div>
-                            <InputLabel value={t('organizationUnits.sortOrder')} />
-                            <TextInput
+                            <FormLabel>{t('organizationUnits.sortOrder')}</FormLabel>
+                            <Input
                                 type="number"
                                 className="w-full"
                                 value={String(data.sort_order)}
                                 onChange={(e) => setData('sort_order', Number(e.target.value))}
                             />
-                            <InputError message={errors.sort_order} />
+                            <FieldError>{errors.sort_order}</FieldError>
                         </div>
 
                         {/* Effective From */}
                         <div>
-                            <InputLabel value={t('organizationUnits.effectiveFrom')} />
+                            <FormLabel>{t('organizationUnits.effectiveFrom')}</FormLabel>
                             <LocalizedDatePicker
                                 className="w-full"
                                 value={data.effective_from}
                                 onChange={(iso) => setData('effective_from', iso)}
                             />
-                            <InputError message={errors.effective_from} />
+                            <FieldError>{errors.effective_from}</FieldError>
                         </div>
 
                         {/* Effective To */}
                         <div>
-                            <InputLabel value={t('organizationUnits.effectiveTo')} />
+                            <FormLabel>{t('organizationUnits.effectiveTo')}</FormLabel>
                             <LocalizedDatePicker
                                 className="w-full"
                                 value={data.effective_to}
                                 onChange={(iso) => setData('effective_to', iso)}
                             />
-                            <InputError message={errors.effective_to} />
+                            <FieldError>{errors.effective_to}</FieldError>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         {/* Description EN */}
                         <div>
-                            <InputLabel value={t('organizationUnits.descriptionEn')} />
+                            <FormLabel>{t('organizationUnits.descriptionEn')}</FormLabel>
                             <textarea
                                 className={inputCls}
                                 rows={4}
                                 value={data.description_en}
                                 onChange={(e) => setData('description_en', e.target.value)}
                             />
-                            <InputError message={errors.description_en} />
+                            <FieldError>{errors.description_en}</FieldError>
                         </div>
 
                         {/* Description AM */}
                         <div>
-                            <InputLabel value={t('organizationUnits.descriptionAm')} />
+                            <FormLabel>{t('organizationUnits.descriptionAm')}</FormLabel>
                             <textarea
                                 className={inputCls}
                                 rows={4}
                                 value={data.description_am}
                                 onChange={(e) => setData('description_am', e.target.value)}
                             />
-                            <InputError message={errors.description_am} />
+                            <FieldError>{errors.description_am}</FieldError>
                         </div>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[color:var(--app-border)] pt-5">
-                        <PrimaryButton type="submit" disabled={processing}>
+                        <Button type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('organizationUnits.createOrganizationUnit')}
-                        </PrimaryButton>
+                        </Button>
                         <Link
                             href={backUrl}
                             className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}

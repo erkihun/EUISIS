@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { useForm, router } from '@inertiajs/react';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
@@ -77,6 +78,7 @@ export default function RelationshipPanel({
     canDelete = false,
 }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
 
     function targetName(name_en: string | null | undefined, name_am: string | null | undefined, fallback?: string): string {
         const name = locale === 'am' ? name_am : name_en;
@@ -112,9 +114,9 @@ export default function RelationshipPanel({
         form.setData(emptyForm);
     }
 
-    function handleDelete(row: RelationshipRow) {
+    async function handleDelete(row: RelationshipRow) {
         if (!deleteRoute) return;
-        if (!confirm(t('common.cannotUndo'))) return;
+        if (!(await confirm({ title: t('common.cannotUndo'), variant: 'danger' })).confirmed) return;
         router.delete(deleteRoute(row.id), { preserveScroll: true });
     }
 

@@ -6,6 +6,7 @@ import EmptyState from '@/Components/EmptyState';
 import StatCard from '@/Components/StatCard';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronDown, ChevronRight, Layers, Plus, ShieldCheck, TagsIcon } from '@/Components/Icons';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { permissionGroupLabel } from '@/lib/permissionGroups';
 
@@ -65,6 +66,7 @@ export default function PermissionsIndex({
     can: { create: boolean };
 }) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const [view, setView] = useState<'table' | 'grouped'>('grouped');
     const [draft, setDraft] = useState({ search: filters.search ?? '', group: filters.group ?? '', guard: filters.guard ?? '' });
     const permissionRows = permissions.data;
@@ -94,8 +96,8 @@ export default function PermissionsIndex({
 
     const hasActiveFilters = Boolean(filters.search || filters.group || filters.guard);
 
-    function destroy(p: Permission) {
-        if (!confirm(`${t('permissions.deletePermission')} "${p.name}"? ${t('common.cannotUndo')}`)) return;
+    async function destroy(p: Permission) {
+        if (!(await confirm({ title: `${t('permissions.deletePermission')} "${p.name}"`, description: t('common.cannotUndo'), variant: 'danger' })).confirmed) return;
         router.delete(route('permissions.destroy', p.id), { preserveScroll: true });
     }
 
@@ -289,7 +291,7 @@ function RowActions({
             ) : permission.is_system ? (
                 <span
                     title={t('permissions.protectedCannotDelete')}
-                    className="cursor-not-allowed text-xs font-medium text-gray-300 dark:text-slate-600"
+                    className="cursor-not-allowed text-xs font-medium text-[color:var(--app-muted-foreground)]"
                 >
                     {t('permissions.protectedPermission')}
                 </span>

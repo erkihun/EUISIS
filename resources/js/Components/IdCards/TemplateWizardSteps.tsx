@@ -53,7 +53,7 @@ export default function TemplateWizardSteps({ steps, current, onSelect, furthest
                                 className={[
                                     'flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold',
                                     active
-                                        ? 'bg-white/25'
+                                        ? 'bg-[color:color-mix(in_srgb,var(--app-surface)_25%,transparent)]'
                                         : done
                                           ? 'bg-[color:var(--color-primary)] text-white'
                                           : 'border border-current',
@@ -68,7 +68,7 @@ export default function TemplateWizardSteps({ steps, current, onSelect, furthest
                         {index < steps.length - 1 && (
                             <span
                                 aria-hidden="true"
-                                className="mx-0.5 h-px w-3 shrink-0 bg-gray-200 dark:bg-slate-700"
+                                className="mx-0.5 h-px w-3 shrink-0 bg-[color:var(--app-surface-muted)]"
                             />
                         )}
                     </li>

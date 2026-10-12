@@ -2,6 +2,7 @@ import Button from '@/Components/Button';
 import PageHeader from '@/Components/PageHeader';
 import SettingField from '@/Components/settings/SettingField';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import type { SettingsField } from '@/lib/settings';
 import { Head, Link, router, useForm, useRemember } from '@inertiajs/react';
@@ -95,6 +96,7 @@ function SectionEditor({ section, page, editable, routes }: { section: Section; 
 
 function RecordEditor({ row, fields, kind, routes, close, session }: { row: RecordRow | null; fields: Field[]; kind: string; routes: Record<string, string>; close: () => void; session: number }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
     const form = useForm<Record<string, Scalar>>(`public-site:record:${kind}:${row?.id ?? 'new'}:${session}`, Object.fromEntries(fields.map(field => [field.key, row?.[field.key] ?? (field.type === 'boolean' ? false : field.type === 'number' ? 0 : '')])));
     useUnsavedChanges(form.isDirty);
     return <section className={surface} aria-labelledby="content-editor-title">
@@ -110,20 +112,21 @@ function RecordEditor({ row, fields, kind, routes, close, session }: { row: Reco
                 {fields.map(field => <EditorField key={field.key} field={field} value={form.data[field.key]} error={form.errors[field.key]} onChange={value => form.setData(field.key, value)} routes={routes} />)}
             </fieldset>
             <SaveState processing={form.processing} saved={form.recentlySuccessful} errors={form.errors} />
-            <Button type="button" variant="secondary" disabled={form.processing} onClick={() => { if (!form.isDirty || window.confirm(t('publicSite.admin.discard'))) close(); }}>{t('common.cancel')}</Button>
+            <Button type="button" variant="secondary" disabled={form.processing} onClick={async () => { if (!form.isDirty || (await confirm({ title: t('publicSite.admin.discard') })).confirmed) close(); }}>{t('common.cancel')}</Button>
         </form>
     </section>;
 }
 
 function Collection({ props }: { props: Props }) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const [editing, setEditing] = useRemember<{ row: RecordRow | null; session: number } | null>(null, `public-site:editing:${props.tab}`);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const search = useForm({ search: props.search, tab: props.tab });
     const rows = props.records!;
-    const transition = (row: RecordRow, action: string) => {
-        if (!window.confirm(t(`publicSite.admin.confirm${action}`))) return;
+    const transition = async (row: RecordRow, action: string) => {
+        if (!(await confirm({ title: t(`publicSite.admin.confirm${action}`) })).confirmed) return;
         router.post(route('public-site-management.transition', { kind: props.tab, id: row.id }), { action }, {
             preserveScroll: true, onStart: () => { setBusy(true); setError(''); }, onFinish: () => setBusy(false), onError: () => setError(t('publicSite.admin.actionFailed')),
         });
@@ -174,14 +177,15 @@ function Collection({ props }: { props: Props }) {
 
 function SiteSettings({ fields, editable }: { fields: SettingsField[]; editable: boolean }) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const form = useForm<Record<string, string | number | boolean | string[] | File | null>>('public-site:settings', Object.fromEntries(fields.map(field => {
         const value = field.value ?? field.default ?? '';
         return [field.key, typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string' ? value : ''];
     })));
     useUnsavedChanges(form.isDirty);
-    return <form className={`${surface} space-y-4`} onSubmit={e => {
+    return <form className={`${surface} space-y-4`} onSubmit={async e => {
         e.preventDefault();
-        if (form.data.enabled === false && !window.confirm(t('publicSite.admin.disableConfirm'))) return;
+        if (form.data.enabled === false && !(await confirm({ title: t('publicSite.admin.disableConfirm'), variant: 'danger' })).confirmed) return;
         form.put(route('public-site-management.settings'), { preserveScroll: true, onSuccess: () => form.setDefaults(form.data) });
     }}>
         <h2 className="text-base font-semibold">{t('publicSite.admin.tabs.settings')}</h2>
@@ -195,10 +199,10 @@ function SiteSettings({ fields, editable }: { fields: SettingsField[]; editable:
 
 export default function Index(props: Props) {
     const { t } = useLocale();
-    return <AuthenticatedLayout>
+    return <AuthenticatedLayout header={<PageHeader title={t('publicSite.admin.title')} description={t('publicSite.admin.description')} actions={<a href={route('home')} target="_blank" rel="noopener noreferrer" className="rounded-md border border-[color:var(--app-border-strong)] px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2">{t('publicSite.admin.openSite')}</a>} />}>
         <Head title={t('publicSite.admin.title')} />
         <div className="min-w-0 space-y-5 text-[color:var(--app-foreground)]">
-            <PageHeader title={t('publicSite.admin.title')} description={t('publicSite.admin.description')} actions={<a href={route('home')} target="_blank" rel="noopener noreferrer" className="rounded-md border border-[color:var(--app-border-strong)] px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2">{t('publicSite.admin.openSite')}</a>} />
+            
             <nav aria-label={t('publicSite.admin.title')} className="flex flex-wrap gap-2 border-b border-[color:var(--app-border)] pb-3">
                 {props.tabs.map(tab => <Link key={tab} href={route('public-site-management.index', { tab })} aria-current={tab === props.tab ? 'page' : undefined} className={`rounded-md px-3 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 ${tab === props.tab ? 'bg-[color:var(--app-surface-muted)] text-gray-950 dark:text-white' : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]'}`}>{t(`publicSite.admin.tabs.${tab}`)}</Link>)}
             </nav>

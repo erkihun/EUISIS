@@ -72,7 +72,7 @@ export function ActionPlanTable({ objectives, goals, cycleStart }: { objectives:
     const value = (target: PlanTarget, v: string | null, numerator?: string | null, denominator?: string | null) =>
         numerator !== null && numerator !== undefined && numerator !== '' ? `${num(numerator)} / ${num(denominator)}` : v === null || v === '' ? '' : `${num(v)}${isPercent(target) ? '%' : ''}`;
     const unit = (target: PlanTarget) => target.kpi.unit || (target.kpi.measurement ? t(`performance.enums.measurement.${target.kpi.measurement}`) : '');
-    const dash = <span className="text-gray-300 dark:text-slate-600">—</span>;
+    const dash = <span className="text-[color:var(--app-muted-foreground)]">—</span>;
 
     function schedule(target: PlanTarget | null): ReactNode {
         const rows = target?.period_targets ?? [];

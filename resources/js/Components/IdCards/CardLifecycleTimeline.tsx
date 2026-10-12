@@ -54,7 +54,7 @@ const stepLabelCls: Record<StepStatus, string> = {
 const stepLineCls: Record<StepStatus, string> = {
     completed: 'bg-emerald-400',
     current:   'bg-gradient-to-b from-emerald-400 to-blue-300',
-    upcoming:  'bg-gray-200 dark:bg-slate-700',
+    upcoming:  'bg-[color:var(--app-surface-muted)]',
     terminal:  'bg-red-300',
 };
 

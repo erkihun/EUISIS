@@ -114,7 +114,7 @@ export default function LocalizedTimePicker({
             value={value}
             onChange={e => onChange(e.target.value)}
             disabled={disabled}
-            className={className ?? 'rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm dark:text-slate-100 disabled:opacity-50'}
+            className={className ?? 'rounded border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-2 py-1 text-sm text-[color:var(--app-foreground)] disabled:opacity-50'}
         />
     );
 }

@@ -146,7 +146,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                 className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm no-print"
                 onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
             >
-                <div className="w-full max-w-lg rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-gray-200 dark:ring-slate-700">
+                <div className="w-full max-w-lg rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-[color:var(--app-border-strong)]">
 
                     {/* Header */}
                     <div className="flex items-center justify-between px-6 pt-5 pb-3">
@@ -159,7 +159,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                         <button
                             type="button"
                             onClick={onClose}
-                            className="rounded-lg p-1 text-gray-400 hover:bg-[color:var(--app-surface-muted)] hover:text-gray-600 dark:hover:text-slate-300"
+                            className="rounded-lg p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-muted-foreground)] dark:hover:text-[color:var(--app-muted-foreground)]"
                         >
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -181,7 +181,7 @@ export default function CardPortraitPrintExportModal({ card, isOpen, onClose }: 
                                 onClick={() => setTab(value)}
                                 className={`flex-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                     tab === value
-                                        ? 'bg-white shadow text-[color:var(--app-foreground)] dark:bg-slate-700'
+                                        ? 'bg-[color:var(--app-surface)] shadow text-[color:var(--app-foreground)]'
                                         : 'text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-foreground)]'
                                 }`}
                             >

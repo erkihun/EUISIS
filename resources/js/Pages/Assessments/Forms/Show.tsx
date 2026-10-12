@@ -197,7 +197,7 @@ export default function AssessmentFormShow({ form: record, version, versions, pr
                     </fieldset>
 
                     {editable && (
-                        <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 rounded-panel border border-[color:var(--app-border)] bg-white/95 px-4 py-3 shadow-lg backdrop-blur dark:bg-slate-950/95">
+                        <div className="sticky bottom-0 z-10 flex flex-wrap items-center gap-2 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur">
                             <p className="me-auto text-sm text-[color:var(--app-muted-foreground)]">{dirty ? t('assessments.unsaved') : t('assessments.saved')}</p>
                             {can.discard && <button type="button" className={secondaryBtn} onClick={() => act(t('assessments.actions.discard'), t('assessments.confirm.discard'), () => router.delete(route('assessment-forms.versions.discard', version.id)))}>{t('assessments.actions.discard')}</button>}
                             <button type="button" className={secondaryBtn} disabled={dirty || form.processing} title={dirty ? t('assessments.saveFirst') : undefined} onClick={() => router.post(route('assessment-forms.versions.validate', version.id), {}, { preserveScroll: true })}>{t('assessments.actions.validate')}</button>

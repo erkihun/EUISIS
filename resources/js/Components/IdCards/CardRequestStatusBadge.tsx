@@ -9,7 +9,7 @@ type StyleEntry = {
 
 const styleMap: Record<RequestStatus, StyleEntry> = {
     draft: {
-        badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-gray-200 dark:ring-slate-700',
+        badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
         dot:   'bg-gray-400',
     },
     submitted: {
@@ -39,7 +39,7 @@ const styleMap: Record<RequestStatus, StyleEntry> = {
 };
 
 const fallbackStyle: StyleEntry = {
-    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-gray-200',
+    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
     dot:   'bg-gray-400',
 };
 

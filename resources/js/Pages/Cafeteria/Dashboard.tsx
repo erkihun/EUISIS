@@ -112,7 +112,7 @@ export default function CafeteriaDashboard({
                 </DashboardSection>
 
                 <DashboardSection title={t('cafeteria.todayTransactions')}>
-                    <div className="overflow-hidden rounded-panel border border-gray-200/80 bg-white/95 shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] dark:border-slate-800/80 dark:bg-slate-900/95">
+                    <div className="overflow-hidden rounded-panel border border-[color:var(--app-border)]/80 bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)]">
                         <div className="overflow-x-auto">
                             <table className={tableClassName}>
                                 <thead className={tableHeadClassName}>

@@ -128,7 +128,7 @@ export default function HierarchyTreeNode({
                 className="group relative rounded-panel"
             >
                 <div
-                    className="relative z-20 flex min-h-[4.25rem] flex-col gap-3 rounded-panel border border-transparent bg-[color:var(--app-surface)] px-3 py-3 transition hover:border-gray-200 hover:bg-gray-50/80 dark:hover:border-slate-700 dark:hover:bg-slate-800/60 lg:flex-row lg:items-center"
+                    className="relative z-20 flex min-h-[4.25rem] flex-col gap-3 rounded-panel border border-transparent bg-[color:var(--app-surface)] px-3 py-3 transition hover:border-[color:var(--app-border)] hover:bg-gray-50/80 dark:hover:bg-slate-800/60 lg:flex-row lg:items-center"
                     style={{ marginLeft: `${rowMarginLeft}px` }}
                 >
                     <div className="flex min-w-0 flex-1 items-start gap-3">

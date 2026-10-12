@@ -38,7 +38,7 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
 
             {filtered.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-panel border border-dashed border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6 py-12 text-center">
-                    <Building2 className="h-10 w-10 text-gray-300 dark:text-slate-600" />
+                    <Building2 className="h-10 w-10 text-[color:var(--app-muted-foreground)]" />
                     <p className="mt-3 text-sm text-[color:var(--app-muted-foreground)]">
                         {t('organizationUnits.noOrganizationUnitsFound')}
                     </p>

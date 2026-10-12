@@ -134,7 +134,7 @@ export default function OrganogramChart({
 
                 {supportsExpansion && (
                     <>
-                        <span className="mx-1 h-4 w-px bg-gray-200 dark:bg-slate-700" />
+                        <span className="mx-1 h-4 w-px bg-[color:var(--app-surface-muted)]" />
                         <button type="button" onClick={() => setExpandedIds(new Set(allUnitIds))} className={buttonCls}>
                             {t('organizations.expandAll')}
                         </button>
@@ -144,7 +144,7 @@ export default function OrganogramChart({
                     </>
                 )}
 
-                <span className="mx-1 h-4 w-px bg-gray-200 dark:bg-slate-700" />
+                <span className="mx-1 h-4 w-px bg-[color:var(--app-surface-muted)]" />
                 <button
                     type="button"
                     onClick={() => setZoom((value) => Math.max(0.5, Number((value - 0.1).toFixed(2))))}

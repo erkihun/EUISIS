@@ -30,7 +30,7 @@ const NAV = [
     { routeName: 'provider.portal.orders.index', labelKey: 'providerPortal.orders', Icon: Inbox,            color: 'text-amber-500'  },
     { routeName: 'provider.portal.ledger.index', labelKey: 'providerPortal.ledger', Icon: ScrollText,       color: 'text-cyan-500'   },
     { routeName: 'provider.portal.reports.index', labelKey: 'providerPortal.reports', Icon: ActivityIcon,     color: 'text-rose-500'   },
-    { routeName: 'provider.portal.profile.show', labelKey: 'providerPortal.profile', Icon: UserIcon,         color: 'text-slate-400'  },
+    { routeName: 'provider.portal.profile.show', labelKey: 'providerPortal.profile', Icon: UserIcon,         color: 'text-[color:var(--app-muted-foreground)]'  },
 ] as const;
 
 // ── Inline mini-icons ─────────────────────────────────────────────────────────
@@ -111,12 +111,12 @@ function Sidebar({
                         {/* Collapse / close buttons */}
                         {onClose ? (
                             <button onClick={onClose} aria-label="Close"
-                                className="rounded-lg p-1.5 text-gray-400 hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus:outline-none">
+                                className="rounded-lg p-1.5 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus:outline-none">
                                 <X className="h-4 w-4" />
                             </button>
                         ) : (
                             <button onClick={onToggle} title="Collapse" aria-label="Collapse sidebar"
-                                className="rounded-lg p-1.5 text-gray-400 hover:bg-[color:var(--app-surface-muted)] hover:text-gray-700 dark:hover:text-slate-300 focus:outline-none">
+                                className="rounded-lg p-1.5 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] dark:hover:text-[color:var(--app-muted-foreground)] focus:outline-none">
                                 <ChevronLeftSmall className="h-4 w-4" />
                             </button>
                         )}
@@ -157,7 +157,7 @@ function Sidebar({
                                     ))}
                                 </select>
                             ) : selected && (
-                                <div className="flex items-center gap-2.5 rounded-lg border border-[color:var(--app-border)] bg-gray-50 px-2.5 py-2 dark:bg-slate-900/60">
+                                <div className="flex items-center gap-2.5 rounded-lg border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-2.5 py-2">
                                     <div
                                         className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold text-white shadow-sm"
                                         style={{ background: `linear-gradient(135deg,${PRIMARY},${ACCENT})` }}
@@ -199,7 +199,7 @@ function Sidebar({
                                             'relative flex h-10 w-full items-center justify-center rounded-card transition-all duration-150 focus:outline-none',
                                             isActive
                                                 ? 'bg-orange-500/10 dark:bg-orange-500/15'
-                                                : 'hover:bg-gray-100 dark:hover:bg-slate-800/70',
+                                                : 'hover:bg-[color:var(--app-surface-muted)]',
                                         ].join(' ')}
                                     >
                                         <Icon className={['h-[19px] w-[19px]', isActive ? 'text-orange-500' : color + ' opacity-70'].join(' ')} />
@@ -220,7 +220,7 @@ function Sidebar({
                                         'group flex items-center gap-3 rounded-card px-3 py-2.5 text-[13.5px] font-medium transition-all duration-150 focus:outline-none',
                                         isActive
                                             ? 'bg-orange-500/10 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400'
-                                            : 'text-[color:var(--app-muted-foreground)] hover:bg-gray-100 hover:text-[color:var(--app-foreground)] dark:hover:bg-slate-800/70',
+                                            : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]',
                                     ].join(' ')}
                                 >
                                     {/* icon wrapper */}
@@ -228,7 +228,7 @@ function Sidebar({
                                         'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors',
                                         isActive
                                             ? 'bg-orange-500/15'
-                                            : 'bg-[color:var(--app-surface-muted)] group-hover:bg-gray-200 dark:group-hover:bg-slate-700',
+                                            : 'bg-[color:var(--app-surface-muted)] group-hover:bg-[color:var(--app-surface-muted)]',
                                     ].join(' ')}>
                                         <Icon className={['h-[15px] w-[15px]', isActive ? 'text-orange-500' : color].join(' ')} />
                                     </span>
@@ -270,7 +270,7 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
 
     return (
         <header
-            className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-[color:var(--app-border)] bg-white/95 backdrop-blur-sm px-4 sm:px-6 dark:bg-slate-900/95"
+            className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-3 border-b border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] backdrop-blur-sm px-4 sm:px-6"
             style={{ borderTop: `3px solid ${ACCENT}` }}
         >
             {/* Mobile hamburger */}
@@ -278,7 +278,7 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
                 type="button"
                 onClick={onMenuClick}
                 aria-label="Open sidebar"
-                className="rounded-lg p-1.5 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-gray-700 focus:outline-none lg:hidden"
+                className="rounded-lg p-1.5 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus:outline-none lg:hidden"
             >
                 <MenuIcon className="h-5 w-5" />
             </button>
@@ -292,7 +292,7 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
             <div className="flex items-center gap-1">
                 <LanguageSwitcher />
                 <ThemeToggle />
-                <span className="mx-1.5 h-5 w-px bg-gray-200 dark:bg-slate-700" />
+                <span className="mx-1.5 h-5 w-px bg-[color:var(--app-surface-muted)]" />
 
                 {/* ── User dropdown ── */}
                 <Dropdown>
@@ -324,7 +324,7 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
                         </button>
                     </Dropdown.Trigger>
 
-                    <Dropdown.Content contentClasses="py-1.5 bg-[color:var(--app-surface)] border border-gray-100 dark:border-slate-700/80 min-w-[230px] shadow-xl rounded-card">
+                    <Dropdown.Content contentClasses="py-1.5 bg-[color:var(--app-surface)] border border-[color:var(--app-border)] min-w-[230px] shadow-xl rounded-card">
                         {/* User card */}
                         <div className="mx-1.5 mb-1.5 rounded-lg bg-gradient-to-br from-orange-50 to-amber-50 p-3 dark:from-orange-950/30 dark:to-amber-950/20">
                             <div className="flex items-center gap-3">
@@ -352,12 +352,12 @@ function TopBar({ onMenuClick, title }: { onMenuClick: () => void; title: string
 
                         <Dropdown.Link href={route('provider.portal.profile.show')}>
                             <span className="flex items-center gap-2.5">
-                                <UserIcon className="h-4 w-4 text-gray-400" />
+                                <UserIcon className="h-4 w-4 text-[color:var(--app-muted-foreground)]" />
                                 {t('providerPortal.profile')}
                             </span>
                         </Dropdown.Link>
 
-                        <div className="mx-2 my-1 h-px bg-gray-100 dark:bg-slate-700/60" />
+                        <div className="mx-2 my-1 h-px bg-[color:var(--app-surface-muted)]" />
 
                         <Dropdown.Link href={route('provider.portal.logout')} method="post" as="button">
                             <span className="flex items-center gap-2.5 text-red-600 dark:text-red-400">

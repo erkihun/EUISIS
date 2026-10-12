@@ -180,7 +180,7 @@ export function FormActions({
     const { t } = useLocale();
 
     return (
-        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-[color:var(--app-border)] bg-white/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 dark:bg-slate-900/95">
+        <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
                 <Link
                     href={cancelHref}

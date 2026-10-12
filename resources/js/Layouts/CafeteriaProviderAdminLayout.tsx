@@ -79,11 +79,11 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                     </span>
                     <div className="leading-tight">
                         <p className="text-xs font-semibold text-white">Cafeteria</p>
-                        <p className="text-[10px] text-slate-400">Provider Admin</p>
+                        <p className="text-[10px] text-[color:var(--app-muted-foreground)]">Provider Admin</p>
                     </div>
                 </Link>
                 {onClose && (
-                    <button type="button" onClick={onClose} className="rounded p-1 text-slate-400 hover:text-white">
+                    <button type="button" onClick={onClose} className="rounded p-1 text-[color:var(--app-muted-foreground)] hover:text-white">
                         <X className="h-4 w-4" />
                     </button>
                 )}
@@ -102,10 +102,10 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
                                         'group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                                         active
                                             ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
-                                            : 'text-slate-300 hover:bg-white/10 hover:text-white',
+                                            : 'text-[color:var(--app-muted-foreground)] hover:bg-[color:color-mix(in_srgb,var(--app-surface)_10%,transparent)] hover:text-white',
                                     ].join(' ')}
                                 >
-                                    <span className={active ? 'text-white' : 'text-slate-500 group-hover:text-white'}>
+                                    <span className={active ? 'text-white' : 'text-[color:var(--app-muted-foreground)] group-hover:text-white'}>
                                         {item.icon}
                                     </span>
                                     {t(item.labelKey as Parameters<typeof t>[0])}
@@ -120,7 +120,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
             <div className="shrink-0 border-t border-slate-700/60 px-3 py-3">
                 <Link
                     href={route('cafeteria.dashboard')}
-                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-[color:var(--app-muted-foreground)] transition-colors hover:bg-slate-800 hover:text-white"
                 >
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
@@ -161,7 +161,7 @@ function TopBar({ onMenuClick }: { onMenuClick: () => void }) {
                         <button type="button" className="inline-flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]">
                             <UserAvatar src={user?.profile_photo_url} name={user?.name ?? ''} size={28} />
                             <span className="hidden max-w-[120px] truncate sm:inline">{user?.name}</span>
-                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                            <ChevronDown className="h-4 w-4 text-[color:var(--app-muted-foreground)]" />
                         </button>
                     </Dropdown.Trigger>
                     <Dropdown.Content contentClasses="py-1 bg-[color:var(--app-surface)] border border-[color:var(--app-border)] min-w-[180px]">

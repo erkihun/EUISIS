@@ -492,8 +492,8 @@ export default function CafeteriaScan({
                                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
                                             {camera.starting || busy
                                                 ? <span aria-hidden="true" className="h-9 w-9 animate-spin rounded-full border-4 border-white/20 border-t-white" />
-                                                : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-slate-300"><QrCodeIcon className="h-7 w-7" aria-hidden="true" /></span>}
-                                            <p className="max-w-xs text-sm leading-6 text-slate-300">
+                                                : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:color-mix(in_srgb,var(--app-surface)_10%,transparent)] text-[color:var(--app-muted-foreground)]"><QrCodeIcon className="h-7 w-7" aria-hidden="true" /></span>}
+                                            <p className="max-w-xs text-sm leading-6 text-[color:var(--app-muted-foreground)]">
                                                 {busy ? t('cafeteria.processingScan') : camera.starting ? t('cafeteria.startingCamera') : t('cafeteria.cameraReady')}
                                             </p>
                                         </div>
@@ -574,7 +574,7 @@ function LatestResult({ result }: { result: ScanResult }) {
                 <div>
                     <div className="flex items-center gap-4">
                         <UserAvatar key={employee.employee_number} src={employee.photo_url} name={employee.full_name} size={64}
-                            className="shrink-0 rounded-xl !bg-[color:var(--app-surface-muted)] !text-[color:var(--app-foreground)]" />
+                            className="shrink-0 rounded-panel !bg-[color:var(--app-surface-muted)] !text-[color:var(--app-foreground)]" />
                         <div className="min-w-0">
                             <h3 className="break-words text-lg font-semibold leading-7">{employee.full_name}</h3>
                             <p className={cx('mt-0.5 break-words font-mono text-sm', muted)}>{employee.employee_number}</p>

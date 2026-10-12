@@ -84,7 +84,7 @@ export function Switch({ id, checked, disabled, onChange, labelledBy, describedB
                 checked ? 'bg-[color:var(--color-primary)]' : 'bg-[color:var(--app-border-strong)]',
             )}
         >
-            <span aria-hidden="true" className={cx('inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform motion-reduce:transition-none', checked ? 'translate-x-5' : 'translate-x-0.5')} />
+            <span aria-hidden="true" className={cx('inline-block h-5 w-5 rounded-full bg-[color:var(--app-surface)] shadow-sm transition-transform motion-reduce:transition-none', checked ? 'translate-x-5' : 'translate-x-0.5')} />
         </button>
     );
 }

@@ -21,7 +21,7 @@ interface Props {
 }
 
 const controlCls =
-    'h-9 w-full rounded-control border-[color:var(--app-border-strong)] text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:cursor-wait disabled:opacity-60 dark:bg-slate-950 dark:text-slate-100 sm:w-auto';
+    'h-9 w-full rounded-control border-[color:var(--app-border-strong)] text-sm focus:border-[color:var(--color-primary)] focus:ring-[color:var(--color-primary)] disabled:cursor-wait disabled:opacity-60 text-[color:var(--app-foreground)] sm:w-auto';
 
 /**
  * Scope controls for the dashboard: how far back, and whose data.

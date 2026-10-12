@@ -2,6 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useForm } from '@inertiajs/react';
 import { MoreVertical, PencilIcon, TrashIcon, ArchiveIcon, XCircle, Plus } from '@/Components/Icons';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 
 /** Keys returned by OrganizationDeletionGuard::reasons(), mapped to i18n labels below. */
@@ -27,6 +28,7 @@ type Props = {
 
 export default function OrganizationActionsMenu({ organizationId, can, deletionBlockers = [] }: Props) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
     const [open, setOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
     const ref = useRef<HTMLDivElement>(null);
@@ -90,23 +92,23 @@ export default function OrganizationActionsMenu({ organizationId, can, deletionB
     const hasAny = can.update || can.delete || can.archive || can.deactivate || can.createChild;
     if (!hasAny) return null;
 
-    function handleDelete() {
+    async function handleDelete() {
         if (isBlocked) return;
-        if (!confirm(t('organizations.deleteConfirm'))) return;
+        if (!(await confirm({ title: t('organizations.deleteConfirm'), variant: 'danger' })).confirmed) return;
         deleteForm.delete(route('organizations.destroy', organizationId), {
             onSuccess: () => setOpen(false),
         });
     }
 
-    function handleArchive() {
-        if (!confirm(t('organizations.archiveConfirm'))) return;
+    async function handleArchive() {
+        if (!(await confirm({ title: t('organizations.archiveConfirm'), variant: 'danger' })).confirmed) return;
         archiveForm.delete(route('organizations.archive', organizationId), {
             onSuccess: () => setOpen(false),
         });
     }
 
-    function handleDeactivate() {
-        if (!confirm(t('organizations.deactivateConfirm'))) return;
+    async function handleDeactivate() {
+        if (!(await confirm({ title: t('organizations.deactivateConfirm'), variant: 'danger' })).confirmed) return;
         deactivateForm.patch(route('organizations.deactivate', organizationId), {
             onSuccess: () => setOpen(false),
         });
@@ -122,7 +124,7 @@ export default function OrganizationActionsMenu({ organizationId, can, deletionB
                 ref={buttonRef}
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="rounded p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-gray-600 dark:hover:text-slate-300"
+                className="rounded p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-muted-foreground)]"
                 aria-label={t('common.actions')}
             >
                 <MoreVertical className="h-4 w-4" />

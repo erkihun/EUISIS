@@ -34,7 +34,7 @@ export default function CardLifecycleFunnel({ data, t }: Props) {
                         </div>
                         <div className="h-10 rounded-card bg-[color:var(--app-surface-muted)] p-1">
                             <div className="flex h-full items-center rounded-lg px-3 text-sm font-medium text-gray-950" style={{ width: `${width}%`, backgroundColor: series[index % series.length] }}>
-                                <span className="rounded bg-white/90 px-1.5 text-gray-950">{item.value}</span>
+                                <span className="rounded bg-[color:color-mix(in_srgb,var(--app-surface)_90%,transparent)] px-1.5 text-gray-950">{item.value}</span>
                             </div>
                         </div>
                     </div>

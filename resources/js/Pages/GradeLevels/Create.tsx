@@ -1,11 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, FormLabel } from '@/Components/ui';
 export default function GradeLevelsCreate() {
     const { t } = useLocale();
     const form = useForm({
@@ -28,7 +27,7 @@ export default function GradeLevelsCreate() {
                 onSubmit={submit}
             >
                 <div className="max-w-sm space-y-1.5">
-                    <InputLabel htmlFor="name" value={t('gradeLevels.name')} />
+                    <FormLabel htmlFor="name">{t('gradeLevels.name')}</FormLabel>
                     <input
                         id="name"
                         className={inputCls}

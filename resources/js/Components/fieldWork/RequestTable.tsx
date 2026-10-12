@@ -77,7 +77,7 @@ export default function RequestTable({ rows, emptyText, href, showEmployee = tru
             <ul className="divide-y divide-[color:var(--app-border)] md:hidden">
                 {rows.map((row) => (
                     <li key={row.id}>
-                        <Link href={href(row)} className="block px-3 py-2.5 active:bg-gray-50 dark:active:bg-slate-800/40">
+                        <Link href={href(row)} className="block px-3 py-2.5 active:bg-[color:var(--app-surface-muted)] dark:active:bg-slate-800/40">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <p className="truncate text-sm font-medium text-[color:var(--app-foreground)]">{row.reference_number}</p>

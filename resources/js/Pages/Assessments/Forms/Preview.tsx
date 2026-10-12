@@ -80,7 +80,7 @@ export default function AssessmentFormPreview({ form, version }: Props) {
                     </Section>
                 ))}
 
-                <div className="sticky bottom-3 rounded-panel border border-[color:var(--app-border)] bg-white/95 px-4 py-3 text-sm shadow-lg backdrop-blur dark:bg-slate-950/95">
+                <div className="sticky bottom-3 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 text-sm shadow-lg backdrop-blur">
                     {t('assessments.previewTotal')}: <span className="font-semibold tabular-nums">{Math.round(total * 10000) / 10000} / {max}</span>
                     {max > 0 && <span className="ms-2 text-[color:var(--app-muted-foreground)]">({Math.round((total / max) * 10000) / 100}%)</span>}
                 </div>

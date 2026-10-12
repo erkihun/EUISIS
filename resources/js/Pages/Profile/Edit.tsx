@@ -55,7 +55,7 @@ type Profile = {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-const inputCls = 'w-full rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-2.5 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:placeholder-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-800';
+const inputCls = 'w-full rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-2.5 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:bg-[color:var(--app-surface)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 dark:placeholder-slate-500 dark:focus:border-blue-400';
 
 function Field({ label, error, hint, children }: { label: string; error?: string; hint?: string; children: React.ReactNode }) {
     return (
@@ -172,7 +172,7 @@ export default function Edit({
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                             </span>
-                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/0 text-white opacity-0 transition group-hover:bg-white/20 group-hover:opacity-100">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/0 text-white opacity-0 transition group-hover:bg-[color:color-mix(in_srgb,var(--app-surface)_20%,transparent)] group-hover:opacity-100">
                                 <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -291,7 +291,7 @@ export default function Edit({
                             <div className="grid gap-5 sm:grid-cols-2">
                                 <Field label={t('profile.name')} error={form.errors.name}>
                                     <div className="relative">
-                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[color:var(--app-muted-foreground)]">
                                             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0" />
                                             </svg>
@@ -302,7 +302,7 @@ export default function Edit({
 
                                 <Field label={t('profile.email')} error={form.errors.email}>
                                     <div className="relative">
-                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[color:var(--app-muted-foreground)]">
                                             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
                                             </svg>
@@ -323,7 +323,7 @@ export default function Edit({
                                                 <option key={cc.code} value={cc.code}>{cc.label}</option>
                                             ))}
                                         </select>
-                                        <div className="my-2 w-px bg-gray-200 dark:bg-slate-600" />
+                                        <div className="my-2 w-px bg-[color:var(--app-surface-muted)]" />
                                         <input
                                             className="flex-1 border-0 bg-transparent px-3 py-2.5 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 focus:outline-none dark:placeholder-slate-500"
                                             placeholder="9xxxxxxxx"
@@ -336,7 +336,7 @@ export default function Edit({
 
                                 <Field label={t('profile.gender')} error={form.errors.gender}>
                                     <div className="relative">
-                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[color:var(--app-muted-foreground)]">
                                             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
                                             </svg>
@@ -346,7 +346,7 @@ export default function Edit({
                                             <option value="male">{t('profile.genderMale')}</option>
                                             <option value="female">{t('profile.genderFemale')}</option>
                                         </select>
-                                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-[color:var(--app-muted-foreground)]">
                                             <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                             </svg>
@@ -357,7 +357,7 @@ export default function Edit({
                                 <div className="sm:col-span-2">
                                     <Field label={t('profile.nationalId')} error={form.errors.national_id} hint={t('profile.nationalIdHint')}>
                                         <div className="relative">
-                                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-[color:var(--app-muted-foreground)]">
                                                 <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.17-.789 3.376 3.376 0 016.34 0z" />
                                                 </svg>

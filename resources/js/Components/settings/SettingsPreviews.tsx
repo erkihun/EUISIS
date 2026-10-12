@@ -63,7 +63,7 @@ export function BrandingPreview({ values, fields, sidebarColor }: { values: Valu
                     </span>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-3" style={{ backgroundColor: headerBackground, color: textOn(headerBackground) }}>
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white/10">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[color:color-mix(in_srgb,var(--app-surface)_10%,transparent)]">
                         {logo ? <img src={logo} alt="" className="h-full w-full object-contain p-1" /> : <CreditCard className="h-5 w-5 opacity-70" aria-hidden="true" />}
                     </span>
                     <span className="min-w-0 flex-1">

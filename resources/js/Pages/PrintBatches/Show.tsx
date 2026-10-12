@@ -51,7 +51,7 @@ const batchStatusStyle: Record<BatchStatus, StyleEntry> = {
 };
 
 const fallbackStyle: StyleEntry = {
-    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-gray-200',
+    badge: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-1 ring-[color:var(--app-border-strong)]',
     dot:   'bg-gray-400',
 };
 

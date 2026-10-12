@@ -92,7 +92,7 @@ export default function RequestTimeline({ request }: Props): JSX.Element {
         if (state === 'current') {
             return <span className="text-[color:var(--color-primary)]" aria-hidden="true">&#9679;</span>;
         }
-        return <span className="text-gray-300 dark:text-slate-600" aria-hidden="true">&#9675;</span>;
+        return <span className="text-[color:var(--app-muted-foreground)]" aria-hidden="true">&#9675;</span>;
     }
 
     return (

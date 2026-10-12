@@ -89,15 +89,14 @@ export default function EmployeeFeedbackQr({ employee, token, stats, unavailable
     }
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.employeeFeedbackQr')} />
-
-            <div className="space-y-5">
-                <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                     title={t('serviceFeedback.employeeFeedbackQr')}
                     description={`${employee.name ?? ''} · ${employee.employee_number ?? ''}`}
                     backHref={route('employees.show', employee.id)}
-                />
+                />}>
+            <Head title={t('serviceFeedback.employeeFeedbackQr')} />
+
+            <div className="space-y-5">
 
                 <div className="grid gap-5 lg:grid-cols-3">
                     {/* QR card */}

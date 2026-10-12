@@ -1,11 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import InputLabel from '@/Components/InputLabel';
 import PageHeader from '@/Components/PageHeader';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent, ReactNode } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { buttonClassName, cx, inputClassName as uiInputClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName as uiInputClassName, FormLabel } from '@/Components/ui';
 type Occupation = {
     id: string;
     isco_code: string;
@@ -128,7 +127,7 @@ export default function OccupationsEdit({ occupation }: { occupation: Occupation
 function FormField({ children, error, label }: { children: ReactNode; error?: string; label: string }) {
     return (
         <div className="space-y-1.5">
-            <InputLabel value={label} />
+            <FormLabel>{label}</FormLabel>
             {children}
             {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
         </div>

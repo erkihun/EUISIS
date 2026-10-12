@@ -45,10 +45,9 @@ export default function NfcDashboard({ summary, statusDistribution, trend, termi
     const hasTrend = trend.some((point) => point.allowed > 0 || point.blocked > 0);
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<PageHeader title={t('nfc.management')} description={t('nfc.dashboard')} />}>
             <Head title={t('nfc.management')} />
 
-            <PageHeader title={t('nfc.management')} description={t('nfc.dashboard')} />
 
             <NfcSubNav can={can} current="dashboard" />
 

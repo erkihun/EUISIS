@@ -3,10 +3,9 @@ import { Head, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import InputError from '@/Components/InputError';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useNfcTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { buttonClassName, filterInputCls } from '@/Components/ui';
+import { buttonClassName, filterInputCls, FieldError } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import { toast } from '@/lib/toast';
 
@@ -64,14 +63,13 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
     }
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('nfc.provisionTitle')} />
-
-            <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                 title={t('nfc.provisionTitle')}
                 description={t('nfc.provisionSubtitle')}
                 backHref={route('id-cards.show', card.id)}
-            />
+            />}>
+            <Head title={t('nfc.provisionTitle')} />
+
 
             <div className="grid max-w-4xl gap-4 lg:grid-cols-2">
                 {/* Read-only context */}
@@ -138,7 +136,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={form.errors.credential_type} className="mt-1" />
+                            <FieldError className="mt-1">{form.errors.credential_type}</FieldError>
                         </label>
 
                         {needsKeyMaterial && (
@@ -152,7 +150,7 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                                         onChange={(e) => form.setData('key_version', e.target.value)}
                                         className={`${filterInputCls} w-full`}
                                     />
-                                    <InputError message={form.errors.key_version} className="mt-1" />
+                                    <FieldError className="mt-1">{form.errors.key_version}</FieldError>
                                 </label>
 
                                 <label className="block">
@@ -167,14 +165,14 @@ export default function NfcProvision({ card, employee, hardware }: Props) {
                                     <span className="mt-1 block text-xs text-[color:var(--app-muted-foreground)]">
                                         {t('nfc.keyReferenceHint')}
                                     </span>
-                                    <InputError message={form.errors.key_reference} className="mt-1" />
+                                    <FieldError className="mt-1">{form.errors.key_reference}</FieldError>
                                 </label>
                             </>
                         )}
 
                         {/* Lifecycle rejections arrive under an `nfc` key the
                             form data shape does not declare. */}
-                        <InputError message={(form.errors as Record<string, string>).nfc} />
+                        <FieldError>{(form.errors as Record<string, string>).nfc}</FieldError>
 
                         <button
                             type="submit"

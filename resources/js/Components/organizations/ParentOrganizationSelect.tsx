@@ -45,7 +45,7 @@ type ParentOrganizationResponse = {
 };
 
 const inputCls =
-    'w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:bg-gray-100 dark:placeholder-slate-500 dark:disabled:bg-slate-900';
+    'w-full rounded-lg border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 transition focus:border-[color:var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-primary)]/20 disabled:cursor-not-allowed disabled:bg-[color:var(--app-surface-muted)] dark:placeholder-slate-500 dark:disabled:bg-slate-900';
 
 export default function ParentOrganizationSelect({
     value,
@@ -161,7 +161,7 @@ export default function ParentOrganizationSelect({
                     <button
                         type="button"
                         onClick={() => setSearch('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--app-muted-foreground)] transition hover:text-gray-600 dark:hover:text-slate-300"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--app-muted-foreground)] transition hover:text-[color:var(--app-muted-foreground)]"
                         aria-label={labels.placeholder}
                     >
                         <X className="h-4 w-4" />
@@ -210,7 +210,7 @@ export default function ParentOrganizationSelect({
                                         setSelected(option);
                                         onChange(option.id, option);
                                     }}
-                                    className={`w-full border-t border-gray-100 px-3 py-3 text-left transition first:border-t-0 dark:border-slate-800 ${
+                                    className={`w-full border-t border-[color:var(--app-border)] px-3 py-3 text-left transition first:border-t-0 dark:border-slate-800 ${
                                         isSelected
                                             ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
                                             : 'hover:bg-[color:var(--app-surface-muted)]'

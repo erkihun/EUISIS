@@ -42,10 +42,9 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
     const meta = credentials.meta;
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<PageHeader title={t('nfc.credentials')} description={t('nfc.management')} />}>
             <Head title={t('nfc.credentials')} />
 
-            <PageHeader title={t('nfc.credentials')} description={t('nfc.management')} />
 
             <NfcSubNav can={can} current="credentials" />
 

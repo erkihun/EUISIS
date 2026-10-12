@@ -404,7 +404,7 @@ export default function EditUser({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-white/95 px-6 py-4 backdrop-blur dark:bg-slate-900/95">
+                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-6 py-4 backdrop-blur">
                         {/* Self-edit guard: hide deactivate for own account */}
                         {isSelf && (
                             <p className="mr-auto text-xs text-amber-600 dark:text-amber-400">

@@ -133,7 +133,7 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                         {/* What the client said */}
                         <section aria-labelledby="client-said" className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                             <div className="flex items-center gap-5 p-5 sm:p-6">
-                                <div className={cx('flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-xl sm:h-[88px] sm:w-[88px]', tone.soft)}>
+                                <div className={cx('flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-panel sm:h-[88px] sm:w-[88px]', tone.soft)}>
                                     <span className="text-4xl font-bold leading-none tabular-nums">{feedback.rating}</span>
                                     <span className="mt-1 text-xs font-semibold">{t('serviceFeedback.outOfFive')}</span>
                                 </div>

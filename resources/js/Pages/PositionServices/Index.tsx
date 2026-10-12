@@ -63,11 +63,7 @@ export default function PositionServicesIndex({ records, filters, organizations,
     }
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.positionServices')} />
-
-            <div className="space-y-5">
-                <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                     title={t('serviceFeedback.positionServices')}
                     description={t('serviceFeedback.positionServicesHint')}
                     actions={
@@ -80,7 +76,10 @@ export default function PositionServicesIndex({ records, filters, organizations,
                             </Link>
                         ) : undefined
                     }
-                />
+                />}>
+            <Head title={t('serviceFeedback.positionServices')} />
+
+            <div className="space-y-5">
 
                 <FilterPanel onSubmit={submit} onReset={() => router.get(route('position-services.index'))} hasActiveFilters={hasActiveFilters}>
                     <FilterField label={t('common.search')} wide>

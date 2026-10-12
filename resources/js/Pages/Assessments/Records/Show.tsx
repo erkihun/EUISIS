@@ -85,7 +85,7 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                                                 const selected = String(form.data.answers[criterion.id] ?? '') === String(option.id);
                                                 const description = (locale === 'am' && option.description_am) || option.description_en;
                                                 return (
-                                                    <label key={option.id} className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-card border px-3.5 py-3 text-sm ${selected ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary-light)]/50 dark:bg-slate-800' : 'border-[color:var(--app-border)] hover:bg-[color:var(--app-surface-muted)]'}`}>
+                                                    <label key={option.id} className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-card border px-3.5 py-3 text-sm ${selected ? 'border-[color:var(--color-primary)] bg-[color:var(--color-primary-light)]/50' : 'border-[color:var(--app-border)] hover:bg-[color:var(--app-surface-muted)]'}`}>
                                                         <input type="radio" name={`criterion-${criterion.id}`} value={option.id} checked={selected} required={criterion.is_required}
                                                             onChange={() => form.setData('answers', { ...form.data.answers, [criterion.id]: String(option.id) })} className="mt-1 accent-[color:var(--color-primary)]" />
                                                         <span className="min-w-0 flex-1">
@@ -102,7 +102,7 @@ export default function AssessmentRecordShow({ record, version, response, sheet,
                             </Section>
                         ))}
                         {can.submit && (
-                            <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-white/95 px-4 py-3 shadow-lg backdrop-blur print-hidden dark:bg-slate-950/95">
+                            <div className="sticky bottom-3 flex flex-wrap items-center justify-between gap-3 rounded-panel border border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-4 py-3 shadow-lg backdrop-blur print-hidden">
                                 <span className="text-sm text-[color:var(--app-muted-foreground)]">{r('answered').replace(':answered', String(answered)).replace(':count', String(count))}</span>
                                 <button disabled={form.processing || answered !== count} className={primaryBtn}>{r('submitRatings')}</button>
                             </div>

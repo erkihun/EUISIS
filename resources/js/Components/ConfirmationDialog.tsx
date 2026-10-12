@@ -61,7 +61,7 @@ const iconWrapperCls: Record<ConfirmVariant, string> = {
 
 const confirmBtnCls: Record<ConfirmVariant, string> = {
     danger:  'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:opacity-60',
-    warning: 'bg-amber-500 text-slate-900 hover:bg-amber-600 focus:ring-amber-400 disabled:opacity-60',
+    warning: 'bg-amber-500 text-[color:var(--app-foreground)] hover:bg-amber-600 focus:ring-amber-400 disabled:opacity-60',
     success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 disabled:opacity-60',
     default: 'bg-[color:var(--color-primary)] text-white hover:bg-[color:var(--color-primary-hover)] focus:ring-[color:var(--color-primary)] disabled:opacity-60',
 };
@@ -154,7 +154,7 @@ export default function ConfirmationDialog({
                     leaveFrom="opacity-100 scale-100"
                     leaveTo="opacity-0 scale-95"
                 >
-                    <DialogPanel className="relative w-full max-w-md rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-gray-200 dark:ring-slate-700">
+                    <DialogPanel className="relative w-full max-w-md rounded-panel bg-[color:var(--app-surface)] shadow-2xl ring-1 ring-[color:var(--app-border-strong)]">
                         {/* Header */}
                         <div className="flex items-start gap-4 p-6">
                             <div className={iconWrapperCls[variant]} aria-hidden="true">
@@ -180,7 +180,7 @@ export default function ConfirmationDialog({
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="ml-2 shrink-0 rounded-lg p-1 text-gray-400 hover:bg-[color:var(--app-surface-muted)] hover:text-gray-600 dark:hover:text-slate-300"
+                                    className="ml-2 shrink-0 rounded-lg p-1 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-muted-foreground)]"
                                     aria-label={cancelLabel}
                                 >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

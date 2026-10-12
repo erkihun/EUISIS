@@ -421,7 +421,7 @@ export default function CreateUser({
                     </div>
 
                     {/* Sticky action bar */}
-                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-white/95 px-6 py-4 backdrop-blur dark:bg-slate-900/95">
+                    <div className="sticky bottom-0 -mx-6 -mb-6 mt-8 flex items-center justify-end gap-3 border-t border-[color:var(--app-border)] bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] px-6 py-4 backdrop-blur">
                         <Link
                             href={route('users.index')}
                             className="rounded-lg px-4 py-2 text-sm font-medium text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"

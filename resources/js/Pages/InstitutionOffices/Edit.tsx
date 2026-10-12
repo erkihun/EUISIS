@@ -1,14 +1,10 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import InputLabel from '@/Components/InputLabel';
-import TextInput from '@/Components/TextInput';
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { useLocale } from '@/hooks/useLocale';
 
-import { cx, inputClassName } from '@/Components/ui';
+import { cx, inputClassName, Button, FieldError, FormLabel, Input } from '@/Components/ui';
 interface InstitutionOption {
     id: string;
     name_en: string;
@@ -118,7 +114,7 @@ export default function InstitutionOfficesEdit({
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div className="sm:col-span-2">
-                            <InputLabel htmlFor="institution_id" value={t('institutionOffices.institution')} />
+                            <FormLabel htmlFor="institution_id">{t('institutionOffices.institution')}</FormLabel>
                             <select
                                 id="institution_id"
                                 value={data.institution_id}
@@ -133,11 +129,11 @@ export default function InstitutionOfficesEdit({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={errors.institution_id} />
+                            <FieldError>{errors.institution_id}</FieldError>
                         </div>
 
                         <div>
-                            <InputLabel htmlFor="office_level" value={t('institutionOffices.officeLevel')} />
+                            <FormLabel htmlFor="office_level">{t('institutionOffices.officeLevel')}</FormLabel>
                             <select
                                 id="office_level"
                                 value={data.office_level}
@@ -150,7 +146,7 @@ export default function InstitutionOfficesEdit({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={errors.office_level} />
+                            <FieldError>{errors.office_level}</FieldError>
                         </div>
 
                         <div>
@@ -179,44 +175,44 @@ export default function InstitutionOfficesEdit({
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <InputLabel htmlFor="name_en" value={t('institutionOffices.nameEn')} />
-                            <TextInput
+                            <FormLabel htmlFor="name_en">{t('institutionOffices.nameEn')}</FormLabel>
+                            <Input
                                 id="name_en"
                                 value={data.name_en}
                                 onChange={(e) => setData('name_en', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.name_en} />
+                            <FieldError>{errors.name_en}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="name_am" value={t('institutionOffices.nameAm')} />
-                            <TextInput
+                            <FormLabel htmlFor="name_am">{t('institutionOffices.nameAm')}</FormLabel>
+                            <Input
                                 id="name_am"
                                 value={data.name_am}
                                 onChange={(e) => setData('name_am', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.name_am} />
+                            <FieldError>{errors.name_am}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="short_name_en" value={t('institutionOffices.shortNameEn')} />
-                            <TextInput
+                            <FormLabel htmlFor="short_name_en">{t('institutionOffices.shortNameEn')}</FormLabel>
+                            <Input
                                 id="short_name_en"
                                 value={data.short_name_en}
                                 onChange={(e) => setData('short_name_en', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.short_name_en} />
+                            <FieldError>{errors.short_name_en}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="short_name_am" value={t('institutionOffices.shortNameAm')} />
-                            <TextInput
+                            <FormLabel htmlFor="short_name_am">{t('institutionOffices.shortNameAm')}</FormLabel>
+                            <Input
                                 id="short_name_am"
                                 value={data.short_name_am}
                                 onChange={(e) => setData('short_name_am', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.short_name_am} />
+                            <FieldError>{errors.short_name_am}</FieldError>
                         </div>
                     </div>
                 </section>
@@ -244,7 +240,7 @@ export default function InstitutionOfficesEdit({
 
                         {!data.is_head_office && (
                             <div className="sm:col-span-2">
-                                <InputLabel htmlFor="parent_office_id" value={t('institutionOffices.parentOffice')} />
+                                <FormLabel htmlFor="parent_office_id">{t('institutionOffices.parentOffice')}</FormLabel>
                                 <select
                                     id="parent_office_id"
                                     value={data.parent_office_id}
@@ -258,12 +254,12 @@ export default function InstitutionOfficesEdit({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.parent_office_id} />
+                                <FieldError>{errors.parent_office_id}</FieldError>
                             </div>
                         )}
 
                         <div className="sm:col-span-2">
-                            <InputLabel htmlFor="geographic_organization_id" value={t('institutionOffices.geographicArea')} />
+                            <FormLabel htmlFor="geographic_organization_id">{t('institutionOffices.geographicArea')}</FormLabel>
                             <select
                                 id="geographic_organization_id"
                                 value={data.geographic_organization_id}
@@ -277,7 +273,7 @@ export default function InstitutionOfficesEdit({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={errors.geographic_organization_id} />
+                            <FieldError>{errors.geographic_organization_id}</FieldError>
                         </div>
                     </div>
                 </section>
@@ -288,7 +284,7 @@ export default function InstitutionOfficesEdit({
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <InputLabel htmlFor="status" value={t('institutionOffices.status')} />
+                            <FormLabel htmlFor="status">{t('institutionOffices.status')}</FormLabel>
                             <select
                                 id="status"
                                 value={data.status}
@@ -301,10 +297,10 @@ export default function InstitutionOfficesEdit({
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={errors.status} />
+                            <FieldError>{errors.status}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="assigned_scope_type" value={t('institutionOffices.assignedScopeType')} />
+                            <FormLabel htmlFor="assigned_scope_type">{t('institutionOffices.assignedScopeType')}</FormLabel>
                             <select
                                 id="assigned_scope_type"
                                 value={data.assigned_scope_type}
@@ -314,29 +310,29 @@ export default function InstitutionOfficesEdit({
                                 <option value="self">{t('institutionOffices.scopeSelf')}</option>
                                 <option value="subtree">{t('institutionOffices.scopeSubtree')}</option>
                             </select>
-                            <InputError message={errors.assigned_scope_type} />
+                            <FieldError>{errors.assigned_scope_type}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="opened_on" value={t('institutionOffices.openedOn')} />
-                            <TextInput
+                            <FormLabel htmlFor="opened_on">{t('institutionOffices.openedOn')}</FormLabel>
+                            <Input
                                 type="date"
                                 id="opened_on"
                                 value={data.opened_on}
                                 onChange={(e) => setData('opened_on', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.opened_on} />
+                            <FieldError>{errors.opened_on}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="closed_on" value={t('institutionOffices.closedOn')} />
-                            <TextInput
+                            <FormLabel htmlFor="closed_on">{t('institutionOffices.closedOn')}</FormLabel>
+                            <Input
                                 type="date"
                                 id="closed_on"
                                 value={data.closed_on}
                                 onChange={(e) => setData('closed_on', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.closed_on} />
+                            <FieldError>{errors.closed_on}</FieldError>
                         </div>
                     </div>
                 </section>
@@ -347,48 +343,48 @@ export default function InstitutionOfficesEdit({
                     </h3>
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>
-                            <InputLabel htmlFor="address_en" value={t('institutionOffices.addressEn')} />
-                            <TextInput
+                            <FormLabel htmlFor="address_en">{t('institutionOffices.addressEn')}</FormLabel>
+                            <Input
                                 id="address_en"
                                 value={data.address_en}
                                 onChange={(e) => setData('address_en', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.address_en} />
+                            <FieldError>{errors.address_en}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="address_am" value={t('institutionOffices.addressAm')} />
-                            <TextInput
+                            <FormLabel htmlFor="address_am">{t('institutionOffices.addressAm')}</FormLabel>
+                            <Input
                                 id="address_am"
                                 value={data.address_am}
                                 onChange={(e) => setData('address_am', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.address_am} />
+                            <FieldError>{errors.address_am}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="phone_number" value={t('institutionOffices.phone')} />
-                            <TextInput
+                            <FormLabel htmlFor="phone_number">{t('institutionOffices.phone')}</FormLabel>
+                            <Input
                                 id="phone_number"
                                 value={data.phone_number}
                                 onChange={(e) => setData('phone_number', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.phone_number} />
+                            <FieldError>{errors.phone_number}</FieldError>
                         </div>
                         <div>
-                            <InputLabel htmlFor="email" value={t('institutionOffices.email')} />
-                            <TextInput
+                            <FormLabel htmlFor="email">{t('institutionOffices.email')}</FormLabel>
+                            <Input
                                 type="email"
                                 id="email"
                                 value={data.email}
                                 onChange={(e) => setData('email', e.target.value)}
                                 className="w-full"
                             />
-                            <InputError message={errors.email} />
+                            <FieldError>{errors.email}</FieldError>
                         </div>
                         <div className="sm:col-span-2">
-                            <InputLabel htmlFor="notes" value={t('institutionOffices.notes')} />
+                            <FormLabel htmlFor="notes">{t('institutionOffices.notes')}</FormLabel>
                             <textarea
                                 id="notes"
                                 value={data.notes}
@@ -396,7 +392,7 @@ export default function InstitutionOfficesEdit({
                                 rows={3}
                                 className={inputCls}
                             />
-                            <InputError message={errors.notes} />
+                            <FieldError>{errors.notes}</FieldError>
                         </div>
                     </div>
                 </section>
@@ -408,7 +404,7 @@ export default function InstitutionOfficesEdit({
                     >
                         {t('common.cancel')}
                     </Link>
-                    <PrimaryButton disabled={processing}>{t('common.save')}</PrimaryButton>
+                    <Button disabled={processing}>{t('common.save')}</Button>
                 </div>
             </form>
         </AuthenticatedLayout>

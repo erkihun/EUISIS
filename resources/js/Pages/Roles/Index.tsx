@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
 import { Plus } from '@/Components/Icons';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 
 import { actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
@@ -24,9 +25,10 @@ export default function RolesIndex({
     can: { create: boolean };
 }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
 
-    function destroy(id: number, name: string) {
-        if (!confirm(`${t('roles.deleteRole')} "${name}"? ${t('common.cannotUndo')}`)) return;
+    async function destroy(id: number, name: string) {
+        if (!(await confirm({ title: `${t('roles.deleteRole')} "${name}"`, description: t('common.cannotUndo'), variant: 'danger' })).confirmed) return;
         router.delete(route('roles.destroy', id), { preserveScroll: true });
     }
 

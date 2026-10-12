@@ -88,7 +88,7 @@ export default function CodeRulesIndex({
                         { label: 'coveredEntities', value: summary.entity_types, icon: SettingsIcon, color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-300' },
                     ].map(({ label, value, icon: Icon, color }) => (
                         <div key={label} className="flex items-center gap-4 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5 shadow-sm">
-                            <span className={`hidden rounded-xl p-3 sm:block ${color}`}><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                            <span className={`hidden rounded-panel p-3 sm:block ${color}`}><Icon className="h-5 w-5" aria-hidden="true" /></span>
                             <div><p className="text-xs font-medium text-[color:var(--app-muted-foreground)]">{t(`codeRules.${label}`)}</p><p className="mt-1 text-2xl font-semibold tabular-nums text-[color:var(--app-foreground)]">{value}</p></div>
                         </div>
                     ))}

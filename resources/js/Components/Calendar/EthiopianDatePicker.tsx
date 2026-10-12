@@ -192,7 +192,7 @@ export default function EthiopianDatePicker({
                         <button type="button" onClick={prevMonth} className="rounded p-1 hover:bg-[color:var(--app-surface-muted)]">
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                         </button>
-                        <span className="text-sm font-medium dark:text-gray-200">
+                        <span className="text-sm font-medium text-[color:var(--app-foreground)]">
                             {months[viewMonth]} {viewYear}{locale === 'en' ? ' E.C.' : ''}
                         </span>
                         <button type="button" onClick={nextMonth} className="rounded p-1 hover:bg-[color:var(--app-surface-muted)]">
@@ -228,8 +228,8 @@ export default function EthiopianDatePicker({
                                     className={`rounded py-1 text-center text-sm transition-colors
                                         ${isSelected ? 'bg-indigo-600 text-white' : ''}
                                         ${!isSelected && isToday ? 'border border-indigo-400 text-indigo-600 dark:text-indigo-400' : ''}
-                                        ${!isSelected && !isToday && !disabled2 ? 'hover:bg-[color:var(--app-surface-muted)] dark:text-gray-200' : ''}
-                                        ${disabled2 ? 'cursor-not-allowed text-gray-300 dark:text-gray-600' : 'cursor-pointer'}
+                                        ${!isSelected && !isToday && !disabled2 ? 'hover:bg-[color:var(--app-surface-muted)] text-[color:var(--app-foreground)]' : ''}
+                                        ${disabled2 ? 'cursor-not-allowed text-[color:var(--app-muted-foreground)]' : 'cursor-pointer'}
                                     `}
                                 >
                                     {day}

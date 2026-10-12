@@ -4,7 +4,8 @@
     "scripts": {
         "build": "tsc && vite build",
         "dev": "vite",
-        "i18n:audit": "node scripts/i18n-audit.mjs --strict"
+        "i18n:audit": "node scripts/i18n-audit.mjs --strict",
+        "typecheck": "tsc --noEmit -p ."
     },
     "devDependencies": {
         "@headlessui/react": "^2.0.0",

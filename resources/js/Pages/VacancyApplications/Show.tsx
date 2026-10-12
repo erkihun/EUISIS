@@ -142,7 +142,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                             return (
                                 <div key={step} className="flex flex-1 items-center">
                                     <div className="flex shrink-0 flex-col items-center gap-1.5">
-                                        <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : active ? 'bg-[color:var(--color-primary)] text-white' : 'bg-gray-200 text-[color:var(--app-muted-foreground)] dark:bg-slate-700'}`}>
+                                        <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : active ? 'bg-[color:var(--color-primary)] text-white' : 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]'}`}>
                                             {done ? '✓' : index + 1}
                                         </div>
                                         <span className={`whitespace-nowrap text-xs ${active ? 'font-semibold text-[color:var(--color-primary)] dark:text-[color:var(--color-primary)]' : done ? 'text-emerald-600 dark:text-emerald-400' : 'text-[color:var(--app-muted-foreground)]'}`}>
@@ -150,7 +150,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
                                         </span>
                                     </div>
                                     {index < PIPELINE.length - 1 && (
-                                        <div className={`mx-2 h-0.5 flex-1 ${done ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-slate-700'}`} />
+                                        <div className={`mx-2 h-0.5 flex-1 ${done ? 'bg-emerald-500' : 'bg-[color:var(--app-surface-muted)]'}`} />
                                     )}
                                 </div>
                             );

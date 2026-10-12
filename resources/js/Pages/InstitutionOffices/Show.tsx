@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { PencilIcon } from '@/Components/Icons';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import RelationshipPanel, { type RelationshipRow } from '@/Components/relationships/RelationshipPanel';
 import ReportingLinesPanel from '@/Components/relationships/ReportingLinesPanel';
@@ -63,10 +64,11 @@ interface Props {
 
 export default function InstitutionOfficesShow({ office, can, relationships, relationshipOptions }: Props) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
     const deleteForm = useForm({});
 
-    function handleDelete() {
-        if (!confirm(t('common.confirmDelete'))) return;
+    async function handleDelete() {
+        if (!(await confirm({ title: t('common.confirmDelete'), variant: 'danger' })).confirmed) return;
         deleteForm.delete(route('institution-offices.destroy', office.id), {
             onSuccess: () => {},
         });

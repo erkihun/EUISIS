@@ -1,10 +1,10 @@
-import InputError from '@/Components/InputError';
 import {
     ID_CARD_TEMPLATE_VALUES,
     resolveIdCardTemplate,
     type IdCardTemplate,
 } from '@/Components/IdCards/idCardTemplates';
 import { useLocale } from '@/hooks/useLocale';
+import { FieldError } from '@/Components/ui';
 
 type Props = {
     label: string;
@@ -66,7 +66,7 @@ export default function IdCardTemplateSettingField({
                 })}
             </div>
 
-            <InputError message={error} />
+            <FieldError>{error}</FieldError>
         </div>
     );
 }
@@ -87,15 +87,15 @@ function TemplateThumbnail({ template }: { template: IdCardTemplate }) {
             style={{ background }}
             aria-hidden="true"
         >
-            <span className="absolute inset-x-0 top-0 h-3 bg-white/15" />
+            <span className="absolute inset-x-0 top-0 h-3 bg-[color:color-mix(in_srgb,var(--app-surface)_15%,transparent)]" />
             <span
                 className={[
-                    'absolute left-2 top-5 block bg-white/80',
+                    'absolute left-2 top-5 block bg-[color:color-mix(in_srgb,var(--app-surface)_80%,transparent)]',
                     template === 'modern' ? 'h-7 w-7 rounded-full' : 'h-8 w-6 rounded-sm',
                 ].join(' ')}
             />
-            <span className="absolute left-11 right-3 top-6 h-1.5 rounded bg-white/80" />
-            <span className="absolute left-11 right-6 top-10 h-1 rounded bg-white/45" />
+            <span className="absolute left-11 right-3 top-6 h-1.5 rounded bg-[color:color-mix(in_srgb,var(--app-surface)_80%,transparent)]" />
+            <span className="absolute left-11 right-6 top-10 h-1 rounded bg-[color:color-mix(in_srgb,var(--app-surface)_45%,transparent)]" />
             {template === 'modern' && <span className="absolute -right-3 -top-3 h-14 w-14 rounded-full border-[8px] border-white/10" />}
         </span>
     );

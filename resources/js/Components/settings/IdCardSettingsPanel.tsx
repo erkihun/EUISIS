@@ -157,7 +157,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
             <Card title={label('visibility')} helper={label('visibility_help')}>{renderFields(visibility)}</Card>
             <Card title={label('front_fields')}>{renderFields(front)}</Card>
             <Card title={label('back_fields')}>{renderFields(back)}</Card>
-            <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-3 rounded-card border bg-white/95 p-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
+            <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-3 rounded-card border bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] p-3 backdrop-blur border-[color:var(--app-border)]">
                 <span role="status" className="mr-auto text-xs text-[color:var(--app-muted-foreground)]">{settings.isDirty ? t('settings.unsavedChanges') : ''}</span>
                 <Button type="button" variant="outline" disabled={readOnly || settings.processing || !settings.isDirty} onClick={() => { settings.reset(); settings.clearErrors(); }}>{label('reset')}</Button>
                 <Button type="submit" loading={settings.processing} disabled={readOnly || !settings.isDirty}>{label('save_fields')}</Button>
@@ -222,7 +222,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
                         onChange={event => editor.setData('is_default', event.target.checked)} />{templateLabel('set_default')}</label>{error('is_default')}
                     {selected && !selected.is_default && selected.status === 'active' && management.can.set_default && <Button type="button" variant="outline" disabled={editor.isDirty} onClick={() => router.post(route('id-card-templates.set-default', selected.id), {}, { preserveScroll: true, onSuccess: () => { editor.setData('is_default', true); } })}>{templateLabel('set_default')}</Button>}
                 </Card>
-                <div className="sticky bottom-0 z-10 space-y-2 rounded-card border bg-white/95 p-3 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95">
+                <div className="sticky bottom-0 z-10 space-y-2 rounded-card border bg-[color:color-mix(in_srgb,var(--app-surface)_95%,transparent)] p-3 backdrop-blur border-[color:var(--app-border)]">
                     {editor.progress && <progress aria-label={templateLabel('upload_background')} className="w-full" value={editor.progress.percentage} max="100" />}
                     <div className="flex flex-wrap justify-end gap-3">
                         <Button type="button" variant="outline" disabled={!canEdit || editor.processing || !editor.isDirty} onClick={() => { editor.reset(); editor.clearErrors(); }}>{label('reset')}</Button>
@@ -234,7 +234,7 @@ export default function IdCardSettingsPanel({ payload, readOnly, management }: P
             <Card title={templateLabel('live_preview')} helper={label('preview_help')}>
                 <IdCardTemplateContext.Provider value={preview}>
                     <SystemSettingsPreviewContext.Provider value={previewSettings}>
-                        <div data-card-live-preview className={`min-w-0 space-y-5 ${exportPreview ? 'rounded-card bg-slate-200 p-3 dark:bg-slate-950' : ''}`}>
+                        <div data-card-live-preview className={`min-w-0 space-y-5 ${exportPreview ? 'rounded-card bg-[color:var(--app-surface-muted)] p-3' : ''}`}>
                             <div className="min-w-0"><p className="mb-2 text-xs font-medium text-[color:var(--app-muted-foreground)]">{t('idCards.cardFront')}</p>
                                 <Front cardNumber="CARD-0001" employeeNumber="EMP-0001" fullName={templateLabel('sample_employee')} fullNameAm="ምሳሌ ሠራተኛ" organizationName={templateLabel('sample_organization')} status="active" rootStyle={{ maxWidth: preview?.orientation === 'portrait' ? 270 : 428 }} />
                             </div>

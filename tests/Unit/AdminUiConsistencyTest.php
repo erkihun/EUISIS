@@ -53,6 +53,13 @@ function adminUiCounts(): array
         // Lists filter through FilterPanel / AppFilterBar: labelled fields, Filter then Reset.
         'search form outside the filter panel' => '/<form\b(?:[^>]|=>)*?onSubmit=\{[^}]*router\.get\(/',
         'select that reloads the page' => '/<(select|Select)\b(?:[^>]|=>)*?onChange=\{(?:[^}]|\}\))*?router\.get\(/',
+        // The Breeze-era wrappers are gone; forms use the kit directly (docs/admin-ui-consistency.md).
+        'legacy form component' => '/<(TextInput|InputLabel|InputError|PrimaryButton|SecondaryButton|DangerButton)\b/',
+        // Destructive and workflow actions confirm through useConfirm(); window.confirm stays only for
+        // synchronous "leave this page?" guards.
+        'native confirm' => '/\b(?:window\.)?confirm\(\s*(?:t\(|[\'"`])/',
+        // Surfaces use the radius tokens (rounded-card / rounded-panel / rounded-control).
+        'large radius' => '/\brounded-(xl|2xl|3xl)\b/',
     ];
     $counts = array_fill_keys(array_keys($patterns), 0);
 
@@ -72,11 +79,18 @@ it('keeps hand-rolled admin UI from growing', function (): void {
         'hand-rolled primary button' => 0,
         'hand-rolled destructive button' => 0,
         'hand-rolled select or textarea' => 1,
-        'raw dark slate colour' => 185,
-        'raw gray border' => 32,
-        'raw gray text' => 69,
-        // PaginatorLinks itself.
-        'hand-rolled pagination' => 1,
+        // What is left sits almost entirely in files that carry uncommitted work (IdCards/Show,
+        // IdCards/Preview, CardPrintExportModal, Grievances/Committees/Show); the rest is listed in
+        // docs/admin-ui-consistency.md under "Remaining". Lower these as those files are cleaned.
+        'raw dark slate colour' => 102,
+        'raw gray border' => 20,
+        'raw gray text' => 27,
+        'hand-rolled pagination' => 0,
+        'legacy form component' => 0,
+        // Three "leave this page?" guards (employee create, public site management, system settings).
+        'native confirm' => 3,
+        // IdCards/Show (uncommitted work).
+        'large radius' => 1,
         'one button per page' => 0,
         // The institution picker on an assessment cycle (a form, not a list filter).
         'search form outside the filter panel' => 1,
@@ -93,4 +107,21 @@ it('keeps hand-rolled admin UI from growing', function (): void {
             "{$name}: {$counts[$name]} found, ceiling {$ceiling}. Use the shared kit (docs/ui-components.md) instead of new hand-rolled classes.",
         );
     }
+});
+
+it('renders every admin page title in the heading band', function (): void {
+    // A page passes <PageHeader> through the layout's `header` prop; rendering it inside the body
+    // puts the title below the breadcrumb band and out of line with every other page.
+    $offenders = [];
+    foreach (adminTsxFiles() as $file) {
+        if (! str_contains($file, '/Pages/')) {
+            continue;
+        }
+        $source = (string) file_get_contents($file);
+        if (str_contains($source, '<PageHeader') && str_contains($source, '<AuthenticatedLayout') && ! str_contains($source, 'header={')) {
+            $offenders[] = substr($file, strpos($file, '/Pages/') + 7);
+        }
+    }
+
+    expect($offenders)->toBe([]);
 });

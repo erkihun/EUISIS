@@ -2,14 +2,10 @@ import type { FormEvent } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
-import InputLabel from '@/Components/InputLabel';
-import TextInput from '@/Components/TextInput';
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
 import CodeRuleField from '@/Components/code-rules/CodeRuleField';
 import { useLocale } from '@/hooks/useLocale';
 
-import { actionLinkClassName, cx, selectClassName } from '@/Components/ui';
+import { actionLinkClassName, cx, selectClassName, Button, FieldError, FormLabel, Input } from '@/Components/ui';
 interface OrganizationOption {
     id: string;
     name_en: string;
@@ -119,7 +115,7 @@ export default function InstitutionOfficeCreate({
 
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                                <InputLabel value={`${t('institutionOffices.structuralOrganization')} *`} />
+                                <FormLabel>{`${t('institutionOffices.structuralOrganization')} *`}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.organization_id}
@@ -136,11 +132,11 @@ export default function InstitutionOfficeCreate({
                                 <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('institutionOffices.structuralOrganizationHelp')}
                                 </p>
-                                <InputError message={errors.organization_id} />
+                                <FieldError>{errors.organization_id}</FieldError>
                             </div>
 
                             <div>
-                                <InputLabel value={`${t('institutionOffices.organizationUnitType')} *`} />
+                                <FormLabel>{`${t('institutionOffices.organizationUnitType')} *`}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.organization_unit_type_id}
@@ -154,11 +150,11 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.organization_unit_type_id} />
+                                <FieldError>{errors.organization_unit_type_id}</FieldError>
                             </div>
 
                             <div className="md:col-span-2">
-                                <InputLabel value={t('institutionOffices.parentOrganizationUnit')} />
+                                <FormLabel>{t('institutionOffices.parentOrganizationUnit')}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.parent_unit_id ?? ''}
@@ -172,7 +168,7 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.parent_unit_id} />
+                                <FieldError>{errors.parent_unit_id}</FieldError>
                             </div>
                         </div>
                     </section>
@@ -184,23 +180,23 @@ export default function InstitutionOfficeCreate({
 
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                                <InputLabel value={`${t('institutionOffices.unitNameEn')} *`} />
-                                <TextInput
+                                <FormLabel>{`${t('institutionOffices.unitNameEn')} *`}</FormLabel>
+                                <Input
                                     className="w-full"
                                     value={data.name_en}
                                     onChange={(event) => setData('name_en', event.target.value)}
                                 />
-                                <InputError message={errors.name_en} />
+                                <FieldError>{errors.name_en}</FieldError>
                             </div>
 
                             <div>
-                                <InputLabel value={t('institutionOffices.unitNameAm')} />
-                                <TextInput
+                                <FormLabel>{t('institutionOffices.unitNameAm')}</FormLabel>
+                                <Input
                                     className="w-full"
                                     value={data.name_am}
                                     onChange={(event) => setData('name_am', event.target.value)}
                                 />
-                                <InputError message={errors.name_am} />
+                                <FieldError>{errors.name_am}</FieldError>
                             </div>
 
                             <div>
@@ -220,7 +216,7 @@ export default function InstitutionOfficeCreate({
                             </div>
 
                             <div>
-                                <InputLabel value={`${t('institutionOffices.status')} *`} />
+                                <FormLabel>{`${t('institutionOffices.status')} *`}</FormLabel>
                                 <select className={inputCls} value={data.status} onChange={(event) => setData('status', event.target.value)}>
                                     {statusOptions.map((option) => (
                                         <option key={option.value} value={option.value}>
@@ -228,7 +224,7 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.status} />
+                                <FieldError>{errors.status}</FieldError>
                             </div>
                         </div>
                     </section>
@@ -245,7 +241,7 @@ export default function InstitutionOfficeCreate({
 
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
-                                <InputLabel value={t('institutionOffices.functionalReportingOrganization')} />
+                                <FormLabel>{t('institutionOffices.functionalReportingOrganization')}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.functional_reporting_organization_id}
@@ -261,11 +257,11 @@ export default function InstitutionOfficeCreate({
                                 <p className="mt-1 text-xs text-[color:var(--app-muted-foreground)]">
                                     {t('institutionOffices.functionalReportingHelp')}
                                 </p>
-                                <InputError message={errors.functional_reporting_organization_id} />
+                                <FieldError>{errors.functional_reporting_organization_id}</FieldError>
                             </div>
 
                             <div>
-                                <InputLabel value={t('relationships.type')} />
+                                <FormLabel>{t('relationships.type')}</FormLabel>
                                 <select
                                     className={inputCls}
                                     value={data.relationship_type}
@@ -277,7 +273,7 @@ export default function InstitutionOfficeCreate({
                                         </option>
                                     ))}
                                 </select>
-                                <InputError message={errors.relationship_type} />
+                                <FieldError>{errors.relationship_type}</FieldError>
                             </div>
                         </div>
                     </section>
@@ -295,9 +291,9 @@ export default function InstitutionOfficeCreate({
                     </section>
 
                     <div className="flex items-center gap-3">
-                        <PrimaryButton type="submit" disabled={processing}>
+                        <Button type="submit" disabled={processing}>
                             {processing ? t('common.saving') : t('institutionOffices.create')}
-                        </PrimaryButton>
+                        </Button>
                         <Link href={route('institution-offices.index')} className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}>
                             {t('common.cancel')}
                         </Link>

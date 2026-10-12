@@ -50,7 +50,7 @@ const LARGE_COVERAGE = 150;
 const STATUS_STYLE: Record<AssignmentStatus, string> = {
     active: 'bg-emerald-50 text-emerald-800 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900',
     scheduled: 'bg-blue-50 text-blue-800 ring-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900',
-    ended: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-gray-200 dark:ring-slate-700',
+    ended: 'bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)] ring-[color:var(--app-border-strong)]',
 };
 
 /**

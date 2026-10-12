@@ -42,10 +42,9 @@ export default function NfcLogsIndex({ logs, filters, organizations, terminals, 
     const meta = logs.meta;
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<PageHeader title={t('nfc.verificationLogs')} description={t('nfc.logsPrivacyNote')} />}>
             <Head title={t('nfc.verificationLogs')} />
 
-            <PageHeader title={t('nfc.verificationLogs')} description={t('nfc.logsPrivacyNote')} />
 
             <NfcSubNav can={can} current="logs" />
 

@@ -81,14 +81,13 @@ export default function NfcCredentialShow({ credential, card, employee, lifecycl
     };
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('nfc.credential')} />
-
-            <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                 title={t('nfc.credential')}
                 description={employee?.full_name ?? card?.card_number}
                 backHref={route('nfc-management.credentials.index')}
-            />
+            />}>
+            <Head title={t('nfc.credential')} />
+
 
             <NfcSubNav can={can} current="credentials" />
 

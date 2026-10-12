@@ -76,15 +76,14 @@ export default function ImportCsv({ batch, preview, columns, skippedRows, maxRow
     };
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('employees.import.title')} />
-
-            <div className="space-y-6">
-                <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                     title={t('employees.import.title')}
                     description={t('employees.import.description')}
                     backHref={route('employees.index')}
-                />
+                />}>
+            <Head title={t('employees.import.title')} />
+
+            <div className="space-y-6">
 
                 <ol className="grid overflow-hidden rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] sm:grid-cols-3">
                     <Step number="1" label={t('employees.import.stepTemplate')} active />

@@ -1,11 +1,8 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 import type { PageProps } from '@/types';
+import { Button, FieldError, FormLabel, Input } from '@/Components/ui';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -44,25 +41,25 @@ export default function UpdateProfileInformation({
 
             <form onSubmit={submit} className="mt-6 space-y-6">
                 <div>
-                    <InputLabel htmlFor="name" value="Name" />
+                    <FormLabel htmlFor="name">Name</FormLabel>
 
-                    <TextInput
+                    <Input
                         id="name"
                         className="mt-1 block w-full"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
                         required
-                        isFocused
+                        autoFocus
                         autoComplete="name"
                     />
 
-                    <InputError className="mt-2" message={errors.name} />
+                    <FieldError className="mt-2">{errors.name}</FieldError>
                 </div>
 
                 <div>
-                    <InputLabel htmlFor="email" value="Email" />
+                    <FormLabel htmlFor="email">Email</FormLabel>
 
-                    <TextInput
+                    <Input
                         id="email"
                         type="email"
                         className="mt-1 block w-full"
@@ -72,7 +69,7 @@ export default function UpdateProfileInformation({
                         autoComplete="username"
                     />
 
-                    <InputError className="mt-2" message={errors.email} />
+                    <FieldError className="mt-2">{errors.email}</FieldError>
                 </div>
 
                 {mustVerifyEmail && user?.email_verified_at === null && (
@@ -99,7 +96,7 @@ export default function UpdateProfileInformation({
                 )}
 
                 <div className="flex items-center gap-4">
-                    <PrimaryButton disabled={processing}>Save</PrimaryButton>
+                    <Button disabled={processing}>Save</Button>
 
                     <Transition
                         show={recentlySuccessful}

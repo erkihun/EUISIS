@@ -66,7 +66,7 @@ export default function ProviderAuthLayout({ title, children }: PropsWithChildre
                                     <svg className={`h-4 w-4 shrink-0 ${i % 2 === 0 ? 'text-orange-400' : 'text-sky-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
                                         <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
                                     </svg>
-                                    <span className="text-[12px] text-slate-300">{t(key)}</span>
+                                    <span className="text-[12px] text-[color:var(--app-muted-foreground)]">{t(key)}</span>
                                 </div>
                             ))}
                         </div>

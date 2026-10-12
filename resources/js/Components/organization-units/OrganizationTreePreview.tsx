@@ -232,7 +232,7 @@ export default function OrganizationTreePreview({
             <div className="flex-1 overflow-y-auto px-2 pb-3" role="tree">
                 {filteredTree.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <Building2 className="h-8 w-8 text-gray-300 dark:text-slate-600" />
+                        <Building2 className="h-8 w-8 text-[color:var(--app-muted-foreground)]" />
                         <p className="mt-2 text-xs text-[color:var(--app-muted-foreground)]">
                             {t('organizationUnits.noOrganizationsFound')}
                         </p>

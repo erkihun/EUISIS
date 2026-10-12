@@ -61,10 +61,7 @@ export default function NfcTerminalShow({ terminal, can }: Props) {
     }
 
     return (
-        <AuthenticatedLayout>
-            <Head title={terminal.terminal_code} />
-
-            <PageHeader
+        <AuthenticatedLayout header={<PageHeader
                 title={terminal.name}
                 description={terminal.terminal_code}
                 backHref={route('nfc-management.terminals.index')}
@@ -89,7 +86,9 @@ export default function NfcTerminalShow({ terminal, can }: Props) {
                         )}
                     </div>
                 }
-            />
+            />}>
+            <Head title={terminal.terminal_code} />
+
 
             <NfcSubNav can={can} current="terminals" />
 

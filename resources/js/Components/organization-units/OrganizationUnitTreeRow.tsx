@@ -70,7 +70,7 @@ export default function OrganizationUnitTreeRow({
                         <button
                             type="button"
                             onClick={() => onToggle(node.id)}
-                            className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-gray-600 dark:hover:text-slate-300"
+                            className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-[color:var(--app-muted-foreground)] hover:text-[color:var(--app-muted-foreground)]"
                         >
                             {expanded ? (
                                 <ChevronDown className="h-3.5 w-3.5" />

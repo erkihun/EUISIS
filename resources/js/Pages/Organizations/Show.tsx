@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import StatusBadge from '@/Components/StatusBadge';
 import PageHeader from '@/Components/PageHeader';
 import { PencilIcon, TrashIcon, ArchiveIcon, XCircle, Plus } from '@/Components/Icons';
+import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import ReportingLinesPanel from '@/Components/relationships/ReportingLinesPanel';
 import type { RelationshipRow } from '@/Components/relationships/RelationshipPanel';
@@ -129,6 +130,7 @@ export default function OrganizationShow({
     reportingUnits?: RelationshipRow[];
 }) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
 
     /**
      * Localized label for a status key, falling back to the raw key when no
@@ -148,22 +150,22 @@ export default function OrganizationShow({
     const isBlocked = deletionBlockers.length > 0;
     const organizationName = localizedName(organization.name_en, organization.name_am, locale);
 
-    function handleDelete() {
+    async function handleDelete() {
         if (isBlocked) {
             setShowDeletionBlockers(true);
             return;
         }
-        if (!confirm(t('organizations.deleteConfirm'))) return;
+        if (!(await confirm({ title: t('organizations.deleteConfirm'), variant: 'danger' })).confirmed) return;
         deleteForm.delete(route('organizations.destroy', organization.id));
     }
 
-    function handleArchive() {
-        if (!confirm(t('organizations.archiveConfirm'))) return;
+    async function handleArchive() {
+        if (!(await confirm({ title: t('organizations.archiveConfirm'), variant: 'danger' })).confirmed) return;
         archiveForm.delete(route('organizations.archive', organization.id));
     }
 
-    function handleDeactivate() {
-        if (!confirm(t('organizations.deactivateConfirm'))) return;
+    async function handleDeactivate() {
+        if (!(await confirm({ title: t('organizations.deactivateConfirm'), variant: 'danger' })).confirmed) return;
         deactivateForm.patch(route('organizations.deactivate', organization.id));
     }
 
@@ -253,7 +255,7 @@ export default function OrganizationShow({
                 <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
                     <div className="flex min-w-0 items-center gap-4">
                         {organization.has_logo && organization.logo_url ? (
-                            <img src={organization.logo_url} alt="" className="h-14 w-14 rounded-card border border-[color:var(--app-border)] bg-white object-contain p-1.5" />
+                            <img src={organization.logo_url} alt="" className="h-14 w-14 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] object-contain p-1.5" />
                         ) : (
                             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] text-xl font-semibold text-[color:var(--app-muted-foreground)]">
                                 {organizationName.charAt(0).toUpperCase()}
@@ -307,7 +309,7 @@ export default function OrganizationShow({
                             <button
                                 type="button"
                                 onClick={() => setShowDeletionBlockers(false)}
-                                className="rounded-lg p-1.5 text-gray-400 hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
+                                className="rounded-lg p-1.5 text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]"
                                 aria-label={t('common.close')}
                             >
                                 ×
@@ -325,7 +327,7 @@ export default function OrganizationShow({
                             <button
                                 type="button"
                                 onClick={() => setShowDeletionBlockers(false)}
-                                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 dark:bg-[color:var(--app-surface-muted)] dark:text-[color:var(--app-foreground)] dark:hover:bg-[color:var(--app-surface)]"
                             >
                                 {t('common.close')}
                             </button>
@@ -647,7 +649,7 @@ export default function OrganizationShow({
                                         {statistics.employees_by_unit.map((row) => (
                                             <tr key={row.id}>
                                                 <td className={cx(tableCellClassName, 'text-[color:var(--app-foreground)]')}>
-                                                    <span className="font-mono text-[11px] text-gray-400">{row.code}</span>{' '}
+                                                    <span className="font-mono text-[11px] text-[color:var(--app-muted-foreground)]">{row.code}</span>{' '}
                                                     {localizedName(row.name_en, row.name_am, locale)}
                                                 </td>
                                                 <td className={cx(tableCellClassName, 'text-right tabular-nums text-[color:var(--app-foreground)]')}>{row.employees_count}</td>
