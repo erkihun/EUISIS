@@ -1,6 +1,6 @@
-# EUISIS Security Hardening Checklist
+# Addis One Security Hardening Checklist
 
-**Project:** EUISIS — Addis Ababa City Administration Employee Unified ID & Service Integration System  
+**Project:** Addis One — Addis Ababa City Administration Addis Ababa Integrated Employee Management & Service System  
 **Last updated:** 2026-05-25
 
 Items marked [x] are already implemented. Items marked [ ] require action before or after production deployment.

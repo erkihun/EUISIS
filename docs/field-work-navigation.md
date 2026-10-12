@@ -30,13 +30,10 @@ lists. It has no sidebar entry.
   use `nav.fieldWork*`. Nothing is hard-coded in JSX.
 - **Icon:** `MapPinned`, the Lucide glyph, added to the house icon set
   `Components/Icons.tsx`. No new icon library.
-- **Position:** its own category, directly after the *People & organization*
-  section, at the same level as People, Operations and Governance. In
-  `sections` it is the standalone entry `{ keys: ['fieldWork'] }`: a section
-  with no label of its own takes its heading from the group's label. Under
-  the heading, "Field Work Management" is a collapsible button whose submenu
-  holds the seven pages, like every other module. The rest of the sidebar
-  was not reordered.
+- **Position:** a distinct group within *People & organization*, after Daily
+  Activity and before Performance. "Field Work Management" remains a
+  collapsible button whose submenu holds the seven pages, like every other
+  module.
 - **Visibility:** each child is filtered by its permission. A category whose
   children are all hidden is not rendered, so it never appears empty and
   never links to a 403.

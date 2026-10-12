@@ -1,4 +1,4 @@
-// EUISIS load test (docs/load-testing.md). Never run against production.
+// Addis One (AA-IEMSS) platform load test (docs/load-testing.md). Never run against production.
 //
 //   k6 run -e BASE_URL=http://127.0.0.1:8000 -e DATA=./loadtest-data.json \
 //          -e PROFILE=baseline loadtest/k6/euisis.js

@@ -1,6 +1,6 @@
 # Change Management Policy
 
-**Project:** EUISIS  
+**Project:** Addis One  
 **Date:** 2026-05-27  
 **Review cycle:** Annually or after any major incident
 
@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-This policy ensures that all changes to the EUISIS system — code, configuration, infrastructure, and content — are planned, reviewed, tested, and approved before deployment, minimising risk to system availability, security, and data integrity.
+This policy ensures that all changes to the Addis One system — code, configuration, infrastructure, and content — are planned, reviewed, tested, and approved before deployment, minimising risk to system availability, security, and data integrity.
 
 ---
 
@@ -82,7 +82,7 @@ For active security incidents:
 
 ## 5. Content Changes
 
-Content managed via the EUISIS admin UI (logo, system messages, localization):
+Content managed via the Addis One admin UI (logo, system messages, localization):
 - Amharic text must be reviewed by an approved Amharic language reviewer before publishing
 - No direct database edits of content fields
 - Screenshot/log of the change retained by System Administrator

@@ -33,7 +33,7 @@ it('prints the official system identity on the institution QR poster under the i
         'organization_en' => 'Bureau of Trade', 'organization_am' => 'የንግድ ቢሮ', 'logo' => null,
     ])->render();
     // The repository folder name appears in embedded font paths; that is a path, not branding.
-    $html = str_replace(base_path(), '', html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    $html = str_replace([base_path(), str_replace(DIRECTORY_SEPARATOR, '/', base_path())], '', html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
 
     expect($html)->toContain('Bureau of Trade')
         ->toContain('Addis Ababa Integrated Employee Management & Service System (AA-IEMSS)')

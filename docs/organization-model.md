@@ -2,7 +2,7 @@
 
 ## Final Domain Model
 
-The EUISIS system uses a three-tier domain model for workforce organization:
+The Addis One system uses a three-tier domain model for workforce organization:
 
 ```
 Organization  (legal/geographic entity)

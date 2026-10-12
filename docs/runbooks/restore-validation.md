@@ -22,7 +22,7 @@ monitor abandoned sandboxes and expire their sensitive data under the incident p
 Deletion is filesystem cleanup, not certified media erasure: use encrypted scratch volumes
 and destroy their keys when decommissioning.
 
-The automatic check is read-only and verifies actual migrated EUISIS table names. It checks
+The automatic check is read-only and verifies actual migrated Addis One table names. It checks
 schema/release parity, unvalidated constraints, employee assignment/card orphan references,
 up to 50 encrypted national IDs and 50 employee document paths. It does not invent expected
 row counts or claim to validate every record. Full browser login, all file classes and

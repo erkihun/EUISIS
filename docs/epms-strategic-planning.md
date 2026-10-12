@@ -6,7 +6,7 @@ The strategic planning layer sits between a performance cycle and the organizati
 2. Assign a percentage weight to every goal. Active goal weights must total exactly `100.0000` before review, approval, publication, or organization-plan publication.
 3. Allocate each goal to one or more organization units. Contributions must equal the goal weight exactly and exactly one allocation must be the lead unit.
 4. Link organization-plan objectives to their strategic goal. Their absolute organization weights must equal that goal's weight.
-5. Attach annual KPI targets to objectives. Quarterly and monthly target rows are entered explicitly; EUISIS does not divide annual values automatically.
+5. Attach annual KPI targets to objectives. Quarterly and monthly target rows are entered explicitly; Addis One does not divide annual values automatically.
 
 ## Workflow and immutability
 

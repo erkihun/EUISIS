@@ -1,6 +1,6 @@
 # Session Management
 
-How EUISIS decides that a signed-in session has ended, and why. This applies to
+How Addis One decides that a signed-in session has ended, and why. This applies to
 every portal: administrators and employees (`web` guard, `/login`) and service
 providers (`provider` guard, `/provider/portal/login`).
 
@@ -162,7 +162,7 @@ JSON callers get a typed `419 {reason: page_expired}`. The raw
 | `SESSION_ENCRYPT` | true | |
 | `SESSION_DRIVER` | `redis` or `database` | Shared storage; see below |
 
-**Why `lax`, not `strict`.** With `strict`, opening EUISIS from an email link
+**Why `lax`, not `strict`.** With `strict`, opening Addis One from an email link
 (such as the daily-activity reminder) or another site sends no session cookie.
 The response then *replaces* the signed-in cookie, which signs the user out of
 every open tab. `lax` still withholds the cookie from cross-site POST, PUT and

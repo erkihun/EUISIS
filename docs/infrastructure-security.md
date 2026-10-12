@@ -1,6 +1,6 @@
-# EUISIS Infrastructure Security Guide
+# Addis One Infrastructure Security Guide
 
-**Project:** EUISIS — Addis Ababa City Administration Employee Unified ID & Service Integration System  
+**Project:** Addis One — Addis Ababa City Administration Addis Ababa Integrated Employee Management & Service System  
 **Last updated:** 2026-05-25
 
 ---

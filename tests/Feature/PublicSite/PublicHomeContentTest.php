@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /*
- * The public home page explains what EUISIS is. Its copy lives in
+ * The public home page explains what Addis One is. Its copy lives in
  * resources/js/i18n/{en,am}/home.ts and renders in the browser, so content
  * completeness is checked against those files and Welcome.tsx; the HTTP
  * response is checked for guest access, metadata and the absence of data.

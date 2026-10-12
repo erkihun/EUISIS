@@ -2,7 +2,7 @@
 
 **Status:** DRAFT for review. No code has been written. The brief this plan answers was received truncated at its section 129 ("TESTS — OCCUPATION / COMPETENCY"); sections 130 onward are not reflected here.
 
-**Goal:** let an institution be designed from its legal mandate through functions, services, processes, activities, tasks, work standards, occupations, competencies, unit design, responsibility mapping, structure, manpower estimation, position requirements, position profiles and job descriptions — with end-to-end traceability — on top of what EUISIS already has, without duplicating it.
+**Goal:** let an institution be designed from its legal mandate through functions, services, processes, activities, tasks, work standards, occupations, competencies, unit design, responsibility mapping, structure, manpower estimation, position requirements, position profiles and job descriptions — with end-to-end traceability — on top of what Addis One already has, without duplicating it.
 
 ---
 

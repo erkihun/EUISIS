@@ -1,6 +1,6 @@
-# EUISIS Production Security Checklist
+# Addis One Production Security Checklist
 
-**Project:** EUISIS — Addis Ababa City Administration Employee Unified ID & Service Integration System  
+**Project:** Addis One — Addis Ababa City Administration Addis Ababa Integrated Employee Management & Service System  
 **Purpose:** Gate-check before each production deployment. All items must be verified by the DevOps lead and sign-off recorded.
 
 ---

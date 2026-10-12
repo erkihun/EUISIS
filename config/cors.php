@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * CORS configuration for EUISIS.
+ * CORS configuration for Addis One (AA-IEMSS).
  *
  * API routes are consumed by:
  *   - Cafeteria scan terminals (same origin or known internal IP range)

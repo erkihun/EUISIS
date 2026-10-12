@@ -1,6 +1,6 @@
 # Load balancing and stateless app nodes
 
-How to run EUISIS on several application nodes behind a load balancer. Related:
+How to run Addis One on several application nodes behind a load balancer. Related:
 [golden path](production-golden-path.md) · [production runbook](production-runbook.md)
 · [database scale](database-scale.md).
 

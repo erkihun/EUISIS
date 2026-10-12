@@ -1,6 +1,6 @@
 # Production golden path
 
-How EUISIS is actually built, and the paths new work must follow. This is a
+How Addis One is actually built, and the paths new work must follow. This is a
 map of the real repository, not a target architecture. Related:
 [risk register](production-risk-register.md) ·
 [load balancing](load-balancing.md) · [database scale](database-scale.md) ·

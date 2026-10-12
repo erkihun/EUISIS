@@ -2,7 +2,7 @@
 
 The Daily Activity Register (ዕለታዊ የሥራ እንቅስቃሴ) records the work an employee did on a working day: what they worked on, the output, progress, blockers and optional evidence.
 
-It is **not** attendance, a timesheet, payroll input, GPS tracking or a performance score. Nothing in EUISIS derives an appraisal score from the number, length or timing of daily activities. Related documents: [workflow](daily-activity-workflow.md), [security](daily-activity-security.md), [production readiness](daily-activity-production-readiness.md).
+It is **not** attendance, a timesheet, payroll input, GPS tracking or a performance score. Nothing in Addis One derives an appraisal score from the number, length or timing of daily activities. Related documents: [workflow](daily-activity-workflow.md), [security](daily-activity-security.md), [production readiness](daily-activity-production-readiness.md).
 
 ## Data model
 
@@ -55,7 +55,7 @@ otherwise                            → required: draft, submitted, returned, a
 
 **Missing is computed, never stored.** A required past day with no submission, or with only a draft, is missing. Today is "not yet submitted" until it ends. No placeholder rows are created.
 
-Leave comes through the `EmployeeLeaveProvider` contract. EUISIS has no leave module yet, so the bound `NullEmployeeLeaveProvider` reports no leave; see the production readiness document.
+Leave comes through the `EmployeeLeaveProvider` contract. Addis One has no leave module yet, so the bound `NullEmployeeLeaveProvider` reports no leave; see the production readiness document.
 
 ## Settings (System Settings › Daily Activity)
 

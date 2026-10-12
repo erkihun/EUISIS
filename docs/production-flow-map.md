@@ -1,4 +1,4 @@
-# EUISIS production flow map
+# Addis One production flow map
 
 How one employee gets from "organization exists" to "meal paid to the caterer",
 as the code implements it on 2026-09-26. Each step names the route a person

@@ -1,6 +1,6 @@
-# EUISIS typography
+# Addis One typography
 
-EUISIS has one typography system, and every surface uses it: the web app,
+Addis One has one typography system, and every surface uses it: the web app,
 the employee and provider portals, the public site, ID cards and PDFs. Font
 families are defined in two central places. Nothing else names a font.
 

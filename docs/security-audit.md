@@ -1,6 +1,6 @@
-# EUISIS Security Audit Report
+# Addis One Security Audit Report
 
-**Project:** Addis Ababa City Administration Employee Unified ID & Service Integration System  
+**Project:** Addis Ababa City Administration Addis Ababa Integrated Employee Management & Service System  
 **Stack:** Laravel 12.58 / PHP 8.2 / Inertia.js / React TypeScript / PostgreSQL  
 **Audit Date:** 2026-05-25  
 **Auditor:** Senior Laravel Security Architect (automated + manual review)
@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-EUISIS has a well-structured security foundation built on Laravel Breeze, Spatie Permission (RBAC), a custom organisation-scope enforcement layer, and a comprehensive policy-per-model pattern. The authentication stack (CSRF, session regeneration on login, rate-limited login, proper logout invalidation) is correctly implemented. The API layer is protected with Sanctum tokens, ability-scoping, and custom provider-scope middleware with audit logging on denial.
+Addis One has a well-structured security foundation built on Laravel Breeze, Spatie Permission (RBAC), a custom organisation-scope enforcement layer, and a comprehensive policy-per-model pattern. The authentication stack (CSRF, session regeneration on login, rate-limited login, proper logout invalidation) is correctly implemented. The API layer is protected with Sanctum tokens, ability-scoping, and custom provider-scope middleware with audit logging on denial.
 
 Key strengths: layered authorization (permission + organisation scope), safe error rendering (no stack traces to end users), correlation-ID tracing, and a broad audit-log event bus.
 

@@ -1,6 +1,6 @@
 # Security Requirements
 
-**Project:** EUISIS — Addis Ababa City Administration Employee Unified ID & Service Integration System  
+**Project:** Addis One — Addis Ababa City Administration Addis Ababa Integrated Employee Management & Service System  
 **Date:** 2026-05-27  
 **Status:** Draft — Pending Business Owner Approval
 

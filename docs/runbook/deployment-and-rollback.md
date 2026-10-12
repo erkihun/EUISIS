@@ -1,6 +1,6 @@
 # Deployment and rollback runbook
 
-For the operator deploying EUISIS to staging or production. Commands assume a
+For the operator deploying Addis One to staging or production. Commands assume a
 Linux host, the application in `/var/www/euisis/current` (a symlink to the
 active release), PHP-FPM, a queue worker under a process supervisor, and cron.
 Adjust paths to the real host. No command here prints a secret.

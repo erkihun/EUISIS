@@ -7,7 +7,7 @@ namespace App\Enums;
 /**
  * What a scan does once the day's entitlement is already used.
  *
- *  block                 — refused (EUISIS baseline: one meal a day)
+ *  block                 — refused (Addis One baseline: one meal a day)
  *  deduct_next_available — consumes the next unused entitlement day in the
  *                          current window (needs advance usage allowed)
  *  employee_paid         — served, the employee pays the full provider price,

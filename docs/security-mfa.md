@@ -1,8 +1,8 @@
-# EUISIS — Multi-Factor Authentication (MFA / TOTP)
+# Addis One — Multi-Factor Authentication (MFA / TOTP)
 
 ## Overview
 
-EUISIS supports Time-based One-Time Password (TOTP) multi-factor authentication
+Addis One supports Time-based One-Time Password (TOTP) multi-factor authentication
 backed by [`pragmarx/google2fa-qrcode`](https://github.com/antonioribeiro/google2fa-qrcode).
 Any RFC 6238 authenticator app works (Google Authenticator, 1Password, Authy,
 Microsoft Authenticator, Bitwarden, etc.).

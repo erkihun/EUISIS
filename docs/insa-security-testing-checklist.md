@@ -1,6 +1,6 @@
 # INSA Annex B — Minimum Security Testing Checklist
 
-**Project:** EUISIS  
+**Project:** Addis One  
 **Standard:** INSA Secure Website Management Standard v1.0 Annex B  
 **Date:** 2026-05-27
 

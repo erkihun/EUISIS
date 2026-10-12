@@ -64,15 +64,18 @@ the suite on PostgreSQL before every release (go-live condition C1).
 # Once: an empty database used only by tests. Every run wipes it; never point
 # this at the application's own database.
 #   CREATE DATABASE aaemployeedb_test ENCODING 'UTF8';
-DB_CONNECTION=pgsql DB_DATABASE=aaemployeedb_test php artisan test --parallel
+DB_TEST_DATABASE=aaemployeedb_test php artisan test --parallel --processes=1 --recreate-databases --configuration=phpunit.pgsql.xml.dist
 ```
 
-Host, port, user and password come from `.env`; the variables above override
-`phpunit.xml.dist` because it does not force them. Parallel runs create one
+Host, port, user and password come from `.env`. The PostgreSQL test configuration
+sets the connection, while `DB_TEST_DATABASE` selects the dedicated test database;
+`DB_DATABASE` is ignored in the testing environment. Parallel runs create one
 `<database>_test_<n>` database per worker, so the user needs `CREATEDB`.
-A default PostgreSQL (`max_locks_per_transaction = 64`) runs out of shared
-memory with many workers rebuilding the schema at once: use `--processes=4` or
-fewer, or raise that setting.
+Use one worker with the default PostgreSQL lock settings. Multiple workers can
+exhaust shared locks while rebuilding this large schema; increase
+`max_locks_per_transaction` on a dedicated test server before raising the worker
+count. Both PHPUnit configurations set a 512 MB memory limit for PDF tests,
+including parallel workers on Windows.
 
 ### Coverage
 

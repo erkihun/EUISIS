@@ -1,4 +1,4 @@
-# EUISIS — Sensitive Data Encryption at Rest
+# Addis One — Sensitive Data Encryption at Rest
 
 ## Scope
 

@@ -1,6 +1,6 @@
 # RBAC Architecture
 
-How EUISIS decides who may do what, where. Related documents: [default role–permission matrix](default-role-permission-matrix.md) · [RBAC audit report](rbac-audit-report.md).
+How Addis One decides who may do what, where. Related documents: [default role–permission matrix](default-role-permission-matrix.md) · [RBAC audit report](rbac-audit-report.md).
 
 ## 1. The four questions
 

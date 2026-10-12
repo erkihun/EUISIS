@@ -11,7 +11,7 @@ use RuntimeException;
 /**
  * LEGACY shared default password — detection only.
  *
- * EUISIS no longer assigns one password to many accounts (new and reset
+ * Addis One no longer assigns one password to many accounts (new and reset
  * accounts get unique generated one-time passwords; see PasswordPolicy). A
  * hash configured before that change is kept so that an account still using
  * it is forced to change at sign-in, and so nobody can choose it again.

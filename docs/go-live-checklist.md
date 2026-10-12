@@ -1,4 +1,4 @@
-# EUISIS go-live checklist
+# Addis One go-live checklist
 
 ## Backup and recovery gates (required evidence)
 

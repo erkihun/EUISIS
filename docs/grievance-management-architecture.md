@@ -1,6 +1,6 @@
 # Grievance Management architecture
 
-This module lives inside EUISIS. Its HTTP boundary is `routes/grievances.php`, its workflow services are in `app/Services/Grievances`, and its staff and employee pages are under `resources/js/Pages/Grievances`. It reuses Organization, OrganizationUnit, EmployeeAssignment, Position, User, organization scope, RBAC, code rules, the working-day calendar, notifications, audit logs, and private file storage.
+This module lives inside Addis One. Its HTTP boundary is `routes/grievances.php`, its workflow services are in `app/Services/Grievances`, and its staff and employee pages are under `resources/js/Pages/Grievances`. It reuses Organization, OrganizationUnit, EmployeeAssignment, Position, User, organization scope, RBAC, code rules, the working-day calendar, notifications, audit logs, and private file storage.
 
 ## Domain and ownership
 

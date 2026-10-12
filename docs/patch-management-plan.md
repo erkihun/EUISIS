@@ -1,6 +1,6 @@
 # Patch Management Plan
 
-**Project:** EUISIS  
+**Project:** Addis One  
 **Date:** 2026-05-27  
 **Review cycle:** Annually or when a major platform version changes
 
@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-This plan defines how security patches, dependency updates, and OS/infrastructure updates are identified, assessed, tested, and applied to the EUISIS system to minimise exposure to known vulnerabilities.
+This plan defines how security patches, dependency updates, and OS/infrastructure updates are identified, assessed, tested, and applied to the Addis One system to minimise exposure to known vulnerabilities.
 
 ---
 
@@ -64,7 +64,7 @@ Subscribe to:
 ### 4.3 INSA Advisories
 
 - Security Lead subscribes to INSA communications
-- Any INSA-notified vulnerability affecting EUISIS components triggers immediate assessment
+- Any INSA-notified vulnerability affecting Addis One components triggers immediate assessment
 
 ---
 
@@ -72,8 +72,8 @@ Subscribe to:
 
 For each identified vulnerability:
 
-1. Confirm whether EUISIS uses the affected component version
-2. Determine exploitability in the EUISIS deployment context (is the vulnerable code path reachable?)
+1. Confirm whether Addis One uses the affected component version
+2. Determine exploitability in the Addis One deployment context (is the vulnerable code path reachable?)
 3. Classify severity using CVSS score and contextual risk
 4. Assign an owner (Dev for application; DevOps for infrastructure)
 5. Document in the vulnerability register (see Section 8)

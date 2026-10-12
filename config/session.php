@@ -201,7 +201,7 @@ return [
     |
     */
 
-    // "lax", not "strict": with strict, opening EUISIS from an email or
+    // "lax", not "strict": with strict, opening Addis One from an email or
     // another site sends no cookie, so the response replaces the signed-in
     // session cookie and every open tab is signed out. Lax still withholds
     // the cookie from cross-site POST/PUT/DELETE, and every state-changing

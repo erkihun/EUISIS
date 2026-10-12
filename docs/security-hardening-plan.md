@@ -1,6 +1,6 @@
 # Security Hardening Plan
 
-**Project:** EUISIS  
+**Project:** Addis One  
 **Date:** 2026-05-27  
 **Review cycle:** Before each major release
 

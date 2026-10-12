@@ -63,7 +63,7 @@ A permission is necessary but not enough on its own:
   `geolocation=(self)`: only same-origin scripts may *ask*, and the browser's
   own permission prompt remains the consent gate. Third-party frames stay
   blocked, and every other feature restriction is unchanged. The policy
-  cannot be scoped to individual field work pages, because EUISIS is an
+  cannot be scoped to individual field work pages, because Addis One is an
   Inertia SPA: the policy of the first document loaded applies to every page
   visited after it.
 - **Event-based only.** The browser reads the position once, when the

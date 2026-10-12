@@ -1,6 +1,6 @@
 # Operations Security Policy
 
-**Project:** EUISIS  
+**Project:** Addis One  
 **Date:** 2026-05-27  
 **Review cycle:** Annually or after any major incident
 
@@ -33,7 +33,7 @@ In the event of a security incident:
 ## 3. Content Management
 
 - All user-visible content changes must go through the change management process (see `docs/change-management-policy.md`)
-- System settings (logo, messages, localization) are managed via the EUISIS admin UI by authorized System Settings administrators
+- System settings (logo, messages, localization) are managed via the Addis One admin UI by authorized System Settings administrators
 - No content changes are to be made directly in the database
 - Amharic text must be reviewed by an approved Amharic language reviewer before publishing
 
@@ -56,7 +56,7 @@ In the event of a security incident:
 
 ### Granting Access
 1. HR/Project Manager submits access request to System Administrator
-2. System Administrator creates the user account in EUISIS (`/users/create`)
+2. System Administrator creates the user account in Addis One (`/users/create`)
 3. Appropriate role and organisation scope are assigned based on job function
 4. MFA enrollment required for privileged roles (Super Admin, City Admin)
 5. New user must change their initial password on first login
@@ -95,7 +95,7 @@ In the event of a security incident:
 
 | Credential | Rotation Frequency | Notes |
 |---|---|---|
-| Admin account passwords | 90 days | Enforce via policy; EUISIS does not auto-expire |
+| Admin account passwords | 90 days | Enforce via policy; Addis One does not auto-expire |
 | APP_KEY | On compromise only | Document procedure; rotate all encrypted PII fields |
 | Database password | 180 days | |
 | Sanctum token expiry | 30 days (43200 min) | Configured via `SANCTUM_TOKEN_EXPIRATION_MINUTES` |

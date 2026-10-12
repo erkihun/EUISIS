@@ -201,7 +201,7 @@ return [
         'personal_token_min_length' => (int) env('PASSWORD_PERSONAL_TOKEN_MIN_LENGTH', 4),
         'blocklist_path' => resource_path('security/common-passwords.txt'),
         'context_terms' => [
-            'euisis', 'addis', 'ababa', 'addisababa', 'aacity', 'ethiopia', 'habesha', 'bureau',
+            'euisis', 'addisone', 'addis1', 'aaiemss', 'iemss', 'addis', 'ababa', 'addisababa', 'aacity', 'ethiopia', 'habesha', 'bureau',
             'employee', 'admin', 'administrator', 'password', 'passw0rd', 'welcome', 'changeme',
             'change', 'letmein', 'qwerty', 'default', 'temporary', 'temp', 'secret', 'login',
             'user', 'test', 'guest', 'root', 'provider', 'cafeteria', 'transport', 'selam',

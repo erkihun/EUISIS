@@ -1,6 +1,6 @@
 # Grievance Management (የቅሬታ አስተዳደር)
 
-Formal employee grievance case management, integrated with EUISIS HR master data
+Formal employee grievance case management, integrated with Addis One HR master data
 (organizations, units, employees, assignments, positions, users, scope, calendar,
 notifications, audit). This replaces the first grievance module (2026-06-07); its
 tables are kept and backfilled (see §3).

@@ -1,6 +1,6 @@
 # Cafeteria policy architecture
 
-How EUISIS decides, for one scan, **who may eat where, on whose terms, who pays and who is paid**.
+How Addis One decides, for one scan, **who may eat where, on whose terms, who pays and who is paid**.
 Companion documents: [network access](cafeteria-network-access.md) · [entitlement rules](cafeteria-entitlement-rules.md) · [settlement rules](cafeteria-settlement-rules.md).
 
 ## The one rule

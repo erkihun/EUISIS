@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\Employee;
 use App\Services\Backup\BackupStatusService;
+use App\Services\Branding\BrandingService;
 use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Support\Security\NationalIdHash;
@@ -104,6 +105,24 @@ class ProductionReadiness extends Command
         $usesRedis = collect([config('cache.default'), config('queue.default'), config('session.driver')])->contains('redis');
         $this->check('redis extension (phpredis)', ! $usesRedis || config('database.redis.client') !== 'phpredis' || extension_loaded('redis'), $production, 'Cache, queue or session use Redis through phpredis.');
         $this->check('imagick (card PNG export)', extension_loaded('imagick'), false, 'Without it PNG card export is refused; SVG and PDF still work.');
+
+        $this->section('Branding (docs/branding.md)');
+        try {
+            $branding = app(BrandingService::class);
+            $brandOk = $branding->brandName() !== '' && $branding->shortName() !== '' && $branding->officialNameEn() !== '' && $branding->officialNameAm() !== '';
+            $this->check('Brand resolves to Addis One / AA-IEMSS', $brandOk && ! $branding->isLegacyName($branding->brandName()) && ! $branding->isLegacyName($branding->shortName()), $production, 'Brand: '.$branding->brandName().' / '.$branding->shortName().' — set System Settings > General or run php artisan branding:migrate-addis-one.');
+            $this->info_('Official name', $branding->officialNameEn());
+            $legacyRows = Schema::hasTable('system_settings')
+                ? DB::table('system_settings')->get(['group', 'key', 'value'])->filter(fn ($row): bool => collect($branding->legacyNames())->contains(fn (string $n): bool => str_contains(mb_strtolower((string) $row->value), mb_strtolower($n))))->map(fn ($row): string => $row->group.'.'.$row->key)->values()->all()
+                : [];
+            $this->check('No former product name in current settings', $legacyRows === [], false, 'Still naming the former product: '.implode(', ', $legacyRows).' — run php artisan branding:migrate-addis-one and review what it lists.');
+            $logoUrl = $branding->logoUrl();
+            $faviconUrl = $branding->faviconUrl();
+            $this->check('Brand logo configured (BRAND_ASSET_REQUIRED when missing)', $logoUrl !== null, false, 'No approved Addis One logo is uploaded; the shell shows the generic mark. Upload the approved asset under System Settings > General when it exists.');
+            $this->check('Favicon configured (BRAND_ASSET_REQUIRED when missing)', $faviconUrl !== null, false, 'No favicon uploaded; public/favicon.ico is served. Upload the approved asset when it exists.');
+        } catch (Throwable $e) {
+            $this->check('Branding checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
 
         $this->section('Public feedback (docs/public-feedback-readiness.md)');
         try {

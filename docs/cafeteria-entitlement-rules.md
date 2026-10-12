@@ -27,7 +27,7 @@ A Monday meal at a branch consumes Monday. A later scan at the main cafeteria, a
 
 | `extra_scan_policy` | second use of a day |
 |---|---|
-| `block` (default, EUISIS baseline) | refused: `already_scanned_today` (a scan today) / `entitlement_already_consumed` (used ahead earlier) |
+| `block` (default, Addis One baseline) | refused: `already_scanned_today` (a scan today) / `entitlement_already_consumed` (used ahead earlier) |
 | `deduct_next_available` | consumes the next unused day of the current window |
 | `employee_paid` | served; the employee pays the full provider price; nothing consumed |
 

@@ -1,6 +1,6 @@
 # Hosting Security Requirements
 
-**Project:** EUISIS  
+**Project:** Addis One  
 **Date:** 2026-05-27  
 **Applicability:** Any hosting provider for production deployment
 

@@ -1,6 +1,6 @@
 # Organization Relationships
 
-EUISIS keeps one primary structural hierarchy and separate functional/reporting links.
+Addis One keeps one primary structural hierarchy and separate functional/reporting links.
 
 ## Model
 

@@ -13,7 +13,7 @@ Related: [navigation](field-work-navigation.md),
 
 ## Audit baseline (October 2026)
 
-Before this module, EUISIS had no field work implementation at all. The only
+Before this module, Addis One had no field work implementation at all. The only
 match for the module's terms was `DailyActivityCategory::FieldWork`, a
 category label for daily activity items. There were no field work tables,
 models, routes, pages, permissions, translations or tests, and no sidebar
@@ -160,7 +160,7 @@ any of them.
 
 ### Supervisor resolution
 
-EUISIS records no supervisor on positions or units. The immediate supervisor
+Addis One records no supervisor on positions or units. The immediate supervisor
 is the user named by the explicit **line-manager (reviewer) assignments**
 (`daily_activity_reviewer_assignments`). These are the same assignments that
 define line-manager authority for Daily Activity, EPMS and assessments, and

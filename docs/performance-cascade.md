@@ -1,12 +1,12 @@
 # Performance cascade
 
-How a strategic goal reaches a position, an employee and a daily task in EUISIS EPMS, and why each link lives where it does. Read this with [epms-strategic-planning.md](epms-strategic-planning.md), [epms-cascade-rules.md](epms-cascade-rules.md) and [epms-calculation-rules.md](epms-calculation-rules.md).
+How a strategic goal reaches a position, an employee and a daily task in Addis One EPMS, and why each link lives where it does. Read this with [epms-strategic-planning.md](epms-strategic-planning.md), [epms-cascade-rules.md](epms-cascade-rules.md) and [epms-calculation-rules.md](epms-calculation-rules.md).
 
 ## Mapping to the conceptual model
 
-EUISIS already had a planning hierarchy, so the cascade reuses it. No parallel `unit_plans`, `position_plans` or `position_plan_items` tables exist, and none should be added.
+Addis One already had a planning hierarchy, so the cascade reuses it. No parallel `unit_plans`, `position_plans` or `position_plan_items` tables exist, and none should be added.
 
-| Concept | EUISIS entity |
+| Concept | Addis One entity |
 |---|---|
 | Strategic Goal | `strategic_goals` (cycle + organization + `version_no`) |
 | Strategic Goal Allocation | `strategic_goal_allocations` |

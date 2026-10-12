@@ -1,6 +1,6 @@
 # Organization → Employee Data API (v1)
 
-Read-only access to EUISIS organizational structure for approved external
+Read-only access to Addis One organizational structure for approved external
 systems: organizations, their units, the positions established in those units,
 and the employees assigned to them.
 

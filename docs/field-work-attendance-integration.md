@@ -2,7 +2,7 @@
 
 ## Current state
 
-EUISIS has **no attendance module**: no attendance tables, no device or
+Addis One has **no attendance module**: no attendance tables, no device or
 biometric ingestion, and no daily attendance status. So there is nothing for
 field work to reconcile against yet. This module provides the read side that
 a future attendance module will consume, so that approved field work never

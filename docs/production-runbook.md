@@ -1,6 +1,6 @@
 # Production runbook
 
-Day-to-day operation of EUISIS in a multi-node production. Deployment steps are
+Day-to-day operation of Addis One in a multi-node production. Deployment steps are
 in [deployment and rollback](runbook/deployment-and-rollback.md); backups in
 [database backup](runbooks/database-backup.md); incidents in
 [incident response](incident-response.md). No command here prints a secret.

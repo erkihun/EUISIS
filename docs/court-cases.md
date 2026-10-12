@@ -2,7 +2,7 @@
 
 Amharic: የፍርድ ቤት ጉዳዮች
 
-Court Cases is a **planned standalone EUISIS module**. Only its boundary exists
+Court Cases is a **planned standalone Addis One module**. Only its boundary exists
 today: a navigation entry, one permission, one protected route and a
 placeholder page. The module itself will be designed in a later phase.
 
@@ -14,7 +14,7 @@ placeholder page. The module itself will be designed in a later phase.
 | Controller | `app/Http/Controllers/CourtCases/CourtCaseController.php`, which checks `court_cases.view` |
 | Permission `court_cases.view` | `database/seeders/data/court-case-permissions.php`, registered by `2026_09_29_100000_register_court_case_permissions` |
 | Permission category | `Court Cases` in `PermissionCatalog::CATEGORIES` |
-| Sidebar | Its own group `courtCases` in `AppSidebar.tsx`, shown only with `court_cases.view` |
+| Sidebar | Under the `tribunalCourt` group ("Tribunal Court") in `AppSidebar.tsx`, alongside the Administrative Tribunal cases; shown only with `court_cases.view` |
 | Page | `resources/js/Pages/CourtCases/Index.tsx`: title, description and a "Planned Module" status |
 | Strings | `resources/js/i18n/{en,am}/courtCases.ts`, `nav.groupCourtCases` / `nav.courtCases` |
 

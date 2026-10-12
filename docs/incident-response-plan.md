@@ -1,6 +1,6 @@
 # Incident Response Plan
 
-**Project:** EUISIS — Addis Ababa City Administration Employee Unified ID & Service Integration System  
+**Project:** Addis One — Addis Ababa City Administration Addis Ababa Integrated Employee Management & Service System  
 **Date:** 2026-05-27  
 **Review cycle:** Annually; rehearsal drill annually
 
@@ -8,7 +8,7 @@
 
 ## 1. Purpose
 
-This plan defines the procedures for detecting, containing, eradicating, and recovering from security incidents affecting the EUISIS system, including data breaches, service disruptions, and unauthorized access.
+This plan defines the procedures for detecting, containing, eradicating, and recovering from security incidents affecting the Addis One system, including data breaches, service disruptions, and unauthorized access.
 
 ---
 
@@ -63,7 +63,7 @@ This plan defines the procedures for detecting, containing, eradicating, and rec
    - `audit_logs` table (SQL dump of relevant rows)
    - Web server access logs
    - Laravel `storage/logs/laravel.log`
-2. If an account is compromised: deactivate the account in EUISIS (`/users/{user}/deactivate`) and revoke all Sanctum tokens
+2. If an account is compromised: deactivate the account in Addis One (`/users/{user}/deactivate`) and revoke all Sanctum tokens
 3. If IP-based attack: co-ordinate with hosting provider to block IP at firewall level
 4. If active session abuse: run `php artisan session:flush` (all sessions) or target the specific session ID in the `sessions` table
 
@@ -158,7 +158,7 @@ php artisan up
 # Flush all sessions (emergency)
 # DELETE FROM sessions; (run via DB admin, not artisan — sessions table)
 
-# Deactivate a specific user (via EUISIS admin UI or Tinker)
+# Deactivate a specific user (via Addis One admin UI or Tinker)
 # php artisan tinker --execute="App\Models\User::find(ID)->update(['status' => 'inactive'])"
 
 # Revoke all Sanctum tokens for a user (Tinker)

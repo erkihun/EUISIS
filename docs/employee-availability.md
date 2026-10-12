@@ -1,13 +1,13 @@
 # Employee availability
 
 `App\Services\FieldWork\EmployeeAvailabilityService` reports only the statuses
-that installed EUISIS data can prove:
+that installed Addis One data can prove:
 
 | Status | Meaning |
 |---|---|
 | `official_field_work` | Checked in to approved or in-field work, and not yet checked out |
 | `approved_not_checked_in` | Approved field work covers the moment, but there is no GPS check-in yet |
-| `unknown` | Anything else. This does **not** mean absent or in the office. EUISIS has no attendance, leave, training or travel source that could prove either. |
+| `unknown` | Anything else. This does **not** mean absent or in the office. Addis One has no attendance, leave, training or travel source that could prove either. |
 
 Availability is a workflow status, not live tracking. The list exposes:
 - the employee's identity and placement unit;

@@ -1,6 +1,6 @@
 # Password Security Policy
 
-How EUISIS decides which passwords are acceptable, how they are stored, and
+How Addis One decides which passwords are acceptable, how they are stored, and
 what happens when they change. The policy applies to every password-authenticated
 account: administrators, employee accounts, provider-portal users (cafeteria,
 transport) and legacy service-provider and cafeteria-provider accounts.
@@ -13,7 +13,7 @@ Tests: `tests/Feature/Security/PasswordPolicyTest.php`.
 
 ## 1. Alignment with NIST SP 800-63B-4
 
-| NIST guidance | EUISIS |
+| NIST guidance | Addis One |
 |---|---|
 | Minimum 15 characters for single-factor passwords; 8 when used only with MFA | **8-character application floor and default.** System Settings can raise it but never lower it below 8 (`security.passwords.minimum_length_floor`). This configured default differs from the single-factor guidance. |
 | Accept at least 64 characters | 64–128 allowed (setting, default 128). Never truncated (see §5). |
@@ -23,7 +23,7 @@ Tests: `tests/Feature/Security/PasswordPolicyTest.php`.
 | Block breached, common, expected and context-specific values | Breach corpus check, common-password blocklist, service words, sequences, personal information (§3). |
 | Rate-limit failed attempts | Per identifier+IP, per account and per IP (§8). |
 
-> **Password history of 5 is an EUISIS organizational control, not a requirement to force routine periodic password changes.**
+> **Password history of 5 is an Addis One organizational control, not a requirement to force routine periodic password changes.**
 
 A change is required only after a known or suspected compromise, an
 administrator reset, a temporary or legacy-default password, account recovery,
@@ -145,7 +145,7 @@ from human passwords and are not revoked.
 
 ### Migration from the shared default password
 
-EUISIS used to assign one configured default password to every new account.
+Addis One used to assign one configured default password to every new account.
 That is a shared credential and is no longer done:
 
 | Before | Now |

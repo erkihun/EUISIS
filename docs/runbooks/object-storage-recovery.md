@@ -1,6 +1,6 @@
 # File and object storage recovery
 
-Database metadata alone is not a recoverable EUISIS system. No approved remote object store
+Database metadata alone is not a recoverable Addis One system. No approved remote object store
 was found. Current recovery design must protect BOTH local disks (including public media)
 using independent, encrypted, versioned storage; provisioning the actual snapshot/archive
 transport is an infrastructure deployment gate, not an unencrypted `rsync --delete` mirror.
