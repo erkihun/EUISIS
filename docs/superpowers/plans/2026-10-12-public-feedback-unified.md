@@ -44,10 +44,10 @@
 
 **Files:** the feedback-domain subset of the working copy (listed in scratchpad `stage-baseline.py`): typed submissions, complaint attachments, `ServiceFeedbackType`, submission inbox pages, the two migrations of 2026-10-10, docs. Shared files patched: `CodeRuleEntityType` (PSC case), `CodeGeneratorService` (PSC arm), `permissions.php` (two complaint permissions), `navigation.ts` (two keys), `AppSidebar.tsx` (two entries under Service Management).
 
-- [ ] Stage with `python scratchpad/stage-baseline.py`; `git diff --cached --stat`.
-- [ ] `vendor/bin/pest tests/Feature/ServiceFeedbackPublicTest.php tests/Feature/ServiceFeedbackAdminTest.php tests/Feature/ServiceFeedbackLocalizationTest.php tests/Feature/Performance/ServiceFeedbackPerformanceTest.php tests/Unit/AppSidebarNavigationTest.php` → all pass.
-- [ ] `git show :routes/web.php | php -l`-style syntax check of every staged PHP file.
-- [ ] Commit: `chore(feedback): adopt the typed public submission baseline (feedback, suggestion, complaint)`.
+- [x] Stage with `python scratchpad/stage-baseline.py`; `git diff --cached --stat`.
+- [x] `vendor/bin/pest tests/Feature/ServiceFeedbackPublicTest.php tests/Feature/ServiceFeedbackAdminTest.php tests/Feature/ServiceFeedbackLocalizationTest.php tests/Feature/Performance/ServiceFeedbackPerformanceTest.php tests/Unit/AppSidebarNavigationTest.php` → all pass.
+- [x] `git show :routes/web.php | php -l`-style syntax check of every staged PHP file.
+- [x] Commit: `chore(feedback): adopt the typed public submission baseline (feedback, suggestion, complaint)`.
 
 ## Phase 1 — Unified target model and resolver (commit 2)
 
@@ -59,8 +59,8 @@
 - Modify: `app/Models/EmployeeServiceFeedback.php` (fillable, casts, `organizationTarget()` relation, `isEmployeeTarget()`), `app/Services/ServiceFeedback/PublicServiceFeedbackService.php` (write `target_type`, `source_type`, `submitted_at`, snapshots on both `submit` paths).
 - Test: `tests/Feature/PublicFeedback/TargetIntegrityTest.php`.
 
-- [ ] Write failing tests: `it('stores an employee submission with target_type employee and source employee_card_qr')`, `it('rejects a row with both targets or neither target in PHP')` (model `saving` guard throws `InvalidArgumentException`), `it('rejects a row with both targets at the database on PostgreSQL')` (skip on sqlite), `it('backfills submitted_at for legacy rows')`.
-- [ ] Run → fail (columns missing). Implement migration, enums, DTO, resolver, model guard. Run SQLite + PostgreSQL → pass. Pint. Commit `feat(feedback): unified target model — target/source types, snapshots, integrity constraint`.
+- [x] Write failing tests: `it('stores an employee submission with target_type employee and source employee_card_qr')`, `it('rejects a row with both targets or neither target in PHP')` (model `saving` guard throws `InvalidArgumentException`), `it('rejects a row with both targets at the database on PostgreSQL')` (skip on sqlite), `it('backfills submitted_at for legacy rows')`.
+- [x] Run → fail (columns missing). Implement migration, enums, DTO, resolver, model guard. Run SQLite + PostgreSQL → pass. Pint. Commit `feat(feedback): unified target model — target/source types, snapshots, integrity constraint`.
 
 ## Phase 2 — Organization feedback QR (commit 3)
 
@@ -73,7 +73,7 @@
 - Routes under the admin group: `/organizations/{organization}/feedback-qr[...]` named `organizations.feedback-qr.*`.
 - Test: `tests/Feature/PublicFeedback/OrganizationFeedbackQrTest.php` — brief §118 items 11–15, 21–23, 30 plus "reopening the page does not regenerate", "revoked token never reassigned".
 
-- [ ] Failing tests → implement → SQLite + PostgreSQL → i18n keys (`serviceFeedback.orgQr*`) → tsc → build → walkthrough → commit `feat(feedback): organization feedback QR — stable token, rotation, revocation, print/export`.
+- [x] Failing tests → implement → SQLite + PostgreSQL → i18n keys (`serviceFeedback.orgQr*`) → tsc → build → walkthrough → commit `feat(feedback): organization feedback QR — stable token, rotation, revocation, print/export`.
 
 ## Phase 3 — One public flow for both targets (commit 4)
 
@@ -85,43 +85,43 @@
 - Idempotency: `PublicFeedbackFormToken` (cache-backed one-time token in the form, `form_token` hidden input validated and consumed atomically via `Cache::lock`/`add`).
 - Tests: `tests/Feature/PublicFeedback/OrganizationPublicFlowTest.php` (§118 16–20, 24; §120 31–35; §121 40 duplicate POST) and additions to `ServiceFeedbackPublicTest` for forged IDs (§117 5–6).
 
-- [ ] Failing tests → implement → both drivers → tsc/i18n/build → Amharic walkthrough of the organization landing and the three forms → commit `feat(feedback): organization-targeted public flow through the shared resolver and submission service`.
+- [x] Failing tests → implement → both drivers → tsc/i18n/build → Amharic walkthrough of the organization landing and the three forms → commit `feat(feedback): organization-targeted public flow through the shared resolver and submission service`.
 
 ## Phase 4 — Categories (commit 5)
 
 **Files:** migration `public_feedback_categories` (`id`, `code` unique, `name_en`, `name_am`, `submission_types` json, `target_types` json, `organization_id` nullable FK (null = city-wide), `is_active`, `sort_order`, `created_by`, `updated_by`), FK `employee_service_feedback.category_id`; model `PublicFeedbackCategory`; `PublicFeedbackCategoryService::optionsFor(TargetContext, ServiceFeedbackType)`; admin CRUD `PublicFeedbackCategoryController` + page `ServiceFeedback/Categories/Index.tsx` (FilterPanel/TableCard kit, modal form, deactivate instead of delete when referenced); permission `service_feedback.manage_categories`; public forms get a category select when options exist; validation `category_id` must be applicable (type + target + organization scope). Tests `PublicFeedbackCategoryTest` (§120 35, scope §32, no delete when referenced §33).
 
-- [ ] TDD cycle, both drivers, build, walkthrough, commit `feat(feedback): public feedback categories`.
+- [x] TDD cycle, both drivers, build, walkthrough, commit `feat(feedback): public feedback categories`.
 
 ## Phase 5 — Workflow, history, assignment and routing (commit 6)
 
 **Files:** migrations `public_feedback_status_history` (`submission_id`, `from_status`, `to_status`, `actor_id` nullable, `reason`, `transitioned_at`), `public_feedback_assignments` (`submission_id`, `handler_type`, `handler_id`, `assigned_by`, `assigned_at`, `ended_at`, `reason`), `public_feedback_routing_rules` (`organization_id` nullable, `target_type` nullable, `submission_type` nullable, `category_id` nullable, `handler_type` (`user|organization_unit|role`), `handler_id`, `priority`, `effective_from`, `effective_to`, `is_active`, `created_by`); enum `ServiceFeedbackStatus` gains `UnderReview`, `Assigned`, `Accepted`, `NotAdopted`, `Closed`, `Unrouted` (existing `Pending/Reviewed/Resolved/Hidden` kept); `PublicFeedbackWorkflow` (allowed transitions per type), `PublicFeedbackRoutingService::resolve(submission): ?array` (most specific active rule wins: organization > target type > submission type > category, then priority), `PublicFeedbackAssignmentService`; submission service calls routing after create (unrouted + admin notification when none); admin inbox actions (assign/reassign, transition with reason) in `ServiceSubmissionController`; routing rules admin page `ServiceFeedback/RoutingRules/Index.tsx`; permissions `service_feedback.assign|reassign|resolve|close|manage_routing`; policy: target employee cannot transition/assign (§54). Tests `PublicFeedbackWorkflowTest`, `PublicFeedbackRoutingTest` (§46 unrouted, §47 scope).
 
-- [ ] TDD cycle, both drivers, build, walkthrough, commit `feat(feedback): type-specific workflow, status/assignment history and routing rules`.
+- [x] TDD cycle, both drivers, build, walkthrough, commit `feat(feedback): type-specific workflow, status/assignment history and routing rules`.
 
 ## Phase 6 — Identity, visibility and settings (commit 7)
 
 **Files:** settings group `service_feedback` in `SystemSettingsService` (`enabled`, `identity_mode`, `allow_attachments`, `allow_rating`, `feedback_enabled`, `suggestion_enabled`, `complaint_enabled`, `captcha_enabled` (honoured only if a CAPTCHA provider exists), `tracking_enabled` = false; per-organization overrides NEEDS_DECISION → documented, not built); submitter contact encrypted at rest (`encrypted` casts on `client_name`/`client_contact`? — NEEDS_DECISION whether to re-encrypt legacy rows; new rows encrypted, legacy read-through), permissions `service_feedback.view_submitter_identity`, `service_feedback.view_sensitive_attachments`, `service_feedback.view_employee_target`, `service_feedback.view_organization_target`; DTO masking in inbox/detail; policy updates; settings page `ServiceFeedback/Settings.tsx`. Tests `PublicFeedbackVisibilityTest` (§36, 55–57, 86), `PublicFeedbackSettingsTest` (type disabled → 404 on the public form).
 
-- [ ] TDD cycle, commit `feat(feedback): identity modes, granular visibility permissions and settings`.
+- [x] TDD cycle, commit `feat(feedback): identity modes, granular visibility permissions and settings`.
 
 ## Phase 7 — Management navigation, dashboard, reports, exports (commit 8)
 
 **Files:** sidebar group `publicFeedback` (label "Public Feedback Management · የተገልጋይ አስተያየት አስተዳደር") replacing the Service Feedback group: dashboard, all submissions, feedback, suggestions, complaints, organization targets, categories, routing rules, organization QR codes (list), reports, settings; dashboard metrics by target type and status including unrouted; inbox filters `target_type`, `organization_target_id`, `category_id`, `status`, `handler`; reports with target filters; queued CSV/XLSX export job `ExportPublicFeedbackReport` (private disk, formula-safe, audited) mirroring the organization-design export; employee-level report gated by `view_employee_target` and documented against §82. Tests `PublicFeedbackReportsTest`, sidebar test update.
 
-- [ ] TDD cycle, build, walkthrough, commit `feat(feedback): public feedback management navigation, dashboard, reports and exports`.
+- [x] TDD cycle, build, walkthrough, commit `feat(feedback): public feedback management navigation, dashboard, reports and exports`.
 
 ## Phase 8 — Notifications, acknowledgement, abuse protection (commit 9)
 
 **Files:** `app/Notifications/PublicFeedbackNotification.php` (database + mail, no narrative in mail), events after commit (`PublicFeedbackSubmitted`, `Assigned`, `Unrouted`, `Resolved`, `Referred`), queued acknowledgement to an identified submitter (mail only; SMS NEEDS_DECISION), rate limiter per QR source + IP on the configured cache store (Redis when `CACHE_STORE=redis`), request size limits documented, upload hardening checks (double extension, executable MIME). Tests `PublicFeedbackNotificationTest`, `PublicFeedbackAbuseTest` (§121 39, 41).
 
-- [ ] TDD cycle, commit `feat(feedback): post-commit notifications, acknowledgement and abuse protection`.
+- [x] TDD cycle, commit `feat(feedback): post-commit notifications, acknowledgement and abuse protection`.
 
 ## Phase 9 — Subject employees and controlled discipline referral (commit 10)
 
 **Files:** migrations `public_feedback_subject_employees` (`submission_id`, `employee_id`, `employee_assignment_id` snapshot, `subject_role`, `added_by`, `added_at`), `public_feedback_referrals` (`submission_id`, `kind` = `discipline`, `status` `requested|accepted|declined|withdrawn`, `requested_by`, `decided_by`, `decided_at`, `notes`, `disciplinary_case_id` uuid nullable — set only by the discipline module, never here); `PublicFeedbackReferralService` (target employee cannot request/decide on own complaint; permission `service_feedback.refer_discipline`); detail page sections. Tests `PublicFeedbackReferralTest` (§122 45–47: no grievance, no discipline case, no appeal created).
 
-- [ ] TDD cycle, commit `feat(feedback): investigation subjects and controlled discipline referral requests`.
+- [x] TDD cycle, commit `feat(feedback): investigation subjects and controlled discipline referral requests`.
 
 ## Phase 10 — Hardening, docs, UAT and readiness gate (commit 11)
 
