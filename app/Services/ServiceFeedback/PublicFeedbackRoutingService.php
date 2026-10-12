@@ -15,7 +15,9 @@ use App\Models\PublicFeedbackRoutingRule;
 use App\Models\User;
 use App\Services\OrganizationScope\OrganizationScopeService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -42,8 +44,21 @@ final class PublicFeedbackRoutingService
 
     public function resolve(EmployeeServiceFeedback $submission): ?PublicFeedbackRoutingRule
     {
+        return $this->candidates($submission)->first();
+    }
+
+    /**
+     * Every rule that matches the submission, most specific first. Routing
+     * walks this list because the best rule may have become unusable since it
+     * was written (its handler left the service, or now is the target): the
+     * citizen's submission must still be stored and reach someone.
+     *
+     * @return Collection<int, PublicFeedbackRoutingRule>
+     */
+    public function candidates(EmployeeServiceFeedback $submission): Collection
+    {
         if ($submission->type === ServiceFeedbackType::Feedback) {
-            return null;
+            return new Collection;
         }
 
         return PublicFeedbackRoutingRule::query()
@@ -60,32 +75,48 @@ final class PublicFeedbackRoutingService
             ->orderByRaw('CASE WHEN category_id IS NULL THEN 1 ELSE 0 END')
             ->orderBy('priority')
             ->orderBy('created_at')
-            ->first();
+            ->get();
     }
 
-    /** Called inside the submission transaction, right after the row exists. */
+    /**
+     * Called inside the submission transaction, right after the row exists.
+     * A rule that cannot be applied (handler gone, handler is the target,
+     * handler outside the institution) is skipped and logged by id; the
+     * submission is never refused because of an internal misconfiguration.
+     */
     public function route(EmployeeServiceFeedback $submission, ?Request $request = null): void
     {
         if ($submission->type === ServiceFeedbackType::Feedback || $submission->status !== ServiceFeedbackStatus::Pending) {
             return;
         }
 
-        $rule = $this->resolve($submission);
+        $skipped = [];
 
-        if ($rule !== null) {
-            $this->assignments->assign($submission, $rule->handler_type, $rule->handler_id, null, null, $rule, $request);
+        foreach ($this->candidates($submission) as $rule) {
+            try {
+                $this->assignments->assign($submission, $rule->handler_type, $rule->handler_id, null, null, $rule, $request);
 
-            return;
+                return;
+            } catch (ValidationException $e) {
+                $skipped[] = $rule->getKey();
+                Log::warning('public-feedback.routing.rule_skipped', [
+                    'rule_id' => $rule->getKey(),
+                    'handler_type' => $rule->handler_type->value,
+                    'reason' => (string) ($e->errors()['handler_id'][0] ?? 'unusable'),
+                ]);
+            }
         }
 
-        // No reason text: the reader's UI explains an unrouted system transition in its own language.
+        // No reason text for the reader: the UI explains an unrouted system transition in its own language.
         $this->workflow->transition($submission, ServiceFeedbackStatus::Unrouted, null, null, $request);
         $this->audit->execute(
             eventType: AuditEventType::ServiceFeedbackUnrouted,
             actor: null,
             auditable: $submission,
             organizationId: $submission->organization_id,
-            reason: 'No routing rule matched this '.$submission->type->value,
+            reason: $skipped === []
+                ? 'No routing rule matched this '.$submission->type->value
+                : 'Matching routing rule(s) could not be applied: '.implode(', ', $skipped),
             request: $request,
         );
         $this->notifier->unrouted($submission);

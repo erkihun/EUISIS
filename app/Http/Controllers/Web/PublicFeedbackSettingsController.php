@@ -24,7 +24,7 @@ class PublicFeedbackSettingsController extends Controller
         abort_unless($this->settings->canManage($this->user()), 403);
 
         return Inertia::render('ServiceFeedback/Settings', [
-            'settings' => $this->settings->toArray(),
+            'feedbackSettings' => $this->settings->toArray(),
             'identityModes' => SubmitterIdentityMode::values(),
         ]);
     }

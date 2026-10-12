@@ -17,17 +17,28 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
  */
 class OrganizationFeedbackQrAccess
 {
+    /** Ability => permission, spelled out so the permission audit sees every name. */
+    public const PERMISSIONS = [
+        'view' => 'service_feedback.organization_qr.view',
+        'create' => 'service_feedback.organization_qr.create',
+        'export' => 'service_feedback.organization_qr.export',
+        'disable' => 'service_feedback.organization_qr.disable',
+        'rotate' => 'service_feedback.organization_qr.rotate',
+    ];
+
     public const ABILITIES = ['view', 'create', 'export', 'disable', 'rotate'];
 
     public function __construct(private readonly OrganizationScopeService $scope) {}
 
     public function can(User $user, string $ability, Organization $organization): bool
     {
-        if (! in_array($ability, self::ABILITIES, true)) {
+        $permission = self::PERMISSIONS[$ability] ?? null;
+
+        if ($permission === null) {
             return false;
         }
 
-        return $user->hasAnyPermission(['service_feedback.organization_qr.'.$ability])
+        return $user->hasAnyPermission([$permission])
             && $this->scope->canAccessOrganization($user, (string) $organization->getKey());
     }
 

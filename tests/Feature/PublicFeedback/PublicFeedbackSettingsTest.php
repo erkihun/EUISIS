@@ -167,8 +167,8 @@ it('lets a city-level account with the settings permission update the policy and
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('ServiceFeedback/Settings')
-            ->where('settings.identity_mode', 'optional')
-            ->where('settings.complaint_enabled', true));
+            ->where('feedbackSettings.identity_mode', 'optional')
+            ->where('feedbackSettings.complaint_enabled', true));
 
     $this->actingAs($this->superAdmin)
         ->put(route('service-feedback.settings.update'), [

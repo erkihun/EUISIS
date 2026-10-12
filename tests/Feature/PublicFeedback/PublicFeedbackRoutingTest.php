@@ -281,3 +281,32 @@ it('shows the assigned handler in the inbox and filters to my queue', function (
         ->get(route('service-submissions.complaints'))
         ->assertInertia(fn (Assert $page) => $page->where('entries.total', 2));
 });
+
+it('stores a complaint as unrouted when the matching rule names a handler that no longer exists, instead of refusing the public submission', function (): void {
+    $ghost = User::factory()->create(['name' => 'Left the service']);
+    rtRule(['handler_id' => (string) $ghost->id, 'priority' => 1]);
+    $ghost->forceDelete();
+
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'The counter closed early.'])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    $complaint = EmployeeServiceFeedback::query()->sole();
+    expect($complaint->status)->toBe(ServiceFeedbackStatus::Unrouted)
+        ->and(PublicFeedbackAssignment::query()->count())->toBe(0)
+        ->and(PublicFeedbackStatusHistory::query()->where('submission_id', $complaint->id)->pluck('to_status')->all())->toBe(['pending', 'unrouted'])
+        ->and(DB::table('notifications')->pluck('notifiable_id')->map(fn ($id) => (int) $id)->all())->toContain((int) $this->orgAdmin->id);
+});
+
+it('falls through to the next usable rule when the most specific one cannot be used', function (): void {
+    $ghost = User::factory()->create(['name' => 'Left the service']);
+    rtRule(['handler_id' => (string) $ghost->id, 'submission_type' => 'complaint', 'priority' => 1]);
+    $ghost->forceDelete();
+    rtRule(['priority' => 50]);
+
+    $this->post('/service-feedback/'.$this->a->token->token.'/complaint', ['message' => 'The counter closed early.'])->assertSessionHasNoErrors();
+
+    $complaint = EmployeeServiceFeedback::query()->sole();
+    expect($complaint->status)->toBe(ServiceFeedbackStatus::Assigned)
+        ->and(PublicFeedbackAssignment::query()->sole()->handler_id)->toBe((string) $this->handler->id);
+});

@@ -19,7 +19,7 @@ type Settings = {
     rate_limit_per_ip: number;
 };
 
-type Props = { settings: Settings; identityModes: IdentityMode[] };
+type Props = { feedbackSettings: Settings; identityModes: IdentityMode[] };
 
 const SWITCHES: Array<{ key: keyof Pick<Settings, 'enabled' | 'feedback_enabled' | 'suggestion_enabled' | 'complaint_enabled' | 'allow_attachments'>; label: string; hint: string }> = [
     { key: 'enabled', label: 'settingEnabled', hint: 'settingEnabledHint' },
@@ -33,9 +33,9 @@ const SWITCHES: Array<{ key: keyof Pick<Settings, 'enabled' | 'feedback_enabled'
  * The city-wide public feedback policy (brief §93). One editor for one
  * value: the group is kept out of the general System Settings page.
  */
-export default function PublicFeedbackSettings({ settings, identityModes }: Props) {
+export default function PublicFeedbackSettings({ feedbackSettings, identityModes }: Props) {
     const { t } = useLocale();
-    const form = useForm<Settings>({ ...settings });
+    const form = useForm<Settings>({ ...feedbackSettings });
 
     function submit(event: FormEvent) {
         event.preventDefault();

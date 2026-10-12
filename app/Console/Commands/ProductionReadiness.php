@@ -6,11 +6,14 @@ namespace App\Console\Commands;
 
 use App\Models\Employee;
 use App\Services\Backup\BackupStatusService;
+use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
+use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Support\Security\NationalIdHash;
 use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
@@ -101,6 +104,48 @@ class ProductionReadiness extends Command
         $usesRedis = collect([config('cache.default'), config('queue.default'), config('session.driver')])->contains('redis');
         $this->check('redis extension (phpredis)', ! $usesRedis || config('database.redis.client') !== 'phpredis' || extension_loaded('redis'), $production, 'Cache, queue or session use Redis through phpredis.');
         $this->check('imagick (card PNG export)', extension_loaded('imagick'), false, 'Without it PNG card export is refused; SVG and PDF still work.');
+
+        $this->section('Public feedback (docs/public-feedback-readiness.md)');
+        try {
+            $feedbackTables = [
+                'employee_service_feedback', 'employee_feedback_tokens', 'organization_feedback_qr_codes', 'public_feedback_categories',
+                'public_feedback_routing_rules', 'public_feedback_assignments', 'public_feedback_status_history', 'public_feedback_report_exports',
+                'public_feedback_subject_employees', 'public_feedback_referrals',
+            ];
+            $missingTables = array_values(array_filter($feedbackTables, fn (string $table): bool => ! Schema::hasTable($table)));
+            $this->check('Public feedback tables present', $missingTables === [], true, 'Missing: '.implode(', ', $missingTables).' — run php artisan migrate.');
+
+            if ($missingTables === []) {
+                $this->check(
+                    'Complaint reference code rule active',
+                    DB::table('code_rules')->where('entity_type', 'public_service_complaint')->where('is_active', true)->exists(),
+                    $production,
+                    'Complaint reference numbers cannot be issued; restore the public_service_complaint rule under Code rules.',
+                );
+                $settings = app(PublicFeedbackSettings::class);
+                $types = array_map(fn ($type): string => $type instanceof \BackedEnum ? (string) $type->value : (string) $type, $settings->enabledTypes());
+                $this->info_('Public feedback enabled / types', ($settings->enabled() ? 'yes' : 'no').' / '.($types === [] ? 'none' : implode(', ', $types)));
+                $this->info_('Submitter identity policy', $settings->identityMode()->value.' (attachments '.($settings->allowAttachments() ? 'allowed' : 'off').')');
+                $this->check('Attachment disk (local) is writable', is_writable(Storage::disk('local')->path('')), $production, 'Attachments are stored on the private local disk; the web user must be able to write there.');
+
+                $activeRules = (int) DB::table('public_feedback_routing_rules')->where('is_active', true)->count();
+                $this->check('Routing rules exist for suggestions and complaints', $activeRules > 0, false, 'Without an active routing rule every suggestion and complaint is stored as unrouted and only the routing administrators are told.');
+                $activeOrganizations = (int) DB::table('organizations')->where('status', 'active')->whereNull('deleted_at')->count();
+                $organizationsWithQr = (int) DB::table('organization_feedback_qr_codes')->where('status', 'active')->distinct()->count('organization_id');
+                $this->info_('Institutions with an active public QR', $organizationsWithQr.' of '.$activeOrganizations.' active');
+                $failedExports = (int) DB::table('public_feedback_report_exports')->where('status', 'failed')->count();
+                $this->check('No failed public feedback exports', $failedExports === 0, false, $failedExports.' export(s) failed; check the queue worker and storage, then run the export again from Reports.');
+
+                $findings = app(PublicFeedbackDataQuality::class)->run();
+                $describe = fn (array $list): string => implode('; ', array_map(fn (array $f): string => $f['label'].' ('.$f['count'].')', $list));
+                $failing = array_filter($findings, fn (array $f): bool => $f['count'] > 0 && $f['severity'] === PublicFeedbackDataQuality::SEVERITY_FAIL);
+                $review = array_filter($findings, fn (array $f): bool => $f['count'] > 0 && $f['severity'] === PublicFeedbackDataQuality::SEVERITY_REVIEW);
+                $this->check('Public feedback data integrity', $failing === [], $production, 'feedback:data-quality reports: '.$describe($failing));
+                $this->check('No public feedback rows awaiting data review', $review === [], false, 'feedback:data-quality lists rows a person must classify (never repaired automatically): '.$describe($review));
+            }
+        } catch (Throwable $e) {
+            $this->check('Public feedback checks ran', false, $production, 'Could not evaluate: '.$e->getMessage());
+        }
 
         $this->section('Operations');
         // --strict evaluates backups under production rules even outside production.
