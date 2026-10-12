@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use InvalidArgumentException;
 
 /**
@@ -182,6 +183,28 @@ class EmployeeServiceFeedback extends Model
     public function assignment(): BelongsTo
     {
         return $this->belongsTo(EmployeeAssignment::class, 'employee_assignment_id');
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(PublicFeedbackCategory::class, 'category_id');
+    }
+
+    /** Append-only transitions, oldest first. */
+    public function statusHistory(): HasMany
+    {
+        return $this->hasMany(PublicFeedbackStatusHistory::class, 'submission_id')->orderBy('transitioned_at');
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(PublicFeedbackAssignment::class, 'submission_id')->orderBy('assigned_at');
+    }
+
+    /** The open hand-over; at most one exists (unique partial index). */
+    public function currentAssignment(): HasOne
+    {
+        return $this->hasOne(PublicFeedbackAssignment::class, 'submission_id')->whereNull('ended_at')->orderByDesc('assigned_at');
     }
 
     public function attachments(): HasMany

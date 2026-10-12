@@ -24,6 +24,30 @@ return [
     'qrRotated' => 'አዲስ የተቋም የአስተያየት QR ተሰጥቷል፤ የቀድሞው ኮድ ተሰርዟል።',
     'qrRevoked' => 'የተቋሙ የአስተያየት QR ተሰርዟል።',
 
+    // የሥራ ፍሰት፣ ምደባ እና መስመር
+    'status_changed' => 'ሁኔታው ተዘምኗል።',
+    'transition_not_allowed' => 'ለዚህ የማቅረብ ዓይነት ይህ ሁኔታ አሁን ካለው ሁኔታ ሊከተል አይችልም።',
+    'assigned' => 'ማቅረቡ ለአስተናጋጁ ተሰጥቷል።',
+    'handler_invalid' => 'ያለ አስተናጋጅ ይምረጡ።',
+    'handler_out_of_scope' => 'አስተናጋጁ የማቅረቡ ተቋም አባል መሆን አለበት።',
+    'handler_is_target' => 'ማቅረቡ የሚመለከተው ሠራተኛ ሊያስተናግደው አይችልም።',
+    'not_assignable' => 'ውጤቱ የተመዘገበ ማቅረብ እንደገና ሊመደብ አይችልም።',
+    'rule_saved' => 'የመስመር ደንቡ ተቀምጧል።',
+    'rule_retired' => 'ማቅረቦች በዚህ ደንብ ስለተመሩ ከመሰረዝ ይልቅ ተሰናብቷል።',
+    'rule_deleted' => 'የመስመር ደንቡ ተሰርዟል።',
+    'category_out_of_scope' => 'ምድቡ ከተማ አቀፍ ወይም የደንቡ ተቋም መሆን አለበት።',
+
+    'types' => [
+        'feedback' => 'አስተያየት',
+        'suggestion' => 'ጥቆማ',
+        'complaint' => 'ቅሬታ',
+    ],
+
+    'notifications' => [
+        'unrouted_title' => 'የሕዝብ ማቅረብ አስተናጋጅ ይፈልጋል',
+        'unrouted' => 'የሕዝብ :type :reference ከየትኛውም የመስመር ደንብ ጋር አልተዛመደም፤ አስተናጋጅ እየጠበቀ ነው።',
+    ],
+
     'validation' => [
         'service_required' => 'እባክዎ ያገኙትን አገልግሎት ይምረጡ።',
         'rating_required' => 'እባክዎ የእርካታ ደረጃ ይምረጡ።',

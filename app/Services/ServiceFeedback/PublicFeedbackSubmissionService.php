@@ -38,6 +38,8 @@ class PublicFeedbackSubmissionService
     public function __construct(
         private readonly WriteAuditLogAction $audit,
         private readonly GenerateCodeAction $codes,
+        private readonly PublicFeedbackWorkflow $workflow,
+        private readonly PublicFeedbackRoutingService $routing,
     ) {}
 
     /**
@@ -115,6 +117,10 @@ class PublicFeedbackSubmissionService
                         $storedPaths[] = $this->storeAttachment($entry, $file);
                     }
                 }
+
+                // Brief §52: the history starts at submission. §45–46: routed, or unrouted and flagged.
+                $this->workflow->recordInitial($entry);
+                $this->routing->route($entry, $request);
 
                 $this->audit->execute(
                     eventType: match ($type) {

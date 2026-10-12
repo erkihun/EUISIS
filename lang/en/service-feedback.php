@@ -24,6 +24,30 @@ return [
     'qrRotated' => 'A new organization feedback QR was issued; the previous code is revoked.',
     'qrRevoked' => 'The organization feedback QR is revoked.',
 
+    // Workflow, assignment and routing
+    'status_changed' => 'The status was updated.',
+    'transition_not_allowed' => 'This status cannot follow the current one for this submission type.',
+    'assigned' => 'The submission was handed to the handler.',
+    'handler_invalid' => 'Choose an existing handler.',
+    'handler_out_of_scope' => 'The handler must belong to the submission\'s institution.',
+    'handler_is_target' => 'The employee a submission is about cannot handle it.',
+    'not_assignable' => 'A submission with a recorded outcome can no longer be assigned.',
+    'rule_saved' => 'The routing rule was saved.',
+    'rule_retired' => 'Submissions were routed by this rule, so it was retired instead of deleted.',
+    'rule_deleted' => 'The routing rule was deleted.',
+    'category_out_of_scope' => 'The category must be city-wide or belong to the rule\'s institution.',
+
+    'types' => [
+        'feedback' => 'feedback',
+        'suggestion' => 'suggestion',
+        'complaint' => 'complaint',
+    ],
+
+    'notifications' => [
+        'unrouted_title' => 'Public submission needs a handler',
+        'unrouted' => 'Public :type :reference matched no routing rule and is waiting for a handler.',
+    ],
+
     'validation' => [
         'service_required' => 'Please choose the service you received.',
         'rating_required' => 'Please choose a satisfaction rating.',

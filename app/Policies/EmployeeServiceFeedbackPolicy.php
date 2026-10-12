@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\ServiceFeedbackStatus;
 use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\User;
@@ -45,6 +46,45 @@ class EmployeeServiceFeedbackPolicy
         return $user->hasAnyPermission([$feedback->type === ServiceFeedbackType::Complaint
             ? 'service_feedback.complaints.review' : 'service_feedback.review'])
             && $this->withinScope($user, $feedback);
+    }
+
+    /**
+     * Workflow transitions (brief §48–51): acknowledging and reviewing take the
+     * type's review permission, recording an outcome takes `resolve`, closing
+     * takes `close`. Assigned, unrouted, pending and hidden are set by routing,
+     * assignment and moderation — never granted here.
+     */
+    public function transition(User $user, EmployeeServiceFeedback $feedback, ServiceFeedbackStatus $to): bool
+    {
+        $permission = match ($to) {
+            ServiceFeedbackStatus::Reviewed, ServiceFeedbackStatus::UnderReview => $this->reviewPermission($feedback),
+            ServiceFeedbackStatus::Resolved, ServiceFeedbackStatus::Accepted, ServiceFeedbackStatus::NotAdopted => 'service_feedback.resolve',
+            ServiceFeedbackStatus::Closed => 'service_feedback.close',
+            default => null,
+        };
+
+        return $permission !== null
+            && $user->hasAnyPermission([$this->viewPermission($feedback)])
+            && $user->hasAnyPermission([$permission])
+            && $this->withinScope($user, $feedback);
+    }
+
+    /** Handing the submission to a handler; a first assignment or a reassignment (§53). */
+    public function assign(User $user, EmployeeServiceFeedback $feedback): bool
+    {
+        return $user->hasAnyPermission([$this->viewPermission($feedback)])
+            && $user->hasAnyPermission(['service_feedback.assign', 'service_feedback.reassign'])
+            && $this->withinScope($user, $feedback);
+    }
+
+    private function viewPermission(EmployeeServiceFeedback $feedback): string
+    {
+        return $feedback->type === ServiceFeedbackType::Complaint ? 'service_feedback.complaints.view' : 'service_feedback.view';
+    }
+
+    private function reviewPermission(EmployeeServiceFeedback $feedback): string
+    {
+        return $feedback->type === ServiceFeedbackType::Complaint ? 'service_feedback.complaints.review' : 'service_feedback.review';
     }
 
     public function hide(User $user, EmployeeServiceFeedback $feedback): bool

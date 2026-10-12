@@ -87,13 +87,20 @@ export function RatingBar({ value, className }: { value: number; className?: str
 
 const statusTones: Record<string, Tone> = {
     pending: 'warning',
+    unrouted: 'danger',
+    assigned: 'info',
     reviewed: 'info',
+    under_review: 'info',
+    accepted: 'success',
+    not_adopted: 'neutral',
     resolved: 'success',
+    closed: 'neutral',
     hidden: 'neutral',
 };
 
+/** `under_review` → `serviceFeedback.statusUnderReview`. */
 export function statusLabelKey(status: string): string {
-    return `serviceFeedback.status${status.charAt(0).toUpperCase()}${status.slice(1)}`;
+    return `serviceFeedback.status${status.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('')}`;
 }
 
 /*

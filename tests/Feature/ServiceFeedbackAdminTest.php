@@ -196,7 +196,7 @@ it('prevents the target employee from viewing or resolving their own complaint',
     $this->actingAs($this->superAdmin)->get(route('service-submissions.complaints'))
         ->assertOk()->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
     $this->actingAs($this->superAdmin)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))->assertForbidden();
-    $this->actingAs($this->superAdmin)->post(route('service-submissions.review', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'resolved'])->assertForbidden();
+    $this->actingAs($this->superAdmin)->post(route('service-submissions.transition', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'resolved'])->assertForbidden();
     expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::Pending);
 });
 

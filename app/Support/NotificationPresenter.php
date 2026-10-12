@@ -10,6 +10,7 @@ use App\Notifications\FieldWorkNotification;
 use App\Notifications\GrievanceNotification;
 use App\Notifications\PasswordSecurityNotification;
 use App\Notifications\PerformanceNotification;
+use App\Notifications\PublicFeedbackNotification;
 use App\Notifications\TransferAnnouncementNotification;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -30,6 +31,7 @@ final class NotificationPresenter
         'account_security' => PasswordSecurityNotification::class,
         'performance' => PerformanceNotification::class,
         'grievance' => GrievanceNotification::class,
+        'public_feedback' => PublicFeedbackNotification::class,
         'transfer' => TransferAnnouncementNotification::class,
     ];
 

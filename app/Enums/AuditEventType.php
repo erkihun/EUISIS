@@ -551,6 +551,17 @@ enum AuditEventType: string
     case ServiceFeedbackSettingsUpdated = 'service_feedback.settings_updated';
 
     /*
+     * Public submission workflow: transitions, hand-overs and routing rules.
+     * Old and new status or handler are recorded; never the submission text.
+     */
+    case ServiceFeedbackStatusChanged = 'service_feedback.status_changed';
+    case ServiceFeedbackAssigned = 'service_feedback.assigned';
+    case ServiceFeedbackReassigned = 'service_feedback.reassigned';
+    case ServiceFeedbackUnrouted = 'service_feedback.unrouted';
+    case ServiceFeedbackRoutingRuleSaved = 'service_feedback.routing_rule_saved';
+    case ServiceFeedbackRoutingRuleDeleted = 'service_feedback.routing_rule_deleted';
+
+    /*
      * Public Site Management. Changed field NAMES are recorded, never uploaded
      * file content or rendered HTML.
      */

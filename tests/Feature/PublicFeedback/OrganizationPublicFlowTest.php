@@ -139,7 +139,8 @@ it('ignores any target or type the browser tries to supply', function (): void {
         ->and($row->target_type)->toBe(PublicFeedbackTargetType::Organization)
         ->and($row->organization_target_id)->toBe($this->organization->id)
         ->and($row->employee_id)->toBeNull()
-        ->and($row->status->value)->toBe('pending')
+        // No routing rule exists here, so the row is unrouted — never the forged 'resolved'.
+        ->and($row->status->value)->toBe('unrouted')
         ->and($row->reference_number)->toBeNull();
 });
 

@@ -78,6 +78,7 @@ use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
 use App\Http\Controllers\Web\OrganizationFeedbackQrController;
 use App\Http\Controllers\Web\PublicFeedbackCategoryController;
+use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
 use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
@@ -1308,6 +1309,11 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'store'])->name('service-feedback.categories.store');
     Route::put('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'update'])->whereUuid('category')->name('service-feedback.categories.update');
     Route::delete('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'destroy'])->whereUuid('category')->name('service-feedback.categories.destroy');
+    Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');
+    Route::get('/feedback-admin/routing-rules/handlers', [PublicFeedbackRoutingRuleController::class, 'handlers'])->name('service-feedback.routing-rules.handlers');
+    Route::post('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'store'])->name('service-feedback.routing-rules.store');
+    Route::put('/feedback-admin/routing-rules/{rule}', [PublicFeedbackRoutingRuleController::class, 'update'])->whereUuid('rule')->name('service-feedback.routing-rules.update');
+    Route::delete('/feedback-admin/routing-rules/{rule}', [PublicFeedbackRoutingRuleController::class, 'destroy'])->whereUuid('rule')->name('service-feedback.routing-rules.destroy');
     Route::get('/feedback-admin/dashboard', [ServiceFeedbackController::class, 'dashboard'])->name('service-feedback.admin.dashboard');
     Route::get('/feedback-admin/reports', [ServiceFeedbackController::class, 'reports'])->name('service-feedback.admin.reports');
     Route::get('/feedback-admin/export', [ServiceFeedbackController::class, 'export'])->name('service-feedback.admin.export');
@@ -1321,8 +1327,10 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');
     Route::get('/service-submissions/{type}/{submission}', [ServiceSubmissionController::class, 'show'])
         ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.show');
-    Route::post('/service-submissions/{type}/{submission}/review', [ServiceSubmissionController::class, 'review'])
-        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.review');
+    Route::post('/service-submissions/{type}/{submission}/transition', [ServiceSubmissionController::class, 'transition'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.transition');
+    Route::post('/service-submissions/{type}/{submission}/assign', [ServiceSubmissionController::class, 'assign'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.assign');
     Route::get('/service-submissions/{type}/{submission}/attachments/{attachment}', [ServiceSubmissionController::class, 'download'])
         ->where('type', 'complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
 
