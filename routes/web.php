@@ -76,6 +76,7 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\EmployeeCafeteriaExclusionController;
 use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
+use App\Http\Controllers\Web\OrganizationFeedbackQrController;
 use App\Http\Controllers\Web\EmployeeImportController;
 use App\Http\Controllers\Web\EmployeePortalReviewController;
 use App\Http\Controllers\Web\EntitlementController;
@@ -1304,6 +1305,17 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::get('/employees/{employee}/feedback-qr/png', [EmployeeFeedbackQrController::class, 'exportPng'])->name('employees.feedback-qr.png');
     Route::get('/employees/{employee}/feedback-qr/pdf', [EmployeeFeedbackQrController::class, 'exportPdf'])->name('employees.feedback-qr.pdf');
 
+    // Organization public feedback QR (docs/public-feedback.md). Opening the
+    // page never mints a code; enable, disable, rotate and revoke are explicit.
+    Route::get('/organizations/{organization}/feedback-qr', [OrganizationFeedbackQrController::class, 'show'])->name('organizations.feedback-qr.show');
+    Route::post('/organizations/{organization}/feedback-qr', [OrganizationFeedbackQrController::class, 'generate'])->name('organizations.feedback-qr.generate');
+    Route::post('/organizations/{organization}/feedback-qr/disable', [OrganizationFeedbackQrController::class, 'disable'])->name('organizations.feedback-qr.disable');
+    Route::post('/organizations/{organization}/feedback-qr/enable', [OrganizationFeedbackQrController::class, 'enable'])->name('organizations.feedback-qr.enable');
+    Route::post('/organizations/{organization}/feedback-qr/rotate', [OrganizationFeedbackQrController::class, 'rotate'])->name('organizations.feedback-qr.rotate');
+    Route::post('/organizations/{organization}/feedback-qr/revoke', [OrganizationFeedbackQrController::class, 'revoke'])->name('organizations.feedback-qr.revoke');
+    Route::get('/organizations/{organization}/feedback-qr/png', [OrganizationFeedbackQrController::class, 'exportPng'])->name('organizations.feedback-qr.png');
+    Route::get('/organizations/{organization}/feedback-qr/pdf', [OrganizationFeedbackQrController::class, 'exportPdf'])->name('organizations.feedback-qr.pdf');
+
     // Grievance Management routes live in routes/grievances.php.
 });
 
@@ -1330,7 +1342,6 @@ require __DIR__.'/assessments.php';
 require __DIR__.'/grievances.php';
 
 // Employee Discipline — Regulation 201/2018, separate from grievances and public complaints.
-require __DIR__.'/discipline.php';
 
 // Field Work Management (docs/field-work-management.md).
 require __DIR__.'/field-work.php';

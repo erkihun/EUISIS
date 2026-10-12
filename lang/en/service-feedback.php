@@ -9,6 +9,13 @@ declare(strict_types=1);
 return [
     'service_not_provided' => 'This service is not provided by this officer.',
 
+    // Organization feedback QR management
+    'qrGenerated' => 'The organization feedback QR is enabled.',
+    'qrDisabled' => 'The organization feedback QR is disabled; scans show the unavailable page.',
+    'qrEnabled' => 'The organization feedback QR is enabled again.',
+    'qrRotated' => 'A new organization feedback QR was issued; the previous code is revoked.',
+    'qrRevoked' => 'The organization feedback QR is revoked.',
+
     'validation' => [
         'service_required' => 'Please choose the service you received.',
         'rating_required' => 'Please choose a satisfaction rating.',

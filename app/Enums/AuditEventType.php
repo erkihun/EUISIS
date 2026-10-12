@@ -533,6 +533,14 @@ enum AuditEventType: string
     case ServiceFeedbackQrSuspended = 'service_feedback.qr_suspended';
     case ServiceFeedbackQrExported = 'service_feedback.qr_exported';
 
+    // Organization public feedback QR (brief §72): state changes and exports; never the token itself.
+    case OrganizationFeedbackQrGenerated = 'service_feedback.organization_qr_generated';
+    case OrganizationFeedbackQrDisabled = 'service_feedback.organization_qr_disabled';
+    case OrganizationFeedbackQrEnabled = 'service_feedback.organization_qr_enabled';
+    case OrganizationFeedbackQrRotated = 'service_feedback.organization_qr_rotated';
+    case OrganizationFeedbackQrRevoked = 'service_feedback.organization_qr_revoked';
+    case OrganizationFeedbackQrExported = 'service_feedback.organization_qr_exported';
+
     /*
      * Employee CSV import. Validation is logged as well as completion, so an
      * upload that was previewed and abandoned still leaves a trace of who

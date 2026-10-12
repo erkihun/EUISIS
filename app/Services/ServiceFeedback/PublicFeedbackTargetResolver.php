@@ -20,7 +20,10 @@ use App\Models\EmployeeAssignment;
  */
 class PublicFeedbackTargetResolver
 {
-    public function __construct(private readonly EmployeeFeedbackTokenService $tokens) {}
+    public function __construct(
+        private readonly EmployeeFeedbackTokenService $tokens,
+        private readonly OrganizationFeedbackQrService $organizationCodes,
+    ) {}
 
     public function resolveEmployeeToken(string $token): ?TargetContext
     {
@@ -77,9 +80,39 @@ class PublicFeedbackTargetResolver
         return '';
     }
 
-    /** Organization feedback QR codes arrive with Phase 2; until then no organization token resolves. */
+    /**
+     * An organization's own feedback QR: the organization is the target and
+     * its own context. Only an active code of an active organization resolves.
+     */
     public function resolveOrganizationToken(string $token): ?TargetContext
     {
-        return null;
+        $code = $this->organizationCodes->resolveForPublic($token);
+
+        if ($code === null || $code->organization === null) {
+            return null;
+        }
+
+        $organization = $code->organization;
+
+        return new TargetContext(
+            targetType: PublicFeedbackTargetType::Organization,
+            sourceType: PublicFeedbackSourceType::OrganizationFeedbackQr,
+            employeeId: null,
+            organizationTargetId: (string) $organization->getKey(),
+            employeeAssignmentId: null,
+            contextOrganizationId: (string) $organization->getKey(),
+            contextUnitId: null,
+            contextPositionId: null,
+            sourceId: (string) $code->getKey(),
+            targetNameSnapshot: $organization->name_en,
+            targetCodeSnapshot: $organization->code,
+            names: [
+                'organization' => ['en' => $organization->name_en, 'am' => $organization->name_am],
+            ],
+            extras: [
+                'logo_url' => $organization->logo_url,
+                'short_name' => null,
+            ],
+        );
     }
 }

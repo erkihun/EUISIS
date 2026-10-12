@@ -9,6 +9,13 @@ declare(strict_types=1);
 return [
     'service_not_provided' => 'ይህ አገልግሎት በዚህ ባለሙያ አይሰጥም።',
 
+    // የተቋም የአስተያየት QR አስተዳደር
+    'qrGenerated' => 'የተቋሙ የአስተያየት QR ነቅቷል።',
+    'qrDisabled' => 'የተቋሙ የአስተያየት QR ታግዷል፤ ስካኖች የማይገኝ ገጽን ያሳያሉ።',
+    'qrEnabled' => 'የተቋሙ የአስተያየት QR እንደገና ነቅቷል።',
+    'qrRotated' => 'አዲስ የተቋም የአስተያየት QR ተሰጥቷል፤ የቀድሞው ኮድ ተሰርዟል።',
+    'qrRevoked' => 'የተቋሙ የአስተያየት QR ተሰርዟል።',
+
     'validation' => [
         'service_required' => 'እባክዎ ያገኙትን አገልግሎት ይምረጡ።',
         'rating_required' => 'እባክዎ የእርካታ ደረጃ ይምረጡ።',

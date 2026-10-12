@@ -57,6 +57,7 @@ type CanProps = {
     archive: boolean;
     deactivate: boolean;
     createChild: boolean;
+    feedbackQr?: boolean;
 };
 
 type InstitutionOfficePreview = {
@@ -182,6 +183,14 @@ export default function OrganizationShow({
                                 >
                                     <Plus className="h-3.5 w-3.5" />
                                     {t('organizations.addChild')}
+                                </Link>
+                            )}
+                            {can.feedbackQr && (
+                                <Link
+                                    href={route('organizations.feedback-qr.show', organization.id)}
+                                    className={buttonClassName({ variant: 'outline', size: 'sm' })}
+                                >
+                                    {t('serviceFeedback.organizationFeedbackQr')}
                                 </Link>
                             )}
                             {/* Read-only view: gated by `view`, which the user already holds here. */}
