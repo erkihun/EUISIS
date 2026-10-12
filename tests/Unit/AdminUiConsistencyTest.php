@@ -64,6 +64,9 @@ function adminUiCounts(): array
         // neither lists them as text links nor builds its own dropdown.
         'row action links outside the menu' => '/<(?:Link|a|button)\b(?:[^>]|=>)*?className=\{actionLinkClassName\(/',
         'hand-rolled dropdown' => '/\bcreatePortal\(/',
+        // A row action is the bare verb (Edit, Delete, View, Restore from common.*), never
+        // "<verb> <entity>": the row already says what the record is.
+        'entity-named row action' => '/label:\s*t\(\'[\w.]+\.(?:edit|delete|archive|restore|view|remove)[A-Z][A-Za-z]*\'\)/',
     ];
     $counts = array_fill_keys(array_keys($patterns), 0);
 
@@ -107,6 +110,7 @@ it('keeps hand-rolled admin UI from growing', function (): void {
         'row action links outside the menu' => 113,
         // The Ethiopian date-picker popover and the two ID-card print modals (uncommitted work) still portal.
         'hand-rolled dropdown' => 3,
+        'entity-named row action' => 0,
     ];
 
     $counts = adminUiCounts();

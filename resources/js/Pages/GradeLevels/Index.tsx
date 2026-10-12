@@ -146,8 +146,8 @@ export default function GradeLevelsIndex({
                                                         items={[
                                                             { label: t('common.view'), href: route('grade-levels.show', gl.id), show: gl.can.view },
                                                             { label: t('common.edit'), href: route('grade-levels.edit', gl.id), show: gl.can.update },
-                                                            { label: t('gradeLevels.archive'), onClick: () => handleArchive(gl.id), variant: 'danger', show: gl.can.archive },
-                                                            { label: t('gradeLevels.restore'), onClick: () => handleRestore(gl.id), show: gl.can.restore },
+                                                            { label: t('common.delete'), onClick: () => handleArchive(gl.id), variant: 'danger', show: gl.can.archive },
+                                                            { label: t('common.restore'), onClick: () => handleRestore(gl.id), show: gl.can.restore },
                                                         ]}
                                                     />
                                                 </div>

@@ -39,10 +39,10 @@ export default function CodeRuleActionMenu({ rule }: { rule: RuleRow }) {
     return (
         <AppActionMenu
             items={[
-                { label: t('codeRules.actions.view'), href: route('code-rules.show', rule.id), show: rule.can.view },
+                { label: t('common.view'), href: route('code-rules.show', rule.id), show: rule.can.view },
                 { label: t('common.edit'), href: route('code-rules.edit', rule.id), show: rule.can.update },
-                { label: t('codeRules.actions.archive'), onClick: archive, variant: 'danger', show: rule.can.archive && rule.is_active },
-                { label: t('codeRules.actions.restore'), onClick: restore, show: rule.can.restore && !rule.is_active },
+                { label: t('common.delete'), onClick: archive, variant: 'danger', show: rule.can.archive && rule.is_active },
+                { label: t('common.restore'), onClick: restore, show: rule.can.restore && !rule.is_active },
             ]}
         />
     );

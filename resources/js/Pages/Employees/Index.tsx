@@ -484,7 +484,7 @@ export default function EmployeesIndex({
                                                         <AppActionMenu
                                                             items={[
                                                                 { label: t('common.view'), href: route('employees.show', employee.id) },
-                                                                { label: t('employees.editEmployee'), href: route('employees.edit', employee.id), show: can.update },
+                                                                { label: t('common.edit'), href: route('employees.edit', employee.id), show: can.update },
                                                             ]}
                                                         />
                                                     </div>

@@ -115,7 +115,7 @@ export default function OrganizationUnitTreeRow({
                     <AppActionMenu
                         items={[
                             {
-                                label: t('organizationUnits.addOrganizationUnit'),
+                                label: t('organizations.addChild'),
                                 icon: <Plus className="h-4 w-4" />,
                                 href: route('organization-units.create', { organization_id: selectedOrgId, parent_unit_id: node.id }),
                                 show: canCreate && !node.is_deleted,

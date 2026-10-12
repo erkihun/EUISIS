@@ -302,7 +302,7 @@ export default function PositionsIndex({
                                                                     items={[
                                                                         { label: t('positions.move'), href: route('positions.move', position.id), show: position.can.move },
                                                                         { label: t('common.edit'), href: route('positions.edit', position.id), show: position.can.update },
-                                                                        { label: t('positions.archivePosition'), onClick: async () => {
+                                                                        { label: t('common.delete'), onClick: async () => {
                                                                             const { confirmed } = await confirm({
                                                                                 title: t('confirmations.confirmDeleteTitle'),
                                                                                 description: t('confirmations.thisRecordWillMoveToRecycleBin'),
@@ -312,7 +312,7 @@ export default function PositionsIndex({
                                                                             });
                                                                             if (confirmed) router.delete(route('positions.archive', position.id));
                                                                         }, variant: 'danger', show: position.can.archive && position.is_active },
-                                                                        { label: t('positions.restorePosition'), onClick: async () => {
+                                                                        { label: t('common.restore'), onClick: async () => {
                                                                             const { confirmed } = await confirm({
                                                                                 title: t('confirmations.confirmRestoreTitle'),
                                                                                 description: t('confirmations.thisActionCannotBeUndone'),

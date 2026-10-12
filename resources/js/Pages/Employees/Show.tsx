@@ -141,7 +141,7 @@ export default function EmployeesShow({
                                 href={route('employees.edit', employee.id)}
                                 className={buttonClassName({ variant: 'primary', size: 'sm' })}
                             >
-                                {t('employees.editEmployee')}
+                                {t('common.edit')}
                             </Link>
                         </div>
                     }
