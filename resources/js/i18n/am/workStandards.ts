@@ -47,7 +47,7 @@ const workStandards = {
     qualityMeasureHelp: 'ጥራት ሲለካ ግዴታ ነው። የጸደቀውን ዘዴ ይጻፉ፤ ለምሳሌ "ሙሉ እና ትክክለኛ የሆኑ ማመልከቻዎች ድርሻ"።',
     qualitySource: 'የተከናወነ ጥራት የሚመዘግበው',
     qualitySources: { employee: 'ሠራተኛው', reviewer: 'ገምጋሚው' },
-    effectiveFrom: 'ተፈጻሚ የሚሆንበት ቀን',
+    effectiveFrom: 'የሚጸናበት ቀን',
     effectiveTo: 'የሚያበቃበት ቀን (አማራጭ)',
     approve: 'ያጽድቁ',
     retire: 'አቋርጥ',

@@ -22,7 +22,7 @@ const roles = {
     permissionGroups: 'የመዳረሻ መብት ቡድኖች',
     cannotEditSuperAdmin: 'የሱፐር አስተዳዳሪ ሚና ሊስተካከል አይችልም',
     cannotDeleteSuperAdmin: 'የሱፐር አስተዳዳሪ ሚና ሊሰረዝ አይችልም',
-    cannotAssignPermissionsNotice: 'ይህ ሚና የሚሰጠውን ፈቃድ የመቀየር ፈቃድ የለዎትም። አሁንም ስሙን መቀየር ይችላሉ።',
+    cannotAssignPermissionsNotice: 'ይህ ሚና የሚሰጣቸውን የመዳረሻ መብቶች የመቀየር መብት የለዎትም። አሁንም ስሙን መቀየር ይችላሉ።',
     selectAll: 'ሁሉንም ይምረጡ',
     deselectAll: 'ሁሉንም ሰርዝ',
     noRoles: 'ምንም ሚና አልተገለጸም',

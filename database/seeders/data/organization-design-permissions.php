@@ -30,13 +30,13 @@ return [
         'Draft a new mandate or a new version of a published one.', 'አዲስ ሥልጣን ወይም የታተመ ሥልጣን አዲስ ስሪት ረቂቅ ይፍጠሩ።'),
     $entry('institution-mandates.update', 'institution-mandates', 40, 'Edit draft mandates', 'ረቂቅ ሥልጣኖችን ያርትዑ',
         'Edit or cancel a mandate while it is a draft. Published versions are never edited.', 'ሥልጣንን ረቂቅ እያለ ያርትዑ ወይም ይሰርዙ። የታተሙ ስሪቶች በጭራሽ አይስተካከሉም።'),
-    $entry('institution-mandates.approve', 'institution-mandates', 50, 'Publish institution mandates', 'የተቋም ሕጋዊ ሥልጣኖችን ያትሙ',
+    $entry('institution-mandates.approve', 'institution-mandates', 50, 'Publish institution mandates', 'የተቋም ሕጋዊ ሥልጣኖችን ይፋ ያድርጉ',
         'Publish a draft mandate drafted by someone else, superseding the version in force.', 'በሌላ ሰው የተረቀቀ ሥልጣን ያትሙ፤ በሥራ ላይ ያለውን ስሪት ይተካል።'),
 
-    $entry('organization-functions.viewAny', 'organization-functions', 10, 'View powers and functions', 'ኃይሎችና ተግባራትን ይመልከቱ',
+    $entry('organization-functions.viewAny', 'organization-functions', 10, 'View powers and functions', 'ሥልጣንና ተግባራትን ይመልከቱ',
         'View the powers and function tree of organizations within scope.', 'በወሰን ውስጥ ያሉ ተቋማትን ኃይሎችና የተግባር ዛፍ ይመልከቱ።'),
-    $entry('organization-functions.manage', 'organization-functions', 20, 'Manage powers and functions', 'ኃይሎችና ተግባራትን ያስተዳድሩ',
-        'Add, edit, move and remove powers and functions under a mandate within scope.', 'በወሰን ውስጥ በሥልጣን ሥር ኃይሎችና ተግባራትን ይጨምሩ፣ ያርትዑ፣ ያንቀሳቅሱ እና ያስወግዱ።'),
+    $entry('organization-functions.manage', 'organization-functions', 20, 'Manage powers and functions', 'ሥልጣንና ተግባራትን ያስተዳድሩ',
+        'Add, edit, move and remove powers and functions under a mandate within scope.', 'በወሰን ውስጥ በሥልጣን ሥር ሥልጣንና ተግባራትን ይጨምሩ፣ ያርትዑ፣ ያንቀሳቅሱ እና ያስወግዱ።'),
 
     $entry('service-catalog.viewAny', 'service-catalog', 10, 'View the service catalog', 'የአገልግሎት ካታሎግ ይመልከቱ',
         'List the services of organizations within scope.', 'በወሰን ውስጥ ያሉ ተቋማትን አገልግሎቶች ይዘርዝሩ።'),
@@ -46,7 +46,7 @@ return [
         'Draft a new service or a new version of a published one.', 'አዲስ አገልግሎት ወይም የታተመ አገልግሎት አዲስ ስሪት ረቂቅ ይፍጠሩ።'),
     $entry('service-catalog.update', 'service-catalog', 40, 'Edit draft services', 'ረቂቅ አገልግሎቶችን ያርትዑ',
         'Edit a service and its function and ISIC links while it is a draft.', 'አገልግሎትን እና የተግባርና የISIC አገናኞቹን ረቂቅ እያለ ያርትዑ።'),
-    $entry('service-catalog.approve', 'service-catalog', 50, 'Publish services', 'አገልግሎቶችን ያትሙ',
+    $entry('service-catalog.approve', 'service-catalog', 50, 'Publish services', 'አገልግሎቶችን ይፋ ያድርጉ',
         'Publish a draft service drafted by someone else.', 'በሌላ ሰው የተረቀቀ አገልግሎት ያትሙ።'),
 
     $entry('classifications.viewAny', 'classifications', 10, 'View classifications', 'ምደባዎችን ይመልከቱ',
@@ -62,7 +62,7 @@ return [
         'Draft a new process or a new version of a published one.', 'አዲስ ሂደት ወይም የታተመ ሂደት አዲስ ስሪት ረቂቅ ይፍጠሩ።'),
     $entry('processes.update', 'processes', 40, 'Design draft processes', 'ረቂቅ ሂደቶችን ይንደፉ',
         'Edit a draft process and its activities, tasks and typed inputs/outputs; trace position tasks to master tasks.', 'ረቂቅ ሂደትን እና እንቅስቃሴዎቹን፣ ተግባሮቹን እና ግብዓት/ውጤቶቹን ያርትዑ፤ የሥራ መደብ ተግባራትን ከዋና ተግባራት ጋር ያገናኙ።'),
-    $entry('processes.approve', 'processes', 50, 'Publish processes', 'ሂደቶችን ያትሙ',
+    $entry('processes.approve', 'processes', 50, 'Publish processes', 'ሂደቶችን ይፋ ያድርጉ',
         'Publish a draft process drafted by someone else.', 'በሌላ ሰው የተረቀቀ ሂደት ያትሙ።'),
 
     $entry('professions.manage', 'professions', 10, 'Manage professions', 'ሙያዎችን ያስተዳድሩ',
@@ -108,14 +108,14 @@ return [
         'Browse the manpower estimation methodologies and their parameters.', 'የሰው ኃይል ግምት ዘዴዎችን እና መለኪያዎቻቸውን ያስሱ።'),
     $entry('methodologies.manage', 'methodologies', 20, 'Draft methodologies', 'ዘዴዎችን ያርቅቁ',
         'City-level: draft methodologies and new versions with their parameters.', 'የከተማ ደረጃ፡ ዘዴዎችንና አዲስ ስሪቶችን ከመለኪያዎቻቸው ጋር ያርቅቁ።'),
-    $entry('methodologies.approve', 'methodologies', 30, 'Publish methodologies', 'ዘዴዎችን ያትሙ',
+    $entry('methodologies.approve', 'methodologies', 30, 'Publish methodologies', 'ዘዴዎችን ይፋ ያድርጉ',
         'Publish a methodology drafted by someone else once every parameter it uses is set.', 'የሚጠቀመው እያንዳንዱ መለኪያ ከተቀመጠ በኋላ በሌላ ሰው የተረቀቀ ዘዴ ያትሙ።'),
 
     $entry('position-profiles.viewAny', 'position-profiles', 10, 'View position design', 'የሥራ መደብ ንድፍ ይመልከቱ',
         'Browse position profiles, work links and requirements of positions within scope.', 'በወሰን ውስጥ ያሉ የሥራ መደቦችን መገለጫዎች፣ የሥራ አገናኞች እና መስፈርቶች ያስሱ።'),
     $entry('position-profiles.manage', 'position-profiles', 20, 'Design positions', 'የሥራ መደቦችን ይንደፉ',
         'Draft position profiles, link positions to the work design, and write or derive their requirements.', 'የሥራ መደብ መገለጫዎችን ያርቅቁ፣ የሥራ መደቦችን ከሥራ ንድፉ ጋር ያገናኙ፣ እና መስፈርቶቻቸውን ይጻፉ ወይም ያመንጩ።'),
-    $entry('position-profiles.approve', 'position-profiles', 30, 'Publish position profiles', 'የሥራ መደብ መገለጫዎችን ያትሙ',
+    $entry('position-profiles.approve', 'position-profiles', 30, 'Publish position profiles', 'የሥራ መደብ መገለጫዎችን ይፋ ያድርጉ',
         'Publish a profile drafted by someone else.', 'በሌላ ሰው የተረቀቀ መገለጫ ያትሙ።'),
 
     $entry('job-descriptions.viewAny', 'job-descriptions', 10, 'View job descriptions', 'የሥራ መግለጫዎችን ይመልከቱ',
@@ -124,14 +124,14 @@ return [
         'Draft job descriptions from published profiles, write custom sections and regenerate derived ones.', 'ከታተሙ መገለጫዎች የሥራ መግለጫዎችን ያርቅቁ፣ ብጁ ክፍሎችን ይጻፉ እና የተመነጩትን ያድሱ።'),
     $entry('job-descriptions.approve', 'job-descriptions', 30, 'Approve job descriptions', 'የሥራ መግለጫዎችን ያጽድቁ',
         'Review and approve a submitted job description prepared by someone else.', 'በሌላ ሰው የተዘጋጀ የቀረበ የሥራ መግለጫ ይገምግሙና ያጽድቁ።'),
-    $entry('job-descriptions.publish', 'job-descriptions', 40, 'Publish job descriptions', 'የሥራ መግለጫዎችን ያትሙ',
+    $entry('job-descriptions.publish', 'job-descriptions', 40, 'Publish job descriptions', 'የሥራ መግለጫዎችን ይፋ ያድርጉ',
         'Publish an approved job description; it is recorded on the position\'s current assignments.', 'የጸደቀ የሥራ መግለጫ ያትሙ፤ በሥራ መደቡ የአሁኑ ምደባዎች ላይ ይመዘገባል።'),
 
     $entry('organization-design-reports.view', 'organization-design-reports', 10, 'View design reports', 'የንድፍ ሪፖርቶችን ይመልከቱ',
         'Coverage, traceability, gap, position readiness and workforce reports for organizations within scope.', 'በወሰን ውስጥ ላሉ ተቋማት የሽፋን፣ የመከታተያ፣ የክፍተት፣ የሥራ መደብ ዝግጁነትና የሰው ኃይል ሪፖርቶች።'),
-    $entry('organization-design-reports.export', 'organization-design-reports', 20, 'Export design reports', 'የንድፍ ሪፖርቶችን ወደ ውጭ ይላኩ',
+    $entry('organization-design-reports.export', 'organization-design-reports', 20, 'Export design reports', 'የንድፍ ሪፖርቶችን ወደ ፋይል ያውጡ',
         'Queue CSV or XLSX exports of the design reports and download them.', 'የንድፍ ሪፖርቶችን በCSV ወይም XLSX ወደ ውጭ መላክ ያስይዙና ያውርዱ።'),
 
-    $entry('data-mapping.view', 'data-mapping', 10, 'View the mapping workspace', 'የካርታ ሥራ ቦታውን ይመልከቱ',
+    $entry('data-mapping.view', 'data-mapping', 10, 'View the mapping workspace', 'የማዛመጃ የሥራ ቦታውን ይመልከቱ',
         'See existing records not yet linked to the design, their suggestions and the data-quality report. Mapping itself uses the permissions of each record kind.', 'ከንድፉ ጋር ገና ያልተገናኙ ነባር መዝገቦችን፣ ጥቆማዎቻቸውንና የመረጃ ጥራት ሪፖርቱን ይመልከቱ። ማገናኘቱ ራሱ የእያንዳንዱን መዝገብ ዓይነት ፈቃዶች ይጠቀማል።'),
 ];

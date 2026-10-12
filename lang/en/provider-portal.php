@@ -105,4 +105,5 @@ return [
         'operator' => 'Operator',
         'created_at' => 'Created At',
     ],
+    'service_access_denied' => 'Your account does not have access to this service.',
 ];

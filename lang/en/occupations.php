@@ -22,4 +22,8 @@ return [
     'restored_successfully' => 'Occupation restored successfully.',
     'used_by_positions' => 'This occupation is used by active positions.',
     'select_occupation' => 'Select Occupation',
+    'description' => 'description',
+    'isco_code_required' => 'The ISCO code is required.',
+    'isco_code_digits' => 'The ISCO code must contain one to four digits.',
+    'isco_code_unique' => 'Another occupation already uses this ISCO code.',
 ];

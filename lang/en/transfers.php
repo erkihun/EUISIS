@@ -58,4 +58,7 @@ return [
     'publishMissingDates' => 'Opening date and closing date are required before publishing.',
     'publishInvalidDateRange' => 'Closing date must be after opening date.',
     'publishNoEstablishment' => 'No approved establishment found for the selected position and organization.',
+    'transferCompleted' => 'Transfer implemented.',
+    'settingsUpdated' => 'Transfer settings saved.',
+    'announcements' => 'Transfer announcements',
 ];

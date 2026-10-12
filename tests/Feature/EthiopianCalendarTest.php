@@ -190,7 +190,7 @@ test('AM PHP calendar lang file has required keys', function (): void {
     app()->setLocale('am');
     expect(__('calendar.gregorian_calendar'))->toBe('የጎርጎርዮሳዊ ቀን አቆጣጠር');
     expect(__('calendar.ethiopian_calendar'))->toBe('የኢትዮጵያ ዘመን አቆጣጠር');
-    expect(__('calendar.effective_from'))->toBe('ከ');
+    expect(__('calendar.effective_from'))->toBe('የሚጸናበት ቀን');
     expect(__('calendar.approved_at'))->toBe('የጸደቀበት ቀን');
 });
 

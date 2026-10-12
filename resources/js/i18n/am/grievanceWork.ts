@@ -2,7 +2,7 @@
 const grievanceWork = {
     decision: 'ውሳኔ', decision_type: 'የውሳኔ ዓይነት', new_decision: 'ውሳኔ አርቅቅ', save_decision: 'ውሳኔውን ያስቀምጡ',
     findings: 'ግኝቶች', facts_considered: 'የታዩ ፍሬ ነገሮች', legal_basis: 'የሕግ መሠረት', analysis: 'ትንተና', decision_text: 'ውሳኔ',
-    recommendations: 'የውሳኔ ሃሳቦች', corrective_action_required: 'የእርምት እርምጃ ያስፈልጋል', disciplinary_referral_recommended: 'ወደ ዲሲፕሊን እንዲመራ ይመከራል',
+    recommendations: 'የውሳኔ ሀሳቦች', corrective_action_required: 'የእርምት እርምጃ ያስፈልጋል', disciplinary_referral_recommended: 'ወደ ዲሲፕሊን እንዲመራ ይመከራል',
     transition: 'ቀጣይ እርምጃ', submit_for_review: 'ለውስጥ ግምገማ ይላኩ', endorse: 'ደግፍ', return_internal: 'ለአዘጋጁ ይመልሱ',
     submit_for_approval: 'ለበላይ ማጽደቅ ይላኩ', finalize: 'ያጠናቅቁ', revise: 'የተስተካከለ ስሪት ይፍጠሩ', vote: 'ድምጽ', opinion: 'አስተያየት / የተለየ ሀሳብ',
 

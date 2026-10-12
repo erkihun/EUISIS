@@ -3,6 +3,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
+import { permissionGroupLabel } from '@/lib/permissionGroups';
 
 import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName } from '@/Components/ui';
 type PermissionEntry = {
@@ -70,7 +71,7 @@ function PermissionGroup({
         <div className="rounded-card border border-[color:var(--app-border)] p-4">
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-[color:var(--app-muted-foreground)]">
-                    {group}
+                    {permissionGroupLabel(t, group)}
                     <span className={badgeClassName('info', 'ml-2')}>
                         {permissions.filter((p) => selected.includes(p.name)).length}/{permissions.length}
                     </span>
@@ -100,7 +101,7 @@ function PermissionGroup({
                         />
                         <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1">
-                                <span className="font-mono text-xs text-[color:var(--app-foreground)]">{perm.name}</span>
+                                <span className="break-all font-mono text-xs text-[color:var(--app-foreground)]">{perm.name}</span>
                                 {CRITICAL.has(perm.name) && (
                                     <span
                                         title={t('permissions.criticalPermissionWarning')}

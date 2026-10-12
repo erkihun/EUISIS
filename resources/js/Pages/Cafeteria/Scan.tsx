@@ -135,7 +135,7 @@ const SCAN_STATUS: Record<string, { tone: 'success' | 'danger' | 'neutral' | 'wa
 
 type CalCell = { day: number; gregorianIso: string };
 
-const ETH_MONTHS_AM = ['መስከረም','ጥቅምት','ህዳር','ታህሳስ','ጥር','የካቲት','መጋቢት','ሚያዚያ','ግንቦት','ሰኔ','ሐምሌ','ነሀሴ','ጳጉሜ'];
+const ETH_MONTHS_AM = ['መስከረም','ጥቅምት','ኅዳር','ታኅሣሥ','ጥር','የካቲት','መጋቢት','ሚያዝያ','ግንቦት','ሰኔ','ሐምሌ','ነሐሴ','ጳጉሜ'];
 
 function getMonthLabel(year: number, month: number, locale: string, isEthiopian: boolean): string {
     if (isEthiopian) return `${ETH_MONTHS_AM[month - 1] ?? ''} ${year} ዓ.ም`;
@@ -695,8 +695,8 @@ function ServiceCalendar({ meta, scannedDates, today }: { meta: CalendarDay[]; s
                     <p className="text-sm font-semibold">{getMonthLabel(year, month, locale, isEthiopian)}</p>
                     <p className={cx('text-[11px]', muted)}>
                         {isEthiopian
-                            ? (locale === 'am' ? 'የኢትዮጵያ ቀን አቆጣጠር' : 'Ethiopian Calendar')
-                            : (locale === 'am' ? 'ጎርጎሪያን ቀን አቆጣጠር' : 'Gregorian Calendar')}
+                            ? t('calendar.ethiopianCalendar')
+                            : t('calendar.gregorianCalendar')}
                     </p>
                 </div>
                 <button type="button" onClick={() => shift(1)} className={navButton} aria-label={t('cafeteria.nextMonth')}>

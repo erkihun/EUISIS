@@ -55,7 +55,7 @@ function PerformanceBody({ agreements, agreement, appeals, appealWindowDays, can
 
     return (
         <PortalPage title={t('performance.my.title')} description={t('performance.my.description')}>
-            <Link className={secondaryBtn} href={route('assessment-records.index')}>{locale === 'am' ? 'የሥራ ባልደረባ ምዘናዎች' : 'Peer assessments'}</Link>
+            <Link className={secondaryBtn} href={route('assessment-records.index')}>{t('performance.my.peerAssessments')}</Link>
             {agreements.length > 1 && (
                 <div className="flex flex-wrap gap-2">
                     {agreements.map((a) => (

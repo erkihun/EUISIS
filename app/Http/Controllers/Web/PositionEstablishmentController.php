@@ -50,7 +50,7 @@ class PositionEstablishmentController extends Controller
         $user = $request->user();
         $action->execute($request->validated(), $user);
 
-        return back()->with('flash', ['message' => __('positionEstablishments.created'), 'type' => 'success']);
+        return back()->with('flash', ['message' => __('position-establishments.created'), 'type' => 'success']);
     }
 
     public function show(PositionEstablishment $positionEstablishment): Response
@@ -88,7 +88,7 @@ class PositionEstablishmentController extends Controller
         $positionEstablishment->update($request->validated());
 
         return to_route('position-establishments.show', $positionEstablishment)
-            ->with('flash', ['message' => __('positionEstablishments.updated'), 'type' => 'success']);
+            ->with('flash', ['message' => __('position-establishments.updated'), 'type' => 'success']);
     }
 
     public function approve(
@@ -102,7 +102,7 @@ class PositionEstablishmentController extends Controller
 
         $action->execute($positionEstablishment, $user);
 
-        return back()->with('flash', ['message' => __('positionEstablishments.approved'), 'type' => 'success']);
+        return back()->with('flash', ['message' => __('position-establishments.approved'), 'type' => 'success']);
     }
 
     public function archive(PositionEstablishment $positionEstablishment): RedirectResponse
@@ -113,6 +113,6 @@ class PositionEstablishmentController extends Controller
         $positionEstablishment->delete();
 
         return to_route('position-establishments.index')
-            ->with('flash', ['message' => __('positionEstablishments.archived'), 'type' => 'success']);
+            ->with('flash', ['message' => __('position-establishments.archived'), 'type' => 'success']);
     }
 }

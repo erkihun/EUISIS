@@ -53,7 +53,7 @@ return [
     'submitApplication' => 'ያመልክቱ',
     'withdrawApplication' => 'ማመልከቻ ያንሱ',
     'screenApplication' => 'ምዘና',
-    'shortlistApplication' => 'ወደ እጩ ዝርዝር ያስገቡ',
+    'shortlistApplication' => 'ወደ አጭር ዝርዝር ያስገቡ',
     'selectApplication' => 'ይምረጡ',
     'rejectApplication' => 'ውድቅ ያድርጉ',
     'initiateTransfer' => 'ዝውውር ጀምር',

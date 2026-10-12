@@ -22,4 +22,8 @@ return [
     'restored_successfully' => 'የየየሙያ ምድብ ምድብ ምድቡ በተሳካ ሁኔታ ተመልሷል።',
     'used_by_positions' => 'ይህ የሙያ ምድብ በንቁ የሥራ መደቦች ጥቅም ላይ ውሏል።',
     'select_occupation' => 'የየሙያ ምድብ ምድብ ይምረጡ',
+    'description' => 'መግለጫ',
+    'isco_code_required' => 'የISCO ኮድ ያስፈልጋል።',
+    'isco_code_digits' => 'የISCO ኮድ ከአንድ እስከ አራት አሃዞች ብቻ መያዝ አለበት።',
+    'isco_code_unique' => 'ይህ የISCO ኮድ በሌላ የሙያ ምድብ ተይዟል።',
 ];

@@ -68,7 +68,7 @@ class PublicSiteDefaultsSeeder extends Seeder
                 'code' => 'ID-CARDS', 'slug' => 'id-cards', 'icon' => 'card',
                 'name_en' => 'ID Cards', 'name_am' => 'መታወቂያ ካርዶች',
                 'en' => 'Full card lifecycle management: request, print, issue, activate, replace, and revoke.',
-                'am' => 'ሙሉ ካርድ ዑደት አስተዳደር፡ ጥያቄ፣ ህትመት፣ ስጦታ፣ ማንቃት፣ መቀየር፣ እና መሰረዝ።',
+                'am' => 'የመታወቂያ ካርድ ሙሉ ሂደት አስተዳደር፦ ጥያቄ፣ ሕትመት፣ መስጠት፣ ገቢር ማድረግ፣ መተካት እና መሻር።',
                 'action_route' => null,
             ],
             [

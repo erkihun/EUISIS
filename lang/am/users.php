@@ -38,7 +38,7 @@ return [
     'cannot_delete_last_super_admin' => 'የመጨረሻው ሱፐር አስተዳዳሪ መለያ መሰረዝ አይቻልም።',
     'cannot_deactivate_last_super_admin' => 'የመጨረሻው ሱፐር አስተዳዳሪ ማቦዘን አይቻልም።',
     'cannot_remove_last_super_admin' => 'የመጨረሻውን ሱፐር አስተዳዳሪ ማስወገድ አይችሉም።',
-    'cannot_assign_super_admin' => 'የሱፐር አስተዳዳሪ ሚና የመመደብ ፈቃድ የለዎትም።',
+    'cannot_assign_super_admin' => 'የሱፐር አስተዳዳሪ ሚና የመመደብ መብት የለዎትም።',
     'cannot_assign_role' => '":role" የተባለውን ሚና መመደብ አይችሉም።',
     'manage_users_within_scope' => 'ተጠቃሚዎችን ማስተዳደር የሚችሉት በተቋምዎ ወሰን ውስጥ ብቻ ነው።',
     'cannot_assign_this_role' => 'ይህን ሚና መመደብ አይችሉም።',

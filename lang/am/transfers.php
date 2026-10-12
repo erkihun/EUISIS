@@ -48,4 +48,7 @@ return [
     'publishMissingDates' => 'ከመጽደቁ በፊት የጅምር እና የዝጊያ ቀናት ያስፈልጋሉ።',
     'publishInvalidDateRange' => 'የመዝጊያ ቀን ከመጀመሪያ ቀን በኋላ መሆን አለበት።',
     'publishNoEstablishment' => 'ለተመረጠው የሥራ መደብ እና ተቋም የጸደቀ ምደባ አልተገኘም።',
+    'transferCompleted' => 'ዝውውሩ ተግባራዊ ተደርጓል።',
+    'settingsUpdated' => 'የዝውውር ቅንብሮች ተቀምጠዋል።',
+    'announcements' => 'የዝውውር ማስታወቂያዎች',
 ];

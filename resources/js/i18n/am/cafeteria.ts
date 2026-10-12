@@ -45,7 +45,7 @@ const cafeteria = {
     "leave_scan_mode": "አትፍቀድ በፈቃድ ወቅት አገልግሎትን ይከለክላል። ሠራተኛ ይክፈል የድጎማ ቀናትን ሳይጠቀም ምግቡን ይመዘግባል።",
     "exclude_leave_days_from_subsidy": "ንቁ የፈቃድ ቀናትን ከዛሬና ከቀሪው ሳምንት ድጎማ ያስወጣል።",
     "eligibility": "በጋራ የአገልግሎት ብቁነት ደንብ አስፈላጊ ነው። እዚህ ማሰናከል አይቻልም።",
-    "permissions": "የአቅራቢ መዳረሻ በማረጋገጫ፣ በፈቃድና በምደባ ይቆጣጠራል፤ በዚህ የቀድሞ ቅንብር አይወሰንም።",
+    "permissions": "የአቅራቢ መዳረሻ በማረጋገጫ፣ በመዳረሻ መብትና በምደባ ይቆጣጠራል፤ በዚህ የቀድሞ ቅንብር አይወሰንም።",
     "currentWindow": "የአሁኑ ሳምንት ያልተጠቀሙ ቀናት ብቻ ይደገፋሉ። ያለፉ ቀናትን መጠየቅና ከቀጣዩ ሳምንት መበደር አልተተገበሩም።",
     "leaveDates": "ንቁ የፈቃድ ማብቂያ ቀን ካለፈ በኋላ አገልግሎቱ በራሱ ይቀጥላል።",
     "notImplemented": "ይህን ቅንብር የሚጠቀም የደመወዝ መርሐ ግብር የለም። ለንባብ ብቻ ነው፤ የተቀመጠው ዋጋ ይጠበቃል።",
@@ -86,7 +86,7 @@ const cafeteria = {
     subsidyRule: 'የድጎማ ደንብ',
     subsidyAmount: 'ዕለታዊ ድጎማ',
     currency: 'ምንዛሪ',
-    effectiveFrom: 'ከ',
+    effectiveFrom: 'የሚጸናበት ቀን',
     effectiveTo: 'እስከ (አማራጭ)',
     appliesTo: 'ተፈጻሚ ለ',
     allEmployees: 'ለሁሉም ሠራተኞች',
@@ -106,7 +106,7 @@ const cafeteria = {
     holidayDate: 'የበዓል ቀን',
     isRecurring: 'ዓመታዊ',
     recurrenceType: 'የቀን አቆጣጠር',
-    gregorian: 'ጎርጎሮሳዊ',
+    gregorian: 'ጎርጎርዮሳዊ',
     ethiopian: 'ኢትዮጵያዊ',
     description: 'ማብራሪያ',
     holidayCreated: 'በዓል ተጨምሯል።',
@@ -226,7 +226,7 @@ const cafeteria = {
     totalExtraScans: 'ተጨማሪ ስካኖች',
     totalSubsidy: 'ጠቅላላ ድጎማ',
     totalDeductions: 'ጠቅላላ ቅናሾች',
-    governmentPayable: 'መንግስት የሚከፍለው',
+    governmentPayable: 'መንግሥት የሚከፍለው',
     employeeTotalPayable: 'ሠራተኞች ጠቅላላ',
 
     // Stats
@@ -311,7 +311,7 @@ const cafeteria = {
     generalSettings: 'ዋና ቅንብሮች',
     subsidySettings: 'ድጎማ ቅንብሮች',
     daySettings: 'የሥራ ቀናት',
-    scanSettings: 'ቃኝ ህጎች',
+    scanSettings: 'የቅኝት ደንቦች',
     reportSettings: 'ሪፖርት ቅንብሮች',
 
     // General settings keys
@@ -375,7 +375,7 @@ const cafeteria = {
     payrollCutoffDay: 'የደመወዝ ማቋረጫ ቀን',
 
     // Day rules
-    dayRules: 'የሥራ ቀን ህጎች',
+    dayRules: 'የሥራ ቀን ደንቦች',
     dayRule: 'የቀን ሕግ',
     dayRuleUpdated: 'የቀን ሕግ ተዘምኗል።',
     dayOfWeek: 'ቀን',
@@ -413,7 +413,7 @@ const cafeteria = {
     specialDayTypeNoSubsidyDay: 'ድጎማ የሌለ ቀን',
     specialDayTypeProviderOnly: 'አቅራቢ ብቻ',
     specialDayTypeEmergencyClosure: 'አስቸኳይ ዝጋት',
-    specialDayOverrideNote: 'ልዩ ቀን ሌሎች ህጎችን ይሰርዛል',
+    specialDayOverrideNote: 'ልዩ ቀን ሌሎች ደንቦችን ይሽራል',
     reasonEn: 'ምክንያት (እንግሊዝኛ)',
     reasonAm: 'ምክንያት (አማርኛ)',
 
@@ -517,7 +517,7 @@ const cafeteria = {
     reversalsAndAdjustments: 'መመለሻዎችና ማስተካከያዎች',
     acceptedTransactions: 'ተቀባይነት ያገኙ ግብይቶች',
     rejectedTransactions: 'ውድቅ የተደረጉ ግብይቶች',
-    dateGregorian: 'ቀን ግሪጎሪያን',
+    dateGregorian: 'ቀን (ጎርጎርዮሳዊ)',
     dateDisplay: 'የሚታይ ቀን',
 } as const;
 

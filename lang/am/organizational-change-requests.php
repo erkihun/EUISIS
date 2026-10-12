@@ -83,7 +83,7 @@ return [
         'status_required' => 'የታቀደውን ሁኔታ ይምረጡ።',
         'summary_required' => 'የሚጠይቁትን ለውጥ ይግለጹ።',
         'not_editable' => 'ይህ ጥያቄ ከእንግዲህ ሊስተካከል አይችልም።',
-        'type_not_permitted' => 'ይህን ዓይነት ጥያቄ ለማቅረብ ፈቃድ የለዎትም።',
+        'type_not_permitted' => 'ይህን ዓይነት ጥያቄ ለማቅረብ መብት የለዎትም።',
         'invalid_transition' => 'ጥያቄ ከ:from ወደ :to ሊሸጋገር አይችልም።',
         'correction_comment_required' => 'ጠያቂው ምን ማስተካከል እንዳለበት ይግለጹ።',
         'rejection_comment_required' => 'ይህን ጥያቄ ውድቅ ያደረጉበትን ምክንያት ይስጡ።',

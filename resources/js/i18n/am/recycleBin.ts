@@ -26,9 +26,11 @@ const recycleBin = {
     movedToRecycleBin: 'ይህ መዝገብ ወደ የተሰረዙ መዝገቦች ይዛወራል።',
     canRestoreLater: 'ፈቃድ ያላቸው ተጠቃሚዎች ይህን መዝገብ በኋላ መመለስ ይችላሉ።',
     notPermanent: 'ይህ ተግባር መዝገቡን በቋሚነት አይሰርዝም።',
-    noRestorePermission: 'ይህን መዝገብ ለመመለስ ፈቃድ የለዎትም።',
+    noRestorePermission: 'ይህን መዝገብ ለመመለስ መብት የለዎትም።',
     types: {
-        organization_units: 'የተቋም የሥራ ክፍሎች',
+        organizations: 'ተቋማት',
+        organization_types: 'የተቋም ዓይነቶች',
+        organization_units: 'የሥራ ክፍሎች',
         organization_unit_types: 'የሥራ ክፍል ዓይነቶች',
         positions: 'የሥራ መደቦች',
         service_types: 'የአገልግሎት ዓይነቶች',

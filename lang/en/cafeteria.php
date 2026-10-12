@@ -239,4 +239,8 @@ return [
     'consumed_dates' => 'Consumed Dates',
     'date_gregorian' => 'Date Gregorian',
     'date_display' => 'Date Display',
+    'branchCreated' => 'Branch created.',
+    'branchUpdated' => 'Branch updated.',
+    'branchArchived' => 'Branch archived.',
+    'reportPeriodMismatch' => 'The end of the period does not match the report type: a daily report ends on its start date and a monthly report on the last day of the month.',
 ];

@@ -75,6 +75,13 @@ function loadPhp(locale) {
     return JSON.parse(execFileSync('php', ['-r', code], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
 }
 
+// The permission catalogue that seeds the role pages (database/seeders/data/permissions.php and the
+// files it includes). database_path() is the only framework helper those files use.
+function loadPermissions() {
+    const code = `function database_path($p = ''){ return getcwd().'/database/'.$p; } echo json_encode(require 'database/seeders/data/permissions.php', JSON_UNESCAPED_UNICODE);`;
+    return JSON.parse(execFileSync('php', ['-r', code], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+}
+
 function flatten(tree, prefix = '', out = {}) {
     for (const [k, v] of Object.entries(tree ?? {})) {
         const key = prefix ? `${prefix}.${k}` : k;
@@ -215,6 +222,12 @@ for (const { source, en, am } of sets) {
             for (const token of bareCodes(a)) { m.flagged++; add('block', 'raw_enum_in_text', source, key, token); }
         }
 
+        // A system permission is የመዳረሻ መብት (prose: መብት); ፈቃድ is leave. A browser's camera or
+        // location permission is consent and may keep ፈቃድ.
+        if (/permission/i.test(e) && /ፈቃ[ድዶ]|ፍቃ[ድዶ]/.test(a) && !/camera|location|browser/i.test(e)) {
+            m.flagged++; add('block', 'permission_as_leave', source, key, a);
+        }
+
         for (const d of terminology.deprecated ?? []) {
             if (d.pattern && new RegExp(d.pattern, 'u').test(a) && !(d.allowKeys ?? []).some((k) => key.startsWith(k))) {
                 if (d.block) m.flagged++;
@@ -226,6 +239,103 @@ for (const { source, en, am } of sets) {
             if (ry.test(a)) spelling[`${x}/${y}`][1]++;
         }
     }
+}
+
+// ---------------------------------------------------------------- permission catalogue
+// Labels are commands in the polite form (ይመልከቱ, ያስተዳድሩ); the familiar forms below are blocked.
+// Transport permissions are out of production scope and are not audited.
+const FAMILIAR_IMPERATIVES = new Set([
+    'ፍጠሩ', 'ፍጠር', 'ዘርዝሩ', 'ዘርዝር', 'አዘምኑ', 'አዘምን', 'ሰርዙ', 'ሰርዝ', 'አስተዳድሩ', 'አስተዳድር', 'አጽድቁ', 'አጽድቅ', 'አትሙ', 'ሰይሙ', 'አቁሙ',
+    'አስጀምሩ', 'አረጋግጡ', 'አድርጉ', 'ዝጉ', 'መርምሩ', 'አስወግዱ', 'አቦዝኑ', 'አጽዱ', 'ፈትሹ', 'ስጡ', 'ቀይሩ', 'አንቀሳቅስ', 'አጠናቅቁ', 'አንሱ', 'ምረጡ',
+    'ጀምሩ', 'አቀናብሩ', 'ተቆጣጠር', 'መድብ', 'ላክ', 'ላኩ', 'መልሱ', 'አንቁ', 'አውድቁ', 'አሳይ', 'ፍቀድ', 'አንቃ', 'ተመልከት', 'ይላቁ',
+]);
+{
+    const mod = 'perm:catalogue';
+    modules[mod] = { strings: 0, en: 0, am: 0, missing_en: 0, missing_am: 0, flagged: 0 };
+    const m = modules[mod];
+    const catalogue = loadPermissions();
+    // Each group heads a section on the role editor; it needs a label in both languages.
+    const tsSet = sets.find((s) => s.source === 'ts');
+    for (const group of new Set(catalogue.map((p) => p.group).filter(Boolean))) {
+        const key = `permissions.groupLabels.${group}`;
+        for (const locale of ['en', 'am']) {
+            if (typeof tsSet[locale][key] !== 'string') { m.flagged++; add('block', 'permission_group_label', 'ts', key, locale); }
+        }
+    }
+    for (const p of catalogue) {
+        if (String(p.name ?? '').startsWith('transport')) continue;
+        for (const field of ['label', 'description']) {
+            const e = String(p[`${field}_en`] ?? '');
+            const a = String(p[`${field}_am`] ?? '');
+            const key = `${p.name}.${field}`;
+            m.strings++;
+            if (e.trim() !== '') m.en++;
+            if (a.trim() !== '') m.am++;
+            if (a.trim() === '') { m.missing_am++; m.flagged++; add('block', 'missing_am', 'perm', key, e); continue; }
+            if (!ETHIOPIC.test(a) && latinLeftovers(a).length > 0) { m.flagged++; add('block', 'english_in_am', 'perm', key, a); }
+            const last = a.trim().replace(/\s*\([^)]*\)$/, '').split(/\s+/).pop();
+            if (field === 'label' && FAMILIAR_IMPERATIVES.has(last)) { m.flagged++; add('block', 'familiar_imperative', 'perm', key, a); }
+            for (const d of terminology.deprecated ?? []) {
+                if (d.pattern && new RegExp(d.pattern, 'u').test(a) && !(d.allowKeys ?? []).some((k) => key.startsWith(k))) {
+                    if (d.block) m.flagged++;
+                    add(d.block ? 'block' : 'warn', 'deprecated_term', 'perm', key, { term: d.current, use: d.recommended, am: a });
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- hard-coded translations in components
+// A ternary on the locale with an Amharic literal hides wording from this audit. Calendar data
+// (month and weekday names) is fixed data, not a translation, and is not matched by this rule.
+{
+    const INLINE = /locale\s*===\s*['"]am['"]\s*\?\s*(['"`])([^'"`]*[ሀ-፿][^'"`]*)\1/g;
+    const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) return p.endsWith(`${path.sep}i18n`) ? [] : walk(p);
+        return /\.(tsx?|jsx?)$/.test(e.name) ? [p] : [];
+    });
+    for (const file of walk(path.join(root, 'resources/js'))) {
+        const rel = path.relative(root, file).replace(/\\/g, '/');
+        fs.readFileSync(file, 'utf8').split(/\r?\n/).forEach((line, i) => {
+            for (const m of line.matchAll(INLINE)) add('block', 'hardcoded_translation', 'tsx', `${rel}:${i + 1}`, m[2]);
+        });
+    }
+}
+
+// ---------------------------------------------------------------- keys used in code but defined nowhere
+// t('a.b') in React, __('a.b') / trans() / @lang() in PHP and Blade, and registry 'label_key' entries.
+// An undefined key is displayed as the key itself. Keys built by concatenation ('x.prefix_' . $y) and
+// code comments are skipped.
+{
+    const keysOf = (src) => { const s = new Set(); for (const { source, en } of sets) if (source === src) for (const k of Object.keys(en)) s.add(k); return s; };
+    const prefixes = (keys) => new Set([...keys].flatMap((k) => k.split('.').map((_, i, a) => a.slice(0, i + 1).join('.'))));
+    const tsKeys = keysOf('ts'); const phpKeys = keysOf('php');
+    const tsAll = prefixes(tsKeys); const phpAll = prefixes(phpKeys);
+    const walk = (dir, re) => (fs.existsSync(dir) ? fs.readdirSync(dir, { withFileTypes: true }) : []).flatMap((e) => {
+        const p = path.join(dir, e.name);
+        if (e.isDirectory()) return ['i18n', 'node_modules', 'vendor'].includes(e.name) ? [] : walk(p, re);
+        return re.test(e.name) ? [p] : [];
+    });
+    const scan = (files, patterns, known, source) => {
+        for (const file of files) {
+            const rel = path.relative(root, file).replace(/\\/g, '/');
+            fs.readFileSync(file, 'utf8').split(/\r?\n/).forEach((line, i) => {
+                if (/^\s*(\*|\/\/|#)/.test(line)) return;
+                for (const re of patterns) {
+                    for (const m of line.matchAll(re)) {
+                        const key = m[1];
+                        if (/[._]$/.test(key) || known.has(key)) continue;
+                        add('block', 'unknown_key', source, key, `${rel}:${i + 1}`);
+                    }
+                }
+            });
+        }
+    };
+    scan(walk(path.join(root, 'resources/js'), /\.(tsx?|jsx?)$/), [/\bt\(\s*'([a-zA-Z][\w-]*(?:\.[\w-]+)+)'/g], tsAll, 'ts');
+    scan([...walk(path.join(root, 'app'), /\.php$/), ...walk(path.join(root, 'resources/views'), /\.php$/)],
+        [/(?:\b__|\btrans|@lang)\(\s*'([a-z][\w-]*(?:\.[\w-]+)+)'/g], phpAll, 'php');
+    scan(walk(path.join(root, 'app'), /\.php$/), [/'label_key'\s*=>\s*'([a-zA-Z][\w-]*(?:\.[\w-]+)+)'/g], new Set([...tsAll, ...phpAll]), 'ts');
 }
 
 const blocking = findings.filter((f) => f.severity === 'block');

@@ -18,7 +18,7 @@ return [
     'no_positions_found' => 'ምንም የሥራ መደብ አልተገኘም',
     'created_successfully' => 'የሥራ መደብ በተሳካ ሁኔታ ተፈጥሯል',
     'updated_successfully' => 'የሥራ መደብ በተሳካ ሁኔታ ተሻሽሏል',
-    'grade_level' => 'የደረጃ መለኪያ',
+    'grade_level' => 'የሥራ ደረጃ',
     'job_family' => 'የሥራ ቤተሰብ',
     'new_job_positions_status' => 'የሥራ መደብ ሁኔታ',
     'total_job_positions' => 'ጠቅላላ የሥራ መደቦች',

@@ -172,8 +172,8 @@ return [
         'child_organization_id' => 'ተጠሪ ተቋም',
         'hierarchy_version_id' => 'የተቋም መዋቅር ተዋረድ ስሪት',
         'relationship_type' => 'የግንኙነት ዓይነት',
-        'effective_from' => 'የመጀመሪያ ቀን',
-        'effective_to' => 'የማብቂያ ቀን',
+        'effective_from' => 'የሚጸናበት ቀን',
+        'effective_to' => 'የሚያበቃበት ቀን',
         'branding_primary_color' => 'ዋና ቀለም',
         'branding_secondary_color' => 'ሁለተኛ ቀለም',
         'organization_id' => 'ተቋም',
@@ -188,4 +188,5 @@ return [
     ],
     'position_already_occupied' => 'ይህ የሥራ መደብ ከእንግዲህ ክፍት አይደለም። እባክዎ ሌላ የሥራ መደብ ይምረጡ።',
     'organization_scope_denied' => 'ከተቋምዎ ወሰን ውጭ መዳረሻ ተከልክሏል።',
+    'public_site' => ['url_not_allowed' => 'ክፍተት የሌለው ሙሉ https:// አድራሻ ያስገቡ።', 'route_not_allowed' => 'ይህን ገጽ ከሕዝብ ድረ-ገጹ ጋር ማገናኘት አይቻልም።'],
 ];

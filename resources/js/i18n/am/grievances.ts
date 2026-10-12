@@ -101,8 +101,8 @@ const grievances = {
         total: 'ድምር',
         name_en: 'ስም (እንግሊዝኛ)',
         name_am: 'ስም (አማርኛ)',
-        effective_from: 'ከ (ተፈጻሚነት)',
-        effective_to: 'እስከ (ተፈጻሚነት)',
+        effective_from: 'የሚጸናበት ቀን',
+        effective_to: 'የሚያበቃበት ቀን',
         active: 'ንቁ',
         inactive: 'ንቁ ያልሆነ',
         type: 'ዓይነት',
@@ -159,7 +159,7 @@ const grievances = {
         recipient_kind: { to: 'ለ', cc: 'ግልባጭ', bcc_internal: 'የውስጥ ቅጂ' },
         recipient_type: { employee: 'ሠራተኛ', organization: 'ተቋም', organization_unit: 'የሥራ ክፍል', committee: 'ኮሚቴ', external: 'የውጭ' },
         signature_method: { signature_image: 'የፊርማ ምስል', electronic_approval: 'የኤሌክትሮኒክ ማጽደቅ', qualified_digital_signature: 'ብቁ ዲጂታል ፊርማ' },
-        dispatch_channel: { in_app: 'በሥርዓቱ ውስጥ', email: 'የኢሜይል ማሳወቂያ', sms_notice: 'የኤስኤምኤስ ማሳወቂያ', printed: 'በወረቀት', official_registry: 'በመዝገብ ቤት', other: 'ሌላ' },
+        dispatch_channel: { in_app: 'በሥርዓቱ ውስጥ', email: 'የኢሜይል ማሳወቂያ', sms_notice: 'የSMS ማሳወቂያ', printed: 'በወረቀት', official_registry: 'በመዝገብ ቤት', other: 'ሌላ' },
         dispatch_status: { queued: 'በወረፋ ላይ', sent: 'ተልኳል', delivered: 'ደርሷል', failed: 'አልተሳካም', acknowledged: 'መድረሱ ተረጋግጧል' },
         hearing_mode: { in_person: 'በአካል', virtual: 'በበይነ መረብ', hybrid: 'ቅይጥ' },
         hearing_status: { scheduled: 'ተይዟል', held: 'ተካሂዷል', adjourned: 'ተላልፏል', cancelled: 'ተሰርዟል' },
@@ -180,7 +180,7 @@ const grievances = {
         committee_role: { chairperson: 'ሰብሳቢ', writer: 'ጸሐፊ', member: 'አባል' },
         committee_type: {
             grievance: 'የቅሬታ ኮሚቴ', disciplinary: 'የዲሲፕሊን ኮሚቴ', tribunal: 'የፍርድ ቤት ፓነል',
-            performance_appeal: 'የአፈጻጸም ይግባኝ ፓነል', performance_calibration: 'የአፈጻጸም ካሊብሬሽን ፓነል',
+            performance_appeal: 'የአፈጻጸም ይግባኝ ፓነል', performance_calibration: 'የአፈጻጸም ውጤት ማመጣጠን ቡድን',
         },
         committee_status: { pending_approval: 'ማጽደቅ በመጠባበቅ ላይ', active: 'ንቁ', inactive: 'ንቁ ያልሆነ' },
         reason_code_type: {

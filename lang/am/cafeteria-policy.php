@@ -34,9 +34,9 @@ return [
     'policy_ended' => 'የፖሊሲው ማብቂያ ቀን ተወስኗል።',
     'policy_cancelled' => 'ፖሊሲው ተሰርዟል።',
     'policy_version_created' => 'ከአሁኑ ውሎች አዲስ የፖሊሲ ስሪት ተረቅቋል።',
-    'settlement_created' => 'የሒሳብ ማወራረጃው ተረቅቋል።',
-    'settlement_finalized' => 'የሒሳብ ማወራረጃው ተጠናቋል።',
-    'settlement_cancelled' => 'የሒሳብ ማወራረጃው ተሰርዟል።',
+    'settlement_created' => 'የሂሳብ ማወራረጃው ተረቅቋል።',
+    'settlement_finalized' => 'የሂሳብ ማወራረጃው ተጠናቋል።',
+    'settlement_cancelled' => 'የሂሳብ ማወራረጃው ተሰርዟል።',
 
     'validation' => [
         'cafeteria_not_in_provider' => 'ካፌቴሪያው የተመረጠው አቅራቢ አይደለም።',
@@ -60,10 +60,10 @@ return [
         'assignment_not_active' => 'የአገልግሎት ምደባው ለዚህ ጊዜ ንቁ አይደለም።',
         'assignment_scope_mismatch' => 'የፖሊሲው ወሰን ከአገልግሎት ምደባው ጋር መመሳሰል ወይም ማጥበብ አለበት።',
         'end_before_start' => 'የማብቂያ ቀን ከመጀመሪያው ቀን በፊት ሊሆን አይችልም።',
-        'settlement_period' => 'የሒሳብ ማወራረጃው ጊዜ ትክክል አይደለም።',
-        'settlement_not_draft' => 'ማጠናቀቅ ወይም መሰረዝ የሚቻለው ረቂቅ የሒሳብ ማወራረጃ ብቻ ነው።',
-        'settlement_same_person' => 'ይህን የሒሳብ ማወራረጃ ያዘጋጀው ሰው ሊያጠናቅቀው አይችልም። ሌላ ሥልጣን ያለው ሰው ማጠናቀቅ አለበት።',
+        'settlement_period' => 'የሂሳብ ማወራረጃው ጊዜ ትክክል አይደለም።',
+        'settlement_not_draft' => 'ማጠናቀቅ ወይም መሰረዝ የሚቻለው ረቂቅ የሂሳብ ማወራረጃ ብቻ ነው።',
+        'settlement_same_person' => 'ይህን የሂሳብ ማወራረጃ ያዘጋጀው ሰው ሊያጠናቅቀው አይችልም። ሌላ ሥልጣን ያለው ሰው ማጠናቀቅ አለበት።',
         'settlement_empty' => 'ለዚህ አቅራቢና ጊዜ ያልተወራረዱ ግብይቶች የሉም።',
-        'settlement_overlap' => 'በዚህ ጊዜ ውስጥ ያሉ አንዳንድ ግብይቶች በሌላ የሒሳብ ማወራረጃ ውስጥ አሉ።',
+        'settlement_overlap' => 'በዚህ ጊዜ ውስጥ ያሉ አንዳንድ ግብይቶች በሌላ የሂሳብ ማወራረጃ ውስጥ አሉ።',
     ],
 ];

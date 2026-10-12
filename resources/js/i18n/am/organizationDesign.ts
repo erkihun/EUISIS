@@ -186,7 +186,7 @@ const organizationDesign = {
         specializations: 'ልዩ ሙያዎች',
         noSpecializations: 'ልዩ ሙያዎች የሉም።',
         iscoReference: 'የISCO ማጣቀሻ',
-        readOnly: 'ሙያዎችን ማሰስ ይችላሉ። እነሱን ለመቀየር የሙያዎችን ያስተዳድሩ ፈቃድ ያስፈልጋል።',
+        readOnly: 'ሙያዎችን ማሰስ ይችላሉ። እነሱን ለመቀየር የሙያዎችን ያስተዳድሩ የመዳረሻ መብት ያስፈልጋል።',
     },
 
     competencyCatalog: {
@@ -212,7 +212,7 @@ const organizationDesign = {
         noCompetencies: 'በዚህ ማዕቀፍ ውስጥ ብቃቶች የሉም።',
         untyped: 'ዓይነት ያልተሰጠው',
         competenciesCount: ':count ብቃቶች',
-        readOnly: 'ካታሎጉን ማሰስ ይችላሉ። እሱን ለመቀየር የብቃት ካታሎግ ያስተዳድሩ ፈቃድ ያስፈልጋል።',
+        readOnly: 'ካታሎጉን ማሰስ ይችላሉ። እሱን ለመቀየር የብቃት ካታሎግ ያስተዳድሩ የመዳረሻ መብት ያስፈልጋል።',
     },
 
     studies: {
@@ -235,7 +235,7 @@ const organizationDesign = {
         adoptHelp: 'ሂደቱ ሀሳብን ሲተገብር ሀሳቡ የተፈጠረውን ክፍል ይረከባል እና ኃላፊነቶቹ ወደ እሱ ይዛወራሉ።',
         history: 'የሁኔታ ታሪክ',
         noStudies: 'እስካሁን የንድፍ ጥናቶች የሉም',
-        noStudiesHint: 'ለተቋም ክፍሎችን ለማቅረብ እና ማን ለምን ኃላፊ እንደሆነ ለማስተካከል ጥናት ይክፈቱ።',
+        noStudiesHint: 'የተቋሙን የሥራ ክፍሎች ለማቅረብና ማን ለምን ኃላፊ እንደሆነ ለመወሰን ጥናት ይክፈቱ።',
         searchPlaceholder: 'በማጣቀሻ ወይም በርዕስ ይፈልጉ',
         preparedBy: 'ያዘጋጀው',
         reviewedBy: 'የገመገመው',
@@ -282,7 +282,7 @@ const organizationDesign = {
         covers: 'ይሸፍናል',
         chooseOrganization: 'ማትሪክሱን ለማየት ተቋም ይምረጡ።',
         noUnits: 'ንቁ ክፍሎች የሉም።',
-        readOnly: 'ማትሪክሱን ማሰስ ይችላሉ። መመደብ ለዚህ ተቋም የንድፍ ፈቃድ ያስፈልገዋል።',
+        readOnly: 'ማትሪክሱን ማሰስ ይችላሉ። መመደብ ለዚህ ተቋም የንድፍ የመዳረሻ መብት ያስፈልገዋል።',
     },
 
     validation: {
@@ -454,7 +454,7 @@ const organizationDesign = {
         none: 'የለም',
         design: 'ንድፍ',
         profileTitle: 'የሥራ መደብ መገለጫ',
-        profileHelp: 'ዓላማ፣ የሪፖርት መስመርና የሥራ ሁኔታዎች። ይፋ የሆኑ ስሪቶች አይስተካከሉም፤ ለመቀየር አዲስ ስሪት ያርቅቁ።',
+        profileHelp: 'ዓላማ፣ የተጠሪነት መስመርና የሥራ ሁኔታዎች። ይፋ የሆኑ ስሪቶች አይስተካከሉም፤ ለመቀየር አዲስ ስሪት ያርቅቁ።',
         noProfile: 'ለዚህ የሥራ መደብ እስካሁን መገለጫ አልተረቀቀም።',
         draftProfile: 'መገለጫ ያርቅቁ',
         editProfile: 'መገለጫ ያስተካክሉ',
@@ -650,7 +650,7 @@ const organizationDesign = {
         add: 'ግቤት ይጨምሩ',
         edit: 'ግቤት ያርትዑ',
         import: 'CSV ያስገቡ',
-        importHelp: 'ዓምዶች፡ code, parent_code, level, name_en, name_am። ወላጆች ከልጆቻቸው በፊት መምጣት አለባቸው። ያንኑ ፋይል እንደገና ማስገባት ምንም አይቀይርም።',
+        importHelp: 'ዓምዶች፡ code, parent_code, level, name_en, name_am። የበላይ ምድቦች ከበታቾቻቸው በፊት መምጣት አለባቸው። ያንኑ ፋይል እንደገና ማስገባት ምንም አይቀይርም።',
         importRevision: 'የሚገባበት ስሪት',
         importRevisionHelp: 'አዲስ ስሪት የተለየ የረድፎች ስብስብ ነው፤ ቀደምት ስሪቶች እንዳሉ ይቀራሉ።',
         dryRun: 'ሙከራ — ሪፖርት ብቻ፣ ምንም አይጻፍም',
@@ -663,7 +663,7 @@ const organizationDesign = {
         errors: 'ውድቅ የተደረጉ ረድፎች',
         line: 'መስመር',
         parentCode: 'የበላይ አካል',
-        readOnly: 'እነዚህን ምደባዎች ማሰስ ይችላሉ። እነሱን ለመቀየር የምደባዎችን ያስተዳድሩ ፈቃድ ያስፈልጋል።',
+        readOnly: 'እነዚህን ምደባዎች ማሰስ ይችላሉ። እነሱን ለመቀየር የምደባዎችን ያስተዳድሩ የመዳረሻ መብት ያስፈልጋል።',
     },
 
     fields: {
@@ -732,7 +732,7 @@ const organizationDesign = {
         legalReference: 'የሕግ ማጣቀሻ',
         articleReference: 'አንቀጽ',
         issuingAuthority: 'አውጪ አካል',
-        effectiveFrom: 'ተፈጻሚ የሚሆንበት ቀን',
+        effectiveFrom: 'የሚጸናበት ቀን',
         effectiveTo: 'የሚያበቃበት ቀን',
         organization: 'ተቋም',
         power: 'ኃይል',

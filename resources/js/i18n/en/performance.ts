@@ -176,6 +176,7 @@ const performance = {
     settings: { title: 'Performance Settings', description: 'Policy lives here, not in code: weights, caps, thresholds and required steps.', scales: 'Rating scales', saved: 'Saved', scaleTypes: { RESULT: 'Result scale', COMPETENCY: 'Competency scale' }, defaultScale: 'default', bandsHelp: 'A score belongs to the band whose range contains it. Ranges include both ends and must not overlap; leave a limit empty for no limit.', levelsHelp: 'Competencies are rated on these levels. Only the labels can change here.', level: 'Level', bandMin: 'From score', bandMax: 'To score' },
     lookup: { clear: 'Clear selection', searching: 'Searching…', typeMore: 'Type at least {count} characters.', noResults: 'No matches.' },
     my: {
+        peerAssessments: 'Peer assessments',
         noAgreementHelp: 'Ask your manager or HR to prepare and send your performance agreement. Your KPIs and review actions will appear here once it is assigned.',
         agreeStep: 'Agree on your targets', agreeStepHelp: 'Your manager prepares the agreement. Review the KPIs and acknowledge them, or request corrections.',
         recordStep: 'Record progress', recordStepHelp: 'Add evidence and discuss progress, blockers and support needs during check-ins.',

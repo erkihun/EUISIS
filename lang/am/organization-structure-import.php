@@ -26,7 +26,7 @@ return [
     'optional' => 'አማራጭ',
 
     'counts' => [
-        'units' => 'የተቋም ክፍሎች',
+        'units' => 'የሥራ ክፍሎች',
         'positions' => 'የሥራ መደቦች',
         'employees' => 'ሠራተኞች',
     ],
@@ -39,24 +39,24 @@ return [
     ],
 
     'auto_generate_codes' => 'የጎደሉ ኮዶችን በራስ-ሰር አመንጭ',
-    'auto_generate_hint' => 'ከኮድ ሕጎች በራስ-ሰር እንዲመነጩ የኮድ መስኮችን ባዶ ይተዉ።',
+    'auto_generate_hint' => 'ከኮድ ደንቦች በራስ-ሰር እንዲመነጩ የኮድ መስኮችን ባዶ ይተዉ።',
     'generated_codes' => 'የተመነጩ ኮዶች',
     'provided_code' => 'የቀረበ ኮድ',
     'generated_code' => 'የተመነጨ ኮድ',
-    'code_rule_used' => 'ጥቅም ላይ የዋለ የኮድ ሕግ',
-    'generated_by_code_rule' => 'በኮድ ሕግ የተመነጨ',
+    'code_rule_used' => 'ጥቅም ላይ የዋለ የኮድ ደንብ',
+    'generated_by_code_rule' => 'በኮድ ደንብ የተመነጨ',
     'code_source' => 'ምንጭ',
     'name' => 'ስም',
 
     'errors' => [
         'invalid_excel_format' => 'ልክ ያልሆነ የኤክሴል ቅርጸት',
         'import_failed' => 'ምዝገባው አልተሳካም፤ ምንም ለውጥ አልተቀመጠም። እባክዎ እንደገና ይሞክሩ።',
-        'code_rule_not_configured' => 'ለዚህ የመዝገብ ዓይነት የኮድ ሕግ አልተዋቀረም።',
+        'code_rule_not_configured' => 'ለዚህ የመዝገብ ዓይነት የኮድ ደንብ አልተዋቀረም።',
         'code_could_not_be_generated' => 'ኮድ ማመንጨት አልተቻለም።',
         'code_required_without_autogenerate' => 'በራስ-ሰር ማመንጨት ሲጠፋ ኮድ ያስፈልጋል።',
         'duplicate_generated_code' => 'የተደገመ የተመነጨ ኮድ ":code"።',
         'duplicate_provided_code' => 'የተደገመ የቀረበ ኮድ ":code"።',
-        'manual_override_not_allowed' => 'የዚህ የመዝገብ ዓይነት የኮድ ሕግ ኮድ በእጅ እንዲገባ አይፈቅድም፤ ስለዚህ ":code" መጠቀም አይቻልም። ኮዱ በራስ-ሰር እንዲመነጭ ሕዋሱን ባዶ ይተዉ።',
+        'manual_override_not_allowed' => 'የዚህ የመዝገብ ዓይነት የኮድ ደንብ ኮድ በእጅ እንዲገባ አይፈቅድም፤ ስለዚህ ":code" መጠቀም አይቻልም። ኮዱ በራስ-ሰር እንዲመነጭ ሕዋሱን ባዶ ይተዉ።',
         'row_reference_not_found' => 'የረድፍ ማጣቀሻ ":ref" በተጠቀሰው ሉህ ውስጥ ወደ አንድ ረድፍ አያመለክትም።',
         'code_conflict' => 'በመሃል ሌላ ምዝገባ ስለተካሄደ የ:sheet ረድፍ :row ኮድ ከ":expected" ወደ ":actual" ተቀይሯል። ምንም አልተቀመጠም — እባክዎ እንደገና ቅድመ እይታ ያድርጉ።',
         'required_sheet_missing' => 'የሚያስፈልግ ሉህ ጠፍቷል፦ :sheet',

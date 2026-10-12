@@ -49,7 +49,7 @@ const vacancies = {
     submitApplication: 'ያመልክቱ',
     withdrawApplication: 'ማመልከቻ ያንሱ',
     screenApplication: 'ምዘና',
-    shortlistApplication: 'ወደ አጭር ዝርዝር አስገባ',
+    shortlistApplication: 'ወደ አጭር ዝርዝር ያስገቡ',
     selectApplication: 'ይምረጡ',
     rejectApplication: 'ውድቅ ያድርጉ',
     initiateTransfer: 'ዝውውር ጀምር',

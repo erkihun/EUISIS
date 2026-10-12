@@ -54,6 +54,35 @@ it('shows a status code only as a bracketed reference after its Amharic meaning'
     expect(translationAuditFindings(fn (array $f) => $f['rule'] === 'raw_enum_in_text'))->toBe([]);
 });
 
+it('checks the Amharic labels of the permission catalogue shown on the role pages', function () {
+    $report = translationAuditReport();
+
+    // The catalogue (database/seeders/data/*permissions*.php) is audited as its own source.
+    expect($report['modules'])->toHaveKey('perm:catalogue')
+        ->and($report['modules']['perm:catalogue']['strings'])->toBeGreaterThan(1000)
+        ->and(translationAuditFindings(fn (array $f) => $f['source'] === 'perm' && $f['severity'] === 'block'))->toBe([]);
+});
+
+it('keeps Amharic wording out of React components', function () {
+    // `locale === 'am' ? 'ቀን ይምረጡ' : …` hides a translation from the audit; it belongs in a key.
+    expect(translationAuditFindings(fn (array $f) => $f['rule'] === 'hardcoded_translation'))->toBe([]);
+});
+
+it('never calls a system permission ፈቃድ, the word for leave', function () {
+    // Device permissions (camera, location) are a browser's consent and may keep ፈቃድ.
+    expect(translationAuditFindings(fn (array $f) => $f['rule'] === 'permission_as_leave'))->toBe([]);
+});
+
+it('labels every permission group in both languages', function () {
+    // The role editor and the permissions page head each group with this label, not its key.
+    expect(translationAuditFindings(fn (array $f) => $f['rule'] === 'permission_group_label'))->toBe([]);
+});
+
+it('defines every translation key the code asks for', function () {
+    // An undefined key is shown to the user as the key itself, e.g. "positionEstablishments.created".
+    expect(translationAuditFindings(fn (array $f) => $f['rule'] === 'unknown_key'))->toBe([]);
+});
+
 it('exits non-zero in strict mode only when a blocking finding exists', function () {
     $result = Process::path(base_path())->timeout(300)->run(['node', 'scripts/i18n-audit.mjs', '--strict']);
     $blocking = translationAuditFindings(fn (array $f) => $f['severity'] === 'block');

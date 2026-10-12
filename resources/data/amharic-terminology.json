@@ -1,0 +1,1827 @@
+{
+  "version": 1,
+  "updated": "2026-10-12",
+  "guide": "docs/amharic-terminology-guide.md",
+  "statuses": {
+    "legal": "Wording of Regulation 201/2018 (Addis Ababa civil servant grievance, discipline and appeal regulation). Do not change.",
+    "approved": "Project canonical term chosen in the language audit. Change only through the governance steps in the guide.",
+    "needs_language_review": "NEEDS_LANGUAGE_REVIEW: in use, but a qualified Amharic language reviewer must confirm it.",
+    "official_source_required": "OFFICIAL_TERMINOLOGY_SOURCE_REQUIRED: an official Amharic source must be found before the term is final."
+  },
+  "spelling": [
+    {
+      "use": "ሠራተኛ",
+      "not": [
+        "ሰራተኛ"
+      ],
+      "note": "The official system name keeps its approved spelling ሰራተኛ verbatim."
+    },
+    {
+      "use": "ሥራ",
+      "not": [
+        "ስራ"
+      ]
+    },
+    {
+      "use": "ሥርዓት",
+      "not": [
+        "ስርዓት",
+        "ሥርአት"
+      ]
+    },
+    {
+      "use": "ሥልጣን",
+      "not": [
+        "ስልጣን"
+      ]
+    },
+    {
+      "use": "ሥልጠና",
+      "not": [
+        "ስልጠና"
+      ]
+    },
+    {
+      "use": "አሠራር",
+      "not": [
+        "አሰራር"
+      ]
+    },
+    {
+      "use": "ዓይነት",
+      "not": [
+        "አይነት"
+      ]
+    },
+    {
+      "use": "ዓመት",
+      "not": [
+        "አመት"
+      ]
+    },
+    {
+      "use": "ሕግ",
+      "not": [
+        "ህግ"
+      ]
+    },
+    {
+      "use": "ሕዝብ",
+      "not": [
+        "ህዝብ"
+      ]
+    },
+    {
+      "use": "ሕትመት",
+      "not": [
+        "ህትመት"
+      ]
+    },
+    {
+      "use": "ኃላፊ",
+      "not": [
+        "ሃላፊ"
+      ]
+    },
+    {
+      "use": "ኃይል",
+      "not": [
+        "ሃይል"
+      ]
+    },
+    {
+      "use": "ዕቅድ",
+      "not": [
+        "እቅድ"
+      ]
+    },
+    {
+      "use": "ዕለት",
+      "not": [
+        "እለት"
+      ]
+    },
+    {
+      "use": "ጸደቀ / ማጽደቅ / ጸና / ቅርጸት",
+      "not": [
+        "ፀደቀ",
+        "ማፅደቅ",
+        "ፀና",
+        "ቅርፀት"
+      ],
+      "note": "Exception: ፀሐፊ (secretary) as written in Regulation 201."
+    },
+    {
+      "use": "ጽሕፈት ቤት",
+      "not": [
+        "ፅህፈት ቤት"
+      ]
+    },
+    {
+      "use": "ጽሑፍ",
+      "not": [
+        "ፅሁፍ"
+      ]
+    },
+    {
+      "use": "ደመወዝ",
+      "not": [
+        "ደሞዝ"
+      ]
+    },
+    {
+      "use": "ሀሳብ",
+      "not": [
+        "ሃሳብ"
+      ]
+    },
+    {
+      "use": "ሀብት",
+      "not": [
+        "ሃብት"
+      ]
+    },
+    {
+      "use": "ማህደር",
+      "not": [
+        "ማኅደር"
+      ]
+    },
+    {
+      "use": "ቅድመ እይታ",
+      "not": [
+        "ቅድመ ዕይታ"
+      ]
+    },
+    {
+      "use": "ካፌቴሪያ",
+      "not": [
+        "ካፍቴሪያ"
+      ]
+    },
+    {
+      "use": "ተዛውሯል",
+      "not": [
+        "ተዛወሯል"
+      ]
+    },
+    {
+      "use": "ሂሳብ",
+      "not": [
+        "ሒሳብ"
+      ]
+    },
+    {
+      "use": "ጎርጎርዮሳዊ",
+      "not": [
+        "ጎርጎሮሳዊ",
+        "ግሪጎሪያን",
+        "ጎርጎሪያን"
+      ]
+    },
+    {
+      "use": "መንግሥት",
+      "not": [
+        "መንግስት"
+      ]
+    }
+  ],
+  "terms": [
+    {
+      "id": "organization",
+      "domain": "organization",
+      "en": "Organization",
+      "am": "ተቋም",
+      "plural": "ተቋማት",
+      "avoid": [
+        "ድርጅት"
+      ],
+      "status": "approved",
+      "note": "ድርጅት only for a private company."
+    },
+    {
+      "id": "organization_unit",
+      "domain": "organization",
+      "en": "Organization unit",
+      "am": "የሥራ ክፍል",
+      "short": "ክፍል",
+      "avoid": [
+        "የተቋም ክፍል",
+        "ወላጅ ክፍል"
+      ],
+      "status": "legal",
+      "note": "Regulation 201 uses የሥራ ክፍል. The short form ክፍል is for table columns only."
+    },
+    {
+      "id": "parent_unit",
+      "domain": "organization",
+      "en": "Parent (unit, organization, node)",
+      "am": "የበላይ",
+      "avoid": [
+        "ወላጅ"
+      ],
+      "status": "approved",
+      "note": "Child is የበታች; the top unit is ዋና የሥራ ክፍል."
+    },
+    {
+      "id": "unit_type_unit",
+      "domain": "organization",
+      "en": "Unit (unit type)",
+      "am": "ክፍል",
+      "status": "approved"
+    },
+    {
+      "id": "institution_office",
+      "domain": "organization",
+      "en": "Institution office",
+      "am": "የተቋም ጽሕፈት ቤት",
+      "status": "approved",
+      "note": "ቢሮ is reserved for a Bureau."
+    },
+    {
+      "id": "office",
+      "domain": "organization",
+      "en": "Office",
+      "am": "ጽሕፈት ቤት",
+      "status": "approved",
+      "note": "Public pages may say መሥሪያ ቤት for a government office in general."
+    },
+    {
+      "id": "reporting_line",
+      "domain": "organization",
+      "en": "Reporting line",
+      "am": "የተጠሪነት መስመር",
+      "avoid": [
+        "የሪፖርት መስመር"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "organization_type",
+      "domain": "organization",
+      "en": "Organization type",
+      "am": "የተቋም ዓይነት",
+      "status": "approved"
+    },
+    {
+      "id": "hierarchy_version",
+      "domain": "organization",
+      "en": "Hierarchy version",
+      "am": "የተዋረድ ስሪት",
+      "status": "approved"
+    },
+    {
+      "id": "organization_structure",
+      "domain": "organization",
+      "en": "Organization structure",
+      "am": "አደረጃጀት",
+      "status": "approved"
+    },
+    {
+      "id": "mandate",
+      "domain": "organization_design",
+      "en": "Mandate",
+      "am": "ሥልጣን",
+      "status": "approved",
+      "note": "Proclamations pair it as ሥልጣንና ተግባር (powers and duties)."
+    },
+    {
+      "id": "function",
+      "domain": "organization_design",
+      "en": "Function (of a mandate)",
+      "am": "ተግባር",
+      "status": "needs_language_review",
+      "note": "Shares the word ተግባር with Task; the modules never show both on one screen. Reviewer to confirm."
+    },
+    {
+      "id": "powers_functions",
+      "domain": "organization_design",
+      "en": "Powers and functions",
+      "am": "ሥልጣንና ተግባር",
+      "avoid": [
+        "ኃይሎችና ተግባራት"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "service",
+      "domain": "organization_design",
+      "en": "Service",
+      "am": "አገልግሎት",
+      "status": "approved"
+    },
+    {
+      "id": "service_catalog",
+      "domain": "organization_design",
+      "en": "Service catalog",
+      "am": "የአገልግሎት ካታሎግ",
+      "status": "approved"
+    },
+    {
+      "id": "service_type",
+      "domain": "organization_design",
+      "en": "Service type",
+      "am": "የአገልግሎት ዓይነት",
+      "status": "approved"
+    },
+    {
+      "id": "classification",
+      "domain": "organization_design",
+      "en": "Classification (ISIC, CPC, ISCO)",
+      "am": "ምደባ",
+      "status": "needs_language_review",
+      "note": "Shares ምደባ with an employee assignment; screens keep the two apart. Reviewer to confirm or choose ፈርጅ / ምድብ."
+    },
+    {
+      "id": "isic_levels",
+      "domain": "organization_design",
+      "en": "ISIC section / division / group / class",
+      "am": "ዘርፍ / ንዑስ ዘርፍ / ቡድን / ንዑስ ቡድን",
+      "status": "official_source_required",
+      "note": "Interim names; the official Amharic ISIC level names are to be confirmed."
+    },
+    {
+      "id": "mapping",
+      "domain": "organization_design",
+      "en": "Mapping (of legacy records)",
+      "am": "ማዛመድ",
+      "avoid": [
+        "ካርታ"
+      ],
+      "status": "approved",
+      "note": "ካርታ is a geographic map."
+    },
+    {
+      "id": "process",
+      "domain": "organization_design",
+      "en": "Process",
+      "am": "ሂደት",
+      "plural": "ሂደቶች",
+      "status": "needs_language_review",
+      "note": "Process, Activity and Task stay distinct: ሂደት / እንቅስቃሴ / ተግባር."
+    },
+    {
+      "id": "activity",
+      "domain": "organization_design",
+      "en": "Activity (of a process)",
+      "am": "እንቅስቃሴ",
+      "plural": "እንቅስቃሴዎች",
+      "status": "needs_language_review"
+    },
+    {
+      "id": "task",
+      "domain": "organization_design",
+      "en": "Task",
+      "am": "ተግባር",
+      "plural": "ተግባራት",
+      "status": "needs_language_review"
+    },
+    {
+      "id": "workload",
+      "domain": "workforce_planning",
+      "en": "Workload",
+      "am": "የሥራ ጫና",
+      "status": "approved"
+    },
+    {
+      "id": "fte",
+      "domain": "workforce_planning",
+      "en": "FTE (full-time equivalent)",
+      "am": "FTE",
+      "status": "approved",
+      "note": "Kept as an acronym; FTE is a calculated number, not a count of people."
+    },
+    {
+      "id": "required_workforce",
+      "domain": "workforce_planning",
+      "en": "Required workforce",
+      "am": "የሚያስፈልግ የሰው ኃይል",
+      "status": "approved",
+      "note": "Derived from FTE; distinct from the approved headcount."
+    },
+    {
+      "id": "approved_headcount",
+      "domain": "workforce_planning",
+      "en": "Approved headcount",
+      "am": "የጸደቀ የሠራተኛ ብዛት",
+      "status": "approved"
+    },
+    {
+      "id": "workforce_plan",
+      "domain": "workforce_planning",
+      "en": "Workforce plan",
+      "am": "የሰው ኃይል ዕቅድ",
+      "status": "approved"
+    },
+    {
+      "id": "position_establishment",
+      "domain": "workforce_planning",
+      "en": "Position establishment",
+      "am": "የጸደቀ የሥራ መደብ",
+      "status": "needs_language_review"
+    },
+    {
+      "id": "employee",
+      "domain": "human_resources",
+      "en": "Employee",
+      "am": "ሠራተኛ",
+      "plural": "ሠራተኞች",
+      "status": "legal"
+    },
+    {
+      "id": "position",
+      "domain": "human_resources",
+      "en": "Position",
+      "am": "የሥራ መደብ",
+      "plural": "የሥራ መደቦች",
+      "status": "approved",
+      "note": "A position exists with or without an employee in it."
+    },
+    {
+      "id": "vacant_position",
+      "domain": "human_resources",
+      "en": "Vacant position",
+      "am": "ክፍት የሥራ መደብ",
+      "status": "approved"
+    },
+    {
+      "id": "assignment",
+      "domain": "human_resources",
+      "en": "Assignment",
+      "am": "ምደባ",
+      "status": "approved",
+      "note": "An employee placed in a position. Acting assignment: ተጠባባቂ ምደባ."
+    },
+    {
+      "id": "occupation",
+      "domain": "human_resources",
+      "en": "Occupation (ISCO)",
+      "am": "የሙያ ምድብ",
+      "status": "official_source_required",
+      "note": "Distinct from Profession. ISCO groups: ዋና ቡድን, ንዑስ ዋና ቡድን, አነስተኛ ቡድን, መሠረታዊ ቡድን."
+    },
+    {
+      "id": "profession",
+      "domain": "human_resources",
+      "en": "Profession",
+      "am": "ሙያ",
+      "status": "approved"
+    },
+    {
+      "id": "specialization",
+      "domain": "human_resources",
+      "en": "Specialization",
+      "am": "ልዩ ሙያ",
+      "status": "approved"
+    },
+    {
+      "id": "competency",
+      "domain": "human_resources",
+      "en": "Competency",
+      "am": "ብቃት",
+      "status": "approved",
+      "note": "Distinct from Qualification."
+    },
+    {
+      "id": "qualification",
+      "domain": "human_resources",
+      "en": "Qualification",
+      "am": "የትምህርት ዝግጅት",
+      "status": "approved"
+    },
+    {
+      "id": "education_level",
+      "domain": "human_resources",
+      "en": "Education level",
+      "am": "የትምህርት ደረጃ",
+      "status": "approved"
+    },
+    {
+      "id": "grade_level",
+      "domain": "human_resources",
+      "en": "Grade level, job grade",
+      "am": "የሥራ ደረጃ",
+      "avoid": [
+        "የደረጃ ደረጃ",
+        "የደረጃ መለኪያ"
+      ],
+      "status": "approved",
+      "note": "A salary step is እርከን, a different concept."
+    },
+    {
+      "id": "salary",
+      "domain": "human_resources",
+      "en": "Salary",
+      "am": "ደመወዝ",
+      "status": "legal"
+    },
+    {
+      "id": "employment_type",
+      "domain": "human_resources",
+      "en": "Employment type",
+      "am": "የቅጥር ዓይነት",
+      "status": "approved"
+    },
+    {
+      "id": "probation",
+      "domain": "human_resources",
+      "en": "Probation",
+      "am": "የሙከራ ጊዜ",
+      "status": "approved"
+    },
+    {
+      "id": "job_description",
+      "domain": "job_description",
+      "en": "Job description",
+      "am": "የሥራ መግለጫ",
+      "status": "approved"
+    },
+    {
+      "id": "immediate_supervisor",
+      "domain": "human_resources",
+      "en": "Immediate supervisor",
+      "am": "የቅርብ ኃላፊ",
+      "status": "legal"
+    },
+    {
+      "id": "higher_official",
+      "domain": "human_resources",
+      "en": "Higher official",
+      "am": "የበላይ ኃላፊ",
+      "status": "legal"
+    },
+    {
+      "id": "leave",
+      "domain": "human_resources",
+      "en": "Leave",
+      "am": "ፈቃድ",
+      "status": "approved",
+      "note": "ፈቃድ is never used for a system permission."
+    },
+    {
+      "id": "transfer",
+      "domain": "transfer",
+      "en": "Transfer",
+      "am": "ዝውውር",
+      "status": "approved"
+    },
+    {
+      "id": "transfer_approved",
+      "domain": "transfer",
+      "en": "Approved (transfer)",
+      "am": "ጸድቋል",
+      "status": "approved",
+      "note": "Approved is not implemented."
+    },
+    {
+      "id": "transfer_implemented",
+      "domain": "transfer",
+      "en": "Implement transfer / Transferred",
+      "am": "ዝውውሩን ተግባራዊ ማድረግ / ተዛውሯል",
+      "status": "approved"
+    },
+    {
+      "id": "release_approval",
+      "domain": "transfer",
+      "en": "Release approval",
+      "am": "የሚለቅቀው ተቋም ይሁንታ",
+      "status": "approved"
+    },
+    {
+      "id": "receiving_approval",
+      "domain": "transfer",
+      "en": "Receiving approval",
+      "am": "የሚቀበለው ተቋም ይሁንታ",
+      "status": "approved"
+    },
+    {
+      "id": "final_approval",
+      "domain": "transfer",
+      "en": "Final approval",
+      "am": "የመጨረሻ ማጽደቅ",
+      "status": "approved"
+    },
+    {
+      "id": "vacancy_announcement",
+      "domain": "transfer",
+      "en": "Vacancy announcement",
+      "am": "የክፍት የሥራ መደብ ማስታወቂያ",
+      "status": "approved"
+    },
+    {
+      "id": "shortlist",
+      "domain": "transfer",
+      "en": "Shortlist",
+      "am": "አጭር ዝርዝር",
+      "status": "approved"
+    },
+    {
+      "id": "withdrawn",
+      "domain": "transfer",
+      "en": "Withdrawn (application)",
+      "am": "ተነስቷል",
+      "avoid": [
+        "ተቀልፏል"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "daily_activity",
+      "domain": "daily_work",
+      "en": "Daily activity",
+      "am": "ዕለታዊ የሥራ እንቅስቃሴ",
+      "status": "needs_language_review",
+      "note": "Alternative under review: ዕለታዊ የሥራ ክንውን."
+    },
+    {
+      "id": "field_work",
+      "domain": "field_work",
+      "en": "Field work",
+      "am": "የመስክ ሥራ",
+      "status": "approved"
+    },
+    {
+      "id": "destination",
+      "domain": "field_work",
+      "en": "Destination",
+      "am": "መድረሻ",
+      "status": "approved"
+    },
+    {
+      "id": "performance",
+      "domain": "epms",
+      "en": "Performance",
+      "am": "አፈጻጸም",
+      "status": "approved"
+    },
+    {
+      "id": "plan",
+      "domain": "epms",
+      "en": "Plan",
+      "am": "ዕቅድ",
+      "status": "approved"
+    },
+    {
+      "id": "target",
+      "domain": "epms",
+      "en": "Target",
+      "am": "ዒላማ",
+      "status": "approved"
+    },
+    {
+      "id": "actual",
+      "domain": "epms",
+      "en": "Actual",
+      "am": "ክንውን",
+      "status": "approved"
+    },
+    {
+      "id": "kpi",
+      "domain": "epms",
+      "en": "KPI",
+      "am": "KPI",
+      "status": "approved",
+      "note": "KPI catalog: የKPI ማውጫ."
+    },
+    {
+      "id": "weight",
+      "domain": "epms",
+      "en": "Weight",
+      "am": "ክብደት",
+      "status": "approved"
+    },
+    {
+      "id": "performance_agreement",
+      "domain": "epms",
+      "en": "Performance agreement",
+      "am": "የአፈጻጸም ስምምነት",
+      "status": "approved"
+    },
+    {
+      "id": "calibration",
+      "domain": "epms",
+      "en": "Calibration",
+      "am": "የውጤት ማመጣጠን",
+      "avoid": [
+        "ካሊብሬሽን"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "cascade",
+      "domain": "epms",
+      "en": "Cascade (plan)",
+      "am": "ዕቅድ ማውረድ",
+      "status": "approved"
+    },
+    {
+      "id": "assessment",
+      "domain": "assessment",
+      "en": "Assessment",
+      "am": "ምዘና",
+      "status": "approved"
+    },
+    {
+      "id": "assessment_cycle",
+      "domain": "assessment",
+      "en": "Assessment cycle",
+      "am": "የምዘና ዙር",
+      "status": "approved"
+    },
+    {
+      "id": "evaluator",
+      "domain": "assessment",
+      "en": "Evaluator",
+      "am": "ገምጋሚ",
+      "status": "approved"
+    },
+    {
+      "id": "assessment_reviewer",
+      "domain": "assessment",
+      "en": "Reviewer (assessment records)",
+      "am": "አረጋጋጭ",
+      "status": "approved",
+      "note": "Second-level check, kept apart from the evaluator."
+    },
+    {
+      "id": "moderation",
+      "domain": "assessment",
+      "en": "Moderation",
+      "am": "ቁጥጥር",
+      "status": "needs_language_review"
+    },
+    {
+      "id": "peer_assessment",
+      "domain": "assessment",
+      "en": "Peer assessment",
+      "am": "የአቻ ምዘና",
+      "status": "approved"
+    },
+    {
+      "id": "public_feedback",
+      "domain": "public_feedback",
+      "en": "Feedback (public)",
+      "am": "አስተያየት",
+      "status": "approved"
+    },
+    {
+      "id": "public_suggestion",
+      "domain": "public_feedback",
+      "en": "Suggestion (public)",
+      "am": "ጥቆማ",
+      "status": "approved"
+    },
+    {
+      "id": "public_complaint",
+      "domain": "public_feedback",
+      "en": "Complaint (public)",
+      "am": "ቅሬታ",
+      "status": "approved",
+      "note": "Navigation: የተገልጋይ ቅሬታ. Never the employee grievance term."
+    },
+    {
+      "id": "service_user",
+      "domain": "public_feedback",
+      "en": "Service user, customer",
+      "am": "ተገልጋይ",
+      "avoid": [
+        "ደንበኛ"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "submission",
+      "domain": "public_feedback",
+      "en": "Submission",
+      "am": "የቀረበ ጉዳይ",
+      "status": "approved"
+    },
+    {
+      "id": "submitter",
+      "domain": "public_feedback",
+      "en": "Submitter (public)",
+      "am": "ጉዳዩን ያቀረበው ሰው",
+      "avoid": [
+        "አቅራቢ"
+      ],
+      "status": "approved",
+      "note": "አቅራቢ is a cafeteria or service provider."
+    },
+    {
+      "id": "handler",
+      "domain": "public_feedback",
+      "en": "Handler",
+      "am": "የሚያስተናግድ አካል",
+      "status": "needs_language_review"
+    },
+    {
+      "id": "routing",
+      "domain": "public_feedback",
+      "en": "Routing / routing rule / unrouted",
+      "am": "ማስተላለፍ / የማስተላለፊያ ደንብ / ያልተላለፈ",
+      "avoid": [
+        "የመስመር ደንብ",
+        "መምሪያ"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "receipt_number",
+      "domain": "public_feedback",
+      "en": "Receipt (reference) number",
+      "am": "መለያ ቁጥር",
+      "status": "approved"
+    },
+    {
+      "id": "employee_grievance",
+      "domain": "grievance",
+      "en": "Employee grievance",
+      "am": "የሠራተኛ ቅሬታ",
+      "status": "legal",
+      "note": "Regulation 201 Art. 2(5)."
+    },
+    {
+      "id": "grievance_committee",
+      "domain": "grievance",
+      "en": "Grievance review committee",
+      "am": "ቅሬታ አጣሪ ኮሚቴ",
+      "status": "legal"
+    },
+    {
+      "id": "case_number",
+      "domain": "grievance",
+      "en": "Case reference number",
+      "am": "የመዝገብ ቁጥር",
+      "status": "approved"
+    },
+    {
+      "id": "decision_letter",
+      "domain": "grievance",
+      "en": "Decision letter",
+      "am": "የውሳኔ ደብዳቤ",
+      "status": "approved"
+    },
+    {
+      "id": "recommendation",
+      "domain": "grievance",
+      "en": "Recommendation (committee)",
+      "am": "የውሣኔ ሀሳብ",
+      "status": "legal"
+    },
+    {
+      "id": "recusal",
+      "domain": "grievance",
+      "en": "Recusal",
+      "am": "ራስን ማግለል",
+      "status": "approved"
+    },
+    {
+      "id": "escalation",
+      "domain": "grievance",
+      "en": "Escalation / escalate / escalated",
+      "am": "ማሳደጊያ / ከፍ ያድርጉ / ከፍ ብሏል",
+      "status": "needs_language_review",
+      "note": "The grievance module uses ከፍ ማድረግ throughout. A reviewer may prefer ወደ በላይ ደረጃ ማስተላለፍ; change all of them together."
+    },
+    {
+      "id": "respondent_grievance",
+      "domain": "grievance",
+      "en": "Respondent (grievance)",
+      "am": "ቅሬታ የቀረበበት",
+      "status": "approved"
+    },
+    {
+      "id": "discipline",
+      "domain": "discipline",
+      "en": "Discipline",
+      "am": "ዲሲፕሊን",
+      "status": "legal",
+      "note": "Regulation title spelling."
+    },
+    {
+      "id": "discipline_committee",
+      "domain": "discipline",
+      "en": "Discipline committee",
+      "am": "የዲሲፕሊን ኮሚቴ",
+      "status": "legal"
+    },
+    {
+      "id": "charge",
+      "domain": "discipline",
+      "en": "Charge / statement of charge",
+      "am": "ክስ / የክስ መጥሪያ",
+      "status": "legal",
+      "note": "Only in discipline; a public complaint is never a ክስ."
+    },
+    {
+      "id": "accused",
+      "domain": "discipline",
+      "en": "Accused employee",
+      "am": "ተከሳሽ",
+      "status": "legal"
+    },
+    {
+      "id": "defence",
+      "domain": "discipline",
+      "en": "Defence (reply)",
+      "am": "የመከላከያ መልስ",
+      "status": "legal"
+    },
+    {
+      "id": "evidence",
+      "domain": "discipline",
+      "en": "Evidence",
+      "am": "ማስረጃ",
+      "status": "legal"
+    },
+    {
+      "id": "witness",
+      "domain": "discipline",
+      "en": "Witness",
+      "am": "ምስክር",
+      "status": "legal"
+    },
+    {
+      "id": "penalty",
+      "domain": "discipline",
+      "en": "Penalty",
+      "am": "ቅጣት",
+      "status": "legal"
+    },
+    {
+      "id": "suspension",
+      "domain": "discipline",
+      "en": "Suspension",
+      "am": "ከሥራ ማገድ",
+      "status": "legal"
+    },
+    {
+      "id": "dismissal",
+      "domain": "discipline",
+      "en": "Dismissal from employment",
+      "am": "ከሥራ ማሰናበት",
+      "status": "legal",
+      "note": "Never used for closing a dialog (ይዝጉ)."
+    },
+    {
+      "id": "minor_offence",
+      "domain": "discipline",
+      "en": "Minor / serious disciplinary offence",
+      "am": "ቀላል / ከባድ የዲሲፕሊን ጥፋት",
+      "status": "legal"
+    },
+    {
+      "id": "quorum",
+      "domain": "discipline",
+      "en": "Quorum / majority vote",
+      "am": "ምልዓተ ጉባኤ / ድምፅ ብልጫ",
+      "status": "legal"
+    },
+    {
+      "id": "chair_secretary",
+      "domain": "discipline",
+      "en": "Chair / secretary / member",
+      "am": "ሰብሳቢ / ፀሐፊ / አባል",
+      "status": "legal"
+    },
+    {
+      "id": "appeal",
+      "domain": "appeal",
+      "en": "Appeal",
+      "am": "ይግባኝ",
+      "status": "legal"
+    },
+    {
+      "id": "appellant",
+      "domain": "appeal",
+      "en": "Appellant",
+      "am": "ይግባኝ ባይ",
+      "status": "legal"
+    },
+    {
+      "id": "respondent_appeal",
+      "domain": "appeal",
+      "en": "Respondent (appeal)",
+      "am": "መልስ ሰጪ",
+      "status": "legal"
+    },
+    {
+      "id": "rejoinder",
+      "domain": "appeal",
+      "en": "Rejoinder",
+      "am": "የመልስ መልስ",
+      "status": "legal"
+    },
+    {
+      "id": "leave_to_appeal",
+      "domain": "appeal",
+      "en": "Application for leave to appeal",
+      "am": "ይግባኝ ማስፈቀጃ ማመልከቻ",
+      "status": "legal"
+    },
+    {
+      "id": "administrative_tribunal",
+      "domain": "appeal",
+      "en": "Administrative tribunal",
+      "am": "የአስተዳደር ፍርድ ቤት",
+      "status": "official_source_required",
+      "note": "Short form from Regulation 201; the tribunal's full official Amharic name is still to be confirmed."
+    },
+    {
+      "id": "cafeteria",
+      "domain": "cafeteria",
+      "en": "Cafeteria",
+      "am": "ካፌቴሪያ",
+      "status": "approved"
+    },
+    {
+      "id": "entitlement",
+      "domain": "cafeteria",
+      "en": "Entitlement",
+      "am": "ጥቅማ ጥቅም",
+      "plural": "ጥቅማ ጥቅሞች",
+      "avoid": [
+        "መብቶች"
+      ],
+      "status": "approved",
+      "note": "መብት is a right or an access permission."
+    },
+    {
+      "id": "subsidy",
+      "domain": "cafeteria",
+      "en": "Subsidy",
+      "am": "ድጎማ",
+      "status": "approved"
+    },
+    {
+      "id": "allocation",
+      "domain": "cafeteria",
+      "en": "Allocation (ledger)",
+      "am": "ድልድል",
+      "status": "approved"
+    },
+    {
+      "id": "provider",
+      "domain": "cafeteria",
+      "en": "Provider",
+      "am": "አቅራቢ",
+      "status": "approved"
+    },
+    {
+      "id": "transaction",
+      "domain": "cafeteria",
+      "en": "Transaction",
+      "am": "ግብይት",
+      "status": "approved"
+    },
+    {
+      "id": "settlement",
+      "domain": "cafeteria",
+      "en": "Settlement",
+      "am": "ሂሳብ ማወራረጃ",
+      "status": "approved"
+    },
+    {
+      "id": "ledger",
+      "domain": "cafeteria",
+      "en": "Ledger",
+      "am": "የሂሳብ መዝገብ",
+      "avoid": [
+        "ሌጀር",
+        "ደብተር"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "id_card",
+      "domain": "id_card",
+      "en": "ID card",
+      "am": "መታወቂያ ካርድ",
+      "status": "approved"
+    },
+    {
+      "id": "issue_card",
+      "domain": "id_card",
+      "en": "Issue (a card) / issue date",
+      "am": "መስጠት / የተሰጠበት ቀን",
+      "avoid": [
+        "ስጦታ"
+      ],
+      "status": "approved",
+      "note": "A letter is issued with ማውጣት (ደብዳቤውን ያውጡ)."
+    },
+    {
+      "id": "expiry_caption",
+      "domain": "id_card",
+      "en": "Expiry (card caption)",
+      "am": "ማብቂያ",
+      "status": "approved"
+    },
+    {
+      "id": "print_batch",
+      "domain": "id_card",
+      "en": "Print batch",
+      "am": "የሕትመት ዙር",
+      "status": "approved"
+    },
+    {
+      "id": "id_card_template",
+      "domain": "id_card",
+      "en": "Template",
+      "am": "አብነት",
+      "status": "approved"
+    },
+    {
+      "id": "scan",
+      "domain": "id_card",
+      "en": "Scan",
+      "am": "መቃኘት / ቅኝት",
+      "avoid": [
+        "ስካን"
+      ],
+      "status": "needs_language_review"
+    },
+    {
+      "id": "revoke",
+      "domain": "id_card",
+      "en": "Revoke",
+      "am": "መሻር",
+      "status": "approved"
+    },
+    {
+      "id": "role",
+      "domain": "security",
+      "en": "Role",
+      "am": "ሚና",
+      "status": "approved"
+    },
+    {
+      "id": "permission",
+      "domain": "security",
+      "en": "Permission",
+      "am": "የመዳረሻ መብት",
+      "short": "መብት",
+      "status": "needs_language_review"
+    },
+    {
+      "id": "organization_scope",
+      "domain": "security",
+      "en": "Organization scope",
+      "am": "የተቋም ወሰን",
+      "status": "approved"
+    },
+    {
+      "id": "two_factor",
+      "domain": "security",
+      "en": "Two-factor authentication",
+      "am": "ባለሁለት ደረጃ ማረጋገጫ",
+      "status": "approved"
+    },
+    {
+      "id": "session_security",
+      "domain": "security",
+      "en": "Session (sign-in)",
+      "am": "ክፍለ ጊዜ",
+      "status": "approved",
+      "note": "A committee session is ስብሰባ."
+    },
+    {
+      "id": "password",
+      "domain": "security",
+      "en": "Password",
+      "am": "የይለፍ ቃል",
+      "status": "approved"
+    },
+    {
+      "id": "audit_log",
+      "domain": "security",
+      "en": "Audit log",
+      "am": "የኦዲት መዝገብ",
+      "status": "approved"
+    },
+    {
+      "id": "backup",
+      "domain": "settings",
+      "en": "Backup / recovery",
+      "am": "ምትኬ / መልሶ ማግኛ",
+      "status": "approved"
+    },
+    {
+      "id": "settings",
+      "domain": "settings",
+      "en": "Settings",
+      "am": "ቅንብሮች",
+      "status": "approved"
+    },
+    {
+      "id": "code_rule",
+      "domain": "settings",
+      "en": "Code rule",
+      "am": "የኮድ ደንብ",
+      "avoid": [
+        "የኮድ ሕግ"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "recycle_bin",
+      "domain": "settings",
+      "en": "Recycle bin",
+      "am": "የተሰረዙ መዝገቦች",
+      "avoid": [
+        "ቆሻሻ መጣያ"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "legacy",
+      "domain": "settings",
+      "en": "Legacy",
+      "am": "የቀድሞ",
+      "avoid": [
+        "ቀደምት"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "setting_toggle",
+      "domain": "settings",
+      "en": "On/off setting label",
+      "am": "… ይታይ / … ይፈቀድ / … ያስፈልጋል",
+      "status": "approved",
+      "note": "Never the familiar imperative (አሳይ, ፍቀድ)."
+    },
+    {
+      "id": "report",
+      "domain": "reports",
+      "en": "Report",
+      "am": "ሪፖርት",
+      "status": "approved"
+    },
+    {
+      "id": "dashboard",
+      "domain": "reports",
+      "en": "Dashboard",
+      "am": "ዳሽቦርድ",
+      "status": "approved"
+    },
+    {
+      "id": "save",
+      "domain": "actions",
+      "en": "Save",
+      "am": "ያስቀምጡ",
+      "status": "approved"
+    },
+    {
+      "id": "cancel",
+      "domain": "actions",
+      "en": "Cancel (dismiss a form)",
+      "am": "ይቅር",
+      "status": "approved",
+      "note": "Never ይሰርዙ, which deletes."
+    },
+    {
+      "id": "delete",
+      "domain": "actions",
+      "en": "Delete",
+      "am": "ይሰርዙ",
+      "status": "approved"
+    },
+    {
+      "id": "edit",
+      "domain": "actions",
+      "en": "Edit",
+      "am": "ያርትዑ",
+      "status": "approved"
+    },
+    {
+      "id": "create",
+      "domain": "actions",
+      "en": "Create",
+      "am": "ይፍጠሩ",
+      "status": "approved"
+    },
+    {
+      "id": "update",
+      "domain": "actions",
+      "en": "Update",
+      "am": "ያዘምኑ",
+      "status": "approved"
+    },
+    {
+      "id": "submit_form",
+      "domain": "actions",
+      "en": "Submit (a form)",
+      "am": "ያስገቡ",
+      "status": "approved"
+    },
+    {
+      "id": "submit_request",
+      "domain": "actions",
+      "en": "Submit (a request or case for decision)",
+      "am": "ያቅርቡ",
+      "status": "approved"
+    },
+    {
+      "id": "approve",
+      "domain": "actions",
+      "en": "Approve",
+      "am": "ያጽድቁ",
+      "status": "approved"
+    },
+    {
+      "id": "reject",
+      "domain": "actions",
+      "en": "Reject",
+      "am": "ውድቅ ያድርጉ",
+      "status": "approved"
+    },
+    {
+      "id": "assign",
+      "domain": "actions",
+      "en": "Assign",
+      "am": "ይመድቡ",
+      "avoid": [
+        "ይሰይሙ"
+      ],
+      "status": "approved",
+      "note": "ይሰይሙ means to name or designate."
+    },
+    {
+      "id": "generate",
+      "domain": "actions",
+      "en": "Generate",
+      "am": "ያመንጩ",
+      "status": "approved"
+    },
+    {
+      "id": "replace",
+      "domain": "actions",
+      "en": "Replace (a card or credential)",
+      "am": "ይተኩ",
+      "status": "approved"
+    },
+    {
+      "id": "finalize",
+      "domain": "actions",
+      "en": "Finalize",
+      "am": "ያጠናቅቁ",
+      "status": "approved",
+      "note": "Approve is ያጽድቁ."
+    },
+    {
+      "id": "screen",
+      "domain": "actions",
+      "en": "Screen (applications)",
+      "am": "ያጣሩ",
+      "status": "approved"
+    },
+    {
+      "id": "archive",
+      "domain": "actions",
+      "en": "Archive / restore",
+      "am": "ወደ ማህደር ያስቀምጡ / ከማህደር ይመልሱ",
+      "status": "approved",
+      "note": "Archiving never means deleting."
+    },
+    {
+      "id": "publish",
+      "domain": "actions",
+      "en": "Publish",
+      "am": "ይፋ ያድርጉ",
+      "status": "needs_language_review",
+      "note": "Print is ማተም; the two are never mixed."
+    },
+    {
+      "id": "print",
+      "domain": "actions",
+      "en": "Print",
+      "am": "ያትሙ",
+      "status": "approved"
+    },
+    {
+      "id": "export",
+      "domain": "actions",
+      "en": "Export",
+      "am": "ወደ ፋይል ያውጡ",
+      "note": "With a format: በCSV ያውጡ.",
+      "status": "approved"
+    },
+    {
+      "id": "import",
+      "domain": "actions",
+      "en": "Import",
+      "am": "ከፋይል ያስገቡ",
+      "status": "approved"
+    },
+    {
+      "id": "activate",
+      "domain": "actions",
+      "en": "Activate / deactivate",
+      "am": "ገቢር ያድርጉ / ያቦዝኑ",
+      "status": "approved"
+    },
+    {
+      "id": "filter",
+      "domain": "actions",
+      "en": "Filter",
+      "am": "ያጣሩ / ማጣሪያ",
+      "avoid": [
+        "ፍልተር"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "search",
+      "domain": "actions",
+      "en": "Search",
+      "am": "ይፈልጉ",
+      "status": "approved"
+    },
+    {
+      "id": "dismiss",
+      "domain": "actions",
+      "en": "Dismiss (a notice)",
+      "am": "ይዝጉ",
+      "status": "approved"
+    },
+    {
+      "id": "actions_column",
+      "domain": "actions",
+      "en": "Actions (column)",
+      "am": "እርምጃዎች",
+      "avoid": [
+        "ተግባራት"
+      ],
+      "status": "approved",
+      "note": "ተግባራት is Tasks."
+    },
+    {
+      "id": "status_active",
+      "domain": "statuses",
+      "en": "Active / inactive",
+      "am": "ንቁ / ንቁ ያልሆነ",
+      "status": "approved"
+    },
+    {
+      "id": "status_draft",
+      "domain": "statuses",
+      "en": "Draft",
+      "am": "ረቂቅ",
+      "status": "approved"
+    },
+    {
+      "id": "status_pending",
+      "domain": "statuses",
+      "en": "Pending",
+      "am": "በመጠባበቅ ላይ",
+      "avoid": [
+        "በመጠበቅ ላይ"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "status_approved",
+      "domain": "statuses",
+      "en": "Approved",
+      "am": "ጸድቋል",
+      "status": "approved"
+    },
+    {
+      "id": "status_rejected",
+      "domain": "statuses",
+      "en": "Rejected",
+      "am": "ውድቅ ተደርጓል",
+      "avoid": [
+        "ውድቅ ሆኗል",
+        "ተቀባይነት አላገኘም"
+      ],
+      "status": "approved"
+    },
+    {
+      "id": "status_submitted",
+      "domain": "statuses",
+      "en": "Submitted",
+      "am": "ቀርቧል",
+      "status": "approved"
+    },
+    {
+      "id": "status_closed",
+      "domain": "statuses",
+      "en": "Closed",
+      "am": "ተዘግቷል",
+      "status": "approved"
+    },
+    {
+      "id": "status_cancelled",
+      "domain": "statuses",
+      "en": "Cancelled",
+      "am": "ተሰርዟል",
+      "status": "approved"
+    },
+    {
+      "id": "status_published",
+      "domain": "statuses",
+      "en": "Published",
+      "am": "ይፋ ሆኗል",
+      "status": "approved"
+    },
+    {
+      "id": "effective_from",
+      "domain": "dates",
+      "en": "Effective from / to",
+      "am": "የሚጸናበት ቀን / የሚያበቃበት ቀን",
+      "status": "approved",
+      "note": "Filters say ከሚጸናበት ቀን / እስከሚጸናበት ቀን."
+    },
+    {
+      "id": "start_end_date",
+      "domain": "dates",
+      "en": "Start date / end date",
+      "am": "የመጀመሪያ ቀን / የማብቂያ ቀን",
+      "status": "approved"
+    },
+    {
+      "id": "ethiopian_calendar",
+      "domain": "dates",
+      "en": "Ethiopian calendar year",
+      "am": "ዓ.ም",
+      "status": "approved"
+    }
+  ],
+  "deprecated": [
+    {
+      "current": "ወላጅ (structure parent)",
+      "recommended": "የበላይ / የበታች",
+      "pattern": "ወላ[ጅጆ]",
+      "block": true,
+      "reason": "ወላጅ is a biological parent."
+    },
+    {
+      "current": "ስጦታ (issuing)",
+      "recommended": "መስጠት / የተሰጠበት ቀን",
+      "pattern": "ስጦታ",
+      "block": true,
+      "reason": "ስጦታ is a gift."
+    },
+    {
+      "current": "ፍልተር",
+      "recommended": "ያጣሩ / ማጣሪያ",
+      "pattern": "ፍልተር",
+      "block": true,
+      "reason": "Transliteration retired."
+    },
+    {
+      "current": "ስካን",
+      "recommended": "ይቃኙ / ቅኝት",
+      "pattern": "ስካን",
+      "block": true,
+      "reason": "Transliteration retired."
+    },
+    {
+      "current": "ካሊብሬሽን",
+      "recommended": "የውጤት ማመጣጠን",
+      "pattern": "ካሊብሬሽን",
+      "block": true,
+      "reason": "Transliteration retired."
+    },
+    {
+      "current": "የደረጃ ደረጃ / የደረጃ መለኪያ",
+      "recommended": "የሥራ ደረጃ",
+      "pattern": "የደረጃ (ደረጃ|መለኪያ)",
+      "block": true,
+      "reason": "A grade level is the job grade."
+    },
+    {
+      "current": "የኮድ ሕግ",
+      "recommended": "የኮድ ደንብ",
+      "pattern": "ኮድ ሕ[ግጎ]",
+      "block": true,
+      "reason": "ሕግ is a law."
+    },
+    {
+      "current": "የሪፖርት መስመር",
+      "recommended": "የተጠሪነት መስመር",
+      "pattern": "የሪፖርት መስመ[ርሮ]",
+      "block": true,
+      "reason": "One term for reporting line."
+    },
+    {
+      "current": "የመስመር ደንብ",
+      "recommended": "የማስተላለፊያ ደንብ",
+      "pattern": "የመስመር ደን[ብቦ]",
+      "block": true,
+      "reason": "Routing rule wording."
+    },
+    {
+      "current": "የተቋም ክፍል / የተቋም የሥራ ክፍል",
+      "recommended": "የሥራ ክፍል",
+      "pattern": "(?<![ሀ-፿])[የበለከ]ተቋም (የሥራ )?ክፍ[ልሉሎ]",
+      "block": true,
+      "reason": "One term for an organization unit."
+    },
+    {
+      "current": "በመጠበቅ ላይ",
+      "recommended": "በመጠባበቅ ላይ",
+      "pattern": "በመጠበቅ ላይ",
+      "block": true,
+      "reason": "One form for pending."
+    },
+    {
+      "current": "ውድቅ ሆኗል",
+      "recommended": "ውድቅ ተደርጓል",
+      "pattern": "ውድቅ ሆኗል",
+      "block": true,
+      "reason": "One form for rejected."
+    },
+    {
+      "current": "ተቀልፏል (withdrawn)",
+      "recommended": "ተነስቷል",
+      "pattern": "ተቀልፏል",
+      "block": true,
+      "reason": "Wrong word."
+    },
+    {
+      "current": "ተዛወሯል",
+      "recommended": "ተዛውሯል",
+      "pattern": "ተዛወሯል",
+      "block": true,
+      "reason": "Spelling."
+    },
+    {
+      "current": "ደሞዝ",
+      "recommended": "ደመወዝ",
+      "pattern": "ደሞዝ",
+      "block": true,
+      "reason": "Legal spelling."
+    },
+    {
+      "current": "ካፍቴሪያ",
+      "recommended": "ካፌቴሪያ",
+      "pattern": "ካፍቴሪያ",
+      "block": true,
+      "reason": "One spelling."
+    },
+    {
+      "current": "ሰራተኛ",
+      "recommended": "ሠራተኛ",
+      "pattern": "ሰራተኛ|ሰራተኞ",
+      "block": true,
+      "reason": "Spelling policy. The official system name is configured in config/branding.php, not in translations."
+    },
+    {
+      "current": "ስራ",
+      "recommended": "ሥራ",
+      "pattern": "(?<![ሀ-፿])(?:[የበለከ]|ወደ|እንደ)?ስራ",
+      "block": true,
+      "reason": "Spelling policy."
+    },
+    {
+      "current": "ስርዓት / ሥርአት",
+      "recommended": "ሥርዓት",
+      "pattern": "ስርዓ[ትቶ]|ሥርአ[ትቶ]",
+      "block": true,
+      "reason": "Spelling policy."
+    },
+    {
+      "current": "ህትመት",
+      "recommended": "ሕትመት",
+      "pattern": "ህትመ",
+      "block": true,
+      "reason": "Spelling policy."
+    },
+    {
+      "current": "ቅድመ ዕይታ",
+      "recommended": "ቅድመ እይታ",
+      "pattern": "ቅድመ ዕይታ",
+      "block": true,
+      "reason": "One spelling."
+    },
+    {
+      "current": "ሃላፊ",
+      "recommended": "ኃላፊ",
+      "pattern": "ሃላፊ",
+      "block": true,
+      "reason": "Spelling policy."
+    },
+    {
+      "current": "አይነት",
+      "recommended": "ዓይነት",
+      "pattern": "(?<![ሀ-፿])(?:[የበለከ])?አይነ[ትቶ]",
+      "block": true,
+      "reason": "Spelling policy."
+    },
+    {
+      "current": "ቤተ መጽሐፍት (catalogue)",
+      "recommended": "ካታሎግ / ማውጫ",
+      "pattern": "ቤተ[- ]መጽሐፍት",
+      "block": true,
+      "reason": "A library is not a catalogue."
+    },
+    {
+      "current": "ተቅድሷል / የጼደቁ / ለቀቅ",
+      "recommended": "(typos)",
+      "pattern": "ተቅድሷል|የጼደቁ|(?<![ሀ-፿])ለቀቅ(?![ሀ-፿])|ስላልፈፈሉ|ሥናቦች",
+      "block": true,
+      "reason": "Typos found in the audit."
+    },
+    {
+      "current": "ሪፓርት / ኮሚቲ / ቅፅ / ዉሳኔ",
+      "recommended": "ሪፖርት / ኮሚቴ / ቅጽ / ውሳኔ",
+      "pattern": "ሪፓር[ትቶ]|ኮሚቲ|ቅፅ|ዉሳኔ",
+      "block": true,
+      "reason": "Spelling policy."
+    },
+    {
+      "current": "ደንበኛ",
+      "recommended": "ተገልጋይ",
+      "pattern": "ደንበ[ኛኞ]",
+      "block": false,
+      "reason": "A citizen served by a government office is a ተገልጋይ. An API client is a technical term.",
+      "allowKeys": [
+        "codeRules.entityTypes.api_client"
+      ]
+    },
+    {
+      "current": "ድርጅት",
+      "recommended": "ተቋም",
+      "pattern": "ድርጅ[ትቶ]",
+      "block": false,
+      "reason": "ድርጅት only for a private company. Cafeteria providers are private companies.",
+      "allowKeys": [
+        "providerUsers.",
+        "providers."
+      ]
+    },
+    {
+      "current": "ኤፒአይ / ጂፒኤስ / ኤንኤፍሲ / ኤስኤምኤስ",
+      "recommended": "API / GPS / NFC / SMS",
+      "pattern": "ኤፒአይ|ጂፒኤስ|ኤንኤፍሲ|ኤስኤምኤስ",
+      "block": true,
+      "reason": "Accepted acronyms stay in Latin script."
+    },
+    {
+      "current": "ሌጀር",
+      "recommended": "የሂሳብ መዝገብ",
+      "pattern": "ሌጀር",
+      "block": true,
+      "reason": "Transliteration retired."
+    },
+    {
+      "current": "ሒሳብ",
+      "recommended": "ሂሳብ",
+      "pattern": "ሒሳ[ብቦ]",
+      "block": true,
+      "reason": "One spelling."
+    },
+    {
+      "current": "የሥራ መደብ ምደባ (establishment)",
+      "recommended": "የጸደቀ የሥራ መደብ",
+      "pattern": "የሥራ መደብ ምደባ",
+      "block": true,
+      "reason": "ምደባ is an assignment."
+    },
+    {
+      "current": "ቆሻሻ መጣያ",
+      "recommended": "የተሰረዙ መዝገቦች",
+      "pattern": "ቆሻሻ መጣያ",
+      "block": true,
+      "reason": "Recycle bin wording."
+    },
+    {
+      "current": "ጎርጎሮሳዊ / ግሪጎሪያን / ጎርጎሪያን",
+      "recommended": "ጎርጎርዮሳዊ",
+      "pattern": "ጎርጎሮሳዊ|ግሪጎሪያን|ጎርጎሪያን",
+      "block": true,
+      "reason": "One spelling for Gregorian."
+    },
+    {
+      "current": "ሚኒስቴር",
+      "recommended": "ቢሮ / ተቋም",
+      "pattern": "ሚኒስቴ[ርሮ]",
+      "block": false,
+      "reason": "City bodies are bureaus; a federal ministry may legitimately appear."
+    },
+    {
+      "current": "ምርምር (review)",
+      "recommended": "ግምገማ",
+      "pattern": "ምርምር",
+      "block": false,
+      "reason": "ምርምር is research."
+    },
+    {
+      "current": "ባካፕ",
+      "recommended": "ምትኬ",
+      "pattern": "ባካፕ|ባክ ?አፕ",
+      "block": true,
+      "reason": "Backup is ምትኬ."
+    },
+    {
+      "current": "Other spelling variants: ሃሳብ, ሃብት, እቅድ, እለት, ሃይል, ስልጣን, ስልጠና, አሰራር, ማኅደር, ፀደቀ, ማፅደቅ, ቅርፀት, ፀና, አመት, ህግ, መንግስት",
+      "recommended": "ሀሳብ, ሀብት, ዕቅድ, ዕለት, ኃይል, ሥልጣን, ሥልጠና, አሠራር, ማህደር, ጸደቀ, ማጽደቅ, ቅርጸት, ጸና, ዓመት, ሕግ, መንግሥት",
+      "pattern": "(?<![ሀ-፿])(?:[የበለከ]|ወደ|እንደ)?(?:ሃሳ[ብቦ]|ሃብ[ትቶ]|እቅ[ድዶ]|እለት|ሃይ[ልሎ]|ስልጣ[ንኖ]|ስልጠና|አሰራ[ርሮ]|ማኅደ[ርሮ]|ፀደ|ፀድ|ማፅደ|ቅርፀ|ፀና|አመ[ትታ]|ህ[ግጎ]|መንግስ[ትታ])",
+      "block": true,
+      "reason": "Spelling policy. ፀሐፊ (secretary) keeps the Regulation 201 spelling."
+    }
+  ]
+}

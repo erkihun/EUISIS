@@ -26,16 +26,16 @@ const organizationStructureImport = {
     optional: 'አማራጭ',
 
     autoGenerateCodes: 'የጎደሉ ኮዶችን በራስ-ሰር አመንጭ',
-    autoGenerateHint: 'ከኮድ ሕጎች በራስ-ሰር እንዲመነጩ የኮድ መስኮችን ባዶ ይተዉ።',
+    autoGenerateHint: 'ከኮድ ደንቦች በራስ-ሰር እንዲመነጩ የኮድ መስኮችን ባዶ ይተዉ።',
     generatedCodes: 'የተመነጩ ኮዶች',
     providedCode: 'የቀረበ ኮድ',
     generatedCode: 'የተመነጨ ኮድ',
-    codeRuleUsed: 'ጥቅም ላይ የዋለ የኮድ ሕግ',
-    generatedByCodeRule: 'በኮድ ሕግ የተመነጨ',
+    codeRuleUsed: 'ጥቅም ላይ የዋለ የኮድ ደንብ',
+    generatedByCodeRule: 'በኮድ ደንብ የተመነጨ',
     name: 'ስም',
 
     counts: {
-        units: 'የተቋም ክፍሎች',
+        units: 'የሥራ ክፍሎች',
         positions: 'የሥራ መደቦች',
         employees: 'ሠራተኞች',
     },

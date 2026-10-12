@@ -12,7 +12,7 @@ return [
     'service_transactions.create' => 'የአገልግሎት ግብይቶችን መፍጠር',
     'reports.read_limited' => 'የተወሰኑ ሪፖርቶችን ማንበብ',
     'organizations.read' => 'ተቋማትን ማንበብ',
-    'organization_units.read' => 'የተቋም ክፍሎችን ማንበብ',
+    'organization_units.read' => 'የሥራ ክፍሎችን ማንበብ',
     'positions.read' => 'የሥራ መደቦችን ማንበብ',
     'employees.basic_read' => 'ሠራተኞችን ማንበብ',
     'employee_assignments.read' => 'የሠራተኛ ምደባዎችን ማንበብ',

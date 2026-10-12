@@ -52,7 +52,7 @@ const providerUsers = {
     roleHelp: {
         owner: 'አቅራቢው በፖርታሉ የሚሰጠውን ሁሉ ይጠቀማል።',
         manager: 'ከባለቤት ጋር ተመሳሳይ መዳረሻ።',
-        operator: 'ከታች የተመረጡትን ፈቃዶች ብቻ ይጠቀማል።',
+        operator: 'ከታች የተመረጡትን የመዳረሻ መብቶች ብቻ ይጠቀማል።',
     },
     statuses: {
         active: 'ንቁ',
@@ -85,11 +85,11 @@ const providerUsers = {
     sectionAccess: 'ሚና እና መዳረሻ',
     portalEnabled: 'ወደ አቅራቢ ፖርታል መግባት ይችላል',
     portalEnabledHelp: 'መለያውን ሳያግዱ መግባትን ለማገድ ያጥፉ።',
-    permissionsTitle: 'የኦፕሬተር ፈቃዶች',
-    permissionsHelp: 'ኦፕሬተሮች የተመረጡትን ብቻ መጠቀም ይችላሉ። የካፌቴሪያ ገጾች የአቅራቢውን የካፌቴሪያ አገልግሎት ይከተላሉ፤ እዚህ ፈቃድ አያስፈልጋቸውም።',
+    permissionsTitle: 'የኦፕሬተር የመዳረሻ መብቶች',
+    permissionsHelp: 'ኦፕሬተሮች የተመረጡትን ብቻ መጠቀም ይችላሉ። የካፌቴሪያ ገጾች የአቅራቢውን የካፌቴሪያ አገልግሎት ይከተላሉ፤ እዚህ የመዳረሻ መብት አያስፈልጋቸውም።',
     permissionsImplied: 'ባለቤቶች እና ሥራ አስኪያጆች አቅራቢያቸው የሚሰጠውን ሁሉ መጠቀም ይችላሉ።',
-    noPermissionsOffered: 'የዚህ አቅራቢ አገልግሎቶች የተጠቃሚ ፈቃድ አያስፈልጋቸውም።',
-    selectProviderFirst: 'ፈቃዶቹን ለማየት አቅራቢ ይምረጡ።',
+    noPermissionsOffered: 'የዚህ አቅራቢ አገልግሎቶች የተጠቃሚ የመዳረሻ መብት አያስፈልጋቸውም።',
+    selectProviderFirst: 'የመዳረሻ መብቶቹን ለማየት አቅራቢ ይምረጡ።',
     sectionPassword: 'የመጀመሪያ የይለፍ ቃል',
     passwordGenerate: 'የአንድ ጊዜ የይለፍ ቃል ፍጠር (የሚመከር)',
     passwordGenerateHelp: 'ከተቀመጠ በኋላ አንድ ጊዜ ይታይዎታል፤ በደህንነት እንዲያስረክቡ።',
@@ -113,7 +113,7 @@ const providerUsers = {
     suspendedAt: 'የታገደበት',
     suspendedBy: 'ያገደው',
     suspensionReason: 'የእገዳ ምክንያት',
-    grantedPermissions: 'የተሰጡ ፈቃዶች',
+    grantedPermissions: 'የተሰጡ የመዳረሻ መብቶች',
     allPermissions: 'ሁሉም የመዳረሻ መብቶች (በሚና)',
     history: 'የመለያ ታሪክ',
     historyEmpty: 'እስካሁን የተመዘገበ ለውጥ የለም።',
@@ -133,7 +133,7 @@ const providerUsers = {
     reasonOptional: 'ምክንያት (አማራጭ)',
     activateDescription: 'ባለቤቱ እንደገና ወደ አቅራቢ ፖርታል መግባት ይችላል።',
     deleteDescription: 'መለያው ከአሁን በኋላ መግባት አይችልም። በኋላ ከተሰረዙ መለያዎች ዝርዝር መመለስ ይችላሉ።',
-    restoreDescription: 'መለያው ከቀድሞ ሁኔታው እና ፈቃዶቹ ጋር ይመለሳል።',
+    restoreDescription: 'መለያው ከቀድሞ ሁኔታውና ከመዳረሻ መብቶቹ ጋር ይመለሳል።',
 };
 
 export default providerUsers;

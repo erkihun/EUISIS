@@ -97,7 +97,7 @@ const transfers = {
     // Fields
     organization: 'ተቋም',
     position: 'የሥራ መደብ',
-    gradeLevel: 'ደረጃ',
+    gradeLevel: 'የሥራ ደረጃ',
     salaryMin: 'ዝቅተኛ ደመወዝ',
     salaryMax: 'ከፍተኛ ደመወዝ',
     numberOfVacancies: 'የክፍት የሥራ መደቦች ብዛት',

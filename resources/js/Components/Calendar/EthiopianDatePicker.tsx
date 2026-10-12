@@ -38,7 +38,7 @@ export default function EthiopianDatePicker({
     id,
     name,
 }: Props) {
-    const { locale } = useLocale();
+    const { locale, t } = useLocale();
     const { getString } = useSystemSettings();
     const months = locale === 'am' ? MONTHS_AM : MONTHS_EN;
     /*
@@ -173,7 +173,7 @@ export default function EthiopianDatePicker({
                 className={`flex w-full items-center justify-between rounded-md border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:text-gray-300 ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} ${className}`}
             >
                 <span className={displayValue ? '' : 'text-[color:var(--app-muted-foreground)]'}>
-                    {displayValue || placeholder || (locale === 'am' ? 'ቀን ይምረጡ' : 'Select date')}
+                    {displayValue || placeholder || t('calendar.selectDate')}
                 </span>
                 <svg className="h-4 w-4 text-[color:var(--app-muted-foreground)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -255,7 +255,7 @@ export default function EthiopianDatePicker({
                             }}
                             className="text-xs font-medium text-indigo-600 hover:underline dark:text-indigo-400"
                         >
-                            {locale === 'am' ? 'ዛሬ' : 'Today'}
+                            {t('calendar.today')}
                         </button>
                         {value && (
                             <button
@@ -263,7 +263,7 @@ export default function EthiopianDatePicker({
                                 onClick={() => { onChange(''); setOpen(false); }}
                                 className="text-xs text-[color:var(--app-muted-foreground)] hover:underline"
                             >
-                                {locale === 'am' ? 'አጥፋ' : 'Clear'}
+                                {t('calendar.clear')}
                             </button>
                         )}
                     </div>

@@ -7,6 +7,7 @@ import StatCard from '@/Components/StatCard';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { ChevronDown, ChevronRight, Layers, Plus, ShieldCheck, TagsIcon } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
+import { permissionGroupLabel } from '@/lib/permissionGroups';
 
 import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 type Permission = {
@@ -176,7 +177,7 @@ export default function PermissionsIndex({
                     <Select value={draft.group} onChange={(e) => setDraft({ ...draft, group: e.target.value })}>
                         <option value="">{t('permissions.allGroups')}</option>
                         {groups.map((g) => (
-                            <option key={g} value={g}>{g}</option>
+                            <option key={g} value={g}>{permissionGroupLabel(t, g)}</option>
                         ))}
                     </Select>
                 </FilterField>
@@ -185,7 +186,7 @@ export default function PermissionsIndex({
                         <Select value={draft.guard} onChange={(e) => setDraft({ ...draft, guard: e.target.value })}>
                             <option value="">{t('permissions.allGuards')}</option>
                             {guards.map((g) => (
-                                <option key={g} value={g}>{g}</option>
+                                <option key={g} value={g}>{permissionGroupLabel(t, g)}</option>
                             ))}
                         </Select>
                     </FilterField>
@@ -353,7 +354,7 @@ function TableView({
                                     <span className="line-clamp-2">{description(p) ?? '—'}</span>
                                 </td>
                                 <td className={tableCellClassName}>
-                                    {p.group && <GroupBadge group={p.group} />}
+                                    {p.group && <GroupBadge group={permissionGroupLabel(t, p.group)} />}
                                 </td>
                                 <td className={cx(tableCellClassName, 'font-mono text-xs text-[color:var(--app-muted-foreground)]')}>{p.guard_name}</td>
                                 <td className={cx(tableCellClassName, 'tabular-nums text-[color:var(--app-muted-foreground)]')}>{p.roles_count ?? 0}</td>
@@ -415,7 +416,7 @@ function GroupedView({
                                     ? <ChevronRight className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />
                                     : <ChevronDown className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" aria-hidden="true" />}
                                 <span className="min-w-0 break-words text-xs font-semibold text-[color:var(--app-muted-foreground)]">
-                                    {group}
+                                    {permissionGroupLabel(t, group)}
                                 </span>
                             </span>
                             <span className={badgeClassName('info', 'shrink-0 tabular-nums')}>

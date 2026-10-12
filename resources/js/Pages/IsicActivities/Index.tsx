@@ -110,7 +110,7 @@ export default function IsicActivitiesIndex({
                             <option value="">{t('isicActivities.allLevels')}</option>
                             {levels.map((l) => (
                                 <option key={l} value={l}>
-                                    {l}
+                                    {t(`isicActivities.${l}`)}
                                 </option>
                             ))}
                         </Select>

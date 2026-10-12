@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'title' => 'ግንኙነቶች',
-    'reporting_lines' => 'የሪፖርት መስመሮች',
+    'reporting_lines' => 'የተጠሪነት መስመሮች',
     'target_types' => [
         'organization' => 'ተቋም',
         'institution_office' => 'የተቋም ጽሕፈት ቤት',
@@ -23,7 +23,7 @@ return [
         'service_delivery' => 'አገልግሎት አቅርቦት',
         'budget_reporting' => 'የበጀት ሪፖርት',
         'temporary_assignment' => 'ጊዜያዊ ምደባ',
-        'dotted_line_reporting' => 'ተጨማሪ የሪፖርት መስመር',
+        'dotted_line_reporting' => 'ተጨማሪ የተጠሪነት መስመር',
         'other' => 'ሌላ',
     ],
     'statuses' => [

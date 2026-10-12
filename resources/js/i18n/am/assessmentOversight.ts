@@ -278,7 +278,7 @@ const assessmentOversight = {
     employeeStatuses: { draft: 'ረቂቅ', active: 'ንቁ', suspended: 'የታገደ', transferred: 'የተዛወረ', retired: 'ጡረታ የወጣ', terminated: 'የተሰናበተ', deceased: 'ያረፈ' },
     resolution: { matched: 'ቅጹ ተለይቷል', conflict: 'የሚጋጩ ቅጾች', no_applicable_form: 'የሚመለከተው ቅጽ የለም' },
     targets: {
-        everyone: 'ሁሉም', position: 'የሥራ መደብ', occupation: 'የሙያ ምድብ', grade_level: 'የደረጃ እርከን', job_family: 'የሥራ ቤተሰብ',
+        everyone: 'ሁሉም', position: 'የሥራ መደብ', occupation: 'የሙያ ምድብ', grade_level: 'የሥራ ደረጃ', job_family: 'የሥራ ቤተሰብ',
         organization: 'ተቋም', organization_unit: 'የሥራ ክፍል', exclude: 'የተገለለ',
     },
     events: { submitted: 'ቀርቧል', under_city_review: 'የከተማ ግምገማ ተጀምሯል', returned: 'ለእርማት ተመልሷል', verified: 'ተረጋግጧል', finalized: 'ተጠናቅቋል', rejected: 'ውድቅ ተደርጓል', outdated: 'እንደገና መቅረብ እንዳለበት ተለይቷል' },

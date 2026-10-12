@@ -1,6 +1,8 @@
 const enCalendar = {
     gregorian: 'Gregorian',
     ethiopian: 'Ethiopian',
+    ethiopianCalendar: 'Ethiopian Calendar',
+    gregorianCalendar: 'Gregorian Calendar',
     calendarSystem: 'Calendar System',
     selectDate: 'Select date',
     selectDateRange: 'Select date range',

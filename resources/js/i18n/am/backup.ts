@@ -37,8 +37,8 @@ const backup = {
     severities: { CRITICAL: 'አሳሳቢ', WARNING: 'ማስጠንቀቂያ', READINESS: 'የሥራ ማስጀመሪያ ማስረጃ' },
     headlines: {
         healthy: 'ምትኬዎች፣ ማከማቻዎች እና የWAL ማህደር ጤናማ ናቸው።',
-        notConfigured: 'የProduction የባካፕ መሠረተ ልማት በዚህ የDevelopment አካባቢ አልተዋቀረም።',
-        unavailable: 'የProduction የባካፕ መሠረተ ልማት አይገኝም።',
+        notConfigured: 'የቀጥታ አገልግሎት ምትኬ መሠረተ ልማት በዚህ የልማት አካባቢ አልተዋቀረም።',
+        unavailable: 'የቀጥታ አገልግሎት ምትኬ መሠረተ ልማት አይገኝም።',
     },
     cards: {
         infrastructure: 'መሠረተ ልማት',
@@ -49,7 +49,7 @@ const backup = {
         restoreTest: 'የመልሶ ማግኛ ሙከራ',
     },
     environment: 'አካባቢ',
-    productionBlocker: 'ለProduction እንቅፋት',
+    productionBlocker: 'ለቀጥታ አገልግሎት እንቅፋት',
     blockerYes: 'አዎ',
     blockerNo: 'አይደለም',
     blockerNotEnforced: 'አይደለም (በዚህ አካባቢ አይተገበርም)',

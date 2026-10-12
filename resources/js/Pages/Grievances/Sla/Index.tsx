@@ -18,7 +18,7 @@ export default function Index({ profiles, options, can }: SlaIndexProps) {
         { key: 'name_en', required: true }, { key: 'name_am' },
         { key: 'purpose', type: 'select', required: true, options: choices(options.purposes), enumGroup: 'sla_purpose' },
         { key: 'organization_id', type: 'select', options: options.organizations.map(org => ({ value: org.id!, label: nameOf(org, locale) })) },
-        ...handlerFields({ options, locale, title: t('grievanceAdmin.fields.handler_type'), initial: row?.handler }),
+        ...handlerFields({ organizationLabel: t('common.organization'), options, locale, title: t('grievanceAdmin.fields.handler_type'), initial: row?.handler }),
         { key: 'category_id', type: 'select', options: options.categories.map(category => ({ value: category.id!, label: nameOf(category, locale) })) },
         { key: 'resolution_days', type: 'number', min: 1, max: 365, required: true },
         { key: 'day_type', type: 'select', required: true, options: choices(options.day_types), enumGroup: 'day_type' },

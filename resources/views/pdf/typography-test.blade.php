@@ -30,7 +30,7 @@
     <h2>የተቋም መዋቅር — Organization structure</h2>
     <p>
         ሠራተኛ ቁጥር AAC-00123456 · የሠራተኛ መታወቂያ ID-2026-000781 ·
-        የካፍቴሪያ አገልግሎት ETB 1,250.00 · የአፈጻጸም አስተዳደር 2018 ዓ.ም. (2026-09-28)።
+        የካፌቴሪያ አገልግሎት ETB 1,250.00 · የአፈጻጸም አስተዳደር 2018 ዓ.ም. (2026-09-28)።
         Mixed sentence: The employee (ሠራተኛ) completed 12 of 15 tasks — 80% on time.
     </p>
 
@@ -57,7 +57,7 @@
             </tr>
             <tr>
                 <td class="code">POS-0002</td>
-                <td>የካፍቴሪያ አገልግሎት — Cafeteria service</td>
+                <td>የካፌቴሪያ አገልግሎት — Cafeteria service</td>
                 <td>መስከረም 18 ቀን 2019</td>
                 <td class="num">45.00</td>
             </tr>

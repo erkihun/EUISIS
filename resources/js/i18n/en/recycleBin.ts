@@ -28,6 +28,8 @@ const recycleBin = {
     notPermanent: 'This action will not permanently delete the record.',
     noRestorePermission: 'You do not have permission to restore this record.',
     types: {
+        organizations: 'Organizations',
+        organization_types: 'Organization Types',
         organization_units: 'Organization Units',
         organization_unit_types: 'Organization Unit Types',
         positions: 'Positions',

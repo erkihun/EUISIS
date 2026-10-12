@@ -122,7 +122,7 @@ const grievanceAdmin = {
     fields: {
         name: 'ስም', name_en: 'ስም (እንግሊዝኛ)', name_am: 'ስም (አማርኛ)', description_en: 'መግለጫ (እንግሊዝኛ)', description_am: 'መግለጫ (አማርኛ)',
         organization: 'ተቋም', organization_id: 'ተቋም', organization_unit_id: 'የሥራ ክፍል', committee_type: 'ዓይነት', status: 'ሁኔታ', members: 'አባላት',
-        openCases: 'ክፍት ጉዳዮች', effective_from: 'ከ (ተፈጻሚነት)', effective_to: 'እስከ (ተፈጻሚነት)', employee_id: 'ሠራተኛ', role: 'የኮሚቴ ሚና',
+        openCases: 'ክፍት ጉዳዮች', effective_from: 'የሚጸናበት ቀን', effective_to: 'የሚያበቃበት ቀን', employee_id: 'ሠራተኛ', role: 'የኮሚቴ ሚና',
         appointment_reference: 'የሹመት ደብዳቤ ቁጥር', actions: 'እርምጃዎች', source: 'ከ', target: 'ወደ', movement_type: 'እንቅስቃሴ', priority: 'ቅድሚያ',
         source_handler_type: 'የመነሻ ዓይነት', target_handler_type: 'የመድረሻ ዓይነት', state: 'ሁኔታ', include_descendants: 'ለንዑስ ተቋማትም',
         purpose: 'ዓላማ', handler_type: 'የሚያስተናግደው አካል', handler_id: 'የሚያስተናግደው አካል', lookup_organization_id: 'ተቋም', resolution_days: 'ቀናት', day_type: 'የቀን ዓይነት',

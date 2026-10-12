@@ -24,7 +24,7 @@ const auth = {
     signIn: 'ይግቡ',
     noAccount: 'መለያ የለዎትም?',
     createEmployeeAccount: 'የሠራተኛ መለያ ይፍጠሩ',
-    securePortal: 'ደህንነቱ የተጠበቀ የመንግስት ፖርታል',
+    securePortal: 'ደህንነቱ የተጠበቀ የመንግሥት ፖርታል',
     systemHeadline1: 'የተቀናጀ የሠራተኛ',
     systemHeadlineHighlight: 'አስተዳደር',
     systemHeadline2: 'እና አገልግሎት',
@@ -36,7 +36,7 @@ const auth = {
     featureMultiOrg: 'ለብዙ ተቋማት',
     featureRegistry: 'የሰው ሀብት መዝገብ',
     featureCodeGen: 'ኮድ ማመንጨት',
-    footerGov: 'የኢትዮጵያ መንግስት',
+    footerGov: 'የኢትዮጵያ መንግሥት',
 
     registration: {
         title: 'መለያ ይፍጠሩ',
@@ -46,7 +46,7 @@ const auth = {
         stepEmployeeNumber: '1. በሰው ሀብት ክፍል የተሰጠዎትን የሠራተኛ ቁጥር ያስገቡ።',
         stepReceiveCode: '2. በተመዘገበው የኢሜይል አድራሻዎ የማረጋገጫ ኮድ ይቀበሉ።',
         stepChoosePassword: '3. ኮዱን ያስገቡ እና የይለፍ ቃልዎን ይምረጡ።',
-        footer: 'የኢትዮጵያ መንግስት · አዲስ አበባ ከተማ አስተዳደር',
+        footer: 'የኢትዮጵያ መንግሥት · አዲስ አበባ ከተማ አስተዳደር',
         contactDetails: 'በሰው ሀብት ክፍል ቀደም ሲል የተመዘገበውን የመገናኛ መረጃዎን እናረጋግጣለን።',
         employeeNumber: 'የሠራተኛ ቁጥር',
         employeeNumberPlaceholder: 'ለምሳሌ፦ EMP-001234',

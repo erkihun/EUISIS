@@ -19,9 +19,9 @@ export default function Index({ routes, filters, options, can }: RoutingIndexPro
     const action = useForm({ deactivate: true });
     const row = typeof editing === 'object' ? editing : null;
     const fields: AdminField[] = [
-        ...handlerFields({ prefix: 'source_', title: t('grievanceAdmin.source'), options, locale, required: true, allowOrganization: true, initial: row?.source }),
+        ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'source_', title: t('grievanceAdmin.source'), options, locale, required: true, allowOrganization: true, initial: row?.source }),
         { key: 'include_descendants', type: 'boolean', visible: data => data.source_handler_type === 'organization' },
-        ...handlerFields({ prefix: 'target_', title: t('grievanceAdmin.target'), options, locale, required: true, initial: row?.target }),
+        ...handlerFields({ organizationLabel: t('common.organization'), prefix: 'target_', title: t('grievanceAdmin.target'), options, locale, required: true, initial: row?.target }),
         { key: 'movement_type', type: 'select', required: true, options: choices(options.movement_types), enumGroup: 'movement_type', help: t('grievanceAdmin.initialSourceHelp') },
         { key: 'category_id', type: 'select', options: options.categories.map(value => ({ value: value.id!, label: nameOf(value, locale) })) },
         { key: 'sla_profile_id', type: 'select', options: options.sla_profiles.map(value => ({ value: value.id!, label: nameOf(value, locale) })) },

@@ -1,13 +1,15 @@
 const amCalendar = {
-    gregorian: 'ጎርጎሮሳዊ',
+    gregorian: 'ጎርጎርዮሳዊ',
     ethiopian: 'ኢትዮጵያዊ',
+    ethiopianCalendar: 'የኢትዮጵያ ዘመን አቆጣጠር',
+    gregorianCalendar: 'የጎርጎርዮሳዊ ቀን አቆጣጠር',
     calendarSystem: 'የቀን አቆጣጠር',
     selectDate: 'ቀን ይምረጡ',
     selectDateRange: 'የቀን ክልል ይምረጡ',
     startDate: 'የመጀመሪያ ቀን',
     endDate: 'የማብቂያ ቀን',
     today: 'ዛሬ',
-    clear: 'ያጥፉ',
+    clear: 'ያጽዱ',
     months: {
         1: 'ጃኑዋሪ', 2: 'ፌብሩዋሪ', 3: 'ማርች', 4: 'ኤፕሪል',
         5: 'ሜይ', 6: 'ጁን', 7: 'ጁላይ', 8: 'ኦገስት',

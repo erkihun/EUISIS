@@ -63,7 +63,7 @@ return [
     'accepted_transactions' => 'ተቀባይነት ያገኙ ግብይቶች',
     'rejected_transactions' => 'ውድቅ የተደረጉ ግብይቶች',
     'consumed_dates' => 'የተጠቀሙባቸው ቀናት',
-    'date_gregorian' => 'የጎርጎሮሳዊ ቀን',
+    'date_gregorian' => 'የጎርጎርዮሳዊ ቀን',
     'date_display' => 'የሚታይ ቀን',
     'xlsx_export_unavailable' => 'የስፕሬድሺት ጥቅል ስላልተጫነ XLSX ወደ ፋይል ማውጣት አይገኝም።',
     'total_transactions' => 'ጠቅላላ ግብይቶች',
@@ -85,7 +85,7 @@ return [
     'export_columns_no' => 'ቁ.',
     'export_columns' => [
         'transaction_number' => 'የግብይት ቁጥር',
-        'date_gregorian' => 'የጎርጎሮሳዊ ቀን',
+        'date_gregorian' => 'የጎርጎርዮሳዊ ቀን',
         'date_display' => 'የሚታይ ቀን',
         'scan_time' => 'የቅኝት ጊዜ',
         'employee_number' => 'የሠራተኛ ቁጥር',
@@ -105,4 +105,5 @@ return [
         'operator' => 'ኦፕሬተር',
         'created_at' => 'የተፈጠረበት ጊዜ',
     ],
+    'service_access_denied' => 'መለያዎ ይህን አገልግሎት የመጠቀም መብት የለውም።',
 ];

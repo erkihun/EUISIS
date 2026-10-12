@@ -40,4 +40,9 @@ return [
 
     // Validation errors
     'alreadyApproved' => 'This establishment has already been approved.',
+    'alreadyApproved' => 'This position establishment is already approved.',
+    'approved' => 'Position establishment approved.',
+    'created' => 'Position establishment created.',
+    'updated' => 'Position establishment updated.',
+    'archived' => 'Position establishment archived.',
 ];

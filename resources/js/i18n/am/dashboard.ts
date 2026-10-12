@@ -218,8 +218,8 @@ const dashboard = {
     dataQualityTitle: 'የሠራተኛ መረጃ ጥራት',
     employeesByOrganizationType: 'ሠራተኞች በተቋም ዓይነት',
     verificationResultsTitle: 'የማረጋገጫ ውጤቶች',
-    sectionNfcOverview: 'የኤንኤፍሲ ማረጋገጫዎች',
-    sectionIntegrationOverview: 'የኤፒአይ እና ውህደት ሁኔታ',
+    sectionNfcOverview: 'የNFC ማረጋገጫዎች',
+    sectionIntegrationOverview: 'የAPI እና ውህደት ሁኔታ',
     actions: {
         addEmployee: 'ሠራተኛ ይጨምሩ',
         addPosition: 'የሥራ መደብ ይጨምሩ',
@@ -240,14 +240,14 @@ const dashboard = {
         pendingPrintBatches: 'በመጠባበቅ ላይ ያሉ የሕትመት ቡድኖች',
     },
     nfc: {
-        active: 'ንቁ ኤንኤፍሲ',
+        active: 'ንቁ NFC',
         pending: 'ዝግጅት በመጠባበቅ ላይ',
         suspended: 'የታገደ',
         revoked: 'የተሻረ',
         lost: 'የጠፋ',
         activeTerminals: 'ንቁ ተርሚናሎች',
         inactiveTerminals: 'ንቁ ያልሆኑ ተርሚናሎች',
-        verificationsToday: 'የዛሬ የኤንኤፍሲ ንክኪዎች',
+        verificationsToday: 'የዛሬ የNFC ንክኪዎች',
     },
     integration: {
         activeApplications: 'ንቁ መተግበሪያዎች',

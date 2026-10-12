@@ -862,14 +862,14 @@ class PositionController extends Controller
         }
 
         if ($establishment->status->value === EstablishmentStatus::Approved->value) {
-            return back()->with('flash', ['message' => __('positionEstablishments.alreadyApproved'), 'type' => 'info']);
+            return back()->with('flash', ['message' => __('position-establishments.alreadyApproved'), 'type' => 'info']);
         }
 
         $this->authorize('approve', $establishment);
 
         $action->execute($establishment, $actor);
 
-        return back()->with('flash', ['message' => __('positionEstablishments.approved'), 'type' => 'success']);
+        return back()->with('flash', ['message' => __('position-establishments.approved'), 'type' => 'success']);
     }
 
     public function restore(Request $request, string $position, RestorePositionAction $action): RedirectResponse

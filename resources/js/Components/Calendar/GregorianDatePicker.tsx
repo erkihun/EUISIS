@@ -29,7 +29,7 @@ export default function GregorianDatePicker({
     const { locale, t } = useLocale();
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const defaultPlaceholder = locale === 'am' ? 'ቀን ይምረጡ' : t('calendar.selectDate');
+    const defaultPlaceholder = t('calendar.selectDate');
 
     function formatDisplay(iso: string): string {
         if (!iso) return '';

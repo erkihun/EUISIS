@@ -24,7 +24,7 @@ return [
     'delete' => 'ሚናን ይሰርዙ',
     'assign_permissions' => 'የመዳረሻ መብቶችን ይመድቡ',
     'cannot_edit_super_admin' => 'የሱፐር አስተዳዳሪ ሚና ሊስተካከል አይችልም',
-    'cannot_grant_unheld_permission' => 'እርስዎ ራስዎ ስለሌለዎት ":permission" የሚለውን ፈቃድ መስጠት አይችሉም።',
+    'cannot_grant_unheld_permission' => 'እርስዎ ራስዎ ስለሌለዎት ":permission" የሚለውን የመዳረሻ መብት መስጠት አይችሉም።',
     'no_roles' => 'ምንም ሚና አልተመዘገበም።',
     'select_all' => 'ሁሉንም ይምረጡ',
     'deselect_all' => 'ሁሉንም ምርጫ ያንሱ',

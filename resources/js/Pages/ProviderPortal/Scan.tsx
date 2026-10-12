@@ -43,7 +43,7 @@ const cameraScanConfig: Html5QrcodeCameraScanConfig = {
 };
 
 type CalCell = { day: number; gregorianIso: string };
-const ETH_MONTHS_AM = ['መስከረም','ጥቅምት','ህዳር','ታህሳስ','ጥር','የካቲት','መጋቢት','ሚያዚያ','ግንቦት','ሰኔ','ሐምሌ','ነሀሴ','ጳጉሜ'];
+const ETH_MONTHS_AM = ['መስከረም','ጥቅምት','ኅዳር','ታኅሣሥ','ጥር','የካቲት','መጋቢት','ሚያዝያ','ግንቦት','ሰኔ','ሐምሌ','ነሐሴ','ጳጉሜ'];
 
 function getMonthLabel(year: number, month: number, locale: string, isEthiopian: boolean): string {
     if (isEthiopian) return `${ETH_MONTHS_AM[month - 1] ?? ''} ${year} ዓ.ም`;
@@ -426,7 +426,7 @@ export default function ProviderPortalScan({
                                     </button>
                                     <div className="text-center">
                                         <p className="text-sm font-semibold text-gray-900 dark:text-white">{getMonthLabel(calYear, calMonth, locale, isEthiopian)}</p>
-                                        <span className={`text-[10px] font-medium ${isEthiopian ? 'text-orange-500' : 'text-gray-400'}`}>{isEthiopian ? (locale === 'am' ? 'የኢትዮጵያ ቀን አቆጣጠር' : 'Ethiopian Calendar') : (locale === 'am' ? 'ጎርጎሪያን ቀን አቆጣጠር' : 'Gregorian Calendar')}</span>
+                                        <span className={`text-[10px] font-medium ${isEthiopian ? 'text-orange-500' : 'text-gray-400'}`}>{isEthiopian ? t('calendar.ethiopianCalendar') : t('calendar.gregorianCalendar')}</span>
                                     </div>
                                     <button type="button" onClick={nextMonth} className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-white hover:shadow-sm dark:text-slate-400 dark:hover:bg-slate-700">
                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>

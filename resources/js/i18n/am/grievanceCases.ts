@@ -38,7 +38,7 @@ const grievanceCases = {
     receive: 'መቀበሉን ያረጋግጡ', receive_help: 'አካልዎ ጉዳዩን መቀበሉን ያረጋግጣል።',
     start_review: 'ግምገማ ይጀምሩ', start_review_help: 'በዚህ ደረጃ ጉዳዩን ለግምገማ በይፋ ይቀበላል።',
     withdrawal: 'ቅሬታ ማንሳት', approve_withdrawal: 'ማንሳቱን አጽድቅ (ካልተመረጠ ውድቅ ይደረጋል)', withdrawal_help: 'ግምገማ ከተጀመረ በኋላ ቅሬታ አቅራቢው ለማንሳት ጠይቋል።',
-    move: 'ከፍ አድርግ፣ እንደገና መድብ፣ ምራ ወይም መልስ', target: 'የተዋቀረ መስመር', move_submit: 'ጉዳዩን ያዛውሩ',
+    move: 'ከፍ ያድርጉ፣ እንደገና ይመድቡ፣ ያስተላልፉ ወይም ይመልሱ', target: 'የተዋቀረ መስመር', move_submit: 'ጉዳዩን ያዛውሩ',
     move_help: 'የሚቀርቡት የተዋቀሩ እና የጸደቁ መስመሮች ብቻ ናቸው። ዝውውሩ ከምክንያቱ ጋር ይመዘገባል።',
     assign_officer: 'የጉዳይ ኃላፊ ይመድቡ', officer: 'ኃላፊ', officers: 'የጉዳይ ኃላፊዎች', release: 'ያንሱ', released: 'ተነስቷል',
     request_pause: 'የጊዜ ገደቡን ያቁሙ', pause_help: 'የማቆም መብት ከሌለዎት ማቆሙ መጽደቅ አለበት። እያንዳንዱ ማቆሚያ ይመዘገባል።',
@@ -82,7 +82,7 @@ const grievanceCases = {
     signature_help: 'በPDF ላይ ያለ የፊርማ ምስል ምስጢራዊ ዲጂታል ፊርማ አይደለም።', apply_seal: 'ይፋዊ ማኅተም ያድርጉ', seal: 'ማኅተም',
     issue: 'ያውጡ', issue_help: 'ማውጣት ደብዳቤውን ያጸናል፤ ማስተካከያ መሰረዝ እና አዲስ ስሪት ይፈልጋል።', void: 'ሰርዝ', revise_letter: 'የተስተካከለ ረቂቅ ይፍጠሩ',
     dispatches: 'የመላኪያ መዝገብ', acknowledge: 'መድረሱን ይመዝግቡ', dispatch: 'መላኩን ይመዝግቡ', channel: 'መንገድ',
-    dispatch_help: 'ኤስኤምኤስ እና ኢሜይል ማሳወቂያ ብቻ ይይዛሉ፤ የደብዳቤውን ይዘት በፍጹም። «ደርሷል» የሚመዘገበው ሲረጋገጥ ብቻ ነው።',
+    dispatch_help: 'SMS እና ኢሜይል ማሳወቂያ ብቻ ይይዛሉ፤ የደብዳቤውን ይዘት በፍጹም። «ደርሷል» የሚመዘገበው ሲረጋገጥ ብቻ ነው።',
     hash_help: 'የተቀመጠው ፋይል በስህተት መተካቱን ይለያል። ዲጂታል ፊርማ አይደለም።',
 
     ap_status: 'ሁኔታ', ap_filed: 'የቀረበበት', ap_deadline: 'የመጨረሻ ቀን', ap_stages: 'ከ → ወደ ደረጃ', ap_reason: 'ምክንያት',

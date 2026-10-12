@@ -64,5 +64,5 @@ test('validation messages name Field Work GPS fields in the viewer\'s language',
     expect(session('errors')->first('max_accuracy_meters'))->toContain($name);
 })->with([
     'English' => ['en', 'Maximum GPS accuracy (metres)'],
-    'Amharic' => ['am', 'ከፍተኛ የጂፒኤስ ትክክለኛነት (ሜትር)'],
+    'Amharic' => ['am', 'ከፍተኛ የGPS ትክክለኛነት (ሜትር)'],
 ]);

@@ -107,9 +107,9 @@ function Thresholds({ value, onChange, min, max, disabled }: { value: number[]; 
 export const choices = (values: string[]): Choice[] => values.map(value => ({ value, label: value }));
 export const today = () => { const now = new Date(); return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`; };
 
-export function handlerFields({ prefix = '', options, locale, title, required = false, allowOrganization = false, initial }: {
+export function handlerFields({ prefix = '', options, locale, title, organizationLabel, required = false, allowOrganization = false, initial }: {
     prefix?: string; options: Pick<HandlerOptions, 'handler_types' | 'organizations' | 'committees' | 'external_authorities'>;
-    locale: string; title: string; required?: boolean; allowOrganization?: boolean; initial?: HandlerRef | null;
+    locale: string; title: string; organizationLabel: string; required?: boolean; allowOrganization?: boolean; initial?: HandlerRef | null;
 }): AdminField[] {
     const typeKey = `${prefix}handler_type`, idKey = `${prefix}handler_id`, orgKey = `${prefix}lookup_organization_id`;
     const list = (rows: Bilingual[]) => rows.map(row => ({ value: row.id!, label: nameOf(row, locale) }));
@@ -117,7 +117,7 @@ export function handlerFields({ prefix = '', options, locale, title, required = 
     for (const [type, rows] of [['organization', options.organizations], ['committee', options.committees], ['external_authority', options.external_authorities]] as const) {
         result.push({ key: idKey, label: title, type: 'select', required, options: list(rows), visible: data => data[typeKey] === type });
     }
-    result.push({ key: orgKey, label: locale === 'am' ? 'ተቋም' : 'Organization', type: 'select', options: list(options.organizations), visible: data => data[typeKey] === 'organization_unit', clearOnChange: [idKey] });
+    result.push({ key: orgKey, label: organizationLabel, type: 'select', options: list(options.organizations), visible: data => data[typeKey] === 'organization_unit', clearOnChange: [idKey] });
     result.push({ key: idKey, label: title, type: 'lookup', lookup: 'units', organizationKey: orgKey, initialLabel: initial ? nameOf(initial, locale) : undefined, required, visible: data => data[typeKey] === 'organization_unit' });
     return result;
 }

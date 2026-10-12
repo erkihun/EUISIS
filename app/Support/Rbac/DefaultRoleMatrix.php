@@ -221,7 +221,7 @@ final class DefaultRoleMatrix
             // ── Structure change workflow (requester ≠ reviewer ≠ implementer) ─
             'Structure Change Requester' => self::role(self::SCOPE_SCOPED, ['dashboard.view', ...self::STRUCTURE_READ, ...self::CHANGE_REQUESTER],
                 'Raises organization-unit and position change requests. Requesting never grants the right to edit the structure.',
-                'የተቋም ክፍል እና የሥራ መደብ ለውጥ ጥያቄዎችን ያቀርባል። መጠየቅ መዋቅሩን የማሻሻል መብት አይሰጥም።'),
+                'የሥራ ክፍል እና የሥራ መደብ ለውጥ ጥያቄዎችን ያቀርባል። መጠየቅ መዋቅሩን የማሻሻል መብት አይሰጥም።'),
             'Structure Change Reviewer' => self::role(self::SCOPE_SCOPED, [
                 'dashboard.view', 'organizations.viewAny', 'organizations.view', 'organization-units.viewAny', 'organization-units.view',
                 'positions.viewAny', 'positions.view', 'hierarchy-versions.viewAny', 'hierarchy-versions.view',
@@ -325,10 +325,10 @@ final class DefaultRoleMatrix
                 'በወሰኑ ውስጥ የአፈጻጸም ዑደቱን ያካሂዳል፡ ስትራቴጂያዊ ግቦች፣ KPIዎች፣ ዒላማዎች፣ ዕቅዶች፣ ስምምነቶች እና ሪፖርቶች።'),
             PerformanceRoles::REVIEWER_ROLE => self::role(self::SCOPE_SCOPED, PerformanceRoles::REVIEWER_PERMISSIONS,
                 'Reviews and approves performance plans and strategic goals and verifies reported actuals. Does not calibrate.',
-                'የአፈጻጸም ዕቅዶችን እና ስትራቴጂያዊ ግቦችን ይገመግማል፣ ያጸድቃል፤ ክንውኖችን ያረጋግጣል። ካሊብሬሽን አያደርግም።'),
+                'የአፈጻጸም ዕቅዶችን እና ስትራቴጂያዊ ግቦችን ይገመግማል፣ ያጸድቃል፤ ክንውኖችን ያረጋግጣል። የውጤት ማመጣጠን አያካሂድም።'),
             PerformanceRoles::CALIBRATOR_ROLE => self::role(self::SCOPE_SCOPED, PerformanceRoles::CALIBRATOR_PERMISSIONS,
                 'Calibration panel member for the assigned scope. No HR record or plan editing rights.',
-                'ለተመደበው ወሰን የካሊብሬሽን ፓነል አባል። የሰው ሀብት መዝገብ ወይም ዕቅድ የማሻሻል መብት የለውም።'),
+                'ለተመደበው ወሰን የውጤት ማመጣጠን ቡድን አባል። የሰው ሀብት መዝገብ ወይም ዕቅድ የማሻሻል መብት የለውም።'),
             PerformanceRoles::ASSESSMENT_OVERSIGHT_ROLE => self::role(self::SCOPE_SCOPED, PerformanceRoles::ASSESSMENT_OVERSIGHT_PERMISSIONS,
                 'City assessment oversight: monitors coverage and data quality, approves exclusions, reviews, returns and verifies institutional submissions. Does not finalize or edit scores.',
                 'የከተማ የምዘና ክትትል፡ ሽፋንን እና የመረጃ ጥራትን ይከታተላል፣ ማግለሎችን ያጸድቃል፣ የተቋማትን ማጠቃለያ ይገመግማል፣ ይመልሳል፣ ያረጋግጣል። አያጠናቅቅም፣ ውጤት አያስተካክልም።'),
