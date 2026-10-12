@@ -35,15 +35,16 @@ beforeEach(function (): void {
     foreach ([
         'service_feedback.view', 'service_feedback.review', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
         'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.resolve', 'service_feedback.close', 'service_feedback.manage_routing',
+        'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
     Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
     Role::findOrCreate('Organizational Admin', 'web')->syncPermissions([
         'service_feedback.view', 'service_feedback.complaints.view', 'service_feedback.complaints.review',
-        'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.manage_routing',
+        'service_feedback.assign', 'service_feedback.reassign', 'service_feedback.manage_routing', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ]);
-    Role::findOrCreate('Service Quality Team', 'web')->syncPermissions(['service_feedback.complaints.view', 'service_feedback.complaints.review']);
+    Role::findOrCreate('Service Quality Team', 'web')->syncPermissions(['service_feedback.complaints.view', 'service_feedback.complaints.review', 'service_feedback.view_employee_target', 'service_feedback.view_organization_target']);
 
     $this->a = PublicFeedbackScenario::employeeTarget('RT');
     $this->b = PublicFeedbackScenario::employeeTarget('RT2');

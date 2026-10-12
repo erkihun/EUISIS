@@ -77,7 +77,14 @@ interface Props {
     receipt: Receipt | null;
     /** One-time token for the form on this page; consumed by the submission. */
     formToken: string | null;
+    /** Submission types the policy allows right now (brief §93). */
+    enabledTypes: Array<'feedback' | 'suggestion' | 'complaint'>;
+    /** What is asked of the submitter: nothing, name and contact, or both offered (brief §34). */
+    identityMode: 'anonymous' | 'identified' | 'optional';
+    allowAttachments: boolean;
 }
+
+type IdentityMode = Props['identityMode'];
 
 const errorClass = 'mt-1.5 text-sm text-red-600 dark:text-red-400';
 const cardClass = 'rounded-card border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900';
@@ -165,44 +172,59 @@ function CategorySelect({ categories, value, onChange, error }: { categories: Ca
     );
 }
 
-function ClientFields({ name, contact, onName, onContact, errors }: {
+/** The footer promise must match what the form asks for (brief §34). */
+function privacyNoteKey(mode: IdentityMode): string {
+    return mode === 'identified' ? 'serviceFeedback.publicPrivacyNoteIdentified' : mode === 'anonymous' ? 'serviceFeedback.publicPrivacyNoteAnonymous' : 'serviceFeedback.publicPrivacyNote';
+}
+
+function ClientFields({ name, contact, onName, onContact, errors, mode }: {
     name: string;
     contact: string;
     onName: (value: string) => void;
     onContact: (value: string) => void;
     errors: { client_name?: string; client_contact?: string };
+    mode: IdentityMode;
 }) {
     const { t } = useLocale();
+
+    // Anonymous: nothing is asked and nothing is kept (brief §34).
+    if (mode === 'anonymous') {
+        return <p className="border-t border-slate-100 pt-4 text-sm text-slate-600 dark:border-slate-800 dark:text-slate-400">{t('serviceFeedback.anonymousNotice')}</p>;
+    }
+    const required = mode === 'identified';
+    const hint = required ? t('serviceFeedback.requiredHint') : t('serviceFeedback.clientNameHint');
 
     return (
         <div className="grid gap-4 border-t border-slate-100 pt-4 dark:border-slate-800">
             <div>
                 <label htmlFor="client_name" className="block text-sm font-medium text-slate-900 dark:text-slate-100">
                     {t('serviceFeedback.clientName')}
-                    <span className="ml-1 font-normal text-slate-400">({t('serviceFeedback.clientNameHint')})</span>
+                    <span className="ml-1 font-normal text-slate-400">({hint})</span>
                 </label>
-                <input id="client_name" type="text" maxLength={120} value={name} onChange={(e) => onName(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
+                <input id="client_name" type="text" maxLength={120} required={required} value={name} onChange={(e) => onName(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
                 {errors.client_name && <p role="alert" className={errorClass}>{errors.client_name}</p>}
             </div>
             <div>
                 <label htmlFor="client_contact" className="block text-sm font-medium text-slate-900 dark:text-slate-100">
                     {t('serviceFeedback.clientContact')}
-                    <span className="ml-1 font-normal text-slate-400">({t('serviceFeedback.clientContactHint')})</span>
+                    <span className="ml-1 font-normal text-slate-400">({required ? t('serviceFeedback.requiredHint') : t('serviceFeedback.clientContactHint')})</span>
                 </label>
-                <input id="client_contact" type="text" maxLength={120} value={contact} onChange={(e) => onContact(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
+                <input id="client_contact" type="text" maxLength={120} required={required} value={contact} onChange={(e) => onContact(e.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
                 {errors.client_contact && <p role="alert" className={errorClass}>{errors.client_contact}</p>}
             </div>
         </div>
     );
 }
 
-function ServiceEntryForm({ type, target, serviceTypes, categories, links, formToken }: {
+function ServiceEntryForm({ type, target, serviceTypes, categories, links, formToken, identityMode, allowAttachments }: {
     type: 'suggestion' | 'complaint';
     target: TargetDisplay;
     serviceTypes: ServiceTypeOption[];
     categories: CategoryOption[];
     links: Links;
     formToken: string | null;
+    identityMode: IdentityMode;
+    allowAttachments: boolean;
 }) {
     const { t } = useLocale();
     const { data, setData, post, processing, errors } = useForm({
@@ -236,16 +258,16 @@ function ServiceEntryForm({ type, target, serviceTypes, categories, links, formT
                 <div><label htmlFor="incident-location" className="block text-sm font-medium">{t('serviceFeedback.incidentLocation')} ({t('serviceFeedback.clientNameHint')})</label>
                     <input id="incident-location" maxLength={255} value={data.incident_location} onChange={(event) => setData('incident_location', event.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
                     {errors.incident_location && <p role="alert" className={errorClass}>{errors.incident_location}</p>}</div>
-                <div><label htmlFor="complaint-attachments" className="block text-sm font-medium">{t('serviceFeedback.attachments')} ({t('serviceFeedback.clientNameHint')})</label>
+                {allowAttachments && <div><label htmlFor="complaint-attachments" className="block text-sm font-medium">{t('serviceFeedback.attachments')} ({t('serviceFeedback.clientNameHint')})</label>
                     <p id="attachment-hint" className="mt-1 text-xs text-slate-600 dark:text-slate-400">{t('serviceFeedback.attachmentHint')}</p>
                     <div className="mt-2"><MultiFileUpload id="complaint-attachments" files={data.attachments} onChange={(files) => setData('attachments', files)} accept=".pdf,.jpg,.jpeg,.png" max={3} chooseLabel={t('serviceFeedback.chooseFiles')} removeLabel={t('serviceFeedback.removeFile')} describedBy="attachment-hint" /></div>
-                    {errors.attachments && <p role="alert" className={errorClass}>{errors.attachments}</p>}</div>
+                    {errors.attachments && <p role="alert" className={errorClass}>{errors.attachments}</p>}</div>}
             </>}
-            <ClientFields name={data.client_name} contact={data.client_contact} onName={(v) => setData('client_name', v)} onContact={(v) => setData('client_contact', v)} errors={errors} />
+            <ClientFields name={data.client_name} contact={data.client_contact} onName={(v) => setData('client_name', v)} onContact={(v) => setData('client_contact', v)} errors={errors} mode={identityMode} />
             <button type="submit" disabled={processing} className={`${publicButtonPrimary} min-h-[48px] w-full text-base`}>
                 {processing ? t('serviceFeedback.submitting') : t(type === 'complaint' ? 'serviceFeedback.submitComplaint' : 'serviceFeedback.submitSuggestion')}
             </button>
-            <p className="text-center text-xs text-slate-500 dark:text-slate-400">{t('serviceFeedback.publicPrivacyNote')}</p>
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400">{t(privacyNoteKey(identityMode))}</p>
         </form>
     );
 }
@@ -260,7 +282,7 @@ function StarIcon({ filled }: { filled: boolean }) {
     );
 }
 
-function RatingForm({ target, serviceTypes, categories, links, formToken }: { target: TargetDisplay; serviceTypes: ServiceTypeOption[]; categories: CategoryOption[]; links: Links; formToken: string | null }) {
+function RatingForm({ target, serviceTypes, categories, links, formToken, identityMode }: { identityMode: IdentityMode; target: TargetDisplay; serviceTypes: ServiceTypeOption[]; categories: CategoryOption[]; links: Links; formToken: string | null }) {
     const { t } = useLocale();
     /*
      * Hover preview is tracked separately from the committed rating so the
@@ -324,12 +346,12 @@ function RatingForm({ target, serviceTypes, categories, links, formToken }: { ta
                 {errors.comment && <p role="alert" className={errorClass}>{errors.comment}</p>}
             </div>
 
-            <ClientFields name={data.client_name} contact={data.client_contact} onName={(v) => setData('client_name', v)} onContact={(v) => setData('client_contact', v)} errors={errors} />
+            <ClientFields name={data.client_name} contact={data.client_contact} onName={(v) => setData('client_name', v)} onContact={(v) => setData('client_contact', v)} errors={errors} mode={identityMode} />
 
             <button type="submit" disabled={processing} className={`${publicButtonPrimary} min-h-[48px] w-full text-base`}>
                 {processing ? t('serviceFeedback.submitting') : t('serviceFeedback.submitFeedback')}
             </button>
-            <p className="text-center text-xs text-slate-500 dark:text-slate-400">{t('serviceFeedback.publicPrivacyNote')}</p>
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400">{t(privacyNoteKey(identityMode))}</p>
         </form>
     );
 }
@@ -345,7 +367,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     );
 }
 
-export default function ServiceFeedback({ available, target, links, serviceTypes, categories = [], submitted, type = null, receipt = null, formToken = null }: Props) {
+export default function ServiceFeedback({ available, target, links, serviceTypes, categories = [], submitted, type = null, receipt = null, enabledTypes = ['feedback', 'suggestion', 'complaint'], identityMode = 'optional', allowAttachments = true, formToken = null }: Props) {
     const { t } = useLocale();
 
     /*
@@ -409,6 +431,7 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
             { id: 'suggestion', label: 'typeSuggestion', href: links.suggestion },
             { id: 'complaint', label: 'typeComplaint', href: links.complaint },
         ] as const;
+        const offered = options.filter((option) => enabledTypes.includes(option.id));
 
         return (
             <Shell>
@@ -416,7 +439,7 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
                     <h2 className="sr-only">{t(target.target_type === 'organization' ? 'serviceFeedback.publicLandingTitleOrganization' : 'serviceFeedback.publicLandingTitle')}</h2>
                     <TargetCard target={target} heading intro={t(target.target_type === 'organization' ? 'serviceFeedback.aboutInstitution' : 'serviceFeedback.publicIntro')} />
                     <nav aria-label={t('serviceFeedback.chooseType')} className="mt-5 grid gap-3">
-                        {options.map((option) => (
+                        {offered.map((option) => (
                             <Link key={option.id} href={option.href} className="flex min-h-20 items-center justify-between rounded-card border-2 border-slate-200 bg-white px-5 text-lg font-semibold text-slate-900 transition-colors hover:border-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
                                 {t(`serviceFeedback.${option.label}`)} <span aria-hidden="true">→</span>
                             </Link>
@@ -433,8 +456,8 @@ export default function ServiceFeedback({ available, target, links, serviceTypes
                 <Link href={links.landing} className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline underline-offset-4 dark:text-emerald-300">{t('serviceFeedback.backToOptions')}</Link>
                 <TargetCard target={target} />
                 {type === 'feedback'
-                    ? <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} />
-                    : <ServiceEntryForm type={type} target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} />}
+                    ? <RatingForm target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} />
+                    : <ServiceEntryForm type={type} target={target} serviceTypes={serviceTypes} categories={categories} links={links} formToken={formToken} identityMode={identityMode} allowAttachments={allowAttachments} />}
             </div>
         </Shell>
     );

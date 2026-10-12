@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesPublicSubmitter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StorePublicServiceEntryRequest extends FormRequest
 {
+    use ValidatesPublicSubmitter;
+
     public function authorize(): bool
     {
         return true;
@@ -26,11 +29,10 @@ class StorePublicServiceEntryRequest extends FormRequest
                 ? ['nullable', 'uuid', Rule::exists('position_services', 'id')->whereNull('deleted_at')]
                 : ['prohibited'],
             'message' => ['required', 'string', 'max:5000'],
-            'client_name' => ['nullable', 'string', 'max:120'],
-            'client_contact' => ['nullable', 'string', 'max:120'],
+            ...$this->submitterRules(),
             'incident_date' => [$complaint ? 'nullable' : 'prohibited', 'date', 'before_or_equal:today'],
             'incident_location' => [$complaint ? 'nullable' : 'prohibited', 'string', 'max:255'],
-            'attachments' => [$complaint ? 'sometimes' : 'prohibited', 'array', 'max:3'],
+            'attachments' => $this->attachmentsRule($complaint),
             'attachments.*' => ['file', 'max:5120', 'mimes:pdf,jpg,jpeg,png', 'extensions:pdf,jpg,jpeg,png', 'mimetypes:application/pdf,image/jpeg,image/png'],
         ];
     }
@@ -38,7 +40,7 @@ class StorePublicServiceEntryRequest extends FormRequest
     /** @return array<string, string> */
     public function messages(): array
     {
-        return [
+        return $this->submitterMessages() + [
             'message.required' => __('service-feedback.validation.message_required'),
             'position_service_id.uuid' => __('service-feedback.validation.service_required'),
             'position_service_id.exists' => __('service-feedback.service_not_provided'),

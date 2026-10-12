@@ -161,12 +161,12 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
                             <dl className="flex flex-wrap gap-x-8 gap-y-3 border-t border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-5 py-3.5 text-[13px] sm:px-6">
                                 <div>
                                     <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.client')}</dt>
-                                    <dd className="font-medium text-[color:var(--app-foreground)]">{feedback.client_name ?? t('serviceFeedback.anonymousClient')}</dd>
+                                    <dd className="font-medium text-[color:var(--app-foreground)]">{feedback.identity_hidden ? t('serviceFeedback.identityHidden') : feedback.client_name ?? t('serviceFeedback.anonymousClient')}</dd>
                                 </div>
                                 <div className="min-w-0">
                                     <dt className="text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.contact')}</dt>
                                     <dd className={cx('break-all', feedback.client_contact ? 'font-medium text-[color:var(--app-foreground)]' : 'text-[color:var(--app-muted-foreground)]')}>
-                                        {feedback.client_contact ?? t('serviceFeedback.notProvided')}
+                                        {feedback.identity_hidden ? t('serviceFeedback.identityHidden') : feedback.client_contact ?? t('serviceFeedback.notProvided')}
                                     </dd>
                                 </div>
                             </dl>

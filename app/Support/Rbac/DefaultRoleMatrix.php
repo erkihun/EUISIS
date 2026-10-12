@@ -154,6 +154,7 @@ final class DefaultRoleMatrix
                 'users.assignRoles', 'users.assignOrganizationScopes',
                 'user-organization-scopes.viewAny', 'user-organization-scopes.create', 'user-organization-scopes.update', 'user-organization-scopes.delete',
                 'service_feedback.view', 'service_feedback.review', 'service_feedback.hide', 'service_feedback.export', 'service_feedback.settings.manage',
+                'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
                 ...DailyActivityRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...FieldWorkRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,
                 ...PerformanceRoles::ORGANIZATIONAL_ADMIN_PERMISSIONS,

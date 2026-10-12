@@ -36,6 +36,7 @@ return [
     'rule_retired' => 'Submissions were routed by this rule, so it was retired instead of deleted.',
     'rule_deleted' => 'The routing rule was deleted.',
     'category_out_of_scope' => 'The category must be city-wide or belong to the rule\'s institution.',
+    'settings_saved' => 'The public feedback policy was saved.',
 
     'types' => [
         'feedback' => 'feedback',
@@ -57,5 +58,9 @@ return [
         'attachment_type' => 'Only PDF, JPEG and PNG files are accepted.',
         'attachment_size' => 'Each file must be 5 MB or smaller.',
         'incident_date_future' => 'The incident date cannot be in the future.',
+        'name_required' => 'Please enter your name.',
+        'contact_required' => 'Please enter a phone number or an e-mail address so we can reach you.',
+        'contact_invalid' => 'Please enter a valid phone number or e-mail address.',
+        'attachments_disabled' => 'Files cannot be attached at the moment.',
     ],
 ];

@@ -10,6 +10,7 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 
 /**
  * Access control for client service feedback.
@@ -27,7 +28,10 @@ class EmployeeServiceFeedbackPolicy
 {
     use DeniesNonAdminUsers;
 
-    public function __construct(private readonly OrganizationScopeService $scope) {}
+    public function __construct(
+        private readonly OrganizationScopeService $scope,
+        private readonly PublicFeedbackVisibility $visibility,
+    ) {}
 
     public function viewAny(User $user): bool
     {
@@ -120,6 +124,11 @@ class EmployeeServiceFeedbackPolicy
     private function withinScope(User $user, EmployeeServiceFeedback $feedback): bool
     {
         if ($user->employee_id !== null && $user->employee_id === $feedback->employee_id) {
+            return false;
+        }
+
+        // Brief §95: employee-targeted and organization-targeted submissions are separate grants.
+        if (! $this->visibility->canSeeTarget($user, $feedback->target_type)) {
             return false;
         }
 

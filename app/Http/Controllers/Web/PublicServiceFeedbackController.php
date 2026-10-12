@@ -14,6 +14,7 @@ use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use App\Services\ServiceFeedback\PublicFeedbackCategoryService;
 use App\Services\ServiceFeedback\PublicFeedbackFormToken;
+use App\Services\ServiceFeedback\PublicFeedbackSettings;
 use App\Services\ServiceFeedback\PublicFeedbackSubmissionService;
 use App\Services\ServiceFeedback\PublicFeedbackTargetResolver;
 use App\Services\ServiceFeedback\PublicServiceFeedbackService;
@@ -46,6 +47,7 @@ class PublicServiceFeedbackController extends Controller
         private readonly PublicFeedbackSubmissionService $submissions,
         private readonly PublicFeedbackFormToken $formTokens,
         private readonly PublicFeedbackCategoryService $categories,
+        private readonly PublicFeedbackSettings $settings,
     ) {}
 
     // ── Employee feedback QR ─────────────────────────────────────────────
@@ -102,11 +104,18 @@ class PublicServiceFeedbackController extends Controller
 
     private function render(Request $request, PublicFeedbackTargetType $kind, string $token, ?ServiceFeedbackType $type): Response
     {
-        $context = $this->resolve($kind, $token);
+        // Brief §93: a type the policy has switched off has no form.
+        if ($type !== null && ! $this->settings->typeEnabled($type)) {
+            abort(404);
+        }
+
+        $context = $this->settings->enabled() ? $this->resolve($kind, $token) : null;
         $links = $this->links($kind, $token);
 
         if ($context === null) {
-            $this->feedback->auditBlockedScan($request);
+            if ($this->settings->enabled()) {
+                $this->feedback->auditBlockedScan($request);
+            }
 
             return Inertia::render('Public/ServiceFeedback', [
                 'available' => false,
@@ -120,6 +129,9 @@ class PublicServiceFeedbackController extends Controller
                 'reference' => null,
                 'receipt' => null,
                 'formToken' => null,
+                'enabledTypes' => $this->settings->enabledTypes(),
+                'identityMode' => $this->settings->identityMode()->value,
+                'allowAttachments' => $this->settings->allowAttachments(),
             ]);
         }
 
@@ -142,13 +154,25 @@ class PublicServiceFeedbackController extends Controller
             'reference' => $receipt['reference'] ?? null,
             'receipt' => $receipt,
             'formToken' => $type === null ? null : $this->formTokens->issue(),
+            'enabledTypes' => $this->settings->enabledTypes(),
+            'identityMode' => $this->settings->identityMode()->value,
+            'allowAttachments' => $this->settings->allowAttachments(),
         ]);
     }
 
     private function storeFor(Request $request, PublicFeedbackTargetType $kind, string $token, ServiceFeedbackType $type, bool $legacyRedirect = false): RedirectResponse
     {
-        $context = $this->resolve($kind, $token);
+        if (! $this->settings->typeEnabled($type)) {
+            abort(404);
+        }
+
         $links = $this->links($kind, $token);
+
+        if (! $this->settings->enabled()) {
+            return redirect()->to($links['landing']);
+        }
+
+        $context = $this->resolve($kind, $token);
 
         if ($context === null) {
             $this->feedback->auditBlockedScan($request);

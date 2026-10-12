@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\EncryptedOrPlaintext;
 use App\Enums\PublicFeedbackSourceType;
 use App\Enums\PublicFeedbackTargetType;
 use App\Enums\ServiceFeedbackStatus;
@@ -83,6 +84,8 @@ class EmployeeServiceFeedback extends Model
             'target_type' => PublicFeedbackTargetType::class,
             'source_type' => PublicFeedbackSourceType::class,
             'submitter_identity_mode' => SubmitterIdentityMode::class,
+            // Encrypted at rest (brief §35); rows written before encryption read through.
+            'client_contact' => EncryptedOrPlaintext::class,
             'rating' => 'integer',
             'incident_date' => 'date',
             'submitted_at' => 'datetime',

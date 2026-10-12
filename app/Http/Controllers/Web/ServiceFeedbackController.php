@@ -13,6 +13,7 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\PositionService;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\ServiceFeedback\ServiceFeedbackQueryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,6 +53,7 @@ class ServiceFeedbackController extends Controller
     public function __construct(
         private readonly ServiceFeedbackQueryService $feedbackQuery,
         private readonly WriteAuditLogAction $writeAuditLogAction,
+        private readonly PublicFeedbackVisibility $visibility,
     ) {}
 
     public function dashboard(Request $request): Response
@@ -310,7 +312,9 @@ class ServiceFeedbackController extends Controller
 
         $filename = 'service-feedback-'.now()->format('Ymd-His').'.csv';
 
-        return response()->streamDownload(function () use ($query): void {
+        $showIdentity = $this->visibility->canSeeIdentity($user);
+
+        return response()->streamDownload(function () use ($query, $showIdentity): void {
             $handle = fopen('php://output', 'wb');
 
             // BOM so Excel opens the Amharic columns as UTF-8.
@@ -322,7 +326,7 @@ class ServiceFeedbackController extends Controller
                 'Client Name', 'Client Contact',
             ]));
 
-            $query->chunk(500, function ($rows) use ($handle): void {
+            $query->chunk(500, function ($rows) use ($handle, $showIdentity): void {
                 foreach ($rows as $item) {
                     fputcsv($handle, csv_safe_row([
                         $item->created_at?->toDateTimeString(),
@@ -334,8 +338,8 @@ class ServiceFeedbackController extends Controller
                         $item->rating,
                         $item->status->value,
                         $item->comment,
-                        $item->client_name,
-                        $item->client_contact,
+                        $showIdentity ? $item->client_name : null,
+                        $showIdentity ? $item->client_contact : null,
                     ]));
                 }
             });
@@ -362,8 +366,8 @@ class ServiceFeedbackController extends Controller
             'rating' => $item->rating,
             'comment' => $item->comment,
             'status' => $item->status->value,
-            'client_name' => $item->client_name,
-            'client_contact' => $item->client_contact,
+            // Brief §36: the submitter is a separate grant.
+            ...$this->visibility->identity(Auth::user(), $item),
             'created_at' => $item->created_at?->toIso8601String(),
             'employee' => $item->employee === null ? null : [
                 'id' => $item->employee->id,

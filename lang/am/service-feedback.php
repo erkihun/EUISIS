@@ -36,6 +36,7 @@ return [
     'rule_retired' => 'ማቅረቦች በዚህ ደንብ ስለተመሩ ከመሰረዝ ይልቅ ተሰናብቷል።',
     'rule_deleted' => 'የመስመር ደንቡ ተሰርዟል።',
     'category_out_of_scope' => 'ምድቡ ከተማ አቀፍ ወይም የደንቡ ተቋም መሆን አለበት።',
+    'settings_saved' => 'የሕዝብ አስተያየት ፖሊሲው ተቀምጧል።',
 
     'types' => [
         'feedback' => 'አስተያየት',
@@ -57,5 +58,9 @@ return [
         'attachment_type' => 'PDF፣ JPEG እና PNG ፋይሎች ብቻ ይቀበላሉ።',
         'attachment_size' => 'እያንዳንዱ ፋይል 5 MB ወይም ከዚያ በታች መሆን አለበት።',
         'incident_date_future' => 'የክስተቱ ቀን ወደፊት ሊሆን አይችልም።',
+        'name_required' => 'እባክዎ ስምዎን ያስገቡ።',
+        'contact_required' => 'እንድንደርስዎ እባክዎ ስልክ ቁጥር ወይም ኢሜይል አድራሻ ያስገቡ።',
+        'contact_invalid' => 'እባክዎ ትክክለኛ ስልክ ቁጥር ወይም ኢሜይል አድራሻ ያስገቡ።',
+        'attachments_disabled' => 'በአሁኑ ጊዜ ፋይሎች ማያያዝ አይቻልም።',
     ],
 ];

@@ -68,6 +68,12 @@ class SystemSettingsRegistry
     public const GROUP_FIELD_WORK_GPS = 'field_work_gps';
 
     /**
+     * Public feedback policy (brief §93): one city-wide group managed from
+     * Public Feedback Management > Settings, never from the general page.
+     */
+    public const GROUP_SERVICE_FEEDBACK = 'service_feedback';
+
+    /**
      * @return array<string, array<string, array<string, mixed>>>
      */
     public static function definitions(): array
@@ -873,6 +879,14 @@ class SystemSettingsRegistry
                 'reminder_time' => self::field(type: 'string', default: '17:00', labelEn: 'End-of-Day Reminder Time', labelAm: 'የቀኑ መጨረሻ ማስታወሻ ሰዓት', descriptionEn: 'Local time after which the same-day reminder is sent.', descriptionAm: 'የዕለቱ ማስታወሻ ከሚላክበት በኋላ ያለው የአካባቢ ሰዓት።', validationRules: ['required', 'date_format:H:i'], sortOrder: 140),
                 'evidence_attachments_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Evidence Attachments Enabled', labelAm: 'የማስረጃ አባሪዎች ነቅተዋል', descriptionEn: 'Employees may attach documents or images (PDF, Office files, images, CSV, text) to a day while it is editable. Files are private.', descriptionAm: 'ቀኑ ሊስተካከል በሚችልበት ጊዜ ሠራተኞች ሰነዶችን ወይም ምስሎችን ማያያዝ ይችላሉ። ፋይሎቹ የግል ናቸው።', validationRules: ['required', 'boolean'], sortOrder: 150),
                 'max_attachment_size_kb' => self::field(type: 'integer', default: 5120, labelEn: 'Maximum Attachment Size (KB)', labelAm: 'ከፍተኛ የአባሪ መጠን (KB)', descriptionEn: 'Per file, between 100 and 20,480 KB (20 MB). Up to 10 files per day.', descriptionAm: 'ለእያንዳንዱ ፋይል፣ ከ100 እስከ 20,480 KB (20 MB)። በአንድ ቀን እስከ 10 ፋይሎች።', validationRules: ['required', 'integer', 'min:100', 'max:20480'], sortOrder: 160),
+            ],
+            self::GROUP_SERVICE_FEEDBACK => [
+                'enabled' => self::field(type: 'boolean', default: true, labelEn: 'Public Feedback Enabled', labelAm: 'የሕዝብ አስተያየት ነቅቷል', descriptionEn: 'Off: every public feedback page shows the unavailable notice. Employee and institution QR codes keep working once it is on again.', descriptionAm: 'ጠፍቶ፦ እያንዳንዱ የሕዝብ አስተያየት ገጽ የማይገኝ ማሳወቂያ ያሳያል። እንደገና ሲበራ የሠራተኛ እና የተቋም QR ኮዶች መሥራታቸውን ይቀጥላሉ።', validationRules: ['required', 'boolean'], sortOrder: 10),
+                'identity_mode' => self::field(type: 'select', default: 'optional', labelEn: 'Submitter Identity', labelAm: 'የአቅራቢ ማንነት', descriptionEn: 'Anonymous collects no name or contact; identified requires both; optional offers them.', descriptionAm: 'ማንነት አልባ ስም ወይም መገናኛ አይሰበስብም፤ የታወቀ ሁለቱንም ይጠይቃል፤ አማራጭ ያቀርባቸዋል።', isRequired: true, options: ['anonymous', 'identified', 'optional'], validationRules: ['required', 'in:anonymous,identified,optional'], sortOrder: 20),
+                'allow_attachments' => self::field(type: 'boolean', default: true, labelEn: 'Complaint Attachments', labelAm: 'የቅሬታ አባሪዎች', descriptionEn: 'Whether a public complaint may carry up to three files.', descriptionAm: 'የሕዝብ ቅሬታ እስከ ሦስት ፋይሎች መያዝ ይችል እንደሆነ።', validationRules: ['required', 'boolean'], sortOrder: 30),
+                'feedback_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Feedback (Rating) Enabled', labelAm: 'አስተያየት (ደረጃ) ነቅቷል', validationRules: ['required', 'boolean'], sortOrder: 40),
+                'suggestion_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Suggestions Enabled', labelAm: 'ጥቆማዎች ነቅተዋል', validationRules: ['required', 'boolean'], sortOrder: 50),
+                'complaint_enabled' => self::field(type: 'boolean', default: true, labelEn: 'Complaints Enabled', labelAm: 'ቅሬታዎች ነቅተዋል', validationRules: ['required', 'boolean'], sortOrder: 60),
             ],
             self::GROUP_PUBLIC_SITE => [
                 // Off: Home, Announcements, Services and Support show the notice

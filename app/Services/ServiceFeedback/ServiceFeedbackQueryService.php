@@ -25,7 +25,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ServiceFeedbackQueryService
 {
-    public function __construct(private readonly OrganizationScopeService $scope) {}
+    public function __construct(
+        private readonly OrganizationScopeService $scope,
+        private readonly PublicFeedbackVisibility $visibility,
+    ) {}
 
     /**
      * Base query for a user, already confined to what they may see.
@@ -34,7 +37,7 @@ class ServiceFeedbackQueryService
      */
     public function scopedQuery(User $user): Builder
     {
-        $query = EmployeeServiceFeedback::query()->where('type', 'feedback');
+        $query = $this->visibility->applyTargetScope(EmployeeServiceFeedback::query()->where('type', 'feedback'), $user);
 
         if ($user->employee_id !== null) {
             $query->where('employee_id', '!=', $user->employee_id);

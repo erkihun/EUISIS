@@ -40,6 +40,7 @@ class PublicFeedbackSubmissionService
         private readonly GenerateCodeAction $codes,
         private readonly PublicFeedbackWorkflow $workflow,
         private readonly PublicFeedbackRoutingService $routing,
+        private readonly PublicFeedbackSettings $settings,
     ) {}
 
     /**
@@ -57,10 +58,11 @@ class PublicFeedbackSubmissionService
             ? PositionService::query()->find($data['position_service_id'])
             : null;
         $isComplaint = $type === ServiceFeedbackType::Complaint;
+        $identityMode = $this->settings->identityMode();
         $storedPaths = [];
 
         try {
-            return DB::transaction(function () use ($target, $type, $data, $request, $service, $isComplaint, &$storedPaths): EmployeeServiceFeedback {
+            return DB::transaction(function () use ($target, $type, $data, $request, $service, $isComplaint, $identityMode, &$storedPaths): EmployeeServiceFeedback {
                 $entry = EmployeeServiceFeedback::query()->create([
                     // Target and source: only ever from the resolved context.
                     'target_type' => $target->targetType,
@@ -86,9 +88,10 @@ class PublicFeedbackSubmissionService
                     'subject' => $this->trimmedOrNull($data['subject'] ?? null),
                     // Applicability was checked by the controller against the resolved target.
                     'category_id' => $this->trimmedOrNull($data['category_id'] ?? null),
-                    'client_name' => $this->trimmedOrNull($data['client_name'] ?? null),
-                    'client_contact' => $this->trimmedOrNull($data['client_contact'] ?? null),
-                    'submitter_identity_mode' => SubmitterIdentityMode::Optional,
+                    // Brief §34: the identity policy in force, recorded with the row; anonymous keeps nothing.
+                    'client_name' => $identityMode === SubmitterIdentityMode::Anonymous ? null : $this->trimmedOrNull($data['client_name'] ?? null),
+                    'client_contact' => $identityMode === SubmitterIdentityMode::Anonymous ? null : $this->trimmedOrNull($data['client_contact'] ?? null),
+                    'submitter_identity_mode' => $identityMode,
                     'incident_date' => $isComplaint ? ($data['incident_date'] ?? null) : null,
                     'incident_location' => $isComplaint ? $this->trimmedOrNull($data['incident_location'] ?? null) : null,
                     'ip_address' => $request->ip(),

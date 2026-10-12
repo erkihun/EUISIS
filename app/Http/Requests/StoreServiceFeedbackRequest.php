@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesPublicSubmitter;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,6 +18,8 @@ use Illuminate\Validation\Rule;
  */
 class StoreServiceFeedbackRequest extends FormRequest
 {
+    use ValidatesPublicSubmitter;
+
     public function authorize(): bool
     {
         return true;
@@ -41,15 +44,14 @@ class StoreServiceFeedbackRequest extends FormRequest
             ] : ['prohibited'],
             'rating' => ['required', 'integer', 'between:1,5'],
             'comment' => ['nullable', 'string', 'max:2000'],
-            'client_name' => ['nullable', 'string', 'max:120'],
-            'client_contact' => ['nullable', 'string', 'max:120'],
+            ...$this->submitterRules(),
         ];
     }
 
     /** @return array<string, string> */
     public function messages(): array
     {
-        return [
+        return $this->submitterMessages() + [
             'rating.between' => __('service-feedback.validation.rating_range'),
             'rating.integer' => __('service-feedback.validation.rating_range'),
             'rating.required' => __('service-feedback.validation.rating_required'),

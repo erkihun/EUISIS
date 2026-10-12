@@ -12,7 +12,8 @@ type Entry = {
     target_type: 'employee' | 'organization'; target_name: string | null;
     created_at: string | null; submitted_at: string | null; employee: string | null; employee_number: string | null;
     organization: string | null; organization_unit: string | null; position: string | null; category: string | null;
-    client_name: string | null; client_contact: string | null;
+    client_name: string | null; client_contact: string | null; identity_hidden: boolean;
+    attachment_count: number; attachments_hidden: boolean;
     incident_date: string | null; incident_location: string | null;
     review_note: string | null;
     acknowledged_at: string | null; assigned_at: string | null; resolved_at: string | null; closed_at: string | null;
@@ -75,8 +76,8 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                                 <Field label={t('serviceFeedback.position')}>{entry.position ?? '—'}</Field>
                             </>}
                             <Field label={t('serviceFeedback.category')}>{entry.category ?? '—'}</Field>
-                            <Field label={t('serviceFeedback.client')}>{entry.client_name ?? t('serviceFeedback.anonymousClient')}</Field>
-                            <Field label={t('serviceFeedback.contact')}>{entry.client_contact ?? t('serviceFeedback.notProvided')}</Field>
+                            <Field label={t('serviceFeedback.client')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_name ?? t('serviceFeedback.anonymousClient')}</Field>
+                            <Field label={t('serviceFeedback.contact')}>{entry.identity_hidden ? t('serviceFeedback.identityHidden') : entry.client_contact ?? t('serviceFeedback.notProvided')}</Field>
                             {type === 'complaint' && <>
                                 <Field label={t('serviceFeedback.incidentDate')}><LocalizedDateDisplay value={entry.incident_date} /></Field>
                                 <Field label={t('serviceFeedback.incidentLocation')}>{entry.incident_location ?? '—'}</Field>
@@ -88,6 +89,10 @@ export default function SubmissionDetail({ type, entry, history, assignments, cu
                         </div>
                     </section>
 
+                    {entry.attachments_hidden && entry.attachment_count > 0 && <section className={PANEL}>
+                        <h2 className="font-semibold">{t('serviceFeedback.attachments')}</h2>
+                        <p className="text-sm text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.attachmentsHidden').replace(':count', String(entry.attachment_count))}</p>
+                    </section>}
                     {entry.attachments.length > 0 && <section className={PANEL}>
                         <h2 className="font-semibold">{t('serviceFeedback.attachments')}</h2>
                         <ul className="space-y-2">{entry.attachments.map((file) => <li key={file.id}><a href={route('service-submissions.attachments.download', { type, submission: entry.id, attachment: file.id })} className="text-sm font-medium text-[color:var(--color-primary)] underline underline-offset-4">{file.name} ({Math.ceil(file.size / 1024)} KB)</a></li>)}</ul>

@@ -19,6 +19,7 @@ use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\PublicFeedbackAssignmentService;
 use App\Services\ServiceFeedback\PublicFeedbackRoutingService;
 use App\Services\ServiceFeedback\PublicFeedbackTransitionException;
+use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\ServiceFeedback\PublicFeedbackWorkflow;
 use App\Support\Storage\StoredFileChecksum;
 use Illuminate\Database\Eloquent\Builder;
@@ -51,6 +52,7 @@ class ServiceSubmissionController extends Controller
         private readonly WriteAuditLogAction $audit,
         private readonly PublicFeedbackWorkflow $workflow,
         private readonly PublicFeedbackAssignmentService $assignments,
+        private readonly PublicFeedbackVisibility $visibility,
     ) {}
 
     public function suggestions(Request $request): Response
@@ -129,10 +131,8 @@ class ServiceSubmissionController extends Controller
 
         return Inertia::render('ServiceFeedback/SubmissionDetail', [
             'type' => $kind->value,
-            'entry' => $this->summary($submission) + [
+            'entry' => $this->summary($submission) + $this->visibility->identity($user, $submission) + [
                 'subject' => $submission->subject,
-                'client_name' => $submission->client_name,
-                'client_contact' => $submission->client_contact,
                 'incident_date' => $submission->incident_date?->toDateString(),
                 'incident_location' => $submission->incident_location,
                 'organization_unit' => $locale === 'am' ? ($submission->organizationUnit?->name_am ?? $submission->organizationUnit?->name_en) : $submission->organizationUnit?->name_en,
@@ -143,7 +143,10 @@ class ServiceSubmissionController extends Controller
                 'assigned_at' => $submission->assigned_at?->toIso8601String(),
                 'resolved_at' => $submission->resolved_at?->toIso8601String(),
                 'closed_at' => $submission->closed_at?->toIso8601String(),
-                'attachments' => $submission->attachments->map(fn ($file): array => [
+                // Brief §66: evidence is a separate grant; everyone else sees only that files exist.
+                'attachment_count' => $submission->attachments->count(),
+                'attachments_hidden' => ! $this->visibility->canSeeAttachments($user),
+                'attachments' => ! $this->visibility->canSeeAttachments($user) ? [] : $submission->attachments->map(fn ($file): array => [
                     'id' => $file->id,
                     'name' => $file->original_name,
                     'size' => $file->size_bytes,
@@ -232,6 +235,7 @@ class ServiceSubmissionController extends Controller
             && $attachment->employee_service_feedback_id === $submission->getKey(), 404);
         $this->assertAccess($this->user(), $submission);
         $this->authorize('view', $submission);
+        abort_unless($this->visibility->canSeeAttachments($this->user()), 403);
 
         $disk = Storage::disk('local');
         abort_unless($disk->exists($attachment->path), 404);
@@ -282,6 +286,7 @@ class ServiceSubmissionController extends Controller
     private function assertAccess(User $user, EmployeeServiceFeedback $entry): void
     {
         abort_unless($user->hasAnyPermission([$this->viewPermission($entry->type)])
+            && $this->visibility->canSeeTarget($user, $entry->target_type)
             && ($user->employee_id === null || $entry->employee_id === null || (string) $user->employee_id !== (string) $entry->employee_id)
             && ($this->scope->isUnrestricted($user)
                 || ($entry->organization_id !== null && $this->scope->canAccessOrganization($user, $entry->organization_id))), 403);
@@ -290,7 +295,7 @@ class ServiceSubmissionController extends Controller
     /** @return Builder<EmployeeServiceFeedback> */
     private function scoped(User $user, ServiceFeedbackType $type): Builder
     {
-        $query = EmployeeServiceFeedback::query()->where('type', $type->value);
+        $query = $this->visibility->applyTargetScope(EmployeeServiceFeedback::query()->where('type', $type->value), $user);
         if ($user->employee_id !== null) {
             $query->where(fn (Builder $q) => $q->whereNull('employee_id')->orWhere('employee_id', '!=', $user->employee_id));
         }

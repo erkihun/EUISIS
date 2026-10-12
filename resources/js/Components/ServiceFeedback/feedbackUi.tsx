@@ -14,6 +14,7 @@ export type FeedbackSummary = {
     status: string;
     client_name?: string | null;
     client_contact?: string | null;
+    identity_hidden?: boolean;
     created_at: string | null;
     employee: { id: string; name: string | null; employee_number: string | null } | null;
     organization: NamePair;

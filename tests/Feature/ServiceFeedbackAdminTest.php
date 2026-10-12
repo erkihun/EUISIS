@@ -114,6 +114,7 @@ beforeEach(function (): void {
         'service_feedback.export',
         'service_feedback.settings.manage',
         'employees.view',
+        'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ] as $permission) {
         Permission::findOrCreate($permission, 'web');
     }
@@ -127,6 +128,7 @@ beforeEach(function (): void {
         'service_feedback.export',
         'service_feedback.settings.manage',
         'employees.view',
+        'service_feedback.view_employee_target', 'service_feedback.view_organization_target',
     ]);
 
     // No feedback permissions at all — the unauthorised-access baseline.
