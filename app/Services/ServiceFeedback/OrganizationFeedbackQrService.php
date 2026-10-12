@@ -188,7 +188,13 @@ class OrganizationFeedbackQrService
 
     public function recordScan(OrganizationFeedbackQrCode $qr): void
     {
-        OrganizationFeedbackQrCode::query()->whereKey($qr->getKey())->update([
+        $this->recordScanById((string) $qr->getKey());
+    }
+
+    /** Counts a scan of an already-resolved code without resolving it again. */
+    public function recordScanById(string $codeId): void
+    {
+        OrganizationFeedbackQrCode::query()->whereKey($codeId)->update([
             'last_scanned_at' => now(),
             'scan_count' => DB::raw('scan_count + 1'),
         ]);

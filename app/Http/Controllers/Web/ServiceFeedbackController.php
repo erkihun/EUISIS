@@ -130,7 +130,8 @@ class ServiceFeedbackController extends Controller
     public function show(EmployeeServiceFeedback $serviceFeedback): Response
     {
         abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
-        abort_if(Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
+        // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
+        abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('view', $serviceFeedback);
 
         $serviceFeedback->load([
@@ -156,7 +157,8 @@ class ServiceFeedbackController extends Controller
     public function review(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
         abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
-        abort_if(Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
+        // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
+        abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('review', $serviceFeedback);
 
         $data = $request->validate([
@@ -196,7 +198,8 @@ class ServiceFeedbackController extends Controller
     public function hide(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
         abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
-        abort_if(Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
+        // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
+        abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('hide', $serviceFeedback);
 
         $hiding = $serviceFeedback->status !== ServiceFeedbackStatus::Hidden;
@@ -222,7 +225,8 @@ class ServiceFeedbackController extends Controller
     public function destroy(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
         abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
-        abort_if(Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
+        // Null-safe: an administrator without an employee record is not "the target" of an institution rating.
+        abort_if(Auth::user()?->employee_id !== null && Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('delete', $serviceFeedback);
 
         // Audited before deletion so the record's details survive it.

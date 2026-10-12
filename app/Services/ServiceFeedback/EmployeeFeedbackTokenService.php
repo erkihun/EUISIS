@@ -206,8 +206,14 @@ class EmployeeFeedbackTokenService
     /** Cheap scan telemetry for the admin QR card; not a security control. */
     public function recordScan(EmployeeFeedbackToken $token): void
     {
+        $this->recordScanById((string) $token->getKey());
+    }
+
+    /** Counts a scan of an already-resolved token without resolving it again. */
+    public function recordScanById(string $tokenId): void
+    {
         EmployeeFeedbackToken::query()
-            ->whereKey($token->getKey())
+            ->whereKey($tokenId)
             ->update([
                 'last_scanned_at' => now(),
                 'scan_count' => DB::raw('scan_count + 1'),

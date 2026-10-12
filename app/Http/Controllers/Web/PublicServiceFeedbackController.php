@@ -135,7 +135,7 @@ class PublicServiceFeedbackController extends Controller
             ]);
         }
 
-        $this->recordScan($kind, $token);
+        $this->recordScan($context);
 
         $locale = app()->getLocale();
         $receipt = $request->session()->get('feedback_receipt');
@@ -219,23 +219,16 @@ class PublicServiceFeedbackController extends Controller
             : $this->resolver->resolveOrganizationToken($token);
     }
 
-    private function recordScan(PublicFeedbackTargetType $kind, string $token): void
+    /** The context was just resolved; count the scan on that record without resolving the token again. */
+    private function recordScan(TargetContext $context): void
     {
-        if ($kind === PublicFeedbackTargetType::Employee) {
-            $record = $this->tokens->resolveForPublic($token);
-
-            if ($record !== null) {
-                $this->tokens->recordScan($record);
-            }
-
+        if ($context->sourceId === null) {
             return;
         }
 
-        $code = $this->organizationCodes->resolveForPublic($token);
-
-        if ($code !== null) {
-            $this->organizationCodes->recordScan($code);
-        }
+        $context->targetType === PublicFeedbackTargetType::Employee
+            ? $this->tokens->recordScanById($context->sourceId)
+            : $this->organizationCodes->recordScanById($context->sourceId);
     }
 
     /**

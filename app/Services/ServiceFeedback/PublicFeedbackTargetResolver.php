@@ -44,7 +44,7 @@ class PublicFeedbackTargetResolver
             ->latest('effective_from')
             ->first();
 
-        $employeeNumber = Employee::query()->whereKey($record->employee_id)->value('employee_number');
+        $employeeNumber = $record->employee?->employee_number ?? Employee::query()->whereKey($record->employee_id)->value('employee_number');
 
         $names = [
             'organization' => ['en' => $assignment?->organization?->name_en, 'am' => $assignment?->organization?->name_am],

@@ -40,7 +40,8 @@ class ServiceFeedbackQueryService
         $query = $this->visibility->applyTargetScope(EmployeeServiceFeedback::query()->where('type', 'feedback'), $user);
 
         if ($user->employee_id !== null) {
-            $query->where('employee_id', '!=', $user->employee_id);
+            // Institution-targeted ratings have no employee; they must not vanish for an employee-linked user.
+            $query->where(fn (Builder $q) => $q->whereNull('employee_id')->orWhere('employee_id', '!=', $user->employee_id));
         }
 
         if ($this->scope->isUnrestricted($user)) {
