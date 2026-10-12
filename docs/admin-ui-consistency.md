@@ -95,6 +95,18 @@ appearance settings wired to the tokens.
    Breeze wrappers, native confirms, large radii and body-rendered page headers,
    and its grey-colour ceilings dropped from 185/32/69 to 102/20/27.
 8. **Scripts**: `npm run typecheck`.
+9. **Heading band everywhere** (after the crawl): the dashboard, the three
+   service-feedback module screens and the feedback detail, the service-provider
+   list, create, edit and show pages, the profile page and the grievance module's
+   `Workspace` wrapper (admin and employee-portal variants) now pass their title
+   through the layout's `header` prop; the breadcrumb navs those pages drew
+   themselves (the band already shows breadcrumbs) and the unused Breeze
+   `Pages/Dashboard.tsx` were removed. The guard rejects a bare
+   `<AuthenticatedLayout>` in any admin page or wrapper.
+10. **Responsive**: the kit `Card` is `min-w-0`, so the breakdown cards on the
+    feedback dashboards no longer widen a 390px page; the position-establishment
+    table card scrolls horizontally; the profile phone row shrinks with its
+    column.
 
 ## 4. Deprecated patterns
 
@@ -148,4 +160,35 @@ Do not use these in admin code; the guard test rejects most of them.
 
 ## 7. Browser crawl
 
-<!-- CRAWL -->
+Run on 2026-10-12 against a local `php artisan serve` with the demo database,
+signed in as `super.admin@demo.local`, over the 248 GET routes that carry
+`EnsureAdminAccess` and take no parameters (transport and court-case routes
+excluded), in five chunks of 50. Each route was loaded at 1440×900 in the light
+theme, again with the dark class applied, and at 390×844; the script recorded
+the HTTP status, the number of `<h1>` elements and whether the one `<h1>` sits
+in the heading band, page and console errors, horizontal overflow, and text
+whose computed colour equals its background.
+
+| Result | Routes |
+| --- | --- |
+| Pages that render in the shell with one `<h1>` in the band, no page or console error, no overflow at 1440px and no invisible text in the dark theme | 193 |
+| JSON lookups and file downloads, not pages: `api/organization-unit-types/options`, `assessments/oversight/export`, `cafeteria/analytics/export`, `cafeteria/scan/today`, `daily-activities/reports/export` (404 until a report exists), `feedback-admin/export`, `feedback-admin/routing-rules/handlers`, `grievances/lookup/*` (4), `lookup/employees`, `my-portal/field-work/lookup/*` (2), `notifications/feed`, `organizations/import-structure/template`, `organizations/parent-options`, `performance/lookups/*` (4), `performance/reports/export`, `position-services/positions` | 23 |
+| Employee self-service routes under `my-portal` that answer 403 for an account without an employee record (correct, and outside the admin scope) | 12 |
+| `cafeteria/scan/mobile`: a full-screen scanner that deliberately renders without the shell | 1 |
+| Pages whose title sat outside the band: the dashboard; feedback-admin, its dashboard and reports; grievances home, cases, appeals, approvals, correspondence, create, dashboard, my, reports and reports/export; service-providers and create; profile; `my-portal/grievances` and create. Fixed (§3.9) and re-crawled: every one now has its `<h1>` in the band | 19 |
+
+At 390px four pages overflowed horizontally: the feedback dashboard (172px),
+submission reports (75px), position establishments (20px) and the profile
+(20px). All four are fixed (§3.10) and re-crawled at 390px without overflow.
+
+The dark pass found no text with the colour of its background on any route. No
+route raised a page error. The console carried only two dev-only messages: the
+Content-Security-Policy source `http://[::1]:5173` (the Vite dev entry in the
+local CSP) and cancelled debounced `code-rules/preview-code` requests
+(`net::ERR_ABORTED`) on create forms while a code preview was retyped.
+
+Environment note: while the PHP test suite ran alongside the crawl, the
+single-worker dev server timed out on `/build/assets/*` chunks
+(`ERR_CONNECTION_TIMED_OUT`) for about forty routes; every one of them was
+re-crawled on a fresh server and rendered clean. The crawl scripts are not part
+of the repository.

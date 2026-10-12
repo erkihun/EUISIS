@@ -122,7 +122,7 @@ export const Button = forwardRef(ButtonInner) as <T extends ElementType = 'butto
 const EXPLICIT_PADDING = /(?:^|\s)!?p-\S/;
 
 export function Card({ className, children, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div className={cx('rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]', !EXPLICIT_PADDING.test(className ?? '') && 'p-[var(--card-padding)]', className)} {...props}>{children}</div>;
+    return <div className={cx('min-w-0 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]', !EXPLICIT_PADDING.test(className ?? '') && 'p-[var(--card-padding)]', className)} {...props}>{children}</div>;
 }
 
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {

@@ -299,9 +299,8 @@ export default function Dashboard({
     const backupUrgent = backupHealth?.enforced === true && backupHealth.overall_status === 'CRITICAL';
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<DashboardHeader header={header} refreshing={refreshing} onRefresh={refreshDashboard} filters={<DateRangeFilter filters={filters} t={t} />} />}>
             <Head title={t('dashboard.title')} />
-            <DashboardHeader header={header} refreshing={refreshing} onRefresh={refreshDashboard} filters={<DateRangeFilter filters={filters} t={t} />} />
 
             <div className="min-w-0 space-y-5">
                 {/* A production backup incident outranks the headline figures; otherwise backups follow them. */}

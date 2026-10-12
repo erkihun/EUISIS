@@ -52,10 +52,8 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
     const showHref = (id: string) => route('service-feedback.admin.show', id);
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.inbox')} />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <FeedbackPageHeader
                     current="inbox"
                     title={t('serviceFeedback.inbox')}
@@ -68,7 +66,11 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                         </a>
                     ) : undefined}
                 />
+            }
+        >
+            <Head title={t('serviceFeedback.inbox')} />
 
+            <div className="space-y-6">
                 <section className="overflow-hidden rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                     <nav aria-label={t('serviceFeedback.filterStatus')} className="overflow-x-auto border-b border-[color:var(--app-border)] px-2 pt-1 [scrollbar-width:none] sm:px-3 [&::-webkit-scrollbar]:hidden">
                         <ul className="flex min-w-max gap-1">

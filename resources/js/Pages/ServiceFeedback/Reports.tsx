@@ -80,10 +80,8 @@ export default function ServiceFeedbackReports({
     const lowShare = percent(summary.low_rated, summary.total);
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.reports')} />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <FeedbackPageHeader
                     current="reports"
                     title={t('serviceFeedback.reports')}
@@ -96,7 +94,11 @@ export default function ServiceFeedbackReports({
                         </a>
                     ) : undefined}
                 />
+            }
+        >
+            <Head title={t('serviceFeedback.reports')} />
 
+            <div className="space-y-6">
                 <FeedbackFilterBar
                     routeName="service-feedback.admin.reports"
                     filters={filters}

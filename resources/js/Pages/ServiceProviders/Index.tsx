@@ -13,6 +13,7 @@ import {
     useLocalName,
     type NamedRef,
 } from '@/Components/ServiceProviders/providerUi';
+import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useLocale } from '@/hooks/useLocale';
 import { Input, Select, buttonClassName, cx } from '@euisis/ui';
@@ -106,32 +107,33 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
     );
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={
+                <PageHeader
+                    title={t('providers.title')}
+                    description={t('providers.subtitle')}
+                    actions={
+                        <>
+                            {can.viewServiceTypes && (
+                                <Link href={route('service-types.index')} className={buttonClassName({ variant: 'outline' })}>
+                                    <Layers aria-hidden="true" className="h-4 w-4" />
+                                    {t('providers.serviceTypes')}
+                                </Link>
+                            )}
+                            {can.create && (
+                                <Link href={route('service-providers.create')} className={buttonClassName({ variant: 'primary' })}>
+                                    <Plus aria-hidden="true" className="h-4 w-4" />
+                                    {t('providers.addProvider')}
+                                </Link>
+                            )}
+                        </>
+                    }
+                />
+            }
+        >
             <Head title={t('providers.title')} />
 
             <div className="space-y-6">
-                <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">{t('providers.eyebrow')}</p>
-                        <h1 className="mt-1 text-2xl font-bold leading-tight text-[color:var(--app-foreground)]">{t('providers.title')}</h1>
-                        <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{t('providers.subtitle')}</p>
-                    </div>
-                    <div className="flex shrink-0 flex-wrap gap-2">
-                        {can.viewServiceTypes && (
-                            <Link href={route('service-types.index')} className={buttonClassName({ variant: 'outline' })}>
-                                <Layers aria-hidden="true" className="h-4 w-4" />
-                                {t('providers.serviceTypes')}
-                            </Link>
-                        )}
-                        {can.create && (
-                            <Link href={route('service-providers.create')} className={buttonClassName({ variant: 'primary' })}>
-                                <Plus aria-hidden="true" className="h-4 w-4" />
-                                {t('providers.addProvider')}
-                            </Link>
-                        )}
-                    </div>
-                </header>
-
                 {/* Headline figures */}
                 <section aria-label={t('providers.title')} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <Stat label={t('providers.statProviders')} value={(totals.all ?? 0).toLocaleString()}>

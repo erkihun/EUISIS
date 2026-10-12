@@ -93,10 +93,8 @@ export default function ServiceFeedbackDashboard({
     const maxCount = Math.max(...ratingDistribution.map((row) => row.count), 1);
 
     return (
-        <AuthenticatedLayout>
-            <Head title={t('serviceFeedback.dashboard')} />
-
-            <div className="space-y-6">
+        <AuthenticatedLayout
+            header={
                 <FeedbackPageHeader
                     current="overview"
                     title={t('serviceFeedback.overview')}
@@ -111,7 +109,11 @@ export default function ServiceFeedbackDashboard({
                         </Link>
                     ) : undefined}
                 />
+            }
+        >
+            <Head title={t('serviceFeedback.dashboard')} />
 
+            <div className="space-y-6">
                 <FeedbackFilterBar
                     routeName="service-feedback.admin.dashboard"
                     filters={filters}
@@ -295,7 +297,7 @@ export default function ServiceFeedbackDashboard({
                 </div>
 
                 {/* Recent comments */}
-                <section aria-labelledby="recent-heading" className="space-y-3.5 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                <section aria-labelledby="recent-heading" className="min-w-0 space-y-3.5 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
                     <div className="flex items-baseline justify-between gap-3">
                         <h2 id="recent-heading" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.recentComments')}</h2>
                         <Link href={withScope('service-feedback.admin.index')} className="text-[13px] font-semibold text-[color:var(--color-primary)] hover:underline">
@@ -391,7 +393,7 @@ function Breakdown({ title, rows, href }: { title: string; rows: GroupRow[]; hre
     const { t } = useLocale();
 
     return (
-        <section className="space-y-3.5 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+        <section className="min-w-0 space-y-3.5 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
             <div className="flex items-baseline justify-between gap-2">
                 <h2 className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{title}</h2>
                 <span className="text-xs text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.topByVolume')}</span>

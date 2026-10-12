@@ -9,7 +9,7 @@ import { CaseNumber, ConfidentialNotice, Empty, FormRow, GPill, HandlerName, Sla
 import type { GrievanceRow, Paginated, TimelineEvent } from '@/types/grievances';
 
 export function Workspace({ title, description, children, portal = false, actions, backHref }: { title: string; description?: string; children: ReactNode; portal?: boolean; actions?: ReactNode; backHref?: string }) {
-    return <AuthenticatedLayout variant={portal ? 'portal' : 'default'}><Head title={title} /><div className={pageCls}><PageHeader title={title} description={description} actions={actions} backHref={backHref} />{children}</div></AuthenticatedLayout>;
+    return <AuthenticatedLayout variant={portal ? 'portal' : 'default'} header={<PageHeader title={title} description={description} actions={actions} backHref={backHref} />}><Head title={title} /><div className={pageCls}>{children}</div></AuthenticatedLayout>;
 }
 
 export type InputField = { name: string; label: string; type?: 'text' | 'textarea' | 'select' | 'date' | 'datetime' | 'number' | 'checkbox' | 'file'; options?: { value: string; label: string }[]; required?: boolean; multiple?: boolean; accept?: string; help?: string; maxLength?: number };

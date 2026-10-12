@@ -107,8 +107,9 @@ for layout; the few remaining ones size icons and printed card faces.
 not used on admin surfaces.
 
 Elevation is borders first. Cards are `border border-[color:var(--app-border)]`
-on `--app-surface`; the light theme tints them (`resources/css/app.css`, "Tonal
-cards"). Shadows: `shadow-sm` on raised toolbars, `shadow-lg` on menus and
+on `--app-surface` and `min-w-0`, so a card inside a grid or flex row shrinks to
+its column instead of widening the page; the light theme tints them
+(`resources/css/app.css`, "Tonal cards"). Shadows: `shadow-sm` on raised toolbars, `shadow-lg` on menus and
 popovers, `shadow-xl` on dialogs; nothing larger in the admin.
 
 ## 4. Sizes

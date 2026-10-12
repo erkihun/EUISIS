@@ -31,7 +31,7 @@ export default function PositionEstablishmentsIndex({ establishments, filters }:
         >
             <Head title={t('positionEstablishments.title')} />
 
-            <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
+            <div className="overflow-x-auto rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <table className={cx(tableClassName, 'min-w-full text-left')}>
                     <thead className={tableHeadClassName}>
                         <tr>

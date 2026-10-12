@@ -110,16 +110,20 @@ it('keeps hand-rolled admin UI from growing', function (): void {
 });
 
 it('renders every admin page title in the heading band', function (): void {
-    // A page passes <PageHeader> through the layout's `header` prop; rendering it inside the body
-    // puts the title below the breadcrumb band and out of line with every other page.
+    // A page passes its title through the layout's `header` prop (normally a <PageHeader>). A bare
+    // <AuthenticatedLayout>, or a <PageHeader> rendered inside the body, puts the title below the
+    // breadcrumb band and out of line with every other page. Wrappers that render the layout for a
+    // module (grievances' Workspace) follow the same rule.
     $offenders = [];
     foreach (adminTsxFiles() as $file) {
-        if (! str_contains($file, '/Pages/')) {
+        $source = (string) file_get_contents($file);
+        if (! str_contains($source, '<AuthenticatedLayout')) {
             continue;
         }
-        $source = (string) file_get_contents($file);
-        if (str_contains($source, '<PageHeader') && str_contains($source, '<AuthenticatedLayout') && ! str_contains($source, 'header={')) {
-            $offenders[] = substr($file, strpos($file, '/Pages/') + 7);
+        $bareLayout = preg_match('/<AuthenticatedLayout(?![^>]*\bheader=)[^>]*>/', $source) === 1;
+        $bodyHeader = str_contains($source, '<PageHeader') && ! str_contains($source, 'header={');
+        if ($bareLayout || $bodyHeader) {
+            $offenders[] = substr($file, strpos($file, '/resources/js/') + 14);
         }
     }
 

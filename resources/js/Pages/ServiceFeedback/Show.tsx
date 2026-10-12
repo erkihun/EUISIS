@@ -8,7 +8,7 @@ import {
     type FeedbackSummary,
 } from '@/Components/ServiceFeedback/feedbackUi';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { ArrowLeftIcon, ChevronRight, EyeIcon, EyeOffIcon, TrashIcon } from '@/Components/Icons';
+import { ArrowLeftIcon, EyeIcon, EyeOffIcon, TrashIcon } from '@/Components/Icons';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useLocale } from '@/hooks/useLocale';
@@ -86,40 +86,32 @@ export default function ServiceFeedbackShow({ feedback, can }: Props): JSX.Eleme
     const serviceLabel = [feedback.service_no, label(feedback.service_type, '')].filter(Boolean).join(' · ') || '—';
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={
+                <div className="flex items-start gap-3">
+                    <Link
+                        href={route('service-feedback.admin.index')}
+                        aria-label={t('common.back')}
+                        className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
+                    >
+                        <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
+                    </Link>
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            <h1 className="break-words text-page-title text-[color:var(--app-foreground)]">{title}</h1>
+                            <FeedbackStatusBadge status={feedback.status} />
+                        </div>
+                        <p className="mt-1 text-[13px] text-[color:var(--app-muted-foreground)]">
+                            {label(feedback.service_type)} · {t('serviceFeedback.submittedDate')}{' '}
+                            <LocalizedDateDisplay value={feedback.created_at} withTime /> {t('serviceFeedback.viaQr')}
+                        </p>
+                    </div>
+                </div>
+            }
+        >
             <Head title={t('serviceFeedback.feedbackDetail')} />
 
             <div className="space-y-6">
-                {/* Header */}
-                <header className="space-y-3">
-                    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-[13px] text-[color:var(--app-muted-foreground)]">
-                        <Link href={route('service-feedback.admin.dashboard')} className="hover:text-[color:var(--app-foreground)]">{t('serviceFeedback.clientFeedback')}</Link>
-                        <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-                        <Link href={route('service-feedback.admin.index')} className="hover:text-[color:var(--app-foreground)]">{t('serviceFeedback.inbox')}</Link>
-                        <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-                        <span aria-current="page" className="font-medium text-[color:var(--app-foreground)]">{t('serviceFeedback.feedbackDetail')}</span>
-                    </nav>
-                    <div className="flex items-start gap-3">
-                        <Link
-                            href={route('service-feedback.admin.index')}
-                            aria-label={t('common.back')}
-                            className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-control)] border border-[color:var(--app-border-strong)] bg-[color:var(--app-surface)] text-[color:var(--app-foreground)] hover:bg-[color:var(--app-surface-muted)]"
-                        >
-                            <ArrowLeftIcon aria-hidden="true" className="h-4 w-4" />
-                        </Link>
-                        <div className="min-w-0">
-                            <div className="flex flex-wrap items-center gap-2.5">
-                                <h1 className="text-2xl font-bold leading-tight text-[color:var(--app-foreground)]">{title}</h1>
-                                <FeedbackStatusBadge status={feedback.status} />
-                            </div>
-                            <p className="mt-1 text-[13px] text-[color:var(--app-muted-foreground)]">
-                                {label(feedback.service_type)} · {t('serviceFeedback.submittedDate')}{' '}
-                                <LocalizedDateDisplay value={feedback.created_at} withTime /> {t('serviceFeedback.viaQr')}
-                            </p>
-                        </div>
-                    </div>
-                </header>
-
                 {isHidden && (
                     <div role="status" className="flex items-center gap-2.5 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface-muted)] px-4 py-3 text-sm text-[color:var(--app-foreground)]">
                         <EyeOffIcon aria-hidden="true" className="h-4 w-4 shrink-0 text-[color:var(--app-muted-foreground)]" />

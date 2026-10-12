@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import PageHeader from '@/Components/PageHeader';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import StatusBadge from '@/Components/StatusBadge';
 import UserAvatar from '@/Components/UserAvatar';
@@ -153,7 +154,7 @@ export default function Edit({
     const lastLogin    = toDate(profile.last_login_at);
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout header={<PageHeader title={t('profile.title')} />}>
             <Head title={t('profile.title')} />
 
             {/* ── Identity header ───────────────────────────────────────── */}
@@ -197,7 +198,7 @@ export default function Edit({
 
                     {/* Name / email / roles */}
                     <div className="flex-1 text-center sm:text-left">
-                        <h1 className="text-xl font-semibold text-[color:var(--app-foreground)]">{profile.name}</h1>
+                        <h2 className="text-xl font-semibold text-[color:var(--app-foreground)]">{profile.name}</h2>
                         <p className="mt-0.5 text-sm text-[color:var(--app-muted-foreground)]">{profile.email}</p>
                         <div className="mt-2.5 flex flex-wrap justify-center gap-1.5 sm:justify-start">
                             {profile.roles.map((role) => (
@@ -325,7 +326,8 @@ export default function Edit({
                                         </select>
                                         <div className="my-2 w-px bg-[color:var(--app-surface-muted)]" />
                                         <input
-                                            className="flex-1 border-0 bg-transparent px-3 py-2.5 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 focus:outline-none dark:placeholder-slate-500"
+                                            size={1}
+                                            className="min-w-0 flex-1 border-0 bg-transparent px-3 py-2.5 text-sm text-[color:var(--app-foreground)] placeholder-gray-400 focus:outline-none dark:placeholder-slate-500"
                                             placeholder="9xxxxxxxx"
                                             value={phoneLocal}
                                             onChange={(e) => handlePhoneLocal(e.target.value)}

@@ -178,7 +178,7 @@ export function FeedbackPageHeader({
                     <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[color:var(--app-muted-foreground)]">
                         {t('serviceFeedback.clientFeedback')}
                     </p>
-                    <h1 className="mt-1 text-2xl font-bold leading-tight text-[color:var(--app-foreground)]">{title}</h1>
+                    <h1 className="mt-1 break-words text-page-title text-[color:var(--app-foreground)]">{title}</h1>
                     {description && <p className="mt-1 text-sm text-[color:var(--app-muted-foreground)]">{description}</p>}
                 </div>
                 {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}

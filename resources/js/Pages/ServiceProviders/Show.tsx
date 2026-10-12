@@ -1,5 +1,5 @@
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { ChevronRight, PencilIcon, TrashIcon } from '@/Components/Icons';
+import { PencilIcon, TrashIcon } from '@/Components/Icons';
 import {
     DemoTag,
     ProviderAvatar,
@@ -82,41 +82,36 @@ export default function ServiceProvidersShow({ provider, transactions, stats, ca
     }
 
     return (
-        <AuthenticatedLayout>
+        <AuthenticatedLayout
+            header={
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-4">
+                        <ProviderAvatar name={provider.name} typeCode={provider.service_type?.code} size="lg" />
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2.5">
+                                <h1 className="break-words text-page-title text-[color:var(--app-foreground)]">{provider.name}</h1>
+                                <ProviderStatusBadge status={provider.status} />
+                                {provider.is_demo && <DemoTag />}
+                            </div>
+                            <p className="mt-1 text-[13px] text-[color:var(--app-muted-foreground)]">
+                                <span className="font-mono text-[color:var(--app-foreground)]">{provider.code}</span>
+                                {' · '}{localName(provider.service_type, t('providers.unknownService'))}
+                                {' · '}{provider.organization ? localName(provider.organization) : t('providers.allOrganizations')}
+                            </p>
+                        </div>
+                    </div>
+                    {can.update && (
+                        <Link href={route('service-providers.edit', provider.id)} className={buttonClassName({ variant: 'outline', className: 'self-start sm:self-auto' })}>
+                            <PencilIcon aria-hidden="true" className="h-4 w-4" />
+                            {t('providers.editProviderAction')}
+                        </Link>
+                    )}
+                </div>
+            }
+        >
             <Head title={provider.name} />
 
             <div className="space-y-6">
-                <header className="space-y-3.5">
-                    <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-[13px] text-[color:var(--app-muted-foreground)]">
-                        <Link href={route('service-providers.index')} className="hover:text-[color:var(--app-foreground)]">{t('providers.title')}</Link>
-                        <ChevronRight aria-hidden="true" className="h-3.5 w-3.5" />
-                        <span aria-current="page" className="font-medium text-[color:var(--app-foreground)]">{provider.name}</span>
-                    </nav>
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex min-w-0 items-center gap-4">
-                            <ProviderAvatar name={provider.name} typeCode={provider.service_type?.code} size="lg" />
-                            <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2.5">
-                                    <h1 className="text-2xl font-bold leading-tight text-[color:var(--app-foreground)]">{provider.name}</h1>
-                                    <ProviderStatusBadge status={provider.status} />
-                                    {provider.is_demo && <DemoTag />}
-                                </div>
-                                <p className="mt-1 text-[13px] text-[color:var(--app-muted-foreground)]">
-                                    <span className="font-mono text-[color:var(--app-foreground)]">{provider.code}</span>
-                                    {' · '}{localName(provider.service_type, t('providers.unknownService'))}
-                                    {' · '}{provider.organization ? localName(provider.organization) : t('providers.allOrganizations')}
-                                </p>
-                            </div>
-                        </div>
-                        {can.update && (
-                            <Link href={route('service-providers.edit', provider.id)} className={buttonClassName({ variant: 'outline', className: 'self-start sm:self-auto' })}>
-                                <PencilIcon aria-hidden="true" className="h-4 w-4" />
-                                {t('providers.editProviderAction')}
-                            </Link>
-                        )}
-                    </div>
-                </header>
-
                 <section aria-label={t('providers.lastActivity')} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <Stat label={t('providers.transactionsRecent').replace(':days', days)}>
                         {stats.transactions_recent.toLocaleString()}
