@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace App\Services\ServiceFeedback;
 
 use App\Actions\Audit\WriteAuditLogAction;
+use App\Actions\CodeRules\GenerateCodeAction;
 use App\Enums\AuditEventType;
+use App\Enums\CodeRuleEntityType;
 use App\Enums\ServiceFeedbackStatus;
+use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeFeedbackToken;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\PositionService;
-use App\Services\Performance\ServiceFeedbackPerformanceSync;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Throwable;
 
 /**
  * The anonymous client feedback flow.
@@ -35,7 +38,7 @@ class PublicServiceFeedbackService
     public function __construct(
         private readonly WriteAuditLogAction $writeAuditLogAction,
         private readonly EmployeeFeedbackTokenService $tokens,
-        private readonly ServiceFeedbackPerformanceSync $performance,
+        private readonly GenerateCodeAction $codes,
     ) {}
 
     /**
@@ -132,6 +135,8 @@ class PublicServiceFeedbackService
         $feedback = EmployeeServiceFeedback::query()->create([
             'employee_id' => $token->employee_id,
             'employee_feedback_token_id' => $token->getKey(),
+            'employee_assignment_id' => $assignment?->getKey(),
+            'type' => ServiceFeedbackType::Feedback,
             'organization_id' => $assignment?->organization_id,
             'organization_unit_id' => $assignment?->organization_unit_id,
             'position_id' => $assignment?->position_id,
@@ -162,15 +167,109 @@ class PublicServiceFeedbackService
             request: $request,
         );
 
-        // The client's rating is already stored; a measurement failure must
-        // not lose it. A manager can re-sync the agreement item later.
-        try {
-            $this->performance->sync($feedback);
-        } catch (Throwable $exception) {
-            report($exception);
+        return $feedback;
+    }
+
+    /**
+     * Suggestion and Complaint share the QR resolver, but remain separate
+     * submission types. Neither creates a performance or disciplinary action.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function submitEntry(EmployeeFeedbackToken $token, ServiceFeedbackType $type, array $data, Request $request): EmployeeServiceFeedback
+    {
+        if ($type === ServiceFeedbackType::Feedback) {
+            throw new \InvalidArgumentException('Use the rated feedback submission path.');
         }
 
-        return $feedback;
+        $assignment = $this->currentAssignment($token->employee_id);
+        $service = isset($data['position_service_id'])
+            ? PositionService::query()->find($data['position_service_id'])
+            : null;
+        $storedPaths = [];
+
+        try {
+            return DB::transaction(function () use ($token, $type, $data, $request, $assignment, $service, &$storedPaths): EmployeeServiceFeedback {
+                $entry = EmployeeServiceFeedback::query()->create([
+                    'employee_id' => $token->employee_id,
+                    'employee_feedback_token_id' => $token->getKey(),
+                    'employee_assignment_id' => $assignment?->getKey(),
+                    'type' => $type,
+                    'organization_id' => $assignment?->organization_id,
+                    'organization_unit_id' => $assignment?->organization_unit_id,
+                    'position_id' => $assignment?->position_id,
+                    'position_service_id' => $service?->getKey(),
+                    'service_no_snapshot' => $service?->service_no,
+                    'service_name_snapshot' => $service?->name_en,
+                    'rating' => null,
+                    'comment' => trim($data['message']),
+                    'client_name' => $this->trimmedOrNull($data['client_name'] ?? null),
+                    'client_contact' => $this->trimmedOrNull($data['client_contact'] ?? null),
+                    'incident_date' => $type === ServiceFeedbackType::Complaint ? ($data['incident_date'] ?? null) : null,
+                    'incident_location' => $type === ServiceFeedbackType::Complaint ? $this->trimmedOrNull($data['incident_location'] ?? null) : null,
+                    'ip_address' => $request->ip(),
+                    'user_agent' => Str::limit((string) $request->userAgent(), 500, ''),
+                    'status' => ServiceFeedbackStatus::Pending,
+                ]);
+
+                if ($type === ServiceFeedbackType::Complaint) {
+                    $entry->forceFill([
+                        'reference_number' => $this->codes->execute(
+                            CodeRuleEntityType::PublicServiceComplaint,
+                            ['organization_id' => $assignment?->organization_id],
+                            null,
+                            null,
+                            'reference_number',
+                            $entry->getKey(),
+                        ),
+                    ])->save();
+
+                    foreach ($data['attachments'] ?? [] as $file) {
+                        $extension = strtolower($file->getClientOriginalExtension());
+                        $path = $file->storeAs('service-feedback/'.$entry->getKey(), Str::uuid7().'.'.$extension, 'local');
+                        if ($path === false) {
+                            throw new \RuntimeException('Complaint attachment could not be stored.');
+                        }
+                        $storedPaths[] = $path;
+                        $entry->attachments()->create([
+                            'disk' => 'local',
+                            'path' => $path,
+                            'original_name' => $this->safeAttachmentName($file->getClientOriginalName()),
+                            'mime_type' => (string) $file->getMimeType(),
+                            'size_bytes' => (int) $file->getSize(),
+                            'sha256' => hash_file('sha256', $file->getRealPath()),
+                            'scan_status' => 'not_scanned',
+                        ]);
+                    }
+                }
+
+                $this->writeAuditLogAction->execute(
+                    eventType: $type === ServiceFeedbackType::Complaint
+                        ? AuditEventType::ServiceComplaintSubmitted
+                        : AuditEventType::ServiceSuggestionSubmitted,
+                    actor: null,
+                    auditable: $entry,
+                    organizationId: $assignment?->organization_id,
+                    reason: 'Public '.$type->value.' submitted',
+                    request: $request,
+                );
+
+                return $entry;
+            });
+        } catch (\Throwable $exception) {
+            foreach ($storedPaths as $path) {
+                Storage::disk('local')->delete($path);
+            }
+            throw $exception;
+        }
+    }
+
+    private function safeAttachmentName(string $name): string
+    {
+        $base = basename(str_replace('\\', '/', $name));
+        $safe = trim((string) preg_replace('/[^\pL\pN._ -]/u', '_', $base), ' .');
+
+        return Str::limit($safe !== '' ? $safe : 'attachment', 255, '');
     }
 
     /** Log a scan against a token that cannot accept feedback. */

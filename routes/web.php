@@ -113,6 +113,7 @@ use App\Http\Controllers\Web\ReportingLineController;
 use App\Http\Controllers\Web\RoleController;
 use App\Http\Controllers\Web\ServiceFeedbackController;
 use App\Http\Controllers\Web\ServiceProviderController;
+use App\Http\Controllers\Web\ServiceSubmissionController;
 use App\Http\Controllers\Web\ServiceTypeController;
 use App\Http\Controllers\Web\SystemSettingController;
 use App\Http\Controllers\Web\TypographyTestController;
@@ -464,6 +465,20 @@ Route::get('/service-feedback/{token}', [PublicServiceFeedbackController::class,
 Route::post('/service-feedback/{token}', [PublicServiceFeedbackController::class, 'store'])
     ->middleware('throttle:service-feedback-submit')
     ->name('service-feedback.store');
+
+Route::get('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'form'])
+    ->where('type', 'feedback|suggestion|complaint')
+    ->middleware('throttle:30,1')
+    ->name('service-feedback.form');
+
+Route::post('/service-feedback/{token}/feedback', [PublicServiceFeedbackController::class, 'storeTypedFeedback'])
+    ->middleware('throttle:service-feedback-submit')
+    ->name('service-feedback.feedback.store');
+
+Route::post('/service-feedback/{token}/{type}', [PublicServiceFeedbackController::class, 'storeEntry'])
+    ->where('type', 'suggestion|complaint')
+    ->middleware('throttle:service-feedback-submit')
+    ->name('service-feedback.entry.store');
 
 /*
  * Legacy public card verification.
@@ -1272,6 +1287,15 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/{serviceFeedback}/hide', [ServiceFeedbackController::class, 'hide'])->name('service-feedback.admin.hide');
     Route::delete('/feedback-admin/{serviceFeedback}', [ServiceFeedbackController::class, 'destroy'])->name('service-feedback.admin.destroy');
 
+    Route::get('/service-suggestions', [ServiceSubmissionController::class, 'suggestions'])->name('service-submissions.suggestions');
+    Route::get('/service-complaints', [ServiceSubmissionController::class, 'complaints'])->name('service-submissions.complaints');
+    Route::get('/service-submissions/{type}/{submission}', [ServiceSubmissionController::class, 'show'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.show');
+    Route::post('/service-submissions/{type}/{submission}/review', [ServiceSubmissionController::class, 'review'])
+        ->where('type', 'suggestion|complaint')->whereUuid('submission')->name('service-submissions.review');
+    Route::get('/service-submissions/{type}/{submission}/attachments/{attachment}', [ServiceSubmissionController::class, 'download'])
+        ->where('type', 'complaint')->whereUuid(['submission', 'attachment'])->name('service-submissions.attachments.download');
+
     // Per-employee feedback QR management.
     Route::get('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'show'])->name('employees.feedback-qr.show');
     Route::post('/employees/{employee}/feedback-qr', [EmployeeFeedbackQrController::class, 'generate'])->name('employees.feedback-qr.generate');
@@ -1304,6 +1328,9 @@ require __DIR__.'/performance.php';
 require __DIR__.'/assessments.php';
 
 require __DIR__.'/grievances.php';
+
+// Employee Discipline — Regulation 201/2018, separate from grievances and public complaints.
+require __DIR__.'/discipline.php';
 
 // Field Work Management (docs/field-work-management.md).
 require __DIR__.'/field-work.php';

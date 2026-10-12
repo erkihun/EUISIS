@@ -7,6 +7,7 @@ use App\Enums\AuditEventType;
 use App\Enums\EmployeeStatus;
 use App\Enums\FeedbackTokenStatus;
 use App\Enums\ServiceFeedbackStatus;
+use App\Enums\ServiceFeedbackType;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
@@ -19,7 +20,9 @@ use App\Models\Position;
 use App\Models\PositionService;
 use App\Models\ServiceType;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function (): void {
@@ -588,4 +591,85 @@ it('audits both sides of a regeneration', function (): void {
 
     expect(AuditLog::query()->where('event_type', AuditEventType::ServiceFeedbackQrRegenerated->value)->exists())
         ->toBeTrue();
+});
+
+it('opens exactly the three typed options from the existing feedback qr', function (): void {
+    $this->get('/service-feedback/'.$this->token->token)
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Public/ServiceFeedback')
+            ->where('type', null)
+            ->where('available', true));
+
+    foreach (['feedback', 'suggestion', 'complaint'] as $type) {
+        $this->get('/service-feedback/'.$this->token->token.'/'.$type)
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('type', $type));
+    }
+
+    expect($this->employee->fresh()->activeFeedbackToken->token)->toBe($this->token->token);
+});
+
+it('records a suggestion for the qr employee without requiring a rating', function (): void {
+    $this->post('/service-feedback/'.$this->token->token.'/suggestion', [
+        'message' => 'Please offer appointments earlier in the day.',
+        'client_name' => 'Visitor',
+        'employee_id' => 'attacker-controlled-target',
+    ])->assertRedirect();
+
+    $entry = EmployeeServiceFeedback::query()->sole();
+    expect($entry->type)->toBe(ServiceFeedbackType::Suggestion)
+        ->and($entry->employee_id)->toBe($this->employee->id)
+        ->and($entry->rating)->toBeNull()
+        ->and($entry->client_contact)->toBeNull()
+        ->and($entry->employee_assignment_id)->toBe($this->employee->current_assignment_id);
+});
+
+it('rejects disallowed complaint attachments and excessive file counts', function (): void {
+    Storage::fake('local');
+
+    $this->post('/service-feedback/'.$this->token->token.'/complaint', [
+        'message' => 'A detailed complaint.',
+        'attachments' => [UploadedFile::fake()->create('malware.exe', 10, 'application/octet-stream')],
+    ])->assertSessionHasErrors('attachments.0');
+
+    $files = [];
+    for ($i = 0; $i < 4; $i++) {
+        $files[] = UploadedFile::fake()->create('evidence'.$i.'.pdf', 10, 'application/pdf');
+    }
+    $this->post('/service-feedback/'.$this->token->token.'/complaint', [
+        'message' => 'A detailed complaint.',
+        'attachments' => $files,
+    ])->assertSessionHasErrors('attachments');
+
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
+});
+
+it('issues a non-sequential complaint reference and stores approved attachments privately', function (): void {
+    Storage::fake('local');
+
+    $this->post('/service-feedback/'.$this->token->token.'/complaint', [
+        'message' => 'I was refused the service without a reason.',
+        'incident_date' => now()->toDateString(),
+        'attachments' => [UploadedFile::fake()->create('evidence.pdf', 100, 'application/pdf')],
+    ])->assertRedirect();
+
+    $entry = EmployeeServiceFeedback::query()->sole();
+    expect($entry->type)->toBe(ServiceFeedbackType::Complaint)
+        ->and($entry->employee_id)->toBe($this->employee->id)
+        ->and($entry->reference_number)->toStartWith('PSC-')
+        ->and($entry->rating)->toBeNull()
+        ->and($entry->attachments)->toHaveCount(1);
+    Storage::disk('local')->assertExists($entry->attachments->first()->path);
+});
+
+it('rejects an inactive feedback qr for every new submission type', function (): void {
+    app(EmployeeFeedbackTokenService::class)->revoke($this->token);
+
+    foreach (['suggestion', 'complaint'] as $type) {
+        $this->post('/service-feedback/'.$this->token->token.'/'.$type, ['message' => 'A legitimate detailed message'])
+            ->assertRedirect('/service-feedback/'.$this->token->token);
+    }
+
+    expect(EmployeeServiceFeedback::query()->count())->toBe(0);
 });

@@ -36,6 +36,9 @@ enum CodeRuleEntityType: string
     case VacancyApplication = 'vacancy_application';
     case TransferApplication = 'transfer_application';
     case InstitutionOffice = 'institution_office';
+
+    /** Public service complaint reference (feedback QR). */
+    case PublicServiceComplaint = 'public_service_complaint';
     case GrievanceCase = 'grievance_case';
     case GrievanceDecision = 'grievance_decision';
     case GrievanceLetter = 'grievance_letter';

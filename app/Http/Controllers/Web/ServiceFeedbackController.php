@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Web;
 use App\Actions\Audit\WriteAuditLogAction;
 use App\Enums\AuditEventType;
 use App\Enums\ServiceFeedbackStatus;
+use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
@@ -122,6 +123,8 @@ class ServiceFeedbackController extends Controller
 
     public function show(EmployeeServiceFeedback $serviceFeedback): Response
     {
+        abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
+        abort_if(Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('view', $serviceFeedback);
 
         $serviceFeedback->load([
@@ -146,6 +149,8 @@ class ServiceFeedbackController extends Controller
     /** Mark an entry reviewed or resolved. */
     public function review(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
+        abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
+        abort_if(Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('review', $serviceFeedback);
 
         $data = $request->validate([
@@ -184,6 +189,8 @@ class ServiceFeedbackController extends Controller
      */
     public function hide(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
+        abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
+        abort_if(Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('hide', $serviceFeedback);
 
         $hiding = $serviceFeedback->status !== ServiceFeedbackStatus::Hidden;
@@ -208,6 +215,8 @@ class ServiceFeedbackController extends Controller
 
     public function destroy(Request $request, EmployeeServiceFeedback $serviceFeedback): RedirectResponse
     {
+        abort_unless($serviceFeedback->type === ServiceFeedbackType::Feedback, 404);
+        abort_if(Auth::user()?->employee_id === $serviceFeedback->employee_id, 403);
         $this->authorize('delete', $serviceFeedback);
 
         // Audited before deletion so the record's details survive it.

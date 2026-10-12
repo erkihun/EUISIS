@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Web;
 
+use App\Enums\ServiceFeedbackType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePublicServiceEntryRequest;
 use App\Http\Requests\StoreServiceFeedbackRequest;
 use App\Services\ServiceFeedback\EmployeeFeedbackTokenService;
 use App\Services\ServiceFeedback\PublicServiceFeedbackService;
@@ -34,6 +36,18 @@ class PublicServiceFeedbackController extends Controller
     /** The page a scanned feedback QR opens. */
     public function show(Request $request, string $token): Response
     {
+        return $this->render($request, $token, null);
+    }
+
+    public function form(Request $request, string $token, string $type): Response
+    {
+        abort_unless(in_array($type, array_column(ServiceFeedbackType::cases(), 'value'), true), 404);
+
+        return $this->render($request, $token, ServiceFeedbackType::from($type));
+    }
+
+    private function render(Request $request, string $token, ?ServiceFeedbackType $type): Response
+    {
         $record = $this->tokens->resolveForPublic($token);
 
         if ($record === null) {
@@ -45,6 +59,8 @@ class PublicServiceFeedbackController extends Controller
                 'context' => null,
                 'serviceTypes' => [],
                 'submitted' => false,
+                'type' => null,
+                'reference' => null,
             ]);
         }
 
@@ -61,6 +77,8 @@ class PublicServiceFeedbackController extends Controller
                 $locale,
             ),
             'submitted' => (bool) $request->session()->get('feedback_submitted', false),
+            'type' => $type?->value,
+            'reference' => $request->session()->get('feedback_reference'),
         ]);
     }
 
@@ -96,7 +114,39 @@ class PublicServiceFeedbackController extends Controller
         $this->feedback->submit($record, $validated, $request);
 
         return redirect()
-            ->route('service-feedback.show', $token)
+            ->route($request->routeIs('service-feedback.store') ? 'service-feedback.show' : 'service-feedback.form',
+                $request->routeIs('service-feedback.store') ? $token : ['token' => $token, 'type' => 'feedback'])
             ->with('feedback_submitted', true);
+    }
+
+    public function storeTypedFeedback(StoreServiceFeedbackRequest $request, string $token): RedirectResponse
+    {
+        return $this->store($request, $token);
+    }
+
+    public function storeEntry(StorePublicServiceEntryRequest $request, string $token, string $type): RedirectResponse
+    {
+        abort_unless(in_array($type, ['suggestion', 'complaint'], true), 404);
+
+        $record = $this->tokens->resolveForPublic($token);
+        if ($record === null) {
+            $this->feedback->auditBlockedScan($request);
+
+            return to_route('service-feedback.show', $token);
+        }
+
+        $validated = $request->validated();
+        if (isset($validated['position_service_id']) && ! $this->feedback->serviceIsAvailable(
+            $validated['position_service_id'],
+            $this->feedback->positionIdForToken($record),
+        )) {
+            return back()->withErrors(['position_service_id' => __('service-feedback.service_not_provided')]);
+        }
+
+        $entry = $this->feedback->submitEntry($record, ServiceFeedbackType::from($type), $validated, $request);
+
+        return to_route('service-feedback.form', ['token' => $token, 'type' => $type])
+            ->with('feedback_submitted', true)
+            ->with('feedback_reference', $entry->reference_number);
     }
 }

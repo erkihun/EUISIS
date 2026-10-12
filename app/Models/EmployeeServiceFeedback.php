@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\ServiceFeedbackStatus;
+use App\Enums\ServiceFeedbackType;
 use App\Models\Concerns\HasUuidPrimaryKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EmployeeServiceFeedback extends Model
 {
@@ -19,12 +21,15 @@ class EmployeeServiceFeedback extends Model
     protected $fillable = [
         'employee_id',
         'employee_feedback_token_id',
+        'employee_assignment_id',
+        'type',
+        'reference_number',
+        'incident_date',
+        'incident_location',
         'organization_id',
         'organization_unit_id',
         'position_id',
         'position_service_id',
-        'service_no_snapshot',
-        'service_name_snapshot',
         'service_no_snapshot',
         'service_name_snapshot',
         'rating',
@@ -53,7 +58,9 @@ class EmployeeServiceFeedback extends Model
     {
         return [
             'status' => ServiceFeedbackStatus::class,
+            'type' => ServiceFeedbackType::class,
             'rating' => 'integer',
+            'incident_date' => 'date',
             'reviewed_at' => 'datetime',
         ];
     }
@@ -97,6 +104,16 @@ class EmployeeServiceFeedback extends Model
     public function token(): BelongsTo
     {
         return $this->belongsTo(EmployeeFeedbackToken::class, 'employee_feedback_token_id');
+    }
+
+    public function assignment(): BelongsTo
+    {
+        return $this->belongsTo(EmployeeAssignment::class, 'employee_assignment_id');
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(EmployeeServiceFeedbackAttachment::class, 'employee_service_feedback_id');
     }
 
     /** Entries an employee or a report may surface; excludes suppressed comments. */

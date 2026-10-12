@@ -8,11 +8,13 @@ use App\Enums\EmployeeStatus;
 use App\Enums\FeedbackTokenStatus;
 use App\Enums\OrganizationScopeType;
 use App\Enums\ServiceFeedbackStatus;
+use App\Enums\ServiceFeedbackType;
 use App\Models\AuditLog;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeFeedbackToken;
 use App\Models\EmployeeServiceFeedback;
+use App\Models\EmployeeServiceFeedbackAttachment;
 use App\Models\Organization;
 use App\Models\OrganizationType;
 use App\Models\OrganizationUnit;
@@ -21,6 +23,7 @@ use App\Models\PositionService;
 use App\Models\ServiceType;
 use App\Models\User;
 use App\Models\UserOrganizationScope;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -155,6 +158,77 @@ it('lets a super admin view the feedback dashboard', function (): void {
             // round() yields a whole float, which JSON-encodes as `4`.
             ->where('summary.average', fn (float|int $avg): bool => (float) $avg === 4.0)
         );
+});
+
+it('keeps complaints out of the rating dashboard and behind dedicated permissions', function (): void {
+    $complaint = EmployeeServiceFeedback::query()->create([
+        'employee_id' => $this->alpha['employee']->id,
+        'organization_id' => $this->alpha['org']->id,
+        'type' => ServiceFeedbackType::Complaint,
+        'comment' => 'A complaint for the service-quality team.',
+        'status' => ServiceFeedbackStatus::Pending,
+    ]);
+    makeFeedback($this->alpha, null, 5);
+
+    $this->actingAs($this->superAdmin)->get(route('service-feedback.admin.dashboard'))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page->where('summary.total', 1));
+    $this->actingAs($this->superAdmin)->get(route('service-submissions.complaints'))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->component('ServiceFeedback/SubmissionInbox')
+        ->where('entries.total', 1));
+
+    $orgAdmin = User::factory()->create();
+    $orgAdmin->assignRole('Organizational Admin');
+    $this->actingAs($orgAdmin)->get(route('service-submissions.complaints'))->assertForbidden();
+    $this->actingAs($orgAdmin)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))->assertForbidden();
+});
+
+it('prevents the target employee from viewing or resolving their own complaint', function (): void {
+    $complaint = EmployeeServiceFeedback::query()->create([
+        'employee_id' => $this->alpha['employee']->id,
+        'organization_id' => $this->alpha['org']->id,
+        'type' => ServiceFeedbackType::Complaint,
+        'comment' => 'A complaint about this employee.',
+        'status' => ServiceFeedbackStatus::Pending,
+    ]);
+    $this->superAdmin->forceFill(['employee_id' => $this->alpha['employee']->id])->save();
+
+    $this->actingAs($this->superAdmin)->get(route('service-submissions.complaints'))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page->where('entries.total', 0));
+    $this->actingAs($this->superAdmin)->get(route('service-submissions.show', ['type' => 'complaint', 'submission' => $complaint]))->assertForbidden();
+    $this->actingAs($this->superAdmin)->post(route('service-submissions.review', ['type' => 'complaint', 'submission' => $complaint]), ['status' => 'resolved'])->assertForbidden();
+    expect($complaint->fresh()->status)->toBe(ServiceFeedbackStatus::Pending);
+});
+
+it('keeps complaint files private and authorizes every download', function (): void {
+    Storage::fake('local');
+    $complaint = EmployeeServiceFeedback::query()->create([
+        'employee_id' => $this->alpha['employee']->id,
+        'organization_id' => $this->alpha['org']->id,
+        'type' => ServiceFeedbackType::Complaint,
+        'comment' => 'A complaint with evidence.',
+        'status' => ServiceFeedbackStatus::Pending,
+    ]);
+    Storage::disk('local')->put('service-feedback/'.$complaint->id.'/proof.pdf', '%PDF-1.4 test');
+    $file = EmployeeServiceFeedbackAttachment::query()->create([
+        'employee_service_feedback_id' => $complaint->id,
+        'disk' => 'local',
+        'path' => 'service-feedback/'.$complaint->id.'/proof.pdf',
+        'original_name' => 'proof.pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 13,
+        'sha256' => hash('sha256', '%PDF-1.4 test'),
+    ]);
+    $url = route('service-submissions.attachments.download', ['type' => 'complaint', 'submission' => $complaint, 'attachment' => $file]);
+
+    $this->get($url)->assertRedirect(route('login'));
+
+    $orgAdmin = User::factory()->create();
+    $orgAdmin->assignRole('Organizational Admin');
+    $this->actingAs($orgAdmin)->get($url)->assertForbidden();
+    $this->actingAs($this->superAdmin)->get($url)->assertOk()
+        ->assertHeader('X-Content-Type-Options', 'nosniff');
+    expect(AuditLog::query()->where('event_type', AuditEventType::ServiceComplaintAttachmentDownloaded->value)->exists())->toBeTrue();
 });
 
 it('aggregates the rating distribution across all five stars', function (): void {

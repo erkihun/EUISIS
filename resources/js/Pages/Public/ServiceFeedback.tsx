@@ -1,7 +1,9 @@
 import { FormEvent, useState } from 'react';
 import { controlClassName } from '@euisis/ui';
-import { publicButtonPrimary } from '@/Components/public/PublicPage';
-import { useForm } from '@inertiajs/react';
+import { PublicPageHeader, publicButtonPrimary } from '@/Components/public/PublicPage';
+import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
+import MultiFileUpload from '@/Components/public/MultiFileUpload';
+import { Link, useForm } from '@inertiajs/react';
 import PublicLayout from '@/Layouts/PublicLayout';
 import { useLocale } from '@/hooks/useLocale';
 
@@ -38,6 +40,71 @@ interface Props {
     context: PublicContext | null;
     serviceTypes: ServiceTypeOption[];
     submitted: boolean;
+    type: 'feedback' | 'suggestion' | 'complaint' | null;
+    reference: string | null;
+}
+
+function ServiceEntryForm({ token, type, serviceTypes }: { token: string; type: 'suggestion' | 'complaint'; serviceTypes: ServiceTypeOption[] }) {
+    const { t } = useLocale();
+    const { data, setData, post, processing, errors } = useForm({
+        position_service_id: '', message: '', client_name: '', client_contact: '',
+        incident_date: '', incident_location: '', attachments: [] as File[],
+    });
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        post(`/service-feedback/${token}/${type}`, { forceFormData: true, preserveScroll: true });
+    };
+
+    return (
+        <form onSubmit={submit} className="mt-4 space-y-5 rounded-card border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t(`serviceFeedback.type${type === 'suggestion' ? 'Suggestion' : 'Complaint'}`)}</h2>
+            <div>
+                <label htmlFor="entry-service" className="block text-sm font-medium">{t('serviceFeedback.serviceTypeOrId')} ({t('serviceFeedback.clientNameHint')})</label>
+                <select id="entry-service" value={data.position_service_id} onChange={(event) => setData('position_service_id', event.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`}>
+                    <option value="">{t('serviceFeedback.serviceTypePlaceholder')}</option>
+                    {serviceTypes.map((service) => <option key={service.id} value={service.id}>{service.service_no} — {service.name}</option>)}
+                </select>
+                {errors.position_service_id && <p role="alert" className="mt-1 text-sm text-red-600">{errors.position_service_id}</p>}
+            </div>
+            <div>
+                <label htmlFor="entry-message" className="block text-sm font-medium">{t(type === 'complaint' ? 'serviceFeedback.complaintDescription' : 'serviceFeedback.suggestionText')}</label>
+                <textarea id="entry-message" required maxLength={5000} rows={6} value={data.message} onChange={(event) => setData('message', event.target.value)} className={`${controlClassName} mt-1.5 h-auto min-h-32 py-2 text-base`} />
+                {errors.message && <p role="alert" className="mt-1 text-sm text-red-600">{errors.message}</p>}
+            </div>
+            {type === 'complaint' && <>
+                <div><label htmlFor="incident-date" className="block text-sm font-medium">{t('serviceFeedback.incidentDate')} ({t('serviceFeedback.clientNameHint')})</label>
+                    <div className="mt-1.5"><LocalizedDatePicker id="incident-date" value={data.incident_date} onChange={(iso) => setData('incident_date', iso)} /></div>
+                    {errors.incident_date && <p role="alert" className="mt-1 text-sm text-red-600">{errors.incident_date}</p>}</div>
+                <div><label htmlFor="incident-location" className="block text-sm font-medium">{t('serviceFeedback.incidentLocation')} ({t('serviceFeedback.clientNameHint')})</label>
+                    <input id="incident-location" maxLength={255} value={data.incident_location} onChange={(event) => setData('incident_location', event.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
+                    {errors.incident_location && <p role="alert" className="mt-1 text-sm text-red-600">{errors.incident_location}</p>}</div>
+                <div><label htmlFor="complaint-attachments" className="block text-sm font-medium">{t('serviceFeedback.attachments')} ({t('serviceFeedback.clientNameHint')})</label>
+                    <p id="attachment-hint" className="mt-1 text-xs text-slate-600 dark:text-slate-400">{t('serviceFeedback.attachmentHint')}</p>
+                    <div className="mt-2"><MultiFileUpload id="complaint-attachments" files={data.attachments} onChange={(files) => setData('attachments', files)} accept=".pdf,.jpg,.jpeg,.png" max={3} chooseLabel={t('serviceFeedback.chooseFiles')} removeLabel={t('serviceFeedback.removeFile')} describedBy="attachment-hint" /></div>
+                    {errors.attachments && <p role="alert" className="mt-1 text-sm text-red-600">{errors.attachments}</p>}</div>
+            </>}
+            <div className="grid gap-4 border-t border-slate-100 pt-4 dark:border-slate-800">
+                <div><label htmlFor="entry-name" className="block text-sm font-medium">{t('serviceFeedback.clientName')} ({t('serviceFeedback.clientNameHint')})</label>
+                    <input id="entry-name" maxLength={120} value={data.client_name} onChange={(event) => setData('client_name', event.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
+                    {errors.client_name && <p role="alert" className="mt-1 text-sm text-red-600">{errors.client_name}</p>}</div>
+                <div><label htmlFor="entry-contact" className="block text-sm font-medium">{t('serviceFeedback.clientContact')} ({t('serviceFeedback.clientContactHint')})</label>
+                    <input id="entry-contact" maxLength={120} value={data.client_contact} onChange={(event) => setData('client_contact', event.target.value)} className={`${controlClassName} mt-1.5 h-11 text-base`} />
+                    {errors.client_contact && <p role="alert" className="mt-1 text-sm text-red-600">{errors.client_contact}</p>}</div>
+            </div>
+            <button type="submit" disabled={processing} className={`${publicButtonPrimary} min-h-[48px] w-full text-base`}>
+                {processing ? t('serviceFeedback.submitting') : t(type === 'complaint' ? 'serviceFeedback.submitComplaint' : 'serviceFeedback.submitSuggestion')}
+            </button>
+            <p className="text-center text-xs text-slate-500 dark:text-slate-400">{t('serviceFeedback.publicPrivacyNote')}</p>
+        </form>
+    );
+}
+
+/** Office · unit, without repeating the role the heading already names. */
+function contextLine(context: PublicContext | null): string {
+    return [context?.organization, context?.organization_unit, context?.position]
+        .filter((part): part is string => Boolean(part) && part !== context?.display_name)
+        .join(' · ');
 }
 
 const RATING_VALUES = [1, 2, 3, 4, 5] as const;
@@ -57,7 +124,7 @@ function StarIcon({ filled }: { filled: boolean }) {
     );
 }
 
-export default function ServiceFeedback({ available, token, context, serviceTypes, submitted }: Props) {
+export default function ServiceFeedback({ available, token, context, serviceTypes, submitted, type = null, reference = null }: Props) {
     const { t } = useLocale();
 
     /*
@@ -77,7 +144,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        post(`/service-feedback/${token}`, {
+        post(`/service-feedback/${token}/feedback`, {
             preserveScroll: true,
             onSuccess: () => reset(),
         });
@@ -91,11 +158,12 @@ export default function ServiceFeedback({ available, token, context, serviceType
     if (!available) {
         return (
             <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
+            <PublicPageHeader title={t('serviceFeedback.publicTitle')} compact />
                 <div className="mx-auto max-w-md px-4 py-12">
                     <div className="rounded-card border border-slate-200 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-900">
-                        <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                             {t('serviceFeedback.linkUnavailable')}
-                        </h1>
+                        </h2>
                         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                             {t('serviceFeedback.linkUnavailableDetail')}
                         </p>
@@ -108,6 +176,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
     if (submitted) {
         return (
             <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
+            <PublicPageHeader title={t('serviceFeedback.publicTitle')} compact />
                 <div className="mx-auto max-w-md px-4 py-12">
                     <div className="rounded-card border border-emerald-200 bg-emerald-50 p-6 text-center dark:border-emerald-900 dark:bg-emerald-950/40">
                         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900">
@@ -115,29 +184,72 @@ export default function ServiceFeedback({ available, token, context, serviceType
                                 <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                         </div>
-                        <h1 className="mt-4 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
-                            {t('serviceFeedback.feedbackSubmitted')}
-                        </h1>
+                        <h2 className="mt-4 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
+                            {t(type === 'complaint' ? 'serviceFeedback.complaintSubmitted' : type === 'suggestion' ? 'serviceFeedback.suggestionSubmitted' : 'serviceFeedback.feedbackSubmitted')}
+                        </h2>
                         <p className="mt-2 text-sm text-emerald-800 dark:text-emerald-200">
-                            {t('serviceFeedback.feedbackSubmittedDetail')}
+                            {t(type === 'complaint' ? 'serviceFeedback.complaintSubmittedDetail' : type === 'suggestion' ? 'serviceFeedback.suggestionSubmittedDetail' : 'serviceFeedback.feedbackSubmittedDetail')}
                         </p>
+                        {reference && <p className="mt-3 font-mono text-base font-semibold text-emerald-900 dark:text-emerald-100">{t('serviceFeedback.referenceNumber')}: {reference}</p>}
+                        <Link href={`/service-feedback/${token}`} className="mt-5 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4 focus-visible:outline-2">{t('serviceFeedback.submitAnother')}</Link>
                     </div>
                 </div>
             </PublicLayout>
         );
     }
 
+    if (type === null) {
+        const options = [
+            { id: 'feedback', label: 'typeFeedback' },
+            { id: 'suggestion', label: 'typeSuggestion' },
+            { id: 'complaint', label: 'typeComplaint' },
+        ] as const;
+
+        return <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
+            <PublicPageHeader title={t('serviceFeedback.publicTitle')} compact />
+            <div className="mx-auto max-w-lg px-4 py-8">
+                <div className="rounded-card border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+                    <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{t('serviceFeedback.publicLandingTitle')}</h2>
+                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{t('serviceFeedback.publicIntro')}</p>
+                    <p className="mt-4 border-t border-slate-200 pt-4 text-sm font-medium text-slate-900 dark:border-slate-700 dark:text-slate-100">{context?.display_name}</p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{contextLine(context)}</p>
+                </div>
+                <nav aria-label={t('serviceFeedback.chooseType')} className="mt-5 grid gap-3">
+                    {options.map((option) => <Link key={option.id} href={`/service-feedback/${token}/${option.id}`} className="flex min-h-20 items-center justify-between rounded-card border-2 border-slate-200 bg-white px-5 text-lg font-semibold text-slate-900 transition-colors hover:border-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                        {t(`serviceFeedback.${option.label}`)} <span aria-hidden="true">→</span>
+                    </Link>)}
+                </nav>
+            </div>
+        </PublicLayout>;
+    }
+
+    if (type === 'suggestion' || type === 'complaint') {
+        return <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
+            <PublicPageHeader title={t('serviceFeedback.publicTitle')} compact />
+            <div className="mx-auto max-w-md px-4 py-8">
+                <Link href={`/service-feedback/${token}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline underline-offset-4 dark:text-emerald-300">{t('serviceFeedback.backToOptions')}</Link>
+                <div className="mt-3 rounded-card border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">{context?.display_name}</p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{contextLine(context)}</p>
+                </div>
+                <ServiceEntryForm token={token} type={type} serviceTypes={serviceTypes} />
+            </div>
+        </PublicLayout>;
+    }
+
     const activeRating = hoveredRating ?? data.rating;
 
     return (
         <PublicLayout title={t('serviceFeedback.publicTitle')} noindex>
+            <PublicPageHeader title={t('serviceFeedback.publicTitle')} compact />
 
             <div className="mx-auto max-w-md px-4 py-8">
+                <Link href={`/service-feedback/${token}`} className="mb-3 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-800 underline underline-offset-4 dark:text-emerald-300">{t('serviceFeedback.backToOptions')}</Link>
                 {/* Service point context — office and role only, never a person. */}
                 <div className="rounded-card border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-                    <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                         {context?.display_name}
-                    </h1>
+                    </h2>
                     <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
                         {t('serviceFeedback.publicIntro')}
                     </p>
@@ -189,7 +301,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                             ))}
                         </select>
                         {errors.position_service_id && (
-                            <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.position_service_id}</p>
+                            <p role="alert" className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.position_service_id}</p>
                         )}
                     </div>
 
@@ -222,7 +334,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                         <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
                             {data.rating > 0 ? t(`serviceFeedback.rating${data.rating}`) : t('serviceFeedback.ratingHint')}
                         </p>
-                        {errors.rating && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.rating}</p>}
+                        {errors.rating && <p role="alert" className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.rating}</p>}
                     </div>
 
                     {/* Comment */}
@@ -239,7 +351,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                             placeholder={t('serviceFeedback.commentPlaceholder')}
                             className={`${controlClassName} mt-1.5 h-auto min-h-28 py-2 text-base`}
                         />
-                        {errors.comment && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.comment}</p>}
+                        {errors.comment && <p role="alert" className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.comment}</p>}
                     </div>
 
                     {/* Optional identity. Left blank, the submission stays anonymous. */}
@@ -257,7 +369,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                                 onChange={(e) => setData('client_name', e.target.value)}
                                 className={`${controlClassName} mt-1.5 h-11 text-base`}
                             />
-                            {errors.client_name && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.client_name}</p>}
+                            {errors.client_name && <p role="alert" className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.client_name}</p>}
                         </div>
 
                         <div>
@@ -273,7 +385,7 @@ export default function ServiceFeedback({ available, token, context, serviceType
                                 onChange={(e) => setData('client_contact', e.target.value)}
                                 className={`${controlClassName} mt-1.5 h-11 text-base`}
                             />
-                            {errors.client_contact && <p className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.client_contact}</p>}
+                            {errors.client_contact && <p role="alert" className="mt-1.5 text-sm text-red-600 dark:text-red-400">{errors.client_contact}</p>}
                         </div>
                     </div>
 

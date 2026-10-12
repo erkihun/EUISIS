@@ -12,6 +12,7 @@ use App\Models\CodeGenerationLog;
 use App\Models\CodeRule;
 use App\Models\CodeRuleSequence;
 use App\Models\Employee;
+use App\Models\EmployeeServiceFeedback;
 use App\Models\Grievance;
 use App\Models\GrievanceDecision;
 use App\Models\GrievanceLetter;
@@ -272,6 +273,7 @@ class CodeGeneratorService
             CodeRuleEntityType::OrganizationUnit => OrganizationUnit::withTrashed()->where('code', $generatedCode)->exists(),
             CodeRuleEntityType::OrganizationUnitType => OrganizationUnitType::withTrashed()->where('code', $generatedCode)->exists(),
             CodeRuleEntityType::TransferApplication => TransferApplication::withTrashed()->where('application_number', $generatedCode)->exists(),
+            CodeRuleEntityType::PublicServiceComplaint => EmployeeServiceFeedback::query()->where('reference_number', $generatedCode)->exists(),
             default => false,
         };
     }

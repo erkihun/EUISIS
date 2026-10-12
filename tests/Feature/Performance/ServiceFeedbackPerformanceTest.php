@@ -63,8 +63,9 @@ beforeEach(function (): void {
 
 function clientRates($test, PositionService $service, int $rating): void
 {
-    RateLimiter::clear('sf-submit:'.$test->token->token.'|127.0.0.1');
-    RateLimiter::clear('sf-submit-ip:127.0.0.1');
+    // Named limiters store md5(limiter name . limit key), not the raw key.
+    RateLimiter::clear(md5('service-feedback-submit'.'sf-submit:'.$test->token->token.'|127.0.0.1'));
+    RateLimiter::clear(md5('service-feedback-submit'.'sf-submit-ip:127.0.0.1'));
     $test->post('/service-feedback/'.$test->token->token, ['position_service_id' => $service->id, 'rating' => $rating])->assertSessionHasNoErrors();
 }
 
@@ -76,24 +77,14 @@ function storedFeedback($test, PositionService $service, int $rating, string $at
     return $feedback;
 }
 
-it('turns a client rating into the actual of the agreement items for that service', function (): void {
+it('does not automatically turn a public client rating into a performance actual', function (): void {
     clientRates($this, $this->recruitment, 5);
     clientRates($this, $this->recruitment, 4);
     clientRates($this, $this->records, 2);
     clientRates($this, $this->advice, 1); // not marked for performance evaluation
 
-    $serviceActual = KpiActual::query()->where('employee_performance_item_id', $this->serviceItem->id)->sole();
-    expect($serviceActual->only(['actual_value', 'actual_numerator', 'actual_denominator']))->toBe(['actual_value' => '4.5000', 'actual_numerator' => '9.0000', 'actual_denominator' => '2.0000'])
-        ->and($serviceActual->period_start->toDateString())->toBe('2026-10-01')
-        ->and($serviceActual->period_end->toDateString())->toBe('2026-10-31')
-        ->and($serviceActual->verified)->toBeTrue();
-
-    // An item without a service takes every evaluated service of the position: (5 + 4 + 2) ÷ 3.
-    $generalActual = KpiActual::query()->where('employee_performance_item_id', $this->generalItem->id)->sole();
-    expect($generalActual->actual_value)->toBe('3.6667')->and($generalActual->actual_denominator)->toBe('3.0000');
-
-    $trace = collect(app(EmployeeScoreCalculator::class)->trace($this->agreement->fresh())['items'])->keyBy('item_id');
-    expect($trace[$this->serviceItem->id]['actual'])->toBe('4.5000');
+    expect(EmployeeServiceFeedback::query()->count())->toBe(4)
+        ->and(KpiActual::query()->count())->toBe(0);
 });
 
 it('keeps one non overlapping row per month however often or widely it is re-synced', function (): void {

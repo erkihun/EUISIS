@@ -108,6 +108,8 @@ const navigation = {
     cafeteriaSettingsReports: 'Report Settings',
     groupServiceFeedback: 'Service Feedback',
     serviceFeedbackDashboard: 'Feedback Dashboard',
+    serviceSuggestions: 'Suggestions',
+    serviceComplaints: 'Complaints',
     serviceFeedbackList: 'Client Feedback',
     serviceFeedbackReports: 'Feedback Reports',
     positionServices: 'Position Services',

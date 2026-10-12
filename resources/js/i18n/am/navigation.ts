@@ -108,6 +108,8 @@ const navigation = {
     cafeteriaSettingsReports: 'ሪፖርት ቅንብሮች',
     groupServiceFeedback: 'የአገልግሎት ግብረመልስ',
     serviceFeedbackDashboard: 'የግብረመልስ ዳሽቦርድ',
+    serviceSuggestions: 'ጥቆማዎች',
+    serviceComplaints: 'ቅሬታዎች',
     serviceFeedbackList: 'የደንበኛ ግብረመልስ',
     serviceFeedbackReports: 'የግብረመልስ ሪፖርቶች',
     positionServices: 'የሥራ መደብ አገልግሎቶች',

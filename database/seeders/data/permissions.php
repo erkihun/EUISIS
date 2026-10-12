@@ -1523,6 +1523,14 @@ return [
         'description_am' => 'የኢንድፖይንት ስኮፕ፣ ሁኔታ፣ መግለጫና የሰነድ ታይነት ማሻሻል ያስችላል።'],
 
     // Client Service Feedback
+    ['name' => 'service_feedback.complaints.view', 'group' => 'service_feedback', 'sort_order' => 80, 'is_system' => true,
+        'label_en' => 'View Public Service Complaints', 'label_am' => 'የሕዝብ አገልግሎት ቅሬታዎችን ማየት',
+        'description_en' => 'Allows selected service-quality roles to view public complaints within their organization scope.',
+        'description_am' => 'የተመረጡ የአገልግሎት ጥራት ሚናዎች በድርጅታቸው ወሰን ውስጥ የሕዝብ ቅሬታዎችን እንዲያዩ ያስችላል።'],
+    ['name' => 'service_feedback.complaints.review', 'group' => 'service_feedback', 'sort_order' => 90, 'is_system' => true,
+        'label_en' => 'Review Public Service Complaints', 'label_am' => 'የሕዝብ አገልግሎት ቅሬታዎችን መገምገም',
+        'description_en' => 'Allows selected service-quality roles to review and resolve public complaints, excluding complaints against themselves.',
+        'description_am' => 'የተመረጡ የአገልግሎት ጥራት ሚናዎች በራሳቸው ላይ ከቀረቡ ቅሬታዎች በስተቀር ቅሬታዎችን እንዲገመግሙ ያስችላል።'],
     ['name' => 'service_feedback.view', 'group' => 'service_feedback', 'sort_order' => 10, 'is_system' => true,
         'label_en' => 'View Service Feedback', 'label_am' => 'የአገልግሎት ዘገባ ይመልከቱ',
         'description_en' => 'Allows viewing client service feedback and analytics within the assigned organization scope.',

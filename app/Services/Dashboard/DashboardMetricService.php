@@ -1051,6 +1051,7 @@ class DashboardMetricService
     public function feedbackQuery(array $scope): Builder
     {
         return EmployeeServiceFeedback::query()
+            ->where('employee_service_feedback.type', 'feedback')
             ->when(
                 ! $scope['global_access'] && ! $scope['provider_only'] && $scope['organization_ids'] !== [],
                 fn (Builder $query) => $query->whereIn('employee_service_feedback.organization_id', $scope['organization_ids'])

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Enums\ServiceFeedbackType;
 use App\Models\EmployeeServiceFeedback;
 use App\Models\User;
 use App\Policies\Concerns\DeniesNonAdminUsers;
@@ -34,25 +35,29 @@ class EmployeeServiceFeedbackPolicy
 
     public function view(User $user, EmployeeServiceFeedback $feedback): bool
     {
-        return $user->hasAnyPermission(['service_feedback.view'])
+        return $user->hasAnyPermission([$feedback->type === ServiceFeedbackType::Complaint
+            ? 'service_feedback.complaints.view' : 'service_feedback.view'])
             && $this->withinScope($user, $feedback);
     }
 
     public function review(User $user, EmployeeServiceFeedback $feedback): bool
     {
-        return $user->hasAnyPermission(['service_feedback.review'])
+        return $user->hasAnyPermission([$feedback->type === ServiceFeedbackType::Complaint
+            ? 'service_feedback.complaints.review' : 'service_feedback.review'])
             && $this->withinScope($user, $feedback);
     }
 
     public function hide(User $user, EmployeeServiceFeedback $feedback): bool
     {
-        return $user->hasAnyPermission(['service_feedback.hide'])
+        return $feedback->type !== ServiceFeedbackType::Complaint
+            && $user->hasAnyPermission(['service_feedback.hide'])
             && $this->withinScope($user, $feedback);
     }
 
     public function delete(User $user, EmployeeServiceFeedback $feedback): bool
     {
-        return $user->hasAnyPermission(['service_feedback.delete'])
+        return $feedback->type !== ServiceFeedbackType::Complaint
+            && $user->hasAnyPermission(['service_feedback.delete'])
             && $this->withinScope($user, $feedback);
     }
 
@@ -74,6 +79,10 @@ class EmployeeServiceFeedbackPolicy
      */
     private function withinScope(User $user, EmployeeServiceFeedback $feedback): bool
     {
+        if ($user->employee_id !== null && $user->employee_id === $feedback->employee_id) {
+            return false;
+        }
+
         if ($this->scope->isUnrestricted($user)) {
             return true;
         }

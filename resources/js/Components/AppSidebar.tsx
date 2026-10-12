@@ -449,6 +449,8 @@ const navGroups: NavGroup[] = [
         items: [
             { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
             { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: MessageSquareIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: MessageSquareIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: MessageSquareIcon, permission: 'service_feedback.complaints.view' },
             { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: StarIcon,          permission: 'service_feedback.view' },
             { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', icon: Layers,            permission: 'service-types.viewAny' },
             { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: BadgeCheckIcon,    permission: 'entitlements.view' },

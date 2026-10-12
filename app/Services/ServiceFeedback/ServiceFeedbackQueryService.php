@@ -34,7 +34,11 @@ class ServiceFeedbackQueryService
      */
     public function scopedQuery(User $user): Builder
     {
-        $query = EmployeeServiceFeedback::query();
+        $query = EmployeeServiceFeedback::query()->where('type', 'feedback');
+
+        if ($user->employee_id !== null) {
+            $query->where('employee_id', '!=', $user->employee_id);
+        }
 
         if ($this->scope->isUnrestricted($user)) {
             return $query;
