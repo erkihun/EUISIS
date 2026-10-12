@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\OrganizationFeedbackQrCode;
 use App\Models\User;
 use App\Services\IdCards\IdCardQrCodeRenderer;
+use App\Services\OrganizationScope\OrganizationScopeService;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrAccess;
 use App\Services\ServiceFeedback\OrganizationFeedbackQrService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -34,7 +35,55 @@ class OrganizationFeedbackQrController extends Controller
         private readonly OrganizationFeedbackQrService $codes,
         private readonly OrganizationFeedbackQrAccess $access,
         private readonly IdCardQrCodeRenderer $qrRenderer,
+        private readonly OrganizationScopeService $scope,
     ) {}
+
+    /** Every institution in the user's scope with the state of its feedback QR (brief §79 "Organization QR Codes"). */
+    public function index(): Response
+    {
+        $user = $this->user();
+        abort_unless($user->hasAnyPermission(['service_feedback.organization_qr.view']), 403);
+
+        $organizations = Organization::query()
+            ->when(! $this->scope->isUnrestricted($user), fn ($q) => $q->whereIn('id', $this->scope->accessibleOrganizationIds($user)->all()))
+            ->orderBy('name_en')
+            ->get(['id', 'code', 'name_en', 'name_am', 'status']);
+        $ids = $organizations->pluck('id')->all();
+        $codes = OrganizationFeedbackQrCode::query()
+            ->whereIn('organization_id', $ids)
+            ->whereIn('status', ['active', 'disabled'])
+            ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+            ->orderByDesc('created_at')
+            ->get()
+            ->unique('organization_id')
+            ->keyBy('organization_id');
+        $submissions = EmployeeServiceFeedback::query()
+            ->whereIn('organization_target_id', $ids)
+            ->selectRaw('organization_target_id, COUNT(*) AS total')
+            ->groupBy('organization_target_id')
+            ->pluck('total', 'organization_target_id');
+
+        return Inertia::render('ServiceFeedback/OrganizationQrIndex', [
+            'organizations' => $organizations->map(function (Organization $organization) use ($codes, $submissions): array {
+                $qr = $codes->get($organization->id);
+
+                return [
+                    'id' => $organization->id,
+                    'code' => $organization->code,
+                    'name_en' => $organization->name_en,
+                    'name_am' => $organization->name_am,
+                    'status' => $organization->status->value,
+                    'qr' => $qr === null ? null : [
+                        'status' => $qr->status->value,
+                        'scan_count' => (int) $qr->scan_count,
+                        'last_scanned_at' => $qr->last_scanned_at?->toIso8601String(),
+                        'enabled_at' => $qr->enabled_at?->toIso8601String(),
+                    ],
+                    'submissions' => (int) ($submissions[$organization->id] ?? 0),
+                ];
+            })->values()->all(),
+        ]);
+    }
 
     public function show(Request $request, Organization $organization): Response
     {

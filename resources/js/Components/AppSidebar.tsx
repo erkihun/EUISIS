@@ -447,14 +447,31 @@ const navGroups: NavGroup[] = [
         labelKey: 'nav.groupServiceManagement',
         icon: MessageSquareIcon,
         items: [
-            { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
-            { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: MessageSquareIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: MessageSquareIcon, permission: 'service_feedback.view' },
-            { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: MessageSquareIcon, permission: 'service_feedback.complaints.view' },
-            { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: StarIcon,          permission: 'service_feedback.view' },
             { routeName: 'service-types.index', labelKey: 'nav.serviceTypes', icon: Layers,            permission: 'service-types.viewAny' },
             { routeName: 'entitlements.index', labelKey: 'nav.entitlements',             icon: BadgeCheckIcon,    permission: 'entitlements.view' },
             { routeName: 'entitlement-rules.index', labelKey: 'nav.entitlementRules', icon: ReceiptTextIcon,   permission: 'entitlement-rules.viewAny' },
+        ],
+    },
+    {
+        /*
+         * Public Feedback Management (brief §79–80): what the public said
+         * through the employee and institution QR codes, and how it is routed,
+         * handled and reported. Independent of grievances and discipline.
+         */
+        key: 'serviceFeedback',
+        labelKey: 'nav.groupPublicFeedback',
+        icon: MessageSquareIcon,
+        items: [
+            { routeName: 'service-feedback.admin.dashboard', labelKey: 'nav.serviceFeedbackDashboard', icon: LayoutDashboard, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.admin.index', labelKey: 'nav.serviceFeedbackList', icon: StarIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-submissions.suggestions', labelKey: 'nav.serviceSuggestions', icon: MessageSquareIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-submissions.complaints', labelKey: 'nav.serviceComplaints', icon: Inbox, permission: 'service_feedback.complaints.view' },
+            { routeName: 'service-feedback.categories.index', labelKey: 'nav.serviceFeedbackCategories', icon: TagsIcon, permission: 'service_feedback.manage_categories' },
+            { routeName: 'service-feedback.routing-rules.index', labelKey: 'nav.serviceFeedbackRoutingRules', icon: GitForkIcon, permission: 'service_feedback.manage_routing' },
+            { routeName: 'service-feedback.organization-qr.index', labelKey: 'nav.organizationFeedbackQrCodes', icon: QrCodeIcon, permission: 'service_feedback.organization_qr.view' },
+            { routeName: 'service-feedback.admin.reports', labelKey: 'nav.serviceFeedbackReports', icon: StarIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.submission-reports.index', labelKey: 'nav.serviceSubmissionReports', icon: ClipboardListIcon, permission: 'service_feedback.view' },
+            { routeName: 'service-feedback.settings.index', labelKey: 'nav.serviceFeedbackSettings', icon: SettingsIcon, permission: 'service_feedback.settings.manage' },
         ],
     },
     {
@@ -562,7 +579,7 @@ const SIDEBAR_GROUPS_STORAGE_KEY = 'euisis-sidebar-open-groups';
 const sections: { labelKey?: string; keys: string[] }[] = [
     { labelKey: 'nav.sidebarPeople', keys: ['myWork', 'performance', 'assessments', 'employeeManagement', 'dailyActivity', 'transferManagement', 'organization', 'hrMasterData', 'identity'] },
     { keys: ['fieldWork'] },
-    { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'cafeteria', 'transport', 'grievances'] },
+    { labelKey: 'nav.sidebarOperations', keys: ['serviceManagement', 'serviceFeedback', 'cafeteria', 'transport', 'grievances'] },
     { labelKey: 'nav.sidebarGovernance', keys: ['providers', 'auditMonitoring'] },
 ];
 

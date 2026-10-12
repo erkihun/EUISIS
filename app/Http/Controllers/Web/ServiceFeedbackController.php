@@ -13,6 +13,7 @@ use App\Models\EmployeeServiceFeedback;
 use App\Models\Organization;
 use App\Models\PositionService;
 use App\Services\OrganizationScope\OrganizationScopeService;
+use App\Services\ServiceFeedback\PublicFeedbackMetrics;
 use App\Services\ServiceFeedback\PublicFeedbackVisibility;
 use App\Services\ServiceFeedback\ServiceFeedbackQueryService;
 use Illuminate\Http\RedirectResponse;
@@ -54,6 +55,7 @@ class ServiceFeedbackController extends Controller
         private readonly ServiceFeedbackQueryService $feedbackQuery,
         private readonly WriteAuditLogAction $writeAuditLogAction,
         private readonly PublicFeedbackVisibility $visibility,
+        private readonly PublicFeedbackMetrics $metrics,
     ) {}
 
     public function dashboard(Request $request): Response
@@ -69,6 +71,8 @@ class ServiceFeedbackController extends Controller
         );
 
         return Inertia::render('ServiceFeedback/Dashboard', [
+            // Brief §81: every public submission type, within the same scope and period.
+            'submissions' => $this->metrics->overview($this->metrics->query($user, $this->metrics->filters(array_intersect_key($filters, array_flip(['organization_id', 'date_from', 'date_to']))))),
             'summary' => $this->feedbackQuery->summary($base),
             'ratingDistribution' => $this->feedbackQuery->ratingDistribution($base),
             'byOrganization' => $this->feedbackQuery->byOrganization($base),

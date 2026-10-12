@@ -27,7 +27,16 @@ type GroupRow = {
     employee_number?: string | null;
 };
 
+type Submissions = {
+    total: number;
+    by_type: Record<'feedback' | 'suggestion' | 'complaint', number>;
+    by_target: Record<'employee' | 'organization', number>;
+    by_status: Record<string, number>;
+};
+
 type Props = {
+    /** Every public submission type in the same scope and period (brief §81). */
+    submissions: Submissions;
     summary: { total: number; average: number; low_rated: number; pending: number };
     ratingDistribution: { rating: number; count: number }[];
     byOrganization: GroupRow[];
@@ -49,6 +58,7 @@ const STAR_BAR: Record<number, string> = {
 };
 
 export default function ServiceFeedbackDashboard({
+    submissions,
     summary,
     ratingDistribution,
     byOrganization,
@@ -151,6 +161,35 @@ export default function ServiceFeedbackDashboard({
                         ) : t('serviceFeedback.allCaughtUp')}
                         cta={t('serviceFeedback.openInbox')}
                     />
+                </section>
+
+                {/* Public submissions across the three types (brief §81) */}
+                <section aria-labelledby="submissions-heading" className="space-y-3 rounded-[var(--radius-panel)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-5">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <h2 id="submissions-heading" className="text-[15px] font-semibold text-[color:var(--app-foreground)]">{t('serviceFeedback.publicSubmissions')}</h2>
+                        <span className="text-[13px] text-[color:var(--app-muted-foreground)]">{t('serviceFeedback.publicSubmissionsHint')}</span>
+                    </div>
+                    <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        {([
+                            { key: 'total', label: t('serviceFeedback.totalSubmissions'), value: submissions.total, href: withScope('service-feedback.submission-reports.index') },
+                            { key: 'suggestion', label: t('serviceFeedback.typeSuggestion'), value: submissions.by_type.suggestion, href: route('service-submissions.suggestions') },
+                            { key: 'complaint', label: t('serviceFeedback.typeComplaint'), value: submissions.by_type.complaint, href: route('service-submissions.complaints') },
+                            { key: 'feedback', label: t('serviceFeedback.typeFeedback'), value: submissions.by_type.feedback, href: withScope('service-feedback.admin.index') },
+                            { key: 'employee', label: t('serviceFeedback.employeeTargeted'), value: submissions.by_target.employee, href: withScope('service-feedback.submission-reports.index', { target_type: 'employee' }) },
+                            { key: 'organization', label: t('serviceFeedback.organizationTargeted'), value: submissions.by_target.organization, href: withScope('service-feedback.submission-reports.index', { target_type: 'organization' }) },
+                            { key: 'unrouted', label: t('serviceFeedback.statusUnrouted'), value: submissions.by_status.unrouted ?? 0, href: route('service-submissions.complaints', { status: 'unrouted' }), warn: true },
+                            { key: 'under_review', label: t('serviceFeedback.statusUnderReview'), value: submissions.by_status.under_review ?? 0, href: route('service-submissions.complaints', { status: 'under_review' }) },
+                            { key: 'resolved', label: t('serviceFeedback.statusResolved'), value: submissions.by_status.resolved ?? 0, href: withScope('service-feedback.submission-reports.index', { status: 'resolved' }) },
+                            { key: 'closed', label: t('serviceFeedback.statusClosed'), value: submissions.by_status.closed ?? 0, href: withScope('service-feedback.submission-reports.index', { status: 'closed' }) },
+                        ] as { key: string; label: string; value: number; href: string; warn?: boolean }[]).map((item) => (
+                            <li key={item.key}>
+                                <Link href={item.href} className="block rounded-[var(--radius-card)] border border-[color:var(--app-border)] p-3 transition-colors hover:bg-[color:var(--app-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]">
+                                    <span className="block text-[13px] text-[color:var(--app-muted-foreground)]">{item.label}</span>
+                                    <span className={cx('mt-1 block text-xl font-semibold tabular-nums', item.warn && item.value > 0 && 'text-amber-700 dark:text-amber-300')}>{item.value.toLocaleString()}</span>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
                 </section>
 
                 <div className="grid gap-4 lg:grid-cols-12">

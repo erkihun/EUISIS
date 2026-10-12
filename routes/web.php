@@ -78,6 +78,7 @@ use App\Http\Controllers\Web\EmployeeController;
 use App\Http\Controllers\Web\EmployeeFeedbackQrController;
 use App\Http\Controllers\Web\OrganizationFeedbackQrController;
 use App\Http\Controllers\Web\PublicFeedbackCategoryController;
+use App\Http\Controllers\Web\PublicFeedbackReportController;
 use App\Http\Controllers\Web\PublicFeedbackRoutingRuleController;
 use App\Http\Controllers\Web\PublicFeedbackSettingsController;
 use App\Http\Controllers\Web\EmployeeImportController;
@@ -1310,6 +1311,10 @@ Route::middleware(['auth', 'verified', 'mfa', 'force.password', 'admin.access'])
     Route::post('/feedback-admin/categories', [PublicFeedbackCategoryController::class, 'store'])->name('service-feedback.categories.store');
     Route::put('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'update'])->whereUuid('category')->name('service-feedback.categories.update');
     Route::delete('/feedback-admin/categories/{category}', [PublicFeedbackCategoryController::class, 'destroy'])->whereUuid('category')->name('service-feedback.categories.destroy');
+    Route::get('/feedback-admin/organization-qr', [OrganizationFeedbackQrController::class, 'index'])->name('service-feedback.organization-qr.index');
+    Route::get('/feedback-admin/submission-reports', [PublicFeedbackReportController::class, 'index'])->name('service-feedback.submission-reports.index');
+    Route::post('/feedback-admin/submission-reports/export', [PublicFeedbackReportController::class, 'export'])->name('service-feedback.submission-reports.export');
+    Route::get('/feedback-admin/submission-reports/exports/{export}', [PublicFeedbackReportController::class, 'download'])->whereUuid('export')->name('service-feedback.submission-reports.download');
     Route::get('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'index'])->name('service-feedback.settings.index');
     Route::put('/feedback-admin/settings', [PublicFeedbackSettingsController::class, 'update'])->name('service-feedback.settings.update');
     Route::get('/feedback-admin/routing-rules', [PublicFeedbackRoutingRuleController::class, 'index'])->name('service-feedback.routing-rules.index');

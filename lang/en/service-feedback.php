@@ -37,6 +37,24 @@ return [
     'rule_deleted' => 'The routing rule was deleted.',
     'category_out_of_scope' => 'The category must be city-wide or belong to the rule\'s institution.',
     'settings_saved' => 'The public feedback policy was saved.',
+    'export_queued' => 'Export queued. It appears in the list below once the file is ready.',
+
+    'export_columns' => [
+        'submitted_at' => 'Submitted At',
+        'reference' => 'Reference',
+        'type' => 'Type',
+        'target_type' => 'Target Type',
+        'target_name' => 'Target',
+        'organization' => 'Organization',
+        'organization_unit' => 'Unit',
+        'category' => 'Category',
+        'status' => 'Status',
+        'handler' => 'Handler',
+        'client_name' => 'Submitter Name',
+        'client_contact' => 'Submitter Contact',
+        'subject' => 'Subject',
+        'message' => 'Message',
+    ],
 
     'types' => [
         'feedback' => 'feedback',

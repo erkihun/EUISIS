@@ -37,6 +37,24 @@ return [
     'rule_deleted' => 'የመስመር ደንቡ ተሰርዟል።',
     'category_out_of_scope' => 'ምድቡ ከተማ አቀፍ ወይም የደንቡ ተቋም መሆን አለበት።',
     'settings_saved' => 'የሕዝብ አስተያየት ፖሊሲው ተቀምጧል።',
+    'export_queued' => 'ወደ ውጭ መላክ ተሰልፏል። ፋይሉ ሲዘጋጅ ከታች ባለው ዝርዝር ውስጥ ይታያል።',
+
+    'export_columns' => [
+        'submitted_at' => 'የገባበት ጊዜ',
+        'reference' => 'ማጣቀሻ',
+        'type' => 'ዓይነት',
+        'target_type' => 'የዒላማ ዓይነት',
+        'target_name' => 'ዒላማ',
+        'organization' => 'ተቋም',
+        'organization_unit' => 'ክፍል',
+        'category' => 'ምድብ',
+        'status' => 'ሁኔታ',
+        'handler' => 'አስተናጋጅ',
+        'client_name' => 'የአቅራቢ ስም',
+        'client_contact' => 'የአቅራቢ መገናኛ',
+        'subject' => 'ርዕስ',
+        'message' => 'መልዕክት',
+    ],
 
     'types' => [
         'feedback' => 'አስተያየት',
