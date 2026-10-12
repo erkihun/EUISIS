@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type FormEvent, type MouseEvent, type ReactElement, type ReactNode } from 'react';
 import {
     Combobox,
     ComboboxButton,
@@ -9,7 +9,6 @@ import {
     MenuButton,
     MenuItem,
     MenuItems,
-    Transition,
 } from '@headlessui/react';
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table';
 import { useUiMessages } from './context';
@@ -256,22 +255,56 @@ export function SearchableSelect({ id, label, immediate = false, value, options:
     </Combobox>;
 }
 
-export interface ActionItem { label: ReactNode; icon?: ReactNode; onClick?: () => void; href?: string; danger?: boolean; separatorBefore?: boolean; show?: boolean; disabled?: boolean }
-export function ActionMenu({ items, label, renderLink }: { items: ActionItem[]; label?: string; renderLink?: (item: ActionItem, className: string) => ReactNode }) {
+export type ActionMenuTone = 'default' | 'warning' | 'danger';
+export interface ActionItem {
+    label: ReactNode;
+    icon?: ReactNode;
+    onClick?: () => void;
+    href?: string;
+    /** Inertia method for an href; anything but GET renders the link as a button. */
+    method?: 'get' | 'post' | 'put' | 'patch' | 'delete';
+    tone?: ActionMenuTone;
+    /** @deprecated Use `tone: 'danger'`. */
+    danger?: boolean;
+    /** Tooltip, e.g. why the action is disabled. */
+    title?: string;
+    separatorBefore?: boolean;
+    show?: boolean;
+    disabled?: boolean;
+}
+const actionItemTones: Record<ActionMenuTone, { text: string; focus: string }> = {
+    default: { text: 'text-[color:var(--app-foreground)]', focus: 'bg-[color:var(--app-surface-muted)]' },
+    warning: { text: 'text-amber-700 dark:text-amber-400', focus: 'bg-amber-50 dark:bg-amber-900/20' },
+    danger: { text: 'text-red-700 dark:text-red-400', focus: 'bg-red-50 dark:bg-red-900/20' },
+};
+/**
+ * The ⋮ menu that holds a record's actions: one 32px trigger at the end of a table row or card and a
+ * floating list (anchored, so a scrolling table card never clips it) with one tone per intent. Links
+ * render through `renderLink` (the app passes Inertia's Link); a menu with no visible item renders nothing.
+ */
+export function ActionMenu({ items, label, renderLink }: { items: ActionItem[]; label?: string; renderLink?: (item: ActionItem, className: string) => ReactElement }) {
     const messages = useUiMessages();
     const visible = items.filter((item) => item.show !== false);
     if (!visible.length) return null;
+    const name = label ?? messages.actions;
     return <Menu as="div" className="relative inline-block">
-        <MenuButton className={cx('inline-flex h-[var(--control-h-md)] w-[var(--control-h-md)] items-center justify-center rounded-[var(--radius-control)] text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)]')} aria-label={label ?? messages.actions}>•••</MenuButton>
-        <Transition as={Fragment} enter="transition duration-100" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="transition duration-75" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
-            <MenuItems anchor="bottom end" className="z-50 mt-1 w-44 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-1 shadow-lg focus:outline-none">
-                {visible.map((item, index) => <Fragment key={index}>{item.separatorBefore && <div className="my-1 border-t border-[color:var(--app-border)]" /> }<MenuItem disabled={item.disabled}>{({ focus }) => {
-                    const itemClass = cx('flex w-full items-center gap-2 rounded-[var(--radius-control)] px-3 py-2 text-left text-sm', focus && 'bg-[color:var(--app-surface-muted)]', item.danger && 'text-red-700 dark:text-red-400', item.disabled && 'opacity-50');
-                    if (item.href && renderLink) return <>{renderLink(item, itemClass)}</>;
-                    if (item.href) return <a href={item.href} className={itemClass}>{item.icon}{item.label}</a>;
-                    return <button type="button" className={itemClass} onClick={item.onClick} disabled={item.disabled}>{item.icon}{item.label}</button>;
-                }}</MenuItem></Fragment>)}
+        {/* Rows that navigate on click must not see the clicks that open the menu or pick an action (React bubbles through the portal). */}
+        <MenuButton onClick={(event: MouseEvent) => event.stopPropagation()} className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-control)] text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)] data-[open]:bg-[color:var(--app-surface-muted)] data-[open]:text-[color:var(--app-foreground)]" aria-label={name} title={name}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor"><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg>
+        </MenuButton>
+        <MenuItems transition anchor="bottom end" onClick={(event: MouseEvent) => event.stopPropagation()} className="z-50 w-48 origin-top-right rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-1 shadow-lg transition duration-100 ease-out focus:outline-none data-[closed]:scale-95 data-[closed]:opacity-0 [--anchor-gap:4px]">
+                {visible.map((item, index) => {
+                    const tone = actionItemTones[item.tone ?? (item.danger ? 'danger' : 'default')];
+                    return <Fragment key={index}>
+                        {item.separatorBefore && <div className="my-1 border-t border-[color:var(--app-border)]" />}
+                        <MenuItem disabled={item.disabled}>{({ focus }) => {
+                            const itemClass = cx('flex w-full items-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] px-3 py-2 text-left text-sm [&>svg]:h-4 [&>svg]:w-4 [&>svg]:shrink-0', tone.text, focus && tone.focus, item.disabled && 'cursor-not-allowed opacity-50');
+                            if (item.href && renderLink) return renderLink(item, itemClass);
+                            if (item.href) return <a href={item.href} className={itemClass} title={item.title} aria-disabled={item.disabled || undefined}>{item.icon}{item.label}</a>;
+                            return <button type="button" className={itemClass} onClick={item.onClick} disabled={item.disabled} title={item.title}>{item.icon}{item.label}</button>;
+                        }}</MenuItem>
+                    </Fragment>;
+                })}
             </MenuItems>
-        </Transition>
     </Menu>;
 }

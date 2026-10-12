@@ -7,7 +7,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type OrgType = {
     id: string;
     code: string;
@@ -171,30 +172,14 @@ export default function OrganizationTypesIndex({
                                             <StatusBadge status={type.is_active ? 'active' : 'inactive'} />
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <div className="flex items-center justify-end gap-3">
-                                                <Link
-                                                    href={route('organization-types.show', type.id)}
-                                                    className={actionLinkClassName({ tone: 'neutral' })}
-                                                >
-                                                    {tr('common.view')}
-                                                </Link>
-                                                {type.can.update && (
-                                                    <Link
-                                                        href={route('organization-types.edit', type.id)}
-                                                        className={actionLinkClassName()}
-                                                    >
-                                                        {tr('common.edit')}
-                                                    </Link>
-                                                )}
-                                                {type.can.delete && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => destroy(type.id)}
-                                                        className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                                    >
-                                                        {tr('common.delete')}
-                                                    </button>
-                                                )}
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: tr('common.view'), href: route('organization-types.show', type.id) },
+                                                        { label: tr('common.edit'), href: route('organization-types.edit', type.id), show: type.can.update },
+                                                        { label: tr('common.delete'), onClick: () => destroy(type.id), variant: 'danger', show: type.can.delete },
+                                                    ]}
+                                                />
                                             </div>
                                         </td>
                                     </tr>

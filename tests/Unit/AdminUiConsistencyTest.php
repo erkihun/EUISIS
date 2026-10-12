@@ -60,6 +60,10 @@ function adminUiCounts(): array
         'native confirm' => '/\b(?:window\.)?confirm\(\s*(?:t\(|[\'"`])/',
         // Surfaces use the radius tokens (rounded-card / rounded-panel / rounded-control).
         'large radius' => '/\brounded-(xl|2xl|3xl)\b/',
+        // A record's actions open from one ⋮ menu (AppActionMenu) at the end of its row; a page
+        // neither lists them as text links nor builds its own dropdown.
+        'row action links outside the menu' => '/<(?:Link|a|button)\b(?:[^>]|=>)*?className=\{actionLinkClassName\(/',
+        'hand-rolled dropdown' => '/\bcreatePortal\(/',
     ];
     $counts = array_fill_keys(array_keys($patterns), 0);
 
@@ -97,6 +101,12 @@ it('keeps hand-rolled admin UI from growing', function (): void {
         // View switchers, not filters: the performance dashboard cycle and the
         // daily-activity report type each change what the whole page shows.
         'select that reloads the page' => 2,
+        // Table rows open their actions from AppActionMenu. What is left are text links in cards, detail
+        // pages, form repeaters and the organization-design trees (ActivityTree, FunctionTree), plus the
+        // PageHeader back link; lower this as those move to buttons or the menu.
+        'row action links outside the menu' => 113,
+        // The Ethiopian date-picker popover and the two ID-card print modals (uncommitted work) still portal.
+        'hand-rolled dropdown' => 3,
     ];
 
     $counts = adminUiCounts();

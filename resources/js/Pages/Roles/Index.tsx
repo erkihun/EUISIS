@@ -6,7 +6,8 @@ import { Plus } from '@/Components/Icons';
 import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 
-import { actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type RoleRow = {
     id: number;
     name: string;
@@ -120,24 +121,13 @@ export default function RolesIndex({
                                             {r.users_count}
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <div className="flex items-center justify-end gap-3">
-                                                {r.can.update && (
-                                                    <Link
-                                                        href={route('roles.edit', r.id)}
-                                                        className={actionLinkClassName()}
-                                                    >
-                                                        {t('common.edit')}
-                                                    </Link>
-                                                )}
-                                                {r.can.delete && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => destroy(r.id, r.name)}
-                                                        className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                                    >
-                                                        {t('common.delete')}
-                                                    </button>
-                                                )}
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.edit'), href: route('roles.edit', r.id), show: r.can.update },
+                                                        { label: t('common.delete'), onClick: () => destroy(r.id, r.name), variant: 'danger', show: r.can.delete },
+                                                    ]}
+                                                />
                                             </div>
                                         </td>
                                     </tr>

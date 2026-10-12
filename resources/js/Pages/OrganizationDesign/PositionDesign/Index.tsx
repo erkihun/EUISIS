@@ -2,9 +2,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Named = { id: string; code: string; name_en: string; name_am: string | null };
 type Row = {
@@ -76,7 +77,15 @@ export default function PositionDesignIndex({ positions, filters, organizations 
                                         <Td muted>{p.occupation ? `${p.occupation.isco_code ?? p.occupation.code} · ${nameOf(p.occupation, locale)}` : '—'}</Td>
                                         <Td>{p.profile_status ? <StatusPill status={p.profile_status} /> : <span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.none')}</span>}</Td>
                                         <Td>{p.job_description_status ? <StatusPill status={p.job_description_status} /> : <span className="text-xs text-[color:var(--app-muted-foreground)]">{tt('positionDesign.none')}</span>}</Td>
-                                        <Td align="right"><Link href={route('organization-design.position-design.show', p.id)} className={actionLinkClassName()}>{tt('positionDesign.design')}</Link></Td>
+                                        <Td align="right">
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: tt('positionDesign.design'), href: route('organization-design.position-design.show', p.id) },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </Td>
                                     </Tr>
                                 ))}
                             </TBody>

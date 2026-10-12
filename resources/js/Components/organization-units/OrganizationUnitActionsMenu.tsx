@@ -1,5 +1,5 @@
-import { Link, router } from '@inertiajs/react';
-import { actionLinkClassName } from '@/Components/ui';
+import { router } from '@inertiajs/react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import type { OrganizationUnit } from '@/types/organizationUnit';
@@ -8,6 +8,7 @@ interface Props {
     unit: OrganizationUnit;
 }
 
+/** The ⋮ menu on an organization-unit row: view, edit, and delete (archives after confirmation). */
 export default function OrganizationUnitActionsMenu({ unit }: Props) {
     const { t } = useLocale();
     const { confirm } = useConfirm();
@@ -25,30 +26,14 @@ export default function OrganizationUnitActionsMenu({ unit }: Props) {
     }
 
     return (
-        <div className="flex items-center justify-end gap-3">
-            <Link
-                href={route('organization-units.show', unit.id)}
-                className={actionLinkClassName({ tone: 'neutral' })}
-            >
-                {t('common.view')}
-            </Link>
-            {unit.can.update && (
-                <Link
-                    href={route('organization-units.edit', unit.id)}
-                    className={actionLinkClassName()}
-                >
-                    {t('common.edit')}
-                </Link>
-            )}
-            {unit.can.archive && (
-                <button
-                    type="button"
-                    onClick={handleDelete}
-                    className={actionLinkClassName({ tone: 'danger' })}
-                >
-                    {t('common.delete')}
-                </button>
-            )}
+        <div className="flex justify-end">
+            <AppActionMenu
+                items={[
+                    { label: t('common.view'), href: route('organization-units.show', unit.id) },
+                    { label: t('common.edit'), href: route('organization-units.edit', unit.id), show: unit.can.update },
+                    { label: t('common.delete'), onClick: handleDelete, variant: 'danger', show: unit.can.archive },
+                ]}
+            />
         </div>
     );
 }

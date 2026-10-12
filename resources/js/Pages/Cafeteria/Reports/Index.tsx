@@ -1,13 +1,14 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import EmptyState from '@/Components/EmptyState';
-import { Head, Link, useForm, router, usePage } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import LocalizedDatePicker from '@/Components/Calendar/LocalizedDatePicker';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
-import { FilterField, FilterPanel, ListPagination, Select, actionLinkClassName, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, ListPagination, Select, buttonClassName, cx, inputClassName, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type ReportRun = {
     id: string;
     report_number: string;
@@ -164,9 +165,13 @@ export default function ReportsIndex({
                                             <td className={cx(tableCellClassName, 'whitespace-nowrap text-right font-medium tabular-nums text-emerald-600')}>{rpt.totals?.total_subsidy != null ? money.format(rpt.totals.total_subsidy) + ' ETB' : '—'}</td>
                                             <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={rpt.generated_at} withTime /></td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
-                                                <Link href={route('cafeteria.reports.show', rpt.id)} className={actionLinkClassName()}>
-                                                    {t('common.view')}
-                                                </Link>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.view'), href: route('cafeteria.reports.show', rpt.id) },
+                                                        ]}
+                                                    />
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

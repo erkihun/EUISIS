@@ -26,7 +26,7 @@ and `tests/Unit/AdminShellDesignTest.php` fail when a page drifts.
 | Primary action | In the page header. A card header carries the primary action only on pages without a page-level action. |
 | Vertical rhythm | Page blocks `space-y-6`; inside a card `space-y-4`; form fields `--space-field`; sections `--space-section`. |
 | Cards | `Card` family on `--app-surface` with `--app-border`, `rounded-card`, `--card-padding`; tonal tints only through `card-tone-*`. KPI cards: `KpiCard` (dashboard) with tonal tints, `StatCard` and `AppMetricCard` elsewhere; all three share the card tokens. |
-| Tables | `TableCard` + table kit or `AppDataTable`; header on `--app-surface-muted`, `text-table`, sort indicator from the kit; rows hover with `--app-surface-muted`; density from the Table Density setting; server-side pagination through `ListPagination`. Row actions: inline `actionLinkClassName` links for one or two actions, `AppActionMenu` beyond that. |
+| Tables | `TableCard` + table kit or `AppDataTable`; header on `--app-surface-muted`, `text-table`, sort indicator from the kit; rows hover with `--app-surface-muted`; density from the Table Density setting; server-side pagination through `ListPagination`. Row actions: one `AppActionMenu` (the ⋮ trigger, 32px, last cell, right-aligned) holding view / edit / delete / archive / restore with `show` for permissions and state, `variant: 'danger'` or `'warning'` for the tone, `disabled` + `title` when an action is blocked; the record's name in the first cell is the link to its detail page. Text links in cells and page-specific dropdowns are blocked by a test. |
 | Filters | `FilterPanel` + `FilterField` (controlled) or `AppFilterBar` (uncontrolled, submits on Filter): search first, primary filters, Filter then Reset. Advanced filters stay in the panel; the panel collapses on mobile. Filters live in the query string. |
 | Search | `SearchInput` (36px, leading icon, clear control, label). Never a client-side load of large data. |
 | Forms | `FormSection` (title, description, two-column grid on desktop, one column on mobile) → `FormField` (label, required mark, description, error below the control) → `Input` / `Select` / `Textarea` / `SearchableSelect` / `FileUpload`. Required fields show the `required` mark of `FormLabel` only. Actions at the bottom: Cancel (`outline`), then the primary action; destructive actions `destructive`. |
@@ -107,6 +107,16 @@ appearance settings wired to the tokens.
     feedback dashboards no longer widen a 390px page; the position-establishment
     table card scrolls horizontally; the profile phone row shrinks with its
     column.
+11. **Row actions**: one ⋮ menu per table row. The kit `ActionMenu` is the only
+    implementation (32px trigger, anchored list that a scrolling table card
+    cannot clip, tones `default` / `warning` / `danger`, `disabled` + `title`);
+    `AppActionMenu` wraps it with Inertia links and the translated label. The
+    organizations menu (its own portal and positioning code), the code-rule
+    and organization-unit "menus" that were rows of text links, and the
+    inline Edit / View / Delete / Restore links in 48 list pages and the
+    change-request table were replaced by it (an AST codemod converted 51
+    cells; 7 were done by hand). Trigger and list stop click propagation so
+    rows that navigate on click are not triggered.
 
 ## 4. Deprecated patterns
 
@@ -124,6 +134,7 @@ Do not use these in admin code; the guard test rejects most of them.
 | `<table className="…">`, `<th className="…">` | the table kit |
 | `<button className="bg-…">` | `Button` / `buttonClassName` |
 | A `<PageHeader>` or `<h1>` inside the page body | the layout's `header` prop |
+| Edit / View / Delete text links in a table row; a page's own dropdown (`createPortal`, absolute panels) | `AppActionMenu` in the last cell |
 | `<select onChange={() => router.get(...)}>` as a filter | `FilterPanel` / `AppFilterBar` |
 | A raw status code in text | `StatusBadge`, `status.*` translations |
 | Inline `<svg>` icons | `Icons` (content) or `NavIcons` (shell) |

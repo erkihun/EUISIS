@@ -4,9 +4,10 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import ServiceForm, { emptyService, type ClassificationOption, type Option } from '@/Components/organizationDesign/ServiceForm';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 export type ServiceSummary = {
     id: string; code: string; version_no: number; lineage_key: string; name_en: string; name_am: string | null; status: string;
@@ -98,7 +99,15 @@ export default function ServicesIndex({ services, filters, organizations, classi
                                         <Td muted>{s.functions_count}</Td>
                                         <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={s.effective_from} /></Td>
                                         <Td><StatusPill status={s.status} /></Td>
-                                        <Td align="right"><Link href={route('organization-design.services.show', s.id)} className={actionLinkClassName()}>{t('common.view')}</Link></Td>
+                                        <Td align="right">
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('organization-design.services.show', s.id) },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </Td>
                                     </Tr>
                                 ))}
                             </TBody>

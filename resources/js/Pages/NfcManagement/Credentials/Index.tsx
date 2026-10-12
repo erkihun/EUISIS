@@ -5,9 +5,10 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import NfcStatusBadge, { useNfcTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, FilterField, ListPagination, actionLinkClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type CredentialRow = {
     credential_id: string;
@@ -176,12 +177,13 @@ export default function NfcCredentialsIndex({ credentials, filters, organization
                                             )}
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>
-                                            <Link
-                                                href={route('nfc-management.credentials.show', row.credential_id)}
-                                                className={actionLinkClassName({ size: 'sm' })}
-                                            >
-                                                {t('nfc.view')}
-                                            </Link>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('nfc.view'), href: route('nfc-management.credentials.show', row.credential_id) },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

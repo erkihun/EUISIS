@@ -8,7 +8,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Row = {
     id: string;
     isic_code: string;
@@ -177,39 +178,15 @@ export default function IsicActivitiesIndex({
                                                 <StatusBadge status={act.is_active ? 'active' : 'inactive'} />
                                             </td>
                                             <td className={tableCellClassName}>
-                                                <div className="flex justify-end gap-3">
-                                                    <Link
-                                                        href={route('isic-activities.show', act.id)}
-                                                        className={actionLinkClassName({ tone: 'neutral' })}
-                                                    >
-                                                        {t('common.view')}
-                                                    </Link>
-                                                    {act.can.update && (
-                                                        <Link
-                                                            href={route('isic-activities.edit', act.id)}
-                                                            className={actionLinkClassName()}
-                                                        >
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                    )}
-                                                    {act.can.archive && !act.deleted_at && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleArchive(act.id)}
-                                                            className="text-xs font-medium text-red-600 hover:text-red-800"
-                                                        >
-                                                            {t('common.delete')}
-                                                        </button>
-                                                    )}
-                                                    {act.can.restore && act.deleted_at && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRestore(act.id)}
-                                                            className="text-xs font-medium text-emerald-600 hover:text-emerald-800"
-                                                        >
-                                                            {t('common.restore')}
-                                                        </button>
-                                                    )}
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.view'), href: route('isic-activities.show', act.id) },
+                                                            { label: t('common.edit'), href: route('isic-activities.edit', act.id), show: act.can.update },
+                                                            { label: t('common.delete'), onClick: () => handleArchive(act.id), variant: 'danger', show: act.can.archive && !act.deleted_at },
+                                                            { label: t('common.restore'), onClick: () => handleRestore(act.id), show: !!(act.can.restore && act.deleted_at) },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

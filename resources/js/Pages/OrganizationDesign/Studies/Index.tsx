@@ -4,9 +4,10 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import StudyForm, { emptyStudy, type Option } from '@/Components/organizationDesign/StudyForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 export type StudySummary = {
     id: string; reference_number: string; title_en: string; title_am: string | null; study_type: string; status: string;
@@ -93,7 +94,15 @@ export default function StudiesIndex({ studies, filters, organizations, statuses
                                         <Td muted>{s.proposals_count ?? 0}</Td>
                                         <Td muted className="whitespace-nowrap">{s.target_effective_date ? <LocalizedDateDisplay value={s.target_effective_date} /> : '—'}</Td>
                                         <Td><StatusPill status={s.status} /></Td>
-                                        <Td align="right"><Link href={route('organization-design.studies.show', s.id)} className={actionLinkClassName()}>{t('common.view')}</Link></Td>
+                                        <Td align="right">
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('organization-design.studies.show', s.id) },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </Td>
                                     </Tr>
                                 ))}
                             </TBody>

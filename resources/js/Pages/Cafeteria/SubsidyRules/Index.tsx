@@ -8,7 +8,8 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Rule = {
     id: string; code: string; name_en: string; subsidy_amount: number;
     currency: string; effective_from: string; effective_to: string | null;
@@ -79,9 +80,13 @@ export default function SubsidyRulesIndex({ rules, meta, filters, can }: { rules
                                             <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={rule.effective_to} /></td>
                                             <td className={cx(tableCellClassName, 'text-[color:var(--app-muted-foreground)]')}>{rule.applies_to}</td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
-                                                <div className="flex justify-end gap-2">
-                                                    {rule.can.update && <Link href={route('cafeteria.subsidy-rules.edit', rule.id)} className={actionLinkClassName()}>{t('common.edit')}</Link>}
-                                                    {rule.can.archive && !rule.deleted_at && <button onClick={() => handleArchive(rule.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), href: route('cafeteria.subsidy-rules.edit', rule.id), show: rule.can.update },
+                                                            { label: t('common.archive'), onClick: () => handleArchive(rule.id), variant: 'danger', show: rule.can.archive && !rule.deleted_at },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

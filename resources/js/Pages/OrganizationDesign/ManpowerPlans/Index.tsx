@@ -4,9 +4,10 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PlanForm, { emptyPlan, type MethodologyOption, type Option } from '@/Components/organizationDesign/PlanForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 export type PlanSummary = {
     id: string; reference_number: string; title_en: string; title_am: string | null; status: string; organization: Option | null; organization_id: string;
@@ -80,7 +81,15 @@ export default function ManpowerPlansIndex({ plans, filters, organizations, meth
                                         <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={p.planning_period_start} /> – <LocalizedDateDisplay value={p.planning_period_end} /></Td>
                                         <Td muted>{p.lines_count ?? 0}</Td>
                                         <Td><StatusPill status={p.status} /></Td>
-                                        <Td align="right"><Link href={route('organization-design.manpower-plans.show', p.id)} className={actionLinkClassName()}>{t('common.view')}</Link></Td>
+                                        <Td align="right">
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('organization-design.manpower-plans.show', p.id) },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </Td>
                                     </Tr>
                                 ))}
                             </TBody>

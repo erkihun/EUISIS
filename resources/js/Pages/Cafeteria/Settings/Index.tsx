@@ -9,7 +9,8 @@ import { FormEvent, useState } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { actionLinkClassName, buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 // ─── shared types ────────────────────────────────────────────────────────────
 type Settings = Record<string, unknown>;
 type InPageTab = 'general' | 'subsidy' | 'days' | 'scan' | 'day-rules' | 'holidays' | 'subsidy-rules' | 'reports' | 'provider-users';
@@ -727,9 +728,13 @@ export default function CafeteriaSettingsIndex({
                                                     <td className={tdCls}>{h.name_am ?? '—'}</td>
                                                     <td className={cx(tableCellClassName, 'text-center')}>{h.is_recurring ? '✓' : '—'}</td>
                                                     <td className={cx(tableCellClassName, 'text-right')}>
-                                                        <div className="flex justify-end gap-3">
-                                                            {h.can.update && <Link href={route('cafeteria.holidays.edit', h.id)} className={actionLinkClassName()}>{t('common.edit')}</Link>}
-                                                            {h.can.archive && !h.deleted_at && <button onClick={() => archiveHoliday(h.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
+                                                        <div className="flex justify-end">
+                                                            <AppActionMenu
+                                                                items={[
+                                                                    { label: t('common.edit'), href: route('cafeteria.holidays.edit', h.id), show: h.can.update },
+                                                                    { label: t('common.archive'), onClick: () => archiveHoliday(h.id), variant: 'danger', show: h.can.archive && !h.deleted_at },
+                                                                ]}
+                                                            />
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -778,9 +783,13 @@ export default function CafeteriaSettingsIndex({
                                                     <td className={tdCls}><LocalizedDateDisplay value={rule.effective_to} /></td>
                                                     <td className={tdCls}>{rule.applies_to}</td>
                                                     <td className={cx(tableCellClassName, 'text-right')}>
-                                                        <div className="flex justify-end gap-3">
-                                                            {rule.can.update && <Link href={route('cafeteria.subsidy-rules.edit', rule.id)} className={actionLinkClassName()}>{t('common.edit')}</Link>}
-                                                            {rule.can.archive && !rule.deleted_at && <button onClick={() => archiveSubsidyRule(rule.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
+                                                        <div className="flex justify-end">
+                                                            <AppActionMenu
+                                                                items={[
+                                                                    { label: t('common.edit'), href: route('cafeteria.subsidy-rules.edit', rule.id), show: rule.can.update },
+                                                                    { label: t('common.archive'), onClick: () => archiveSubsidyRule(rule.id), variant: 'danger', show: rule.can.archive && !rule.deleted_at },
+                                                                ]}
+                                                            />
                                                         </div>
                                                     </td>
                                                 </tr>

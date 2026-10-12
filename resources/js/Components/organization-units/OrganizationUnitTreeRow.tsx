@@ -6,7 +6,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationUnitTreeNode } from '@/types/organizationUnit';
 
-import { actionLinkClassName, cx, tableCellClassName } from '@/Components/ui';
+import { cx, tableCellClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 interface Props {
     node: OrganizationUnitTreeNode;
     hierarchyNumber: string;
@@ -110,51 +111,21 @@ export default function OrganizationUnitTreeRow({
                 {node.children_count ?? node.children?.length ?? 0}
             </td>
             <td className={tableCellClassName}>
-                <div className="flex items-center justify-end gap-2">
-                    {canCreate && !node.is_deleted && (
-                        <Link
-                            href={route('organization-units.create', {
-                                organization_id: selectedOrgId,
-                                parent_unit_id: node.id,
-                            })}
-                            className={actionLinkClassName({ tone: 'success', className: 'flex items-center gap-0.5' })}
-                            title={t('organizationUnits.addOrganizationUnit')}
-                        >
-                            <Plus className="h-3 w-3" />
-                        </Link>
-                    )}
-                    <Link
-                        href={route('organization-units.show', node.id)}
-                        className={actionLinkClassName({ tone: 'neutral' })}
-                    >
-                        {t('common.view')}
-                    </Link>
-                    {(canUpdate || node.can?.update) && !node.is_deleted && (
-                        <Link
-                            href={route('organization-units.edit', node.id)}
-                            className={actionLinkClassName()}
-                        >
-                            {t('common.edit')}
-                        </Link>
-                    )}
-                    {(canDelete || node.can?.archive) && !node.is_deleted && (
-                        <button
-                            type="button"
-                            onClick={handleDelete}
-                            className={actionLinkClassName({ tone: 'danger' })}
-                        >
-                            {t('common.delete')}
-                        </button>
-                    )}
-                    {(canRestore || node.can?.restore) && node.is_deleted && (
-                        <button
-                            type="button"
-                            onClick={handleRestore}
-                            className={actionLinkClassName({ tone: 'success' })}
-                        >
-                            {t('common.restore')}
-                        </button>
-                    )}
+                <div className="flex justify-end">
+                    <AppActionMenu
+                        items={[
+                            {
+                                label: t('organizationUnits.addOrganizationUnit'),
+                                icon: <Plus className="h-4 w-4" />,
+                                href: route('organization-units.create', { organization_id: selectedOrgId, parent_unit_id: node.id }),
+                                show: canCreate && !node.is_deleted,
+                            },
+                            { label: t('common.view'), href: route('organization-units.show', node.id) },
+                            { label: t('common.edit'), href: route('organization-units.edit', node.id), show: (canUpdate || node.can?.update) && !node.is_deleted },
+                            { label: t('common.delete'), onClick: handleDelete, variant: 'danger', show: (canDelete || node.can?.archive) && !node.is_deleted },
+                            { label: t('common.restore'), onClick: handleRestore, show: (canRestore || node.can?.restore) && node.is_deleted },
+                        ]}
+                    />
                 </div>
             </td>
         </tr>

@@ -5,7 +5,8 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
-import { ListPagination, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type BatchRow = {
     id: string;
     batch_number: string;
@@ -159,12 +160,13 @@ export default function PrintBatchesIndex({ batches, can }: PageProps) {
                                             <LocalizedDateDisplay value={batch.created_at} withTime />
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>
-                                            <Link
-                                                href={route('print-batches.show', batch.id)}
-                                                className={actionLinkClassName()}
-                                            >
-                                                {t('common.view')}
-                                            </Link>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('print-batches.show', batch.id) },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

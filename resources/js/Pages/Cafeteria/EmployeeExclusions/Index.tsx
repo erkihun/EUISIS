@@ -7,7 +7,8 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Exclusion = {
     id: string; employee_name: string | null; employee_number: string | null;
     exclusion_type: string; exclusion_type_label: string;
@@ -114,16 +115,16 @@ export default function EmployeeExclusionsIndex({ exclusions, meta, filters, act
                                                 </span>
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
-                                                <div className="flex justify-end gap-2">
-                                                    {ex.deleted_at
-                                                        ? ex.can.restore && <button onClick={() => router.post(route('cafeteria.employee-exclusions.restore', ex.id))} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.restore')}</button>
-                                                        : <>
-                                                            <Link href={route('cafeteria.employee-exclusions.show', ex.id)} className={actionLinkClassName({ tone: 'neutral', size: 'sm' })}>{t('common.view')}</Link>
-                                                            {ex.can.update && <Link href={route('cafeteria.employee-exclusions.edit', ex.id)} className={actionLinkClassName({ size: 'sm' })}>{t('common.edit')}</Link>}
-                                                            {ex.can.end && ex.status === 'active' && <button onClick={() => handleEnd(ex.id)} className="text-sm text-amber-600 hover:underline dark:text-amber-400">{t('cafeteria.endExclusion')}</button>}
-                                                            {ex.can.archive && <button onClick={() => handleArchive(ex.id)} className="text-sm text-red-500 hover:underline">{t('common.delete')}</button>}
-                                                        </>
-                                                    }
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.restore'), onClick: () => router.post(route('cafeteria.employee-exclusions.restore', ex.id)), show: !!ex.deleted_at && ex.can.restore },
+                                                            { label: t('common.view'), href: route('cafeteria.employee-exclusions.show', ex.id), show: !ex.deleted_at },
+                                                            { label: t('common.edit'), href: route('cafeteria.employee-exclusions.edit', ex.id), show: !ex.deleted_at && ex.can.update },
+                                                            { label: t('cafeteria.endExclusion'), onClick: () => handleEnd(ex.id), variant: 'warning', show: !ex.deleted_at && ex.can.end && ex.status === 'active' },
+                                                            { label: t('common.delete'), onClick: () => handleArchive(ex.id), variant: 'danger', show: !ex.deleted_at && ex.can.archive },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

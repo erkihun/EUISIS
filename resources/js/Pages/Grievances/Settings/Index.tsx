@@ -10,6 +10,7 @@ import DateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import type { SettingField, SettingsIndexProps } from '@/types/grievances';
 
 import { actionLinkClassName, badgeClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 /*
  * Grievance Management → Settings (design: Claude Design canvas
  * "Grievance Settings redesign"). Readiness checklist, grouped section nav
@@ -234,7 +235,15 @@ function ListSection<T extends { id: string }>({ id, rows, head, cells, form, ca
                         {rows.map(row => (
                             <tr key={row.id} className={tableRowClassName}>
                                 {cells(row).map((cell, i) => <td key={i} className={tdCls}>{cell}</td>)}
-                                <td className={`${tdCls} text-right`}>{canEdit && <button type="button" className={actionLinkClassName({ size: 'sm' })} onClick={() => setEditing(row)}>{t('grievances.common.edit')}</button>}</td>
+                                <td className={`${tdCls} text-right`}>
+                                    <div className="flex justify-end">
+                                        <AppActionMenu
+                                            items={[
+                                                { label: t('grievances.common.edit'), onClick: () => setEditing(row), show: canEdit },
+                                            ]}
+                                        />
+                                    </div>
+                                </td>
                             </tr>
                         ))}
                     </Table>

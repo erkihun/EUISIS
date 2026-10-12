@@ -4,8 +4,9 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { AppFilterBar, FilterField, filterInputCls, pageCls, Stat, Table, TablePanel, tdCls, thCls } from '@/Components/performance/ui';
 import { DeadlineBadge, ProgressMeter, RecordStatusBadge, ResponseStatus, usePick } from '@/Components/assessmentWorkspace/kit';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Option = { id: string; code?: string; name_en: string | null; name_am: string | null };
 type Row = { id: string; status: string; evaluator_type: string; due_at: string | null; deadline: string | null; record_status: string; employee: { name?: string; name_en?: string; number?: string; position?: string; position_am?: string; unit?: string; unit_am?: string }; form: { name_en: string; name_am: string | null; version_no: number } | null; cycle: Option | null; progress: { answered: number; required: number } };
@@ -41,7 +42,15 @@ export default function AssignedAssessments({ rows, filters, counts, options }: 
             </AppFilterBar>
             <TablePanel page={rows} empty={t('assessmentWorkspace.empty')}>
                 <Table head={<><th className={thCls}>{t('assessmentWorkspace.columns.employee')}</th><th className={thCls}>{t('assessmentWorkspace.columns.form')}</th><th className={thCls}>{t('assessmentWorkspace.columns.cycle')}</th><th className={thCls}>{t('assessmentWorkspace.columns.evaluatorType')}</th><th className={thCls}>{t('assessmentWorkspace.columns.dueDate')}</th><th className={thCls}>{t('assessmentWorkspace.columns.status')}</th><th className={thCls}>{t('assessmentWorkspace.columns.progress')}</th><th className={thCls}><span className="sr-only">{t('assessmentWorkspace.columns.action')}</span></th></>}>
-                    {rows.data.map((row) => <tr key={row.id}><td className={tdCls}><p className="font-medium">{employee(row.employee)}</p><p className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee.number}</p><p className="text-xs text-[color:var(--app-muted-foreground)]">{pick(row.employee.unit, row.employee.unit_am)} · {pick(row.employee.position, row.employee.position_am)}</p></td><td className={tdCls}>{row.form ? `${pick(row.form.name_en, row.form.name_am)} · v${row.form.version_no}` : '—'}</td><td className={tdCls}>{label(row.cycle)}</td><td className={tdCls}>{t(`assessmentWorkspace.evaluatorTypes.${row.evaluator_type}`)}</td><td className={tdCls}>{row.due_at ? <><LocalizedDateDisplay value={row.due_at} /><div className="mt-1"><DeadlineBadge value={row.deadline} /></div></> : '—'}</td><td className={tdCls}><ResponseStatus value={row.status} /><div className="mt-1"><RecordStatusBadge value={row.record_status} /></div></td><td className={tdCls}><ProgressMeter {...row.progress} /></td><td className={`${tdCls} text-right`}><Link className={actionLinkClassName()} href={route('assessment-workspace.show', row.id)}>{row.status === 'not_started' ? t('assessmentWorkspace.open') : t('assessmentWorkspace.continue')}</Link></td></tr>)}
+                    {rows.data.map((row) => <tr key={row.id}><td className={tdCls}><p className="font-medium">{employee(row.employee)}</p><p className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee.number}</p><p className="text-xs text-[color:var(--app-muted-foreground)]">{pick(row.employee.unit, row.employee.unit_am)} · {pick(row.employee.position, row.employee.position_am)}</p></td><td className={tdCls}>{row.form ? `${pick(row.form.name_en, row.form.name_am)} · v${row.form.version_no}` : '—'}</td><td className={tdCls}>{label(row.cycle)}</td><td className={tdCls}>{t(`assessmentWorkspace.evaluatorTypes.${row.evaluator_type}`)}</td><td className={tdCls}>{row.due_at ? <><LocalizedDateDisplay value={row.due_at} /><div className="mt-1"><DeadlineBadge value={row.deadline} /></div></> : '—'}</td><td className={tdCls}><ResponseStatus value={row.status} /><div className="mt-1"><RecordStatusBadge value={row.record_status} /></div></td><td className={tdCls}><ProgressMeter {...row.progress} /></td><td className={`${tdCls} text-right`}>
+                        <div className="flex justify-end">
+                            <AppActionMenu
+                                items={[
+                                    { label: row.status === 'not_started' ? t('assessmentWorkspace.open') : t('assessmentWorkspace.continue'), href: route('assessment-workspace.show', row.id) },
+                                ]}
+                            />
+                        </div>
+                    </td></tr>)}
                 </Table>
             </TablePanel>
         </div>

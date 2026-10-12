@@ -7,7 +7,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type OccupationRow = {
     id: string;
     isco_code: string;
@@ -157,39 +158,15 @@ export default function OccupationsIndex({
                                                 <StatusBadge status={occ.is_active ? 'active' : 'inactive'} />
                                             </td>
                                             <td className={tableCellClassName}>
-                                                <div className="flex justify-end gap-3">
-                                                    <Link
-                                                        href={route('occupations.show', occ.id)}
-                                                        className={actionLinkClassName({ tone: 'neutral' })}
-                                                    >
-                                                        {t('common.view')}
-                                                    </Link>
-                                                    {occ.can.update && (
-                                                        <Link
-                                                            href={route('occupations.edit', occ.id)}
-                                                            className={actionLinkClassName()}
-                                                        >
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                    )}
-                                                    {occ.can.archive && !occ.deleted_at && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleArchive(occ.id)}
-                                                            className="text-xs font-medium text-red-600 hover:text-red-800"
-                                                        >
-                                                            {t('common.delete')}
-                                                        </button>
-                                                    )}
-                                                    {occ.can.restore && occ.deleted_at && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRestore(occ.id)}
-                                                            className="text-xs font-medium text-emerald-600 hover:text-emerald-800"
-                                                        >
-                                                            {t('common.restore')}
-                                                        </button>
-                                                    )}
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.view'), href: route('occupations.show', occ.id) },
+                                                            { label: t('common.edit'), href: route('occupations.edit', occ.id), show: occ.can.update },
+                                                            { label: t('common.delete'), onClick: () => handleArchive(occ.id), variant: 'danger', show: occ.can.archive && !occ.deleted_at },
+                                                            { label: t('common.restore'), onClick: () => handleRestore(occ.id), show: !!(occ.can.restore && occ.deleted_at) },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

@@ -14,6 +14,7 @@ import StatusDistribution from '@/Components/dashboard/StatusDistribution';
 import { useState } from 'react';
 
 import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 /** Keys returned by OrganizationDeletionGuard::reasons(), mapped to i18n labels below. */
 type DeletionBlockerKey =
     | 'usedInPublishedHierarchy'
@@ -562,12 +563,13 @@ export default function OrganizationShow({
                                             </span>
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <Link
-                                                href={route('institution-offices.show', office.id)}
-                                                className={actionLinkClassName()}
-                                            >
-                                                {t('common.view')}
-                                            </Link>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('institution-offices.show', office.id) },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

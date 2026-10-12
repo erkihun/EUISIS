@@ -11,7 +11,8 @@ import { localizedName } from '@/utils/localizedName';
 import { useDisplayFormat } from '@/hooks/useDisplayFormat';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 const EMPLOYMENT_TYPES = ['permanent', 'contract', 'temporary', 'probation', 'daily_labor', 'intern', 'other'] as const;
 const SYSTEM_STATUSES = ['draft', 'active', 'suspended', 'transferred', 'retired', 'terminated', 'deceased'] as const;
 
@@ -479,13 +480,13 @@ export default function EmployeesIndex({
                                                     )}
                                                 </td>
                                                 <td className={cx(tableCellClassName, 'whitespace-nowrap text-right')}>
-                                                    <div className="flex items-center justify-end gap-3">
-                                                        <Link href={route('employees.show', employee.id)} className={actionLinkClassName()}>
-                                                            {t('common.view')}
-                                                        </Link>
-                                                        {can.update && <Link href={route('employees.edit', employee.id)} aria-label={`${t('employees.editEmployee')}: ${employeeName(employee)}`} className={actionLinkClassName({ tone: 'neutral' })}>
-                                                            {t('employees.editEmployee')}
-                                                        </Link>}
+                                                    <div className="flex justify-end">
+                                                        <AppActionMenu
+                                                            items={[
+                                                                { label: t('common.view'), href: route('employees.show', employee.id) },
+                                                                { label: t('employees.editEmployee'), href: route('employees.edit', employee.id), show: can.update },
+                                                            ]}
+                                                        />
                                                     </div>
                                                 </td>
                                             </tr>

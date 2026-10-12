@@ -8,7 +8,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useState } from 'react';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type CardRequestRow = {
     id: string;
     request_type?: string | null;
@@ -183,14 +184,13 @@ export default function CardRequestsIndex({ cardRequests, can, filters = {} }: P
                                             <LocalizedDateDisplay value={req.submitted_at} withTime />
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>
-                                            {req.can?.view !== false && (
-                                                <Link
-                                                    href={route('card-requests.show', req.id)}
-                                                    className={actionLinkClassName()}
-                                                >
-                                                    {t('common.view')}
-                                                </Link>
-                                            )}
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('card-requests.show', req.id), show: req.can?.view !== false },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

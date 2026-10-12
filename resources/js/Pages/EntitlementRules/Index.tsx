@@ -7,7 +7,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type EntitlementRuleRow = {
     id: string;
     name: string;
@@ -143,16 +144,11 @@ export default function EntitlementRulesIndex({
                                                 <StatusBadge status={rule.is_active ? 'active' : 'inactive'} />
                                             </td>
                                             <td className={tableCellClassName}>
-                                                <div className="flex justify-end gap-3">
-                                                    {rule.can.update && (
-                                                        <Link href={route('entitlement-rules.edit', rule.id)} className={actionLinkClassName()}>
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                    )}
-                                                    {rule.can.archive && rule.is_active && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={async () => {
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), href: route('entitlement-rules.edit', rule.id), show: rule.can.update },
+                                                            { label: t('common.delete'), onClick: async () => {
                                                                 const { confirmed } = await confirm({
                                                                     title: t('confirmations.confirmDeleteTitle'),
                                                                     description: t('confirmations.thisRecordWillMoveToRecycleBin'),
@@ -161,16 +157,8 @@ export default function EntitlementRulesIndex({
                                                                     variant: 'danger',
                                                                 });
                                                                 if (confirmed) router.delete(route('entitlement-rules.archive', rule.id));
-                                                            }}
-                                                            className="text-xs font-medium text-red-600 hover:text-red-800"
-                                                        >
-                                                            {t('common.delete')}
-                                                        </button>
-                                                    )}
-                                                    {rule.can.restore && !rule.is_active && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={async () => {
+                                                            }, variant: 'danger', show: rule.can.archive && rule.is_active },
+                                                            { label: t('common.restore'), onClick: async () => {
                                                                 const { confirmed } = await confirm({
                                                                     title: t('confirmations.confirmRestoreTitle'),
                                                                     description: t('confirmations.thisActionCannotBeUndone'),
@@ -179,12 +167,9 @@ export default function EntitlementRulesIndex({
                                                                     variant: 'default',
                                                                 });
                                                                 if (confirmed) router.post(route('entitlement-rules.restore', rule.id));
-                                                            }}
-                                                            className="text-xs font-medium text-green-600 hover:text-green-800"
-                                                        >
-                                                            {t('common.restore')}
-                                                        </button>
-                                                    )}
+                                                            }, show: rule.can.restore && !rule.is_active },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

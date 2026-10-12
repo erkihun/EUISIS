@@ -7,7 +7,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type UnitType = {
     id: string;
     code: string;
@@ -134,33 +135,14 @@ export default function OrganizationUnitTypesIndex({
                                             <StatusBadge status={type.is_active ? 'active' : 'archived'} />
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <div className="flex items-center justify-end gap-3">
-                                                {type.can.update && !type.deleted_at && (
-                                                    <Link
-                                                        href={route('organization-unit-types.edit', type.id)}
-                                                        className={actionLinkClassName()}
-                                                    >
-                                                        {t('common.edit')}
-                                                    </Link>
-                                                )}
-                                                {type.can.archive && type.is_active && !type.deleted_at && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => archive(type.id)}
-                                                        className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                                    >
-                                                        {t('common.delete')}
-                                                    </button>
-                                                )}
-                                                {type.can.restore && (type.deleted_at || !type.is_active) && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => restore(type.id)}
-                                                        className="text-xs font-medium text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
-                                                    >
-                                                        {t('common.restore')}
-                                                    </button>
-                                                )}
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.edit'), href: route('organization-unit-types.edit', type.id), show: type.can.update && !type.deleted_at },
+                                                        { label: t('common.delete'), onClick: () => archive(type.id), variant: 'danger', show: type.can.archive && type.is_active && !type.deleted_at },
+                                                        { label: t('common.restore'), onClick: () => restore(type.id), show: !!(type.can.restore && (type.deleted_at || !type.is_active)) },
+                                                    ]}
+                                                />
                                             </div>
                                         </td>
                                     </tr>

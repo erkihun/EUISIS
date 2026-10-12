@@ -11,6 +11,7 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
 import type { PlanSummary } from './Index';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Line = LineRecord & {
     id: string; calculated_fte: string | null; calculated_at: string | null; headcount: number | null; methodology_version_no: number | null; calculation_trace: Record<string, unknown> | null;
@@ -148,12 +149,16 @@ export default function ManpowerPlanShow({ plan, lines, requirements, totals, va
                                             <Td align="right">{l.recommended_headcount ?? '—'}</Td>
                                             <Td align="right">{l.approved_headcount ?? '—'}{l.adjustment_reason && <p className="text-xs text-[color:var(--app-muted-foreground)]">{l.adjustment_reason}</p>}</Td>
                                             <Td align="right">
-                                                <span className="flex justify-end gap-3">
-                                                    {l.calculation_trace && <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setTrace(l)}>{tt('plans.trace')}</button>}
-                                                    {can.update && <button type="button" className={actionLinkClassName({ tone: 'success' })} onClick={() => calculate(l)}>{tt('plans.calculate')}</button>}
-                                                    {can.update && <button type="button" className={actionLinkClassName()} onClick={() => setLineEdit(l)}>{t('common.edit')}</button>}
-                                                    {can.update && <button type="button" className={actionLinkClassName({ tone: 'danger' })} onClick={() => removeLine(l)}>{t('common.remove')}</button>}
-                                                </span>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: tt('plans.trace'), onClick: () => setTrace(l), show: !!(l.calculation_trace) },
+                                                            { label: tt('plans.calculate'), onClick: () => calculate(l), show: can.update },
+                                                            { label: t('common.edit'), onClick: () => setLineEdit(l), show: can.update },
+                                                            { label: t('common.remove'), onClick: () => removeLine(l), variant: 'danger', show: can.update },
+                                                        ]}
+                                                    />
+                                                </div>
                                             </Td>
                                         </Tr>
                                     ))}

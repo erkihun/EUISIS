@@ -7,7 +7,8 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Provider = {
     id: string;
     code: string;
@@ -104,11 +105,15 @@ export default function ProvidersIndex({
                                                 <StatusBadge status={p.is_active ? 'active' : 'inactive'} label={p.is_active ? t('common.active') : t('common.inactive')} />
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
-                                                <div className="flex justify-end gap-2">
-                                                    <Link href={route('cafeteria.providers.show', p.id)} className={actionLinkClassName()}>{t('common.view')}</Link>
-                                                    {p.can.update && <Link href={route('cafeteria.providers.edit', p.id)} className={actionLinkClassName()}>{t('common.edit')}</Link>}
-                                                    {p.can.archive && !p.deleted_at && <button onClick={() => handleArchive(p.id)} className="text-xs text-red-600 hover:underline">{t('common.archive')}</button>}
-                                                    {p.can.restore && p.deleted_at && <button onClick={() => handleRestore(p.id)} className="text-xs text-[color:var(--color-primary)] hover:underline">{t('common.restore')}</button>}
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.view'), href: route('cafeteria.providers.show', p.id) },
+                                                            { label: t('common.edit'), href: route('cafeteria.providers.edit', p.id), show: p.can.update },
+                                                            { label: t('common.archive'), onClick: () => handleArchive(p.id), variant: 'danger', show: p.can.archive && !p.deleted_at },
+                                                            { label: t('common.restore'), onClick: () => handleRestore(p.id), show: !!(p.can.restore && p.deleted_at) },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

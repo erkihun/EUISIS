@@ -4,10 +4,11 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import MethodologyForm, { type MethodologyRecord, type Strategy } from '@/Components/organizationDesign/MethodologyForm';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Row = MethodologyRecord & { id: string; version_no: number; lineage_key: string; status: string; created_by: string | null; approved_by: string | null; missing_parameters: string[]; can: { update: boolean; publish: boolean; version: boolean } };
 type Props = { methodologies: LaravelPageMeta & { data: Row[] }; filters: { status?: string; calculation_type?: string; search?: string }; strategies: Strategy[]; roundingRules: string[]; statuses: string[]; can: { manage: boolean; approve: boolean } };
@@ -83,11 +84,15 @@ export default function MethodologiesIndex({ methodologies, filters, strategies,
                                         <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={m.effective_from} /></Td>
                                         <Td><StatusPill status={m.status} /></Td>
                                         <Td align="right">
-                                            <span className="flex justify-end gap-3">
-                                                {m.can.update && <button type="button" className={actionLinkClassName()} onClick={() => setEditing({ record: m, mode: 'edit' })}>{t('common.edit')}</button>}
-                                                {m.can.version && <button type="button" className={actionLinkClassName({ tone: 'neutral' })} onClick={() => setEditing({ record: m, mode: 'version' })}>{tt('methodologies.newVersion')}</button>}
-                                                {m.can.publish && <button type="button" className={actionLinkClassName({ tone: 'success' })} onClick={() => publish(m)}>{tt('methodologies.publish')}</button>}
-                                            </span>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.edit'), onClick: () => setEditing({ record: m, mode: 'edit' }), show: m.can.update },
+                                                        { label: tt('methodologies.newVersion'), onClick: () => setEditing({ record: m, mode: 'version' }), show: m.can.version },
+                                                        { label: tt('methodologies.publish'), onClick: () => publish(m), show: m.can.publish },
+                                                    ]}
+                                                />
+                                            </div>
                                         </Td>
                                     </Tr>
                                 ))}

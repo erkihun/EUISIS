@@ -6,6 +6,7 @@ import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
 import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Provider = {
     id: string; code: string; name_en: string; name_am: string | null;
     contact_person: string | null; phone_number: string | null; email: string | null;
@@ -159,20 +160,13 @@ export default function ProviderShow({
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
                                                 {can.update && (
-                                                    <div className="flex justify-end gap-3">
-                                                        <Link
-                                                            href={route('cafeteria.providers.branches.edit', { cafeteriaProvider: provider.id, branch: b.id })}
-                                                            className={actionLinkClassName()}
-                                                        >
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => archiveBranch(b.id)}
-                                                            className="text-xs text-red-600 hover:underline"
-                                                        >
-                                                            {t('common.archive')}
-                                                        </button>
+                                                    <div className="flex justify-end">
+                                                        <AppActionMenu
+                                                            items={[
+                                                                { label: t('common.edit'), href: route('cafeteria.providers.branches.edit', { cafeteriaProvider: provider.id, branch: b.id }) },
+                                                                { label: t('common.archive'), onClick: () => archiveBranch(b.id), variant: 'danger' },
+                                                            ]}
+                                                        />
                                                     </div>
                                                 )}
                                             </td>

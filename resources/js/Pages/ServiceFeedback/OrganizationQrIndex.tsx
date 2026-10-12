@@ -3,9 +3,10 @@ import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { Card, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName } from '@euisis/ui';
-import { Head, Link } from '@inertiajs/react';
+import { Card, TBody, THead, Table, TableCard, Td, Th, Tr } from '@euisis/ui';
+import { Head } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Row = {
     id: string;
@@ -57,7 +58,13 @@ export default function OrganizationQrIndex({ organizations }: Props) {
                                     <Td>{row.qr?.last_scanned_at ? <LocalizedDateDisplay value={row.qr.last_scanned_at} withTime /> : '—'}</Td>
                                     <Td align="right" numeric>{row.submissions.toLocaleString()}</Td>
                                     <Td align="right">
-                                        <Link href={route('organizations.feedback-qr.show', row.id)} className={actionLinkClassName({ tone: 'primary' })}>{t(row.qr === null ? 'serviceFeedback.enableQr' : 'serviceFeedback.manageQr')}</Link>
+                                        <div className="flex justify-end">
+                                            <AppActionMenu
+                                                items={[
+                                                    { label: t(row.qr === null ? 'serviceFeedback.enableQr' : 'serviceFeedback.manageQr'), href: route('organizations.feedback-qr.show', row.id) },
+                                                ]}
+                                            />
+                                        </div>
                                     </Td>
                                 </Tr>
                             ))}

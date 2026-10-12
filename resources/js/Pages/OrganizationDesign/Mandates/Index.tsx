@@ -4,9 +4,10 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import MandateForm, { emptyMandate, type InstrumentType } from '@/Components/organizationDesign/MandateForm';
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Organization = { id: string; code: string; name_en: string; name_am: string | null };
 
@@ -89,7 +90,15 @@ export default function MandatesIndex({ mandates, filters, organizations, instru
                                         <Td muted>{nameOf(m.instrument_type, locale)}</Td>
                                         <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={m.effective_from} /></Td>
                                         <Td><StatusPill status={m.status} /></Td>
-                                        <Td align="right"><Link href={route('organization-design.mandates.show', m.id)} className={actionLinkClassName()}>{t('common.view')}</Link></Td>
+                                        <Td align="right">
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('organization-design.mandates.show', m.id) },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </Td>
                                     </Tr>
                                 ))}
                             </TBody>

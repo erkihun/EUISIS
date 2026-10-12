@@ -11,7 +11,8 @@ import { useLocale } from '@/hooks/useLocale';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useConfirm } from '@/Components/ConfirmProvider';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type UserRow = {
     id: number;
     name: string;
@@ -234,33 +235,14 @@ export default function UsersIndex({
                                                 : t('users.notAvailable')}
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <div className="flex items-center justify-end gap-3">
-                                                {u.can.update && (
-                                                    <Link
-                                                        href={route('users.edit', u.id)}
-                                                        className={actionLinkClassName()}
-                                                    >
-                                                        {t('common.edit')}
-                                                    </Link>
-                                                )}
-                                                {u.can.archive && u.status === 'active' && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => deactivate(u)}
-                                                        className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                                                    >
-                                                        {t('users.deactivate')}
-                                                    </button>
-                                                )}
-                                                {u.can.restore && u.status !== 'active' && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => restore(u)}
-                                                        className="text-xs font-medium text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
-                                                    >
-                                                        {t('users.reactivate')}
-                                                    </button>
-                                                )}
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.edit'), href: route('users.edit', u.id), show: u.can.update },
+                                                        { label: t('users.deactivate'), onClick: () => deactivate(u), variant: 'danger', show: u.can.archive && u.status === 'active' },
+                                                        { label: t('users.reactivate'), onClick: () => restore(u), show: u.can.restore && u.status !== 'active' },
+                                                    ]}
+                                                />
                                             </div>
                                         </td>
                                     </tr>

@@ -3,11 +3,11 @@ import { useLocale } from '@/hooks/useLocale';
 import StatusBadge from '@/Components/StatusBadge';
 import EmptyState from '@/Components/EmptyState';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
-import { ChevronRight } from '@/Components/Icons';
 import type { JSX } from 'react';
 import type { ChangeRequestSummary, ChangeRequestListMeta } from './types';
 
 import { ListPagination, actionLinkClassName, cx, tableBodyClassName, tableClassName, tableHeadClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Props = {
     requests: ChangeRequestSummary[];
     meta: ChangeRequestListMeta;
@@ -100,14 +100,12 @@ export default function ChangeRequestTable({
                                     </td>
                                 )}
                                 <td className={`${cellCls} text-right`}>
-                                    <Link
-                                        href={route('organizational-change-requests.show', request.id)}
-                                        aria-label={`${t('common.view')} ${request.request_no}`}
-                                        className={actionLinkClassName({ className: 'inline-flex items-center gap-1' })}
-                                    >
-                                        {t('common.view')}
-                                        <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                                    </Link>
+                                    <div className="flex justify-end">
+                                        <AppActionMenu
+                                            label={`${t('common.actions')}: ${request.request_no}`}
+                                            items={[{ label: t('common.view'), href: route('organizational-change-requests.show', request.id) }]}
+                                        />
+                                    </div>
                                 </td>
                             </tr>
                         ))}

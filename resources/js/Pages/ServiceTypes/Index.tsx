@@ -7,7 +7,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type ServiceTypeRow = {
     id: string;
     code: string;
@@ -125,16 +126,11 @@ export default function ServiceTypesIndex({
                                                 <StatusBadge status={serviceType.is_active ? 'active' : 'inactive'} />
                                             </td>
                                             <td className={tableCellClassName}>
-                                                <div className="flex justify-end gap-3">
-                                                    {serviceType.can.update && (
-                                                        <Link href={route('service-types.edit', serviceType.id)} className={actionLinkClassName()}>
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                    )}
-                                                    {serviceType.can.archive && serviceType.is_active && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={async () => {
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), href: route('service-types.edit', serviceType.id), show: serviceType.can.update },
+                                                            { label: t('common.delete'), onClick: async () => {
                                                                 const { confirmed } = await confirm({
                                                                     title: t('confirmations.confirmDeleteTitle'),
                                                                     description: t('confirmations.thisRecordWillMoveToRecycleBin'),
@@ -143,16 +139,8 @@ export default function ServiceTypesIndex({
                                                                     variant: 'danger',
                                                                 });
                                                                 if (confirmed) router.delete(route('service-types.archive', serviceType.id));
-                                                            }}
-                                                            className="text-xs font-medium text-red-600 hover:text-red-800"
-                                                        >
-                                                            {t('common.delete')}
-                                                        </button>
-                                                    )}
-                                                    {serviceType.can.restore && !serviceType.is_active && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={async () => {
+                                                            }, variant: 'danger', show: serviceType.can.archive && serviceType.is_active },
+                                                            { label: t('common.restore'), onClick: async () => {
                                                                 const { confirmed } = await confirm({
                                                                     title: t('confirmations.confirmRestoreTitle'),
                                                                     description: t('confirmations.thisActionCannotBeUndone'),
@@ -161,12 +149,9 @@ export default function ServiceTypesIndex({
                                                                     variant: 'default',
                                                                 });
                                                                 if (confirmed) router.post(route('service-types.restore', serviceType.id));
-                                                            }}
-                                                            className="text-xs font-medium text-green-600 hover:text-green-800"
-                                                        >
-                                                            {t('common.restore')}
-                                                        </button>
-                                                    )}
+                                                            }, show: serviceType.can.restore && !serviceType.is_active },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

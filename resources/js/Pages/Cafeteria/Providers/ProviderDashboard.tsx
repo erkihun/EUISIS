@@ -5,6 +5,7 @@ import { Head, Link } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 
 import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Stats = {
     total_providers: number;
     active_providers: number;
@@ -174,12 +175,13 @@ export default function ProviderDashboard({
                                             />
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>
-                                            <Link
-                                                href={route('cafeteria.providers.show', p.id)}
-                                                className={actionLinkClassName()}
-                                            >
-                                                {t('common.view')}
-                                            </Link>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('cafeteria.providers.show', p.id) },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

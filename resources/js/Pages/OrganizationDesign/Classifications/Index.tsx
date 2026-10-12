@@ -7,6 +7,7 @@ import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesi
 import { Alert, Button, Card, CardHeader, CardTitle, FieldError, FileUpload, FilterField, FilterPanel, FormField, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName, type LaravelPageMeta } from '@/Components/ui';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Row = {
     id: string; code: string; level: number | string; name_en: string; name_am: string | null; is_active: boolean; parent_code: string | null;
@@ -93,7 +94,15 @@ export default function ClassificationsIndex({ scheme, revision, revisions, rows
                                         <Td muted>{r.level}</Td>
                                         <Td muted className="font-mono text-xs">{r.parent_code ?? '—'}</Td>
                                         <Td><StatusPill status={r.is_active ? 'active' : 'inactive'} /></Td>
-                                        {can.manage && editable && <Td align="right"><button type="button" className={actionLinkClassName()} onClick={() => setEditing(r)}>{t('common.edit')}</button></Td>}
+                                        {can.manage && editable && <Td align="right">
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.edit'), onClick: () => setEditing(r) },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </Td>}
                                     </Tr>
                                 ))}
                             </TBody>

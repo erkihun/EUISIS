@@ -22,7 +22,7 @@ page adds hand-rolled versions.
 | Column-defined table | `<AppDataTable columns data>` | — |
 | Pagination | `<ListPagination meta>` (any Laravel paginator; keeps the query string), `<Pagination meta onPageChange>` (kit) | `paginationItemClassName(active)` |
 | Status | `<StatusBadge status>` (`@/Components/StatusBadge`) | `badgeClassName(tone, className)` — tone `neutral`, `info`, `success`, `warning`, `danger` |
-| Row actions | `<AppActionMenu items>` | `actionLinkClassName({ tone, size, className })` for inline Edit / View / Delete / Restore text links — tone `primary`, `neutral`, `danger`, `success` |
+| Row actions | `<AppActionMenu items>` — the ⋮ menu in the last cell: `{ label, href | onClick, variant: 'danger' | 'warning', show, disabled, title, icon, method }` per item; a menu with no visible item renders nothing | `actionLinkClassName({ tone, size, className })` only for text links outside table rows (cards, detail pages, form repeaters) — tone `primary`, `neutral`, `danger`, `success` |
 | Card / panel | `<Card>`, `<CardHeader>`, `<CardTitle>` | — |
 | Empty list | `<EmptyState>` (`@/Components/EmptyState`) | — |
 | Dialog / confirm | `useConfirm()` (`@/Components/ConfirmProvider`), `<Modal>` | — |

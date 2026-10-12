@@ -4,9 +4,10 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { useTerminalTypeLabel } from '@/Components/Nfc/NfcStatusBadge';
-import { AppFilterBar, FilterField, ListPagination, actionLinkClassName, buttonClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { AppFilterBar, FilterField, ListPagination, buttonClassName, cx, filterInputCls, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
 import { useLocale } from '@/hooks/useLocale';
 import NfcSubNav, { useLocalizedName, type NfcCapabilities } from '../Partials/NfcSubNav';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type TerminalRow = {
     id: string;
@@ -166,12 +167,13 @@ export default function NfcTerminalsIndex({ terminals, filters, types, statuses,
                                             />
                                         </td>
                                         <td className={cx(tableCellClassName, 'text-right')}>
-                                            <Link
-                                                href={route('nfc-management.terminals.show', row.id)}
-                                                className={actionLinkClassName({ size: 'sm' })}
-                                            >
-                                                {t('nfc.view')}
-                                            </Link>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('nfc.view'), href: route('nfc-management.terminals.show', row.id) },
+                                                    ]}
+                                                />
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

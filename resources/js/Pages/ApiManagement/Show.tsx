@@ -11,6 +11,7 @@ import TokenReveal from '@/Components/apiManagement/TokenReveal';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
 import { actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type TokenRow = {
     id: number | string;
     name: string;
@@ -327,15 +328,13 @@ export default function ApiManagementShow({
                                     <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>{(token.abilities ?? []).join(', ')}</td>
                                     <td className={cx(tableCellClassName, 'text-xs text-[color:var(--app-muted-foreground)]')}><LocalizedDateDisplay value={token.last_used_at} withTime /></td>
                                     <td className={cx(tableCellClassName, 'text-right')}>
-                                        {can.revokeTokens && (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRevoke(token.id)}
-                                                className="text-xs font-medium text-red-600 hover:underline dark:text-red-400"
-                                            >
-                                                {t('apiManagement.revokeToken')}
-                                            </button>
-                                        )}
+                                        <div className="flex justify-end">
+                                            <AppActionMenu
+                                                items={[
+                                                    { label: t('apiManagement.revokeToken'), onClick: () => handleRevoke(token.id), variant: 'danger', show: can.revokeTokens },
+                                                ]}
+                                            />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

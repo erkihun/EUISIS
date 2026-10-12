@@ -8,6 +8,7 @@ import { Button, Card, CardHeader, CardTitle, FilterField, FilterPanel, Select, 
 import { useConfirm } from '@/hooks/useConfirm';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Named = { id: string; code: string; name_en: string; name_am: string | null };
 type Flag = 'UNMAPPED_EXISTING_RECORD' | 'NEEDS_DATA_REVIEW';
@@ -99,7 +100,15 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                                 onChange={(masterId, hit) => { setChoices({ ...choices, [task.id]: masterId }); if (hit) setLabels({ ...labels, [masterId]: `${hit.process_code ? `${hit.process_code} · ` : ''}${hit.code} · ${(locale === 'am' && hit.name_am) || hit.name_en}` }); }} />
                                                         )}
                                                     </Td>
-                                                    <Td align="right">{can.map && <button type="button" className={actionLinkClassName()} disabled={!chosen(task)} onClick={() => linkTask(task, chosen(task) || null)}>{tt('mapping.map')}</button>}</Td>
+                                                    <Td align="right">
+                                                        <div className="flex justify-end">
+                                                            <AppActionMenu
+                                                                items={[
+                                                                    { label: tt('mapping.map'), onClick: () => linkTask(task, chosen(task) || null), disabled: !chosen(task), show: can.map },
+                                                                ]}
+                                                            />
+                                                        </div>
+                                                    </Td>
                                                 </Tr>
                                             ))}
                                         </TBody>
@@ -127,7 +136,15 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                                 onChange={(masterId, hit) => { setChoices({ ...choices, [s.id]: masterId }); if (hit) setLabels({ ...labels, [masterId]: `${hit.code} · ${(locale === 'am' && hit.name_am) || hit.name_en}` }); }} />
                                                         )}
                                                     </Td>
-                                                    <Td align="right">{can.map && <button type="button" className={actionLinkClassName()} disabled={!choices[s.id]} onClick={() => linkService(s, choices[s.id] || null)}>{tt('mapping.map')}</button>}</Td>
+                                                    <Td align="right">
+                                                        <div className="flex justify-end">
+                                                            <AppActionMenu
+                                                                items={[
+                                                                    { label: tt('mapping.map'), onClick: () => linkService(s, choices[s.id] || null), disabled: !choices[s.id], show: can.map },
+                                                                ]}
+                                                            />
+                                                        </div>
+                                                    </Td>
                                                 </Tr>
                                             ))}
                                         </TBody>
@@ -146,7 +163,15 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                     <Td className="font-mono text-xs">{p.code}</Td>
                                                     <Td>{titleOf(p, locale)} <span className="ml-1">{flag(p.flag)}</span></Td>
                                                     <Td muted>{p.unit ? `${p.unit.code} · ${nameOf(p.unit, locale)}` : '—'}</Td>
-                                                    <Td align="right"><Link href={route('organization-design.position-design.show', p.id)} className={actionLinkClassName()}>{tt('mapping.openPosition')}</Link></Td>
+                                                    <Td align="right">
+                                                        <div className="flex justify-end">
+                                                            <AppActionMenu
+                                                                items={[
+                                                                    { label: tt('mapping.openPosition'), href: route('organization-design.position-design.show', p.id) },
+                                                                ]}
+                                                            />
+                                                        </div>
+                                                    </Td>
                                                 </Tr>
                                             ))}
                                         </TBody>
@@ -188,7 +213,15 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                                         </Select>
                                                                     )}
                                                                 </Td>
-                                                                <Td align="right">{can.occupations && <button type="button" className={actionLinkClassName()} disabled={!chosen(o)} onClick={() => linkOccupation(o, chosen(o) || null)}>{tt('mapping.map')}</button>}</Td>
+                                                                <Td align="right">
+                                                                    <div className="flex justify-end">
+                                                                        <AppActionMenu
+                                                                            items={[
+                                                                                { label: tt('mapping.map'), onClick: () => linkOccupation(o, chosen(o) || null), disabled: !chosen(o), show: can.occupations },
+                                                                            ]}
+                                                                        />
+                                                                    </div>
+                                                                </Td>
                                                             </Tr>
                                                         ))}
                                                     </TBody>
@@ -213,7 +246,15 @@ export default function MappingIndex({ organizationId, organizations, unmapped, 
                                                                         </Select>
                                                                     )}
                                                                 </Td>
-                                                                <Td align="right">{can.competencies && <button type="button" className={actionLinkClassName()} disabled={!choices[c.id]} onClick={() => linkCompetency(c, choices[c.id] || null)}>{tt('mapping.map')}</button>}</Td>
+                                                                <Td align="right">
+                                                                    <div className="flex justify-end">
+                                                                        <AppActionMenu
+                                                                            items={[
+                                                                                { label: tt('mapping.map'), onClick: () => linkCompetency(c, choices[c.id] || null), disabled: !choices[c.id], show: can.competencies },
+                                                                            ]}
+                                                                        />
+                                                                    </div>
+                                                                </Td>
                                                             </Tr>
                                                         ))}
                                                     </TBody>

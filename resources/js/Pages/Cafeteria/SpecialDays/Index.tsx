@@ -7,7 +7,8 @@ import { FormEvent } from 'react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type SpecialDay = {
     id: string; special_date: string; name_en: string; name_am: string | null;
     day_type: string; day_type_label: string; is_open: boolean; is_subsidy_day: boolean;
@@ -94,14 +95,14 @@ export default function SpecialDaysIndex({ days, meta, filters, can }: { days: S
                                                 </span>
                                             </td>
                                             <td className={cx(tableCellClassName, 'text-right')}>
-                                                <div className="flex justify-end gap-2">
-                                                    {d.deleted_at
-                                                        ? d.can.restore && <button onClick={() => handleRestore(d.id)} className="text-sm text-[color:var(--color-primary)] hover:underline dark:text-[color:var(--color-primary)]">{t('common.restore')}</button>
-                                                        : <>
-                                                            {d.can.update && <Link href={route('cafeteria.special-days.edit', d.id)} className={actionLinkClassName({ size: 'sm' })}>{t('common.edit')}</Link>}
-                                                            {d.can.archive && <button onClick={() => handleArchive(d.id)} className="text-sm text-red-500 hover:underline">{t('common.delete')}</button>}
-                                                        </>
-                                                    }
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.restore'), onClick: () => handleRestore(d.id), show: !!d.deleted_at && d.can.restore },
+                                                            { label: t('common.edit'), href: route('cafeteria.special-days.edit', d.id), show: !d.deleted_at && d.can.update },
+                                                            { label: t('common.delete'), onClick: () => handleArchive(d.id), variant: 'danger', show: !d.deleted_at && d.can.archive },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

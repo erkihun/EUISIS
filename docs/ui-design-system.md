@@ -150,6 +150,7 @@ Section labels in the sidebar are `11px`, semibold, uppercase, tracked.
 | Cards | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardFooter` | `card-tone-info/success/warning/danger` |
 | KPI cards | `KpiCard` (dashboard), `StatCard`, `AppMetricCard` | tonal; see consolidation note in the consistency document |
 | Tables | `TableCard`, `Table`, `THead`, `TBody`, `Tr`, `Th`, `Td`; `AppDataTable` | density follows `html[data-table-density]` |
+| Row actions | `AppActionMenu` (app: Inertia links, translated label) over the kit `ActionMenu` | 32px ⋮ trigger; anchored list on `--app-surface`; item tones `default`, `warning` (amber), `danger` (red); `disabled` + `title`; `show` hides an item |
 | Filters | `FilterPanel`, `FilterField`, `AppFilterBar`, `SearchInput` | |
 | Pagination | `ListPagination` (Laravel paginators), `Pagination` (client callback) | |
 | Forms | `FormField`, `FormLabel`, `FormDescription`, `FieldError`, `Input`, `Select`, `Textarea`, `FileUpload`, `SearchableSelect`, `FormSection` | |

@@ -4,9 +4,10 @@ import PageHeader from '@/Components/PageHeader';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import ProcessForm, { emptyProcess, type Option, type ServiceOption } from '@/Components/organizationDesign/ProcessForm';
 import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesign/ui';
-import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, type LaravelPageMeta } from '@/Components/ui';
+import { Button, FilterField, FilterPanel, Input, ListPagination, Select, TableCard, Table, TBody, Td, Th, THead, Tr, type LaravelPageMeta } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 export type ProcessSummary = {
     id: string; code: string; version_no: number; lineage_key: string; name_en: string; name_am: string | null; status: string; process_type: string;
@@ -100,7 +101,15 @@ export default function ProcessesIndex({ processes, filters, organizations, serv
                                         <Td muted className="whitespace-nowrap">{counts(p)}</Td>
                                         <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={p.effective_from} /></Td>
                                         <Td><StatusPill status={p.status} /></Td>
-                                        <Td align="right"><Link href={route('organization-design.processes.show', p.id)} className={actionLinkClassName()}>{t('common.view')}</Link></Td>
+                                        <Td align="right">
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('organization-design.processes.show', p.id) },
+                                                    ]}
+                                                />
+                                            </div>
+                                        </Td>
                                     </Tr>
                                 ))}
                             </TBody>

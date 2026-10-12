@@ -8,8 +8,9 @@ import WorkLinksForm, { type WorkObject, type WorkObjectType } from '@/Component
 import { StatusPill, nameOf, titleOf, useDesignText } from '@/Components/organizationDesign/ui';
 import { Button, Card, CardHeader, CardTitle, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
 import { useConfirm } from '@/hooks/useConfirm';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Named = { id: string; code: string; name_en: string; name_am: string | null };
 type Level = Named & { rank: number };
@@ -224,7 +225,15 @@ export default function PositionDesignShow({ position, profile, profiles, workLi
                                             <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={jd.effective_from} />{jd.effective_to && <> – <LocalizedDateDisplay value={jd.effective_to} /></>}</Td>
                                             <Td muted>{jd.prepared_by ?? '—'}</Td>
                                             <Td><StatusPill status={jd.status} /></Td>
-                                            <Td align="right"><Link href={route('organization-design.job-descriptions.show', jd.id)} className={actionLinkClassName()}>{t('common.view')}</Link></Td>
+                                            <Td align="right">
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.view'), href: route('organization-design.job-descriptions.show', jd.id) },
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </Td>
                                         </Tr>
                                     ))}
                                 </TBody>

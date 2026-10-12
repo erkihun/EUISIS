@@ -5,6 +5,7 @@ import PageHeader from '@/Components/PageHeader';
 import { useLocale } from '@/hooks/useLocale';
 
 import { actionLinkClassName, badgeClassName, buttonClassName, cx, inputClassName, selectClassName, tableBodyClassName, tableCellClassName, tableClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 interface Endpoint {
     id: string;
     method: string;
@@ -161,12 +162,13 @@ export default function ApiManagementEndpoints({ endpoints, unsynced_count, stat
                                         </span>
                                     </td>
                                     <td className={tableCellClassName}>
-                                        <Link
-                                            href={route('api-management.endpoints.show', endpoint.id)}
-                                            className={actionLinkClassName({ className: 'font-mono' })}
-                                        >
-                                            {endpoint.uri}
-                                        </Link>
+                                        <div className="flex justify-end">
+                                            <AppActionMenu
+                                                items={[
+                                                    { label: endpoint.uri, href: route('api-management.endpoints.show', endpoint.id) },
+                                                ]}
+                                            />
+                                        </div>
                                     </td>
                                     <td className={cx(tableCellClassName, 'font-mono text-[color:var(--app-muted-foreground)]')}>
                                         {endpoint.route_name ?? '—'}

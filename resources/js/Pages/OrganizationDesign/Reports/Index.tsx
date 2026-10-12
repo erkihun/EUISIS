@@ -6,6 +6,7 @@ import { StatusPill, nameOf, useDesignText } from '@/Components/organizationDesi
 import { Button, Card, CardHeader, CardTitle, FilterField, FilterPanel, Select, TableCard, Table, TBody, Td, Th, THead, Tr, actionLinkClassName, badgeClassName } from '@/Components/ui';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type Named = { id: string; code: string; name_en: string; name_am: string | null };
 type Row = Record<string, string | number | null>;
@@ -126,7 +127,15 @@ export default function ReportsIndex({ report, reports, result, labels, filters,
                                             <Td muted className="whitespace-nowrap"><LocalizedDateDisplay value={e.created_at} withTime /></Td>
                                             <Td align="right">{e.row_count ?? '—'}</Td>
                                             <Td><span className={badgeClassName(EXPORT_TONES[e.status] ?? 'neutral')}>{tt(`reports.statuses.${e.status}`)}</span>{e.error && <p className="text-xs text-[color:var(--app-muted-foreground)]">{e.error}</p>}</Td>
-                                            <Td align="right">{e.status === 'ready' && <a href={route('organization-design.reports.exports.download', e.id)} className={actionLinkClassName()}>{tt('reports.download')}</a>}</Td>
+                                            <Td align="right">
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: tt('reports.download'), href: route('organization-design.reports.exports.download', e.id), show: e.status === 'ready' },
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </Td>
                                         </Tr>
                                     ))}
                                 </TBody>

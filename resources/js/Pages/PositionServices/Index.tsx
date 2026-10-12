@@ -5,7 +5,8 @@ import { useLocale } from '@/hooks/useLocale';
 import { useState, type JSX } from 'react';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName, type LaravelPageMeta } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 /**
  * Feedback services per position.
  *
@@ -163,26 +164,15 @@ export default function PositionServicesIndex({ records, filters, organizations,
                                         </td>
                                     )}
                                     <td className={cx(tableCellClassName, 'whitespace-nowrap text-right')}>
-                                        {/* Sub-services, main tasks and task standards (BPR plans). */}
-                                        <Link
-                                            href={route('work-structure.show', row.id)}
-                                            className={actionLinkClassName({ className: 'mr-3' })}
-                                        >
-                                            {t('workStandards.open')}
-                                        </Link>
-                                        <Link
-                                            href={route('position-services.edit', row.id)}
-                                            className={actionLinkClassName()}
-                                        >
-                                            {t('common.edit')}
-                                        </Link>
-                                        <button
-                                            type="button"
-                                            onClick={() => destroy(row.id)}
-                                            className="ml-3 text-xs font-medium text-red-600 hover:underline dark:text-red-400"
-                                        >
-                                            {t('common.delete')}
-                                        </button>
+                                        <div className="flex justify-end">
+                                            <AppActionMenu
+                                                items={[
+                                                    { label: t('workStandards.open'), href: route('work-structure.show', row.id) },
+                                                    { label: t('common.edit'), href: route('position-services.edit', row.id) },
+                                                    { label: t('common.delete'), onClick: () => destroy(row.id), variant: 'danger' },
+                                                ]}
+                                            />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

@@ -10,7 +10,8 @@ import { useConfirm } from '@/Components/ConfirmProvider';
 import { useLocale } from '@/hooks/useLocale';
 import { permissionGroupLabel } from '@/lib/permissionGroups';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type Permission = {
     id: number;
     name: string;
@@ -263,39 +264,16 @@ function RowActions({
     t: (key: string) => string;
 }) {
     return (
-        <div className="flex items-center justify-end gap-3">
-            {permission.can.view && (
-                <Link
-                    href={route('permissions.show', permission.id)}
-                    className={actionLinkClassName({ tone: 'neutral' })}
-                >
-                    {t('common.view')}
-                </Link>
-            )}
-            {permission.can.update && (
-                <Link
-                    href={route('permissions.edit', permission.id)}
-                    className={actionLinkClassName()}
-                >
-                    {t('common.edit')}
-                </Link>
-            )}
-            {permission.can.delete ? (
-                <button
-                    type="button"
-                    onClick={() => onDelete(permission)}
-                    className="text-xs font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
-                >
-                    {t('common.delete')}
-                </button>
-            ) : permission.is_system ? (
-                <span
-                    title={t('permissions.protectedCannotDelete')}
-                    className="cursor-not-allowed text-xs font-medium text-[color:var(--app-muted-foreground)]"
-                >
-                    {t('permissions.protectedPermission')}
-                </span>
-            ) : null}
+        <div className="flex justify-end">
+            <AppActionMenu
+                items={[
+                    { label: t('common.view'), href: route('permissions.show', permission.id), show: permission.can.view },
+                    { label: t('common.edit'), href: route('permissions.edit', permission.id), show: permission.can.update },
+                    { label: t('common.delete'), onClick: () => onDelete(permission), variant: 'danger', show: permission.can.delete },
+                    // A system permission cannot be deleted; the menu says so instead of hiding the fact.
+                    { label: t('permissions.protectedPermission'), title: t('permissions.protectedCannotDelete'), disabled: true, show: !permission.can.delete && permission.is_system },
+                ]}
+            />
         </div>
     );
 }

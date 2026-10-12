@@ -6,7 +6,8 @@ import StatusBadge from '@/Components/StatusBadge';
 import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 interface PaginatedResponse<T> {
     data: T[];
     current_page: number;
@@ -194,19 +195,13 @@ export default function InstitutionOfficesIndex({
                                             <StatusBadge status={office.status} />
                                         </td>
                                         <td className={tableCellClassName}>
-                                            <div className="flex items-center gap-2">
-                                                <Link
-                                                    href={route('organization-units.show', office.id)}
-                                                    className={actionLinkClassName()}
-                                                >
-                                                    {t('common.view')}
-                                                </Link>
-                                                <Link
-                                                    href={route('organization-units.edit', office.id)}
-                                                    className={actionLinkClassName({ tone: 'neutral' })}
-                                                >
-                                                    {t('common.edit')}
-                                                </Link>
+                                            <div className="flex justify-end">
+                                                <AppActionMenu
+                                                    items={[
+                                                        { label: t('common.view'), href: route('organization-units.show', office.id) },
+                                                        { label: t('common.edit'), href: route('organization-units.edit', office.id) },
+                                                    ]}
+                                                />
                                             </div>
                                         </td>
                                     </tr>

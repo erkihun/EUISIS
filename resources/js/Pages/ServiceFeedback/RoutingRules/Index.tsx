@@ -4,12 +4,13 @@ import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { AppDialog, Alert, Button, Card, FormField, Input, Select, TBody, THead, Table, TableCard, Td, Th, Tr, actionLinkClassName } from '@euisis/ui';
+import { AppDialog, Alert, Button, Card, FormField, Input, Select, TBody, THead, Table, TableCard, Td, Th, Tr } from '@euisis/ui';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type HandlerType = 'user' | 'organization_unit' | 'role';
 type NamePair = { en: string; am: string | null } | null;
@@ -115,12 +116,14 @@ export default function RoutingRulesIndex({ rules, organizations, categories, ca
                                         <Td><StatusBadge status={row.is_active ? 'active' : 'inactive'} label={t(row.is_active ? 'serviceFeedback.qrActive' : 'serviceFeedback.qrStatusDisabled')} /></Td>
                                         <Td align="right">
                                             {row.can_manage && (
-                                                <span className="inline-flex gap-2">
-                                                    <button type="button" className={actionLinkClassName({ tone: 'primary' })} onClick={() => setEditing(row)}>{t('common.edit')}</button>
-                                                    <button type="button" className={actionLinkClassName({ tone: 'danger' })} onClick={() => destroy(row)}>
-                                                        {t(row.referenced ? 'serviceFeedback.retireRule' : 'serviceFeedback.deleteRule')}
-                                                    </button>
-                                                </span>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), onClick: () => setEditing(row) },
+                                                            { label: t(row.referenced ? 'serviceFeedback.retireRule' : 'serviceFeedback.deleteRule'), onClick: () => destroy(row), variant: 'danger' },
+                                                        ]}
+                                                    />
+                                                </div>
                                             )}
                                         </Td>
                                     </Tr>

@@ -7,7 +7,8 @@ import { Plus } from '@/Components/Icons';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 
-import { FilterField, FilterPanel, Input, ListPagination, Select, actionLinkClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, ListPagination, Select, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type GradeLevelRow = {
     id: string;
     name: string;
@@ -140,39 +141,15 @@ export default function GradeLevelsIndex({
                                                 <StatusBadge status={gl.is_active ? 'active' : 'inactive'} />
                                             </td>
                                             <td className={tableCellClassName}>
-                                                <div className="flex justify-end gap-3">
-                                                    {gl.can.view && (
-                                                        <Link
-                                                            href={route('grade-levels.show', gl.id)}
-                                                            className={actionLinkClassName({ tone: 'neutral' })}
-                                                        >
-                                                            {t('common.view')}
-                                                        </Link>
-                                                    )}
-                                                    {gl.can.update && (
-                                                        <Link
-                                                            href={route('grade-levels.edit', gl.id)}
-                                                            className={actionLinkClassName()}
-                                                        >
-                                                            {t('common.edit')}
-                                                        </Link>
-                                                    )}
-                                                    {gl.can.archive && (
-                                                        <button
-                                                            className={actionLinkClassName({ tone: 'danger' })}
-                                                            onClick={() => handleArchive(gl.id)}
-                                                        >
-                                                            {t('gradeLevels.archive')}
-                                                        </button>
-                                                    )}
-                                                    {gl.can.restore && (
-                                                        <button
-                                                            className={actionLinkClassName({ tone: 'success' })}
-                                                            onClick={() => handleRestore(gl.id)}
-                                                        >
-                                                            {t('gradeLevels.restore')}
-                                                        </button>
-                                                    )}
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.view'), href: route('grade-levels.show', gl.id), show: gl.can.view },
+                                                            { label: t('common.edit'), href: route('grade-levels.edit', gl.id), show: gl.can.update },
+                                                            { label: t('gradeLevels.archive'), onClick: () => handleArchive(gl.id), variant: 'danger', show: gl.can.archive },
+                                                            { label: t('gradeLevels.restore'), onClick: () => handleRestore(gl.id), show: gl.can.restore },
+                                                        ]}
+                                                    />
                                                 </div>
                                             </td>
                                         </tr>

@@ -11,7 +11,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { OrganizationSummary } from '@/types/organizationUnit';
 
-import { FilterField, FilterPanel, Input, Select, actionLinkClassName, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import { FilterField, FilterPanel, Input, Select, badgeClassName, buttonClassName, cx, tableBodyClassName, tableCellClassName, tableClassName, tableContainerClassName, tableHeadClassName, tableHeaderCellClassName, tableRowClassName } from '@/Components/ui';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 type EstablishmentSummary = {
     id: string;
     status: 'draft' | 'approved' | 'archived';
@@ -296,21 +297,12 @@ export default function PositionsIndex({
 
                                                         {/* Row actions */}
                                                         <td className={tableCellClassName}>
-                                                            <div className="flex justify-end gap-3">
-                                                                {position.can.move && (
-                                                                    <Link href={route('positions.move', position.id)} className="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300">
-                                                                        {t('positions.move')}
-                                                                    </Link>
-                                                                )}
-                                                                {position.can.update && (
-                                                                    <Link href={route('positions.edit', position.id)} className={actionLinkClassName()}>
-                                                                        {t('common.edit')}
-                                                                    </Link>
-                                                                )}
-                                                                {position.can.archive && position.is_active && (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={async () => {
+                                                            <div className="flex justify-end">
+                                                                <AppActionMenu
+                                                                    items={[
+                                                                        { label: t('positions.move'), href: route('positions.move', position.id), show: position.can.move },
+                                                                        { label: t('common.edit'), href: route('positions.edit', position.id), show: position.can.update },
+                                                                        { label: t('positions.archivePosition'), onClick: async () => {
                                                                             const { confirmed } = await confirm({
                                                                                 title: t('confirmations.confirmDeleteTitle'),
                                                                                 description: t('confirmations.thisRecordWillMoveToRecycleBin'),
@@ -319,16 +311,8 @@ export default function PositionsIndex({
                                                                                 variant: 'danger',
                                                                             });
                                                                             if (confirmed) router.delete(route('positions.archive', position.id));
-                                                                        }}
-                                                                        className="text-xs font-medium text-red-600 hover:text-red-800"
-                                                                    >
-                                                                        {t('positions.archivePosition')}
-                                                                    </button>
-                                                                )}
-                                                                {position.can.restore && !position.is_active && (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={async () => {
+                                                                        }, variant: 'danger', show: position.can.archive && position.is_active },
+                                                                        { label: t('positions.restorePosition'), onClick: async () => {
                                                                             const { confirmed } = await confirm({
                                                                                 title: t('confirmations.confirmRestoreTitle'),
                                                                                 description: t('confirmations.thisActionCannotBeUndone'),
@@ -337,12 +321,9 @@ export default function PositionsIndex({
                                                                                 variant: 'default',
                                                                             });
                                                                             if (confirmed) router.post(route('positions.restore', position.id));
-                                                                        }}
-                                                                        className="text-xs font-medium text-green-600 hover:text-green-800"
-                                                                    >
-                                                                        {t('positions.restorePosition')}
-                                                                    </button>
-                                                                )}
+                                                                        }, show: position.can.restore && !position.is_active },
+                                                                    ]}
+                                                                />
                                                             </div>
                                                         </td>
                                                     </tr>

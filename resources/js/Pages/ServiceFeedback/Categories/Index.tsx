@@ -2,12 +2,13 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import EmptyState from '@/Components/EmptyState';
 import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { AppDialog, Alert, Button, Card, FormField, Input, Select, TBody, THead, Table, TableCard, Td, Textarea, Th, Tr, actionLinkClassName } from '@euisis/ui';
+import { AppDialog, Alert, Button, Card, FormField, Input, Select, TBody, THead, Table, TableCard, Td, Textarea, Th, Tr } from '@euisis/ui';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import AppActionMenu from '@/Components/ui/AppActionMenu';
 
 type SubmissionType = 'feedback' | 'suggestion' | 'complaint';
 type TargetType = 'employee' | 'organization';
@@ -116,12 +117,14 @@ export default function CategoriesIndex({ categories, organizations, canManageCi
                                         <Td><StatusBadge status={row.is_active ? 'active' : 'inactive'} label={t(row.is_active ? 'serviceFeedback.qrActive' : 'serviceFeedback.qrStatusDisabled')} /></Td>
                                         <Td align="right">
                                             {row.can_manage && (
-                                                <span className="inline-flex gap-2">
-                                                    <button type="button" className={actionLinkClassName({ tone: 'primary' })} onClick={() => setEditing(row)}>{t('common.edit')}</button>
-                                                    <button type="button" className={actionLinkClassName({ tone: 'danger' })} onClick={() => destroy(row)}>
-                                                        {t(row.is_referenced ? 'serviceFeedback.retireCategory' : 'serviceFeedback.deleteCategory')}
-                                                    </button>
-                                                </span>
+                                                <div className="flex justify-end">
+                                                    <AppActionMenu
+                                                        items={[
+                                                            { label: t('common.edit'), onClick: () => setEditing(row) },
+                                                            { label: t(row.is_referenced ? 'serviceFeedback.retireCategory' : 'serviceFeedback.deleteCategory'), onClick: () => destroy(row), variant: 'danger' },
+                                                        ]}
+                                                    />
+                                                </div>
                                             )}
                                         </Td>
                                     </Tr>
