@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Moon, Sun } from '@/Components/Icons';
+import { Moon, Sun } from '@/Components/NavIcons';
 import { useLocale } from '@/hooks/useLocale';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import {
@@ -49,7 +49,7 @@ export default function ThemeToggle({ variant = 'default' }: { variant?: 'defaul
             type="button"
             onClick={cycleTheme}
             className={variant === 'toolbar'
-                ? 'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]'
+                ? 'flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] transition-colors duration-150 hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]'
                 : 'rounded-lg p-2 text-[color:var(--app-muted-foreground)] transition-colors hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)]'}
             aria-label={`${t('settings.themeMode')}: ${t(`common.${preference}`)}`}
             title={`${t('settings.themeMode')}: ${t(`common.${preference}`)}`}

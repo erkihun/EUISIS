@@ -48,7 +48,7 @@ import {
     MailIcon,
     FileChartIcon,
     MapPinned,
-} from '@/Components/Icons';
+} from '@/Components/NavIcons';
 import { type ReactNode, type SVGProps, useEffect, useId, useRef, useState } from 'react';
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { useCan } from '@/hooks/useCan';
@@ -780,9 +780,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     title={compact ? label : undefined}
                     className={[
                         // scroll-my keeps an auto-scrolled current page clear of the list's fading edges.
-                        'relative flex scroll-my-12 items-center gap-2.5 rounded-lg text-sm transition-colors',
+                        'relative flex scroll-my-12 items-center gap-2.5 rounded-md text-sm transition-colors duration-150',
                         focusRing, hoverSurface,
-                        compact ? 'mx-auto h-10 w-10 justify-center' : nested ? 'min-h-8 px-3 py-1.5' : 'min-h-9 px-3 py-2',
+                        compact ? 'mx-auto h-10 w-10 justify-center' : nested ? 'min-h-8 px-2.5 py-1.5' : 'min-h-9 px-2.5 py-2',
                         selected ? selectedSurface + ' font-semibold'
                             : nested ? 'text-[color:var(--sidebar-muted)] hover:text-[color:var(--sidebar-fg)]' : 'font-medium text-[color:var(--sidebar-fg)]',
                     ].join(' ')}
@@ -815,7 +815,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
         return <div key={labelKey} className="mb-4 last:mb-0">
             {collapsed
                 ? <div className="mx-3 my-2 border-t border-[color:var(--sidebar-border)]" />
-                : <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase leading-relaxed tracking-[0.07em] text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
+                : <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase leading-relaxed tracking-[0.08em] text-[color:var(--sidebar-muted)]">{t(labelKey)}</p>}
             <div className="space-y-0.5">{groups.map(renderGroup)}</div>
         </div>;
     }
@@ -836,15 +836,15 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             return (
                 <Popover key={group.key}>
                     <PopoverButton title={label} aria-label={label}
-                        className={['mx-auto flex h-10 w-10 items-center justify-center rounded-lg transition-colors data-[open]:bg-[color:var(--sidebar-hover)]', focusRing, hoverSurface,
+                        className={['mx-auto flex h-10 w-10 items-center justify-center rounded-md transition-colors data-[open]:bg-[color:var(--sidebar-hover)]', focusRing, hoverSurface,
                             selected ? selectedSurface : 'text-[color:var(--sidebar-fg)]'].join(' ')}>
                         <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
                     </PopoverButton>
                     <PopoverPanel anchor="right start" transition
-                        className="z-50 w-64 rounded-xl border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] p-2 text-[color:var(--sidebar-fg)] shadow-xl outline-none transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-[closed]:-translate-x-1 data-[closed]:opacity-0">
+                        className="z-50 w-64 rounded-lg border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] p-2 text-[color:var(--sidebar-fg)] shadow-xl outline-none transition duration-100 ease-out [--anchor-gap:12px] [--anchor-padding:8px] data-[closed]:-translate-x-1 data-[closed]:opacity-0">
                         {({ close }) => (
                             <>
-                                <p className="px-3 pb-1.5 pt-1 text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--sidebar-muted)]">{label}</p>
+                                <p className="px-2.5 pb-1.5 pt-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--sidebar-muted)]">{label}</p>
                                 {renderGroupItems(group, items, close)}
                             </>
                         )}
@@ -860,7 +860,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     aria-controls={panelId}
                     onClick={() => { if (!normalizedQuery) setOpenGroups((previous) => ({ ...previous, [group.key]: !isOpen })); }}
                     className={[
-                        'flex min-h-9 w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-[color:var(--sidebar-fg)] transition-colors',
+                        'flex min-h-9 w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-[color:var(--sidebar-fg)] transition-colors duration-150',
                         focusRing, hoverSurface,
                         // Only the page itself carries the selected surface; its group is marked by weight and an accent icon.
                         selected ? 'font-semibold' : 'font-medium',
@@ -871,7 +871,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     <ChevronDown className={['h-3.5 w-3.5 shrink-0 text-[color:var(--sidebar-muted)] transition-transform', isOpen ? '' : '-rotate-90'].join(' ')} aria-hidden="true" />
                 </button>
                 <div id={panelId} hidden={!isOpen}>
-                    <div className="ms-5 mt-0.5 mb-1.5 border-s border-[color:var(--sidebar-border)] ps-2">
+                    <div className="ms-[19px] mt-0.5 mb-1.5 border-s border-[color:var(--sidebar-border)] ps-2">
                         {renderGroupItems(group, items)}
                     </div>
                 </div>
@@ -881,16 +881,16 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
 
     return (
         <div data-sidebar className="flex h-full min-h-0 w-full flex-col border-e border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-bg)] text-[color:var(--sidebar-fg)]">
-            <div className={collapsed ? 'flex min-h-20 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'shrink-0 border-b border-[color:var(--sidebar-border)] p-4'}>
+            <div className={collapsed ? 'flex h-16 shrink-0 items-center justify-center border-b border-[color:var(--sidebar-border)]' : 'app-dot-grid shrink-0 border-b border-[color:var(--sidebar-border)] px-4 py-3.5'}>
                 <div className="flex items-start gap-2">
                     <Link
                         href={isEmployeeUser ? route('employee.portal') : route('dashboard')}
                         onClick={onClose}
                         aria-label={appName}
                         title={collapsed ? appName : undefined}
-                        className={['flex min-w-0 flex-1 gap-3 rounded-lg', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
+                        className={['flex min-w-0 flex-1 gap-3 rounded-md', focusRing, logoCentered && !collapsed ? 'flex-col items-center text-center' : 'items-center'].join(' ')}
                     >
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[color:var(--sidebar-bg)] p-1 ring-1 ring-[color:var(--sidebar-border)]">
                             <ApplicationLogo className="h-full w-full object-contain" />
                         </span>
                         {!collapsed && <div className="min-w-0">
@@ -899,7 +899,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                             <p className="mt-1 whitespace-normal break-words text-xs leading-relaxed text-[color:var(--sidebar-muted)]">{orgName}</p>
                         </div>}
                     </Link>
-                    {onClose && <button type="button" onClick={onClose} aria-label={t('nav.closeMenu')} className={['flex h-10 w-10 shrink-0 items-center justify-center rounded-lg', focusRing, hoverSurface].join(' ')}><X className="h-4 w-4" aria-hidden="true" /></button>}
+                    {onClose && <button type="button" onClick={onClose} aria-label={t('nav.closeMenu')} className={['flex h-9 w-9 shrink-0 items-center justify-center rounded-md', focusRing, hoverSurface].join(' ')}><X className="h-[18px] w-[18px]" aria-hidden="true" /></button>}
                 </div>
             </div>
 
@@ -909,9 +909,9 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
                     aria-label={t('nav.filterMenu')}
                     title={t('nav.filterMenu')}
                     onClick={() => { focusSearchAfterExpand.current = true; onToggleCollapse?.(); }}
-                    className={['mx-auto flex h-11 w-11 items-center justify-center rounded-lg text-[color:var(--sidebar-muted)]', focusRing, hoverSurface].join(' ')}
+                    className={['mx-auto flex h-10 w-10 items-center justify-center rounded-md text-[color:var(--sidebar-muted)]', focusRing, hoverSurface].join(' ')}
                 ><SearchIcon className="h-[18px] w-[18px]" aria-hidden="true" /></button> : (
-                    <div className="flex items-center gap-2 rounded-lg border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-hover)] px-3 focus-within:ring-2 focus-within:ring-[color:var(--sidebar-accent)]">
+                    <div className="flex items-center gap-2 rounded-md border border-[color:var(--sidebar-border)] bg-[color:var(--sidebar-hover)] px-2.5 transition-colors focus-within:border-[color:var(--sidebar-accent)] focus-within:ring-2 focus-within:ring-[color:var(--sidebar-accent-wash)]">
                         <SearchIcon className="h-4 w-4 shrink-0 text-[color:var(--sidebar-muted)]" aria-hidden="true" />
                         <input
                             ref={searchRef}
@@ -947,7 +947,7 @@ export default function AppSidebar({ onClose, collapsed = false, onToggleCollaps
             <div className="shrink-0 border-t border-[color:var(--sidebar-border)] p-2">
                 {onToggleCollapse ? (
                     <button type="button" onClick={onToggleCollapse} aria-label={t(collapsed ? 'nav.expandSidebar' : 'nav.collapseSidebar')} title={collapsed ? t('nav.expandSidebar') : undefined}
-                        className={['flex min-h-11 items-center gap-3 rounded-lg text-sm text-[color:var(--sidebar-muted)]', focusRing, hoverSurface, collapsed ? 'mx-auto w-11 justify-center' : 'w-full px-3'].join(' ')}>
+                        className={['flex min-h-10 items-center gap-3 rounded-md text-sm text-[color:var(--sidebar-muted)]', focusRing, hoverSurface, collapsed ? 'mx-auto w-10 justify-center' : 'w-full px-2.5'].join(' ')}>
                         <ChevronRight className={collapsed ? 'h-4 w-4' : 'h-4 w-4 rotate-180'} aria-hidden="true" />
                         {!collapsed && <span>{t('nav.collapseSidebar')}</span>}
                     </button>

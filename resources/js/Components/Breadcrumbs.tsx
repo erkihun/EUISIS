@@ -1,6 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { navLocation } from '@/Components/AppSidebar';
-import { ChevronRight } from '@/Components/Icons';
+import { ChevronRight } from '@/Components/NavIcons';
 import { useCan } from '@/hooks/useCan';
 import { useLocale } from '@/hooks/useLocale';
 

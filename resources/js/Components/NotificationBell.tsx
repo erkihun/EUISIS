@@ -3,6 +3,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
+import { BellIcon } from '@/Components/NavIcons';
 import { useLocale } from '@/hooks/useLocale';
 import type { PageProps } from '@/types';
 
@@ -80,9 +81,9 @@ export default function NotificationBell() {
             <PopoverButton
                 onClick={() => void refresh()}
                 aria-label={`${label('title')}${unread ? ` (${unread} ${label('unread')})` : ''}`}
-                className="relative flex h-10 w-10 items-center justify-center rounded-lg text-[color:var(--app-muted-foreground)] hover:bg-[color:var(--app-surface-muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--color-primary)]"
+                className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[color:var(--app-muted-foreground)] transition-colors duration-150 hover:bg-[color:var(--app-surface-muted)] hover:text-[color:var(--app-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-primary)]"
             >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4" /></svg>
+                <BellIcon className="h-5 w-5" aria-hidden="true" />
                 {unread > 0 && <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-red-600 px-1 text-[10px] font-bold leading-4 text-white">{unread > 99 ? '99+' : unread}</span>}
                 {error && !feed && <span aria-hidden="true" className="absolute right-0 top-0 text-xs text-amber-600">!</span>}
             </PopoverButton>
