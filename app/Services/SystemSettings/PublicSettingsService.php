@@ -30,8 +30,10 @@ class PublicSettingsService
         $sealPath = $settings['general']['seal'] ?? null;
 
         return [
-            'app.name' => $settings['general']['application_name'] ?? 'Addis Ababa Employee Unified ID & Service Platform',
-            'app.short_name' => $settings['general']['application_short_name'] ?? 'AA Employee ID',
+            'app.name' => $settings['general']['application_name'] ?? config('branding.name'),
+            'app.short_name' => $settings['general']['application_short_name'] ?? config('branding.short_name'),
+            'app.official_name_en' => $settings['general']['official_name_en'] ?? config('branding.official_name_en'),
+            'app.official_name_am' => $settings['general']['official_name_am'] ?? config('branding.official_name_am'),
             'general.organization_name' => $settings['general']['organization_name'] ?? 'Addis Ababa City Administration',
             'general.support_email' => $settings['general']['support_email'] ?? null,
             'general.support_phone' => $settings['general']['support_phone'] ?? null,

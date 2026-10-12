@@ -31,6 +31,8 @@ class UpdateGeneralSettingsRequest extends FormRequest
         return [
             'application_name' => ['required', 'string', 'max:160'],
             'application_short_name' => ['required', 'string', 'max:80'],
+            'official_name_en' => ['required', 'string', 'max:200'],
+            'official_name_am' => ['required', 'string', 'max:200'],
             'organization_name' => ['required', 'string', 'max:200'],
             'default_dashboard_route' => [
                 'required',

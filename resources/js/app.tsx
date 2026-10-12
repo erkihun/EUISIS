@@ -12,7 +12,9 @@ import AppErrorBoundary from '@/Components/errors/AppErrorBoundary';
 import AppPageLoader from '@/Components/ui/AppPageLoader';
 import SessionTimeoutManager, { type SessionPolicy } from '@/Components/SessionTimeoutManager';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+// Set from the shared `branding` prop before the first render (System Settings over config);
+// the build-time env value is only the pre-render fallback.
+let brandName: string = import.meta.env.VITE_APP_NAME || 'Addis One';
 const pages = import.meta.glob('./Pages/**/*.tsx');
 
 /** Removes the static HTML loader once React has mounted. */
@@ -28,7 +30,7 @@ function InitialLoaderRemover() {
 }
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => (title ? `${title} | ${brandName}` : brandName),
     resolve: async (name) => {
         try {
             return await resolvePageComponent(`./Pages/${name}.tsx`, pages);
@@ -41,6 +43,8 @@ createInertiaApp({
     setup({ el, App, props }) {
         const initialProps = props.initialPage.props as Record<string, unknown>;
         const settings = (initialProps.settings as Record<string, unknown> | undefined) ?? {};
+        const branding = initialProps.branding as { brandName?: string } | undefined;
+        brandName = (settings['app.name'] as string | undefined) || branding?.brandName || brandName;
         const defaultLocale = ((initialProps.locale as string | undefined) ?? 'en') as 'en' | 'am';
 
         initTheme(

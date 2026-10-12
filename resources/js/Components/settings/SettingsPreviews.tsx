@@ -67,8 +67,8 @@ export function BrandingPreview({ values, fields, sidebarColor }: { values: Valu
                         {logo ? <img src={logo} alt="" className="h-full w-full object-contain p-1" /> : <CreditCard className="h-5 w-5 opacity-70" aria-hidden="true" />}
                     </span>
                     <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold">{shortName}</span>
-                        <span className="block truncate text-xs opacity-75">{organization}</span>
+                        <span className="block truncate text-sm font-semibold">{name}</span>
+                        <span className="block truncate text-xs opacity-75">{shortName} · {organization}</span>
                     </span>
                     {environment !== 'production' && (
                         <span className="shrink-0 rounded-full bg-amber-400/90 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-950">{environment}</span>

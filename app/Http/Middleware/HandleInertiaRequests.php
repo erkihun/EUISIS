@@ -9,6 +9,7 @@ use App\Enums\TransferAnnouncementStatus;
 use App\Models\TransferAnnouncement;
 use App\Models\User;
 use App\Security\Passwords\PasswordPolicy;
+use App\Services\Branding\BrandingService;
 use App\Services\Calendar\CalendarService;
 use App\Services\IdCards\IdCardTemplateService;
 use App\Services\PublicSite\PublicSiteContent;
@@ -70,6 +71,8 @@ class HandleInertiaRequests extends Middleware
                 'mode' => $calendarMode,
             ],
             'settings' => $settings,
+            // Product identity, resolved once (BrandingService): settings over config, never per page.
+            'branding' => app(BrandingService::class)->toArray(),
             // Card artwork (seal, signature) only reaches people who render cards.
             'idCardTemplate' => function () use ($user): ?array {
                 if (! $this->rendersIdCards($user)) {

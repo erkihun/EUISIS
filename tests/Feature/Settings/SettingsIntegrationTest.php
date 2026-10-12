@@ -125,6 +125,8 @@ it('declares a validation rule for every registered setting', function (string $
 const SHARED_UNDER_ANOTHER_KEY = [
     'general.application_name' => 'app.name',
     'general.application_short_name' => 'app.short_name',
+    'general.official_name_en' => 'app.official_name_en',
+    'general.official_name_am' => 'app.official_name_am',
     'general.identity_system_logo' => 'general.identity_system_logo_url',
     'general.favicon' => 'general.favicon_url',
     'general.seal' => 'general.seal_url',
