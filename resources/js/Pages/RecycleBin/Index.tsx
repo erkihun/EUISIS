@@ -75,9 +75,10 @@ export default function RecycleBinIndex({ records, filters, types }: Props) {
             variant: 'danger',
         });
         if (!confirmed) return;
+        // The server flashes the success itself; a second toast here showed the
+        // same outcome twice.
         router.delete(route('recycle-bin.force-delete', { type: record.type, id: record.id }), {
             preserveScroll: true,
-            onSuccess: () => toast.success(t('recycleBin.deletedSuccessfully')),
             onError: (errors) => toast.error(errors.record ?? t('recycleBin.failedToDelete')),
         });
     }

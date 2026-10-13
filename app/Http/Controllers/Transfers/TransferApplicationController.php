@@ -135,7 +135,9 @@ class TransferApplicationController extends Controller
                 $request->input('effective_date'),
             );
         } catch (\DomainException $e) {
-            throw ValidationException::withMessages(['status' => $e->getMessage()]);
+            // Posted from a button, not a form: a `status` field error has no field
+            // to sit under on the page, so the refusal is a toast.
+            return back()->with('flash', ['message' => $e->getMessage(), 'type' => 'error']);
         }
 
         return back()->with('flash', ['message' => __('transfers.applicationSelected'), 'type' => 'success']);
@@ -163,7 +165,9 @@ class TransferApplicationController extends Controller
         try {
             $action->execute($transferApplication, Auth::user(), $data['reason']);
         } catch (\DomainException $e) {
-            throw ValidationException::withMessages(['status' => $e->getMessage()]);
+            // The page posts from a dialog, not a form, so a validation error under
+            // `status` had nowhere to render; the refusal is a toast.
+            return back()->with('flash', ['message' => $e->getMessage(), 'type' => 'error']);
         }
 
         return back()->with('flash', ['message' => __('transfers.applicationWithdrawn'), 'type' => 'success']);
@@ -178,7 +182,7 @@ class TransferApplicationController extends Controller
         try {
             $action->execute($transferApplication, Auth::user());
         } catch (\DomainException $e) {
-            throw ValidationException::withMessages(['status' => $e->getMessage()]);
+            return back()->with('flash', ['message' => $e->getMessage(), 'type' => 'error']);
         }
 
         return back()->with('flash', ['message' => __('transfers.transferCompleted'), 'type' => 'success']);

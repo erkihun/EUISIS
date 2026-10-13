@@ -60,7 +60,12 @@ function mount() {
             const initialProps = props.initialPage.props as Record<string, unknown>;
             const settings = (initialProps.settings as Record<string, unknown> | undefined) ?? {};
             const branding = initialProps.branding as { brandName?: string } | undefined;
-            brandName = (settings['app.name'] as string | undefined) || branding?.brandName || brandName;
+            // Error pages (404, 403, 419…) are rendered by the exception handler without the
+            // shared props, but the server still stamps the resolved brand into the document
+            // head; read it from there before falling back to the build-time env value, which
+            // a production build may have set to the old product name.
+            const headBrand = document.querySelector('meta[name="application-name"]')?.getAttribute('content')?.trim();
+            brandName = (settings['app.name'] as string | undefined) || branding?.brandName || headBrand || brandName;
             const defaultLocale = ((initialProps.locale as string | undefined) ?? 'en') as 'en' | 'am';
 
             initTheme(

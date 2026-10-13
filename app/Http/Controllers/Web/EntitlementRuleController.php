@@ -101,7 +101,7 @@ class EntitlementRuleController extends Controller
 
         $action->execute($entitlementRule, $request->user(), $request->string('reason')->toString() ?: null, $request);
 
-        return to_route('entitlement-rules.index')->with('flash', ['message' => __('recycle-bin.deleted_successfully'), 'type' => 'success']);
+        return to_route('entitlement-rules.index')->with('flash', ['message' => __('recycle-bin.archived_successfully'), 'type' => 'success']);
     }
 
     public function restore(Request $request, string $entitlementRule, RestoreEntitlementRuleAction $action): RedirectResponse

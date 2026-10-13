@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/hooks/useConfirm';
 
 import { buttonClassName } from '@/Components/ui';
 export default function EntitlementRulesShow({
@@ -20,6 +21,19 @@ export default function EntitlementRulesShow({
     };
 }) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
+
+    // The same dialog the list page shows: a delete is never one accidental click.
+    async function archive() {
+        const { confirmed } = await confirm({
+            title: t('confirmations.confirmDeleteTitle'),
+            description: t('confirmations.thisRecordWillMoveToRecycleBin'),
+            confirmLabel: t('confirmations.delete'),
+            cancelLabel: t('confirmations.cancel'),
+            variant: 'danger',
+        });
+        if (confirmed) router.delete(route('entitlement-rules.archive', rule.id));
+    }
 
     return (
         <AuthenticatedLayout
@@ -35,7 +49,7 @@ export default function EntitlementRulesShow({
                                 </Link>
                             )}
                             {rule.can.archive && rule.is_active && (
-                                <button type="button" onClick={() => router.delete(route('entitlement-rules.archive', rule.id))} className={buttonClassName({ variant: 'destructive' })}>
+                                <button type="button" onClick={archive} className={buttonClassName({ variant: 'destructive' })}>
                                     {t('common.delete')}
                                 </button>
                             )}

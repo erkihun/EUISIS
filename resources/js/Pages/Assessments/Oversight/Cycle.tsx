@@ -80,9 +80,18 @@ export default function OversightCycle({ cycle, participants, organizations, eli
                                 <td className={tdCls}>{t(`assessmentOversight.submissionStatuses.${p.submission_status}`)}</td>
                                 <td className={tdCls}>
                                     {!finalized && p.status === 'included' && (
-                                        <button type="button" className={dangerLinkBtn} onClick={() => {
-                                            const reason = window.prompt(t('assessmentOversight.removeReason'));
-                                            if (reason) router.delete(route('assessment-oversight.cycles.organizations.destroy', { cycle: cycle.id, organization: p.organization_id }), { data: { reason }, preserveScroll: true });
+                                        <button type="button" className={dangerLinkBtn} onClick={async () => {
+                                            // The app's own dialog asks for the reason, like every other reasoned action here.
+                                            const { confirmed, reason } = await confirm({
+                                                title: t('assessmentOversight.actions.remove'),
+                                                description: t('assessmentOversight.removeReason'),
+                                                confirmLabel: t('assessmentOversight.actions.remove'),
+                                                cancelLabel: t('common.cancel'),
+                                                variant: 'danger',
+                                                requireReason: true,
+                                                reasonLabel: t('confirmations.reason'),
+                                            });
+                                            if (confirmed && reason?.trim()) router.delete(route('assessment-oversight.cycles.organizations.destroy', { cycle: cycle.id, organization: p.organization_id }), { data: { reason: reason.trim() }, preserveScroll: true });
                                         }}>{t('assessmentOversight.actions.remove')}</button>
                                     )}
                                 </td>

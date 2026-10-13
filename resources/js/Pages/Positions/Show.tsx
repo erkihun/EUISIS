@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/hooks/useConfirm';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { localizedName } from '@/utils/localizedName';
 import { Empty, formatScore, Pill, Section, Table, tdCls, thCls } from '@/Components/performance/ui';
@@ -26,7 +27,20 @@ type Props = { position: any; movementHistory: Movement[]; positionServices: Pos
 
 export default function PositionsShow({ position, movementHistory, positionServices, currentPerformancePlans, historicalPerformancePlans, canViewPerformancePlans, canViewPositionServices }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const standardName = localizedName(position.title_en, position.title_am, locale);
+
+    // The same dialog the list page shows: an archive is never one accidental click.
+    async function archive() {
+        const { confirmed } = await confirm({
+            title: t('confirmations.confirmDeleteTitle'),
+            description: t('confirmations.thisRecordWillMoveToRecycleBin'),
+            confirmLabel: t('confirmations.delete'),
+            cancelLabel: t('confirmations.cancel'),
+            variant: 'danger',
+        });
+        if (confirmed) router.delete(route('positions.archive', position.id));
+    }
 
     return (
         <AuthenticatedLayout
@@ -38,7 +52,7 @@ export default function PositionsShow({ position, movementHistory, positionServi
                         <div className="flex gap-3">
                             {position.can?.move && <Link href={route('positions.move', position.id)} className={buttonClassName({ variant: 'primary' })}>{t('positions.move')}</Link>}
                             {position.can?.update && <Link href={route('positions.edit', position.id)} className={buttonClassName({ variant: 'primary' })}>{t('common.edit')}</Link>}
-                            {position.can?.archive && position.is_active && <button type="button" onClick={() => router.delete(route('positions.archive', position.id))} className={buttonClassName({ variant: 'destructive' })}>{t('positions.archivePosition')}</button>}
+                            {position.can?.archive && position.is_active && <button type="button" onClick={archive} className={buttonClassName({ variant: 'destructive' })}>{t('positions.archivePosition')}</button>}
                             {position.can?.restore && !position.is_active && <button type="button" onClick={() => router.post(route('positions.restore', position.id))} className={buttonClassName({ variant: 'primary' })}>{t('positions.restorePosition')}</button>}
                         </div>
                     }

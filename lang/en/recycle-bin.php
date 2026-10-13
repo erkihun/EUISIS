@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'archived_successfully' => 'Record moved to the Recycle Bin.',
     'deleted_successfully' => 'Record permanently deleted.',
     'restored_successfully' => 'Record restored successfully.',
     'restore_conflict' => 'Cannot restore record because a conflict exists.',

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Transfers\WithdrawTransferApplicationAction;
 use App\Models\Employee;
 use App\Models\EmployeeAssignment;
 use App\Models\EmployeeCorrectionRequest;
@@ -15,6 +16,7 @@ use App\Models\ProviderType;
 use App\Models\PublicHoliday;
 use App\Models\ServiceType;
 use App\Models\TransferAnnouncement;
+use App\Models\TransferApplication;
 use App\Models\TransportPass;
 use App\Models\TransportTransaction;
 use App\Models\User;
@@ -407,7 +409,7 @@ test('my transfer applications carry Amharic names and no hardcoded English', fu
     $user = User::factory()->create(['email' => 'mover@example.test', 'status' => 'active']);
     $ctx = portalEmployee('mover@example.test');
     $announcement = portalAnnouncement($ctx);
-    App\Models\TransferApplication::query()->create([
+    TransferApplication::query()->create([
         'announcement_id' => $announcement->id,
         'employee_id' => $ctx['employee']->id,
         'current_assignment_id' => $ctx['employee']->fresh()->current_assignment_id,
@@ -447,4 +449,48 @@ test('the dashboard shows open announcements the employee has not applied to', f
 
     $source = file_get_contents(dirname(__DIR__, 3).'/resources/js/Pages/Employee/Portal.tsx');
     expect($source)->toContain('open_announcements.map');
+});
+
+/** Stands in for the real action when the test needs the refusal path. */
+readonly class RefusingWithdrawAction extends WithdrawTransferApplicationAction
+{
+    public function __construct() {}
+
+    public function execute(TransferApplication $application, User $actor, string $reason): TransferApplication
+    {
+        throw new DomainException('This application can no longer be withdrawn.');
+    }
+}
+
+/*
+ * The withdraw button posts from a dialog, not a form, so a refusal has to
+ * arrive as an error toast: a field error under a name no page renders was
+ * silently lost.
+ */
+test('a refused withdrawal reaches the employee as an error flash', function (): void {
+    $user = User::factory()->create(['email' => 'withdrawer@example.test', 'status' => 'active']);
+    $ctx = portalEmployee('withdrawer@example.test');
+    $announcement = portalAnnouncement($ctx);
+    $application = TransferApplication::query()->create([
+        'announcement_id' => $announcement->id,
+        'employee_id' => $ctx['employee']->id,
+        'current_assignment_id' => $ctx['employee']->fresh()->current_assignment_id,
+        'releasing_organization_id' => $ctx['organization']->id,
+        'receiving_organization_id' => $ctx['organization']->id,
+        'status' => 'submitted',
+        'submitted_at' => now(),
+    ]);
+    $this->app->instance(WithdrawTransferApplicationAction::class, new RefusingWithdrawAction);
+
+    $this->actingAs($user)
+        ->from(route('employee.transfer-applications'))
+        ->post(route('employee.transfer-applications.withdraw', ['application' => $application->id]), ['reason' => 'Changed my mind'])
+        ->assertRedirect(route('employee.transfer-applications'))
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('flash.type', 'error')
+        ->assertSessionHas('flash.message', 'This application can no longer be withdrawn.');
+
+    // The page itself no longer reaches for the browser's prompt().
+    $source = file_get_contents(dirname(__DIR__, 3).'/resources/js/Pages/Employee/MyTransferApplications.tsx');
+    expect($source)->not->toContain('window.prompt')->toContain('requireReason: true');
 });

@@ -377,7 +377,7 @@ class OrganizationUnitController extends Controller
         $action->execute($organizationUnit, $request->user(), $request->string('reason')->toString() ?: null, $request);
 
         return redirect()->route('organization-units.index')
-            ->with('success', __('recycle-bin.deleted_successfully'));
+            ->with('success', __('recycle-bin.archived_successfully'));
     }
 
     public function restore(Request $request, string $organizationUnit, RestoreOrganizationUnitAction $action): RedirectResponse

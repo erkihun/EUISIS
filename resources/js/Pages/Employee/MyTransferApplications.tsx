@@ -2,6 +2,7 @@ import PortalPage from '@/Components/employees/portal/PortalPage';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 import { Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/hooks/useConfirm';
 import { localizedName } from '@/utils/localizedName';
 import type { PageProps } from '@/types';
 
@@ -44,7 +45,25 @@ const STATUS_COLOR: Record<string, string> = {
 
 export default function MyTransferApplications({ applications, has_employee, filters }: Props) {
     const { t, locale } = useLocale();
+    const { confirm } = useConfirm();
     const name = (en: string | null, am: string | null) => localizedName(en ?? '', am, locale) || null;
+
+    // The app's own dialog asks for the reason; a browser prompt() is unstyled,
+    // untranslatable in its chrome and cannot show a validation message.
+    async function withdraw(application: Application) {
+        const { confirmed, reason } = await confirm({
+            title: t('transfers.withdrawApplication'),
+            description: t('transfers.withdrawReasonPrompt'),
+            confirmLabel: t('transfers.withdrawApplication'),
+            cancelLabel: t('common.cancel'),
+            variant: 'warning',
+            requireReason: true,
+            reasonLabel: t('confirmations.reason'),
+        });
+        if (confirmed && reason?.trim()) {
+            router.post(route('employee.transfer-applications.withdraw', { application: application.id }), { reason: reason.trim() }, { preserveScroll: true });
+        }
+    }
     const statusLabel = (app: Application) => {
         const key = `employeePortal.applicationStatuses.${app.status}`;
         const translated = t(key);
@@ -120,7 +139,7 @@ export default function MyTransferApplications({ applications, has_employee, fil
                                         {app.rejected_reason}
                                     </div>
                                 )}
-                                {app.can_withdraw && <button type="button" onClick={() => { const reason = window.prompt(t('transfers.withdrawReasonPrompt')); if (reason?.trim()) router.post(route('employee.transfer-applications.withdraw', { application: app.id }), { reason: reason.trim() }); }} className="mt-3 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">{t('transfers.withdrawApplication')}</button>}
+                                {app.can_withdraw && <button type="button" onClick={() => withdraw(app)} className="mt-3 rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-slate-600 dark:text-slate-300">{t('transfers.withdrawApplication')}</button>}
                             </div>
                         );
                     })}

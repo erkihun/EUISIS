@@ -133,7 +133,7 @@ class OrganizationUnitTypeController extends Controller
         $action->execute($organizationUnitType, $request->user(), $request->string('reason')->toString() ?: null, $request);
 
         return to_route('organization-unit-types.index')
-            ->with('flash', ['message' => __('recycle-bin.deleted_successfully'), 'type' => 'success']);
+            ->with('flash', ['message' => __('recycle-bin.archived_successfully'), 'type' => 'success']);
     }
 
     public function restore(

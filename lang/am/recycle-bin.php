@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 return [
+    'archived_successfully' => 'መዝገቡ ወደ ተሰረዙ መዝገቦች ተዛውሯል።',
     'deleted_successfully' => 'መዝገቡ በቋሚነት ተሰርዟል።',
     'restored_successfully' => 'መዝገቡ በተሳካ ሁኔታ ተመልሷል።',
     'restore_conflict' => 'ግጭት ስላለ መዝገቡን መመለስ አይቻልም።',

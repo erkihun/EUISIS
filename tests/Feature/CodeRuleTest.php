@@ -271,9 +271,12 @@ it('deletes and restores a code rule', function (): void {
     $user = superAdminUser();
     $rule = createCodeRule();
 
+    // An archive is reversible, so the toast must not claim a permanent deletion.
     $this->actingAs($user)
         ->post(route('code-rules.archive', $rule))
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHas('flash.type', 'success')
+        ->assertSessionHas('flash.message', __('recycle-bin.archived_successfully'));
 
     expect(CodeRule::query()->withTrashed()->find($rule->id)->deleted_at)->not->toBeNull();
 

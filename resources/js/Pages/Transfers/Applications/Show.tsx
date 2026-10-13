@@ -3,6 +3,7 @@ import StatusBadge from '@/Components/StatusBadge';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/hooks/useConfirm';
 import { useState } from 'react';
 import LocalizedDateDisplay from '@/Components/Calendar/LocalizedDateDisplay';
 
@@ -48,7 +49,25 @@ type Props = { application: Application; can: Can };
 
 export default function TransferApplicationShow({ application, can }: Props) {
     const { locale, t } = useLocale();
+    const { confirm } = useConfirm();
     const useAmharic = locale === 'am';
+
+    // The app's own dialog asks for the reason; a browser prompt() is unstyled,
+    // untranslatable in its chrome and cannot show a validation message.
+    async function withdraw() {
+        const { confirmed, reason } = await confirm({
+            title: t('transfers.withdrawApplication'),
+            description: t('transfers.withdrawReasonPrompt'),
+            confirmLabel: t('transfers.withdrawApplication'),
+            cancelLabel: t('common.cancel'),
+            variant: 'warning',
+            requireReason: true,
+            reasonLabel: t('confirmations.reason'),
+        });
+        if (confirmed && reason?.trim()) {
+            router.post(route('transfer-applications.withdraw', application.id), { reason: reason.trim() }, { preserveScroll: true });
+        }
+    }
 
     const [rejectOpen, setRejectOpen] = useState(false);
     const rejectForm = useForm({ reason: '' });
@@ -107,7 +126,7 @@ export default function TransferApplicationShow({ application, can }: Props) {
                                 </button>
                             )}
                             {can.withdraw && (
-                                <button type="button" onClick={() => { const reason = window.prompt(t('transfers.withdrawReasonPrompt')); if (reason?.trim()) router.post(route('transfer-applications.withdraw', application.id), { reason: reason.trim() }); }} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
+                                <button type="button" onClick={withdraw} className={buttonClassName({ variant: 'outline', size: 'sm' })}>
                                     {t('transfers.withdrawApplication')}
                                 </button>
                             )}

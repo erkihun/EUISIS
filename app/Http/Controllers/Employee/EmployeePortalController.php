@@ -927,7 +927,9 @@ class EmployeePortalController extends Controller
         try {
             $action->execute($transferApplication, $request->user(), $data['reason']);
         } catch (DomainException $e) {
-            return back()->withErrors(['withdrawal_reason' => $e->getMessage()]);
+            // The page posts from a dialog, not a form, so a field error under
+            // `withdrawal_reason` had nowhere to render; the refusal is a toast.
+            return back()->with('flash', ['message' => $e->getMessage(), 'type' => 'error']);
         }
 
         return back()->with('flash', ['message' => __('transfers.applicationWithdrawn'), 'type' => 'success']);

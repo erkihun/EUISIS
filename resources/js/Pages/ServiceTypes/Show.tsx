@@ -3,6 +3,7 @@ import PageHeader from '@/Components/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
 import { Head, Link, router } from '@inertiajs/react';
 import { useLocale } from '@/hooks/useLocale';
+import { useConfirm } from '@/hooks/useConfirm';
 
 import { buttonClassName } from '@/Components/ui';
 export default function ServiceTypesShow({
@@ -22,6 +23,19 @@ export default function ServiceTypesShow({
     };
 }) {
     const { t } = useLocale();
+    const { confirm } = useConfirm();
+
+    // The same dialog the list page shows: a delete is never one accidental click.
+    async function archive() {
+        const { confirmed } = await confirm({
+            title: t('confirmations.confirmDeleteTitle'),
+            description: t('confirmations.thisRecordWillMoveToRecycleBin'),
+            confirmLabel: t('confirmations.delete'),
+            cancelLabel: t('confirmations.cancel'),
+            variant: 'danger',
+        });
+        if (confirmed) router.delete(route('service-types.archive', serviceType.id));
+    }
 
     return (
         <AuthenticatedLayout
@@ -37,7 +51,7 @@ export default function ServiceTypesShow({
                                 </Link>
                             )}
                             {serviceType.can.archive && serviceType.is_active && (
-                                <button type="button" onClick={() => router.delete(route('service-types.archive', serviceType.id))} className={buttonClassName({ variant: 'destructive' })}>
+                                <button type="button" onClick={archive} className={buttonClassName({ variant: 'destructive' })}>
                                     {t('common.delete')}
                                 </button>
                             )}
