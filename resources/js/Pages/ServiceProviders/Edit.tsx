@@ -40,7 +40,7 @@ export default function ServiceProvidersEdit({
     const showHref = route('service-providers.show', provider.id);
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('providers.editProvider')}

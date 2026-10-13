@@ -58,7 +58,7 @@ export default function EditPermission({
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('permissions.editPermission')}
@@ -68,7 +68,7 @@ export default function EditPermission({
         >
             <Head title={t('permissions.editPermission')} />
 
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <form onSubmit={submit} className="space-y-5">
                     {permission.is_system && (
                         <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">

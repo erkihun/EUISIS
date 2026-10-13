@@ -280,7 +280,7 @@ export default function EmployeesCreate({
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('employees.index')}

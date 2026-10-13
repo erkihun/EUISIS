@@ -45,12 +45,12 @@ export default function MovePosition({ position, targetOrganizationUnits, isOccu
     const readOnlyClass = `${inputClass} bg-[color:var(--app-surface-muted)] text-[color:var(--app-muted-foreground)]`;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={<PageHeader backHref={route('positions.show', position.id)} title={t('positions.movePosition')} />}
         >
             <Head title={t('positions.movePosition')} />
 
-            <form onSubmit={submit} className="mx-auto max-w-3xl space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
+            <form onSubmit={submit} className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                 {isOccupied && (
                     <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
                         {t('positions.occupiedCannotMove')}

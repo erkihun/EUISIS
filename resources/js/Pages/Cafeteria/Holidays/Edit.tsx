@@ -28,7 +28,7 @@ export default function HolidaysEdit({ holiday }: { holiday: Holiday }) {
     function submit(e: FormEvent) { e.preventDefault(); form.patch(route('cafeteria.holidays.update', holiday.id)); }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteria.editHoliday')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.editHoliday')} />}>
             <Head title={t('cafeteria.editHoliday')} />
             <form onSubmit={submit} className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <div className="grid gap-5 p-6 md:grid-cols-2">

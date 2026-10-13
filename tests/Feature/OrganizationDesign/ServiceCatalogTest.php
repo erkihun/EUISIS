@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\UserOrganizationScope;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -236,4 +237,36 @@ test('a scoped designer only sees and writes services of their own organization'
     $this->actingAs($designerA)->post(route('organization-design.services.store'), scServicePayload($b))->assertForbidden();
     $this->actingAs($designerA)->get(route('organization-design.services.index'))->assertOk()
         ->assertInertia(fn ($page) => $page->component('OrganizationDesign/Services/Index')->where('services.total', 0));
+});
+
+test('a steward adds and edits classification entries on their own pages and is sent back to the list', function (): void {
+    $steward = User::factory()->create();
+    $steward->assignRole('Classification Steward');
+    $local = scLocalClassification();
+
+    $this->actingAs($steward)
+        ->get(route('organization-design.classifications.create', ['scheme' => 'LOCAL', 'revision' => '2026']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('OrganizationDesign/Classifications/Create')
+            ->where('scheme', 'LOCAL')
+            ->where('revision', '2026'));
+    $this->actingAs($steward)->get(route('organization-design.classifications.create', ['scheme' => 'ISIC']))->assertNotFound();
+
+    $this->actingAs($steward)
+        ->get(route('organization-design.classifications.edit', $local))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('OrganizationDesign/Classifications/Edit')
+            ->where('classification.code', $local->code)
+            ->where('classification.revision', '2026'));
+
+    $this->actingAs($steward)
+        ->post(route('organization-design.classifications.store'), ['scheme' => 'LOCAL', 'revision' => '2026', 'code' => 'LGS-09', 'level' => 1, 'name_en' => 'Added on its own page'])
+        ->assertRedirect(route('organization-design.classifications.index', ['scheme' => 'LOCAL', 'revision' => '2026']));
+    expect(ServiceClassification::query()->where('code', 'LGS-09')->exists())->toBeTrue();
+
+    $designer = scDesignerFor(scOrganization('H'));
+    $this->actingAs($designer)->get(route('organization-design.classifications.create'))->assertForbidden();
+    $this->actingAs($designer)->get(route('organization-design.classifications.edit', $local))->assertForbidden();
 });

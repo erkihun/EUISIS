@@ -90,12 +90,12 @@ export default function InstitutionOfficeCreate({
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={<PageHeader title={t('institutionOffices.create')} />}
         >
             <Head title={t('institutionOffices.create')} />
 
-            <div className="mx-auto max-w-4xl">
+            <div>
                 <form onSubmit={submit} className="space-y-6">
                     {Object.keys(errors).length > 0 && (
                         <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">

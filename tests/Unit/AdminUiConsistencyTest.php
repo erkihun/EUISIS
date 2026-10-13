@@ -143,3 +143,64 @@ it('renders every admin page title in the heading band', function (): void {
 
     expect($offenders)->toBe([]);
 });
+
+it('lets the layout own page width: forms take the form measure, nothing narrows itself', function (): void {
+    // docs/admin-ui-consistency.md "Page width": list and detail pages fill the content column;
+    // create, edit and shared form pages pass contentWidth="form" and start at the same left edge.
+    // A page that centres and narrows its own content (`mx-auto max-w-…xl`) breaks both rules.
+    $allowedCentring = [
+        'Pages/Assessments/Workspace/Assess.tsx', // the sticky save bar centres its own row inside a fixed strip
+    ];
+    $selfNarrowing = [];
+    $formWithoutMeasure = [];
+    $listOrDetailWithFormMeasure = [];
+
+    foreach (adminTsxFiles() as $file) {
+        $relative = substr($file, strpos($file, '/resources/js/') + 14);
+        if (! str_starts_with($relative, 'Pages/')) {
+            continue;
+        }
+        $source = (string) file_get_contents($file);
+        $narrow = '(?:2xl|3xl|4xl|5xl|6xl|7xl)';
+        if (! in_array($relative, $allowedCentring, true)
+            && preg_match('/className="[^"]*\bmx-auto\b[^"]*\bmax-w-'.$narrow.'\b|className="[^"]*\bmax-w-'.$narrow.'\b[^"]*\bmx-auto\b/', $source)) {
+            $selfNarrowing[] = $relative;
+        }
+        if (! str_contains($source, '<AuthenticatedLayout')) {
+            continue;
+        }
+        $kind = basename($relative, '.tsx');
+        $hasFormMeasure = str_contains($source, 'contentWidth="form"');
+        if (in_array($kind, ['Create', 'Edit', 'Form'], true) && ! $hasFormMeasure) {
+            $formWithoutMeasure[] = $relative;
+        }
+        if (in_array($kind, ['Index', 'Show'], true) && $hasFormMeasure) {
+            $listOrDetailWithFormMeasure[] = $relative;
+        }
+    }
+
+    expect($selfNarrowing)->toBe([]);
+    expect($formWithoutMeasure)->toBe([]);
+    expect($listOrDetailWithFormMeasure)->toBe([]);
+});
+
+it('creates and edits records on their own pages, never in a dialog on the list', function (): void {
+    // A list's "Add" opens Create.tsx and a row's Edit opens Edit.tsx (docs/admin-ui-consistency.md
+    // "Create and edit"). Dialogs stay for confirmations, previews and actions such as an import.
+    $offenders = [];
+    foreach (adminTsxFiles() as $file) {
+        $relative = substr($file, strpos($file, '/resources/js/') + 14);
+        if (! preg_match('#^Pages/.*/Index\.tsx$#', $relative)) {
+            continue;
+        }
+        $source = (string) file_get_contents($file);
+        if (preg_match('/\b(?:post|put)\(route\(\'[a-z.-]+\.(?:store|update)\'/', $source) && preg_match('/<(?:AppDialog|Modal)\b/', $source)) {
+            $offenders[] = $relative;
+        }
+    }
+
+    expect($offenders)->toBe([
+        // The cafeteria settings page adds provider users from a settings section, not from a list; documented under "Remaining".
+        'Pages/Cafeteria/Settings/Index.tsx',
+    ]);
+});

@@ -42,7 +42,7 @@ export default function PrintBatchCreate({ pendingCards }: PageProps) {
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={<PageHeader title={idCards.createPrintBatch ?? 'Create Print Batch'} description="" />}
         >
             <Head title={idCards.createPrintBatch ?? 'Create Print Batch'} />

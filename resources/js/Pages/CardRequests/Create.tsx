@@ -57,7 +57,7 @@ export default function CardRequestCreate({ employees, employeesTruncated, filte
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={label('createRequest')} description={label('createRequestDescription')} backHref={route('card-requests.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={label('createRequest')} description={label('createRequestDescription')} backHref={route('card-requests.index')} />}>
             <Head title={label('createRequest')} />
             <form onSubmit={handleSubmit} className="w-full">
                 <fieldset disabled={form.processing} className="grid min-w-0 items-start gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">

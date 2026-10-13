@@ -133,7 +133,7 @@ export default function EditOrganization({
     const showCurrentLogo = organization.has_logo && !form.data.remove_logo && !logoPreview;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('organizations.show', organization.id)}

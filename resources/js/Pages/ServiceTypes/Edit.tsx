@@ -32,7 +32,7 @@ export default function ServiceTypesEdit({
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('serviceTypes.editTitle')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('serviceTypes.editTitle')} />}>
             <Head title={t('serviceTypes.editTitle')} />
             <ServiceTypeForm
                 form={form}

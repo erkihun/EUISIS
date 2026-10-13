@@ -40,7 +40,7 @@ export default function OccupationsEdit({ occupation }: { occupation: Occupation
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('occupations.editOccupation')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('occupations.editOccupation')} />}>
             <Head title={t('occupations.editOccupation')} />
 
             <form

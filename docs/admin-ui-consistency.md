@@ -21,7 +21,8 @@ and `tests/Unit/AdminShellDesignTest.php` fail when a page drifts.
 | Topbar | `AppHeader`: menu button (below `lg`), sidebar toggle (`lg` and up), command palette (`Ctrl K` / `⌘ K`), language, theme, notifications, account menu. Every control is 36px `rounded-md`. |
 | User menu | Avatar, name, first role; identity band with e-mail and role badges; Profile settings; Sign out (the only sign-out control in the admin). Theme and language sit beside it in the header, not inside it. |
 | Breadcrumbs | `Breadcrumbs` renders from the navigation tree and the URL; pages never build their own. |
-| Page width | The layout owns width. Forms and detail pages may narrow their own content with `mx-auto max-w-2xl` … `max-w-5xl`; nothing widens beyond the column. |
+| Page width | The layout owns width, and there are exactly two measures. List and detail pages fill the content column (`max-w-[1600px]`). Create, edit and shared form pages pass `contentWidth="form"` to the layout and get `max-w-4xl`, left-aligned under the title so every form starts at the same edge. No page centres or narrows its own content (`mx-auto max-w-…` on a page is blocked by a test). |
+| Create and edit | A record is created and edited on its own page: the list's primary action links to `Create.tsx`, a row's Edit links to `Edit.tsx`, and both share one `Form.tsx`. Cancel returns to the list; saving redirects to the list with a toast. Dialogs are for confirmations, previews and list actions such as an import, never for a record's form (blocked by a test on list pages). |
 | Page header | `PageHeader` passed through the layout's `header` prop: title (`text-page-title`, the only `h1`), description, optional back link, actions on the right (primary action last). Rendering it in the page body is blocked by a test. |
 | Primary action | In the page header. A card header carries the primary action only on pages without a page-level action. |
 | Vertical rhythm | Page blocks `space-y-6`; inside a card `space-y-4`; form fields `--space-field`; sections `--space-section`. |
@@ -128,6 +129,20 @@ appearance settings wired to the tokens.
     list. Settings-style tables (SLA policies, performance cycles, cafeteria
     settings) stay unfiltered on purpose. Trigger and list stop click propagation so
     rows that navigate on click are not triggered.
+13. **One width per page kind, one place for a record's form**: 26 create and
+    22 edit pages filled the whole 1600px column while others capped
+    themselves at 2xl, 4xl, 5xl or 7xl and centred, and ten detail pages
+    narrowed themselves too. The layout now takes `contentWidth="form"`
+    (`max-w-4xl`, left-aligned under the title) and 79 create, edit, shared
+    form and settings pages pass it; the self-centring wrappers were removed
+    from every page (a codemod did the mechanical part), so lists and detail
+    pages fill the column and every form starts at the same edge. Feedback
+    categories, routing rules and classification entries were created and
+    edited in dialogs on their list; each now has `Create.tsx`, `Edit.tsx`
+    and a shared `Form.tsx`, with `create` / `edit` routes and controller
+    methods, Cancel back to the list and a redirect to the list after saving
+    (the CSV importer stays a dialog: it is an action, not a record). Both
+    rules are guarded by tests.
 
 ## 4. Deprecated patterns
 
@@ -178,6 +193,9 @@ Do not use these in admin code; the guard test rejects most of them.
 - `npm run typecheck`, `npm run build`, `php artisan test tests/Unit` and the
   consistency guards pass; `vendor/bin/pint --test`, `composer audit --locked`
   and `npm audit` results are in the handoff of 2026-10-12.
+- `tests/Unit/AdminUiConsistencyTest` also guards the width rule (form pages
+  pass `contentWidth="form"`, no page centres and narrows itself) and the
+  create-and-edit rule (no list page posts a record's form from a dialog).
 - Browser crawl: see §7.
 
 ## 7. Browser crawl

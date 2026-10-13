@@ -90,7 +90,7 @@ export default function ProviderShow({
                 />
             }
         >
-            <div className="mx-auto max-w-3xl space-y-5">
+            <div className="space-y-5">
 
                 {/* Provider details */}
                 <div className={`${cardCls} px-6`}>

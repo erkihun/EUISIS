@@ -115,7 +115,7 @@ export default function ProviderUserForm({ account, providers, services, roles, 
     const backHref = editing ? route('provider-users.show', account.id) : route('provider-users.index');
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={title} description={editing ? account.name : t('providerUsers.subtitle')} backHref={backHref} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={title} description={editing ? account.name : t('providerUsers.subtitle')} backHref={backHref} />}>
             <Head title={title} />
 
             <form onSubmit={submit} className="space-y-6 rounded-[var(--radius-card)] border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-4 sm:p-6" noValidate>

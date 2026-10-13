@@ -90,7 +90,7 @@ export default function OrganizationUnitsShow({ unit, relationships, relationshi
         >
             <Head title={unitName} />
 
-            <div className="mx-auto max-w-5xl space-y-6">
+            <div className="space-y-6">
                 {/* Header badges */}
                 <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-sm text-[color:var(--app-muted-foreground)]">{unit.code}</span>

@@ -102,7 +102,7 @@ export default function EditOrganizationType({
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('organizationTypes.editTitle')}

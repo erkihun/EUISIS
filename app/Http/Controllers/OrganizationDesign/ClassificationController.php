@@ -69,12 +69,39 @@ class ClassificationController extends Controller
         ]);
     }
 
+    /** A new LOCAL or CPC entry on its own page; the scheme and revision come from the list it was opened from. */
+    public function create(Request $request): Response
+    {
+        $this->authorize('create', ServiceClassification::class);
+        $scheme = strtoupper($request->string('scheme')->toString() ?: ServiceClassification::SCHEME_LOCAL);
+        abort_unless(in_array($scheme, ServiceClassification::SCHEMES, true), 404);
+        $revisions = ServiceClassification::query()->where('scheme', $scheme)->select('revision')->distinct()->orderByDesc('revision')->pluck('revision')->all();
+
+        return Inertia::render('OrganizationDesign/Classifications/Create', [
+            'scheme' => $scheme,
+            'revision' => $request->string('revision')->toString() ?: ($revisions[0] ?? ''),
+            'revisions' => $revisions,
+        ]);
+    }
+
+    public function edit(ServiceClassification $classification): Response
+    {
+        $this->authorize('update', $classification);
+
+        return Inertia::render('OrganizationDesign/Classifications/Edit', [
+            'classification' => [
+                ...$classification->only(['id', 'scheme', 'revision', 'code', 'parent_id', 'level', 'name_en', 'name_am', 'description_en', 'description_am', 'is_active', 'sort_order']),
+                'parent_code' => $classification->parent?->code,
+            ],
+        ]);
+    }
+
     public function store(ClassificationRequest $request): RedirectResponse
     {
         $classification = ServiceClassification::query()->create($request->validated());
         $this->audit->record(AuditEventType::ClassificationSaved, $request->user(), $classification, $classification->only(['scheme', 'revision', 'code', 'name_en']));
 
-        return back()->with('flash', ['message' => __('organization-design.classification_saved'), 'type' => 'success']);
+        return $this->backToList($classification)->with('flash', ['message' => __('organization-design.classification_saved'), 'type' => 'success']);
     }
 
     public function update(ClassificationRequest $request, ServiceClassification $classification): RedirectResponse
@@ -83,7 +110,13 @@ class ClassificationController extends Controller
         $classification->fill($request->validated())->save();
         $this->audit->record(AuditEventType::ClassificationSaved, $request->user(), $classification, $classification->only(['code', 'name_en', 'name_am', 'is_active', 'parent_id', 'level']), $old);
 
-        return back()->with('flash', ['message' => __('organization-design.classification_saved'), 'type' => 'success']);
+        return $this->backToList($classification)->with('flash', ['message' => __('organization-design.classification_saved'), 'type' => 'success']);
+    }
+
+    /** The list the entry belongs to, filtered to its scheme and revision. */
+    private function backToList(ServiceClassification $classification): RedirectResponse
+    {
+        return to_route('organization-design.classifications.index', ['scheme' => $classification->scheme, 'revision' => $classification->revision]);
     }
 
     public function import(Request $request): RedirectResponse

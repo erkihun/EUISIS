@@ -38,9 +38,9 @@ export default function SpecialDayEdit({ day, day_types }: { day: SpecialDay; da
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteria.editSpecialDay')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.editSpecialDay')} />}>
             <Head title={t('cafeteria.editSpecialDay')} />
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <form onSubmit={submit} className="space-y-5">
                         <div className="grid grid-cols-2 gap-4">

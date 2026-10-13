@@ -65,7 +65,7 @@ export default function PositionsCreate({ organizations, organizationUnits, occu
     // If an organization is selected but has no units, block form submission
     if (selectedOrganizationId && organizationUnits.length === 0) {
         return (
-            <AuthenticatedLayout header={<PageHeader title={t('positions.createPosition')} />}>
+            <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('positions.createPosition')} />}>
                 <Head title={t('positions.createPosition')} />
                 <div className="rounded-panel border border-amber-200 bg-amber-50 p-8 text-center dark:border-amber-800 dark:bg-amber-950/30">
                     <p className="text-base font-semibold text-amber-800 dark:text-amber-300">

@@ -34,9 +34,9 @@ export default function EmployeeExclusionCreate({ exclusion_types }: { exclusion
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteria.addExclusion')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.addExclusion')} />}>
             <Head title={t('cafeteria.addExclusion')} />
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <form onSubmit={submit} className="space-y-5">
                         <div>

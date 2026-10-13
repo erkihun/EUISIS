@@ -165,7 +165,7 @@ export default function EmployeesEdit({
     const assignedPosition = employee.current_assignment?.position;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('employees.show', employee.id)}
@@ -176,7 +176,7 @@ export default function EmployeesEdit({
         >
             <Head title={`${t('employees.updateEmployee')} — ${employee.full_name}`} />
 
-            <form onSubmit={submit} className="mx-auto w-full max-w-5xl">
+            <form onSubmit={submit} className="w-full">
                 <div className="space-y-5">
                     {/* ── 1. Basic Information ──────────────────────────── */}
                     <FormCard

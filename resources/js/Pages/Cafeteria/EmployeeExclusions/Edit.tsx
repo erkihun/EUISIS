@@ -34,9 +34,9 @@ export default function EmployeeExclusionEdit({ exclusion, exclusion_types }: { 
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteria.editExclusion')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.editExclusion')} />}>
             <Head title={t('cafeteria.editExclusion')} />
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     {exclusion.employee_name && (
                         <div className="mb-5 rounded-lg bg-[color:var(--app-surface-muted)] px-4 py-3 text-sm font-medium text-[color:var(--app-foreground)]">

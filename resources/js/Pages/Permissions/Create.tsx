@@ -37,7 +37,7 @@ export default function CreatePermission({ groups }: { groups: string[] }) {
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('permissions.createPermission')}
@@ -47,7 +47,7 @@ export default function CreatePermission({ groups }: { groups: string[] }) {
         >
             <Head title={t('permissions.createPermission')} />
 
-            <div className="mx-auto max-w-2xl">
+            <div>
                 <form onSubmit={submit} className="space-y-5">
                     <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                         <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">

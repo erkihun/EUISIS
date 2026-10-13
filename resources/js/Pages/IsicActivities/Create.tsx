@@ -39,7 +39,7 @@ export default function IsicActivitiesCreate({
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('isicActivities.createIsicActivity')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('isicActivities.createIsicActivity')} />}>
             <Head title={t('isicActivities.createIsicActivity')} />
             <form
                 className="space-y-6 rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6"

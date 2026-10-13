@@ -58,7 +58,7 @@ export default function ShowPermission({
         >
             <Head title={label} />
 
-            <div className="mx-auto max-w-2xl space-y-5">
+            <div className="space-y-5">
                 <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <h2 className="mb-4 text-sm font-semibold text-[color:var(--app-foreground)]">
                         {t('permissions.basicInformation')}

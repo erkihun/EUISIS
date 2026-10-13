@@ -21,7 +21,7 @@ export default function ServiceTypesCreate() {
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('serviceTypes.createTitle')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('serviceTypes.createTitle')} />}>
             <Head title={t('serviceTypes.createTitle')} />
             <ServiceTypeForm
                 form={form}

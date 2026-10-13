@@ -78,7 +78,7 @@ export default function TransactionShow({ transaction }: { transaction: Transact
         >
             <Head title={transaction.transaction_number} />
 
-            <div className="mx-auto max-w-2xl space-y-4">
+            <div className="space-y-4">
                 <div className="rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-6">
                     <div className={rowCls}>
                         <span className={labelCls}>{t('cafeteria.transactionStatus')}</span>

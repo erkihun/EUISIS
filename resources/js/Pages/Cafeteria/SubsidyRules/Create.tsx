@@ -21,7 +21,7 @@ export default function SubsidyRulesCreate({ defaults }: { defaults?: { subsidy_
     function submit(e: FormEvent) { e.preventDefault(); form.post(route('cafeteria.subsidy-rules.store')); }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteria.addSubsidyRule')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.addSubsidyRule')} />}>
             <Head title={t('cafeteria.addSubsidyRule')} />
             <form onSubmit={submit} className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <div className="border-b border-[color:var(--app-border)] px-6 py-4">

@@ -83,7 +83,7 @@ export default function OrganizationUnitsCreate({
     };
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('organizationUnits.createOrganizationUnit')}

@@ -110,14 +110,14 @@ export default function PositionServiceForm({
     const label = (o: { name_en: string; name_am: string | null }) => (am ? (o.name_am ?? o.name_en) : o.name_en);
 
     return (
-        <AuthenticatedLayout header={<PageHeader
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader
                     title={isEdit ? t('serviceFeedback.editPositionService') : t('serviceFeedback.addPositionService')}
                     description={t('serviceFeedback.positionServicesHint')}
                     backHref={route('position-services.index')}
                 />}>
             <Head title={t('serviceFeedback.positionServices')} />
 
-            <div className="mx-auto max-w-2xl space-y-5">
+            <div className="space-y-5">
 
                 <form
                     onSubmit={submit}

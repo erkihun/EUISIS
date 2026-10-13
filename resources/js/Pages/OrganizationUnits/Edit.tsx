@@ -55,7 +55,7 @@ export default function OrganizationUnitsEdit({
     const noUnitTypes = unitTypes.length === 0;
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={`${t('organizationUnits.editOrganizationUnit')}: ${unit.name_en}`}

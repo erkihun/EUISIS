@@ -153,7 +153,7 @@ export default function CreateUser({
         .filter((category) => category.roles.length > 0);
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('users.index')}

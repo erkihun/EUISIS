@@ -103,7 +103,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
     const errorCls = 'mt-1 text-xs text-red-500';
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('transfer-announcements.index')}
@@ -122,7 +122,7 @@ export default function TransferAnnouncementCreate({ organizations, positions, p
         >
             <Head title={t('transfers.createAnnouncement')} />
 
-            <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
+            <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
                 <form id="transfer-announcement-draft" onSubmit={submit} className="space-y-6 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
 
                     <section className="border-b border-[color:var(--app-border)] pb-5">

@@ -44,7 +44,7 @@ export default function OrganizationUnitTypesShow({ type }: { type: OrgUnitType 
         >
             <Head title={type.name_en} />
 
-            <div className="mx-auto max-w-2xl space-y-6">
+            <div className="space-y-6">
                 <div className="rounded-panel border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <dl className="grid grid-cols-2 gap-4 text-sm">
                         <div>

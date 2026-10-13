@@ -85,7 +85,7 @@ export default function CreateOrganizationType({
     }
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     title={t('organizationTypes.createTitle')}

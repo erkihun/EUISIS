@@ -114,8 +114,12 @@ test('the create form fills the content area and widens its cards', function ():
     expect(employeeFormLayoutSource())->toContain('xl:grid-cols-3');
 });
 
-test('the edit form stays width-capped and centred', function (): void {
-    expect(employeeFormSource('Edit'))->toContain('mx-auto w-full max-w-5xl');
+test('the edit form takes the layout\'s form measure instead of capping and centring itself', function (): void {
+    // docs/admin-ui-consistency.md "Page width": every form page is `max-w-4xl`, left-aligned
+    // under the title, through the layout; no page narrows or centres its own content.
+    expect(employeeFormSource('Edit'))
+        ->toContain('<AuthenticatedLayout contentWidth="form"')
+        ->not->toContain('mx-auto w-full max-w-5xl');
 });
 
 // ── 4. Position context renders read-only ─────────────────────────────────

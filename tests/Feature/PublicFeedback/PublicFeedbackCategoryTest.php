@@ -173,3 +173,29 @@ it('filters the category management page by search and status like every other l
             ->where('categories.0.id', $this->retired->id)
         );
 });
+
+it('adds and edits a category on its own page, inside the user scope', function (): void {
+    $this->actingAs($this->superAdmin)
+        ->get(route('service-feedback.categories.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('ServiceFeedback/Categories/Create')
+            ->where('canManageCityWide', true)
+            ->has('organizations'));
+
+    $this->actingAs($this->orgAdmin)
+        ->get(route('service-feedback.categories.edit', $this->counterA))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('ServiceFeedback/Categories/Edit')
+            ->where('category.code', 'COUNTER-A')
+            ->where('canManageCityWide', false)
+            ->has('organizations', 1));
+
+    // Not the scoped admin's to edit: a city-wide category and another institution's.
+    $this->actingAs($this->orgAdmin)->get(route('service-feedback.categories.edit', $this->cityWide))->assertForbidden();
+    $this->actingAs($this->orgAdmin)->get(route('service-feedback.categories.edit', $this->onlyB))->assertForbidden();
+
+    $plain = User::factory()->create();
+    $this->actingAs($plain)->get(route('service-feedback.categories.create'))->assertForbidden();
+});

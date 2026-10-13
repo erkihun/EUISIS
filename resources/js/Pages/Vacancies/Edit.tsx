@@ -121,7 +121,7 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
     const errorCls = 'mt-1 text-xs text-red-500';
 
     return (
-        <AuthenticatedLayout
+        <AuthenticatedLayout contentWidth="form"
             header={
                 <PageHeader
                     backHref={route('vacancy-announcements.show', announcement.id)}
@@ -132,7 +132,7 @@ export default function VacanciesEdit({ announcement, organizations, units, esta
         >
             <Head title={t('vacancies.editAnnouncement')} />
 
-            <div className="mx-auto max-w-5xl">
+            <div>
                 <form onSubmit={submit} className="space-y-6 rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] p-6">
                     <div className="grid gap-4 md:grid-cols-2">
                         <div>

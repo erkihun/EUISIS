@@ -40,7 +40,7 @@ export default function SettlementCreate({ providers, filters, preview }: {
     const currency = preview?.totals.currency_code ?? 'ETB';
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={tt('createSettlement')} description={tt('settlementsDescription')} backHref={route('cafeteria.settlements.index')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={tt('createSettlement')} description={tt('settlementsDescription')} backHref={route('cafeteria.settlements.index')} />}>
             <Head title={tt('createSettlement')} />
             <form onSubmit={submit} className="space-y-6">
                 <FormSection title={tt('settlement')}>

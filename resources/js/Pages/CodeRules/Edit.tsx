@@ -70,7 +70,7 @@ export default function CodeRulesEdit({
     }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('codeRules.editTitle')} description={codeRule.name_en} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('codeRules.editTitle')} description={codeRule.name_en} />}>
             <Head title={t('codeRules.editTitle')} />
             <CodeRuleForm
                 form={form}

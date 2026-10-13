@@ -328,3 +328,29 @@ it('filters the routing rules page by status and organization like every other l
         ->get(route('service-feedback.routing-rules.index', ['organization_id' => '00000000-0000-0000-0000-000000000000']))
         ->assertInertia(fn ($page) => $page->has('rules', 0));
 });
+
+it('adds and edits a rule on its own page, inside the user scope', function (): void {
+    $rule = rtRule();
+
+    $this->actingAs($this->orgAdmin)
+        ->get(route('service-feedback.routing-rules.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('ServiceFeedback/RoutingRules/Create')
+            ->where('canManageCityWide', false)
+            ->has('organizations')
+            ->has('categories'));
+
+    $this->actingAs($this->orgAdmin)
+        ->get(route('service-feedback.routing-rules.edit', $rule))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('ServiceFeedback/RoutingRules/Edit')
+            ->where('rule.id', $rule->id)
+            ->where('rule.handler_name', 'Quality Officer'));
+
+    // A city-wide rule is outside the scoped admin's reach, and open to a city-level account.
+    $cityRule = rtRule(['organization_id' => null, 'handler_type' => 'role', 'handler_id' => (string) Role::findByName('Service Quality Team', 'web')->id]);
+    $this->actingAs($this->orgAdmin)->get(route('service-feedback.routing-rules.edit', $cityRule))->assertForbidden();
+    $this->actingAs($this->superAdmin)->get(route('service-feedback.routing-rules.edit', $cityRule))->assertOk();
+});

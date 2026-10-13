@@ -132,7 +132,7 @@ export default function VacancyApplicationsShow({ application, can }: Props) {
         >
             <Head title={application.application_number} />
 
-            <div className="mx-auto max-w-2xl space-y-6">
+            <div className="space-y-6">
                 {/* Pipeline stepper */}
                 {!isFinal ? (
                     <div className="flex items-center overflow-x-auto rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)] px-4 py-4">

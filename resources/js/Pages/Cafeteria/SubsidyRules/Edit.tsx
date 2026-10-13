@@ -34,7 +34,7 @@ export default function SubsidyRulesEdit({ rule }: { rule: Rule }) {
     function submit(e: FormEvent) { e.preventDefault(); form.patch(route('cafeteria.subsidy-rules.update', rule.id)); }
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('cafeteria.editSubsidyRule')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('cafeteria.editSubsidyRule')} />}>
             <Head title={t('cafeteria.editSubsidyRule')} />
             <form onSubmit={submit} className="overflow-hidden rounded-card border border-[color:var(--app-border)] bg-[color:var(--app-surface)]">
                 <div className="border-b border-[color:var(--app-border)] px-6 py-4">

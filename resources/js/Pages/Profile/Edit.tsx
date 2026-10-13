@@ -154,7 +154,7 @@ export default function Edit({
     const lastLogin    = toDate(profile.last_login_at);
 
     return (
-        <AuthenticatedLayout header={<PageHeader title={t('profile.title')} />}>
+        <AuthenticatedLayout contentWidth="form" header={<PageHeader title={t('profile.title')} />}>
             <Head title={t('profile.title')} />
 
             {/* ── Identity header ───────────────────────────────────────── */}
