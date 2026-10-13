@@ -24,7 +24,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 
-
 /**
  * A fixed global dashboard scope.
  *
@@ -434,8 +433,9 @@ test('the employee status buckets are fetched once per scope', function (): void
     $metrics->employeeStatusCount($scope, 'active');
     $metrics->employeeTotalCount($scope);
 
+    // PostgreSQL and SQLite quote the table as "employees", MySQL (the live server) as `employees`.
     $queries = collect(DB::getRawQueryLog())
-        ->filter(fn (array $q): bool => str_contains($q['raw_query'], 'from "employees"'));
+        ->filter(fn (array $q): bool => preg_match('/from [`"]employees[`"]/', $q['raw_query']) === 1);
 
     DB::disableQueryLog();
 
