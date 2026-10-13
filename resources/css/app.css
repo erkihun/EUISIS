@@ -580,3 +580,26 @@ html[data-button-style="soft"]    { --radius-control: 8px; }
     .public-prose th, .public-prose td { border: 1px solid var(--app-border); padding: 0.5em 0.75em; text-align: start; }
     .public-prose th { background: var(--app-surface-muted); font-weight: 600; }
 }
+
+/* ── Sign-in motion (Pages/Auth/Login) ─────────────────────── */
+/* Transform and opacity only, so the page costs nothing to paint; the animations setting and the
+   reduced-motion preference above zero every duration, which leaves each element in its final state. */
+@keyframes login-drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(6%, -9%, 0) scale(1.18); }
+}
+@keyframes login-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes login-orbit {
+    to { transform: rotate(360deg); }
+}
+@keyframes login-sheen {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+}
+.login-blob { animation: login-drift 22s ease-in-out infinite alternate; will-change: transform; }
+.login-rise { animation: login-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.login-orbit { animation: login-orbit 28s linear infinite; transform-origin: 200px 200px; transform-box: view-box; }
+.login-sheen { background-size: 200% 100%; animation: login-sheen 7s linear infinite; }
