@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('issue_subject');
             $table->text('issue_description');
             $table->text('requested_resolution')->nullable();
-            $table->timestamp('written_issue_raised_at');
+            $table->dateTime('written_issue_raised_at');
             $table->timestamp('discussion_date')->nullable();
             $table->text('discussion_notes')->nullable();
             $table->text('officer_response')->nullable();

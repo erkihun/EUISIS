@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('actor_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignUuid('actor_employee_id')->nullable()->constrained('employees')->nullOnDelete();
             $table->text('reason')->nullable();
-            $table->timestamp('transitioned_at');
+            $table->dateTime('transitioned_at');
 
             $table->index(['grievance_id', 'transitioned_at']);
         });

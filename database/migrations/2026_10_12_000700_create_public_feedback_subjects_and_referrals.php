@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreignUuid('employee_assignment_id')->nullable()->constrained('employee_assignments')->nullOnDelete();
             $table->string('subject_role', 120)->nullable();
             $table->foreignId('added_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('added_at');
+            $table->dateTime('added_at');
 
             $table->unique(['submission_id', 'employee_id'], 'pfse_submission_employee_unique');
             $table->index(['employee_id'], 'pfse_employee_idx');
@@ -40,7 +40,7 @@ return new class extends Migration
             $table->string('status', 32)->default('requested');
             $table->text('notes')->nullable();
             $table->foreignId('requested_by')->constrained('users')->restrictOnDelete();
-            $table->timestamp('requested_at');
+            $table->dateTime('requested_at');
             $table->foreignId('decided_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('decided_at')->nullable();
             $table->text('decision_notes')->nullable();

@@ -57,7 +57,7 @@ return new class extends Migration
             // Null = assigned by a routing rule, not by a person.
             $table->foreignId('assigned_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('reason')->nullable();
-            $table->timestamp('assigned_at');
+            $table->dateTime('assigned_at');
             $table->timestamp('ended_at')->nullable();
             $table->foreignId('ended_by')->nullable()->constrained('users')->nullOnDelete();
 
@@ -82,7 +82,7 @@ return new class extends Migration
             // Null = the system (submission, routing).
             $table->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('reason')->nullable();
-            $table->timestamp('transitioned_at');
+            $table->dateTime('transitioned_at');
 
             $table->index(['submission_id', 'transitioned_at'], 'pfsh_submission_time_idx');
         });

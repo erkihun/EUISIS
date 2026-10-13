@@ -132,7 +132,7 @@ return new class extends Migration
             $table->string('to_status', 30);
             $table->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('reason')->nullable();
-            $table->timestamp('created_at');
+            $table->dateTime('created_at');
 
             $table->index(['entity_type', 'entity_id', 'created_at'], 'od_status_history_entity_idx');
         });
