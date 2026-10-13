@@ -84,7 +84,12 @@ return new class extends Migration
 
             $table->unique(['process_id', 'code'], 'process_activities_process_code_unique');
             $table->index(['process_id', 'parent_activity_id', 'sequence'], 'process_activities_parent_idx');
-            $table->index(['process_id', 'path'], 'process_activities_path_idx');
+            // MySQL/MariaDB cap an index key at 3072 bytes; the 1200-character utf8mb4 path
+            // exceeds that, so the key covers a 700-character prefix of the path there.
+            $table->index([
+                'process_id',
+                in_array(DB::getDriverName(), ['mysql', 'mariadb'], true) ? DB::raw('`path`(700)') : 'path',
+            ], 'process_activities_path_idx');
         });
         Schema::table('process_activities', function (Blueprint $table): void {
             $table->foreign('parent_activity_id')->references('id')->on('process_activities')->restrictOnDelete();
