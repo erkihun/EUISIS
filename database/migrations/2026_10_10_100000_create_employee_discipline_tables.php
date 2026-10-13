@@ -12,12 +12,17 @@ use Illuminate\Support\Facades\Schema;
  * domain, plus the shared statutory-deadline snapshot table and committee
  * seat metadata (Arts. 5, 7 and 30). Additive: no grievance or public
  * feedback table changes meaning.
+ *
+ * Mandatory moments are DATETIME columns: a NOT NULL TIMESTAMP without a default
+ * makes MySQL/MariaDB assign a zero default that strict mode rejects. MySQL DDL is
+ * not transactional either, so every step is skipped when its table, column or key
+ * already exists and a deployment that failed halfway can be resumed.
  */
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('statutory_deadlines', function (Blueprint $table): void {
+        $this->createIfMissing('statutory_deadlines', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('subject_type');
             $table->uuid('subject_id');
@@ -25,8 +30,8 @@ return new class extends Migration
             $table->string('legal_reference', 80);
             $table->string('basis', 20);
             $table->unsignedSmallInteger('amount');
-            $table->timestamp('started_at');
-            $table->timestamp('due_at');
+            $table->dateTime('started_at');
+            $table->dateTime('due_at');
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('superseded_at')->nullable();
             $table->timestamps();
@@ -35,13 +40,15 @@ return new class extends Migration
             $table->index(['rule_key', 'due_at']);
         });
 
-        Schema::table('grievance_committee_members', function (Blueprint $table): void {
-            // appointed (by the head) | elected (by employees) | hr_representative
-            $table->string('selection_source', 30)->nullable()->after('role');
-            $table->unsignedTinyInteger('term_number')->default(1)->after('selection_source');
-        });
+        if (! Schema::hasColumn('grievance_committee_members', 'selection_source')) {
+            Schema::table('grievance_committee_members', function (Blueprint $table): void {
+                // appointed (by the head) | elected (by employees) | hr_representative
+                $table->string('selection_source', 30)->nullable()->after('role');
+                $table->unsignedTinyInteger('term_number')->default(1)->after('selection_source');
+            });
+        }
 
-        Schema::create('disciplinary_cases', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_cases', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->string('case_number', 60)->nullable()->unique();
             $table->foreignUuid('accused_employee_id')->constrained('employees')->restrictOnDelete();
@@ -85,7 +92,7 @@ return new class extends Migration
             $table->index(['source_type', 'source_id']);
         });
 
-        Schema::create('disciplinary_case_members', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_case_members', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_id')->constrained('disciplinary_cases')->cascadeOnDelete();
             $table->foreignUuid('committee_member_id')->nullable()->constrained('grievance_committee_members')->nullOnDelete();
@@ -104,11 +111,13 @@ return new class extends Migration
             $table->index(['employee_id']);
         });
 
-        Schema::table('disciplinary_case_members', function (Blueprint $table): void {
-            $table->foreign('replaces_member_id')->references('id')->on('disciplinary_case_members')->nullOnDelete();
-        });
+        if (! $this->hasForeignKey('disciplinary_case_members', 'replaces_member_id')) {
+            Schema::table('disciplinary_case_members', function (Blueprint $table): void {
+                $table->foreign('replaces_member_id')->references('id')->on('disciplinary_case_members')->nullOnDelete();
+            });
+        }
 
-        Schema::create('disciplinary_charges', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_charges', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_id')->constrained('disciplinary_cases')->cascadeOnDelete();
             $table->unsignedSmallInteger('sequence');
@@ -127,7 +136,7 @@ return new class extends Migration
             $table->unique(['case_id', 'sequence']);
         });
 
-        Schema::create('disciplinary_responses', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_responses', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_id')->constrained('disciplinary_cases')->cascadeOnDelete();
             $table->unsignedSmallInteger('version')->default(1);
@@ -140,13 +149,13 @@ return new class extends Migration
             $table->text('defense_evidence_list')->nullable();
             $table->string('acknowledged_name');
             $table->foreignId('recorded_by')->nullable()->constrained('users')->nullOnDelete();
-            $table->timestamp('received_at');
+            $table->dateTime('received_at');
             $table->timestamps();
 
             $table->unique(['case_id', 'version']);
         });
 
-        Schema::create('disciplinary_evidence', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_evidence', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_id')->constrained('disciplinary_cases')->cascadeOnDelete();
             $table->foreignUuid('charge_id')->nullable()->constrained('disciplinary_charges')->nullOnDelete();
@@ -166,7 +175,7 @@ return new class extends Migration
             $table->index(['case_id', 'side']);
         });
 
-        Schema::create('disciplinary_witnesses', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_witnesses', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_id')->constrained('disciplinary_cases')->cascadeOnDelete();
             $table->string('called_by', 20);
@@ -185,7 +194,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('disciplinary_recommendations', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_recommendations', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_id')->constrained('disciplinary_cases')->cascadeOnDelete();
             $table->unsignedSmallInteger('version');
@@ -208,7 +217,7 @@ return new class extends Migration
             $table->unique(['case_id', 'version']);
         });
 
-        Schema::create('disciplinary_recommendation_votes', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_recommendation_votes', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('recommendation_id')->constrained('disciplinary_recommendations')->cascadeOnDelete();
             $table->foreignUuid('case_member_id')->constrained('disciplinary_case_members')->cascadeOnDelete();
@@ -216,10 +225,11 @@ return new class extends Migration
             $table->text('dissent_reason')->nullable();
             $table->timestamps();
 
-            $table->unique(['recommendation_id', 'case_member_id']);
+            // Named: the generated name is 73 characters, over MySQL's 64-character limit for identifiers.
+            $table->unique(['recommendation_id', 'case_member_id'], 'drv_recommendation_member_unique');
         });
 
-        Schema::create('disciplinary_decisions', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_decisions', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_id')->constrained('disciplinary_cases')->cascadeOnDelete();
             $table->foreignUuid('recommendation_id')->nullable()->constrained('disciplinary_recommendations')->nullOnDelete();
@@ -230,7 +240,7 @@ return new class extends Migration
             $table->text('reason');
             $table->foreignId('decided_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignUuid('decided_by_employee_id')->nullable()->constrained('employees')->nullOnDelete();
-            $table->timestamp('decided_at');
+            $table->dateTime('decided_at');
             $table->string('delivery_method', 30)->nullable();
             $table->timestamp('delivered_at')->nullable();
             $table->foreignId('delivered_by')->nullable()->constrained('users')->nullOnDelete();
@@ -241,14 +251,14 @@ return new class extends Migration
             $table->index(['case_id', 'decided_at']);
         });
 
-        Schema::create('disciplinary_status_histories', function (Blueprint $table): void {
+        $this->createIfMissing('disciplinary_status_histories', function (Blueprint $table): void {
             $table->uuid('id')->primary();
             $table->foreignUuid('case_id')->constrained('disciplinary_cases')->cascadeOnDelete();
             $table->string('from_status', 30)->nullable();
             $table->string('to_status', 30);
             $table->foreignId('actor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->text('reason')->nullable();
-            $table->timestamp('created_at');
+            $table->dateTime('created_at');
 
             $table->index(['case_id', 'created_at']);
         });
@@ -273,5 +283,17 @@ return new class extends Migration
         });
 
         Schema::dropIfExists('statutory_deadlines');
+    }
+
+    private function createIfMissing(string $table, Closure $blueprint): void
+    {
+        if (! Schema::hasTable($table)) {
+            Schema::create($table, $blueprint);
+        }
+    }
+
+    private function hasForeignKey(string $table, string $column): bool
+    {
+        return collect(Schema::getForeignKeys($table))->contains(fn (array $key): bool => $key['columns'] === [$column]);
     }
 };
