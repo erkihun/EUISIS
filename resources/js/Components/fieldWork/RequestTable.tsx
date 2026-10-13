@@ -34,7 +34,7 @@ export default function RequestTable({ rows, emptyText, href, showEmployee = tru
 
     return (
         <div className={panelCls}>
-            <table className={cx(tableClassName, 'hidden')}>
+            <table className={cx(tableClassName, 'hidden md:table')}>
                 <thead className={tableHeadClassName}>
                     <tr>
                         <th className={th}>{t('fieldWork.columns.reference')}</th>

@@ -16,9 +16,10 @@ const SIDEBAR_STORAGE_KEY = 'euisis-sidebar-collapsed';
 // Page chrome and content share one measure, so titles line up with the content below them
 // and very wide screens keep a readable line length.
 const CONTENT_WIDTH = 'mx-auto w-full max-w-[1600px]';
-// Create and edit forms share one measure too (docs/admin-ui-consistency.md "Page width"):
-// left-aligned under the title, never centred, so every form starts at the same edge.
-const FORM_WIDTH = 'w-full max-w-4xl';
+// Create and edit forms share one measure too (docs/admin-ui-consistency.md "Page width").
+// By decision of the product owner (2026-10-13) that measure is the full content column, the
+// same as lists and detail pages; the prop stays so the measure can be changed in one place.
+const FORM_WIDTH = 'w-full';
 
 export type ContentWidth = 'full' | 'form';
 

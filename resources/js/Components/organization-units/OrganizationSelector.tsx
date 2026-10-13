@@ -54,7 +54,7 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
                                 <th className={cx(tableHeaderCellClassName, 'text-left')}>
                                     {t('common.name')}
                                 </th>
-                                <th className={cx(tableHeaderCellClassName, 'text-left hidden')}>
+                                <th className={cx(tableHeaderCellClassName, 'text-left hidden md:table-cell')}>
                                     {t('organizations.organizationType') || 'Type'}
                                 </th>
                                 <th className={cx(tableHeaderCellClassName, 'text-left')}>
@@ -101,7 +101,7 @@ export default function OrganizationSelector({ organizations, onSelect }: Props)
                                             </div>
                                         </div>
                                     </td>
-                                    <td className={cx(tableCellClassName, 'hidden text-[color:var(--app-muted-foreground)]')}>
+                                    <td className={cx(tableCellClassName, 'hidden text-[color:var(--app-muted-foreground)] md:table-cell')}>
                                         {org.type?.name_en ?? '—'}
                                     </td>
                                     <td className={tableCellClassName}>

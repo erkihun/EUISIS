@@ -6,10 +6,10 @@ interface Item {
     value: number;
 }
 
-export default function ProviderRanking({ data }: { data: Item[] }) {
+export default function ProviderRanking({ data, emptyTitle }: { data: Item[]; emptyTitle?: string }) {
     const { series } = useChartColors();
     if (data.length === 0) {
-        return <EmptyDashboardState compact />;
+        return <EmptyDashboardState compact title={emptyTitle} />;
     }
 
     const max = Math.max(...data.map((item) => item.value), 1);

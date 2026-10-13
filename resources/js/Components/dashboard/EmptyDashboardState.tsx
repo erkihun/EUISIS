@@ -12,13 +12,23 @@ interface Props {
  * short line's worth of space, and the cards around it close up.
  */
 export default function EmptyDashboardState({ title, compact = false }: Props) {
+    /*
+     * A missing title used to render an empty <p> — a blank gap where a
+     * dashboard should say why a card has nothing in it. "No data" is a
+     * localised string, so a caller that cannot reach `t` passes nothing and
+     * would silently produce that gap; several did. The fallback keeps the
+     * contract that an empty state always says something, and the untranslated
+     * literal is the last resort rather than the normal path.
+     */
+    const message = title ?? 'No data available';
+
     return (
         <div
             className={`flex items-center justify-center text-center ${
                 compact ? 'py-6' : 'py-10'
             }`}
         >
-            <p className="text-sm text-[color:var(--app-muted-foreground)]">{title}</p>
+            <p className="text-sm text-[color:var(--app-muted-foreground)]">{message}</p>
         </div>
     );
 }

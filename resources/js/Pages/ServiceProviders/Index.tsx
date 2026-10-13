@@ -233,7 +233,7 @@ export default function ServiceProvidersIndex({ providers, filters, statusCounts
                             </div>
                         ) : (
                             <>
-                                <table className={cx(tableClassName, 'hidden')}>
+                                <table className={cx(tableClassName, 'hidden md:table')}>
                                     <thead className={tableHeadClassName}>
                                         <tr className="text-left">
                                             <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('providers.columnProvider')}</th>

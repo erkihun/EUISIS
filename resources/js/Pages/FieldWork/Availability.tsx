@@ -44,7 +44,7 @@ export default function FieldWorkAvailability({ rows, at, can }: { rows: Paginat
                     <p className={`${panelCls} p-4 text-sm text-[color:var(--app-muted-foreground)]`}>{t('fieldWork.availability.empty')}</p>
                 ) : (
                     <div className={panelCls}>
-                        <table className={cx(tableClassName, 'hidden')}>
+                        <table className={cx(tableClassName, 'hidden md:table')}>
                             <thead className={tableHeadClassName}>
                                 <tr>
                                     <th className={th}>{t('fieldWork.columns.employee')}</th>

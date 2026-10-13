@@ -8,6 +8,11 @@ const dashboard = {
     dateRange: 'Date Range',
     refresh: 'Refresh',
     previousPeriod: 'vs previous period',
+    // A delta under a running total has to name what it counts: these sit
+    // beneath "Active Employees" / "Active Cards", which are stocks, while the
+    // delta itself is a flow over the selected period.
+    newlyRegisteredVsPrevious: 'newly registered vs previous period',
+    newlyIssuedVsPrevious: 'newly issued vs previous period',
     viewDetails: 'View Details',
     viewAll: 'View All',
     noDashboardData: 'No dashboard data available',

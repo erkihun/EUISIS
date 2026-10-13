@@ -314,6 +314,7 @@ export default function Dashboard({
                                     </ChartCard>
                                     <ChartCard title={t('dashboard.employeesBySex')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.employeesBySex as KeyValueDatum[]) ?? []}
                                             labelFor={keyLabel(t, 'dashboard.sexGroups')}
                                         />
@@ -322,6 +323,7 @@ export default function Dashboard({
                                 <ChartRow full>
                                     <ChartCard title={t('dashboard.employeesByEmploymentType')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.employeesByEmploymentType as KeyValueDatum[]) ?? []}
                                             labelFor={(key) => key === 'unknown' ? t('dashboard.unknown') : t(`employees.employmentType_${key}`)}
                                         />
@@ -330,6 +332,7 @@ export default function Dashboard({
                                 <ChartRow>
                                     <ChartCard title={t('dashboard.employeesByStatus')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.employeesByStatus as KeyValueDatum[]) ?? []}
                                             labelFor={employeeStatusLabel}
                                         />
@@ -408,6 +411,7 @@ export default function Dashboard({
                                 </ChartCard>
                                 <ChartCard title={t('dashboard.organizationsByStatus')}>
                                     <StatusDistribution
+                                        emptyTitle={t('dashboard.noData')}
                                         data={(charts.organizationsByStatus as KeyValueDatum[]) ?? []}
                                         labelFor={employeeStatusLabel}
                                     />
@@ -427,6 +431,7 @@ export default function Dashboard({
                                     </ChartCard>
                                     <ChartCard title={t('dashboard.positionOccupancy')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.positionsByOccupancy as KeyValueDatum[]) ?? []}
                                             labelFor={occupancyLabel}
                                         />
@@ -468,6 +473,7 @@ export default function Dashboard({
                                 <ChartRow>
                                     <ChartCard title={t('dashboard.cardsByStatus')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.cardsByStatus as KeyValueDatum[]) ?? []}
                                             labelFor={employeeStatusLabel}
                                         />
@@ -484,6 +490,7 @@ export default function Dashboard({
                                 <ChartRow>
                                     <ChartCard title={t('dashboard.verificationResultsTitle')}>
                                         <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                             data={(charts.verificationAllowedDenied as KeyValueDatum[]) ?? []}
                                             labelFor={verificationLabel}
                                         />
@@ -567,12 +574,13 @@ export default function Dashboard({
                         <ChartRow>
                             {(can.providers || can.transactions) && (
                                 <ChartCard title={t('dashboard.sections.providerOverview')}>
-                                    <ProviderRanking data={(charts.providersTopUsage as KeyValueDatum[]) ?? []} />
+                                    <ProviderRanking data={(charts.providersTopUsage as KeyValueDatum[]) ?? []} emptyTitle={t('dashboard.noData')} />
                                 </ChartCard>
                             )}
                             {can.transactions && (
                                 <ChartCard title={t('dashboard.transactionsByStatus')}>
                                     <StatusDistribution
+                                            emptyTitle={t('dashboard.noData')}
                                         data={(charts.transactionsByStatus as KeyValueDatum[]) ?? []}
                                         labelFor={employeeStatusLabel}
                                     />

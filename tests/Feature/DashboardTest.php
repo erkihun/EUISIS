@@ -20,6 +20,7 @@ use App\Models\User;
 use App\Services\Dashboard\DashboardMetricService;
 use App\Services\Dashboard\DashboardScopeService;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -373,6 +374,64 @@ test('grouped status counts match per-status counts exactly', function (): void 
         ->toBe($metrics->cardRequestQuery($scope)->whereIn('card_requests.status', ['submitted', 'verified'])->count());
 });
 
+test('grouped employee counts match per-status counts and one scan serves both KPIs', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $metrics = app(DashboardMetricService::class);
+    $scope = app(DashboardScopeService::class)->resolve($user, []);
+
+    foreach (['active', 'inactive', 'suspended'] as $status) {
+        expect($metrics->employeeStatusCount($scope, $status))
+            ->toBe($metrics->employeeQuery($scope)->where('employees.status', $status)->count());
+    }
+
+    // The registered total is the sum of every bucket, not a separate scan.
+    expect($metrics->employeeTotalCount($scope))
+        ->toBe($metrics->employeeQuery($scope)->count());
+
+    // A status with no rows is a real zero, never a missing key.
+    expect($metrics->employeeStatusCount($scope, 'no_such_status'))->toBe(0);
+});
+
+test('the employee status buckets are fetched once per scope', function (): void {
+    // The KPI strip and the employeesByStatus chart both want these numbers.
+    // Before they shared a source they cost a full scan each, which on a
+    // 3M-row table is ~400 ms apiece. Proven here by query count, not by
+    // timing: two reads of the buckets must issue one query.
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $metrics = app(DashboardMetricService::class);
+    $scope = app(DashboardScopeService::class)->resolve($user, []);
+
+    DB::enableQueryLog();
+    DB::flushQueryLog();
+
+    $metrics->employeeStatusCounts($scope);
+    $metrics->employeeStatusCount($scope, 'active');
+    $metrics->employeeTotalCount($scope);
+
+    $queries = collect(DB::getRawQueryLog())
+        ->filter(fn (array $q): bool => str_contains($q['raw_query'], 'from "employees"'));
+
+    DB::disableQueryLog();
+
+    expect($queries)->toHaveCount(1);
+});
+
+test('employee status buckets are keyed by scope and never leak across organizations', function (): void {
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+    $scoped = User::where('email', 'hr.officer@demo.local')->firstOrFail();
+    $metrics = app(DashboardMetricService::class);
+    $scopes = app(DashboardScopeService::class);
+
+    // Warm with the widest scope first — the ordering that would leak.
+    $globalTotal = $metrics->employeeTotalCount($scopes->resolve($user, []));
+    $scopedTotal = $metrics->employeeTotalCount($scopes->resolve($scoped, []));
+
+    expect($scopedTotal)->toBeLessThanOrEqual($globalTotal);
+    expect($scopedTotal)->toBe(
+        $metrics->employeeQuery($scopes->resolve($scoped, []))->count()
+    );
+});
+
 test('memoised status counts are keyed by scope and never leak across organizations', function (): void {
     $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
     $metrics = app(DashboardMetricService::class);
@@ -417,4 +476,44 @@ test('recent activity leaves out audited page views but keeps them in the audit 
 
     expect($events)->not->toContain('BACKUP_STATUS_VIEWED')->toContain('RESTORE_REQUESTED')
         ->and(AuditLog::where('event_type', 'BACKUP_STATUS_VIEWED')->exists())->toBeTrue();
+});
+
+test('a flow delta under a running total says what it counts', function (): void {
+    /*
+     * The "Active Employees" KPI is a stock (every active employee), but its
+     * delta is a flow (employees registered inside the selected period). When
+     * both wore the same "vs previous period" label, a reader could not tell
+     * whether the total had moved by the delta or whether that many people had
+     * simply been registered — at city scale the delta is invisible noise
+     * against the value it sits beneath. The label now names the measure.
+     */
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+
+    $response = $this->actingAs($user)->get(route('dashboard'))->assertOk();
+    $kpis = collect($response->viewData('page')['props']['kpis'])->keyBy('key');
+
+    $active = $kpis->get('activeEmployees');
+    expect($active)->not->toBeNull();
+    expect($active['trend'])->toBeInt();
+    expect($active['comparisonLabelKey'])->toBe('dashboard.newlyRegisteredVsPrevious');
+
+    // The generic label must not reappear on a stock-vs-flow comparison.
+    expect(collect($kpis)->pluck('comparisonLabelKey')->filter())
+        ->not->toContain('dashboard.previousPeriod');
+});
+
+test('a kpi without a trend advertises no comparison', function (): void {
+    // Guards the `$trend['labelKey'] ?? null` path: a card with nothing to
+    // compare must not inherit a stale comparison label.
+    $user = User::where('email', 'super.admin@demo.local')->firstOrFail();
+
+    $response = $this->actingAs($user)->get(route('dashboard'))->assertOk();
+    $kpis = collect($response->viewData('page')['props']['kpis']);
+
+    $withoutTrend = $kpis->filter(fn (array $kpi): bool => $kpi['trend'] === null);
+
+    expect($withoutTrend)->not->toBeEmpty();
+    $withoutTrend->each(function (array $kpi): void {
+        expect($kpi['comparisonLabelKey'])->toBeNull();
+    });
 });

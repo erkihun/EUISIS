@@ -9,6 +9,13 @@ export interface ChartColors {
     accent: string;
     /** Grid / axis lines — muted and dark-mode aware. */
     grid: string;
+    /**
+     * Axis tick labels. Recharts defaults these to a hardcoded `#666`, which
+     * measures 3.09:1 against the dark card surface (#111827) — below the 4.5:1
+     * WCAG AA needs for small text, so axis labels were genuinely hard to read
+     * in dark mode. These values clear AA on both surfaces.
+     */
+    axisText: string;
     series: string[];
 }
 
@@ -20,6 +27,7 @@ function readColors(): ChartColors {
     return {
         primary,
         accent,
+        axisText: isDark ? '#cbd5e1' : '#475569',
         // Lighter slate in light mode, dim slate in dark mode for legible-but-subtle gridlines.
         grid: isDark ? '#334155' : '#e2e8f0',
         series: isDark

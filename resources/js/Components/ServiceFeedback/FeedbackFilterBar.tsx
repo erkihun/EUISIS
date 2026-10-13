@@ -143,7 +143,9 @@ export default function FeedbackFilterBar({
         { id: 'all', label: t('serviceFeedback.allTime') },
     ];
 
-    const selectCls = 'h-[var(--control-h-sm)] w-full sm:w-auto sm:min-w-[10.5rem] sm:max-w-[14rem]';
+    // The compact 30px height leaves no room for the forms plugin's 8px top and bottom padding:
+    // the option text was cut off at the bottom. The select centres its text without it.
+    const selectCls = 'h-[var(--control-h-sm)] py-0 w-full sm:w-auto sm:min-w-[10.5rem] sm:max-w-[14rem]';
 
     return (
         <section

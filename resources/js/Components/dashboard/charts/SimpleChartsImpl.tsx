@@ -14,8 +14,8 @@ export function SimpleBarChartImpl({ data, labelFor, colors }: WithColors<Simple
         <ResponsiveContainer width="100%" height={240}>
             <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
-                <XAxis dataKey="key" tickFormatter={labelFor} tick={{ fontSize: 12 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={36} />
+                <XAxis dataKey="key" tickFormatter={labelFor} tick={{ fontSize: 12, fill: colors.axisText }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: colors.axisText }} width={36} />
                 <Tooltip
                     {...tooltipStyle}
                     formatter={(value, name) => [Number(value ?? 0), labelFor(String(name))]}
@@ -35,8 +35,8 @@ export function SimpleLineChartImpl({ data, colors }: WithColors<SimpleLineChart
         <ResponsiveContainer width="100%" height={240}>
             <LineChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} vertical={false} />
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={36} />
+                <XAxis dataKey="label" tick={{ fontSize: 12, fill: colors.axisText }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: colors.axisText }} width={36} />
                 <Tooltip {...tooltipStyle} />
                 <Line type="monotone" dataKey="value" stroke={colors.primary} strokeWidth={2} dot={false} activeDot={{ fill: colors.accent, stroke: colors.accent }} />
             </LineChart>

@@ -14,7 +14,7 @@ interface Props {
 export default function CardLifecycleFunnel({ data, t }: Props) {
     const { series } = useChartColors();
     if (data.length === 0) {
-        return <EmptyDashboardState compact />;
+        return <EmptyDashboardState compact title={t('dashboard.noData')} />;
     }
 
     const max = Math.max(...data.map((item) => item.value), 1);

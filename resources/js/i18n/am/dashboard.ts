@@ -8,6 +8,8 @@ const dashboard = {
     dateRange: 'የቀን ክልል',
     refresh: 'ያድሱ',
     previousPeriod: 'ከቀድሞ ጊዜ ጋር ንፅፅር',
+    newlyRegisteredVsPrevious: 'አዲስ የተመዘገቡ ከቀድሞ ጊዜ ጋር ንፅፅር',
+    newlyIssuedVsPrevious: 'አዲስ የተሰጡ ከቀድሞ ጊዜ ጋር ንፅፅር',
     viewDetails: 'ዝርዝር ይመልከቱ',
     viewAll: 'ሁሉንም ይመልከቱ',
     noDashboardData: 'የዳሽቦርድ መረጃ የለም',

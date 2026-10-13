@@ -131,14 +131,15 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                         </div>
                     ) : (
                         <>
-                            {/* Wide screens: a scannable table. */}
-                            <table className={cx(tableClassName, 'hidden')}>
+                            {/* Wide screens: a scannable table. `md:table` must stay: the phone list below
+                                is `md:hidden`, so without it a desktop shows no rows at all. */}
+                            <table className={cx(tableClassName, 'hidden md:table')}>
                                 <thead className={tableHeadClassName}>
                                     <tr className="text-left">
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-20')}>{t('serviceFeedback.filterRating')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left')}>{t('serviceFeedback.columnFeedback')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-44')}>{t('serviceFeedback.filterEmployee')}</th>
-                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left hidden w-52')}>{t('serviceFeedback.serviceType')}</th>
+                                        <th scope="col" className={cx(tableHeaderCellClassName, 'text-left hidden w-52 lg:table-cell')}>{t('serviceFeedback.serviceType')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-28')}>{t('serviceFeedback.filterStatus')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-32')}>{t('serviceFeedback.submittedDate')}</th>
                                         <th scope="col" className={cx(tableHeaderCellClassName, 'text-left w-10')}><span className="sr-only">{t('serviceFeedback.openFeedback')}</span></th>
@@ -175,7 +176,7 @@ export default function ServiceFeedbackIndex({ feedback, statusCounts, filters, 
                                                     <div className="font-medium text-[color:var(--app-foreground)]">{row.employee?.name ?? '—'}</div>
                                                     <div className="text-xs text-[color:var(--app-muted-foreground)]">{row.employee?.employee_number}</div>
                                                 </td>
-                                                <td className={cx(tableCellClassName, 'hidden')}>
+                                                <td className={cx(tableCellClassName, 'hidden lg:table-cell')}>
                                                     <div className="text-[color:var(--app-foreground)]">{label(row.service_type)}</div>
                                                     <div className="max-w-[13rem] truncate text-xs text-[color:var(--app-muted-foreground)]">{label(row.organization)}</div>
                                                 </td>

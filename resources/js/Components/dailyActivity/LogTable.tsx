@@ -22,7 +22,7 @@ export default function LogTable({ logs, emptyText }: { logs: LogSummary[]; empt
 
     return (
         <div className={panelCls}>
-            <table className={cx(tableClassName, 'hidden')}>
+            <table className={cx(tableClassName, 'hidden md:table')}>
                 <thead className={tableHeadClassName}>
                     <tr>
                         <th className={th}>{t('dailyActivities.columns.employee')}</th>

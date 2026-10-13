@@ -15,13 +15,15 @@ interface Item {
 interface Props {
     data: Item[];
     labelFor: (key: string) => string;
+    /** Localised "no data" line; without it the card would show a blank gap. */
+    emptyTitle?: string;
 }
 
-export default function StatusDistribution({ data, labelFor }: Props) {
+export default function StatusDistribution({ data, labelFor, emptyTitle }: Props) {
     const { series: colors } = useChartColors();
 
     if (data.length === 0) {
-        return <EmptyDashboardState compact />;
+        return <EmptyDashboardState compact title={emptyTitle} />;
     }
 
     return (
