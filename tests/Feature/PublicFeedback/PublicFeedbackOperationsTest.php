@@ -15,6 +15,7 @@ use App\Services\ServiceFeedback\PublicFeedbackDataQuality;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Tests\Support\PublicFeedbackScenario;
 
@@ -49,7 +50,11 @@ it('reports findings, repairs only deterministic ones and leaves ambiguous rows 
         'employee_id' => $this->a->employee->id, 'organization_id' => $this->a->organization->id, 'type' => ServiceFeedbackType::Suggestion,
         'comment' => 'Orphan category', 'status' => ServiceFeedbackStatus::Closed, 'submitted_at' => now(),
     ]);
+    // Legacy data only: a live MySQL/PostgreSQL database enforces the foreign key, so the dangling
+    // reference is planted with the constraint switched off for the one statement.
+    Schema::disableForeignKeyConstraints();
     DB::table('employee_service_feedback')->where('id', $orphan->id)->update(['category_id' => '00000000-0000-0000-0000-00000000dead']);
+    Schema::enableForeignKeyConstraints();
 
     $findings = collect(app(PublicFeedbackDataQuality::class)->run())->keyBy('key');
 
